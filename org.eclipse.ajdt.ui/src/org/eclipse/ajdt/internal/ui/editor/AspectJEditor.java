@@ -712,10 +712,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 											+ ajed.getEditorInput().getName());
 							try {
 								ajed.contentOutlinePage.update();
-							} catch (Throwable t) {
+							} catch (Exception e) {
 								AJDTEventTrace
 										.generalEvent("Unexpected exception updating editor outline "
-												+ t.toString());
+												+ e.toString());
 							}
 						}
 					}

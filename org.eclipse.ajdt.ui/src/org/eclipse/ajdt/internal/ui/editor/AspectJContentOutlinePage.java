@@ -288,8 +288,8 @@ implements StructureViewRenderer {
 			public void run( ) {
 				try {
 					update( fView );
-				} catch (Throwable t) {
-					//ErrorHandler.handleError("Document Outline update failed", t);	
+				} catch (Exception e) {
+					//ErrorHandler.handleError("Document Outline update failed", e);	
 				}
 			}	
 		} );		

@@ -386,9 +386,9 @@ public class Builder extends IncrementalProjectBuilder {
 			// to an outjar and if so, then update any depending projects
 			checkOutJarEntry(project);
 			
-		} catch (Throwable t) {
+		} catch (Exception e) {
 			Ajde.getDefault().getErrorHandler().handleError("Compile failed.",
-					t);
+					e);
 		}
 
 		return requiredProjects;
