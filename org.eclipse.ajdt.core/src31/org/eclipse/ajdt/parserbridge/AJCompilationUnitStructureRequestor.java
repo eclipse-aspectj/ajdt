@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,9 +21,6 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeMethodDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
@@ -42,7 +39,6 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -554,13 +550,5 @@ public class AJCompilationUnitStructureRequestor extends
 	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
 		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,false);
 	}
-
-//	public void exitMethod(int declarationEnd, int defaultValueStart, int defaultValueEnd) {
-//		super.exitMethod(declarationEnd);
-//	}
-//
-//	public void exitType(int declarationEnd) {
-//		super.exitClass(declarationEnd);
-//	}
 	
 }

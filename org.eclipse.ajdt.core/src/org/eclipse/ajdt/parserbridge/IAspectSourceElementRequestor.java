@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,8 +16,6 @@ import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 
 /*
