@@ -253,14 +253,14 @@ public class AJProjectModel {
 				//System.out.println("os="+os);
 				//				int offset = os.intValue() + sl.getColumn() + 12;
 				//System.out.println("guessed offset="+offset);
+
+				// the offset we get for declare statement marks the start of the word
+				// "declare", but the IJavaElement seems to start at the word after
+				// "declare", so we need to adjust the offset in this case. 
 				int fff = 0;
-				if (node.toLinkLabelString().indexOf("declare parents") >= 0) {
-					//System.out.println("declare parents");
-					fff = 10;
-				}
-				if (node.toLinkLabelString().indexOf("declare warning") >= 0) {
-					//System.out.println("declare warning");
-					fff = 10;
+				String declare = "declare ";
+				if (node.toLinkLabelString().indexOf(declare) >= 0) {
+					fff = declare.length();
 				}
 				boolean subElement = false;
 				int offset = sl.getOffset();
