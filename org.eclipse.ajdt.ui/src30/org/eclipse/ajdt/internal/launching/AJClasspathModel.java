@@ -11,8 +11,6 @@
 
 package org.eclipse.ajdt.internal.launching;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;

@@ -10,8 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.parserbridge;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
@@ -28,7 +26,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
 import org.aspectj.weaver.patterns.DeclarePrecedence;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElementInfo;
@@ -42,7 +39,6 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
