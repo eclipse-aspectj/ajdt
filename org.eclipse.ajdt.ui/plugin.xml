@@ -140,7 +140,7 @@
           <action
                label="%convertExtToAJ"
                class="org.eclipse.ajdt.ui.refactoring.RenameToAJAction"
-               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
+               menubarPath="additions"
                id="renametoajaction">
          </action>
       </objectContribution>
@@ -151,7 +151,7 @@
           <action
                label="%convertExtToJava"
                class="org.eclipse.ajdt.ui.refactoring.RenameToJavaAction"
-               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
+               menubarPath="additions"
                id="renametojavaaction">
          </action>
       </objectContribution>
