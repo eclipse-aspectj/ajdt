@@ -18,7 +18,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.builder.ProjectDependenciesUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.PluginTestProject;

@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.ui.actions;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.builder.Builder;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;

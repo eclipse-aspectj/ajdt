@@ -22,7 +22,6 @@ import java.util.StringTokenizer;
 import org.aspectj.ajde.TaskListManager;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.ISourceLocation;
-import org.aspectj.bridge.IMessage.Kind;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
