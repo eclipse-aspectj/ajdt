@@ -290,7 +290,8 @@ public class AspectJUIPlugin
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice";
 	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-";
-	
+	public static final String ACCKIND_ATTRIBUTE = "acckind";
+
 	/**
 	 * Return the single default instance of this plugin
 	 */
