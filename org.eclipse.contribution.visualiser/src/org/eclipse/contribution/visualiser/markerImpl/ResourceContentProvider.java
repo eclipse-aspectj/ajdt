@@ -14,7 +14,6 @@ package org.eclipse.contribution.visualiser.markerImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -33,7 +32,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -58,24 +57,36 @@ public class ResourceContentProvider extends SimpleContentProvider implements IS
 	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if(selection instanceof StructuredSelection) {
-			StructuredSelection struct = (StructuredSelection)selection;
-			for(Iterator it = struct.iterator(); it.hasNext();) {
-				Object o = it.next();
-				if(o instanceof IResource) {
-					selectedResource = (IResource)o;
-					break;
+		if(!(ProviderManager.getContentProvider().equals(this))){
+			return;
+		}
+		boolean updateRequired = false;
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection structuredSelection =
+				(IStructuredSelection) selection;
+			Object o = structuredSelection.getFirstElement();
+
+			if (o != null) {
+				if (o instanceof IResource) {
+				    IResource r = (IResource) o;
+					if (selectedResource != r) { //Fix for bug 80920 - test to see whether or not the selection has *actually* changed.
+						selectedResource = r;
+						updateRequired = true;
+					}
 				} else if (o instanceof IJavaElement) {
 					try {
-						selectedResource = ((IJavaElement)o).getCorrespondingResource();
-						break;
+						IResource r = ((IJavaElement)o).getCorrespondingResource();
+						if (selectedResource != r) { //Fix for bug 80920 - test to see whether or not the selection has *actually* changed.
+							selectedResource = r;
+							updateRequired = true;
+						}
 					} catch (JavaModelException jme) { 
 						jme.printStackTrace();
 					}
-				}				
+				}
 			}
 		}
-		if(ProviderManager.getContentProvider().equals(this) && selectedResource != null) {
+		if(updateRequired && selectedResource != null) {
 			updateData();
 			IMarkupProvider mProv = ProviderManager.getMarkupProvider();
 			if(mProv instanceof MarkerMarkupProvider) {

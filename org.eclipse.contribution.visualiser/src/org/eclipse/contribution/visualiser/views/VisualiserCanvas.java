@@ -244,7 +244,7 @@ public class VisualiserCanvas extends Canvas {
 				}
 			}
 		};
-		onlyShowAction.setText(VisualiserPlugin.getResourceString("OnlyShow"));
+		onlyShowAction.setText(VisualiserPlugin.getResourceString("OnlyShow")); //$NON-NLS-1$
 		// add the actions to the menu
 		menuMgr.add(onlyShowAction);
 		contextMenu = menuMgr.createContextMenu(this);
@@ -778,7 +778,7 @@ public class VisualiserCanvas extends Canvas {
 				int y = renderer.getMarginSize()
 						+ renderer.getColumnHeaderHeight();
 				IGroup ig = (IGroup) data.get(i);
-				List mems = (List) ig.getMembers();
+				List mems = ig.getMembers();
 				int size = 0;
 				columns[i] = new ColumnGeom(i);
 				columns[i].member = ig;
@@ -929,7 +929,7 @@ public class VisualiserCanvas extends Canvas {
 							kg.color = visualiser.getVisMarkupProvider()
 									.getColorFor(kind);
 							if(kg.color == null) {
-								throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError"));
+								throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
 							}
 							int nw = (((across + 1) * colWidth) / activeKinds)
 									- ((across * colWidth) / activeKinds);
@@ -973,19 +973,7 @@ public class VisualiserCanvas extends Canvas {
 	}
 
 	private int heightOfMember(IMember m) {
-		IMarkupProvider vmp = visualiser.getVisMarkupProvider();
 		int size = m.getSize().intValue();
-		//		List markups = vmp.getMemberMarkups(m);
-		//		if ((markups != null) && (markups.size() > 0)) {
-		//			for (Iterator iter = markups.iterator(); iter.hasNext();) {
-		//				Stripe s = (Stripe) iter.next();
-		//				int dp = s.getDepth();
-		//				if (dp < VisualiserPreferences.getStripeHeight()) {
-		//					dp = VisualiserPreferences.getStripeHeight();
-		//				}
-		//				size += dp - 1;
-		//			}
-		//		}
 		return size;
 	}
 
@@ -1022,7 +1010,7 @@ public class VisualiserCanvas extends Canvas {
 		horiz.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				scrollToSelection = false;
-				doScroll((ScrollBar) event.widget, true);
+				redraw();
 			}
 		});
 		ScrollBar vert = getVerticalBar();
@@ -1030,13 +1018,9 @@ public class VisualiserCanvas extends Canvas {
 		vert.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				scrollToSelection = false;
-				doScroll((ScrollBar) event.widget, false);
+				redraw();
 			}
 		});
-	}
-
-	private void doScroll(ScrollBar bar, boolean isHoriz) {
-		redraw();
 	}
 
 	private void configScrollBars() {
@@ -1098,7 +1082,7 @@ public class VisualiserCanvas extends Canvas {
 		if ((data == null) || (data.size() == 0)) {
 			String empty = ""; //$NON-NLS-1$
 			if (ProviderManager.getCurrent() != null) {
-				empty = ProviderManager.getCurrent().getEmptyMessage() != null ? ProviderManager.getCurrent().getEmptyMessage() : "";
+				empty = ProviderManager.getCurrent().getEmptyMessage() != null ? ProviderManager.getCurrent().getEmptyMessage() : ""; //$NON-NLS-1$
 			}
 			sgc.drawText(empty, renderer.getMarginSize(), renderer
 					.getMarginSize());

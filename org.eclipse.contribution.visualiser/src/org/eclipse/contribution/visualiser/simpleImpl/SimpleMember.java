@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.simpleImpl;
 
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.*;
 
 /**
@@ -38,8 +39,10 @@ public class SimpleMember implements IMember {
 	 * name and size.
 	 */
 	public String toString() {
-		return "SimpleMember:[" + fullname + "] Size:[" + size.toString() + "]";
-	}
+		return VisualiserPlugin.getResourceString("SimpleMember") + ":[" //$NON-NLS-1$ //$NON-NLS-2$
+                + fullname + "] " + VisualiserPlugin.getResourceString("Size") //$NON-NLS-1$ //$NON-NLS-2$
+                + ":[" + size.toString() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+    }
 	
 	
 	public void setFullName(String fullName) {
@@ -53,7 +56,7 @@ public class SimpleMember implements IMember {
 	public String getFullname() {
 		if(fullname == null) {
 			if(containingGroup != null && containingGroup.getFullname() != null){
-				fullname = containingGroup.getFullname()+"."+name;	
+				fullname = containingGroup.getFullname() + "." + name; //$NON-NLS-1$
 			} else {
 				fullname = name;
 			}			

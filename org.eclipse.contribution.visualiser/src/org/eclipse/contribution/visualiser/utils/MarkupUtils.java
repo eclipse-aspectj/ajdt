@@ -26,7 +26,7 @@ public class MarkupUtils {
 	 * @param stripes
 	 */
 	public static void processStripes(List stripes) {
-		long start = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
 		if (stripes == null)
 			return;
 

@@ -157,9 +157,9 @@ public class DefaultVisualiserPalette implements IVisualiserPalette {
 	 * @return randomly generated Color
 	 */
 	public RGB getRandomRGBValue() {
-		int r = (int) (((int) (Math.random() * (double) 40)) * 5 + 50);
-		int g = (int) (((int) (Math.random() * (double) 40)) * 5 + 50);
-		int b = (int) (((int) (Math.random() * (double) 40)) * 5 + 50);
+		int r = (((int) (Math.random() * 40)) * 5 + 50);
+		int g = (((int) (Math.random() * 40)) * 5 + 50);
+		int b = (((int) (Math.random() * 40)) * 5 + 50);
 		return new RGB(r, g, b);
 	}
 

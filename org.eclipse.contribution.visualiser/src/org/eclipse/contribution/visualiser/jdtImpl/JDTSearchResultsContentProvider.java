@@ -27,7 +27,6 @@ public class JDTSearchResultsContentProvider extends JDTContentProvider {
 
 	private static VisualiserPropertyListener visListenerInstance = null;
 	
-	private boolean searchViewWasClosed = true;
 	private ISearchResultViewPart searchView = null;
 	
 

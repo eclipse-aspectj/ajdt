@@ -104,7 +104,7 @@ public class Visualiser extends ViewPart {
 	 */
 	public void createPartControl(Composite parent) {
 		try {	
-			getSite().getPage().showView("org.eclipse.contribution.visualiser.views.Menu");
+			getSite().getPage().showView("org.eclipse.contribution.visualiser.views.Menu"); //$NON-NLS-1$
 		} catch (PartInitException pie) {
 			VisualiserPlugin.logException(pie);
 		}
@@ -265,9 +265,9 @@ public class Visualiser extends ViewPart {
 			}
 		};
 		fitToViewAction.setText(VisualiserPlugin
-				.getResourceString("Absolute_Proportions"));
+				.getResourceString("Absolute_Proportions")); //$NON-NLS-1$
 		fitToViewAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Absolute_Proportions"));
+				.getResourceString("Absolute_Proportions")); //$NON-NLS-1$
 		fitToViewAction
 				.setImageDescriptor(VisualiserImages.FIT_TO_VIEW);
 	}
@@ -455,7 +455,7 @@ public class Visualiser extends ViewPart {
 
 		 private synchronized Job getVisualiserRedrawJob() {
 		 		 if (redrawJob == null) {
-		 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) {
+		 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
 
 		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
 		 		 		 		 		 visCanvas.redraw(data);

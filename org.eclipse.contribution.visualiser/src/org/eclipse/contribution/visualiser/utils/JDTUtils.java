@@ -70,7 +70,6 @@ public class JDTUtils {
 		if (jElem instanceof ICompilationUnit) {
 			try {
 				ICompilationUnit cUnit = (ICompilationUnit) jElem;
-				String source = cUnit.getSource();
 				IType type = cUnit.findPrimaryType();
 				if(type != null) {
 					return getLineNumFromOffset(cUnit,type.getNameRange().getOffset());

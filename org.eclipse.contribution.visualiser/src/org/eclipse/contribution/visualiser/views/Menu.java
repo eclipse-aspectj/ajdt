@@ -179,7 +179,7 @@ public class Menu extends ViewPart {
 			public void widgetSelected(SelectionEvent e) {
 				if (!(VisualiserPlugin.visualiser == null)) {
 					for (int i = 0; i < colors.length; i++) {
-						kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(checkboxes[i].getSelection()));	
+						kindActive.put(labels[i].getData(),new Boolean(checkboxes[i].getSelection()));	
 					}
 					VisualiserPlugin.visualiser.updateDisplay(false);
 				}
@@ -243,7 +243,7 @@ public class Menu extends ViewPart {
 		if(checkboxes!=null){
 			for (int i = 0; i < checkboxes.length; i++) {
 				checkboxes[i].setSelection(true);						
-				kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(checkboxes[i].getSelection()));
+				kindActive.put(labels[i].getData(), new Boolean(checkboxes[i].getSelection()));
 			}
 			VisualiserPlugin.visualiser.draw();
 		}
@@ -257,7 +257,7 @@ public class Menu extends ViewPart {
 		if(checkboxes!=null){
 			for (int i = 0; i < checkboxes.length; i++) {
 				checkboxes[i].setSelection(false);						
-				kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(false));
+				kindActive.put(labels[i].getData(), new Boolean(false));
 			}
 			VisualiserPlugin.visualiser.draw();				
 		}
@@ -279,10 +279,10 @@ public class Menu extends ViewPart {
 			for(int i=0; i<labels.length; i++){
 				if(names.contains(labels[i].getText())){
 					checkboxes[i].setSelection(true);
-					kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(true));
+					kindActive.put(labels[i].getData(), new Boolean(true));
 				} else {
 					checkboxes[i].setSelection(false);
-					kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(false));
+					kindActive.put(labels[i].getData(), new Boolean(false));
 				}
 			}
 			VisualiserPlugin.visualiser.draw();
@@ -343,7 +343,7 @@ public class Menu extends ViewPart {
 
 		 private synchronized Job getUpdateJob() {
 		 		 if (updateJob == null) {
-		 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){
+		 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){ //$NON-NLS-1$
 
 		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
 		 		 		 		 		 clear();
@@ -371,7 +371,7 @@ public class Menu extends ViewPart {
 		 		 		 		 		 		 		 int imageSize = 12;
 		 		 		 		 		 		 		 colors[i] = vmp.getColorFor(element);
 		 		 		 		 		 		 		 if(colors[i] == null) {
-		 		 		 		 		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError"));
+		 		 		 		 		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
 		 		 		 		 		 		 		 }
 		 		 		 		 		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
 		 		 		 		 		 		 		 shells[i] = buttons[i].getShell();
@@ -452,6 +452,7 @@ public class Menu extends ViewPart {
 	 * Dispose of the menu when closed.
 	 */
 	public void dispose() {
+	    canvas = null;
 		VisualiserPlugin.getDefault().removeMenu();
 	}
 

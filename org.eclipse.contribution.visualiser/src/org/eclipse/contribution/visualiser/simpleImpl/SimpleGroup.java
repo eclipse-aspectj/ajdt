@@ -141,8 +141,11 @@ public class SimpleGroup implements IGroup {
 	 * the size and the number of members.
 	 */
 	public String toString() {
-		return VisualiserPlugin.getResourceString("SimpleGroup") + ":[" + name + "] " + VisualiserPlugin.getResourceString("Size") + ":[" + getSize() + "]  Kids:["
-				+ kids.size() + "]";
+		return VisualiserPlugin.getResourceString("SimpleGroup") + ":[" + name //$NON-NLS-1$ //$NON-NLS-2$
+                + "] " + VisualiserPlugin.getResourceString("Size") + ":["//$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                + getSize() + "]  "//$NON-NLS-1$
+                + VisualiserPlugin.getResourceString("Children") + ":["//$NON-NLS-1$ //$NON-NLS-2$
+                + kids.size() + "]";//$NON-NLS-1$
 	}
 
 }
