@@ -17,7 +17,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
-import org.eclipse.ajdt.internal.builder.AJModel;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;

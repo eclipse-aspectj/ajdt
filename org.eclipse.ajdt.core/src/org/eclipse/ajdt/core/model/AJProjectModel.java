@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.builder;
+package org.eclipse.ajdt.core.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,8 +26,6 @@ import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.model.AJRelationship;
-import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

@@ -9,19 +9,18 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.builder;
+package org.eclipse.ajdt.core.model;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.model.AJRelationship;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+//import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -43,9 +42,10 @@ public class AJModel {
 	// needs which project is being built, if any
 	private IProject beingBuilt = null;
 	
-	//new
 	private Map projectModelMap = new HashMap();
 	
+	private static String lastLoadedConfigFile;
+
 	private AJModel() {
 
 	}
@@ -92,8 +92,8 @@ public class AJModel {
 	private AJProjectModel getModelForProject(IProject project) {
 		AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
 		if (pm==null) {
-			AJDTEventTrace.generalEvent("No current AJ model for project "+project.getName());
-			StructureModelUtil.initialiseAJDE(project);
+			//AJDTEventTrace.generalEvent("No current AJ model for project "+project.getName());
+			initialiseAJDE(project);
 			createMap(project);
 			pm = (AJProjectModel)projectModelMap.get(project);
 		}
@@ -182,7 +182,7 @@ public class AJModel {
 				public void run(IProgressMonitor monitor) {
 					projectModel.createProjectMap();
 					long elapsed = System.currentTimeMillis() - start;
-					AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName()+" in "+elapsed+"ms");
+					//AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName()+" in "+elapsed+"ms");
 				}
 			}, null);
 		} catch (CoreException coreEx) {
@@ -274,8 +274,8 @@ public class AJModel {
 		if (res!=null && (res instanceof IFile)) {
 			IFile file = (IFile)res;
 			//initForFile(file);
-			System.out.println("ipe="+ipe+" ("+ipe.hashCode()+")");
-			System.out.println("project="+file.getProject());
+			//System.out.println("ipe="+ipe+" ("+ipe.hashCode()+")");
+			//System.out.println("project="+file.getProject());
 			AJProjectModel pm = getModelForProject(file.getProject());
 			if (pm==null) {
 				return null;
@@ -334,5 +334,18 @@ public class AJModel {
 	}
 */
 	
+	// should be able to make this private, when all of AJDT uses the new model
+	/**
+	 * This method sets the current project and initialises AJDE
+	 */
+	public static void initialiseAJDE(IProject withProject) {
+		String configFile = AspectJPlugin.getBuildConfigurationFile(withProject);
+		if (!configFile.equals(lastLoadedConfigFile)) {
+			//AJDTEventTrace.generalEvent("initialiseAJDE: switching configs - from:"+lastLoadedConfigFile+" to:"+configFile);
+			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
+				configFile);
+			lastLoadedConfigFile = configFile;
+		}
+	}
 
 }

@@ -11,7 +11,7 @@
 package org.eclipse.ajdt.buildconfigurator;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.builder.AJModel;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;

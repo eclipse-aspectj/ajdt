@@ -44,9 +44,9 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 
 	private ImageDescriptor id;
 	
-	public DynamicBuildConfigurationMenu() {
+	public DynamicBuildConfigurationMenu(String menuID) {
 		super(AspectJUIPlugin
-				.getResourceString("BCLabels.ConfigurationSelectionMenu"));
+				.getResourceString("BCLabels.ConfigurationSelectionMenu"),menuID);
 		separator = new Separator();
 
 		id = AspectJImages.BC_TICK.getImageDescriptor();

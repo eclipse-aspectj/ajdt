@@ -12,6 +12,7 @@ package org.eclipse.ajdt.buildconfigurator;
 
 import org.eclipse.ajdt.buildconfigurator.menu.DynamicBuildConfigurationMenu;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IWindowListener;
@@ -29,6 +30,7 @@ public class BCWorkbenchWindowInitializer implements IWindowListener, IStartup {
 	private BuildConfigurator buildConfigurator;
 	private IWorkbench workbench;
 
+	private static final String BUILD_MENU_ID = "org.eclipse.ajdt.BuildMenu";
 	
 	/**
 	 * @param workbench
@@ -66,8 +68,11 @@ public class BCWorkbenchWindowInitializer implements IWindowListener, IStartup {
 		window.getSelectionService().addSelectionListener(buildConfigurator);
 		IMenuManager imm = ((WorkbenchWindow)window).getMenuManager();
 		imm = imm.findMenuUsingPath("project");
-		//in 3M6: immSub.insertAfter("rebuildAll", dbcm);
-		imm.insertAfter("buildProject", new DynamicBuildConfigurationMenu());
+		// only add the menu if it's not already there
+		IContributionItem buildMenu = imm.find(BUILD_MENU_ID);
+		if (buildMenu == null) {
+			imm.insertAfter("buildProject", new DynamicBuildConfigurationMenu(BUILD_MENU_ID));
+		}
 	}
 
 	public void earlyStartup() {

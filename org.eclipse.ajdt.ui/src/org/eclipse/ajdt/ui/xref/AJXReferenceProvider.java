@@ -18,9 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
-import org.eclipse.ajdt.internal.builder.AJModel;
 import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;

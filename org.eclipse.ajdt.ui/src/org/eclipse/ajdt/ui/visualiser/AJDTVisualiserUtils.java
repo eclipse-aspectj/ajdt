@@ -25,6 +25,7 @@ import java.util.Set;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
@@ -252,7 +253,7 @@ public class AJDTVisualiserUtils {
 	
 		project = JP.getProject();
 	
-		StructureModelUtil.initialiseAJDE(project);
+		AJModel.initialiseAJDE(project);
 	
 		List packages = StructureModelUtil.getPackagesInModel();
 	
@@ -291,7 +292,7 @@ public class AJDTVisualiserUtils {
 		IJavaProject JP = pf.getJavaProject();
 		project = JP.getProject();
 		LinkedList returningClasses = new LinkedList();	
-		StructureModelUtil.initialiseAJDE(project);
+		AJModel.initialiseAJDE(project);
 		
 		try {
 			ICompilationUnit[] packageFragmentChildren = pf.getCompilationUnits();
@@ -423,7 +424,7 @@ public class AJDTVisualiserUtils {
 	
 		project = CU.getJavaProject().getProject();
 	
-		StructureModelUtil.initialiseAJDE(project);
+		AJModel.initialiseAJDE(project);
 	
 		LinkedList returningClasses = new LinkedList();
 		List packages = StructureModelUtil.getPackagesInModel();

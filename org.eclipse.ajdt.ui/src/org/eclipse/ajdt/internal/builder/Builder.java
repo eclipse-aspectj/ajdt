@@ -32,6 +32,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.CoreUtils;
