@@ -2,12 +2,14 @@
 	<topic label="API Reference" href="doc/javadoc/overview-summary.html" >
 		<topic label="org.eclipse.contribution.visualiser" href="doc/javadoc/org/eclipse/contribution/visualiser/package-summary.html" /> 
 	    <topic label="org.eclipse.contribution.visualiser.core" href="doc/javadoc/org/eclipse/contribution/visualiser/core/package-summary.html" /> 
+	    <topic label="org.eclipse.contribution.visualiser.core.resources" href="doc/javadoc/org/eclipse/contribution/visualiser/core/resources/package-summary.html" /> 
 	    <topic label="org.eclipse.contribution.visualiser.interfaces" href="doc/javadoc/org/eclipse/contribution/visualiser/interfaces/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.interfaces.simpleImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/interfaces/simpleImpl/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.internal.preference" href="doc/javadoc/org/eclipse/contribution/visualiser/internal/preference/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.jdtimpl" href="doc/javadoc/org/eclipse/contribution/visualiser/jdtimpl/package-summary.html" /> 
+		<topic label="org.eclipse.contribution.visualiser.markerimpl" href="doc/javadoc/org/eclipse/contribution/visualiser/markerimpl/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.utils" href="doc/javadoc/org/eclipse/contribution/visualiser/utils/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.views" href="doc/javadoc/org/eclipse/contribution/visualiser/views/package-summary.html" /> 
 	</topic>
-	<topic label="Extension Points Reference" href="doc/org_eclipse_contribution_visualiser_providers.html" />
+	<topic label="Extension Points Reference" href="doc/extension_points.html" />
 </toc>

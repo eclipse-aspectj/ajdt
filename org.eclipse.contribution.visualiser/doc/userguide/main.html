@@ -13,13 +13,13 @@
 <H2>Overview </H2></a>
 <p>The Visualiser is an extensible plugin that can be used to visualize anything that can be
 represented by bars and stripes.  It began as the Aspect Visualiser, which was a part of the popular AJDT
-plugin where it was created to visualize how aspects were affecting classes in a project, 
+plugin. It was originally created to visualize how aspects were affecting classes in a project, 
 but has since been extracted to become its own component.</p>
 <p><img src="visualiser.png" alt="The two Visualiser Views"> </p>
 <p>The Visualiser plugin has two views - the main Visualiser view, which displays
 the bar drawing, and the Visualiser Menu, which displays the 'kinds' of stripes that
 appear on the bars.  The Menu is used to activate and deactivate kinds, and to change
-the colours used. Bars in the Visualiser are given a white background if they have ny stripes attached to them,
+the colours used. Bars in the Visualiser are given a white background if contain any stripes,
 otherwise they are dark grey.</p>
 
 <a name="modes">
@@ -47,23 +47,19 @@ button.</p>
 <p>As well as Member and Group views, the Visualiser provides a variety of means
 of manipulating the bar drawing it produces.</p>
 <ul>
-<li><p>Deselecting kinds<br><br></p><p><img src="kinds.png"><br><br></p></li>
-<li><p>Changing the colours of kinds. (Click one of the buttons with a coloured square
+<li><p>Deselect kinds<br><br></p><p><img src="kinds.png"><br><br></p></li>
+<li><p>Change the colours of kinds. (Click one of the buttons with a coloured square
 on to bring up a colour selection dialog for that kind).<br><br></p><p><img src="colours.png"><br><br></p></li>
 <li><p>Limit to affected bars only<br><br></p><p><img src="limit.png"><br><br></p></li>
 <li><p>Zoom in<br><br></p><p><img src="zoom.png"><br><br></li>
-<li><p>Show or hide demarcations between members in Group View (Use the preference page to set)<br><br></p><p><img src="demarcation.png" alt="Demarcation"><br><br>
-	<img src="without_demarcation.png" alt="Without Demarcation"><br><br></p></li>
-<li><p>Change the minimum bar width (Use the preference page to set)<br><br></p><p><img src="minimum1.png"><br><br>
-	<img src="minimum2.png"><br><br></p></li>
-<li><p>Change the maximum bar width (Use the preference page to set)<br><br></p><p><img src="maximum1.png"><br><br>
-	<img src="maximum2.png"><br><br></p></li>
-<li><p>Change the minimum stripe depth (Use the preference page to set)<br><br></p><p><img src="stripes1.png"><br><br>
-	<img src="stripes2.png"><br><br></p></li>
-<li><p>View the image in absolute proportions, such that each blank line and
-	stripe is the same depth, which is at least the minimum stripe depth<br><br></p>
-	<p><img src="without_absolute_proportions.png"><br><br><img src="absolute_proportions.png"><br><br></p></li>
+<li><p>Fit to view, where the image is resized to fit the window or be the smallest it can 
+after obeying certain minimums.<br><br></p>
+	<p><img src="fit_to_view.png"><br><br></p></li>
 </ul>
+
+<p>The 'Drawing Options' tab of the Visualiser preference page allows the user to further customise the view with preferred column width and stripe height settings
+and a selection of rendering styles. <br><br></p> 
+<p><img src="preferences.png" alt="preferences page"><br><br></p></li>
 
 <a name="quick">
 <H2>Quick-Select Actions</H2></a>
@@ -84,13 +80,16 @@ This is particularly useful for large data sets.</p>
 provided.  The Visualiser preferences page allows users to switch between providers.</p>
 <p>To open the preference page click "Window" &gt; "Preferences", then select "Visualiser"
 from the left hand menu.  Alternatively click "Preferences" from the drop-down menu in the
-Visualiser view.</p>
+Visualiser view.<br><br></p>
+
+<p><img src="preferences2.png"><br><br></p>
+
 <p>The Visualiser comes with three built-in providers:
 <ul>
-<li>a simple file provider which reads bar and stripe infromation from two files</li>
-<li>a JDT provider which responds to selections in the package explorer and displays 
-    Java classes as bars</li>
-<li>a JDT search results provider which displays Java classes as bars and the results 
+<li>a simple file provider that reads bar and stripe infromation from two files</li>
+<li>a resources and markers provider that responds to selections in the workbench and displays 
+    files as bars, with associated markers as stripes,</li>
+<li>a JDT search results provider that displays Java classes as bars and the results 
     of the most recent Java search as stripes.</li> 
 </ul>
 </p>

@@ -1,8 +1,10 @@
 org.eclipse.contribution.visualiser
 org.eclipse.contribution.visualiser.core
+org.eclipse.contribution.visualiser.core.resources
 org.eclipse.contribution.visualiser.interfaces
 org.eclipse.contribution.visualiser.interfaces.simpleImpl
 org.eclipse.contribution.visualiser.internal.preference
 org.eclipse.contribution.visualiser.jdtimpl
+org.eclipse.contribution.visualiser.markerimpl
 org.eclipse.contribution.visualiser.utils
 org.eclipse.contribution.visualiser.views

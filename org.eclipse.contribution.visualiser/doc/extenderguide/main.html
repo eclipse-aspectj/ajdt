@@ -4,35 +4,46 @@
 <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <META name="GENERATOR" content="IBM WebSphere Studio Homepage Builder V6.0.2 for Windows">
 <META http-equiv="Content-Style-Type" content="text/css">
+
+
 <link rel="STYLESHEET" href="../book.css" charset="ISO-8859-1" type="text/css">
-<TITLE></TITLE>
+<TITLE>Extending the Visualiser</TITLE>
 </HEAD>
 <BODY>
 <H1 style="text-align:center" align="center">Extending the Visualiser</H1>
-<a name="background">
-<H2>1 Background</H2></a>
+<a name="background"></a>
+<H2><a name="background">1 Background</a></H2>
 <p>This page describes how to work with the Visualiser - the focus is on how
 to create visualizations of your own data.</p>
 <H3> <I>1.1 Groups and Members</I></H3>
 <p>The
-simplest unit in the visualization is called a member, these members can be
-combined into a group (exactly the same as java source files can be grouped
-into packages) – don’t put groups into groups, it is not supported.<span
+simplest unit in the visualization is called a member.  Members are
+always contained in a group (exactly the same as java source files can be grouped
+into packages.) Don’t put groups into groups, it is not supported.<span
 style='mso-spacerun:yes'>&nbsp; </span>The interfaces that the Visualiser works with
 are IMember and IGroup. There are simple implementations of these interfaces in the Visualiser,
 called SimpleMember and SimpleGroup.<span style='mso-spacerun:yes'>&nbsp; </span>Unless there is a good reason not to, it is advised that you use these
 implementations in your extensions.<span style='mso-spacerun:yes'>&nbsp; </span>If you really need to include some meta-information about members/groups
 – they should be subclassed and your Visualiser extensions should use the
-subclasses.</p>
+subclasses.<BR>
+<h4>Groups and Members represented in Member View:</h4>
+<BR>
+<P><IMG src="groupmember2.png" border="0"></P>
+<h4>Groups and Members represented in Group View:</h4>
+<BR>
+<P><IMG src="groupmember.png" border="0"></P>
+<P><BR>
+For more about group and member view, see <A href="../userguide/main.html">'Using the Visualiser'</A>.</P>
+<BR>
 
-<a name="provider">
-<H2>2 Writing a Provider</H2></a>
+<H3> <I>1.2 Stripes</I></H3>
+<p>Stripes are used to represent information about a member.  Stripes are each of a certain 'kind', which is distinguished by their
+color.  The Visualiser Menu view displays the kind-color pairs.</p>
+
+<a name="provider"></a>
+<H2><a name="provider">2 Writing a Provider</a></H2>
 <H3><I>2.1 Architecture</I></H3>
-<p>In
-order to extend the Visualiser, you have to understand a little about its
-architecture. The original Visualiser showed AspectJ and Java source files as
-the bars in the Visualiser, whilst any advice affecting those source files was
-shown as coloured lines across the bars.<span style='mso-spacerun:yes'>&nbsp;
+<p>In order to extend the Visualiser, you have to understand a little about its architecture. The original Visualiser showed AspectJ and Java source files as the bars in the Visualiser, whilst any advice affecting those source files was shown as colored lines across the bars.<span style='mso-spacerun:yes'>&nbsp;
 </span>The new Visualiser is entirely decoupled from AspectJ and even the
 JDT.<span style='mso-spacerun:yes'>&nbsp; </span>You can visualize markups on
 whatever you want.<span style='mso-spacerun:yes'>&nbsp; </span>The key two interfaces are:&nbsp;</p>
@@ -45,10 +56,9 @@ tab-stops:list 36.0pt'>
 IContentProvider – The implementer of this
 class is responsible for telling the Visualiser what the different bars are in
 the Visualiser.
-</li><li>
-IMarkupProvider – The implementer of this
-class is responsible for telling the Visualiser what coloured marks (called
-stripes) should be placed on each member.<span style='mso-spacerun:yes'>&nbsp;
+</li><li>IMarkupProvider – The implementer of this class is responsible for telling
+  the Visualiser what colored marks (called stripes) should be placed on
+  each member.<span style='mso-spacerun:yes'>&nbsp;
 </span>
 </li></ul>
 <p>Extension
@@ -83,23 +93,22 @@ mso-highlight:white'>VisualiserPlugin.refreshVisualisation()</span></p>
 
 <p>Dynamic providers should use this method if their model changes post initialization.<span style='mso-spacerun:yes'></span></p>
 
-<a name="register">
-<H2>3 Registering your provider</H2></a>
+<a name="register"></a>
+<H2><a name="register">3 Registering your provider</a></H2>
 <p>Providers are registerd through Eclipse's extension point mechanism.  You will need
 to define your extension in the plugin.xml file for your plugin.  To see the schema for the extension point and
 an example <a href="../org_eclipse_contribution_visualiser_providers.html">click here</a>.</p>
 
 
-<a name="features">
-<H2>4 Other features</H2></a>
-
+<a name="features"></a>
+<H2><a name="features">4 Other features</a></H2>
 <p>After reading the previous sections, you should be able to get your own data on the
 screen.<span style='mso-spacerun:yes'>&nbsp; </span>But there are still a lot of
 things you might be interested in doing…</p>
 
-<H3><I>4.1 Colour Management</I></H3>
+<H3><I>4.1 Color Management</I></H3>
 
-<p>The SimpleMarkupProvider automatically manages the colours for your stripes.<span style='mso-spacerun:yes'>&nbsp; </span>In order to manage them yourself, the two methods to implement from the IMarkupProvider interface are:</p>
+<p>The SimpleMarkupProvider automatically manages the colors for your stripes.<span style='mso-spacerun:yes'>&nbsp; </span>In order to manage them yourself, the two methods to implement from the IMarkupProvider interface are:</p>
 
 <p><span lang=EN-US style='font-size:9.0pt;font-family:"Courier New";
 background:white;mso-highlight:white'><span style='mso-tab-count:1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
@@ -115,10 +124,12 @@ style='color:#7F0055'>void</span> <span style='color:black'>setColorFor(String</
 style='color:black'>color);</span></span></p>
 
 <p>The second of the two methods is called when the user interacts with the
-Visualiser Menu, clicking the coloured square next to a kind – this actually
+Visualiser Menu, clicking the colored square next to a kind – this actually
 pops up in an in place color picker – and after the user has selected an
 appropriate color, the call is made to setColorFor to tell the markup implementer
-that it has happened.</p>
+that it has happened.<BR>
+<BR>
+Alternatively you can associate a <A href="#palettes">color palette</A> with your provider via the providers extension point.</p>
 
 <H3><I>4.2 Handling clicks</I></H3>
 
@@ -169,9 +180,7 @@ parameters are as follows:</p>
 <UL>
   <LI>
   <p>The fullmembername is the dotted notation for the member name, so “&lt;group&gt;.&lt;member&gt;”. </p></li>
-  <LI><p>The stripe is the instance of Stripe that represents that horizontal strip
-on the member – this might be a compound stripe if there are multiple colours
-on the line, which is why we have…</p>
+  <LI><p>The stripe is the instance of Stripe that represents that horizontal strip on the member – this might be a compound stripe if there are multiple colors on the line, which is why we have…</p>
 </li>
   <LI><p>exactKind is the exact kind from stripe that was clicked upon.<span
 style='mso-spacerun:yes'>&nbsp; </span>If the stripe had kinds ‘S1’, ‘S2’, ‘S3’ then
@@ -209,15 +218,14 @@ text-autospace:none'><span lang=EN-US style='font-size:9.0pt;font-family:
 lang=EN-US style='font-size:9.0pt;font-family:"Courier New";background:white;
 mso-highlight:white'> <span style='color:black'>buttonClicked);</span></span><span
 lang=EN-US style='font-size:9.0pt;font-family:"Courier New"'></span></p>
-<p>This
-handler is called if the user clicks anywhere on a member – not just when they
-click on a coloured stripe/markup.<span style='mso-spacerun:yes'>&nbsp; </span>The
+<p>This handler is called if the user clicks anywhere on a member – not just
+when they click on a colored stripe/markup.<span style='mso-spacerun:yes'>&nbsp; </span>The
 parameters are as follows:</p>
 
 <p>The fullmembername is the dotted notation for the member name, so “&lt;group&gt;.&lt;member&gt;”.
 </p>
-<p>markupWasClicked indicates if the user did actually click a coloured
-stripe on the member.<span style='mso-spacerun:yes'>&nbsp; </span>If this is true, then you know the other handler in IMarkupProvider is
+<p>markupWasClicked indicates if the user did actually click a colored stripe
+on the member.<span style='mso-spacerun:yes'>&nbsp; </span>If this is true, then you know the other handler in IMarkupProvider is
 also going to be called.</p>
 
 <p>buttonClicked is 1,2 or 3 depending on whether the mouse click was left,
@@ -237,9 +245,27 @@ stripe is clicked within in a member, you might get one or two chances to
 handle a mouse click – the markup provider will get called if a stripe was
 clicked.<span style='mso-spacerun:yes'>&nbsp; </span>The content provider will
 always get called.</p>
-
-<a name="forthcoming">
-<H2>5 Forthcoming providers</H2></a>
+<H2><a name="renderers">5 Renderers</a></H2>
+<p>The Visualiser comes with several renderers, which draw the bars in different
+ways.
+<h4>Default renderer:</h4>
+<IMG src="default.png" width="629" height="291" border="0"><BR>
+<h4>
+Cylinder renderer:</h4>
+<IMG src="cylinder.png" width="629" height="290" border="0"><BR>
+<BR>
+It is relatively easy to add your own renderer if you wish to. 
+There is a simple extension point and a single interface to provide an implementer of. 
+In addition you can subclass one of the provided renderers. To see the schema click 
+<A href="../org_eclipse_contribution_visualiser_renderers.html">here</A>.
+<H2><a name="palettes">6 Color Palettes</a></H2>
+<p>A color palette is a set of colors that the Visualiser uses to select the
+colors for stripe kinds from. A default palette is provided with the Visualiser.
+You can also provide your own palette implementation. This may be useful
+if you want to exclude certain colors or tones, or limit the palette in
+any other way. To see the schema for this extension point click <A href="../org_eclipse_contribution_visualiser_palettes.html">here</A>.</p>
+<a name="forthcoming"></a>
+<H2><a name="forthcoming">7 Forthcoming providers</a></H2>
 <p>In addition to the included providers, we are also
 working on a CVS provider.<span
 style='mso-spacerun:yes'>&nbsp;</span></p>
