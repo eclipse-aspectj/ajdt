@@ -1,0 +1,25 @@
+Advised By Links (bug 76061)
+---------------------------------
+Install the Spacewar example.
+
+Move the coordination package to an alternative folder in the file system 
+outside the workspace e.g. C:\temp\spacewar
+
+Create a linked folder that links to the folder above 'coordination'. (New >
+Folder, then use the 'Advanced>>' button to link to a folder in the file 
+system).
+
+Convert the linked folder to a source folder (New > Source Folder, insert name
+of folder you just created).
+
+Rebuild and open one of the files in the spacewar package that is advised by an
+aspect.  Right click on one of the advice markers, click 'Advised by..', then
+click on the advice image in the sub-menu.  The aspect containing the advice 
+should be opened in the editor (at the location of the advice).
+
+
+Missing markers (bug 70658)
+-------------------------------
+Open a file in the editor that has some advice markers.  Close the outline view
+then restart the workbench.  The advice markers should still be able to be
+seen on the open file.
