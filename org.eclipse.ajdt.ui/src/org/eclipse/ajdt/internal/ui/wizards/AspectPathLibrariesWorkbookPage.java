@@ -88,7 +88,7 @@ public class AspectPathLibrariesWorkbookPage extends
             /* IDX_ADDEXT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addextjar.button"), //$NON-NLS-1$
             /* IDX_ADDVAR */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addvariable.button"), //$NON-NLS-1$
             /* IDX_ADDLIB */ //AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
-            /* IDX_ADDFOL */ null, //AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
+            /* IDX_ADDFOL */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
             /* */ null,  
             /* IDX_EDIT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.edit.button"), //$NON-NLS-1$
             /* IDX_REMOVE */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.remove.button") //$NON-NLS-1$
