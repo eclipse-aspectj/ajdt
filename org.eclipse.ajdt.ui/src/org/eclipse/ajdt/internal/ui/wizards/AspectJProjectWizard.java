@@ -79,7 +79,7 @@ public class AspectJProjectWizard
 	 * @see Wizard#performFinish
 	 */
 	public boolean performFinish() {
-
+		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		IProject project = fJavaPage.getNewJavaProject().getProject();
 		boolean useExisting = fMainPage.useExistingProjectStructure();
 		
@@ -129,7 +129,6 @@ public class AspectJProjectWizard
 		        return false;
 			}
 		}
-		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		boolean completed = finalizeNewProject(project, useExisting);
 		return completed;
 	}

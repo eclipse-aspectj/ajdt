@@ -103,6 +103,7 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 	 * @see Wizard#performFinish
 	 */		
 	public boolean performFinish() {
+		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		AspectJExampleCreationOperation runnable= new AspectJExampleCreationOperation(fPages, new ImportOverwriteQuery());
 		
 		IRunnableWithProgress op= new WorkspaceModifyDelegatingOperation(runnable);
@@ -114,7 +115,6 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 		} catch  (InterruptedException e) {
 			return false;
 		}
-		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		IResource res= runnable.getElementToOpen();
 		if (res != null) {
 			openResource(res);
