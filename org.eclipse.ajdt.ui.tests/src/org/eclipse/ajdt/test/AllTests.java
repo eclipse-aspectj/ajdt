@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.actions.AddAJNatureActionTest;
 import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
+import org.eclipse.ajdt.internal.ui.ajde.ProjectPropertiesTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditorTest;
 import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
@@ -85,6 +86,7 @@ public class AllTests {
 		
 		// internal.ui.ajde tests
 		suite.addTest(new TestSuite(ClasspathOrderTest.class));
+		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
 
 		// internal.ui.editor.quickfix tests
 		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
