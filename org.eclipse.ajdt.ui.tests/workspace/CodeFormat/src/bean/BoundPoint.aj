@@ -21,7 +21,7 @@ import java.io.Serializable;
  * Add bound properties and serialization to point objects
  */
 
-aspect BoundPoint {
+privileged aspect BoundPoint {
 /*
  * privately introduce a field into Point to hold the property change support
  * object. `this' is a reference to a Point object.
