@@ -29,6 +29,7 @@ import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditorTest;
+import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
@@ -76,6 +77,9 @@ public class AllTests {
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
 
+		// code format tests
+		suite.addTest(new TestSuite(CodeFormatTest.class));
+		
 		// internal.ui.ajde tests
 		suite.addTest(new TestSuite(ClasspathOrderTest.class));
 
