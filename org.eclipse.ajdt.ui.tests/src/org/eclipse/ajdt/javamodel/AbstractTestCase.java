@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.javamodel;
 
+import java.io.File;
+
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.test.utils.Utils;
@@ -37,7 +39,7 @@ public abstract class AbstractTestCase extends TestCase {
 		super.setUp();
 		myProject = Utils.getPredefinedProject("javamodelEnhancementTesting", true);
 		Utils.waitForJobsToComplete(myProject);
-		IFile f = myProject.getFile("src\\Aspect.aj");
+		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
 	}
 
