@@ -190,7 +190,11 @@ public class AJProjectModel {
 									l = new ArrayList();
 									relMap.put(sourceEl, l);
 								}
-								l.add(targetEl);
+								// extra filter due to AspectJ bug 80916
+								if (!(l.contains(targetEl))) {
+								    l.add(targetEl);
+                                }
+								
 							}
 						}
 					}
