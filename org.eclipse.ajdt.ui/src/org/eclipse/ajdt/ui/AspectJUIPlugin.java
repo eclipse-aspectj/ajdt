@@ -1,13 +1,13 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the Common Public License v1.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/cpl-v10.html
-Contributors:
-Adrian Colyer, Andy Clement, Tracy Gardner - initial version
-...
-**********************************************************************/
+ Copyright (c) 2002, 2005 IBM Corporation and others.
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the Common Public License v1.0
+ which accompanies this distribution, and is available at
+ http://www.eclipse.org/legal/cpl-v10.html
+ Contributors:
+ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ ...
+ **********************************************************************/
 package org.eclipse.ajdt.ui;
 
 // --- imports ---
@@ -25,6 +25,7 @@ import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
 import org.eclipse.ajdt.buildconfigurator.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
@@ -74,114 +75,99 @@ import org.osgi.framework.Constants;
 
 /**
  * The main plugin class used in the desktop for AspectJ integration.
- * <p> The AspectJPlugin (org.eclipse.ajdt.ui) provides the user interface
- * and build integration to enable use of Aspect-Oriented Software
- * Development (AOSD) using AspectJ within Eclipse.
+ * <p>
+ * The AspectJPlugin (org.eclipse.ajdt.ui) provides the user interface and build
+ * integration to enable use of Aspect-Oriented Software Development (AOSD)
+ * using AspectJ within Eclipse.
  * </p>
  * <p>
- * This plugin depends on the org.aspectj.ajde (AJTools) plugin for
- * the AspectJ compiler and tools. The AJTools plugin is available
- * from <a href="http://www.aspectj.org">aspectj.org</a>
+ * This plugin depends on the org.aspectj.ajde (AJTools) plugin for the AspectJ
+ * compiler and tools. The AJTools plugin is available from <a
+ * href="http://www.aspectj.org">aspectj.org </a>
  * <p>
- * This class is also responsible for tracking the current selected resource
- * in the workspace (and its associated project).  Other classes can access
- * the information via some static getter methods :- getCurrentProject() and
+ * This class is also responsible for tracking the current selected resource in
+ * the workspace (and its associated project). Other classes can access the
+ * information via some static getter methods :- getCurrentProject() and
  * getCurrentResource()
  */
-public class AspectJUIPlugin
-	extends org.eclipse.ui.plugin.AbstractUIPlugin
-	implements ISelectionListener {
+public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
+		implements ISelectionListener {
 
 	/*
 	 * Capabilities inherited from AbstractUIPlugin (copied here for ease of
-	 * reference)
-	 * </p>
-	 * <p>
-	 * Preferences
-	 * <ul>
-	 * <li> Preferences are read the first time <code>getPreferenceStore</code> is
-	 *      called. </li>
-	 * <li> Preferences are found in the file whose name is given by the constant
-	 *      <code>FN_PREF_STORE</code>. A preference file is looked for in the plug-in's 
-	 *		read/write state area.</li>
-	 * <li> Subclasses should reimplement <code>initializeDefaultPreferences</code>
-	 *      to set up any default values for preferences. These are the values 
-	 *      typically used if the user presses the Default button in a preference
-	 *      dialog. </li>
-	 * <li>	The plug-in's install directory is checked for a file whose name is given by 
-	 *		<code>FN_DEFAULT_PREFERENCES</code>.
-	 *      This allows a plug-in to ship with a read-only copy of a preference file 
-	 *      containing default values for certain settings different from the 
-	 *      hard-wired default ones (perhaps as a result of localizing, or for a
-	 *      common configuration).</li>
-	 * <li> Plug-in code can call <code>savePreferenceStore</code> to cause 
-	 *      non-default settings to be saved back to the file in the plug-in's
-	 *      read/write state area. </li>
-	 * <li> Preferences are also saved automatically on plug-in shutdown.</li>
-	 * </ul>
-	 * Dialogs
-	 * <ul>
-	 * <li> Dialog store are read the first time <code>getDialogSettings</code> is 
-	 *      called.</li>
-	 * <li> The dialog store allows the plug-in to "record" important choices made
-	 *      by the user in a wizard or dialog, so that the next time the
-	 *      wizard/dialog is used the widgets can be defaulted to better values. A
-	 *      wizard could also use it to record the last 5 values a user entered into
-	 *      an editable combo - to show "recent values". </li>
-	 * <li> The dialog store is found in the file whose name is given by the
-	 *      constant <code>FN_DIALOG_STORE</code>. A dialog store file is first
-	 *      looked for in the plug-in's read/write state area; if not found there,
-	 *      the plug-in's install directory is checked.
-	 *      This allows a plug-in to ship with a read-only copy of a dialog store
-	 *      file containing initial values for certain settings.</li>
-	 * <li> Plug-in code can call <code>saveDialogSettings</code> to cause settings to
-	 *      be saved in the plug-in's read/write state area. A plug-in may opt to do
-	 *      this each time a wizard or dialog is closed to ensure the latest 
-	 *      information is always safe on disk. </li>
-	 * <li> Dialog settings are also saved automatically on plug-in shutdown.</li>
-	 * </ul>
-	 * Images
-	 * <ul>
-	 * <li> A typical UI plug-in will have some images that are used very frequently
-	 *      and so need to be cached and shared.  The plug-in's image registry 
-	 *      provides a central place for a plug-in to store its common images. 
-	 *      Images managed by the registry are created lazily as needed, and will be
-	 *      automatically disposed of when the plug-in shuts down. Note that the
-	 *      number of registry images should be kept to a minimum since many OSs
-	 *      have severe limits on the number of images that can be in memory at once.
-	 * </ul>
-	 * <p>
-	 * For easy access to your plug-in object, use the singleton pattern. Declare a
-	 * static variable in your plug-in class for the singleton. Store the first
-	 * (and only) instance of the plug-in class in the singleton when it is created.
-	 * Then access the singleton when needed through a static <code>getDefault</code>
-	 * method.
+	 * reference) </p><p> Preferences <ul><li> Preferences are read the first
+	 * time <code> getPreferenceStore </code> is called. </li><li> Preferences
+	 * are found in the file whose name is given by the constant <code>
+	 * FN_PREF_STORE </code> . A preference file is looked for in the plug-in's
+	 * read/write state area. </li><li> Subclasses should reimplement <code>
+	 * initializeDefaultPreferences </code> to set up any default values for
+	 * preferences. These are the values typically used if the user presses the
+	 * Default button in a preference dialog. </li><li> The plug-in's install
+	 * directory is checked for a file whose name is given by <code>
+	 * FN_DEFAULT_PREFERENCES </code> . This allows a plug-in to ship with a
+	 * read-only copy of a preference file containing default values for certain
+	 * settings different from the hard-wired default ones (perhaps as a result
+	 * of localizing, or for a common configuration). </li><li> Plug-in code
+	 * can call <code> savePreferenceStore </code> to cause non-default settings
+	 * to be saved back to the file in the plug-in's read/write state area.
+	 * </li><li> Preferences are also saved automatically on plug-in shutdown.
+	 * </li></ul> Dialogs <ul><li> Dialog store are read the first time <code>
+	 * getDialogSettings </code> is called. </li><li> The dialog store allows
+	 * the plug-in to "record" important choices made by the user in a wizard or
+	 * dialog, so that the next time the wizard/dialog is used the widgets can
+	 * be defaulted to better values. A wizard could also use it to record the
+	 * last 5 values a user entered into an editable combo - to show "recent
+	 * values". </li><li> The dialog store is found in the file whose name is
+	 * given by the constant <code> FN_DIALOG_STORE </code> . A dialog store
+	 * file is first looked for in the plug-in's read/write state area; if not
+	 * found there, the plug-in's install directory is checked. This allows a
+	 * plug-in to ship with a read-only copy of a dialog store file containing
+	 * initial values for certain settings. </li><li> Plug-in code can call
+	 * <code> saveDialogSettings </code> to cause settings to be saved in the
+	 * plug-in's read/write state area. A plug-in may opt to do this each time a
+	 * wizard or dialog is closed to ensure the latest information is always
+	 * safe on disk. </li><li> Dialog settings are also saved automatically on
+	 * plug-in shutdown. </li></ul> Images <ul><li> A typical UI plug-in will
+	 * have some images that are used very frequently and so need to be cached
+	 * and shared. The plug-in's image registry provides a central place for a
+	 * plug-in to store its common images. Images managed by the registry are
+	 * created lazily as needed, and will be automatically disposed of when the
+	 * plug-in shuts down. Note that the number of registry images should be
+	 * kept to a minimum since many OSs have severe limits on the number of
+	 * images that can be in memory at once. </ul><p> For easy access to your
+	 * plug-in object, use the singleton pattern. Declare a static variable in
+	 * your plug-in class for the singleton. Store the first (and only) instance
+	 * of the plug-in class in the singleton when it is created. Then access the
+	 * singleton when needed through a static <code> getDefault </code> method.
 	 * </p>
 	 */
 
 	// VERSION-STRING - set when plugin is loaded
-	public static String VERSION = "unset";  //$NON-NLS-1$
-	
+	public static String VERSION = "unset"; //$NON-NLS-1$
+
 	// the id of this plugin
 	public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
-	
+
 	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
+
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
-//	public static final String ID_NATURE = PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
-    
+
+	// public static final String ID_NATURE = PLUGIN_ID + ".ajnature";
+	// //$NON-NLS-1$
+
 	// the plugin containing aspectjrt.jar
-    public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
-	
-	private static final String AJDE_VERSION_KEY_CURRENT  = "ajde.version"; //$NON-NLS-1$
+	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
+
+	private static final String AJDE_VERSION_KEY_CURRENT = "ajde.version"; //$NON-NLS-1$
+
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
-	
-    
-    /**
-     * Folder separator used by Eclipse in paths irrespective if on
-     * Windows or *nix. 
-     */
-    public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; 
-    
+
+	/**
+	 * Folder separator used by Eclipse in paths irrespective if on Windows or
+	 * *nix.
+	 */
+	public static final String NON_OS_SPECIFIC_SEPARATOR = "/";
+
 	/**
 	 * General debug trace for the plug-in enabled through the master trace
 	 * switch.
@@ -217,20 +203,19 @@ public class AspectJUIPlugin
 	private ResourceBundle resourceBundle;
 
 	/**
-	 * ProjectPropertiesAdapter is required by the AJDT tools to
-	 * initialise the AJDE environment. 
+	 * ProjectPropertiesAdapter is required by the AJDT tools to initialise the
+	 * AJDE environment.
 	 */
 	private ProjectProperties ajdtProjectProperties;
 
 	/**
-	 * Compiler monitor listens to AspectJ compilation events
-	 * (build progress and compilations errors/warnings)
+	 * Compiler monitor listens to AspectJ compilation events (build progress
+	 * and compilations errors/warnings)
 	 */
 	private CompilerMonitor ajdtCompilerMonitor;
 
 	/**
-	 * Editor adapter used by AJDE tools to control editor
-	 * when needed
+	 * Editor adapter used by AJDE tools to control editor when needed
 	 */
 	private EditorAdapter ajdtEditorAdapter;
 
@@ -239,12 +224,11 @@ public class AspectJUIPlugin
 	 */
 	private BuildOptionsAdapter ajdtBuildOptions;
 
-
 	/**
 	 * AbstractIconRegistry used to manage all icons for AJDT.
 	 */
 	private AspectJImages ajdtImages;
-	
+
 	/**
 	 * StructureViewManager used by AJDE to build tree structure
 	 */
@@ -254,10 +238,9 @@ public class AspectJUIPlugin
 	 * IDEAdapter used by AJDE to display status messages
 	 */
 	private IdeUIAdapter ajdtUIAdapter;
-	
+
 	/**
-	 * Error handler used to display error messages issued from
-	 * AJDE tools.
+	 * Error handler used to display error messages issued from AJDE tools.
 	 */
 	private ErrorHandler ajdtErrorHandler;
 
@@ -272,7 +255,7 @@ public class AspectJUIPlugin
 	private IProject currentProject;
 
 	/**
-	 * The currently selected resource 
+	 * The currently selected resource
 	 */
 	private IResource currentResource;
 
@@ -280,8 +263,7 @@ public class AspectJUIPlugin
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
-	
-		
+
 	/**
 	 * A resource change listener that will listen for new resource additions.
 	 */
@@ -289,7 +271,9 @@ public class AspectJUIPlugin
 
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice";
+
 	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-";
+
 	public static final String ACCKIND_ATTRIBUTE = "acckind";
 
 	/**
@@ -300,155 +284,151 @@ public class AspectJUIPlugin
 	}
 
 	/**
-	 * Returns the string from the plugin's resource bundle,
-	 * or 'key' if not found.
+	 * Returns the string from the plugin's resource bundle, or 'key' if not
+	 * found.
 	 */
 	public static String getResourceString(String key) {
-		ResourceBundle bundle = AspectJUIPlugin.getDefault().getResourceBundle();
+		ResourceBundle bundle = AspectJUIPlugin.getDefault()
+				.getResourceBundle();
 		try {
 			return bundle.getString(key);
 		} catch (MissingResourceException e) {
 			return key;
 		}
 	}
-    
-    /**
-     * @param key
-     * @param arg
-     * @return string from plugin's resource bundle that includes the 
-     * inserted argument.
-     */
-    public static String getFormattedResourceString(String key, String arg) {
-        return getFormattedResourceString(key, new String[] { arg });
-    }
-	
-    /**
-     * @param key
-     * @param arg
-     * @return string from plugin's resource bundle that includes all of the 
-     * inserted arguments.
-     */
-    public static String getFormattedResourceString(String key, String[] args) {
-        return MessageFormat.format(getResourceString(key), args);
-    }
-    
-	private final static String defaultLstShouldBeUsed=
-	  "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
 
-    public static final int PROGRESS_MONITOR_MAX = 100;
+	/**
+	 * @param key
+	 * @param arg
+	 * @return string from plugin's resource bundle that includes the inserted
+	 *         argument.
+	 */
+	public static String getFormattedResourceString(String key, String arg) {
+		return getFormattedResourceString(key, new String[] { arg });
+	}
+
+	/**
+	 * @param key
+	 * @param arg
+	 * @return string from plugin's resource bundle that includes all of the
+	 *         inserted arguments.
+	 */
+	public static String getFormattedResourceString(String key, String[] args) {
+		return MessageFormat.format(getResourceString(key), args);
+	}
+
+	private final static String defaultLstShouldBeUsed = "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
+
+	public static final int PROGRESS_MONITOR_MAX = 100;
 
 	/**
 	 * Set the build configuration file to be used when building this project
 	 */
-	public static void setBuildConfigurationFile(
-		IProject project,
-		IFile buildfile) {
-			
-	    // Preserve the build selection choice in the preference store, with a
-	    // name unique to this project.
-	    IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-	    
-	    String propertyName = "org.eclipse.ajdt.ui."+project.getName()+".lst";
-	    
-	    if (buildfile== null)
-	      store.setValue(propertyName, defaultLstShouldBeUsed);
-	    else 
-	      store.setValue(propertyName,buildfile.getLocation().toOSString());
-	      
-	
-		String cfg = AspectJPlugin.getBuildConfigurationFile( project );      
-		Ajde.getDefault().getConfigurationManager().
-		  setActiveConfigFile( cfg );
-		AJDTEventTrace.buildConfigSelected( cfg, project);
+	public static void setBuildConfigurationFile(IProject project,
+			IFile buildfile) {
+
+		// Preserve the build selection choice in the preference store, with a
+		// name unique to this project.
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+
+		String propertyName = "org.eclipse.ajdt.ui." + project.getName()
+				+ ".lst";
+
+		if (buildfile == null)
+			store.setValue(propertyName, defaultLstShouldBeUsed);
+		else
+			store.setValue(propertyName, buildfile.getLocation().toOSString());
+
+		String cfg = AspectJPlugin.getBuildConfigurationFile(project);
+		Ajde.getDefault().getConfigurationManager().setActiveConfigFile(cfg);
+		AJDTEventTrace.buildConfigSelected(cfg, project);
 	}
 
-	public static void setBuildConfigurationFile(
-		IProject project,
-		IResource buildfile) {
-			
-		if (buildfile == null) 
-		  setBuildConfigurationFile(project,(IFile)null);
+	public static void setBuildConfigurationFile(IProject project,
+			IResource buildfile) {
+
+		if (buildfile == null)
+			setBuildConfigurationFile(project, (IFile) null);
 		else if (buildfile instanceof IFile) {
-		  setBuildConfigurationFile(project,(IFile)buildfile);
-		}	
+			setBuildConfigurationFile(project, (IFile) buildfile);
+		}
 	}
-	
 
 	/**
-	 * Creates an AspectJPlugin instance and initializes the 
-	 * supporting Ajde tools. - deprecated in 3.0
+	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
+	 * tools. - deprecated in 3.0
 	 */
-//	public AspectJPlugin(IPluginDescriptor descriptor) {
-//		super(descriptor);
-//
-//		PluginVersionIdentifier pvi = descriptor.getVersionIdentifier();
-//		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." +
-//				  pvi.getServiceComponent();
-//		initDebugging();
-//		plugin = this;
-//		ajdtProjectProperties = new ProjectProperties();
-//		ajdtCompilerMonitor = new CompilerMonitor();
-//		ajdtEditorAdapter = new EditorAdapter();
-//		ajdtErrorHandler = new ErrorHandler();
-//		ajdtBuildOptions = new BuildOptionsAdapter( );
-//		ajdtImages =  AspectJImages.registry( );
-//		ajdtUIAdapter = new IdeUIAdapter( );
-//		ajdtStructureFactory = new AJDTStructureViewNodeFactory( ajdtImages );		
-//
-////System.err.println("AspectJPlugin.new: adding selection listener..");
-////System.err.println("Adding to selection service on workbench window: "+plugin.getWorkbench().getActiveWorkbenchWindow().toString());
-//		
-//				Ajde.init(
-//					 ajdtEditorAdapter
-//					,ajdtCompilerMonitor // task list manager
-//					,ajdtCompilerMonitor // build progress monitor
-//					,ajdtProjectProperties
-//					,ajdtBuildOptions
-//					,ajdtStructureFactory
-//					,ajdtUIAdapter
-//					,ajdtErrorHandler 
-//					);
-//
-//		try {
-//			resourceBundle =
-//				ResourceBundle.getBundle(
-//					"org.eclipse.ajdt.internal.core.resources.AspectJPluginResources");
-//		} catch (MissingResourceException x) {
-//			resourceBundle = null;
-//		}
-//		
-//		/*	Moved to startup()
-//		// Create an register the resource change listener if necessary, it will be
-//		// notified if resources are added/deleted or their content changed. 
-//	    if (resourceChangeListener == null) {
-//	      resourceChangeListener = new AspectJResourceChangeListener();
-//	      getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
-//	    }*/
-//	    
-//
-//		AJDTEventTrace.startup();
-//		new AspectVisualiserPlugin();
-//	    
-//	    checkAspectJVersion();
-//	}
-	    
+	// public AspectJPlugin(IPluginDescriptor descriptor) {
+	// super(descriptor);
+	//
+	// PluginVersionIdentifier pvi = descriptor.getVersionIdentifier();
+	// VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." +
+	// pvi.getServiceComponent();
+	// initDebugging();
+	// plugin = this;
+	// ajdtProjectProperties = new ProjectProperties();
+	// ajdtCompilerMonitor = new CompilerMonitor();
+	// ajdtEditorAdapter = new EditorAdapter();
+	// ajdtErrorHandler = new ErrorHandler();
+	// ajdtBuildOptions = new BuildOptionsAdapter( );
+	// ajdtImages = AspectJImages.registry( );
+	// ajdtUIAdapter = new IdeUIAdapter( );
+	// ajdtStructureFactory = new AJDTStructureViewNodeFactory( ajdtImages );
+	//
+	// //System.err.println("AspectJPlugin.new: adding selection listener..");
+	// //System.err.println("Adding to selection service on workbench window:
+	// "+plugin.getWorkbench().getActiveWorkbenchWindow().toString());
+	//		
+	// Ajde.init(
+	// ajdtEditorAdapter
+	// ,ajdtCompilerMonitor // task list manager
+	// ,ajdtCompilerMonitor // build progress monitor
+	// ,ajdtProjectProperties
+	// ,ajdtBuildOptions
+	// ,ajdtStructureFactory
+	// ,ajdtUIAdapter
+	// ,ajdtErrorHandler
+	// );
+	//
+	// try {
+	// resourceBundle =
+	// ResourceBundle.getBundle(
+	// "org.eclipse.ajdt.internal.core.resources.AspectJPluginResources");
+	// } catch (MissingResourceException x) {
+	// resourceBundle = null;
+	// }
+	//		
+	// /* Moved to startup()
+	// // Create an register the resource change listener if necessary, it will
+	// be
+	// // notified if resources are added/deleted or their content changed.
+	// if (resourceChangeListener == null) {
+	// resourceChangeListener = new AspectJResourceChangeListener();
+	// getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
+	// }*/
+	//	    
+	//
+	// AJDTEventTrace.startup();
+	// new AspectVisualiserPlugin();
+	//	    
+	// checkAspectJVersion();
+	// }
 	/**
-	 * Creates an AspectJPlugin instance and initializes the 
-	 * supporting Ajde tools - Compatible with Eclipse 3.0.
-	 * Note the rest of the contents of the 2.x constructor now
-	 * resides in the start(BundleContext) method.
+	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
+	 * tools - Compatible with Eclipse 3.0. Note the rest of the contents of the
+	 * 2.x constructor now resides in the start(BundleContext) method.
 	 */
 	public AspectJUIPlugin() {
 		super();
 		plugin = this;
-	
+
 		try {
-			resourceBundle =
-				ResourceBundle.getBundle(
-					"org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources");
+			resourceBundle = ResourceBundle
+					.getBundle("org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources");
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
-		}		
+		}
 	}
 
 	/**
@@ -461,7 +441,7 @@ public class AspectJUIPlugin
 	 * without this method you have to do it manually by either editing the
 	 * aspectjrt.jar entry or removing/readding the nature. We also add the
 	 * AspectJ code templates here.
-	 *  
+	 * 
 	 */
 	private void checkAspectJVersion() {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
@@ -496,40 +476,45 @@ public class AspectJUIPlugin
 			// no! don't verify config here - it can be too early for
 			// the supporting ui bits and pieces to be in place (race
 			// condition)
-			//AJDTUtils.verifyWorkbenchConfiguration();
+			// AJDTUtils.verifyWorkbenchConfiguration();
 			store.putValue(AJDE_VERSION_KEY_PREVIOUS, currentAjdeVersion);
 		}
 	}
-	    
-	 private void checkProblemMarkersVisible(){
+
+	private void checkProblemMarkersVisible() {
 		String TAG_DIALOG_SECTION = "org.eclipse.ui.views.problem";
 		String problemMarker = "org.eclipse.ajdt.ui.problemmarker:";
-		//AbstractUIPlugin plugin = (AbstractUIPlugin) Platform.getPlugin(PlatformUI.PLUGIN_ID);
+		// AbstractUIPlugin plugin = (AbstractUIPlugin)
+		// Platform.getPlugin(PlatformUI.PLUGIN_ID);
 		AbstractUIPlugin plugin = UIPlugin.getDefault();
 		IDialogSettings workbenchSettings = plugin.getDialogSettings();
-		IDialogSettings settings = workbenchSettings.getSection(TAG_DIALOG_SECTION);
-		if (settings != null){
+		IDialogSettings settings = workbenchSettings
+				.getSection(TAG_DIALOG_SECTION);
+		if (settings != null) {
 			IDialogSettings filterSettings = settings.getSection("filter");
 			String enabledMarkers = filterSettings.get("selectedType");
-			if (enabledMarkers.indexOf(problemMarker) == -1){
+			if (enabledMarkers.indexOf(problemMarker) == -1) {
 				enabledMarkers = enabledMarkers + problemMarker;
 				filterSettings.put("selectedType", enabledMarkers);
 			}
 		}
-	 }
+	}
 
 	/**
-	 *  Install the AspectJ code templates. We'd like to do this by an extension point,
-	 *  but there doesn't seem to be one. 
+	 * Install the AspectJ code templates. We'd like to do this by an extension
+	 * point, but there doesn't seem to be one.
 	 */
 	private void checkTemplatesInstalled() {
-		TemplateStore codeTemplates = JavaPlugin.getDefault().getTemplateStore();
+		TemplateStore codeTemplates = JavaPlugin.getDefault()
+				.getTemplateStore();
 		try {
 			URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
 			TemplateReaderWriter trw = new TemplateReaderWriter();
-			TemplatePersistenceData[] templates = trw.read(loc.openStream(), null);
-			if ((templates == null) || (templates.length == 0)){
-				AJDTEventTrace.generalEvent(AspectJUIPlugin.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
+			TemplatePersistenceData[] templates = trw.read(loc.openStream(),
+					null);
+			if ((templates == null) || (templates.length == 0)) {
+				AJDTEventTrace.generalEvent(AspectJUIPlugin
+						.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
 			} else {
 				for (int i = 0; i < templates.length; i++) {
 					codeTemplates.add(templates[i]);
@@ -537,19 +522,19 @@ public class AspectJUIPlugin
 				codeTemplates.save();
 			}
 		} catch (IOException fnf) {
-			AJDTEventTrace.generalEvent(AspectJUIPlugin.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
+			AJDTEventTrace.generalEvent(AspectJUIPlugin
+					.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
 		}
 	}
 
-
 	/**
-	 * return the error handler used to popup error dialogs and store errors in the
-	 * log.
+	 * return the error handler used to popup error dialogs and store errors in
+	 * the log.
 	 */
 	public ErrorHandler getErrorHandler() {
 		return ajdtErrorHandler;
 	}
-	
+
 	/**
 	 * return the compiler monitor used for build progress monitoring and
 	 * compilation errors/warnings
@@ -564,7 +549,7 @@ public class AspectJUIPlugin
 	public ProjectProperties getAjdtProjectProperties() {
 		return ajdtProjectProperties;
 	}
-	
+
 	/**
 	 * Access the build options adapter
 	 */
@@ -581,100 +566,126 @@ public class AspectJUIPlugin
 
 	// At startup, remember the display for later use and register to receive
 	// information on part selection
-//	public void startup() throws CoreException {
-//		super.startup();
-//		
-//		// BUG 23955. getCurrent() returned null if invoked from a menu.
-//		display = Display.getDefault();		
-//
-//		//System.err.println("AspectJPlugin.startup: Adding selection listener...");		
-//		
-//		// BUG 23955.  getActiveWorkbenchWindow() returns null, and fails the plugin startup,
-//		// if this is set here.  The method returns null if the active window isn't a workbench window.
-//		//plugin
-//		//	.getWorkbench()
-//		//	.getActiveWorkbenchWindow()
-//		//	.getSelectionService()
-//		//	.addSelectionListener(this);
-//					
-//			
-//	    // Create and register the resource change listener if necessary, it will be
-//		// notified if resources are added/deleted or their content changed. 
-//	    if (resourceChangeListener == null) {
-//	      resourceChangeListener = new AspectJResourceChangeListener();
-//	      getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
-//	    }
-//	}
+	// public void startup() throws CoreException {
+	// super.startup();
+	//		
+	// // BUG 23955. getCurrent() returned null if invoked from a menu.
+	// display = Display.getDefault();
+	//
+	// //System.err.println("AspectJPlugin.startup: Adding selection
+	// listener...");
+	//		
+	// // BUG 23955. getActiveWorkbenchWindow() returns null, and fails the
+	// plugin startup,
+	// // if this is set here. The method returns null if the active window
+	// isn't a workbench window.
+	// //plugin
+	// // .getWorkbench()
+	// // .getActiveWorkbenchWindow()
+	// // .getSelectionService()
+	// // .addSelectionListener(this);
+	//					
+	//			
+	// // Create and register the resource change listener if necessary, it will
+	// be
+	// // notified if resources are added/deleted or their content changed.
+	// if (resourceChangeListener == null) {
+	// resourceChangeListener = new AspectJResourceChangeListener();
+	// getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
+	// }
+	// }
 
 	// At startup, remember the display for later use and register to receive
 	// information on part selection - Eclipse 3.0 requires the use of start
 	// rather than startup.
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		
+
 		// Update project menu and listen for project selections
 		new BCWorkbenchWindowInitializer();
-		
-		// BUG 23955. getCurrent() returned null if invoked from a menu.
-		display = Display.getDefault();		
 
-		// BUG 23955.  getActiveWorkbenchWindow() returns null, and fails the plugin startup,
-		// if this is set here.  The method returns null if the active window isn't a workbench window.
-		//plugin
-		//	.getWorkbench()
-		//	.getActiveWorkbenchWindow()
-		//	.getSelectionService()
-		//	.addSelectionListener(this);
-					
-			
-	    // Create and register the resource change listener if necessary, it will be
-		// notified if resources are added/deleted or their content changed. 
-		
-		if (resourceChangeListener == null){
+		// BUG 23955. getCurrent() returned null if invoked from a menu.
+		display = Display.getDefault();
+
+		// BUG 23955. getActiveWorkbenchWindow() returns null, and fails the
+		// plugin startup,
+		// if this is set here. The method returns null if the active window
+		// isn't a workbench window.
+		// plugin
+		// .getWorkbench()
+		// .getActiveWorkbenchWindow()
+		// .getSelectionService()
+		// .addSelectionListener(this);
+
+		// Create and register the resource change listener if necessary, it
+		// will be
+		// notified if resources are added/deleted or their content changed.
+
+		if (resourceChangeListener == null) {
 			resourceChangeListener = new BCResourceChangeListener();
 			// listener for build configurator
 			enableBuildConfiguratorResourceChangeListener();
 			// listener for aspectj model
-			AspectJPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener(), IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE | IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_BUILD);
+			AspectJPlugin.getWorkspace().addResourceChangeListener(
+					new ResourceChangeListener(),
+					IResourceChangeEvent.PRE_CLOSE
+							| IResourceChangeEvent.PRE_DELETE
+							| IResourceChangeEvent.POST_CHANGE
+							| IResourceChangeEvent.PRE_BUILD);
 		}
-		
-	    // the following came from the 2.x constructor - needs to be put here
-	    // because plugin is initialized when start(BundleContext) is called.
-	    Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+
+		// the following came from the 2.x constructor - needs to be put here
+		// because plugin is initialized when start(BundleContext) is called.
+		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+		String version = (String) bundle.getHeaders().get(
+				Constants.BUNDLE_VERSION);
 		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
 
-		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." +
-				  pvi.getServiceComponent();
+		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "."
+				+ pvi.getServiceComponent();
 
 		initDebugging();
-		
+
 		ajdtProjectProperties = new ProjectProperties();
 		ajdtCompilerMonitor = new CompilerMonitor();
 		ajdtEditorAdapter = new EditorAdapter();
 		ajdtErrorHandler = new ErrorHandler();
-		ajdtBuildOptions = new BuildOptionsAdapter( );
-		ajdtImages =  AspectJImages.registry( );
-		ajdtUIAdapter = new IdeUIAdapter( );
-		ajdtStructureFactory = new AJDTStructureViewNodeFactory( ajdtImages );		
+		ajdtBuildOptions = new BuildOptionsAdapter();
+		ajdtImages = AspectJImages.registry();
+		ajdtUIAdapter = new IdeUIAdapter();
+		ajdtStructureFactory = new AJDTStructureViewNodeFactory(ajdtImages);
 
-		Ajde.init(
-			 ajdtEditorAdapter
-			,ajdtCompilerMonitor // task list manager
-			,ajdtCompilerMonitor // build progress monitor
-			,ajdtProjectProperties
-			,ajdtBuildOptions
-			,ajdtStructureFactory
-			,ajdtUIAdapter
-			,ajdtErrorHandler 
-			);
-	
-		AJDTEventTrace.startup();    
-	    checkAspectJVersion();
-	    
-	    FileFilter.checkIfFileFilterEnabled();
-	    AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin.getWorkspace());
+		Ajde.init(ajdtEditorAdapter, ajdtCompilerMonitor // task list manager
+				, ajdtCompilerMonitor // build progress monitor
+				, ajdtProjectProperties, ajdtBuildOptions,
+				ajdtStructureFactory, ajdtUIAdapter, ajdtErrorHandler);
+
+		checkEclipseVersion();
+
+		AJDTEventTrace.startup();
+		checkAspectJVersion();
+
+		FileFilter.checkIfFileFilterEnabled();
+		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
+				.getWorkspace());
 		AJDTUtils.refreshPackageExplorer();
+	}
+
+	private void checkEclipseVersion() {
+		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
+		String version = (String) bundle.getHeaders().get(
+				Constants.BUNDLE_VERSION);
+		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
+		if ((pvi.getMajorComponent() != EclipseVersion.MAJOR_VERSION)
+				|| (pvi.getMinorComponent() != EclipseVersion.MINOR_VERSION)) {
+			getErrorHandler().handleError(
+					getFormattedResourceString("wrong.eclipse.version", //$NON-NLS-1$
+							new String[] {
+									EclipseVersion.MAJOR_VERSION + "."
+											+ EclipseVersion.MINOR_VERSION,
+									pvi.getMajorComponent() + "."
+											+ pvi.getMinorComponent() }));
+		}
 	}
 
 	/**
@@ -708,40 +719,41 @@ public class AspectJUIPlugin
 	}
 
 	/**
-	 * get the current project, if nobody has set a project yet, use the
-	 * first open project in the workspace
+	 * get the current project, if nobody has set a project yet, use the first
+	 * open project in the workspace
 	 */
 	public IProject getCurrentProject() {
 		IProject current = null;
 		if (currentProject != null) {
 			current = currentProject;
 		} else {
-			IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
-			for(int i=0; i<projects.length;i++) { 
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+					.getProjects();
+			for (int i = 0; i < projects.length; i++) {
 				if (projects[i].isOpen()) {
 					current = projects[i];
 					break;
-				} 
+				}
 			}
 		}
 		return current;
 	}
 
 	/**
-	 * get the current resource.  This method can return null if a resource
-	 * has not been selected or the resource selected has no individual physical
-	 * representation in the workspace.  For example, selecting an 'external'
-	 * jar file within a project will cause currentProject to be set appropriately
+	 * get the current resource. This method can return null if a resource has
+	 * not been selected or the resource selected has no individual physical
+	 * representation in the workspace. For example, selecting an 'external' jar
+	 * file within a project will cause currentProject to be set appropriately
 	 * but there is no real resource representing that jar (its an artefact from
-	 * outside the workbench) so currentResource will be null. 
+	 * outside the workbench) so currentResource will be null.
 	 */
 	public IResource getCurrentResource() {
 		return currentResource;
 	}
 
 	/**
-	 * set the current project - called by the builder when we're about to
-	 * do a build.
+	 * set the current project - called by the builder when we're about to do a
+	 * build.
 	 */
 	public void setCurrentProject(IProject project) {
 		currentProject = project;
@@ -752,7 +764,8 @@ public class AspectJUIPlugin
 	 */
 	public void setCurrentProject(String projectName) {
 		boolean matched = false;
-		IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
+		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+				.getProjects();
 		for (int i = 0; i < projects.length; i++) {
 			if (projects[i].getName().equals(projectName)) {
 				currentProject = projects[i];
@@ -760,9 +773,9 @@ public class AspectJUIPlugin
 				break;
 			}
 		}
-		if ( !matched ) { 
-			getErrorHandler().handleWarning( 
-				getResourceString( "bad.project" ) + " " + projectName );	
+		if (!matched) {
+			getErrorHandler().handleWarning(
+					getResourceString("bad.project") + " " + projectName);
 		}
 	}
 
@@ -809,33 +822,34 @@ public class AspectJUIPlugin
 				DEBUG_OUTLINE = true;
 			} else {
 				System.out.println("AJP outlineDebug OFF");
-			}			
+			}
 		}
 
 	}
 
 	// Implementation of ISelectionListener follows
 
-	/** 
-	 * Keeps the currentResource and currentProject information up to date
-	 * in this class, as this method is called whenever a user changes
-	 * their selection in the workspace.
+	/**
+	 * Keeps the currentResource and currentProject information up to date in
+	 * this class, as this method is called whenever a user changes their
+	 * selection in the workspace.
 	 */
 	public void selectionChanged(IWorkbenchPart iwp, ISelection is) {
 		try {
 			// If we want to check only for selection changes in the Packages
 			// view, then we could check the WorkbenchPart:
-			//			if (iwp.getTitle().equals("Packages")) {
+			// if (iwp.getTitle().equals("Packages")) {
 			// But there are so many places where the resources are exposed
 			// navigator view, etc - that if we can be more generic and cope
-			// with selection of the resources occurring anywhere, then we should always
+			// with selection of the resources occurring anywhere, then we
+			// should always
 			// have the current project correct.
-			//System.out.println( "Selection changed: " +
-			//	iwp.getTitle() + " " + is.toString() );
-				
+			// System.out.println( "Selection changed: " +
+			// iwp.getTitle() + " " + is.toString() );
+
 			// AMC note: GM1 build is firing an ITextSelection event only
 			// clicking on the tab for an open file in the editor (to change
-			// the current file being viewed). This does *not* give us the 
+			// the current file being viewed). This does *not* give us the
 			// information we need to update the current project :-(
 
 			if (is instanceof IStructuredSelection) {
@@ -850,51 +864,58 @@ public class AspectJUIPlugin
 					} else if (o instanceof IJavaElement) {
 						IJavaElement je = (IJavaElement) o;
 						if (je.getJavaProject() != null) {
-							currentResource = je.getUnderlyingResource(); // Might be null!
+							currentResource = je.getUnderlyingResource(); // Might
+							// be
+							// null!
 							currentProject = je.getJavaProject().getProject();
 						}
 
-					//} else {
-					//	System.err.println("Unrecognized selection is a ]" + o.toString() + "[");
+						// } else {
+						// System.err.println("Unrecognized selection is a ]" +
+						// o.toString() + "[");
 					}
 				}
-			} else if ( is instanceof ITextSelection ) {
-//				ITextSelection ts = (ITextSelection) is;
-//				System.out.println( "Selected: " + ts.getText() );
+			} else if (is instanceof ITextSelection) {
+				// ITextSelection ts = (ITextSelection) is;
+				// System.out.println( "Selected: " + ts.getText() );
 			}
-			
-			
+
 		} catch (JavaModelException jme) {
 			getErrorHandler().handleError(
-				"Exception in AspectJPlugin.selectionChanged processing",
-				jme);
+					"Exception in AspectJPlugin.selectionChanged processing",
+					jme);
 		}
 
 	}
-	
-	
+
 	/**
 	 * Build a list of .lst files in the currently selected project - EXCEPT the
-	 * default.lst file.  It uses the helper method getLstFiles() defined 
-	 * below to perform recursion.
+	 * default.lst file. It uses the helper method getLstFiles() defined below
+	 * to perform recursion.
 	 * 
-	 * @return List of IResource objects that represent .lst files in the current project 
+	 * @return List of IResource objects that represent .lst files in the
+	 *         current project
 	 */
 	public List getListOfConfigFilesForCurrentProject() {
-		if (currentProject == null ) return null;
+		if (currentProject == null)
+			return null;
 		List allLstFiles = new ArrayList();
 		try {
 			IResource[] files = currentProject.members();
 			getLstFiles(files, allLstFiles);
 		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-			"Exception occurred whilst retrieving all .lst files in a project",ce);
+			AspectJUIPlugin
+					.getDefault()
+					.getErrorHandler()
+					.handleError(
+							"Exception occurred whilst retrieving all .lst files in a project",
+							ce);
 		}
 		return allLstFiles;
 	}
 
 	/**
-	 * Find all the ".lst" files in the project.  Populates the List parameter
+	 * Find all the ".lst" files in the project. Populates the List parameter
 	 * passed in using recursion to traverse the whole resource hierarchy for
 	 * the project.
 	 */
@@ -903,28 +924,34 @@ public class AspectJUIPlugin
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
 				// Add lst files to the list, but NOT default.lst
-				if (ir.getName().endsWith(".lst") && !ir.getName().equals("default.lst"))
+				if (ir.getName().endsWith(".lst")
+						&& !ir.getName().equals("default.lst"))
 					allLstFiles.add(ir);
 				if (ir instanceof IContainer)
 					getLstFiles(((IContainer) ir).members(), allLstFiles);
 			}
 		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-			"Exception occurred whilst retrieiving all .lst files in a project",ce);
+			AspectJUIPlugin
+					.getDefault()
+					.getErrorHandler()
+					.handleError(
+							"Exception occurred whilst retrieiving all .lst files in a project",
+							ce);
 		}
 	}
-	
+
 	/**
 	 * Disable the build configurator's resource change listener.
-	 *  
+	 * 
 	 */
 	public void disableBuildConfiguratorResourceChangeListener() {
-		AspectJPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
+		AspectJPlugin.getWorkspace().removeResourceChangeListener(
+				resourceChangeListener);
 	}
 
 	/**
 	 * Enable the build configurator's resource change listener.
-	 *  
+	 * 
 	 */
 	public void enableBuildConfiguratorResourceChangeListener() {
 		AspectJPlugin.getWorkspace().addResourceChangeListener(

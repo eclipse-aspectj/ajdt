@@ -29,21 +29,13 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	/**
 	 * Display a warning dialog
 	 */
-	public void handleWarning(String message) {
-
-		// Finalise the variables to allow them to be included in the run()
-		// block below
-		final Status status =
-			new Status(Status.WARNING, AspectJUIPlugin.PLUGIN_ID, Status.OK, message, null);
-		final String message_final = message;
-
+	public void handleWarning(final String message) {
 		// Need to open the dialog on the right thread.  In some cases we *might*
 		// be on the right thread - since this ErrorHandler class is usable from
 		// inside the plugin as well as AJDE.  This might not be the best approach,
 		// perhaps we need our own to use from the plugin, so that we are not
 		// creating unnecessary threads.  But I suppose this is the 'error case'
 		// so performance isn't the critical factor here.
-
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
@@ -54,22 +46,34 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						MessageDialog.openWarning(
 							shell,
 							AspectJUIPlugin.getResourceString("ajWarningDialogTitle"),
-							message_final );
+							message);
 					}
 				} catch (Exception t) {
-					//ErrorHandler.handleError("Document Outline update failed", t);	
 				}
 			}
 		});
-
 	}
-	
 
 	/**
-	 * Display an error dialog (no exception)
+	 * Display an error dialog
 	 */
-	public void handleError(String errorMessage) {
-		handleError(errorMessage, null);
+	public void handleError(final String message) {
+		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				try {
+					IWorkbenchWindow iww = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
+					// This really should not be null ...
+					if (iww != null) {
+						Shell shell = iww.getShell();
+						MessageDialog.openError(
+							shell,
+							AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+							message);
+					}
+				} catch (Exception t) {
+				}
+			}
+		});
 	}
 
 	/**

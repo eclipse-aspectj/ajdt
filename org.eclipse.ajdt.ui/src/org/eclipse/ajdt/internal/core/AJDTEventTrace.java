@@ -68,8 +68,7 @@ public class AJDTEventTrace {
 		StringBuffer eventData = new StringBuffer( );
 		eventData.append( "\tAJDT version: " );
 		eventData.append( AspectJUIPlugin.VERSION );
-		
-		eventData.append( "\n\tThis AJDT build is for Eclipse ");
+		eventData.append( " for Eclipse " );
 		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION);
 		
 		eventData.append( "\n\tAspectJ Compiler version: " );
