@@ -716,7 +716,7 @@ public class CompilerPropertyPage extends PropertyPage {
 				curr.setEnabled(true);
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.setSelection(data.getSelection(defaultValue) == 0);
+			curr.setSelection(defaultValue.equals("enabled"));
 		}
 	}
 
@@ -921,7 +921,18 @@ public class CompilerPropertyPage extends PropertyPage {
 				readStateForAndEnable(children[i]);
 			}
 		}
-		control.setEnabled(true);	    
+		control.setEnabled(true);
+		if (control instanceof Combo) {
+			Combo curr = (Combo) control;
+			ControlData data = (ControlData) curr.getData();
+			String defaultValue = (String)defaultValueMap.get(data.getKey());
+			curr.select(data.getSelection(defaultValue));			
+		} else if (control instanceof Button){
+			Button curr = (Button) control;
+			ControlData data = (ControlData) curr.getData();
+			String defaultValue = (String)defaultValueMap.get(data.getKey());
+			curr.setSelection(defaultValue.equals("enabled"));
+		}
 	}
 	
 	/**
