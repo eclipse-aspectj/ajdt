@@ -78,10 +78,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFile() throws CoreException {
 		// test setup.....
-		IProject simpleProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		IJavaProject javaProject = JavaCore.create(simpleProject);		
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "p1" 
 							+ File.separator + "newFile.txt";
@@ -94,7 +98,6 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile.txt should not exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
 
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 		// start of test
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
@@ -213,11 +216,15 @@ public class BuilderTest extends TestCase {
 	 * @throws CoreException
 	 */
 	public void testCreateAndRemoveNewNonSrcFileFromDefaultPackage() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newFile2.txt";
@@ -228,7 +235,6 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile2.txt should not exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		assertFalse("newFile2.txt should not exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 		
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
@@ -336,10 +342,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithMultipleSrcDirs() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("MultipleSourceFolders", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src2" + File.separator + "pack" 
@@ -350,8 +360,6 @@ public class BuilderTest extends TestCase {
 							+ File.separator + "newFile.txt";
 		assertFalse("newFile.txt should not exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		assertFalse("newFile.txt should not exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 
 		IFolder src2 = simpleProject.getFolder("src2");
 		if (!src2.exists()){
@@ -454,10 +462,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithNonStandardOutputDir() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("NonStandardOutputLocation", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "pack" 
@@ -468,8 +480,6 @@ public class BuilderTest extends TestCase {
 							+ File.separator + "newFile.txt";
 		assertFalse("newFile.txt should not exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		assertFalse("newFile.txt should not exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
@@ -570,11 +580,15 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testUpdateNonSrcFile() throws CoreException, IOException {
 		// create the project and the new file
-		IProject simpleProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "p1" 
@@ -585,8 +599,6 @@ public class BuilderTest extends TestCase {
 							+ File.separator + "newFile4.txt";
 		assertFalse("newFile4.txt should not exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		assertFalse("newFile4.txt should not exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
@@ -747,10 +759,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveResourceWithoutSrcFolder() throws CoreException {
 		IProject project = Utils.getPredefinedProject("WithoutSourceFolder", true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(project);
 
 		IJavaProject javaProject = JavaCore.create(project);
+		ProjectDependenciesUtils.waitForJobsToComplete(project);
 		
 		String path = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "newFile.txt";
@@ -784,7 +800,6 @@ public class BuilderTest extends TestCase {
 //		} catch (InterruptedException e) {
 //			System.err.println("interrupted sleep - don't care");
 //		}
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 //		if (newFile == null){
 			IFile f = project.getFile("newFile.txt");
 			if (!f.exists()) {
@@ -832,19 +847,21 @@ public class BuilderTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testCreateAndDeleteNewPackage() throws Exception {
-		IProject simpleProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newPackage"; 
 		
 		String binPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "bin" + File.separator + "newPackage";
-
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
@@ -894,7 +911,7 @@ public class BuilderTest extends TestCase {
 //			System.err.println("interrupted sleep - don't care");
 //		}
 		
-		String str= "Simple AJ Project" + File.separator + "src";
+		String str= "AnotherSimpleAJProject" + File.separator + "src";
 		IPath path= new Path(str); 
         IResource res= ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 		IPackageFragmentRoot root = javaProject.getPackageFragmentRoot(res);
@@ -958,20 +975,21 @@ public class BuilderTest extends TestCase {
 
 	
 	public void testCreateAndDeleteNewFolder() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		monitor.waitForCompletion();
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
+		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newFolder"; 
 		
 		String binPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "bin" + File.separator + "newFolder";
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-				
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
 			monitor.reset();
