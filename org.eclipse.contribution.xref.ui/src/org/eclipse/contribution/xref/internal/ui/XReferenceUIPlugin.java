@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.core.XReferenceAdapterFactory;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -122,6 +123,7 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 		XReferenceAdapterFactory xra = new XReferenceAdapterFactory();
 		Platform.getAdapterManager().registerAdapters(xra, IJavaElement.class);
 		Platform.getAdapterManager().registerAdapters(xra, IResource.class);
+		Platform.getAdapterManager().registerAdapters(xra, IXReferenceNode.class);
 		// below registers the Editor part of the workbench with the XReferenceAdapterFactory
 		// this means that it does update when the editor is selected
 		Platform.getAdapterManager().registerAdapters(xra, IEditorPart.class);//<--------

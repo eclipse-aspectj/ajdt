@@ -14,7 +14,7 @@ package org.eclipse.contribution.xref.internal.ui.actions;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.contribution.xref.core.IDeferredXReference;
-import org.eclipse.contribution.xref.core.IXReferenceAdapter;
+import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInformationControl;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
@@ -36,7 +36,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.ide.IDE;
 
 /**
- *
+ * The class which responds to double clicking on a node in the XReferenceView.
  */
 public class DoubleClickAction extends Action {
 
@@ -65,7 +65,9 @@ public class DoubleClickAction extends Action {
 				((IStructuredSelection) selection).getFirstElement();
 			Object data = ((TreeObject) sel).getData();
 			if (data != null) {
-				if (data instanceof IJavaElement) {
+			    if (data instanceof IXReferenceNode) {
+			        revealInEditor(((IXReferenceNode)data).getJavaElement());  
+			    } else if (data instanceof IJavaElement) {
 					revealInEditor((IJavaElement) data);
 				} else if (data instanceof IDeferredXReference) {
 					evaluateXReferences((IDeferredXReference) data);
@@ -80,16 +82,17 @@ public class DoubleClickAction extends Action {
 		try {
 			IEditorPart p = JavaUI.openInEditor(j);
 			JavaUI.revealInEditor(p, j);
-			if (view != null) {
-				if (view.isLinkingEnabled()) {
-					view.getNavigationHistoryActionGroup().nowLeaving(viewer.getInput());
-					viewer.setInput(j.getAdapter(IXReferenceAdapter.class));	
-				}
-			} else if (infoControl != null){
-				viewer.setInput(j.getAdapter(IXReferenceAdapter.class));
-				// ommenting out inplace stuff
-				//infoControl.dispose();
-			}
+			// HELEN - commenting out for now.....
+//			if (view != null) {
+//				if (view.isLinkingEnabled()) {
+//					view.getNavigationHistoryActionGroup().nowLeaving(viewer.getInput());
+//					viewer.setInput(j.getAdapter(IXReferenceAdapter.class));	
+//				}
+//			} else if (infoControl != null){
+//				viewer.setInput(j.getAdapter(IXReferenceAdapter.class));
+//				// ommenting out inplace stuff
+//				//infoControl.dispose();
+//			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

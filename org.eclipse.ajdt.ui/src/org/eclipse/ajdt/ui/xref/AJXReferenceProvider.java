@@ -18,15 +18,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.aspectj.ajde.ui.AbstractIcon;
-import org.aspectj.ajde.ui.IStructureViewNode;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
-import org.eclipse.ajdt.internal.core.AJDTStructureViewNode;
-import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.builder.AJModel;
+import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -101,31 +100,26 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 
                 List relationships = xrefMap.get(ipe);
                 for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
-                    AspectJImages iconregistry = new AspectJImages();
-                    
                     Relationship rel = (Relationship) iterator.next();
-                    IStructureViewNode relNode = new AJDTStructureViewNode(rel,iconregistry.getIcon(rel.getKind()));
  
+                    if (rel.getKind().equals(IRelationship.Kind.USES_POINTCUT)) {
+                        continue;
+                    }
+                    
                     List associates = new ArrayList();
                     List targets = rel.getTargets();
                     for (Iterator iterator2 = targets.iterator(); iterator2.hasNext();) {
                         String t = (String) iterator2.next();
                         IProgramElement link = AsmManager.getDefault()
                                 .getHierarchy().findElementForHandle(t);
-//                        System.err.println("relMap entry: "
-//                                + ipe.toLinkLabelString() + ", relationship: "
-//                                + rel.getName() + ", target: "
-//                                + link.toLinkLabelString());
-                        AbstractIcon icon = changeIconIfAdviceNode(link, 
-                                iconregistry.getStructureIcon(link.getKind(), link.getAccessibility()), 
-                                rel.hasRuntimeTest());
-                        IStructureViewNode associate = new AJDTStructureViewNode(link,icon); 
+                        IJavaElement javaElement = AJModel.getInstance().getCorrespondingJavaElement(link);
+                        AJNode associate = new AJNode(javaElement,link.toLinkLabelString()); 
                         
                         if (associate != null) {
                             associates.add(associate);
                         }
                     }
-                    XRef xref = new XRef(relNode.getRelationshipName(), associates);
+                    XRef xref = new XRef(rel.getName(), associates);
                     xrefs.add(xref);
                 }
             }
@@ -162,39 +156,6 @@ public class AJXReferenceProvider implements IXReferenceProvider {
         }
     }
     
-	/**
-	 * Helper method.  If the node is advice use the extra information to provide the 
-	 * correct icon
-	 * 
-	 * Taken from AJDTStructureViewNodeFactory
-	 */
-	private AbstractIcon changeIconIfAdviceNode(IProgramElement node, AbstractIcon defaultIcon, boolean hasDynamicTests) {
-		if(node.getKind() == IProgramElement.Kind.ADVICE) {
-			if (node.getExtraInfo()!=null && node.getExtraInfo().getExtraAdviceInformation()!=null) {				
-				if(node.getExtraInfo().getExtraAdviceInformation().equals("before")) {
-					if(hasDynamicTests) {
-						defaultIcon = AspectJImages.DYNAMIC_BEFORE_ADVICE;
-					} else {
-						defaultIcon = AspectJImages.BEFORE_ADVICE;
-					}
-				} else if (node.getExtraInfo().getExtraAdviceInformation().equals("around")) {
-					if(hasDynamicTests) {
-						defaultIcon = AspectJImages.DYNAMIC_AROUND_ADVICE;
-					} else {
-						defaultIcon = AspectJImages.AROUND_ADVICE;
-					}
-				} else {
-					if(hasDynamicTests) {
-						defaultIcon = AspectJImages.DYNAMIC_AFTER_ADVICE;
-					} else {
-						defaultIcon = AspectJImages.AFTER_ADVICE;	
-					}
-				}
-			}
-		}
-		return defaultIcon;
-	}
-	
 	/**
 	 * Get the line number for the given offset in the given AspectJMemberElement
 	 */
