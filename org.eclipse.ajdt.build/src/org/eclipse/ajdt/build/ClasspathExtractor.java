@@ -50,7 +50,13 @@ public class ClasspathExtractor implements IPlatformRunnable {
 		IWorkspaceRoot root = workspace.getRoot();
 		String workspaceLoc = root.getLocation().toOSString();
 		System.out.println("workspaceLoc" + workspaceLoc);
-
+System.out.println("args="+args);
+if (args instanceof String[]) {
+	String[] arg = (String[])args;
+	for (int i = 0; i < arg.length; i++) {
+		System.out.println("arg["+i+"]="+arg);
+	}
+}
 		ensureProjectsExist(root);
 		
 		// first make sure all projects are open and in sync
