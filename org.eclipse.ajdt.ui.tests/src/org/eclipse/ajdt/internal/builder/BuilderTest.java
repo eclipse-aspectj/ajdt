@@ -142,11 +142,11 @@ public class BuilderTest extends TestCase {
 			newFile = p1.getFile("newFile.txt");
 //		}
 			
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
@@ -173,11 +173,11 @@ public class BuilderTest extends TestCase {
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -265,11 +265,11 @@ public class BuilderTest extends TestCase {
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 		
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
@@ -292,11 +292,11 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 		
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -405,11 +405,11 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -512,11 +512,11 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -678,11 +678,11 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -757,11 +757,11 @@ public class BuilderTest extends TestCase {
 		
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If this fails, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -869,11 +869,11 @@ public class BuilderTest extends TestCase {
 		newPackage.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -975,11 +975,11 @@ public class BuilderTest extends TestCase {
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		//monitor.waitForCompletion();
 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
