@@ -449,9 +449,14 @@
             name="%ajAspect"
             icon="icons/structure/new_aspect_wizard.gif"
             category="org.eclipse.ajdt.wizards"
-            class="org.eclipse.ajdt.internal.ui.wizards.NewAspectWizard"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajaspectwizard">
+         <class class="org.eclipse.ajdt.internal.ui.wizards.NewAspectWizard">
+            <parameter
+                name="javatype"
+                value="true">
+            </parameter>
+         </class>
          <description>
             Create an Aspect
          </description>
@@ -547,17 +552,15 @@
                toolbarPath="Normal/build.group"
                id="SelectBuildConfiguration">
          </action>
-         <!-- temporarily removed till Swing GUI can be replaced
-         	with SWT one, and user-interaction model worked through.
+         
          <action
-               label="Joinpoint Probe..."
-               icon="icons/actions/joinpointProbeWizard.gif"
-               tooltip="Create a Joinpoint Probe"
-               class="org.eclipse.ajdt.internal.ui.wizards.JoinpointProbeAction"
-               toolbarPath="Normal/JavaWizards"
-               id="org.eclipse.ajdt.internal.ui.wizards.JoinpointProbeAction">
+               label="%OpenAJProjectWizardAction.label"
+               icon="icons/structure/newajprj_wiz.gif"
+               tooltip="%OpenAJProjectWizardAction.tooltip"
+               class="org.eclipse.ajdt.internal.ui.wizards.OpenAJProjectWizardAction"
+               toolbarPath="org.eclipse.jdt.ui.JavaElementCreationActionSet/JavaWizards"
+               id="openajprojectwizard">
          </action>
-         -->
       </actionSet>
    </extension>
    
