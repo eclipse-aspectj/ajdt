@@ -170,30 +170,46 @@ public class CompilerMonitor implements AJCompilerMonitor {
      * Ajde wishes to display information about the progress of the compilation.
      */
     public void setProgressText(String text) {
-
-        if (text.startsWith("compiled: ") && !reportedCompiledMessages) {
+        if (!reportedCompiledMessages && text.startsWith("compiled: ")) {
             reportedCompiledMessages = true;
             AJDTEventTrace.generalEvent("Time to first 'compiled:' message: "
                     + (System.currentTimeMillis() - compileStartTime) + "ms");
         }
-        if (text.startsWith("woven: ") && !reportedWovenMessages) {
+        if (!reportedWovenMessages && text.startsWith("woven ")) {
             reportedWovenMessages = true;
-            AJDTEventTrace.generalEvent("Time to first 'woven:' message: "
+            AJDTEventTrace.generalEvent("Time to first 'woven' message: "
                     + (System.currentTimeMillis() - compileStartTime) + "ms");
         }
 
-        if (text.startsWith("compiled: ")) {
+        // Three messages are caught here:
+        //   compiled:
+        //   woven class
+        //   woven aspect
+        // Each indicates that something has been processed and so will be
+        // reported on later.  For this reason we remember that it has been
+        // processed so that we can remove markers for it before adding
+        // any new ones.  
+        // FIXME ASC18022005 this isnt the nicest way to do this, it would be better
+        // to ask the state what changed...
+        if (text.startsWith("compiled: ") || text.startsWith("woven ")) {
             // If a project contains a 'srclink' and that link is to a directory
-            // that isn't defined
-            // in another eclipse project, then we may get resource paths here
-            // that cannot be
-            // found in eclipse. So the entry added to affectedResources will be
-            // null. However, as
+            // that isn't defined in another eclipse project, then we may get 
+        	// resource paths here that cannot be found in eclipse. So the 
+        	// entry added to affectedResources will be null. However, as
             // this code is only used to ensure we tidy up markers, that does
-            // not matter - if it does
-            // not exist, it cannot have outstanding markers.
-
-            IPath resourcePath = new Path(text.substring(10));
+            // not matter - if it does not exist, it cannot have 
+        	// outstanding markers.
+            IPath resourcePath = null;
+            if (text.startsWith("compiled: ")) {
+            	resourcePath = new Path(text.substring(10));
+            } else {
+            	// woven messages look like this: 'woven class XXXX (from c:\fullpathhere)'
+            	int fromLoc = text.indexOf("from ");
+            	int endLoc = text.lastIndexOf(")");
+            	if (fromLoc!=-1 && endLoc>fromLoc) { // guards guards
+            		resourcePath = new Path(text.substring(fromLoc+5,endLoc));
+            	}
+            }
             IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
                     .getRoot();
 
@@ -304,30 +320,30 @@ public class CompilerMonitor implements AJCompilerMonitor {
         // this status change must be instantly visible
         compilationInProgress = false;
 
-        // Summarize what happened during weaving...
-        AJDTEventTrace.generalEvent("Weaver stress level: ");
-        int fastMatchOnTypeMaybe = (WeaverMetrics.fastMatchOnTypeAttempted
-                - WeaverMetrics.fastMatchOnTypeTrue - WeaverMetrics.fastMatchOnTypeFalse);
-        AJDTEventTrace.generalEvent("Fast fast matching (type level) of #"
-                + WeaverMetrics.fastMatchOnTypeAttempted + " types "
-                + "resulting in us dismissing "
-                + WeaverMetrics.fastMatchOnTypeFalse);
-        //System.err.println(" YES/NO/MAYBE =
-        // "+Metrics.fastMatchOnTypeTrue+"/"+Metrics.fastMatchOnTypeFalse+"/"+Metrics.fastMatchOnTypeMaybe);
-        //		int fastMatchMaybe = (WeaverMetrics.fastMatchOnShadowsAttempted
-        //				- WeaverMetrics.fastMatchOnShadowsFalse -
-        // WeaverMetrics.fastMatchOnShadowsTrue);
-        AJDTEventTrace.generalEvent("Fast matching within the remaining #"
-                + (WeaverMetrics.fastMatchOnTypeTrue + fastMatchOnTypeMaybe)
-                + " types, " + "we fast matched on #"
-                + WeaverMetrics.fastMatchOnShadowsAttempted
-                + " shadows and dismissed #"
-                + WeaverMetrics.fastMatchOnShadowsFalse);
-        // System.err.println(" YES/NO/MAYBE =
-        // "+Metrics.fastMatchTrue+"/"+Metrics.fastMatchFalse+"/"+fastMatchMaybe);
-        AJDTEventTrace.generalEvent("Slow match then attempted on #"
-                + WeaverMetrics.matchAttempted + " shadows of which "
-                + WeaverMetrics.matchTrue + " successful");
+        // Summarize what happened during weaving... ASC170205 - commented out for now - not that useful!
+//        AJDTEventTrace.generalEvent("Weaver stress level: ");
+//        int fastMatchOnTypeMaybe = (WeaverMetrics.fastMatchOnTypeAttempted
+//                - WeaverMetrics.fastMatchOnTypeTrue - WeaverMetrics.fastMatchOnTypeFalse);
+//        AJDTEventTrace.generalEvent("Fast fast matching (type level) of #"
+//                + WeaverMetrics.fastMatchOnTypeAttempted + " types "
+//                + "resulting in us dismissing "
+//                + WeaverMetrics.fastMatchOnTypeFalse);
+//        //System.err.println(" YES/NO/MAYBE =
+//        // "+Metrics.fastMatchOnTypeTrue+"/"+Metrics.fastMatchOnTypeFalse+"/"+Metrics.fastMatchOnTypeMaybe);
+//        //		int fastMatchMaybe = (WeaverMetrics.fastMatchOnShadowsAttempted
+//        //				- WeaverMetrics.fastMatchOnShadowsFalse -
+//        // WeaverMetrics.fastMatchOnShadowsTrue);
+//        AJDTEventTrace.generalEvent("Fast matching within the remaining #"
+//                + (WeaverMetrics.fastMatchOnTypeTrue + fastMatchOnTypeMaybe)
+//                + " types, " + "we fast matched on #"
+//                + WeaverMetrics.fastMatchOnShadowsAttempted
+//                + " shadows and dismissed #"
+//                + WeaverMetrics.fastMatchOnShadowsFalse);
+//        // System.err.println(" YES/NO/MAYBE =
+//        // "+Metrics.fastMatchTrue+"/"+Metrics.fastMatchFalse+"/"+fastMatchMaybe);
+//        AJDTEventTrace.generalEvent("Slow match then attempted on #"
+//                + WeaverMetrics.matchAttempted + " shadows of which "
+//                + WeaverMetrics.matchTrue + " successful");
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
