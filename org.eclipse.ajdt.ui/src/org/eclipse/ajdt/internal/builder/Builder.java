@@ -33,7 +33,6 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
@@ -179,10 +178,8 @@ public class Builder extends IncrementalProjectBuilder {
 		long buildstarttime = System.currentTimeMillis();	
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
-		String inc = project.getPersistentProperty(BuildOptionsAdapter.INCREMENTAL_COMPILATION);
-		if (inc!=null) {
-			AsmManager.attemptIncrementalModelRepairs = new Boolean(inc).booleanValue();
-		}
+		boolean inc = AspectJPreferences.getIncrementalOption(project);
+		AsmManager.attemptIncrementalModelRepairs = inc;		
 		
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 				

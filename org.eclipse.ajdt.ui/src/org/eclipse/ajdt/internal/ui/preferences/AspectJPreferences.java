@@ -9,6 +9,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 Julie Waterhouse - added methods to get/set ajdtPrefConfigDone - August 3, 2003
 Matt Chapman - added support for Xlint and advanced options
 Ian McGrath - added support for the properties page
+Sian January - moved in other options
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
@@ -87,7 +88,12 @@ public class AspectJPreferences {
 	public static final String OPTION_XNoInline               = "org.aspectj.ajdt.core.compiler.weaver.XNoInline";
 	public static final String OPTION_XReweavable             = "org.aspectj.ajdt.core.compiler.weaver.XReweavable";
 	public static final String OPTION_XReweavableCompress     = "org.aspectj.ajdt.core.compiler.weaver.XReweavableCompress";
-
+	
+	// Other compiler options
+	public static final String OPTION_Incremental 			  = "org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode";
+	public static final String OPTION_BuildASM				  = "org.aspectj.ajdt.core.compiler.BuildOptions.buildAsm";
+	public static final String OPTION_WeaveMessages 		  = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages";
+		
 	// map preference keys to corresponding options for the properties file
 	private static String[][] lintKeysName = {
 			{ OPTION_ReportInvalidAbsoluteTypeName, "invalidAbsoluteTypeName" },
@@ -137,6 +143,37 @@ public class AspectJPreferences {
 		String opts=" -Xlintfile \""+optsFile+"\" ";	
 		return opts;
 	}
+
+	public static boolean getShowWeaveMessagesOption(IProject thisProject) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		String opts=" ";
+		String prefix;
+		if(store.getBoolean(thisProject + "useProjectSettings"))
+			prefix = thisProject.toString();
+		else
+			prefix = "";	
+		return store.getBoolean(prefix + OPTION_WeaveMessages);
+	}
+	
+	public static boolean getBuildASMOption(IProject thisProject) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		String prefix;
+		if(store.getBoolean(thisProject + "useProjectSettings"))
+			prefix = thisProject.toString();
+		else
+			prefix = "";	
+		return store.getBoolean(prefix + OPTION_BuildASM);
+	}
+	
+	public static boolean getIncrementalOption(IProject thisProject) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		String prefix;
+		if(store.getBoolean(thisProject + "useProjectSettings"))
+			prefix = thisProject.toString();
+		else
+			prefix = "";	
+		return store.getBoolean(prefix + OPTION_Incremental);
+	} 	
 	
 	static private void writeLintOptionsFile(IProject thisProject) {
 		File optsFile = AspectJUIPlugin.getDefault().getStateLocation().append(XlintProperties).toFile();
@@ -317,5 +354,7 @@ public class AspectJPreferences {
         IPreferenceStore store =
             AspectJUIPlugin.getDefault().getPreferenceStore();
         return store.getBoolean(DO_PDE_AUTO_IMPORT);
-    } 	    
+    }
+
+    
 }

@@ -28,12 +28,6 @@ import org.eclipse.jdt.internal.core.JavaProject;
 public class BuildOptionsAdapter
 	implements org.aspectj.ajde.BuildOptionsAdapter {
 
-	public final static QualifiedName INCREMENTAL_COMPILATION =
-		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.incrementalMode");
-	public final static QualifiedName BUILD_ASM =
-	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.buildAsm");
-	public final static QualifiedName WEAVEMESSAGES =
-		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.showweavemessages");
 //	public final static QualifiedName PREPROCESS =
 //		new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.preProcess");
 //	public final static QualifiedName SOURCE14 =
@@ -307,9 +301,9 @@ public class BuildOptionsAdapter
 	 */
 	public boolean getIncrementalMode() {
 		ensurePropertiesInitialized();
-
-		boolean incrementalMode = retrieveSettingBoolean(INCREMENTAL_COMPILATION);
-
+		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();			
+		boolean incrementalMode = AspectJPreferences.getIncrementalOption(currentProject);
+		
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println(
 				"BuildOptionsAdapter.getIncrementalMode called, returning :"
@@ -321,7 +315,9 @@ public class BuildOptionsAdapter
 	
 	public boolean getBuildAsm() {
 		ensurePropertiesInitialized();
-		boolean buildAsm = retrieveSettingBoolean(BUILD_ASM);
+		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();		
+		boolean buildAsm = AspectJPreferences.getBuildASMOption(currentProject);
+
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println("BuildOptionsAdapter.getBuildAsm called, returning :"
 				+ new Boolean(buildAsm));
@@ -331,7 +327,8 @@ public class BuildOptionsAdapter
 	
 	public boolean getShowWeaveMessages() {
 		ensurePropertiesInitialized();
-		boolean showweavemessages = retrieveSettingBoolean(WEAVEMESSAGES);
+		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();	
+		boolean showweavemessages =  AspectJPreferences.getShowWeaveMessagesOption(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println("BuildOptionsAdapter.getShowWeaveMessages called, returning :"
 				+ new Boolean(showweavemessages));
@@ -439,19 +436,6 @@ public class BuildOptionsAdapter
 
 	public static void ensurePropertiesInitialized(IProject project) {
 		try {
-			if (project.getPersistentProperty(BuildOptionsAdapter.INCREMENTAL_COMPILATION) == null)
-				preserveSetting(
-					project,
-					BuildOptionsAdapter.INCREMENTAL_COMPILATION,
-					BuildOptionsAdapter.INCREMENTAL_COMPILATION_DEFAULT);
-			if (project.getPersistentProperty(BuildOptionsAdapter.BUILD_ASM) == null)
-				preserveSetting(project,
-					BuildOptionsAdapter.BUILD_ASM,
-					BuildOptionsAdapter.BUILD_ASM_DEFAULT);
-			if (project.getPersistentProperty(BuildOptionsAdapter.WEAVEMESSAGES) == null)
-				preserveSetting(project,
-					BuildOptionsAdapter.WEAVEMESSAGES,
-					BuildOptionsAdapter.WEAVE_MESSAGES_DEFAULT);
 //			if (project.getPersistentProperty(BuildOptionsAdapter.PREPROCESS) == null)
 //				preserveSetting(
 //					project,

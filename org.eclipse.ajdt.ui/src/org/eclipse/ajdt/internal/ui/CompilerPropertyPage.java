@@ -63,12 +63,16 @@ public class CompilerPropertyPage extends PropertyPage {
 	public final String COMPILER_PB_INCOMPATIBLE_SERIAL_VERSION = AspectJPreferences.OPTION_ReportIncompatibleSerialVersion;
 	public final String COMPILER_PB_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint;
 	
-	public final String COMPILER_NO_WEAVE = AspectJPreferences.OPTION_NoWeave;
-	public final String COMPILER_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
-	public final String COMPILER_LAZY_TJP = AspectJPreferences.OPTION_XLazyThisJoinPoint;
-	public final String COMPILER_NO_ADVICE_INLINE = AspectJPreferences.OPTION_XNoInline;
-	public final String COMPILER_REWEAVABLE = AspectJPreferences.OPTION_XReweavable;
-	public final String COMPILER_REWEAVABLE_COMPRESS = AspectJPreferences.OPTION_XReweavableCompress;
+	public static final String COMPILER_NO_WEAVE = AspectJPreferences.OPTION_NoWeave;
+	public static final String COMPILER_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
+	public static final String COMPILER_LAZY_TJP = AspectJPreferences.OPTION_XLazyThisJoinPoint;
+	public static final String COMPILER_NO_ADVICE_INLINE = AspectJPreferences.OPTION_XNoInline;
+	public static final String COMPILER_REWEAVABLE = AspectJPreferences.OPTION_XReweavable;
+	public static final String COMPILER_REWEAVABLE_COMPRESS = AspectJPreferences.OPTION_XReweavableCompress;
+	
+	public static final String COMPILER_INCREMENTAL = AspectJPreferences.OPTION_Incremental;
+	public static final String COMPILER_BUILD_ASM = AspectJPreferences.OPTION_BuildASM;
+	public static final String COMPILER_WEAVE_MESSAGES = AspectJPreferences.OPTION_WeaveMessages;
 
 	private final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = COMPILER_PB_INVALID_ABSOLUTE_TYPE_NAME;
 	private final String PREF_AJ_SHADOW_NOT_IN_STRUCTURE = COMPILER_PB_SHADOW_NOT_IN_STRUCTURE;
@@ -81,12 +85,16 @@ public class CompilerPropertyPage extends PropertyPage {
 	private final String PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD = COMPILER_PB_NEED_SERIAL_VERSION_UID;
 	private final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = COMPILER_PB_NO_INTERFACE_CTOR_JOINPOINT;
 
-	private final String PREF_ENABLE_NO_WEAVE = COMPILER_NO_WEAVE;
-	private final String PREF_ENABLE_SERIALIZABLE_ASPECTS = COMPILER_SERIALIZABLE_ASPECTS;
-	private final String PREF_ENABLE_LAZY_TJP = COMPILER_LAZY_TJP;
-	private final String PREF_ENABLE_NO_INLINE = COMPILER_NO_ADVICE_INLINE;
-	private final String PREF_ENABLE_REWEAVABLE = COMPILER_REWEAVABLE;
-	private final String PREF_ENABLE_REWEAVABLE_COMPRESS = COMPILER_REWEAVABLE_COMPRESS;
+	private static final String PREF_ENABLE_NO_WEAVE = COMPILER_NO_WEAVE;
+	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = COMPILER_SERIALIZABLE_ASPECTS;
+	private static final String PREF_ENABLE_LAZY_TJP = COMPILER_LAZY_TJP;
+	private static final String PREF_ENABLE_NO_INLINE = COMPILER_NO_ADVICE_INLINE;
+	private static final String PREF_ENABLE_REWEAVABLE = COMPILER_REWEAVABLE;
+	private static final String PREF_ENABLE_REWEAVABLE_COMPRESS = COMPILER_REWEAVABLE_COMPRESS;
+	
+	private static final String PREF_ENABLE_INCREMENTAL = COMPILER_INCREMENTAL;
+	private static final String PREF_ENABLE_BUILD_ASM = COMPILER_BUILD_ASM;
+	private static final String PREF_ENABLE_WEAVE_MESSAGES = COMPILER_WEAVE_MESSAGES;
 
 	private static final String ERROR = JavaCore.ERROR;
 	private static final String WARNING = JavaCore.WARNING;
@@ -188,6 +196,11 @@ public class CompilerPropertyPage extends PropertyPage {
 		store.setDefault(thisProject + PREF_ENABLE_NO_INLINE, false);
 		store.setDefault(thisProject + PREF_ENABLE_REWEAVABLE, false);
 		store.setDefault(thisProject + PREF_ENABLE_REWEAVABLE_COMPRESS, false);
+
+		store.setDefault(thisProject + PREF_ENABLE_INCREMENTAL, false);
+		store.setDefault(thisProject + PREF_ENABLE_BUILD_ASM, true);
+		store.setDefault(thisProject + PREF_ENABLE_WEAVE_MESSAGES, false);
+
 		
 		store.setDefault(thisProject + "useProjectSettings", false);
 		initialised = true;
@@ -251,6 +264,13 @@ public class CompilerPropertyPage extends PropertyPage {
 		item
 				.setText(AspectJUIPlugin
 						.getResourceString("CompilerConfigurationBlock.aj_advanced.tabtitle")); //$NON-NLS-1$
+		item.setControl(aspectjComposite);
+
+		aspectjComposite = createOtherTabContent(folder);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
 		item.setControl(aspectjComposite);
 		
 		Dialog.applyDialogFont(composite);
@@ -397,6 +417,43 @@ public class CompilerPropertyPage extends PropertyPage {
 		
 		return composite;
 	}
+
+	private Composite createOtherTabContent(Composite folder) {
+		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
+		
+		int nColumns = 3;
+
+		GridLayout layout = new GridLayout();
+		layout.numColumns = nColumns;
+
+		Composite composite = new Composite(folder, SWT.NULL);
+		composite.setLayout(layout);
+
+		Label description = new Label(composite, SWT.WRAP);
+		description
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_other.description")); //$NON-NLS-1$
+		GridData gd = new GridData();
+		gd.horizontalSpan = nColumns;
+		description.setLayoutData(gd);
+
+		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_incremental.label"); //$NON-NLS-1$
+		addCheckBox(composite, label, PREF_ENABLE_INCREMENTAL, enableDisableValues, 0, false);
+		
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_build_asm.label"); //$NON-NLS-1$
+		addCheckBox(composite, label, PREF_ENABLE_BUILD_ASM,enableDisableValues, 0, false);
+
+
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_weave_messages.label"); //$NON-NLS-1$
+		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
+
+
+
+		checkNoWeaveSelection();
+		
+		return composite;
+	}
+
 
 	/**
 	 * Get the preference store for AspectJ mode
@@ -585,6 +642,11 @@ public class CompilerPropertyPage extends PropertyPage {
 	
 	protected Button addCheckBox(Composite parent, String label, String key,
 			String[] values, int indent) {
+		return addCheckBox(parent, label, key, values, indent, true);
+	}
+	
+	protected Button addCheckBox(Composite parent, String label, String key,
+			String[] values, int indent, boolean fillGridVertically) {
 		ControlData data = new ControlData(key, values);
 
 		int idx = label.indexOf("-");
@@ -592,7 +654,9 @@ public class CompilerPropertyPage extends PropertyPage {
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
 		
-		GridData gd = new GridData(GridData.FILL_VERTICAL);//HORIZONTAL_ALIGN_FILL);
+		GridData gd = new GridData();//HORIZONTAL_ALIGN_FILL);
+		if(fillGridVertically)
+			gd.verticalAlignment = GridData.FILL;
 		gd.horizontalSpan = 3;
 		gd.horizontalIndent = indent;
 		
@@ -793,6 +857,9 @@ public class CompilerPropertyPage extends PropertyPage {
 		    	PREF_ENABLE_NO_INLINE,
 		    	PREF_ENABLE_REWEAVABLE,
 		    	PREF_ENABLE_REWEAVABLE_COMPRESS,
+				PREF_ENABLE_BUILD_ASM,
+				PREF_ENABLE_INCREMENTAL,
+				PREF_ENABLE_WEAVE_MESSAGES,
 			};
 		return keys;
 	}

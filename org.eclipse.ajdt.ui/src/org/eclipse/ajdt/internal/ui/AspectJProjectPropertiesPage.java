@@ -44,9 +44,6 @@ import org.eclipse.ui.dialogs.PropertyPage;
 public class AspectJProjectPropertiesPage extends PropertyPage {
 
 	// compiler options for ajc 
-	private Button incremental_modeBtn;	
-	private Button buildAsmBtn; 	
-	private Button showweavemessagesBtn;
 	private StringFieldEditor outputJarEditor;
 
 	// Non standard compiler options that should be passed to ajc
@@ -75,7 +72,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
                 row0Composite,
 				AspectJUIPlugin.getResourceString("compilerPropsPage.description"));
 
-        Composite row3Comp = createRowComposite(pageComposite,2);
+		Composite row3Comp = createRowComposite(pageComposite,2);
 
 		outputJarEditor =
 		  new StringFieldEditor("",
@@ -91,32 +88,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 				
 		Label spacerLabel009 = createLabel(	pageComposite,"");				
 
-		incremental_modeBtn =
-			buildButton(
-				pageComposite,
-				AspectJUIPlugin.getResourceString("compilerPropsPage.useIncrementalCompiler"));
-
-        // TODO Add in a message about incremental being experimental in this release.
-        Label incExptLabel =
-            createLabel(
-            pageComposite,
-            AspectJUIPlugin.getResourceString("compilerPropsPage.incrementalCompilerStatus"));
-
-		buildAsmBtn = buildButton( pageComposite,
-		  AspectJUIPlugin.getResourceString("compilerPropsPage.buildasm"));
-
-		Label asmDetails =
-			createLabel(
-			pageComposite,
-			AspectJUIPlugin.getResourceString("compilerPropsPage.buildasm.details"));
- 
-		
-		showweavemessagesBtn = buildButton(pageComposite,
-				AspectJUIPlugin.getResourceString("compilerPropsPage.showweavemessages"));
-		
-		Label showweavemessagesDetails =
-			createLabel(pageComposite,
-					AspectJUIPlugin.getResourceString("compilerPropsPage.showweavemessages.details"));
 		createLabel(pageComposite,"");
 
 		updatePageContents();
@@ -390,9 +361,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		}
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		try {
-			preserveSetting(BuildOptionsAdapter.INCREMENTAL_COMPILATION, incremental_modeBtn.getSelection());
-			preserveSetting(BuildOptionsAdapter.BUILD_ASM,buildAsmBtn.getSelection());
-			preserveSetting(BuildOptionsAdapter.WEAVEMESSAGES,showweavemessagesBtn.getSelection());
 			preserveSetting(BuildOptionsAdapter.OUTPUTJAR,outputJarEditor.getStringValue());
 			preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
 			preserveSetting(BuildOptionsAdapter.NON_STANDARD_OPTS,nonStandardOptionsEditor.getStringValue());
@@ -412,9 +380,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 */
 	public void performDefaults() {
 		AJDTEventTrace.projectPropertiesDefaulted(thisProject);
-		incremental_modeBtn.setSelection(BuildOptionsAdapter.INCREMENTAL_COMPILATION_DEFAULT);
-		buildAsmBtn.setSelection(BuildOptionsAdapter.BUILD_ASM_DEFAULT);		
-		showweavemessagesBtn.setSelection(BuildOptionsAdapter.WEAVE_MESSAGES_DEFAULT);
 		outputJarEditor.setStringValue("");
 		nonStandardOptionsEditor.setStringValue("");
 	}
@@ -437,9 +402,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * Ensure the widgets state reflects the persistent property values.
 	 */
 	public void updatePageContents() {
-		incremental_modeBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.INCREMENTAL_COMPILATION));
-		buildAsmBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.BUILD_ASM));		
-		showweavemessagesBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.WEAVEMESSAGES));
 		outputJarEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR));
 		nonStandardOptionsEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.NON_STANDARD_OPTS));
 	}

@@ -72,6 +72,10 @@ public class AJCompilerPreferencePage extends PreferencePage
 	public static final String COMPILER_NO_ADVICE_INLINE = AspectJPreferences.OPTION_XNoInline;
 	public static final String COMPILER_REWEAVABLE = AspectJPreferences.OPTION_XReweavable;
 	public static final String COMPILER_REWEAVABLE_COMPRESS = AspectJPreferences.OPTION_XReweavableCompress;
+	
+	public static final String COMPILER_INCREMENTAL = AspectJPreferences.OPTION_Incremental;
+	public static final String COMPILER_BUILD_ASM = AspectJPreferences.OPTION_BuildASM;
+	public static final String COMPILER_WEAVE_MESSAGES = AspectJPreferences.OPTION_WeaveMessages;
 
 	private static final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = COMPILER_PB_INVALID_ABSOLUTE_TYPE_NAME;
 	private static final String PREF_AJ_SHADOW_NOT_IN_STRUCTURE = COMPILER_PB_SHADOW_NOT_IN_STRUCTURE;
@@ -90,6 +94,10 @@ public class AJCompilerPreferencePage extends PreferencePage
 	private static final String PREF_ENABLE_NO_INLINE = COMPILER_NO_ADVICE_INLINE;
 	private static final String PREF_ENABLE_REWEAVABLE = COMPILER_REWEAVABLE;
 	private static final String PREF_ENABLE_REWEAVABLE_COMPRESS = COMPILER_REWEAVABLE_COMPRESS;
+	
+	private static final String PREF_ENABLE_INCREMENTAL = COMPILER_INCREMENTAL;
+	private static final String PREF_ENABLE_BUILD_ASM = COMPILER_BUILD_ASM;
+	private static final String PREF_ENABLE_WEAVE_MESSAGES = COMPILER_WEAVE_MESSAGES;
 
 	private static final String ERROR = JavaCore.ERROR;
 	private static final String WARNING = JavaCore.WARNING;
@@ -164,6 +172,10 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
 		store.setDefault(PREF_ENABLE_REWEAVABLE, false);
 		store.setDefault(PREF_ENABLE_REWEAVABLE_COMPRESS, false);
+		
+		store.setDefault(PREF_ENABLE_INCREMENTAL, false);
+		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
+		store.setDefault(PREF_ENABLE_WEAVE_MESSAGES, false);
 	}
 
 	/**
@@ -202,6 +214,13 @@ public class AJCompilerPreferencePage extends PreferencePage
 		item
 				.setText(AspectJUIPlugin
 						.getResourceString("CompilerConfigurationBlock.aj_advanced.tabtitle")); //$NON-NLS-1$
+		item.setControl(aspectjComposite);
+
+		aspectjComposite = createOtherTabContent(folder);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
 		item.setControl(aspectjComposite);
 
 		return folder;
@@ -337,6 +356,43 @@ public class AJCompilerPreferencePage extends PreferencePage
 		return composite;
 	}
 
+	private Composite createOtherTabContent(Composite folder) {
+		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
+		
+		int nColumns = 3;
+
+		GridLayout layout = new GridLayout();
+		layout.numColumns = nColumns;
+
+		Composite composite = new Composite(folder, SWT.NULL);
+		composite.setLayout(layout);
+
+		Label description = new Label(composite, SWT.WRAP);
+		description
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_other.description")); //$NON-NLS-1$
+		GridData gd = new GridData();
+		gd.horizontalSpan = nColumns;
+		description.setLayoutData(gd);
+
+		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_incremental.label"); //$NON-NLS-1$
+		addCheckBox(composite, label, PREF_ENABLE_INCREMENTAL, enableDisableValues, 0, false);
+		
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_build_asm.label"); //$NON-NLS-1$
+		addCheckBox(composite, label, PREF_ENABLE_BUILD_ASM,enableDisableValues, 0, false);
+
+
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_weave_messages.label"); //$NON-NLS-1$
+		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
+
+
+
+		checkNoWeaveSelection();
+		
+		return composite;
+	}
+
+
 	/**
 	 * Get the preference store for AspectJ mode
 	 */
@@ -361,20 +417,22 @@ public class AJCompilerPreferencePage extends PreferencePage
 			}
 		}
 
-		boolean advancedChanges = false;
+		boolean advancedOrOtherChanges = false;
 		for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
 			Button curr = (Button) fCheckBoxes.get(i);
 			ControlData data = (ControlData) curr.getData();
 			boolean value = curr.getSelection();
 			if (value != store.getBoolean(data.getKey())) {
-				advancedChanges = true;
+				advancedOrOtherChanges = true;
 				store.setValue(data.getKey(), value);
 			}
 		}
 
+
+
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
-		if (lintChanges || advancedChanges) {
+		if (lintChanges || advancedOrOtherChanges) {
 			boolean doBuild = false;
 			String[] strings = getFullBuildDialogStrings();
 			if (strings != null) {
@@ -470,9 +528,14 @@ public class AJCompilerPreferencePage extends PreferencePage
 		label.setLayoutData(data);
 		return label;
 	}
-	
+
 	protected Button addCheckBox(Composite parent, String label, String key,
 			String[] values, int indent) {
+		return addCheckBox(parent, label, key, values, indent, true);
+	}
+	
+	protected Button addCheckBox(Composite parent, String label, String key,
+			String[] values, int indent, boolean fillGridVertically) {
 		ControlData data = new ControlData(key, values);
 
 		int idx = label.indexOf("-");
@@ -480,7 +543,9 @@ public class AJCompilerPreferencePage extends PreferencePage
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
 		
-		GridData gd = new GridData(GridData.FILL_VERTICAL);//HORIZONTAL_ALIGN_FILL);
+		GridData gd = new GridData();//HORIZONTAL_ALIGN_FILL);
+		if(fillGridVertically)
+			gd.verticalAlignment = GridData.FILL;
 		gd.horizontalSpan = 3;
 		gd.horizontalIndent = indent;
 		
