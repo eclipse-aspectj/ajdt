@@ -173,10 +173,6 @@ public class UpdateJob extends Job {
 					.getProjectBuildConfigurator(myRes.getProject());
 			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			// reread build config file to update the include/exclude status
-			// we could also go through all build config files in the project
-			// and update any explicit references to the old file, but that
-			// would be time consuming because when using the conversion wizard
-			// this method gets called for every changed file
 			bc.update(true);
 		}
 	}
