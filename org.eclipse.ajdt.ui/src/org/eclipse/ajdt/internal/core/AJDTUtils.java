@@ -993,9 +993,6 @@ public class AJDTUtils {
 		//Luzius: tell build configurator aj nature has been removed
 		BuildConfigurator.getBuildConfigurator().restoreJDTState(project);
 		
-		// Bugzilla 77179: remove resource listener
-		AspectJUIPlugin.getDefault().disableBuildConfiguratorResourceChangeListener();
-		
 		//Ensures the project icon refreshes
 		AJDTUtils.refreshPackageExplorer();
 	}

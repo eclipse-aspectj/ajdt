@@ -169,9 +169,11 @@ public class UpdateJob extends Job {
 						.getName())) {
 			ProjectBuildConfigurator pbc = myBCor
 					.getProjectBuildConfigurator(myRes.getProject());
-			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			// reread build config file to update the include/exclude status
-			bc.update(true);
+			if (pbc != null) {
+				BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+				// reread build config file to update the include/exclude status
+				bc.update(true);
+			}
 		}
 	}
 }
