@@ -24,13 +24,11 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -57,27 +55,23 @@ public class Menu extends ViewPart {
 
 	private IAction selectNoneAction;
 	private IAction selectAllAction;
-	private static String markerTypes = "cmesearchmarker";
-	Button[] buttons;
-	Button[] checkboxes;
-	Label[] labels;
-	Label[] icons;
-	Shell[] shells;
-	ColorDialog[] colorDialogs;
-	Image[] colorSquares;
-	Color[] colors;
-	SelectionAdapter selectionListener;
-	MouseListener mouseListener;
-	Composite canvas;
-	ScrolledComposite scrollpane;
-	GridLayout layout = new GridLayout(4, false);
-	VisualiserPlugin plugin = VisualiserPlugin.getDefault();
+	private Button[] buttons;
+	private Button[] checkboxes;
+	private Label[] labels;
+	private Label[] icons;
+	private Shell[] shells;
+	private ColorDialog[] colorDialogs;
+	private Image[] colorSquares;
+	private Color[] colors;
+	private SelectionListener selectionListener;
+	private SelectionListener checkboxListener;
+	private Composite canvas;
+	private ScrolledComposite scrollpane;
+	private GridLayout layout = new GridLayout(4, false);
     private static IMarkupProvider vmp;
 	private static Hashtable kindActive = null;
 	private boolean uptodate = false;
 	private Map kinds;
-//	private String[] relationships =
-//		new String[] { "Hide Search Markers", "Hide CME Markers" };
 
 	/**
 	 * The constructor.
@@ -175,8 +169,8 @@ public class Menu extends ViewPart {
 		};
 
 		// Listener for checkboxes
-		mouseListener = new MouseListener() {
-			public void mouseUp(MouseEvent e) {
+		checkboxListener = new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
 				if (!(VisualiserPlugin.visualiser == null)) {
 					for (int i = 0; i < colors.length; i++) {
 						kindActive.put((IMarkupKind)labels[i].getData(),new Boolean(checkboxes[i].getSelection()));	
@@ -184,14 +178,10 @@ public class Menu extends ViewPart {
 					VisualiserPlugin.visualiser.updateDisplay(false);
 				}
 			}
-			public void mouseDown(MouseEvent e) {
-			}
-			public void mouseDoubleClick(MouseEvent e) {
-			}
 		};
 		makePullDownActions();
 		contributeToActionBars();
-		plugin.setMenu(this);
+		VisualiserPlugin.getDefault().setMenu(this);
 	}
 	
 
@@ -375,7 +365,7 @@ public class Menu extends ViewPart {
 				buttons[i].setImage(image);
 	
 				checkboxes[i] = new Button(canvas, SWT.CHECK);
-				checkboxes[i].addMouseListener(mouseListener);
+				checkboxes[i].addSelectionListener(checkboxListener);
 				checkboxes[i].setSelection(true);
 
 				icons[i] = new Label(canvas, SWT.NONE);
@@ -439,135 +429,7 @@ public class Menu extends ViewPart {
 	 * Dispose of the menu when closed.
 	 */
 	public void dispose() {
-		plugin.removeMenu();
-	}
-
-	
-	/**
-	 * Create the actions for this view
-	 */
-	private void makeActions() {
-
-		IActionBars bars = getViewSite().getActionBars();
-		IMenuManager manager = bars.getMenuManager();
-//		IMenuManager filterSubmenu = new MenuManager("MarkerFilters");
-//		manager.add(filterSubmenu);
-//
-//		for (int i = 0; i < this.relationships.length; i++) {
-//			final String currRel = relationships[i];
-//			Action action = new Action() {
-//				public void run() {
-//					/* Code for turning them on and off...
-//						ViewerFilter filters[] = plugin.visualiser.getFilters();
-//						boolean add = true;
-//						for(int i=0;i < filters.length;i++) {
-//							RelationshipFilter filter = (RelationshipFilter)filters[i];
-//							if (filter.getRelationshipName().equals(currRel)) {
-//								add = false;
-//								setChecked(false);
-//								plugin.visualiser.removeFilter(filter);
-//								break;
-//							}
-//						}
-//						
-//						if (add) {
-//							plugin.visualiser.addFilter(new RelationshipFilter(currRel));
-//							setChecked(true);
-//						} 				
-//					*/
-//				}
-//			};
-//
-//			action.setText(relationships[i]);
-//			action.setChecked(false);
-//			action.setToolTipText(relationships[i]);
-//			filterSubmenu.add(action);
-//		}
-
-		// Marker input dialog...
-		Action Taction = new Action() {
-			public void run() {
-				markerTypesDialog();
-			}
-		};
-		Taction.setText("Markers...");
-		Taction.setToolTipText("Choose displayed markers");
-		manager.add(Taction);
-		
-		groupByRel_Action = new Action() { public void run() {
-			if (isChecked()) {
-				//groupByRel_Action.setChecked(false);
-				groupByQuery_Action.setChecked(false);
-				psychedelic_Action.setChecked(false);
-			}
-			VisualiserPlugin.visualiser.updateDisplay(false);
-		}};
-		groupByRel_Action.setText("Group by relationship");
-		groupByRel_Action.setChecked(true);
-		groupByRel_Action.setToolTipText("Have one color per relationship type");
-		manager.add(groupByRel_Action);
-		
-		groupByQuery_Action = new Action() { public void run() {
-			if (isChecked()) {
-				groupByRel_Action.setChecked(false);
-				//groupByQuery_Action.setChecked(false);
-				psychedelic_Action.setChecked(false);
-			}
-			VisualiserPlugin.visualiser.updateDisplay(false);
-			
-		}};
-		groupByQuery_Action.setText("Group by query");
-		groupByQuery_Action.setChecked(false);
-		groupByQuery_Action.setToolTipText("Have one color per query");
-		manager.add(groupByQuery_Action);
-		
-		psychedelic_Action = new Action() { public void run() {
-			if (isChecked()) {
-				groupByRel_Action.setChecked(false);
-				groupByQuery_Action.setChecked(false);
-				//psychedelic_Action.setChecked(false);
-			}
-			VisualiserPlugin.visualiser.updateDisplay(false);
-		}};
-		psychedelic_Action.setText("Psychedelic");
-		psychedelic_Action.setChecked(false);
-		psychedelic_Action.setToolTipText("Press it, you know you want to...");
-		manager.add(psychedelic_Action);
-	}
-	
-	private static Action groupByRel_Action;
-	private static Action groupByQuery_Action;
-	private static Action psychedelic_Action;
-
-	public static boolean isPsychedelic() { return psychedelic_Action.isChecked();}
-	
-	public static boolean isColorPerRelationship() { return groupByRel_Action.isChecked();}
-	
-	public static boolean isColorPerQuery() { return groupByQuery_Action.isChecked();}
-
-	public static String getMarkersToDisplay() {
-		return markerTypes;
-	}
-
-  
-    /**
-     * Input dialog, allows user to decide which set of markers are displayed
-     * in the vis menu and therefore in the vis.
-     */
-	private void markerTypesDialog() {
-		// Which markers to respect?
-		InputDialog dlg =
-			new InputDialog(
-				getSite().getShell(),
-				"Displayed Markers",
-				"Comma separated list of marker types (e.g. 'cmesearchmarker')",
-				markerTypes,
-				null);
-		dlg.open();
-		if (dlg.getReturnCode() == InputDialog.OK) {
-			markerTypes = dlg.getValue();
-			VisualiserPlugin.visualiser.updateDisplay(false);
-		}
+		VisualiserPlugin.getDefault().removeMenu();
 	}
 
 }
