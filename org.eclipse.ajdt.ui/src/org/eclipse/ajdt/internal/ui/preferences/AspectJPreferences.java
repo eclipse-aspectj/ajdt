@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2002, 2004 IBM Corporation and others.
+Copyright (c) 2002, 2005 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Common Public License v1.0
 which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ Julie Waterhouse - added methods to get/set ajdtPrefConfigDone - August 3, 2003
 Matt Chapman - added support for Xlint and advanced options
 Ian McGrath - added support for the properties page
 Sian January - moved in other options and added 1.5 options
+Matt Chapman - added project scoped preferences
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
@@ -21,6 +22,10 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * Holds the preferences and project specific properties for AspectJ as set via the Workbench->preferences
@@ -48,6 +53,8 @@ public class AspectJPreferences {
     public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt";
 
     public static final String ADVICE_DECORATOR = "aspectjPreferences.adviceDec";
+
+    public static final String ACTIVE_CONFIG = "active.build.configuration";
 
     /**
 	 * Identifier for outline view mode selection
@@ -376,5 +383,21 @@ public class AspectJPreferences {
         return store.getBoolean(DO_PDE_AUTO_IMPORT);
     }
 
+    // Project scope preferences
     
+    public static String getActiveBuildConfigurationName(IProject project) {
+     	IScopeContext projectScope = new ProjectScope(project);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
+    	return projectNode.get(ACTIVE_CONFIG,"");
+    }
+    
+    public static void setActiveBuildConfigurationName(IProject project, String configName) {
+     	IScopeContext projectScope = new ProjectScope(project);
+       	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
+      	projectNode.put(ACTIVE_CONFIG,configName);
+       	try {
+			projectNode.flush();
+		} catch (BackingStoreException e) {
+		}
+    }
 }

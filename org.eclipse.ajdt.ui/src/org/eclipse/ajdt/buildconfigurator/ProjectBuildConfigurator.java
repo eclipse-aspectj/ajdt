@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,13 +13,12 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * @author Luzius Meisser
@@ -59,21 +58,21 @@ public class ProjectBuildConfigurator{
 	}
 	
 	private IFile getStoredBuildConfiguration(){
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		IProject project = this.javaProject.getProject();
-	    String propertyName = AspectJUIPlugin.PLUGIN_ID + "." + project.getName() + ".ajproperties"; //$NON-NLS-1$ //$NON-NLS-2$
-		String configFile = store.getString(propertyName);
-		if (configFile.length()==0) {
+		IProject project = javaProject.getProject();
+		String configFile = AspectJPreferences.getActiveBuildConfigurationName(project);
+		if ((configFile==null) || configFile.length()==0) {
 			return null;
 		}
 		return project.getFile(configFile);
 	}
 	
-	private void storeActiveBuildConfigurationName(String value){
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		IProject project = this.javaProject.getProject();
-	    String propertyName = AspectJUIPlugin.PLUGIN_ID + "." + project.getName() + ".ajproperties"; //$NON-NLS-1$ //$NON-NLS-2$
-		store.setValue(propertyName, value);
+	private void storeActiveBuildConfigurationName(String configName){
+		if (configName.equals(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE)) {
+			// don't need to store setting if it's the default
+			return;
+		}
+		IProject project = javaProject.getProject();
+		AspectJPreferences.setActiveBuildConfigurationName(project,configName);
 	}
 
 	/**

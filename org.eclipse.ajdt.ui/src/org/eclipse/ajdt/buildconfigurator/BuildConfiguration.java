@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,9 @@ public class BuildConfiguration implements Cloneable,
 	public static final String EXTENSION = "ajproperties"; //$NON-NLS-1$
 
 	public static final String STANDARD_BUILD_CONFIGURATION_NAME = AspectJUIPlugin.getResourceString("buildConfig.standardFileName"); //$NON-NLS-1$
+
+	public static final String STANDARD_BUILD_CONFIGURATION_FILE = STANDARD_BUILD_CONFIGURATION_NAME
+		+ "." + EXTENSION;
 
 	//because we are using jdts classpath file reader/writer, we cannot
 	//define new entry kinds and have to recycle one we are not using

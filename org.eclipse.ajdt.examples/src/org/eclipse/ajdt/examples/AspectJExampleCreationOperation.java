@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2003 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2005 IBM Corporation and others. All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Common Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/cpl-v10.html
@@ -17,7 +17,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -40,7 +40,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.eclipse.ui.wizards.datatransfer.ZipFileStructureProvider;
@@ -143,9 +142,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		// set active build configuration
 		String value = desc.getAttribute("build");
 		if (value != null){
-			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-			String propertyName = "org.eclipse.ajdt.ui."+proj.getName()+".ajproperties";
-			store.setValue(propertyName, value);
+			AspectJPreferences.setActiveBuildConfigurationName(proj,value);
 		}
 		//In case Build Configurator got initialized before we created the
 		// build configuration files,
@@ -177,7 +174,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 				}
 			}
 		} catch (CoreException e) {
-			e.printStackTrace();
 		}
 	}
 
