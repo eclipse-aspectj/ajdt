@@ -12,6 +12,17 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 	<property name="eclipse.build.version" value="3.0.0" />
 	<property name="eclipse.home" value="c:/eclipse/30m8/eclipse" />
 
+	<property name="aspectj" value="c:/aspectj1.2" />
+	<property name="aspectjrt" value="${aspectj}/lib/aspectjrt.jar" />
+	<property name="aspectjtools" value="${aspectj}/lib/aspectjtools.jar" />
+		
+	<taskdef 
+	    resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+		<classpath>
+		    <pathelement location="${aspectjtools}"/>
+		</classpath>
+	</taskdef>
+
 	<!-- To run this script from inside an automated build environment such 
      as Cruise Control the following properties are expected to have
      been set and passed in :-
@@ -35,8 +46,11 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 		<delete dir="bin" />
 		<mkdir dir="bin" />
 		<property file="${eclipse.home}/ajdtworkspace.properties"/>
-		<javac srcdir="testsrc" destdir="bin"
-			classpath="${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar;../org.eclipse.contribution.visualiser.tests/build/visualisertests.jar"/>
+		<property file="build.ajproperties"/>
+		<iajc srcdir="testsrc" destdir="bin"
+			classpath="${aspectjrt};${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar;../org.eclipse.contribution.visualiser.tests/build/visualisertests.jar"
+			debug="false" verbose="true"
+			includes="${src.includes}" excludes="${src.excludes}" />	
 	</target>
 
 	<target name="eclipsebuild" unless="external.build">

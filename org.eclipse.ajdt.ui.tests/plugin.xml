@@ -37,6 +37,7 @@
       <import plugin="org.eclipse.contribution.visualiser.tests"/>
       <import plugin="org.eclipse.ajdt.core"/>
       <import plugin="org.eclipse.search"/>
+      <import plugin="org.aspectj.runtime"/>
    </requires>
 
 </plugin>
