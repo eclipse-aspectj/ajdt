@@ -35,7 +35,8 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 		<delete dir="bin" />
 		<mkdir dir="bin" />
 		<property file="${eclipse.home}/ajdtworkspace.properties"/>
-		<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.ajdt.test}"/>
+		<javac srcdir="testsrc" destdir="bin"
+			classpath="${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar"/>
 	</target>
 
 	<target name="eclipsebuild" unless="external.build">
