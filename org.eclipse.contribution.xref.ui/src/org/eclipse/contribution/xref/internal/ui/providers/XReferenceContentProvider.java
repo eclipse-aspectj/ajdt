@@ -89,7 +89,7 @@ public class XReferenceContentProvider
 	}
 
 	private void initialize() {
-		invisibleRoot = new TreeParent("");
+		invisibleRoot = new TreeParent(""); //$NON-NLS-1$
 		if ((input != null) && (input instanceof IXReferenceAdapter)) {
 			IXReferenceAdapter xreferenceAdapter = (IXReferenceAdapter) input;
 			TreeParent root = new TreeParent(xreferenceAdapter.toString());
@@ -177,7 +177,7 @@ public class XReferenceContentProvider
 	private void addEvaluateChild(TreeParent parent, IDeferredXReference r) {
 		TreeObject t =
 			new TreeObject(
-				XReferenceUIPlugin.getResourceString("EvaluateLabel"));
+				XReferenceUIPlugin.getResourceString("EvaluateLabel")); //$NON-NLS-1$
 		t.setData(r);
 		parent.addChild(t);
 	}

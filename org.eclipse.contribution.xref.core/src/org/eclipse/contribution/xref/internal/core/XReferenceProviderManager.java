@@ -34,7 +34,7 @@ public class XReferenceProviderManager {
 	private static XReferenceProviderManager theManager;
 	private List providerList;
 	private static final String PROVIDERS_EXTENSION_POINT =
-		"org.eclipse.contribution.xref.core.providers";
+		"org.eclipse.contribution.xref.core.providers"; //$NON-NLS-1$
 
 	private XReferenceProviderManager() {
 	};
@@ -89,8 +89,8 @@ public class XReferenceProviderManager {
 								IStatus.WARNING,
 								XReferencePlugin.PLUGIN_ID,
 								XReferencePlugin.ERROR_BAD_PROVIDER,
-								"Could not load provider "
-									+ ces[j].getAttribute("id"),
+								"Could not load provider " //$NON-NLS-1$
+									+ ces[j].getAttribute("id"), //$NON-NLS-1$
 								e);
 						CoreException toLog = new CoreException(status);
 						XReferencePlugin.log(toLog);

@@ -23,7 +23,7 @@ import org.osgi.framework.BundleContext;
 public class XReferencePlugin extends Plugin {
 
 	// the plugin id
-	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.core";
+	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.core"; //$NON-NLS-1$
 	
 	//The shared instance.
 	private static XReferencePlugin plugin;
@@ -54,9 +54,9 @@ public class XReferencePlugin extends Plugin {
 		PluginVersionIdentifier version = new PluginVersionIdentifier(pluginVersion); 
 		StringBuffer result = new StringBuffer();
 		result.append(version.getMajorComponent());
-		result.append(".");
+		result.append("."); //$NON-NLS-1$
 		result.append(version.getMinorComponent());
-		result.append(".");
+		result.append("."); //$NON-NLS-1$
 		result.append(version.getServiceComponent());		
 		return result.toString();		
 	}

@@ -28,14 +28,14 @@ public class XReferenceProviderDefinition {
 
 	public XReferenceProviderDefinition(IConfigurationElement config)
 		throws CoreException {
-		Object obj = config.createExecutableExtension("class");
+		Object obj = config.createExecutableExtension("class"); //$NON-NLS-1$
 		if (obj instanceof IXReferenceProvider) {
 			provider = (IXReferenceProvider) obj;
 		}
-		label = config.getAttribute("label");
-		id = config.getAttribute("id");
+		label = config.getAttribute("label"); //$NON-NLS-1$
+		id = config.getAttribute("id"); //$NON-NLS-1$
 		enabled =
-			Boolean.valueOf(config.getAttribute("enabled")).booleanValue();
+			Boolean.valueOf(config.getAttribute("enabled")).booleanValue(); //$NON-NLS-1$
 		defaultEnablement = enabled;
 	}
 

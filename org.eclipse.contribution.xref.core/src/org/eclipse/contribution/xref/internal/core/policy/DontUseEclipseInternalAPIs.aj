@@ -26,6 +26,6 @@ public aspect DontUseEclipseInternalAPIs {
 		call(org.eclipse.contribution.xref..*.new(..));
 	
 	declare warning : eclipseInternalAPICall() && !xRefCoreCall() :
-		"Avoid use of internal Eclipse APIs";
+		"Avoid use of internal Eclipse APIs"; //$NON-NLS-1$
 	
 }

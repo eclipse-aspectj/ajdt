@@ -25,7 +25,7 @@ import java.util.Iterator;
 public aspect TracingPolicy {
 	
 	private static final String XREF_CORE_TRACE =
-		"org.eclipse.contribution.xref.core/debug";
+		"org.eclipse.contribution.xref.core/debug"; //$NON-NLS-1$
 	
 	private final static boolean traceEnabled =
 		isTraceEnabled();
@@ -33,7 +33,7 @@ public aspect TracingPolicy {
 	public static boolean isTraceEnabled() {
 		String option = Platform.getDebugOption(XREF_CORE_TRACE);
 		return ( (option != null) &&
-				(option.equalsIgnoreCase("true")) );
+				(option.equalsIgnoreCase("true")) ); //$NON-NLS-1$
 	}
 	
 	/**
@@ -54,7 +54,7 @@ public aspect TracingPolicy {
 		private static Set listeners = new HashSet();
 		private static StringBuffer buff = new StringBuffer();
 		
-		private static final String sig = XReferencePlugin.PLUGIN_ID + ": ";
+		private static final String sig = XReferencePlugin.PLUGIN_ID + ": "; //$NON-NLS-1$
 		public static void setDestination(PrintStream stream) {
 			destination = stream;
 		}
@@ -97,7 +97,7 @@ public aspect TracingPolicy {
 	 * trace version information on startup
 	 */
 	after() returning : coreStartup() && if(traceEnabled) {
-		TraceConsole.print("Cross Reference Core startup: v.");
+		TraceConsole.print("Cross Reference Core startup: v."); //$NON-NLS-1$
 		TraceConsole.printlnAnonymous(XReferencePlugin.getVersion());
 	}
 	
@@ -105,7 +105,7 @@ public aspect TracingPolicy {
 	 * trace plugin shutdown
 	 */
 	after() returning : coreShutdown() && if(traceEnabled) {
-		TraceConsole.println("Cross Reference Core shutdown.");
+		TraceConsole.println("Cross Reference Core shutdown."); //$NON-NLS-1$
 	}
 	
 	

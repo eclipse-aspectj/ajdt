@@ -20,10 +20,10 @@ public aspect Enforcement {
 
 	pointcut printToTheScreen() : (get(* System.out) || get(* System.err));
     
-	declare warning : (printToTheScreen() && !within(TracingPolicy)) : "There should be no printlns";
+	declare warning : (printToTheScreen() && !within(TracingPolicy)) : "There should be no printlns"; //$NON-NLS-1$
 	
 	declare warning : call(* Exception.printStackTrace(..)) : 
-	    "There should be no calls to printStackTrace";
+	    "There should be no calls to printStackTrace"; //$NON-NLS-1$
 
     
 }
