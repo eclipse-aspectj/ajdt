@@ -22,4 +22,7 @@ public class AJRelationshipManager {
 	public static final AJRelationship ASPECT_DECLARATIONS = new AJRelationship("aspect declarations");
 	public static final AJRelationship MATCHED_BY = new AJRelationship("matched by");
 	public static final AJRelationship MATCHES_DECLARE = new AJRelationship("matches declare");
+	public static final AJRelationship ANNOTATES = new AJRelationship("annotates");
+	public static final AJRelationship ANNOTATED_BY = new AJRelationship("annotated by");
+
 }

@@ -48,6 +48,8 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 			AJRelationshipManager.DECLARED_ON,
 			AJRelationshipManager.MATCHED_BY,
 			AJRelationshipManager.MATCHES_DECLARE,
+			AJRelationshipManager.ANNOTATES,
+			AJRelationshipManager.ANNOTATED_BY
 	};
 
 	/*

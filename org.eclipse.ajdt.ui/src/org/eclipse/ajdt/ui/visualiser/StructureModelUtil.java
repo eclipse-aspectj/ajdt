@@ -250,6 +250,25 @@ public class StructureModelUtil {
 						toStore.addAll(toStoreWithRuntimeTestR);
 					}
 					
+					// Annotated by
+					// TODO: Question for Andy: Why is the relationship kind intertype decl?
+					IRelationship annotated = irm.get(node,IRelationship.Kind.DECLARE_INTER_TYPE,
+							AsmRelationshipProvider.ANNOTATED_BY,false,false);
+					//System.out.println("annotated="+annotated);
+					List toStoreAnnotated = processTargets(annotated,needIndividualNodes,node);
+					//System.out.println("annotated list: "+toStoreAnnotated);
+					toStore.addAll(toStoreAnnotated);
+					
+//					 reverse relationships, only required for editor
+					if (needIndividualNodes) {
+						IRelationship annotates = irm.get(node,IRelationship.Kind.DECLARE_INTER_TYPE,
+								AsmRelationshipProvider.ANNOTATES,false,false);
+						//System.out.println("annotates="+annotates);
+						List toStoreAnnotates = processTargets(annotates,needIndividualNodes,node);
+						//System.out.println("annotates list: "+toStoreAnnotates);
+						toStore.addAll(toStoreAnnotates);
+					}
+					
 					// Lets have a mooch for other kinds of advice too !!
 
 					// If needIndividualNodes is false - the visualiser is asking !
@@ -357,6 +376,10 @@ public class StructureModelUtil {
 		if (kind == IProgramElement.Kind.INTER_TYPE_PARENT) return true;
 		if (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) return true;
 		if (kind == IProgramElement.Kind.DECLARE_PARENTS) return true;
+		if (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR) return true;
+		if (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD) return true;
+		if (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD) return true;
+		if (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE) return true;
 		return false;
 	}
 

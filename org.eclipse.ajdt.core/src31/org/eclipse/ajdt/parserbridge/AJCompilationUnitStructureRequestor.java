@@ -23,6 +23,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.aspectj.weaver.patterns.DeclareAnnotation;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
 import org.aspectj.weaver.patterns.DeclarePrecedence;
@@ -341,13 +342,12 @@ public class AJCompilationUnitStructureRequestor extends
 				
 				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.modifiers));
 				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.modifiers));
-					
-				info.setSourceRangeStart(declarationStart);
+				
+				info.setSourceRangeStart(nameSourceStart /*declarationStart*/);
 				int flags = modifiers;
 				info.setName(nameString.toCharArray());
 				info.setNameSourceStart(nameSourceStart);
 				info.setNameSourceEnd(nameSourceEnd);
-				info.setSourceRangeStart(declarationStart);
 				info.setTargetType(decl.onType.getTypeName()[0]);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
@@ -397,6 +397,21 @@ public class AJCompilationUnitStructureRequestor extends
 				} else if (decl.declareDecl instanceof DeclarePrecedence){
 					info.setAJKind(IProgramElement.Kind.DECLARE_PRECEDENCE);
 					nameSourceEnd += 9;
+				} else if (decl.declareDecl instanceof DeclareAnnotation){
+					DeclareAnnotation anno = (DeclareAnnotation)decl.declareDecl;
+					if (anno.isDeclareAtConstuctor()) {
+						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR);
+						nameSourceEnd += "@constructor".length()-1; //$NON-NLS-1$
+					} else if (anno.isDeclareAtField()) {
+						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD);
+						nameSourceEnd += "@field".length()-1; //$NON-NLS-1$
+					} else if (anno.isDeclareAtMethod()) {
+						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD);
+						nameSourceEnd += "@method".length()-1; //$NON-NLS-1$
+					} else if (anno.isDeclareAtType()) {
+						info.setAJKind(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE);
+						nameSourceEnd += "@type".length()-1; //$NON-NLS-1$
+					}
 				} else {
 					//assume declare soft
 					info.setAJKind(IProgramElement.Kind.DECLARE_SOFT);

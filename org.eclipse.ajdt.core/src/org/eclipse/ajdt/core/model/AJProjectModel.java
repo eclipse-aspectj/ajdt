@@ -68,6 +68,8 @@ public class AJProjectModel {
 				AJRelationshipManager.ASPECT_DECLARATIONS);
 		kindMap.put("matched by", AJRelationshipManager.MATCHED_BY);
 		kindMap.put("matches declare", AJRelationshipManager.MATCHES_DECLARE);
+		kindMap.put("annotates", AJRelationshipManager.ANNOTATES);
+		kindMap.put("annotated by", AJRelationshipManager.ANNOTATED_BY);
 	}
 
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
@@ -239,8 +241,7 @@ public class AJProjectModel {
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				//System.out.println("node="+node.toLinkLabelString()+"
-				// ("+node.hashCode()+")");
+				//System.out.println("node="+node.toLinkLabelString()+"("+node.hashCode()+")");
 				ISourceLocation sl = node.getSourceLocation();
 				//				Integer os = (Integer) lineToOffset.get(new Integer(sl
 				//						.getLine()));
@@ -253,7 +254,7 @@ public class AJProjectModel {
 				// "declare", so we need to adjust the offset in this case. 
 				int fff = 0;
 				String declare = "declare ";
-				if (node.toLinkLabelString().indexOf(declare) >= 0) {
+				if (node.toLinkLabelString().indexOf(declare) != -1) {
 					fff = declare.length();
 				}
 				boolean subElement = false;
