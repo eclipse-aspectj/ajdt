@@ -119,7 +119,7 @@ public class AspectJPreferencePage
 		
 		itw2.setDocument(
 			new Document(
-			  "Copyright (c) 2002, 2004 IBM Corporation and others.\n"+
+			  "Copyright (c) 2002, 2005 IBM Corporation and others.\n"+
 			  "All rights reserved. This program and the accompanying materials\n"+
 			  "are made available under the terms of the Common Public License v1.0\n"+
 			  "which accompanies this distribution, and is available at\n"+
@@ -128,9 +128,11 @@ public class AspectJPreferencePage
 					
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
-		addField(createAJOutlineField(compilerOptionsComposite));
-		createLabel(compilerOptionsComposite, 
-				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
+
+		// no more custom outline!
+//		addField(createAJOutlineField(compilerOptionsComposite));
+//		createLabel(compilerOptionsComposite, 
+//				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
 		
 		addField(createJavaOrAJField(compilerOptionsComposite));
 		createLabel(compilerOptionsComposite, 
