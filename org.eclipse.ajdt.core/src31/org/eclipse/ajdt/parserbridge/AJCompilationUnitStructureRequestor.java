@@ -39,7 +39,6 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
@@ -90,7 +89,6 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterNames,
 			char[][] exceptionTypes,
 			AbstractMethodDeclaration methodDeclaration) {
-
 				enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
 					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false, methodDeclaration);
 		}
@@ -107,7 +105,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			boolean isConstructor,
 			AbstractMethodDeclaration methodDeclaration) {
-		
+
 			if (methodDeclaration instanceof AdviceDeclaration){
 				enterAdvice(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (AdviceDeclaration)methodDeclaration);
 				return;
@@ -128,8 +126,18 @@ public class AJCompilationUnitStructureRequestor extends
 				return;
 			}
 			
-			super.enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
-						nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false);
+			MethodInfo mi = new MethodInfo();
+			mi.declarationStart = declarationStart;
+			mi.modifiers = modifiers;
+			mi.returnType = returnType;
+			mi.name = name;
+			mi.nameSourceStart = nameSourceStart;
+			mi.nameSourceEnd = nameSourceEnd;
+			mi.parameterTypes = parameterTypes;
+			mi.parameterNames = parameterNames;
+			mi.exceptionTypes = exceptionTypes;
+			mi.isConstructor = false;
+			super.enterMethod(mi);
 		}
 	
 	/**
@@ -144,10 +152,18 @@ public class AJCompilationUnitStructureRequestor extends
 		char[] superclass,
 		char[][] superinterfaces,
 		boolean isAspect) {
-		
-		if (!isAspect)
-			enterType(declarationStart, modifiers, name, nameSourceStart, nameSourceEnd, superclass, superinterfaces);
-		else {
+
+		if (!isAspect) {
+			TypeInfo ti = new TypeInfo();
+			ti.declarationStart = declarationStart;
+			ti.modifiers = modifiers;
+			ti.name = name;
+			ti.nameSourceStart = nameSourceStart;
+			ti.nameSourceEnd = nameSourceEnd;
+			ti.superclass = superclass;
+			ti.superinterfaces = superinterfaces;
+			enterType(ti);
+		} else {
 		
 		Object parentInfo = this.infoStack.peek();
 		JavaElement parentHandle= (JavaElement) this.handleStack.peek();
@@ -214,7 +230,6 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			AdviceDeclaration decl) {
 		
-			
 				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
 				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 				AdviceElement handle = null;
@@ -270,7 +285,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterNames,
 			char[][] exceptionTypes,
 			InterTypeDeclaration decl) {
-		
+
 				nameSourceEnd = nameSourceStart + decl.getDeclaredSelector().length - 1; 
 		
 				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
@@ -472,4 +487,75 @@ public class AJCompilationUnitStructureRequestor extends
 		}		
 	}
 	
+	public void enterClass(int declarationStart, int modifiers, char[] name,
+			int nameSourceStart, int nameSourceEnd, char[] superclass,
+			char[][] superinterfaces) {
+		TypeInfo ti = new TypeInfo();
+		ti.declarationStart = declarationStart;
+		ti.modifiers = modifiers;
+		ti.name = name;
+		ti.nameSourceStart = nameSourceStart;
+		ti.nameSourceEnd = nameSourceEnd;
+		ti.superclass = superclass;
+		ti.superinterfaces = superinterfaces;
+		super.enterClass(ti);
+	}
+
+	public void enterConstructor(int declarationStart, int modifiers, char[] name,
+			int nameSourceStart, int nameSourceEnd, char[][] parameterTypes,
+			char[][] parameterNames, char[][] exceptionTypes) {
+		MethodInfo mi = new MethodInfo();
+		mi.declarationStart = declarationStart;
+		mi.modifiers = modifiers;
+		mi.name = name;
+		mi.nameSourceStart = nameSourceStart;
+		mi.nameSourceEnd = nameSourceEnd;
+		mi.parameterTypes = parameterTypes;
+		mi.parameterNames = parameterNames;
+		mi.exceptionTypes = exceptionTypes;
+		mi.isConstructor = true;
+		super.enterConstructor(mi);
+	}
+
+	public void enterField(int declarationStart, int modifiers, char[] type,
+			char[] name, int nameSourceStart, int nameSourceEnd) {
+		FieldInfo fi = new FieldInfo();
+		fi.declarationStart = declarationStart;
+		fi.modifiers = modifiers;
+		fi.type = type;
+		fi.name = name;
+		fi.nameSourceStart = nameSourceStart;
+		fi.nameSourceEnd = nameSourceEnd;
+		super.enterField(fi);
+	}
+
+	public void enterInterface(int declarationStart, int modifiers, char[] name,
+			int nameSourceStart, int nameSourceEnd, char[][] superinterfaces) {
+		TypeInfo ti = new TypeInfo();
+		ti.declarationStart = declarationStart;
+		ti.modifiers = modifiers;
+		ti.name = name;
+		ti.nameSourceStart = nameSourceStart;
+		ti.nameSourceEnd = nameSourceEnd;
+		ti.superinterfaces = superinterfaces;
+		enterInterface(ti);
+	}
+
+	public void enterMethod(int declarationStart, int modifiers, char[] returnType,
+			char[] name, int nameSourceStart, int nameSourceEnd,
+			char[][] parameterTypes, char[][] parameterNames,
+			char[][] exceptionTypes) {
+		MethodInfo mi = new MethodInfo();
+		mi.declarationStart = declarationStart;
+		mi.modifiers = modifiers;
+		mi.returnType = returnType;
+		mi.name = name;
+		mi.nameSourceStart = nameSourceStart;
+		mi.nameSourceEnd = nameSourceEnd;
+		mi.parameterTypes = parameterTypes;
+		mi.parameterNames = parameterNames;
+		mi.exceptionTypes = exceptionTypes;
+		mi.isConstructor = false;
+		super.enterMethod(mi);
+	}
 }
