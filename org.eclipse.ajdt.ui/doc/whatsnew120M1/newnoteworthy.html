@@ -26,8 +26,9 @@ Part 1: Aspect structure<br>
       <p align="right"><b>New wizard for changing file extensions</b></td>
     <td width="70%" valign="top">
 
-      <p>Most of the new functionality in this section requires
-      aspects to be contained in .aj files. The best arrangement is
+      <p><font color="red"><b>Important note: </b></font><b>All of the new
+      functionality mentioned on this page requires
+      your aspects to be contained in .aj files.</b> The best arrangement is
       usually to keep pure Java code in .java files, and to use .aj
       files for aspects. We've made it easier to change the extension
       of your files by adding actions to convert from .java to .aj,
@@ -170,6 +171,25 @@ Part 1: Aspect structure<br>
       </ul>
       <p>Pointcuts are indented appropriately, but any whitespace
       within the pointcut is left unchanged.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Reminder</b></td>
+    <td width="70%" valign="top">
+
+      <p>All of the above functionality only works if your aspects are in .aj files! These
+      are handled by AJDT, but .java files are handled by Eclipse's JDT which doesn't
+      understand AspectJ syntax.</p>
 
      </td>
   </tr>
