@@ -173,23 +173,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		lastBuiltProject = project;
 		
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
+		long beforeAjdeCall = System.currentTimeMillis();
 		if (kind == FULL_BUILD) {
 			buildManager.buildFresh(configFile);
 		} else {
 			buildManager.build(configFile);
 		}
-		
 		waitForBuildCompletion(compilerMonitor);
+		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall));
 		
 		// refresh the eclipse project to pickup generated artifacts
 		project.refreshLocal(IResource.DEPTH_INFINITE, null);
 		
 		AJModel.getInstance().createMap(project);
 		
-		AJLog.log("build: build time = "
-				+ (System.currentTimeMillis() - buildstarttime) + "ms");
-	
 		postCallListeners();
+		AJLog.log("Time spent in build() = "
+				+ (System.currentTimeMillis() - buildstarttime) + "ms");
 		return requiredProjects;
 	}
 
