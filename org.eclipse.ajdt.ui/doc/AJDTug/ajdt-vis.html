@@ -224,10 +224,16 @@ selecting and deselecting them. <o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Double-clicking
+on a stripe on one of the bars opens the editor on the advised type
+at the appropriate point.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><!--[if gte vml 1]><v:shape
- id="_x0000_i1027" type="#_x0000_t75" style='width:868;height:377'>
+ id="_x0000_i1027" type="#_x0000_t75" style='width:767;height:334'>
  <v:imagedata src="ajdt-vis_files/visualiser.png" o:title="ajdt-visualisation"/>
-</v:shape><![endif]--><![if !vml]><img width=868 height=377
+</v:shape><![endif]--><![if !vml]><img width=767 height=334
 src="ajdt-vis_files/visualiser.png" v:shapes="_x0000_i1027"><![endif]><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
@@ -246,13 +252,13 @@ functions (in left to right order<span class=GramE>) :</span><o:p></o:p></span><
      selection changes in the package explorer will not change which bars are showing,
      although the stripes may change, e.g. with a rebuild.<o:p></o:p></span></li>
  <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
-     lang=EN-GB style='mso-ansi-language:EN-GB'>Absolute proportions mode - 
-     ensures that each line on a bar is at least the minimum stripe depth
-     (set in the Visualiser preferences page), which may result in a vertical scroll bar.<o:p></o:p></span></li>
+     lang=EN-GB style='mso-ansi-language:EN-GB'>Toggle fit to view mode, which
+     attempts to fit the visualization into the window as long as minimum bar width
+     and stripe height is upheld.<o:p></o:p></span></li>
  <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
-     lang=EN-GB style='mso-ansi-language:EN-GB'>Limit the visualization to only
-     those classes / packages (depending on whether you are in class or package
-     mode) affected by an aspect<o:p></o:p></span></li>
+     lang=EN-GB style='mso-ansi-language:EN-GB'>Toggle limit mode, which limits the 
+     visualization to only those classes / packages (depending on whether you are in 
+     class or package mode) affected by an aspect<o:p></o:p></span></li>
  <li class=MsoNormal style='mso-list:l0 level1 lfo3;tab-stops:list 36.0pt'><span
      lang=EN-GB style='mso-ansi-language:EN-GB'>Package view – each bar
      represents a package in the project<o:p></o:p></span></li>
@@ -263,28 +269,38 @@ functions (in left to right order<span class=GramE>) :</span><o:p></o:p></span><
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
-<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Double-clicking
-on a stripe on one of the bars opens the editor on the advised type
-at the appropriate point.<o:p></o:p></span></p>
-
-<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
-
-<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>In addition the Visualiser
-has a preferences page that can be used to configure minimum and maximum
-bar width and minimum stripe depth for the bar drawing.<o:p></o:p></span></p>
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>If a project contains any 
+errors or warnings caused by AspectJ "declare error" or "declare warning" statements, these will show up
+in the Visualiser as red and yellow stripes respectively.  If the aspect that declared a particular error or
+warning is unchecked in the menu, the corresponding stripe will not be shown.  You can also hide all declared errors and/or 
+all declared warnings using the icons on the toolbar of the Visualiser Menu view.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><!--[if gte vml 1]><v:shape
- id="_x0000_i1027" type="#_x0000_t75" style='width:479;height:259'>
+ id="_x0000_i1027" type="#_x0000_t75" style='width:766;height:280'>
+ <v:imagedata src="ajdt-vis_files/errors_and_warnings.png" o:title="ajdt-visualisation"/>
+</v:shape><![endif]--><![if !vml]><img width=766 height=280
+src="ajdt-vis_files/errors_and_warnings.png" v:shapes="_x0000_i1027"><![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>In addition the Visualiser
+has a preferences page that can be used to configure bar width, stripe depth and since 1.2.0 M1 color palette and 
+rendering options.<o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><!--[if gte vml 1]><v:shape
+ id="_x0000_i1027" type="#_x0000_t75" style='width:657;height:583'>
  <v:imagedata src="ajdt-vis_files/preferences.png" o:title="ajdt-visualisation"/>
-</v:shape><![endif]--><![if !vml]><img width=479 height=259
+</v:shape><![endif]--><![if !vml]><img width=657 height=583
 src="ajdt-vis_files/preferences.png" v:shapes="_x0000_i1027"><![endif]><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>For more
-information see the Visualiser help section.<o:p></o:p></span></p>
+information see the Visualiser's online help.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 

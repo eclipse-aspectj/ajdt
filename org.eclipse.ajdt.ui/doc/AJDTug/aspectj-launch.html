@@ -95,7 +95,10 @@ All Rights Reserved<o:p></o:p></span></i></p>
 
 <h1><span lang=EN-GB style='mso-ansi-language:EN-GB'>Running an AspectJ Program<o:p></o:p></span></h1>
 
+<h2>A Simple Application</h2>
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<ul><li>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Select your
 AspectJ project in the Package Explorer. Drop-down the “run” icon on the
@@ -138,6 +141,8 @@ src="aspectj-launch_files/run_dialog.png" v:shapes="_x0000_i1025"><![endif]><o:p
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
+</li><li>
+
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Click
 “Apply” and then “Run”.<o:p></o:p></span></p>
 
@@ -157,9 +162,54 @@ src="aspectj-launch_files/console.png" v:shapes="_x0000_i1026"><![endif]><o:p></
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
+</li><li>
+
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>To run this
 configuration again, just click on the “run” icon on the toolbar.<o:p></o:p></span></p>
 
+</li></ul>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+<h2>Advanced Applications</h2>
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>From 1.2.0 M1 AJDT provides
+its own launcher.  This supports main methods in aspects and projects defining an aspect path. Note that the
+Java launcher can be used as illustrated above if you do not require either of the aforementioned features.</p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<ul><li>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Click on the 'Main'
+tab of the launch configuration pane and click 'Search' to bring up a dialog that
+contains all the classes and aspects in scope that have main methods.</p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><!--[if gte vml 1]><v:shape
+ id="_x0000_i1026" type="#_x0000_t75" style='width:729;height:627'>
+ <v:imagedata src="aspectj-launch_files/main_aspects.png" o:title="helloworld-console"/>
+</v:shape><![endif]--><![if !vml]><img width=729 height=627
+src="aspectj-launch_files/console.png" v:shapes="_x0000_i1026"><![endif]><o:p></o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+</li><li>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Switch to the classpath tab to 
+see that your aspect path has been successfully detected.  Note that the aspect path should be set
+on the 'Aspect Path' project properties page since changing it here will only change the classpath
+for this launch configuration, not the input to the AspectJ compiler.</p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><!--[if gte vml 1]><v:shape
+ id="_x0000_i1026" type="#_x0000_t75" style='width:729;height:628'>
+ <v:imagedata src="aspectj-launch_files/aspectpath.png" o:title="helloworld-console"/>
+</v:shape><![endif]--><![if !vml]><img width=729 height=628
+src="aspectj-launch_files/aspectpath.png" v:shapes="_x0000_i1026"><![endif]><o:p></o:p></span></p>
+
+</li></ul>
 </div>
 
 </body>
