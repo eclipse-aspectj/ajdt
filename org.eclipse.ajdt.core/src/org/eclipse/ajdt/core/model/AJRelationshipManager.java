@@ -16,13 +16,13 @@ package org.eclipse.ajdt.core.model;
  * @author mchapman
  */
 public class AJRelationshipManager {
-	public static final AJRelationship ADVISES = new AJRelationship("advises");
-	public static final AJRelationship ADVISED_BY = new AJRelationship("advised by");
-	public static final AJRelationship DECLARED_ON = new AJRelationship("declared on");
-	public static final AJRelationship ASPECT_DECLARATIONS = new AJRelationship("aspect declarations");
-	public static final AJRelationship MATCHED_BY = new AJRelationship("matched by");
-	public static final AJRelationship MATCHES_DECLARE = new AJRelationship("matches declare");
-	public static final AJRelationship ANNOTATES = new AJRelationship("annotates");
-	public static final AJRelationship ANNOTATED_BY = new AJRelationship("annotated by");
+	public static final AJRelationshipType ADVISES = new AJRelationshipType("advises");
+	public static final AJRelationshipType ADVISED_BY = new AJRelationshipType("advised by");
+	public static final AJRelationshipType DECLARED_ON = new AJRelationshipType("declared on");
+	public static final AJRelationshipType ASPECT_DECLARATIONS = new AJRelationshipType("aspect declarations");
+	public static final AJRelationshipType MATCHED_BY = new AJRelationshipType("matched by");
+	public static final AJRelationshipType MATCHES_DECLARE = new AJRelationshipType("matches declare");
+	public static final AJRelationshipType ANNOTATES = new AJRelationshipType("annotates");
+	public static final AJRelationshipType ANNOTATED_BY = new AJRelationshipType("annotated by");
 
 }

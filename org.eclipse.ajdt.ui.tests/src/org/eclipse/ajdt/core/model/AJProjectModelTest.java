@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
+ *     Matt Chapman    - add line number and relationship tests
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
@@ -22,6 +23,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
+import org.eclipse.ajdt.test.AllTests;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -38,11 +40,16 @@ public class AJProjectModelTest extends TestCase {
 	AJCodeElement[] ajCodeElements;
 	AJProjectModel projectModel;
 	
+	private static final int LINE1 = 18;
+	private static final int LINE2 = 19;
+	
 	/*
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		AllTests.setupAJDTPlugin();
+		
 		project = Utils.createPredefinedProject("AJProject83082");
 		projectModel = new AJProjectModel(project);
 		projectModel.createProjectMap();
@@ -89,6 +96,47 @@ public class AJProjectModelTest extends TestCase {
         assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(1)));        
     }
 
+	public void testGetLineNumber() {
+		IJavaElement je1 = ajCodeElements[0];
+		IJavaElement je2 = ajCodeElements[1];
+		int line1 = projectModel.getJavaElementLineNumber(je1);
+		int line2 = projectModel.getJavaElementLineNumber(je2);
+		assertTrue("The first IJavaElement should be located at line " + LINE1
+				+ " got: " + line1, line1 == LINE1);
+		assertTrue("The second IJavaElement should be located at line " + LINE2
+				+ " got: " + line2, line2 == LINE2);
+	}
+	
+	public void testGetAllRelationships() {
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISES
+		};
+		List allRels = AJModel.getInstance().getAllRelationships(project,rels);
+
+		IJavaElement je1 = ajCodeElements[0];
+		IJavaElement je2 = ajCodeElements[1];
+		int advisedCount1 = 0;
+		int advisedCount2 = 0;
+		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			if (rel.getTarget().equals(je1)) {
+				advisedCount1++;
+			} else if (rel.getTarget().equals(je2)) {
+				advisedCount2++;
+			}
+		}
+		assertTrue("The first IJavaElement should be advised twice",advisedCount1==2);
+		assertTrue("The second IJavaElement should be advised twice",advisedCount2==2);
+
+		rels = new AJRelationshipType[] {
+				AJRelationshipManager.DECLARED_ON
+		};
+		allRels = AJModel.getInstance().getAllRelationships(project,rels);
+		if (allRels!=null && allRels.size()>0) {
+			fail("There should be no DECLARED_ON relationships");
+		}
+	}
+	
 	private AJCodeElement[] createAJCodeElements(AJModel model, Map annotationsMap) {
 		AJCodeElement[] arrayOfajce = new AJCodeElement[2];
 		Set keys = annotationsMap.keySet();
@@ -100,7 +148,7 @@ public class AJProjectModelTest extends TestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 18) ){
+					&& (sl.getLine() == LINE1) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {
@@ -108,7 +156,7 @@ public class AJProjectModelTest extends TestCase {
 					}					
 				} else if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 19) ){
+					&& (sl.getLine() == LINE2) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {

@@ -58,6 +58,9 @@ public class AJProjectModel {
 
 	private Map extraChildren = new HashMap();
 
+	// map IJavaElement to Integer line number
+	private Map lineNumbers = new HashMap();
+	
 	public AJProjectModel(IProject project) {
 		this.project = project;
 
@@ -77,12 +80,31 @@ public class AJProjectModel {
 		return (IJavaElement) ipeToije.get(ipe);
 	}
 
-	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
+	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
 		Map relMap = (Map) perRelMap.get(rel);
 		if (relMap == null) {
 			return null;
 		}
 		return (List) relMap.get(je);
+	}
+
+	public List getAllRelationships(AJRelationshipType[] rels) {
+		List allRels = new ArrayList();
+		for (int i = 0; i < rels.length; i++) {
+			Map relMap = (Map) perRelMap.get(rels[i]);
+			if (relMap!=null) {
+				for (Iterator iter = relMap.keySet().iterator(); iter.hasNext();) {
+					IJavaElement source = (IJavaElement) iter.next();
+					List targetList = (List)relMap.get(source);
+					for (Iterator iter2 = targetList.iterator(); iter2
+							.hasNext();) {
+						IJavaElement target = (IJavaElement) iter2.next();
+						allRels.add(new AJRelationship(source, rels[i], target));
+					}
+				}
+			}
+		}
+		return allRels;
 	}
 
 	/**
@@ -111,7 +133,15 @@ public class AJProjectModel {
         }			
 		return false;
 	}
-
+	
+	public int getJavaElementLineNumber(IJavaElement je) {
+		Integer i = (Integer)lineNumbers.get(je);
+		if (i!=null) {
+			return i.intValue();
+		}
+		return -1;
+	}
+	
 	public String getJavaElementLinkName(IJavaElement je) {
 		return (String) jeLinkNames.get(je);
 	}
@@ -162,16 +192,16 @@ public class AJProjectModel {
 						String t = (String) iterator2.next();
 						IProgramElement link = AsmManager.getDefault()
 								.getHierarchy().findElementForHandle(t);
-						//					System.err.println("asmRelMap entry: "
-						//							+ ipe.toLinkLabelString() + ", relationship: "
-						//							+ rel.getName() + ", target: "
-						//							+ link.toLinkLabelString());
+//											System.err.println("asmRelMap entry: "
+//													+ ipe.toLinkLabelString() + ", relationship: "
+//													+ rel.getName() + ", target: "
+//													+ link.toLinkLabelString());
 						IJavaElement sourceEl = (IJavaElement) ipeToije
 								.get(ipe);
 						IJavaElement targetEl = (IJavaElement) ipeToije
 								.get(link);
 
-						AJRelationship ajRel = (AJRelationship) kindMap.get(rel
+						AJRelationshipType ajRel = (AJRelationshipType) kindMap.get(rel
 								.getName());
 						if (ajRel != null) {
 //														System.out.println("Rel: " + rel.getName()
@@ -295,6 +325,7 @@ public class AJProjectModel {
 //						 el.getClass() + ") "+el.hashCode()+")");
 						ipeToije.put(node, el);
 						jeLinkNames.put(el, node.toLinkLabelString());
+						lineNumbers.put(el, new Integer(sl.getLine()));
 					}
 				} catch (JavaModelException e1) {
 				}
@@ -307,7 +338,7 @@ public class AJProjectModel {
 		System.out.println("AJDT model for project: "+project.getName());
 		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
 			String kind = (String) iter.next();
-			AJRelationship rel = (AJRelationship)kindMap.get(kind);
+			AJRelationshipType rel = (AJRelationshipType)kindMap.get(kind);
 			Map relMap = (Map) perRelMap.get(rel);
 			if (relMap != null) {
 				for (Iterator iter2 = relMap.keySet().iterator(); iter2

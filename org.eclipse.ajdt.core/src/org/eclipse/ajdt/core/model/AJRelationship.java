@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,18 +11,37 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-/**
- * 
- * @author mchapman
- */
-public class AJRelationship {
-	private String name;
+import org.eclipse.jdt.core.IJavaElement;
 
-	public AJRelationship(String name) {
-		this.name = name;
+public class AJRelationship {
+
+	private IJavaElement source;
+
+	private IJavaElement target;
+
+	private AJRelationshipType relationship;
+
+	public AJRelationship(IJavaElement source, AJRelationshipType relationship,
+			IJavaElement target) {
+		this.source = source;
+		this.target = target;
+		this.relationship = relationship;
 	}
 
-	public String getName() {
-		return name;
+	public IJavaElement getSource() {
+		return source;
+	}
+
+	public IJavaElement getTarget() {
+		return target;
+	}
+
+	public AJRelationshipType getRelationship() {
+		return relationship;
+	}
+
+	public String toString() {
+		return source.getElementName() + " --> " + relationship.getName()
+				+ " --> " + target.getElementName();
 	}
 }

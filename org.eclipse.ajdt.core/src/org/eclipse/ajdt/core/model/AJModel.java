@@ -106,7 +106,7 @@ public class AJModel {
 	 * @param je the IJavaElement to query as the source of the relationship
 	 * @return a possibly null list of related elements
 	 */
-	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
+	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
 		if (je==null) {
 			return null;
 		}
@@ -248,7 +248,42 @@ public class AJModel {
 		System.out.println("cleared maps for project "+project);
 	}
 */
+
+
+	/**
+	 * Query all the relationships of interest in a project
+	 * @param project
+	 * @param rel array of relationships of interest
+	 * @return List of relationships and endpoints
+	 */
+	public List getAllRelationships(IProject project, AJRelationshipType[] rels) {
+		AJProjectModel pm = getModelForProject(project);
+		if (pm==null) {
+			return null;
+		}
+		return pm.getAllRelationships(rels);
+	}
 	
+	/**
+	 * Query the source line number of the given java element
+	 * @param je
+	 * @return line number, or -1 if unknown
+	 */
+	public int getJavaElementLineNumber(IJavaElement je) {
+		if (je==null) {
+			return -1; //$NON-NLS-1$
+		}
+		IJavaProject jp = je.getJavaProject();
+		if (jp==null) {
+			return -1;
+		}
+		AJProjectModel pm = getModelForProject(jp.getProject());
+		if (pm==null) {
+			return -1;
+		}
+		return pm.getJavaElementLineNumber(je);
+	}
+
 	public String getJavaElementLinkName(IJavaElement je) {
 		if (je==null) {
 			return ""; //$NON-NLS-1$
