@@ -19,8 +19,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -105,44 +107,24 @@ public class AJModel {
 		}
 	}
 */
-	/*
-	public List getAdvisesElements(IJavaElement je) {
-		//init(je);
-		IJavaProject jp= je.getJavaProject();
-		if (jp==null) {
-			return null;
-		}
-		IProject proj = jp.getProject();
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
-		if (pm==null) {
-			return null;
-		}
-		return pm.getAdvisesElements(je);
-	}
 
-	public List getAdvisedByElements(IJavaElement je) {
-		//init(je);
-		IJavaProject jp= je.getJavaProject();
-		if (jp==null) {
-			return null;
-		}
-		IProject proj = jp.getProject();
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+	private AJProjectModel getModelForProject(IProject project) {
+		AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
 		if (pm==null) {
-			return null;
+			AJDTEventTrace.generalEvent("No current AJ model for project "+project.getName());
+			StructureModelUtil.initialiseAJDE(project);
+			createMap(project);
+			pm = (AJProjectModel)projectModelMap.get(project);
 		}
-		return pm.getAdvisedByElements(je);
+		return pm;
 	}
-	*/
-
+	
 	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
-		//init(je);
 		IJavaProject jp= je.getJavaProject();
 		if (jp==null) {
 			return null;
 		}
-		IProject proj = jp.getProject();
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return null;
 		}
@@ -150,19 +132,21 @@ public class AJModel {
 	}
 	
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
+		if (je==null) {
+			return null;
+		}
 		IJavaProject jp= je.getJavaProject();
 		if (jp==null) {
 			return null;
 		}
 		IProject proj = jp.getProject();
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return null;
 		}
 		return pm.getExtraChildren(je);
 	}
 	
-	// new
 	public void createMap(final IProject project) {
 		//System.out.println("creating map for project: " + project);
 		final AJProjectModel projectModel = new AJProjectModel(project);
@@ -172,6 +156,7 @@ public class AJModel {
 			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
 					projectModel.createProjectMap();
+					AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName());
 				}
 			}, null);
 		} catch (CoreException coreEx) {
@@ -236,12 +221,15 @@ public class AJModel {
 */
 	
 	public String getJavaElementLinkName(IJavaElement je) {
+		if (je==null) {
+			return "";
+		}
 		IJavaProject jp = je.getJavaProject();
 		if (jp==null) {
 			return je.getElementName();
 		}
 		IProject proj = jp.getProject();
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return je.getElementName();
 		}
@@ -260,7 +248,7 @@ public class AJModel {
 			//initForFile(file);
 			System.out.println("ipe="+ipe+" ("+ipe.hashCode()+")");
 			System.out.println("project="+file.getProject());
-			AJProjectModel pm = (AJProjectModel)projectModelMap.get(file.getProject());
+			AJProjectModel pm = getModelForProject(file.getProject());
 			if (pm==null) {
 				return null;
 			}
@@ -302,18 +290,6 @@ public class AJModel {
 		return null;
 	}
 	
-	/**
-	 * Is this element advised by something (doesn't matter what). Doesn't
-	 * trigger fullscale initialization, just the structure model
-	 * deserialization plus the containing file mapping, not the entire project
-	 * mapping.
-	 * 
-	 * @param je
-	 * @return
-	 */
-	public boolean isAdvisedBy(IJavaElement je) {
-		return false;
-	}
 	/*
 	public boolean isAdvisedBy(IJavaElement je) {
 		System.out.println("isAdvisedBy: "+je);

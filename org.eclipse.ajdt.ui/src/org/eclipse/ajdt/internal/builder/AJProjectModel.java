@@ -20,7 +20,6 @@ import java.util.Set;
 
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.bridge.ISourceLocation;
@@ -71,16 +70,6 @@ public class AJProjectModel {
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
 		return (IJavaElement)ipeToije.get(ipe);
 	}
-	/*
-	public List getAdvisesElements(IJavaElement je) {
-		Map relMap = (Map)perRelMap.get(AJRelationshipManager.ADVISES);
-		return (List)relMap.get(je);
-	}
-
-	public List getAdvisedByElements(IJavaElement je) {
-		Map relMap = (Map)perRelMap.get(AJRelationshipManager.ADVISED_BY);
-		return (List)relMap.get(je);
-	}*/
 
 	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
 		Map relMap = (Map)perRelMap.get(rel);
