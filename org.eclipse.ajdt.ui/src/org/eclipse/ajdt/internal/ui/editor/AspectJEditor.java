@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -398,6 +399,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			AJDTEventTrace.editorOpened(fInput.getFile());
 			// Ensure any advice markers are created since they are not
 			// persisted.
+			updateActiveConfig(fInput);
 			updateAdviceMarkers(fInput);
 			activeEditorList.add(this);
 			IDocument document = getDocumentProvider().getDocument(fInput);
@@ -458,6 +460,18 @@ public class AspectJEditor extends CompilationUnitEditor {
 				addNewMarkers(fInput);
 			}
 		});
+	}
+	
+	/**
+	 * Update active config in AJDE.  Added as part of the fix for bug 70658.
+	 */
+	private void updateActiveConfig(IFileEditorInput fInput ) {
+		IProject project = fInput.getFile().getProject();
+		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
+			AJDTEventTrace.buildConfigSelected( configFile, project );
+			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
+		}				
 	}
 
 	/**
@@ -725,6 +739,39 @@ public class AspectJEditor extends CompilationUnitEditor {
 		});
 	}
 
+	/**
+	 * Sian - added as part of the fix for bug 70658
+	 * Force marker updates for any editors open on files in the project,
+	 * or on all editors if project is null.
+	 * @param project
+	 */
+	public static void forceMarkerUpdates(final IProject project) {
+		final Iterator editorIter = activeEditorList.iterator();
+		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				try {
+					while (editorIter.hasNext()) {
+						AspectJEditor ajed = (AspectJEditor) editorIter.next();
+						IEditorInput iei = ajed.getEditorInput();
+						boolean updateThisEditor = true;
+						if (project != null
+								&& (iei instanceof IFileEditorInput)) {
+							IFileEditorInput ifei = (IFileEditorInput) iei;
+							if (!(ifei.getFile().getProject().getName()
+									.equals(project.getName())))
+								updateThisEditor = false;
+						}
+						if (updateThisEditor) {
+							ajed.forceUpdateOfAdviceMarkers();							
+						}
+					}
+				} catch (Exception e) {
+				}
+			}
+		});
+	}
+
+	
 	/**
 	 * @see org.eclipse.ui.IWorkbenchPart#setFocus()
 	 */

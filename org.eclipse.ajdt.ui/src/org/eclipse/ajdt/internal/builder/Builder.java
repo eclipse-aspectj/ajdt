@@ -34,7 +34,6 @@ import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.editor.AspectJContentOutlinePage;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -358,9 +357,9 @@ public class Builder extends IncrementalProjectBuilder {
 
 			StructureModelUtil.wipeCache();
 
-			// Tell the outline view to perform any marker updates pending from
+			// Tell the editor to perform any marker updates pending from
 			// the compile.
-			AspectJContentOutlinePage.performPendingAdviceMarkerUpdates();
+			AspectJEditor.forceMarkerUpdates(project);
 
 			// refresh the eclipse project to pickup generated artifacts
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);

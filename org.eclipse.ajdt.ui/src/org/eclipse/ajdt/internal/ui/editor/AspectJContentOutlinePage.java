@@ -1,18 +1,16 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
+Copyright (c) 2002-2004 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Common Public License v1.0
 which accompanies this distribution, and is available at
 http://www.eclipse.org/legal/cpl-v10.html
 Contributors:
 Adrian Colyer - initial version
+Sian January - removed advice marker update methods as part of the fix 
+	for bug 70658
 ...
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.ui.FileStructureView;
@@ -92,22 +90,7 @@ implements StructureViewRenderer {
 	 */
 	private StructureView view;
 
-	/**
-	 * The last config file we loaded
-	 */
-	private static String lastLoadedConfigFile = "";
-	
 	private boolean outlinePageCreation = true;
-	
-	/**
-	 * During a compile, this list is extended with instances of outline page
-	 * that have been 'updated' via the callback from the compiler.  Once the
-	 * compiler has completed, we iterate through entries in this list and
-	 * update all the advice markers.  We do it this way because we can't 
-	 * touch resource markers whilst the compile is in progress (due to thread
-	 * locking problems.
-	 */
-	private static List outlinesWithPendingAdviceMarkerUpdates = null;
 	
 	/**
 	 * The sorter that sorts the contents alphabetically
@@ -148,8 +131,6 @@ implements StructureViewRenderer {
 		IAdaptable outline = getContentOutline(input,true);
 		viewer.setInput(outline);
 		expandTreeView( );
-//		updateAdviceMarkers(true);
-
 
 	}
 
@@ -164,8 +145,6 @@ implements StructureViewRenderer {
 				IAdaptable outline = getContentOutline(input,true);
 		getTreeViewer().setInput(outline);
 		expandTreeView( );
-		updateAdviceMarkers(true);//(AJDTStructureViewNode)outline);
-
 		getControl().setRedraw(true);
 	}
 
@@ -199,83 +178,11 @@ implements StructureViewRenderer {
 			getControl().setRedraw(false);
 	//		getTreeViewer().setInput( (AJDTStructureViewNode) view.getRootNode());
 			AJDTStructureViewNode toDisplay = (AJDTStructureViewNode)view.getRootNode();
-            updateAdviceMarkers(false);
 			getTreeViewer( ).setInput( toDisplay );
 			expandTreeView( );
 			getControl().setRedraw(true);
 		}
 	}
-	
-	
-	/**
-	 * Called whenever the advice markers (which appear in the left hand ruler) need
-	 * to be updated.  This might be when an editor is first opened for editing a
-	 * file or during a compile, when the compiler makes a callback to the outline view.
-	 * 
-	 * In either case we do the same thing, we add the instance of the outline page
-	 * that received the callback to the list of pending outline updates.  A list
-	 * is used so that we can defer marker updates until the end of a compile run, 
-	 * however when an editor is first opened on a resource, it is ok to immediately 
-	 * update the advice markers - hence the right_now flag can be supplied to this 
-	 * function, if set to true then the markers are updated immediately.  
-	 * If right_now is false then the updates will only occur when the static method
-	 * performPendingAdviceMarkerUpdates is called.  This static method is called from 
-	 * the builder code once the compile completes.
-	 * 
-	 * @param right_now Should the advice markers be updated immediately.
-	 */
-	
-	public void updateAdviceMarkers(boolean right_now) {
-    	if (outlinesWithPendingAdviceMarkerUpdates == null) 
-    	  outlinesWithPendingAdviceMarkerUpdates = new ArrayList();
-     	outlinesWithPendingAdviceMarkerUpdates.add(this);
-    	
-    	if (right_now) performPendingAdviceMarkerUpdates();
-    }
-    
-    
-    /**
-     * This method goes through the list of outline pages that need their associated
-     * resource to have its' advice markers updated.  The list is built up during or
-     * compile or when an editor is opened on a resource.
-     * For each entry in the list, it calls the AspectJEditor to do an update - this
-     * will involve a thread being kicked off that deletes existing markers for a file
-     * and then adds the new ones.
-     * 
-     */
-    public static void performPendingAdviceMarkerUpdates() {
-    	
-    	// Check if any updates are pending ...
-    	if (outlinesWithPendingAdviceMarkerUpdates == null) return;
-    	
-    	Iterator it = outlinesWithPendingAdviceMarkerUpdates.iterator();
-    	while (it.hasNext()) {
-    		final AspectJContentOutlinePage page = (AspectJContentOutlinePage)it.next();
-    	    final AJDTStructureViewNode root_final = (AJDTStructureViewNode)page.view.getRootNode();
-			
-			// Andys words of wisdom: Chapter #1
-			// Sometimes, due to race conditions we can get entries in the List that don't refer to
-			// resources that exist.  For example.  If I delete 'ABC.java' whilst I have an editor
-			// open on it, there is a race between the incremental builder logic and the editor
-			// disposal logic.  If the builder gets done first, it can start trying to update
-			// the editor for the resource that isnt there anymore.  So we guard in the logic
-			// below to protect from this.
-			
-			
-            // Could possibly assert this, theres no way it should be in the list if it
-            // is page.editor is not an AspectJEditor.
-			if (page.editor            instanceof AspectJEditor) {
-				if (page.editor.getEditorInput() != null) 
-					((AspectJEditor)page.editor).forceUpdateOfAdviceMarkers();
-				else AJDTEventTrace.generalEvent("INFO message: Compiler made attempt to update outline for a currently (possibly temporarily) non-existent resource: "+page.editor.getTitle());
-
-			}
-    	}	
-      
-       // Null out the list to indicate they have all been processed.
-       outlinesWithPendingAdviceMarkerUpdates = null;
-	  
-    }	
 	
 		
 	/**
@@ -368,7 +275,6 @@ implements StructureViewRenderer {
 	 * if the outline could not be generated.
 	 */
 	private IAdaptable getContentOutline(IFile input, boolean registerForUpdates) {
-		updateActiveConfig( );
 		String filePath = AJDTUtils.getResourcePath( input );
 		AJDTEventTrace.structureViewRequested( input.getName() );
 		// Memory leak fix, we must delete the view we currently have
@@ -391,19 +297,6 @@ implements StructureViewRenderer {
 		return (AJDTStructureViewNode)view.getRootNode();
 	}
 
-
-	/**
-	 * update active config
-	 */
-	private void updateActiveConfig( ) {
-		IProject project = input.getProject();
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
-		if ( !configFile.equals( lastLoadedConfigFile ) ) {
-			AJDTEventTrace.buildConfigSelected( configFile, project );
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
-			lastLoadedConfigFile = configFile;
-		}				
-	}
 
 	/**
 	 * Set the expansion levels on the tree branches to their default settings
