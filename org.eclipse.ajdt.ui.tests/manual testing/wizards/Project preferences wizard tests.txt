@@ -3,32 +3,97 @@ Tests for 73859 - changes in aspectpath etc. should cause a build if "build auto
 
 (1) Check out "Simple AJ Project" from org.eclipse.ajdt.test/test projects
 (2) Check that "build automatically" is set (Project > build automatically)
-(3) Change the settings in various orders:
+(3) Change the settings on the following pages in various orders:
 
-		- AspectJ - outjar setting
-		- AspectJ Inpath
+		- AspectJ 		
 		- AspectJ Aspect Path    
-		- AspectJ Compiler 
+		- AspectJ Compiler
+		- AspectJ Inpath 
 
 	and press "Apply" and "OK" in various orders.
 	
+	In particular, change the aspect path and compiler page at the same 
+	time and then the compiler and inpath pages at the same time and 
+	check that the expected behaviour is seen.
+	
 The following behaviour should be seen:
 
-	(1) If a build occurs it should only happen once (per click of Apply or Ok) no matter
-	    how many of the different settings you change
-	(2) if the compiler settings have changed and you choose not to build now then
-        no build takes place
-	(3) If, after several clicks, you revert all the settings to what they were 
-        before you started, then no build takes place (this does not include the case
-        when the compiler settings have been changed - even if they are reverted - this
-        behaviour was there before)
+	(1) If a build occurs it should only happen once (per click of Apply 
+		or Ok) no matter how many of the different settings you change
+	(2) if the compiler settings have changed and you choose not to build 
+		now then no build takes place
+	(3) If, after several clicks, you revert all the settings to what 
+	    they were before you started, then no build takes place
 	(4) Pressing cancel means none of the changes are set       	
  
-(4) Now choose not to build automatically and repeat the above tests. The following behaviour 
-    should now be seen:
+(4) Now choose not to build automatically and repeat the above tests. 
+	The following behaviour should now be seen:
     
     (1) unless compiler settings are changed, no build happens
-    (2) if the compiler settings are changed then there is a build depending on whether you
-        choose to do one or not in the resulting question box. 
+    (2) if the compiler settings are changed then there is a build 
+    	depending on whether you choose to do one or not in the 
+    	resulting question box. 
  
-    		
+Test for 76811 - AJDT's preference pages do not behave like those of the JDT
+--------------
+
+(1) Check out "Simple AJ Project" from org.eclipse.ajdt.test/test projects
+(2) Check that "build automatically" is set (Project > build automatically)
+
+
+(a) The AspectJ page:
+
+Switch to the AspectJ page and change the settings in various orders, by 
+adding text and pressing "restore defaults", "cancel" and "OK".
+
+The following behaviour should be seen:
+
+	(1) restore defaults should not change the underlying settings so 
+		pressing restore defaults --> cancel and then bringing up the 
+		project properties again should see the previous settings still 
+		visible
+	(2) restore defaults should not force a build
+	(3) The following is the default settings:
+	
+			- nothing in the outjar field
+			- nothing in the extra compiler options field
+			- use incremental should not be checked
+			- create structure model should be checked
+			- output weaving info should not be checked.	    
+			
+(b) The AspectJ Compiler page:
+
+Switch to the AspectJ compiler page.
+
+The following behaviour should be seen:
+
+	(1) When "Workspace Settings" is checked, then you cant click the 
+		tabs in the project settings
+	(2) When project settings is checked, then you can click the tabs.  
+	(3) Switching between using project and workbench settings as many 
+		times as you like but finishing on the one you started with 
+		(without making any other changes) should not prompt for a build.
+	(4) Switching between using project and workbench settings as many 
+		times as you like but finishing on the one you didn't start with 
+		(without making any other changes) should prompt for a build.
+	(5) if the preference page is brought up with project properties 
+		being used and something within that has changed, then should 
+		be always be prompted for a build (regardless of whether auto 
+		building is set or not). If at this point you decide not to build, 
+	    then no build occurs. If you decide to build now then a build 
+	    always occurs. 
+	(6) if the preference page is brought up with workspace properties 
+		being used and the workbench settings are changed by clicking on 
+		the "Change workbench settings" button, then you should be prompted 
+		for a build for the wizard where you configure the workspace
+	    settings, but not for the project properties wizard.
+	(7) if you change the workbench settings and click "apply" then make 
+		no other changes before clicking "ok" you should not be prompted 
+		for a build.
+	(8) Change something on the AspectJ page AND the compiler settings 
+		page, then press "ok" should only be prompted for a build once.
+	(9) Bringing up the preference page with "use workspace settings" 
+		check, switching to using project settings, changing a couple 
+		of the settings and then returning to using workspace settings 
+		should not prompt for a build (if haven't changed workspace settings).            
+	           			
