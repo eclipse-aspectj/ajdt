@@ -14,7 +14,6 @@ package org.eclipse.contribution.xref.internal.ui.inplace;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
@@ -165,7 +164,7 @@ public class XReferenceInplaceDialog {
 	private KeyAdapter keyAdapter;
 	private KeySequence[] invokingCommandKeySequences;
 	private Label statusField;
-	private IXReferenceAdapter previousXRefAdapter;
+	private List /*IXReferenceAdapter*/ previousXRefAdapterList;
 
 	private Action doubleClickAction;
 	private boolean isDeactivateListenerActive= false;
@@ -602,14 +601,14 @@ public class XReferenceInplaceDialog {
 	
 	protected void toggleShowParentCrosscutting() {
 		if (lastSelection != null && workbenchPart != null) {
-			IXReferenceAdapter xra = null;
+			List xraList = null;
 			if (!isShowingParentCrosscutting) {
-				xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,true);
+				xraList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,true);
 			} else {
-				xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+				xraList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
 			}
-			if (xra != null) {
-				viewer.setInput(xra);
+			if (xraList != null) {
+				viewer.setInput(xraList);
 			}
 		}
 		
@@ -1167,11 +1166,11 @@ public class XReferenceInplaceDialog {
 	
 	private void createContents() {
 		if (lastSelection != null && workbenchPart != null) {
-			//IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
-			previousXRefAdapter = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+			previousXRefAdapterList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
 			
-			if (previousXRefAdapter != null) {
-				viewer.setInput(previousXRefAdapter);
+			if (previousXRefAdapterList != null) {
+				viewer.setInput(previousXRefAdapterList);
+				viewer.setSelection(lastSelection,true);
 			}
 		}
 		filterText.setText(""); //$NON-NLS-1

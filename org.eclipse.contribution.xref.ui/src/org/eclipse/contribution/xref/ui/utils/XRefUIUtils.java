@@ -12,6 +12,8 @@
 package org.eclipse.contribution.xref.ui.utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
@@ -25,9 +27,9 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -189,60 +191,68 @@ public class XRefUIUtils {
 		.getActiveWorkbenchWindow();
 	}
 
-	public static IXReferenceAdapter getXRefAdapterForSelection(IWorkbenchPart part, ISelection selection, boolean showParentCrosscutting) {
-		IAdaptable a = null;
-		IXReferenceAdapter xra = null;
+	/**
+	 * Returns an ArrayList of the IXReferenceAdapters either for the current
+	 * selection, or for the file (ICompilationUnit) containing the current selection
+	 */
+	public static List getXRefAdapterForSelection(IWorkbenchPart part, ISelection selection, boolean showParentCrosscutting) {
+		List xrefAdapterList = new ArrayList();
 		if (selection instanceof IStructuredSelection) {
-			IStructuredSelection structuredSelection =
-				(IStructuredSelection) selection;
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object first = structuredSelection.getFirstElement();
-			if (first instanceof IAdaptable) {
-				a = (IAdaptable) first;
-			}
+			if (first instanceof IJavaElement) {
+				return getXRefAdapterList((IJavaElement)first,showParentCrosscutting);
+			} 
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
-		    if (part instanceof JavaEditor) {
+ 		    if (part instanceof JavaEditor) {
 			    JavaEditor je = (JavaEditor)part;
 			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
 			    IJavaElement javaElement = (IJavaElement)sourceRef;
-			    // if we want to show the parent crosscutting and we're not already showing 
-			    // the xrefs for the entire file, then need to show the xrefs for the parent 
-			    // of the current IJavaElement, with some fiddling if we've selected 
-			    // an import or package statement.
-			    if (javaElement != null 
-			    		&& showParentCrosscutting && !(javaElement instanceof SourceType)) {	
-			    	if ((javaElement instanceof IImportDeclaration) 
-			    			|| (javaElement instanceof IPackageDeclaration) ) {
-			    		ICompilationUnit parent = null;
-				    	if (javaElement.getElementType() == IJavaElement.IMPORT_DECLARATION) {
-							parent = (ICompilationUnit)(javaElement.getParent().getParent()); 
-						} else if (javaElement.getElementType() == IJavaElement.PACKAGE_DECLARATION){
-							parent = (ICompilationUnit)javaElement.getParent();
-						}
-						if (parent != null 
-								&& parent.findPrimaryType() != null 
-								&& (parent.findPrimaryType() instanceof SourceType)) {
-							a = (IAdaptable)parent.findPrimaryType();
-						}
-					} else {
-					    IJavaElement parent = javaElement.getParent();
-					    a = (IAdaptable)parent;
-					}
-				} else {
-					a = (IAdaptable)javaElement;
-				}
+			    // if we want to show the parent crosscutting then need to show the xrefs for 
+			    // all top level SourceTypes declared in the containing compilation unit
+			    return getXRefAdapterList(javaElement,showParentCrosscutting);
             }
 		}
-		if (a != null) {
-			xra = (IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class);
-		}
-		return xra;
+		return xrefAdapterList;
 	}
 	
+	private static List getXRefAdapterList(IJavaElement javaElement, boolean showParentCrosscutting) {
+		List xrefAdapterList = new ArrayList();
+	    if (javaElement != null && showParentCrosscutting) {
+	    	ICompilationUnit parent = (ICompilationUnit)javaElement.getAncestor(IJavaElement.COMPILATION_UNIT);
+	    	if (parent != null) {
+		    	try {
+					IType[] types = parent.getAllTypes();
+					for (int i = 0; i < types.length; i++) {
+						if ((types[i] instanceof SourceType)
+								&& (types[i].getParent() instanceof ICompilationUnit)) {
+							IAdaptable a = (IAdaptable)((SourceType)types[i]);
+							if (a != null) {
+								xrefAdapterList.add((IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class));
+							}
+						}
+					}
+				} catch (JavaModelException e) {
+					e.printStackTrace();
+				}				
+			}
+		} else {
+			IAdaptable a = (IAdaptable)javaElement;
+			if (a != null) {
+				xrefAdapterList.add((IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class));
+			}
+		}	
+	    return xrefAdapterList;
+	}
+
+	/**
+	 * Returns the current selection in the workbench
+	 */
 	public static ISelection getCurrentSelection() {
 		IWorkbenchWindow window= JavaPlugin.getActiveWorkbenchWindow();
 		if (window != null) {
 			return window.getSelectionService().getSelection();
 		}
 		return null;
-	}
+	}	
 }

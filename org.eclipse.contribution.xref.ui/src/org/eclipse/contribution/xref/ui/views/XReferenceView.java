@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.ui.views;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.actions.CollapseAllAction;
@@ -39,6 +42,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.views.contentoutline.ContentOutline;
 
 /**
  * This class represents the Cross Reference View
@@ -57,7 +61,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	private Action toggleShowXRefsForFileAction;
 	private boolean linkingEnabled = true; // following selection?
 	private boolean showXRefsForFileEnabled = false;
-	private IXReferenceAdapter lastXRefAdapter;
+	private List /*IXReferenceAdapter*/ lastXRefAdapterList;
 	private ISelection lastSelection, lastLinkedSelection;
 	private IWorkbenchPart lastWorkbenchPart, lastLinkedWorkbenchPart;
 	private NavigationHistoryActionGroup navigationHistoryGroup;
@@ -110,9 +114,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (!(part instanceof AbstractTextEditor)) {
+		if (!(part instanceof AbstractTextEditor) && !(part instanceof ContentOutline)) {
 			// only want to respond to changes in selection
-			// in editors
+			// in editors and outline view
 			return;
 		}
 		lastWorkbenchPart = part;
@@ -123,28 +127,55 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			lastLinkedSelection = selection;
 		}
 
-		IXReferenceAdapter xra = null;
+		List xraList = null;
 		if (showXRefsForFileEnabled) {
-			xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,true);	
+			xraList = XRefUIUtils.getXRefAdapterForSelection(part,selection,true);
 		} else {
-			xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);	
+			xraList = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);
 		}
-		if (xra != null) {
-			if (lastXRefAdapter != null 
-					&& xra.getReferenceSource().equals(lastXRefAdapter.getReferenceSource())
-					&& !changeDrivenByBuild) {
-				return;
+
+		if (xraList != null) {
+			// if we've selected the same element then don't want the xref view
+			// to flicker, therefore we return without updating the view.
+			if (lastXRefAdapterList != null && !changeDrivenByBuild) { 
+				boolean sameXRefAdapter = true;
+				for (Iterator iter = xraList.iterator(); iter.hasNext();) {
+					Object o = iter.next();
+					boolean foundMatch = false;
+					if (o instanceof IXReferenceAdapter) {
+						IXReferenceAdapter currentXra = (IXReferenceAdapter)o;
+						
+						for (Iterator i2 = lastXRefAdapterList.iterator(); i2.hasNext();) {
+							Object o2 = (Object) i2.next();
+							if (o2 instanceof IXReferenceAdapter) {
+								IXReferenceAdapter lastXra = (IXReferenceAdapter)o2;
+								if (currentXra.getReferenceSource().equals(lastXra.getReferenceSource())) {
+									foundMatch = true;
+								}
+							}
+						}
+					}
+					if (!foundMatch) {
+						sameXRefAdapter = false;
+					}
+				}
+				if(sameXRefAdapter) {
+					return;
+				}
 			}
-			lastXRefAdapter = xra;
+
+			lastXRefAdapterList = xraList;
 			if (linkingEnabled && !changeDrivenByBuild) {
-				viewer.setInput(xra);
+				viewer.setInput(xraList);
 			} else if (changeDrivenByBuild){
 				Object o = viewer.getInput();
 				if (o instanceof IXReferenceAdapter) {
-					IXReferenceAdapter xrefAdapter = (IXReferenceAdapter)o;
-					viewer.setInput(xrefAdapter);					
+					viewer.setInput((IXReferenceAdapter)o);					
+				} else if (o instanceof List) {
+					viewer.setInput((List)o);
 				}
 			}
+			viewer.setSelection(selection,true);
 		}
 	}
 	
@@ -170,8 +201,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 
 	public void setLinkingEnabled(boolean isOn) {
 		linkingEnabled = isOn;
-		if (linkingEnabled && lastXRefAdapter != null) {
-			viewer.setInput(lastXRefAdapter);
+		if (linkingEnabled && lastXRefAdapterList != null) {
+			viewer.setInput(lastXRefAdapterList);
 		}
 	}
 
@@ -182,15 +213,15 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	public void setShowXRefsForFileEnabled(boolean isOn) {
 		showXRefsForFileEnabled = isOn;
 
-		IXReferenceAdapter xra = null;
+		List xraList = null;
 		if (!linkingEnabled) {
 			// if linking is not enabled then just want to show/hide the cross references
 			// for the file of the contents of the xref view
 			if (lastLinkedSelection != null && lastLinkedWorkbenchPart != null) {
 				if (showXRefsForFileEnabled) {
-					xra = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,true);
+					xraList = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,true);
 				} else {
-					xra = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,false);
+					xraList = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,false);
 				}
 			}			
 		} else {
@@ -198,14 +229,16 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			// for the file which is open in the active editor
 			if (lastSelection != null && lastWorkbenchPart != null) {
 				if (showXRefsForFileEnabled) {
-					xra = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,true);
+					xraList = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,true);
 				} else {
-					xra = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,false);
+					xraList = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,false);
 				}
 			}
 		}
-		if (xra != null) {
-			viewer.setInput(xra);
+		if (xraList != null) {
+			ISelection sel = viewer.getSelection();
+			viewer.setInput(xraList);
+			viewer.setSelection(sel,true);
 		}		
 	}
 

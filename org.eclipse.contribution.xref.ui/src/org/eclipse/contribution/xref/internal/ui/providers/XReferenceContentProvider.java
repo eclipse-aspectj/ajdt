@@ -92,27 +92,38 @@ public class XReferenceContentProvider
 		invisibleRoot = new TreeParent(""); //$NON-NLS-1$
 		if ((input != null) && (input instanceof IXReferenceAdapter)) {
 			IXReferenceAdapter xreferenceAdapter = (IXReferenceAdapter) input;
-			TreeParent root = new TreeParent(xreferenceAdapter.toString());
-			root.setData(xreferenceAdapter.getReferenceSource());
-			invisibleRoot.addChild(root);
-
-			addXReferencesToTree(root, xreferenceAdapter.getXReferences());
-
-			// If there are cross references for the children of the
-			// currently selected XReferenceAdapter, then want to also
-			// include these in the view.
-			Object o = xreferenceAdapter.getReferenceSource();
-			JavaElement je = null;
-			if (o instanceof IJavaElement) {
-				je = (JavaElement) o;
-			}
-			if (je != null) {
-				addChildren(root,je,xreferenceAdapter);
+			createXRefTree(xreferenceAdapter);
+		} else if (input != null && (input instanceof List)) {
+			for (Iterator iter = ((List)input).iterator(); iter.hasNext();) {
+				Object o = (Object) iter.next();
+				if (o instanceof IXReferenceAdapter) {
+					createXRefTree((IXReferenceAdapter)o);
+				}
 			}
 		} else if (input != null) {
 			TreeParent root = new TreeParent(input.getClass().getName());
 			root.setData(input);
 			invisibleRoot.addChild(root);
+		}
+	}
+	
+	private void createXRefTree(IXReferenceAdapter xreferenceAdapter) {
+		TreeParent root = new TreeParent(xreferenceAdapter.toString());
+		root.setData(xreferenceAdapter.getReferenceSource());
+		invisibleRoot.addChild(root);
+
+		addXReferencesToTree(root, xreferenceAdapter.getXReferences());
+
+		// If there are cross references for the children of the
+		// currently selected XReferenceAdapter, then want to also
+		// include these in the view.
+		Object o = xreferenceAdapter.getReferenceSource();
+		JavaElement je = null;
+		if (o instanceof IJavaElement) {
+			je = (JavaElement) o;
+		}
+		if (je != null) {
+			addChildren(root,je,xreferenceAdapter);
 		}
 	}
 
