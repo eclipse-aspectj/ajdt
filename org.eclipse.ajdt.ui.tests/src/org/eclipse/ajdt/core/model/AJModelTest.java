@@ -10,7 +10,7 @@
  *     Matt Chapman  - initial version
  *******************************************************************************/
 
-package org.eclipse.ajdt.internal.builder;
+package org.eclipse.ajdt.core.model;
 
 import java.util.ArrayList;
 import java.util.Iterator;

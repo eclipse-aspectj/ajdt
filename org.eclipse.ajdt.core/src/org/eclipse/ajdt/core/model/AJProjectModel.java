@@ -176,9 +176,11 @@ public class AJProjectModel {
 						AJRelationship ajRel = (AJRelationship) kindMap.get(rel
 								.getName());
 						if (ajRel != null) {
-							//							System.out.println("Rel: " + rel.getName()
-							//									+ " source: " + sourceEl + " target: "
-							//									+ targetEl);
+//														System.out.println("Rel: " + rel.getName()
+//																+ " source: " + sourceEl + " hashcode: " 
+//																+ sourceEl.hashCode() + ", target: "
+//																+ targetEl 
+//																+ " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
 								Map relMap = (Map) perRelMap.get(ajRel);
 								if (relMap == null) {
@@ -190,11 +192,7 @@ public class AJProjectModel {
 									l = new ArrayList();
 									relMap.put(sourceEl, l);
 								}
-								// extra filter due to AspectJ bug 80916
-								if (!(l.contains(targetEl))) {
-								    l.add(targetEl);
-                                }
-								
+							    l.add(targetEl);
 							}
 						}
 					}
@@ -276,8 +274,7 @@ public class AJProjectModel {
 						IJavaElement parent = el;
 						el = new AJCodeElement((JavaElement) parent, sl
 								.getLine(), node.toLabelString());
-						//System.out.println("extra child for "+parent+" is
-						// "+el);
+						//System.out.println("extra child for "+parent+" is"+el+" hash="+el.hashCode());
 						List l = (List) extraChildren.get(parent);
 						if (l == null) {
 							l = new ArrayList();

@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
+import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -82,12 +83,13 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 			if (related != null) {
 				for (Iterator iter = related.iterator(); iter.hasNext();) {
 					IJavaElement javaElement = (IJavaElement) iter.next();
-//					System.out.println("related: " + javaElement + " ("
-//							+ javaElement.hashCode() + ")");
+					//System.out.println("related: " + javaElement + " ("
+					//		+ javaElement.hashCode() + ")");
 					AJNode associate = new AJNode(javaElement, model
 							.getJavaElementLinkName(javaElement));
 					associates.add(associate);
 				}
+				Collections.sort(associates,new AJComparator());
 				XRef xref = new XRef(showRels[i].getName(), associates);
 				xrefs.add(xref);
 			}

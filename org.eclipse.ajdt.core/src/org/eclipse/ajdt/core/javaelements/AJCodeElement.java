@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.LocalVariable;
 import org.eclipse.jdt.internal.core.SourceRange;
+import org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * 
@@ -45,8 +46,27 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 		return new SourceRange(this.nameStart, this.nameEnd-this.nameStart+1);
 	}
 
+	/**
+	 * Overriding LocalVariable.hashcode() to include
+	 * the line number of the AJCodeElement (since two
+	 * different AJCodeElements can have the same name and 
+	 * parent - must always have different line numbers.
+	 */
 	public int hashCode() {
-		return name.hashCode();
+		return Util.combineHashCodes(name.hashCode(),line);
+	}
+
+	/**
+	 * Overriding LocalVariable.equals to include the line number.
+	 * An object is equal to this one if super.equals(o)
+	 * returns true AND the line numbers are the same.
+	 */
+	public boolean equals(Object o) {
+		if (!(o instanceof AJCodeElement)) {
+			return super.equals(o);
+		}
+		AJCodeElement ajce = (AJCodeElement)o;
+		return super.equals(o) && (line == ajce.line);
 	}
 	
 	private void setStartAndEnd(int targetLine) {
@@ -73,5 +93,19 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 			}
 		} catch (JavaModelException e) {
 		}
+	}
+	
+	/**
+	 * @return Returns the line in the file of this AJCodeElement.
+	 */
+	public int getLine() {
+		return line;
+	}
+	
+	/**
+	 * @return Returns the name for this AJCodeElement
+	 */
+	public String getName() {
+		return name;
 	}
 }
