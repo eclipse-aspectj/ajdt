@@ -1,16 +1,19 @@
-/**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the Common Public License v1.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/cpl-v10.html
-Contributors:
-Adrian Colyer, Andy Clement, Tracy Gardner - initial version
-...
-**********************************************************************/
+/*******************************************************************************
+ * Copyright (c) 2002, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ *     Matt Chapman - add support for old builder id
+ *******************************************************************************/
+
 package org.eclipse.ajdt.internal.ui;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -25,6 +28,9 @@ public class AspectJProjectNature implements IProjectNature {
 
 	private IProject project;
 
+	// the previous builder id, before the builder was moved to the core plugin
+	private static final String OLD_BUILDER = "org.eclipse.ajdt.ui.ajbuilder"; //$NON-NLS-1$
+	
 	/**
 	 * Driven when this project nature is 'given' to a project,
 	 * it adds the appropriate builder to the project build specification.
@@ -36,7 +42,7 @@ public class AspectJProjectNature implements IProjectNature {
 
 		IProjectDescription projectDescription = project.getDescription();
 		ICommand command = projectDescription.newCommand();
-		command.setBuilderName(AspectJUIPlugin.ID_BUILDER);
+		command.setBuilderName(AspectJPlugin.ID_BUILDER);
 
 		ICommand[] buildCommands = projectDescription.getBuildSpec();
 		ICommand[] newBuildCommands;
@@ -60,10 +66,12 @@ public class AspectJProjectNature implements IProjectNature {
 		command.setBuilderName(JavaCore.BUILDER_ID);
 		
 		ICommand[] newBuildCommands;
-		if ( contains( buildCommands, AspectJUIPlugin.ID_BUILDER ) ) {
-			newBuildCommands = swap( buildCommands, AspectJUIPlugin.ID_BUILDER, command );
+		if ( contains( buildCommands, AspectJPlugin.ID_BUILDER ) ) {
+			newBuildCommands = swap( buildCommands, AspectJPlugin.ID_BUILDER, command );
+		} else if ( contains( buildCommands, OLD_BUILDER ) ) {
+			newBuildCommands = swap( buildCommands, OLD_BUILDER, command );
 		} else {
-			newBuildCommands = remove( buildCommands, AspectJUIPlugin.ID_BUILDER );
+			newBuildCommands = remove( buildCommands, AspectJPlugin.ID_BUILDER );
 		}			
 		
 		description.setBuildSpec(newBuildCommands);			
