@@ -135,7 +135,7 @@ Creates an update site structure for AspectJ
  <ant dir="../org.eclipse.aspectj" inheritAll="true" />
  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
  <ant dir="../org.eclipse.ajdt.test" inheritAll="true" />
- <!-- <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" /> -->
+ <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" />
 	
  <copy file="site.xml" todir="dist">
  	<filterset>
