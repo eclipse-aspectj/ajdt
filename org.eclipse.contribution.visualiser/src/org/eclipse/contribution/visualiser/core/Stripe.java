@@ -18,52 +18,66 @@ import java.util.List;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 
 /**
- * The stripe class represents a mark on a bar, stripes can be any depth and be of
- * multiple 'kinds' (kinds map to colors).
+ * The stripe class represents a mark on a bar, stripes can be any depth and be
+ * of multiple 'kinds' (kinds map to colors).
  */
 public class Stripe implements Comparable {
 
 	private List kinds;
-	private int offset;
-	private int depth;
 
+	private int offset;
+
+	private int depth;
 
 	/**
 	 * Returns true if the given Object is equal to this stripe
+	 * 
 	 * @param that
 	 * @return true iff the given Object is equal to this stripe
 	 */
 	public boolean equals(Object that) {
-		if(!(that instanceof Stripe)) return false;
-		Stripe stripe = (Stripe)that;
-		if (depth!=stripe.depth) return false;
-		if (offset!=stripe.offset) return false;
-		if (!stringifyKinds().equals(stripe.stringifyKinds()) ) return false;
+		if (!(that instanceof Stripe))
+			return false;
+		Stripe stripe = (Stripe) that;
+		if (depth != stripe.depth)
+			return false;
+		if (offset != stripe.offset)
+			return false;
+		if (!stringifyKinds().equals(stripe.stringifyKinds()))
+			return false;
 		return true;
 	}
-	
-	public int hashCode(){
-		int result = 17;
-		result = 37*result + depth;
-		result = 37*result + offset;
-		result = 37*result + stringifyKinds().hashCode();
+
+	/**
+	 * Override hashCode because we have overridden equals.
+	 */
+	public int hashCode() {
+		// To obey the contract, return a hashcode that is a function of all the
+		// variables used in the equals method.
+		
+		int result = 17; 	// Begin with a non-zero number so that result is not
+							// zero. (Value not important).
+		result = 37 * result + depth; 	// Multiply by 37 (value not relevant) to
+										// increase possible range of hashcodes
+		result = 37 * result + offset;
+		result = 37 * result + stringifyKinds().hashCode();
 		return result;
 	}
-	
-	
+
 	/**
 	 * Default constructor
 	 */
 	public Stripe() {
 		kinds = new ArrayList();
 	}
-	
-	
+
 	/**
 	 * Stripe constructor when the stripe is of the minimum depth (1).
 	 * 
-	 * @param k The kind of stripe
-	 * @param i The offset down the bar where the stripe starts
+	 * @param k
+	 *            The kind of stripe
+	 * @param i
+	 *            The offset down the bar where the stripe starts
 	 */
 	public Stripe(IMarkupKind k, int i) {
 		kinds = new ArrayList();
@@ -71,14 +85,16 @@ public class Stripe implements Comparable {
 		offset = i;
 		depth = 1;
 	}
-	
 
 	/**
 	 * Stripe constructor where the kind, offset and depth can be specified.
 	 * 
-	 * @param k The kind of the stripe
-	 * @param o The offset down the bar where the stripe starts
-	 * @param d The depth of the stripe
+	 * @param k
+	 *            The kind of the stripe
+	 * @param o
+	 *            The offset down the bar where the stripe starts
+	 * @param d
+	 *            The depth of the stripe
 	 */
 	public Stripe(IMarkupKind k, int o, int d) {
 		kinds = new ArrayList();
@@ -87,14 +103,16 @@ public class Stripe implements Comparable {
 		depth = d;
 	}
 
-
 	/**
 	 * Stripe constructor where the kinds, offset and depth can be specified.
 	 * The input list 'kinds' should be a list of strings.
 	 * 
-	 * @param ks The kinds of the stripe, should be strings
-	 * @param o The offset down the bar where the stripe starts
-	 * @param d The depth of the stripe
+	 * @param ks
+	 *            The kinds of the stripe, should be strings
+	 * @param o
+	 *            The offset down the bar where the stripe starts
+	 * @param d
+	 *            The depth of the stripe
 	 */
 	public Stripe(List ks, int o, int d) {
 		kinds = new ArrayList();
@@ -103,26 +121,28 @@ public class Stripe implements Comparable {
 		depth = d;
 	}
 
-	
 	/**
 	 * Getter for the kinds of this stripe.
 	 * 
 	 * @return List of strings representing kinds
 	 */
-	public List getKinds() { return kinds;}
+	public List getKinds() {
+		return kinds;
+	}
 
-	
 	/**
 	 * Add the given kinds to this stripe
+	 * 
 	 * @param list
 	 */
 	public void addKinds(List list) {
-		if (list != null) kinds.addAll(list);
+		if (list != null)
+			kinds.addAll(list);
 	}
-	
-	
+
 	/**
 	 * Set the list of kinds for this Stripe to the given argument
+	 * 
 	 * @param list
 	 */
 	public void setKinds(List list) {
@@ -130,24 +150,23 @@ public class Stripe implements Comparable {
 		kinds.addAll(list);
 	}
 
-
 	/**
 	 * Get the offset for this Stripe
+	 * 
 	 * @return the offset for this Stripe
 	 */
 	public int getOffset() {
 		return offset;
 	}
 
-
 	/**
 	 * Get this Stripe's depth
+	 * 
 	 * @return this Stripe's depth
 	 */
 	public int getDepth() {
 		return depth;
 	}
-
 
 	/**
 	 * Get a String representation of this Stripe
@@ -157,9 +176,9 @@ public class Stripe implements Comparable {
 				+ ":" + stringifyKinds() + "]";
 	}
 
-
 	/**
 	 * Get a string representation of the kinds in this Stripe
+	 * 
 	 * @return a string representation of the kinds in this Stripe
 	 */
 	public String stringifyKinds() {
@@ -170,38 +189,37 @@ public class Stripe implements Comparable {
 		return sb.toString();
 	}
 
-	
 	/**
 	 * Set the offset for this Stripe
+	 * 
 	 * @param offset
 	 */
 	public void setOffset(int offset) {
 		this.offset = offset;
 
 	}
-	
-	
+
 	/**
 	 * Set the depth for this Stripe
+	 * 
 	 * @param i
 	 */
 	public void setDepth(int i) {
 		depth = i;
 
 	}
-	
-	
+
 	/**
-	 * Get the tooltip for this Stripe, which is a list of its kinds 
+	 * Get the tooltip for this Stripe, which is a list of its kinds
 	 */
 	public String getToolTip() {
 		return stringifyKinds();
 
 	}
-	
-	
+
 	/**
 	 * Returns true if this Stripe has the given kind
+	 * 
 	 * @param kind
 	 * @return true iff this Stripe has the given kind
 	 */
@@ -209,25 +227,25 @@ public class Stripe implements Comparable {
 		int found = -1;
 		for (int i = 0; i < kinds.size() && found == -1; i++) {
 			IMarkupKind element = (IMarkupKind) kinds.get(i);
-			if (element.equals(kind)) found = i;
+			if (element.equals(kind))
+				found = i;
 		}
-		return (found!=-1);
+		return (found != -1);
 	}
 
-
 	/**
-	 * Compare this Stripe to another Object, which should be a Stripe.  
-	 * Returns -1 if this stripe is considered less than the argument, 
-	 * 0 if the are considered equal and 1 if this Stripe is greater than the
-	 * argument Stripe.
+	 * Compare this Stripe to another Object, which should be a Stripe. Returns
+	 * -1 if this stripe is considered less than the argument, 0 if the are
+	 * considered equal and 1 if this Stripe is greater than the argument
+	 * Stripe.
 	 */
 	public int compareTo(Object other) {
-		if (getOffset() < ((Stripe)other).getOffset()) {
+		if (getOffset() < ((Stripe) other).getOffset()) {
 			return -1;
-		} else if (getOffset() > ((Stripe)other).getOffset()) {
+		} else if (getOffset() > ((Stripe) other).getOffset()) {
 			return 1;
 		}
 		return 0;
 	}
-	
+
 }
