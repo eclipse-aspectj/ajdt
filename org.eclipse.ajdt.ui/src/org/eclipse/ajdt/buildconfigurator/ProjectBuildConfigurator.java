@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.buildconfigurator;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -204,10 +205,38 @@ public class ProjectBuildConfigurator{
 			buildconfigs.put(nbc.getFile(), nbc);
 		}
 		if ((activeBuildConfiguration == null) || !buildconfigs.containsKey(activeBuildConfiguration)) {
-			setActiveBuildConfiguration((BuildConfiguration) (buildconfigs
-					.values().iterator().next()));
+			// choose the active configuration
+			setActiveBuildConfiguration(getDefaultBuildConfiguration());
 		}
 	}
+	
+	/**
+	 * If there is no preference setting defining which build config should be
+	 * active, we need to pick on from the ones available. Choosing one at
+	 * random wouldn't be helpful, so for consistency we define the rule to be:
+	 * choose build.ajproperties if there is one with that name, otherwise
+	 * choose the first one alphabetically (bug 84310)
+	 * 
+	 * @return the chosen build configuration
+	 */
+	private BuildConfiguration getDefaultBuildConfiguration() {
+		if (buildconfigs.size()==1) {
+			// hobsons choice
+			return (BuildConfiguration)buildconfigs.values().iterator().next();
+		}
+		IFile first = null;
+		for (Iterator iter = buildconfigs.keySet().iterator(); iter.hasNext();) {
+			IFile file = (IFile) iter.next();
+			if (file.getName().equals(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE)) {
+				return (BuildConfiguration)buildconfigs.get(file);
+			}
+			if (first==null || (file.getName().compareTo(first.getName()) < 0)) {
+				first = file;
+			}
+		}
+		return (BuildConfiguration)buildconfigs.get(first);
+	}
+	
 	/**
 	 * 
 	 */
