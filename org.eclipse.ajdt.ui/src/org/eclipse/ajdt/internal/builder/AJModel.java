@@ -13,10 +13,8 @@ package org.eclipse.ajdt.internal.builder;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
@@ -40,27 +38,9 @@ import org.eclipse.jdt.core.IJavaProject;
  */
 public class AJModel {
 	private static AJModel instance;
-
-	// we need a IProgramElement to IJavaElement map per project
-	private Map perProjectProgramElementMap = new HashMap();
-    //map a IProgramElement to its corresponding IJavaElement
-	//private Map ipeToije = new HashMap();
-
-
-	// list of projects we know about
-	private Set projectSet = new HashSet();
-
-	// per project set of files we know about
-	private Map perProjectFileSet = new HashMap();
-	//private Set fileSet = new HashSet();
 	
 	// needs which project is being built, if any
 	private IProject beingBuilt = null;
-
-	// map a IJavaElement to a List of IJavaElements
-	//private Map perProjectAdvisesMap = new HashMap();
-
-	//private Map perProjectAdvisedByMap = new HashMap();
 	
 	//new
 	private Map projectModelMap = new HashMap();
@@ -169,7 +149,6 @@ public class AJModel {
 		if (jp==null) {
 			return null;
 		}
-		IProject proj = jp.getProject();
 		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return null;
@@ -179,6 +158,7 @@ public class AJModel {
 	
 	public void createMap(final IProject project) {
 		//System.out.println("creating map for project: " + project);
+		final long start = System.currentTimeMillis();
 		final AJProjectModel projectModel = new AJProjectModel(project);
 		projectModelMap.put(project,projectModel);
 		//clearAJModel(project);
@@ -186,11 +166,11 @@ public class AJModel {
 			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
 					projectModel.createProjectMap();
-					AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName());
+					long elapsed = System.currentTimeMillis() - start;
+					AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName()+" in "+elapsed+"ms");
 				}
 			}, null);
 		} catch (CoreException coreEx) {
-			coreEx.printStackTrace();
 		}
 	}
 	
@@ -258,7 +238,6 @@ public class AJModel {
 		if (jp==null) {
 			return je.getElementName();
 		}
-		IProject proj = jp.getProject();
 		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return je.getElementName();
