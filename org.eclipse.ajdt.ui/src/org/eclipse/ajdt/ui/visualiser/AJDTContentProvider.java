@@ -211,7 +211,6 @@ public class AJDTContentProvider extends JDTContentProvider {
 				}
 			}
 		} catch (JavaModelException jme) {
-			jme.printStackTrace();
 		}
 		long etime = System.currentTimeMillis();
 

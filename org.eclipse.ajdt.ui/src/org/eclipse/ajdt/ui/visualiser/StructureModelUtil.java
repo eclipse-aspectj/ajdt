@@ -285,8 +285,7 @@ public class StructureModelUtil {
 
 			processedAnnotationsCache.put(cacheKey,aspectMap); // Cache result
 			return aspectMap;
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (Exception t) {
 			return null;
 		}
 	}

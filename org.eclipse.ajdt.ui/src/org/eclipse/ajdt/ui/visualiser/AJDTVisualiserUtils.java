@@ -100,7 +100,6 @@ public class AJDTVisualiserUtils {
 							map = addErrorsAndWarnings(map, member, showErrors, showWarnings);
 							returningList.add(map);
 						} catch (NumberFormatException e) {
-							e.printStackTrace();
 						}
 
 					}
@@ -370,7 +369,6 @@ public class AJDTVisualiserUtils {
 		
 							returningClasses.add(entry);
 						} catch (NumberFormatException e) {
-							e.printStackTrace();
 						}
 					}
 					break;
@@ -499,7 +497,6 @@ public class AJDTVisualiserUtils {
 	
 							returningClasses.add(entry);
 						} catch (NumberFormatException e) {
-							e.printStackTrace();
 						}
 	
 					}
