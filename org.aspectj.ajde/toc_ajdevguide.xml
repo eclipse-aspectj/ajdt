@@ -10,7 +10,7 @@
 	</topic>
 	
 	<topic label="Navigating Program Structure" href="doc/devguide/ch01s03.html">
-		<topic label="Example: Exploring the &quot;Spacewar&quot; sample code" href="doc/devguide/ch01s03.html#d0e94"/>
+		<topic label="Example: Exploring the &quot;Spacewar&quot; sample code" href="doc/devguide/ch01s03.html#d0e941"/>
 	</topic>
 
 	<topic label="Running Programs" href="doc/devguide/ch01s04.html"/>
@@ -33,7 +33,7 @@
 		<topic label="AjcTask matching parameters specified as nested elements" href="doc/devguide/antTasks-iajc.html#antTasks-nested-includes"/>
 		<topic label="AjcTask Path-like Structures" href="doc/devguide/antTasks-iajc.html#antTasks-iajc-paths"/>
 		<topic label="Sample of iajc task" href="doc/devguide/antTasks-iajc.html#antTasks-iajc-sample"/>
-		<topic label="Programmatically handling compiler messages" href="doc/devguide/antTasks-iajc.html#d0e1878"/>
+		<topic label="Programmatically handling compiler messages" href="doc/devguide/antTasks-iajc.html#d0e1921"/>
 	</topic>
 
 	<topic label="Ajc11CompilerAdapter (javac)" href="doc/devguide/antTasks-adapter.html">
