@@ -3,7 +3,7 @@
    <title>Frequently Asked Questions about AJDT</title>
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="titlepage"><div><h2 class="title"><a name="d0e3"></a>Frequently Asked Questions about AJDT</h2></div><hr></div>
-<p>Last updated on 30th June 2004.
+<p>Last updated on 8th October 2004.
 </p>
 
 <div class="qandaset">
@@ -205,10 +205,13 @@
 	<pre>
   org.eclipse.ajdt
 	|
-	|--> AJDT_30M9_src
-		|--> org.eclipse.ajdt
+	|--> AJDT1.2src
+	    |--> org.aspectj.ajde
+	    |--> org.aspectj.runtime
+		|--> org.eclipse.ajdt.core
 		|--> org.eclipse.ajdt.examples
-		|--> org.aspectj.ajde
+		|--> org.eclipse.ajdt.test
+		|--> org.eclipse.ajdt.ui
 		|--> org.eclipse.aspectj
 		|--> org.eclipse.aspectj.feature
 		|--> org.eclipse.contribution.visualiser
@@ -238,7 +241,7 @@
 		<li>Connection type = pserver
 		<li>Click "Finish"
 		</ul><p></p>
-	<li>Use the CVS Repositories view to navigate to org.eclipse.ajdt/AJDT_30M9_src. Select all the folders
+	<li>Use the CVS Repositories view to navigate to org.eclipse.ajdt/AJDT1.2src. Select all the folders
 	in that directory apart from "Update Site". From the context (right mouse button) menu select
 	"Check out".
 	Eclipse will build the projects as you import them, so you're ready to run the plugins
