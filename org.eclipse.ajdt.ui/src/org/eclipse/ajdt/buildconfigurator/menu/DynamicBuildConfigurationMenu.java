@@ -46,7 +46,7 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	
 	public DynamicBuildConfigurationMenu(String menuID) {
 		super(AspectJUIPlugin
-				.getResourceString("BCLabels.ConfigurationSelectionMenu"),menuID);
+				.getResourceString("BCLabels.ConfigurationSelectionMenu"),menuID); //$NON-NLS-1$
 		separator = new Separator();
 
 		id = AspectJImages.BC_TICK.getImageDescriptor();

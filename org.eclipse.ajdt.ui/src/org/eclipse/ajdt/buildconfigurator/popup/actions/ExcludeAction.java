@@ -32,7 +32,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 public class ExcludeAction extends BuildConfigurationChangeAction {
 	public ExcludeAction() {
 		super();
-		actionText = AspectJUIPlugin.getResourceString("BCLabels.ExcludeAction");
+		actionText = AspectJUIPlugin.getResourceString("BCLabels.ExcludeAction"); //$NON-NLS-1$
 	}
 
 	protected Job getJob(final BuildConfiguration bc,
@@ -47,7 +47,7 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 							.getErrorHandler()
 							.handleError(
 									AspectJUIPlugin
-											.getResourceString("buildConfig.exceptionExcluding"),
+											.getResourceString("buildConfig.exceptionExcluding"), //$NON-NLS-1$
 									e);
 				}
 				return Status.OK_STATUS;

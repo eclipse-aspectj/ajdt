@@ -61,7 +61,7 @@ public class ProjectBuildConfigurator{
 	private IFile getStoredBuildConfiguration(){
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		IProject project = this.javaProject.getProject();
-	    String propertyName = "org.eclipse.ajdt.ui."+project.getName()+".ajproperties";
+	    String propertyName = AspectJUIPlugin.PLUGIN_ID + "." + project.getName() + ".ajproperties"; //$NON-NLS-1$ //$NON-NLS-2$
 		String configFile = store.getString(propertyName);
 		if (configFile.length()==0) {
 			return null;
@@ -72,7 +72,7 @@ public class ProjectBuildConfigurator{
 	private void storeActiveBuildConfigurationName(String value){
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		IProject project = this.javaProject.getProject();
-	    String propertyName = "org.eclipse.ajdt.ui."+project.getName()+".ajproperties";
+	    String propertyName = AspectJUIPlugin.PLUGIN_ID + "." + project.getName() + ".ajproperties"; //$NON-NLS-1$ //$NON-NLS-2$
 		store.setValue(propertyName, value);
 	}
 
@@ -251,7 +251,7 @@ public class ProjectBuildConfigurator{
 	}*/
 
 	/**
-	 * @param currentlySelectedBuildFile
+	 * @param buildFile
 	 */
 	public void setActiveBuildConfiguration(IFile buildFile) {
 		BuildConfiguration bc = getBuildConfiguration(buildFile);

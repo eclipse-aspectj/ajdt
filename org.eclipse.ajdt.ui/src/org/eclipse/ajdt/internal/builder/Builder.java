@@ -91,7 +91,7 @@ public class Builder extends IncrementalProjectBuilder {
 	/**
 	 * Preference setting for compile timeout
 	 */
-	private static final String COMPILE_TIMEOUT = "org.aspectj.ajdt.ui.compile-timeout";
+	private static final String COMPILE_TIMEOUT = "org.aspectj.ajdt.ui.compile-timeout";  //$NON-NLS-1$
 
 	/**
 	 * The last project we did a build for, needed by content outline view to
@@ -207,13 +207,13 @@ public class Builder extends IncrementalProjectBuilder {
 		try {
 			String kindS = null;
 			if (kind == AUTO_BUILD)
-				kindS = "AUTOBUILD";
+				kindS = "AUTOBUILD";  //$NON-NLS-1$
 			if (kind == INCREMENTAL_BUILD)
-				kindS = "INCREMENTALBUILD";
+				kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
 			if (kind == FULL_BUILD)
-				kindS = "FULLBUILD";
+				kindS = "FULLBUILD";  //$NON-NLS-1$
 
-			String mode = "";
+			String mode = "";  //$NON-NLS-1$
 			if (AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 					.getIncrementalMode())
 				mode = "Incremental AspectJ compilation";
@@ -463,7 +463,7 @@ public class Builder extends IncrementalProjectBuilder {
 	 */
 	private void checkOutJarEntry(IProject project) {
 		String outJar = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getOutJar();
-		if (outJar != null && !(outJar.equals(""))) {
+		if (outJar != null && !(outJar.equals(""))) {  //$NON-NLS-1$
 			if (outjars == null) {
 				outjars = new HashMap();
 			}
@@ -816,7 +816,7 @@ public class Builder extends IncrementalProjectBuilder {
 			return true;
 		String resname = dta.getFullPath().toString();
 
-		if (resname.endsWith(".java") || resname.endsWith(".aj")) {
+		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
 			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
@@ -826,8 +826,8 @@ public class Builder extends IncrementalProjectBuilder {
             } else {
                 return false;
             }
-		} else if (resname.endsWith(".lst")
-				&& !resname.endsWith("/generated.lst")) {
+		} else if (resname.endsWith(".lst") //$NON-NLS-1$
+				&& !resname.endsWith("/generated.lst")) { //$NON-NLS-1$
 			return true;
 		} else {
 			boolean kids_results = false;
@@ -882,9 +882,9 @@ public class Builder extends IncrementalProjectBuilder {
 	private boolean continueCompilation(final CompilerMonitor monitor) {
 
 		final String title = AspectJUIPlugin
-				.getResourceString("suspiciouslyLongCompileDialog");
+				.getResourceString("suspiciouslyLongCompileDialog"); //$NON-NLS-1$
 		final String message = AspectJUIPlugin
-				.getResourceString("isYourProjectReallyBig");
+				.getResourceString("isYourProjectReallyBig"); //$NON-NLS-1$
 
 		AspectJUIPlugin.getDefault().getDisplay().syncExec(new Runnable() {
 			public void run() {
@@ -945,9 +945,9 @@ public class Builder extends IncrementalProjectBuilder {
 			for (Iterator it = projectFiles.iterator(); it.hasNext();) {
 				File jf = (File) it.next();
 				String fileName = jf.toString();
-				if (fileName.endsWith(".java") || fileName.endsWith(".aj")) {
+				if (fileName.endsWith(".java") || fileName.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
 					bw.write(fileName);
-					bw.write("\n");
+					bw.write(System.getProperty("line.separator", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 			bw.flush();
@@ -964,7 +964,7 @@ public class Builder extends IncrementalProjectBuilder {
 		} catch (Exception e) {
 			Status status = new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID,
 					CONFIG_FILE_WRITE_ERROR, AspectJUIPlugin
-							.getResourceString("configFileCreateError"), e);
+							.getResourceString("configFileCreateError"), e); //$NON-NLS-1$
 			throw new CoreException(status);
 		}
 
@@ -1036,7 +1036,7 @@ public class Builder extends IncrementalProjectBuilder {
 		if (fs != null) {
 			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
 				File file = fs[fcounter];
-				if (file.getName().endsWith(".class")) {
+				if (file.getName().endsWith(".class")) { //$NON-NLS-1$
 					file.delete();
 					count++;
 				}

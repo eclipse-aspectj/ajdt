@@ -29,7 +29,7 @@ public class AddBuildConfigurationAction extends Action {
 	BuildConfigurator buildconf;
 	
 	AddBuildConfigurationAction(){
-		super(AspectJUIPlugin.getResourceString("BCLabels.SaveBCAs"));
+		super(AspectJUIPlugin.getResourceString("BCLabels.SaveBCAs"));  //$NON-NLS-1$
 		buildconf = BuildConfigurator.getBuildConfigurator();
 	}
 	

@@ -314,26 +314,26 @@ public class JavadocWizard extends Wizard implements IExportWizard {
 			} catch (IOException e) {
 			}
 			
-			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar";
+			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
 			
 			List vmArgs = new ArrayList();
-			vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java");
+			vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$
 			boolean noXmx = true;
 			for (Iterator iter = userVmArgs.iterator(); iter.hasNext();) {
 				String element = (String) iter.next();
-				if (element.startsWith("-Xmx")) {
+				if (element.startsWith("-Xmx")) { //$NON-NLS-1$
 					noXmx = false;
 				}
 				vmArgs.add(element);
 			}
 			if (noXmx) {
 				// user didn't specify max heap size, so provide our own setting (from ajdoc.bat)
-				vmArgs.add("-Xmx64M");
+				vmArgs.add("-Xmx64M"); //$NON-NLS-1$
 			}
-			vmArgs.add("-classpath");
+			vmArgs.add("-classpath"); //$NON-NLS-1$
 			
 			vmArgs.add(aspectjtoolsDir + File.pathSeparator + toolsDir + File.pathSeparator + aspectjrtDir);
-			vmArgs.add("org.aspectj.tools.ajdoc.Main");
+			vmArgs.add("org.aspectj.tools.ajdoc.Main"); //$NON-NLS-1$
 			
 			for (int i = 0; i < progArgs.size(); i++) {
 				String curr = (String) progArgs.get(i);	

@@ -14,6 +14,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -214,7 +216,7 @@ public class BuildPathsBlock {
 		// fClassPathList, fBuildPathDialogField);
 		if (fCurrJProject != null) {
 			try {
-				if (fCurrJProject.getProject().hasNature("org.eclipse.ajdt.ui.ajnature")){
+				if (fCurrJProject.getProject().hasNature("org.eclipse.ajdt.ui.ajnature")){ //$NON-NLS-1$
 					fSourceContainerPage = new BCContainerWorkbookPage(
 							fWorkspaceRoot, fClassPathList, fBuildPathDialogField);
 				}else

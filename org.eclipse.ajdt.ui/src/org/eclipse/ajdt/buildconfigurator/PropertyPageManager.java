@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
 import org.eclipse.ui.internal.dialogs.RegistryPageContributor;
 
@@ -28,9 +29,9 @@ public class PropertyPageManager {
 	private static RegistryPageContributor jdtProjectPropertyPage = null;
 	private static RegistryPageContributor jdtJavaProjectPropertyPage = null;
 	private static boolean jdtPropertyPageActive = true;
-	final static String projectID = "org.eclipse.core.resources.IProject";
-	final static String javaProjectID = "org.eclipse.jdt.core.IJavaProject";
-	final static String buildPathsPageID = "org.eclipse.jdt.ui.propertyPages.BuildPathsPropertyPage";
+	final static String projectID = "org.eclipse.core.resources.IProject";  //$NON-NLS-1$
+	final static String javaProjectID = "org.eclipse.jdt.core.IJavaProject";  //$NON-NLS-1$
+	final static String buildPathsPageID = "org.eclipse.jdt.ui.propertyPages.BuildPathsPropertyPage";  //$NON-NLS-1$
 	
 	
 	private PropertyPageManager(){}

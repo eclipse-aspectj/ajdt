@@ -30,10 +30,9 @@ public class BCWorkbenchWindowInitializer implements IWindowListener, IStartup {
 	private BuildConfigurator buildConfigurator;
 	private IWorkbench workbench;
 
-	private static final String BUILD_MENU_ID = "org.eclipse.ajdt.BuildMenu";
+	private static final String BUILD_MENU_ID = "org.eclipse.ajdt.BuildMenu"; //$NON-NLS-1$
 	
 	/**
-	 * @param workbench
 	 */
 	public BCWorkbenchWindowInitializer() {
 		this.workbench = AspectJUIPlugin.getDefault().getWorkbench();
@@ -67,11 +66,11 @@ public class BCWorkbenchWindowInitializer implements IWindowListener, IStartup {
 	public void windowOpened(IWorkbenchWindow window) {
 		window.getSelectionService().addSelectionListener(buildConfigurator);
 		IMenuManager imm = ((WorkbenchWindow)window).getMenuManager();
-		imm = imm.findMenuUsingPath("project");
+		imm = imm.findMenuUsingPath("project"); //$NON-NLS-1$
 		// only add the menu if it's not already there
 		IContributionItem buildMenu = imm.find(BUILD_MENU_ID);
 		if (buildMenu == null) {
-			imm.insertAfter("buildProject", new DynamicBuildConfigurationMenu(BUILD_MENU_ID));
+			imm.insertAfter("buildProject", new DynamicBuildConfigurationMenu(BUILD_MENU_ID)); //$NON-NLS-1$
 		}
 	}
 

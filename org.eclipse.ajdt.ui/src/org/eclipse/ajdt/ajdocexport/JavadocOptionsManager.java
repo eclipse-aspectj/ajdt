@@ -1105,7 +1105,7 @@ public class JavadocOptionsManager {
 	}
 
 	private static File getCommand(IVMInstall install) {
-		return new File("");
+		return new File(""); //$NON-NLS-1$
 	}
 
 }

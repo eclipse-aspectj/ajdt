@@ -55,7 +55,7 @@ public class BCResourceDeltaVisitor implements IResourceDeltaVisitor {
 						.getFileExtension())) {
 					new UpdateJob(myBCor, UpdateJob.BUILD_CONFIG_CHANGED, myRes)
 							.schedule();
-				} else if (".classpath".equals(myRes.getName())) {
+				} else if (".classpath".equals(myRes.getName())) { //$NON-NLS-1$
 					new UpdateJob(myBCor, UpdateJob.CLASSPATH_CHANGED, myRes)
 							.schedule();
 				}

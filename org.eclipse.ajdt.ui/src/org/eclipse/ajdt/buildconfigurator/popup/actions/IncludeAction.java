@@ -37,7 +37,7 @@ public class IncludeAction extends BuildConfigurationChangeAction {
 
 	public IncludeAction() {
 		super();
-		actionText = AspectJUIPlugin.getResourceString("BCLabels.IncludeAction");
+		actionText = AspectJUIPlugin.getResourceString("BCLabels.IncludeAction"); //$NON-NLS-1$
 	}
 
 	protected Job getJob(final BuildConfiguration bc,

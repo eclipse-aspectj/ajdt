@@ -78,29 +78,17 @@ public class ImageDecorator implements ILabelDecorator {
 		buildConfor = BuildConfigurator.getBuildConfigurator();
 	}
 
-	/**
-	 * @see ILabelDecorator#addListener
-	 */
 	public void addListener(ILabelProviderListener listener)  {
 		listeners.add(listener);
 	}
 
-	/**
-	 * @see ILabelDecorator#dispose
-	 */
 	public void dispose()  {
 	}
 
-	/**
-	 * @see ILabelDecorator#isLabelProperty
-	 */
 	public boolean isLabelProperty(Object element, String property)  {
 		return false;
 	}
 
-	/**
-	 * @see ILabelDecorator#removeListener
-	 */
 	public void removeListener(ILabelProviderListener listener)  {
 		listeners.remove(listener);
 	}
@@ -365,7 +353,7 @@ public class ImageDecorator implements ILabelDecorator {
 	 */
 	public String decorateText(String text, Object element)  {
 		if (element instanceof AJCompilationUnit){
-			return text.replaceFirst(".java", ".aj");
+			return text.replaceFirst(".java", ".aj");  //$NON-NLS-1$  //$NON-NLS-2$
 		} else {
 			if (element instanceof IAspectJElement){
 				try {

@@ -123,7 +123,7 @@ public abstract class BuildConfigurationChangeAction implements
 			Job job = new Job("BuildConfiguration change action") {
 				protected IStatus run(IProgressMonitor monitor) {
 					BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-					myAction.setText(actionText.replaceAll("%bcname", bc
+					myAction.setText(actionText.replaceAll("%bcname", bc //$NON-NLS-1$
 							.getName()));
 					return Status.OK_STATUS;
 				}
@@ -184,7 +184,7 @@ public abstract class BuildConfigurationChangeAction implements
 			ProjectBuildConfigurator pbc = buildConfigurator
 					.getActiveProjectBuildConfigurator();
 			if (pbc != null) {
-				myAction.setText(actionText.replaceAll("%bcname", pbc
+				myAction.setText(actionText.replaceAll("%bcname", pbc //$NON-NLS-1$
 						.getActiveBuildConfiguration().getName()));
 			}
 		}

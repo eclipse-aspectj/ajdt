@@ -65,7 +65,7 @@ public class AJModelUtils {
 	private static class RefreshOutlinePagesJob extends UIJob {
 		RefreshOutlinePagesJob() {
 			super(AspectJUIPlugin
-					.getResourceString("utils.refresh.outline.job"));
+					.getResourceString("utils.refresh.outline.job")); //$NON-NLS-1$
 		}
 
 		public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -98,10 +98,10 @@ public class AJModelUtils {
 		try {
 			// Here be dragons
 			Class clazz = page.getClass();
-			Field field = clazz.getDeclaredField("fOutlineViewer");
+			Field field = clazz.getDeclaredField("fOutlineViewer"); //$NON-NLS-1$
 			field.setAccessible(true); // cough cough
 			Class viewer = StructuredViewer.class;
-			Method method = viewer.getMethod("refresh",
+			Method method = viewer.getMethod("refresh", //$NON-NLS-1$
 					new Class[] { boolean.class });
 			Object outlineViewer = field.get(page);
 			if (outlineViewer != null) {

@@ -33,7 +33,7 @@ import org.eclipse.core.runtime.Path;
 public class Util {
     
     private static String OS_INDEPENDENT_LINE_SEPARATOR = System
-			.getProperty("line.separator");
+			.getProperty("line.separator"); //$NON-NLS-1$
     
 	
     // LstSupport
@@ -50,7 +50,7 @@ public class Util {
 		if (file != null && fromDir != null) {
             // Check for identical inputs 
             if (file.equals(fromDir)) {
-                result = ".";
+                result = "."; //$NON-NLS-1$
             }// end if identical
             else {
                 List fromList;
@@ -103,7 +103,7 @@ public class Util {
 	private static String matchPathLists(List fromList, List toList) {
 		int i;
 		int j;
-		String result = "";
+		String result = ""; //$NON-NLS-1$
         
 		i = fromList.size() - 1;
 		j = toList.size() - 1;
@@ -118,7 +118,7 @@ public class Util {
 		// For each remaining level in the home path add
         // a double dot (..)
 		for (; i >= 0; i--) {
-			result += ".." + AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR;
+			result += ".." + AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR; //$NON-NLS-1$
 		}// end for each remaining level 
 
 		// for each level in the file path, add the path
@@ -150,7 +150,7 @@ public class Util {
             // Quick check that we have a bona fide file to work with
 			if (!lstFile.toFile().exists()) {
 				throw new FileNotFoundException(lstFile.toOSString()
-						+ " not found!");
+						+ " " + AspectJUIPlugin.getResourceString("buildConfig.notFound")); //$NON-NLS-1$ //$NON-NLS-2$
 			}
             
 			// Quick check to see if file has a line starting with the
@@ -179,7 +179,7 @@ public class Util {
 			String tmp1 = originalName.substring(0, originalName
 					.lastIndexOf('.'));
 			String tmp2 = originalName.substring(originalName.lastIndexOf('.'));
-			result = tmp1 + ".inlined" + tmp2;
+			result = tmp1 + ".inlined" + tmp2;  //$NON-NLS-1$
 		}// end if input is usable
 		return result;
 	}
@@ -197,7 +197,7 @@ public class Util {
         try {
             while ((line = in.readLine()) != null) {
                 line = line.trim();
-                if (!line.startsWith("@")) {
+                if (!line.startsWith("@")) { //$NON-NLS-1$
                     bw.write(line);
                     bw.newLine();
                 }// end if no lst link reference found on line
@@ -243,7 +243,7 @@ public class Util {
 		try {
 			while ((line = in.readLine()) != null) {
 				line = line.trim();
-				if (line.startsWith("@")) {
+				if (line.startsWith("@")) { //$NON-NLS-1$
 					result = true;
 					break;
 				}// end if lst link reference found
@@ -277,10 +277,10 @@ public class Util {
             try {
 				while ((line = in.readLine()) != null) {
                     line = line.trim();
-                    if (line.startsWith("@")) {
+                    if (line.startsWith("@")) { //$NON-NLS-1$
                         links.add(line);
                     }// end if lst link reference found
-                    else if (line.startsWith("-")) {
+                    else if (line.startsWith("-")) { //$NON-NLS-1$
                         // Option. Determine whether or not
 						// the option requires an argument.
 						if (AjcOptionsChecker.optionWithArg(line)) {
@@ -304,7 +304,7 @@ public class Util {
                         // Source file reference ?
                         // Check that the file actually exists
                         // before adding to the files list ??
-                    	if (!line.equals(""))
+                    	if (!line.equals("")) //$NON-NLS-1$
                     		files.add(line);
                     }// end else a possible source file reference found
 				}// while more lines to read
@@ -336,23 +336,23 @@ public class Util {
 		 */
 		private static void initialiseOptionsWithArgs() {
 			optionsWithArgs = new HashSet();
-            optionsWithArgs.add("-inpath");
-            optionsWithArgs.add("-injars");
-            optionsWithArgs.add("-aspectpath");
-            optionsWithArgs.add("-outjar");
-            optionsWithArgs.add("-argfile");
-            optionsWithArgs.add("-sourceroots");
-            optionsWithArgs.add("-Xlintfile");
-            optionsWithArgs.add("-cp");
-            optionsWithArgs.add("-classpath");
-            optionsWithArgs.add("-bootclasspath");
-            optionsWithArgs.add("-d");
-            optionsWithArgs.add("-encoding");
-            optionsWithArgs.add("-source");
-            optionsWithArgs.add("-target");
-            optionsWithArgs.add("-log");
-            optionsWithArgs.add("-repeat");
-            optionsWithArgs.add("-inpath");
+            optionsWithArgs.add("-inpath"); //$NON-NLS-1$
+            optionsWithArgs.add("-injars"); //$NON-NLS-1$
+            optionsWithArgs.add("-aspectpath"); //$NON-NLS-1$
+            optionsWithArgs.add("-outjar"); //$NON-NLS-1$
+            optionsWithArgs.add("-argfile"); //$NON-NLS-1$
+            optionsWithArgs.add("-sourceroots"); //$NON-NLS-1$
+            optionsWithArgs.add("-Xlintfile"); //$NON-NLS-1$
+            optionsWithArgs.add("-cp"); //$NON-NLS-1$
+            optionsWithArgs.add("-classpath"); //$NON-NLS-1$
+            optionsWithArgs.add("-bootclasspath"); //$NON-NLS-1$
+            optionsWithArgs.add("-d"); //$NON-NLS-1$
+            optionsWithArgs.add("-encoding"); //$NON-NLS-1$
+            optionsWithArgs.add("-source"); //$NON-NLS-1$
+            optionsWithArgs.add("-target"); //$NON-NLS-1$
+            optionsWithArgs.add("-log"); //$NON-NLS-1$
+            optionsWithArgs.add("-repeat"); //$NON-NLS-1$
+            optionsWithArgs.add("-inpath"); //$NON-NLS-1$
 		}
     }// end class AjcOptionsChecker
     
