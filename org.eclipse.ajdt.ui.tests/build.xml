@@ -47,7 +47,7 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 		<mkdir dir="bin" />
 		<property file="${eclipse.home}/ajdtworkspace.properties"/>
 		<property file="build.ajproperties"/>
-		<iajc srcdir="testsrc" destdir="bin"
+		<iajc srcdir="." destdir="bin"
 			classpath="${aspectjrt};${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar;../org.eclipse.contribution.visualiser.tests/build/visualisertests.jar"
 			debug="false" verbose="true"
 			includes="${src.includes}" excludes="${src.excludes}" />	
