@@ -243,12 +243,22 @@ public class AspectJPreferences {
 
 	public static void setUsingProjectSettings(IProject project,
 			boolean isUsingProjectSettings) {
+		setUsingProjectSettings(project,isUsingProjectSettings,true);
+	}
+	
+	public static void setUsingProjectSettings(IProject project,
+			boolean isUsingProjectSettings,
+			boolean overwriteExistingProjectSettings) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJPlugin.PLUGIN_ID);
 		if (isUsingProjectSettings) {
 			projectNode.putBoolean(OPTION_UseProjectSettings, true);
-			CompilerPropertyPage.setDefaults(projectNode);
+			if (overwriteExistingProjectSettings) {
+				CompilerPropertyPage.setDefaults(projectNode);
+			} else {
+				CompilerPropertyPage.setDefaultsIfValueNotAlreadySet(projectNode);
+			}						
 		} else {
 			projectNode.remove(OPTION_UseProjectSettings);
 			CompilerPropertyPage.removeValues(projectNode);

@@ -13,6 +13,7 @@ Matt Chapman - added project scoped preferences (40446)
 package org.eclipse.ajdt.internal.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
@@ -85,23 +85,27 @@ public class CompilerPropertyPage extends PropertyPage {
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, AspectJPreferences.VALUE_WARNING);
 		
-		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, AspectJPreferences.VALUE_DISABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, AspectJPreferences.VALUE_DISABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, AspectJPreferences.VALUE_DISABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, AspectJPreferences.VALUE_DISABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, AspectJPreferences.VALUE_DISABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress, AspectJPreferences.VALUE_DISABLED);
+		// these options are being set to "true" or "false" (rather than AspectJPreferences.VALUE_ENABLED
+		// or AspectJPreferences.VALUE_DISABLED) because the underlying code works in true/false
+		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
+		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress,"false");
 		
-		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, AspectJPreferences.VALUE_ENABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, AspectJPreferences.VALUE_ENABLED);
-		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages, AspectJPreferences.VALUE_DISABLED);
+		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, "true");
+		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, "true");
+		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages, "false");
 		
 		defaultValueMap.put(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
 		
-		defaultValueMap.put(AspectJPreferences.OPTION_1_5, AspectJPreferences.VALUE_DISABLED);
+		// bug 87128
+		defaultValueMap.put(AspectJPreferences.OPTION_1_5, "false");
 	}
 
 	/**
@@ -198,11 +202,28 @@ public class CompilerPropertyPage extends PropertyPage {
 		}
 	}
 
-	
 	public static void setDefaults(IEclipsePreferences projectNode) {
 		for (int i = 0; i < keys.length; i++) {
 			String value = (String)defaultValueMap.get(keys[i]);
 			projectNode.put(keys[i], value);
+		}
+	}
+
+	public static void setDefaultsIfValueNotAlreadySet(IEclipsePreferences projectNode) {
+		List existingKeysList = new ArrayList();
+		try {
+			existingKeysList = Arrays.asList(projectNode.keys());
+		} catch (BackingStoreException e) {
+		}
+		for (int i = 0; i < keys.length; i++) {
+			String value = (String)defaultValueMap.get(keys[i]);
+			boolean keyExists = false;
+			if (existingKeysList.contains(keys[i])) {
+				keyExists = true;
+			}
+			if (!keyExists) {
+				projectNode.put(keys[i], value);				
+			}
 		}
 	}
 
@@ -429,7 +450,7 @@ public class CompilerPropertyPage extends PropertyPage {
 
 	private Composite createOtherTabContent(Composite folder) {
 		String[] enableDisableValues = new String[]{AspectJPreferences.VALUE_ENABLED, AspectJPreferences.VALUE_DISABLED};
-		
+
 		int nColumns = 3;
 
 		GridLayout layout = new GridLayout();
@@ -452,11 +473,8 @@ public class CompilerPropertyPage extends PropertyPage {
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_build_asm.label"); //$NON-NLS-1$
 		addCheckBox(composite, label, AspectJPreferences.OPTION_BuildASM, enableDisableValues, 0, false);
 
-
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_weave_messages.label"); //$NON-NLS-1$
-		lazytjpButton = addCheckBox(composite, label, AspectJPreferences.OPTION_WeaveMessages,enableDisableValues, 0);
-
-
+		addCheckBox(composite, label, AspectJPreferences.OPTION_WeaveMessages,enableDisableValues, 0);
 
 		checkNoWeaveSelection();
 		
@@ -557,8 +575,12 @@ public class CompilerPropertyPage extends PropertyPage {
 		boolean projectWorkspaceChanges = false;
 		if(AspectJPreferences.isUsingProjectSettings(thisProject) !=  useProjectSettings()) {
 			projectWorkspaceChanges = true;
-			AspectJPreferences.setUsingProjectSettings(thisProject, useProjectSettings());
+			// don't want to overwrite existing project settings
+			// because have just set them in the above call to 
+			// updateProjectSettings();
+			AspectJPreferences.setUsingProjectSettings(thisProject, useProjectSettings(),false);
 		}
+
 		
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
@@ -638,7 +660,8 @@ public class CompilerPropertyPage extends PropertyPage {
 			String key = keys[i];
 			String storeValue = AspectJPreferences.getStringPrefValue(thisProject, key);
 			if (!storeValue.equals("")) {
-				if (!storeValue.equals(JavaCore.ENABLED) && !storeValue.equals(JavaCore.DISABLED)) {
+				// bug 87128 - why checking against "true/false"
+				if (!storeValue.equals("true") && !storeValue.equals("false")) {
 					// this is a combo box
 					for (int j = 0; j < tempComboBoxes.size(); j++) {
 						Combo curr = (Combo) tempComboBoxes.get(j);
@@ -660,7 +683,8 @@ public class CompilerPropertyPage extends PropertyPage {
 						Button curr = (Button) tempCheckBoxes.get(j);
 						ControlData data = (ControlData) curr.getData();
 						if (key.equals(data.getKey())) {
-							String stringValue = curr.getSelection() ? JavaCore.ENABLED : JavaCore.DISABLED;
+							// bug 87128 - why checking against "true/false"
+							String stringValue = curr.getSelection() ? "true" : "false";
 							if (!storeValue.equals(stringValue)) {
 								settingsChanged = true;
 								setPrefValue(thisProject, data.getKey(),
@@ -715,7 +739,7 @@ public class CompilerPropertyPage extends PropertyPage {
 				curr.setEnabled(true);
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.setSelection(defaultValue.equals(JavaCore.ENABLED));
+			curr.setSelection(defaultValue.equals("true"));
 		}
 	}
 
@@ -759,14 +783,17 @@ public class CompilerPropertyPage extends PropertyPage {
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalIndent = 20;
 		l.setLayoutData(gridData);
-		createLabel(parent,"");//filler
+		createLabel(parent,"");//filler //$NON-NLS-1$
 		
 		String currValue = AspectJPreferences.getStringPrefValue(thisProject,key);
-		if (currValue.equals("") || currValue.equals("true") || currValue.equals("false")) { //$NON-NLS-1$ //$NON-NLS-1$ //$NON-NLS-1$
+		// bug 87128
+		if (currValue.equals("")) {  //$NON-NLS-2$
 			currValue = (String)defaultValueMap.get(key);
+		} else if (currValue.equals(AspectJPreferences.VALUE_ENABLED)) {
+			// this case deals with backwards compatibility
+			currValue = "true"; //$NON-NLS$
 		}
-		
-		checkBox.setSelection(currValue.equals(JavaCore.ENABLED));
+		checkBox.setSelection(currValue.equals("true"));//$NON-NLS$
 
 		fCheckBoxes.add(checkBox);
 		return checkBox;

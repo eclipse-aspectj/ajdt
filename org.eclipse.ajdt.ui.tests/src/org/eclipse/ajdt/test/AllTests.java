@@ -30,8 +30,10 @@ import org.eclipse.ajdt.internal.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest;
 import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
+import org.eclipse.ajdt.internal.ui.CompilerPropertyPageTest;
 import org.eclipse.ajdt.internal.ui.actions.AddAJNatureActionTest;
 import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureActionTest;
+import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectPropertiesTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionTest;
@@ -72,8 +74,8 @@ public class AllTests {
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-//		
-//		// buildconfigurator tests
+		
+		// buildconfigurator tests
 		suite.addTest(new TestSuite(UtilTests.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
@@ -83,6 +85,9 @@ public class AllTests {
 		// internal.core tests
 		suite.addTest(new TestSuite(NewAspectUtilsTest.class));
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
+
+		// internal.ui tests
+		suite.addTest(new TestSuite(CompilerPropertyPageTest.class));
 
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
@@ -100,6 +105,7 @@ public class AllTests {
 		suite.addTest(new TestSuite(CodeFormatTest.class));
 		
 		// internal.ui.ajde tests
+		suite.addTest(new TestSuite(BuildOptionsAdapterTest.class));
 		suite.addTest(new TestSuite(ClasspathOrderTest.class));
 		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
 

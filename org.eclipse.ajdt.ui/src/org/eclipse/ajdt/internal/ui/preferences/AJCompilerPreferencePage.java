@@ -381,11 +381,8 @@ public class AJCompilerPreferencePage extends PreferencePage
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_build_asm.label"); //$NON-NLS-1$
 		addCheckBox(composite, label, PREF_ENABLE_BUILD_ASM,enableDisableValues, 0, false);
 
-
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_weave_messages.label"); //$NON-NLS-1$
-		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
-
-
+		addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
 
 		checkNoWeaveSelection();
 		
@@ -500,8 +497,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 				store.setValue(data.getKey(), value);
 			}
 		}
-
-
 
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
