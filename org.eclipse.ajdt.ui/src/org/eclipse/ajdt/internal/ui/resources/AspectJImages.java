@@ -40,7 +40,6 @@ public class AspectJImages extends AbstractIconRegistry {
 		//Platform.getPluginRegistry().getPluginDescriptor( "org.aspectj.ajde" ).getInstallURL();
 
 	private static final String AJDE_ICON_PATH_PREFIX = "org/aspectj/ajde/resources/";
-	private static final String AJDE_IMPORT_RELATION = "imports";
 
 	// The following icons are private and should be accessed through the 
 	// getStructureIcon operation:
@@ -82,8 +81,6 @@ public class AspectJImages extends AbstractIconRegistry {
 //	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
 //		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_FIELD_DEFAULT ) );
 
-	private final AbstractIcon JDT_IMPORTS = new AJDTIcon(
-		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_IMPCONT ) );
 	private final AbstractIcon WKBENCH_FILE = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FILE ) );
 
@@ -156,6 +153,8 @@ public class AspectJImages extends AbstractIconRegistry {
 					"icons/structure/dec_precedence.gif");
 	public static final AJDTIcon DECLARE_SOFT 	  = new AJDTIcon(
 					"icons/structure/dec_soft.gif");
+	public static final AJDTIcon DECLARE_ANNOTATION = new AJDTIcon(
+					"icons/structure/dec_annotation.gif");
 	public static final AJDTIcon ITD  			  = new AJDTIcon(
 					"icons/structure/itd.gif");
 	public static final AJDTIcon ITD_METHOD_PUB   = new AJDTIcon(
@@ -295,6 +294,11 @@ public class AspectJImages extends AbstractIconRegistry {
 			return DECLARE_SOFT;
 		} else if (kind == IProgramElement.Kind.DECLARE_WARNING) {
 			return DECLARE_WARNING;
+		} else if ((kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR)
+				|| (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD)
+				|| (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD)
+				|| (kind == IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE)) {
+			return DECLARE_ANNOTATION;
 		} else if (kind == IProgramElement.Kind.INTER_TYPE_FIELD) {
 			return ITD_FIELD_DEF;
 		} else if(kind == IProgramElement.Kind.INTER_TYPE_METHOD) {
