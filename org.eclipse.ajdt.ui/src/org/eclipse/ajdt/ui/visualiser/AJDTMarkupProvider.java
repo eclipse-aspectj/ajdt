@@ -202,6 +202,9 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
+				if(kindMap == null) {
+					kindMap = new HashMap();
+				}
 				Set aspects = AJDTVisualiserUtils.getAllAspects(jp,true); 
 				for (Iterator iter = aspects.iterator(); iter.hasNext();) {
 					String name = (String)iter.next();
@@ -210,9 +213,6 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 					name = name.substring(lastSlash+1);
 					name = name.substring(0, name.lastIndexOf("."));
 					IMarkupKind markupKind;
-					if(kindMap == null) {
-						kindMap = new HashMap();
-					}
 					if(kindMap.get(name) instanceof IMarkupKind) {
 						markupKind = (IMarkupKind)kindMap.get(name);
 					} else {
