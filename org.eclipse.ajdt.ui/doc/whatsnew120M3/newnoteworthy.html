@@ -21,18 +21,18 @@
       <p align="right"><b>Overview</b></td>
     <td width="70%" valign="top">
 
-      <p>Continuing on from the changes in M2, the focus is still very
+      <p>In addition to supporting the latest AspectJ 5 milestone release,
+      the focus is still very
       much on working with the rest of Eclipse, and the JDT in
-      particular, instead of changing its default behaviour. This
-      means the Java editor should only be used for .java files, and
-      the AspectJ editor only used for .aj files, and all AspectJ code
-      should be contained in .aj files. If you don't follow this
-      arrangement, you will hit problems, but that's actually to be
-      expected, at least by those not familiar with AJDT 1.1.x (which
-      globally overrode the Java editor with the AspectJ editor). In
-      general, if you enter non-Java code into the Java editor in a
-      .java file you shouldn't expect it to work.</p>
-
+      particular, instead of trying to change its default behaviour. This
+      means the best arrangement is to only put plain Java code in .java files
+      using the Java editor, and to use .aj files and the AspectJ editor for
+      everything else. Furthermore, the structure of the current document
+      (whether it's a .java or .aj file) is
+      consistently shown in the standard Outline view, and the additional
+      crosscutting information is shown alongside this in the new Cross
+      References view.</p>
+      
       <p>Being a milestone release, this is a work in progress, but
       feedback on these changes is very welcome. The newsgroup and
       mailing lists are the best places for this.</p>
@@ -206,26 +206,77 @@
 
   <tr>
     <td width="30%" valign="top" align="left">
+      <p align="right"><b>AspectJ 5 M2</b></td>
+    <td width="70%" valign="top">
+
+      <p>The second milestone release of AspectJ 5 is included, with all the
+      accompanying documentation available in the Eclipse help system, including
+      the latest version of the AspectJ 5 Developer's Notebook.</p>
+
+      <p>The <b>pertypewithin</b> instantiation model is supported by hilighting
+      this new keyword, and adding it to the instantiation options in the
+      New Aspect wizard.</p>
+
+      <p>The new <b>declare annotation</b> statements are fully supported (when
+      using Eclipse 3.1M6 and an AspectJ project with a Java compliance
+      setting of 1.5, and a 1.5.0 JRE). The outline view and package explorer
+      structure has been updated to include these new declare statements.
+      Markers are added to the edge
+      of the editor to indicate the source and targets of these statements,
+      as shown below. The context menu for these markers contains "Annotates"
+      and "Annotated by" submenus to allow navigation of these relationships.</p>
+
+      <p>[insert DeclareAt editor screenshot]</p>
+      
+      <p>The "Annotates" and "Annotated by" relationships are also shown
+      in the Cross References view:</p>
+      
+      <img src="xrefDeclareAt.png" width="287" height="302">
+
+     </td>
+  </tr>
+
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>AspectPath directories</b></td>
+    <td width="70%" valign="top">
+    
+      <p>[TODO]</p>
+    
+    </td>
+  </tr>
+
+
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
       <p align="right"><b>Builder change</b></td>
     <td width="70%" valign="top">
 
       <p>The project builder that AJDT registers with Eclipse has been
-      moved from the <code>org.eclipse.ajdt.ui</code> plugin to
-      <code>org.eclipse.ajdt.core.</code> This means that the builder
+      moved from the AJDT UI plugin to the AJDT Core plugin.
+      This means that the builder
       id has changed from <code>org.eclipse.ajdt.ui.ajbuilder</code>
-      to <code>org.eclipse.ajdt.core.ajbuilder.</code> This should in
-      general be a transparent change - an existing project will cause
-      the old builder to run, but that has been replaced by a
-      migration builder which updates the project settings to the new
-      id, and then triggers a rebuild. One issue to be aware of
-      relates to the sharing of projects via CVS etc. After the
-      migration builder has run, the <code>.project</code> file will
-      be updated, and so if this is then committed to the repository,
-      and checked out elsewhere using an earlier version of AJDT, it
-      won't build because the earlier version of AJDT will not contain
-      a builder with the new id. Therefore if you are sharing projects
-      with people who might be using older versions of AJDT, you
-      should not commit the updated <code>.project</code> file.</p
+      to <code>org.eclipse.ajdt.core.ajbuilder.</code> 
+      If a project is found with the old builder, you will be asked
+      whether to keep the reference to the old builder. This is only
+      useful if you are sharing the project with someone who may be
+      using an earlier version of AJDT. Otherwise, it is best to remove
+      the old reference. You can chose to automatically perform the same
+      operation on other projects.</p>
 
      </td>
   </tr>
