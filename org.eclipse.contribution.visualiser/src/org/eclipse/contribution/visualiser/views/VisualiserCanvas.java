@@ -803,10 +803,15 @@ public class VisualiserCanvas extends Canvas {
 						StripeGeom sg = (StripeGeom) stripes.get(k);
 						sg.bounds.y = (int) ((sg.bounds.y - oldy) / vScale)
 								+ bg.bounds.y;
+						// make sure stripe is contained within bar
+						if (sg.bounds.y + sg.bounds.height > bg.bounds.y + bg.bounds.height) {
+							sg.bounds.height = bg.bounds.y + bg.bounds.height - sg.bounds.y;
+						}
 						List kinds = sg.kindList;
 						for (int l = 0; l < kinds.size(); l++) {
 							KindGeom kg = (KindGeom) kinds.get(l);
 							kg.bounds.y = sg.bounds.y;
+							kg.bounds.height = sg.bounds.height;
 						}
 					}
 				}
@@ -865,6 +870,10 @@ public class VisualiserCanvas extends Canvas {
 					b.stripeList.add(sg);
 					sg.bounds = new Rectangle(b.bounds.x + 1,
 							b.bounds.y + ypos, colWidth - 2, stripeH);
+					// make sure stripe is contained within bar
+					if (sg.bounds.y + sg.bounds.height > b.bounds.y + b.bounds.height) {
+						sg.bounds.height = b.bounds.y + b.bounds.height - sg.bounds.y;
+					}
 					//					if (visualiser.isFitToView()) {
 					//						ypos = (int) (ypos / vScale);
 					//					}
@@ -880,7 +889,7 @@ public class VisualiserCanvas extends Canvas {
 									- ((across * colWidth) / activeKinds);
 							Rectangle kindRect = new Rectangle(b.bounds.x + 1
 									+ (across * colWidth) / activeKinds,
-									b.bounds.y + ypos, nw - 1, stripeH);
+									b.bounds.y + ypos, nw - 1, sg.bounds.height);
 							kg.bounds = kindRect;
 							across++;
 						}
