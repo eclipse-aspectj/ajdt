@@ -24,7 +24,6 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -239,7 +238,6 @@ public class Menu extends ViewPart {
 	 */
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(selectAllAction);
-		manager.add(new Separator());
 		manager.add(selectNoneAction);
 	}
 
