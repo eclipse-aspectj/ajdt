@@ -257,7 +257,6 @@
  		</description>
 </item>
 
-
 	<item
 		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
 		title="Viewing the World Aspect in the Outline View">
@@ -271,14 +270,20 @@
 			called greeting().
 			<br/>
 			<br/>
-			The <b>orange arrow</b> next to afterReturning(): greeting... indicates that you have 
-			defined some after advice that will execute at join points matched by the 
-			greeting() pointcut. 
-			If you expand fully the node next to afterReturning(): greeting you see that you
-			are told there is one place within your application where this advice applies, 
-			and that is after the sayHello() method in the HelloWorld class. 
-			Clicking on <b>HelloWorld.sayHello()</b> in the Outline View will take you to this 
-			point in the HelloWorld class.
+			The <b>orange arrow</b> next to afterReturning() indicates that you have 
+			defined some after() returning advice. 
+			<br/>
+			<br/>
+			When the editor is open on the World aspect, notice on the left hand bar of the editor 
+			there is an <b>orange arrow</b> pointing to the left, and on the right hand bar of the editor there is an <b>orange 
+			block</b>, both of which appear on the line of the after advice. These are 
+			visual aids to let you know that this piece of advice affects some of your code. 
+			Hovering over them tells you that they are advising the sayHello() method in
+			the HelloWorld class. Moreover, right clicking on the orange arrow brings up a menu
+			which contains an <b>advises</b> option. Navigating to this will display a sub-menu
+			which also tells you that the sayHello() method is 
+			advised by this after() returning advice. You can select this to
+			navigate to the affected place in the code.
 			<br/>
 			<br/>
 			Press the &quot;Click to Complete&quot; button 
@@ -286,18 +291,14 @@
  		</description>
 </item>
 
-
 	<item
 		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
 		title="Viewing the advised HelloWorld class in the Outline View">
 		<description>
 			Select the HelloWorld class so that it appears in the editor. You see that the 
-			Outline View now contains the information about the advised HelloWorld class. 
-			There is an expandable node next to the sayHello() method. Expanding this as far 
-			as you can, you can see that the sayHello() method is <b>advised by</b> the 
-			after() returning: greeting() advice in the World aspect. Clicking on 
-			<b>World.afterReturning(): greeting..</b> in the Outline View will take you 
-			to the after() returning : greeting() advice in the World aspect.
+			Outline View now contains information about the advised HelloWorld class. 
+			There is a little orange arrow next to the sayHello() method. This tells you
+			that the sayHello() method is affected by some advice.
 			<br/>
 			<br/>
 			When the editor is open on the HelloWorld class, notice on the left hand bar of the editor 
@@ -314,6 +315,62 @@
 			<br/>
 			When you are comfortable with the different features AJDT offers via the Outline 
 			View and Editor press the &quot;Click to Complete&quot; button below.
+ 		</description>
+</item>
+
+	<item
+		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		title="Open the Cross Reference View">
+		<description>
+			AJDT provides a new view which shows you where your advice is affecting.
+			This is called the Cross Reference View and we'll look at this now.
+			<br/>
+			<br/>
+			Select <b>Window-&gt;Show View-&gt;Other-&gt;AspectJ-&gt;Cross References</b> 
+			in the menubar at the top of the workbench. This brings up the Cross Reference
+			view at the bottom of the Java Perspective. Press the &quot;Click to Complete&quot; 
+			button below when you have found the Cross Reference view.
+ 		</description>
+</item>
+
+
+	<item
+		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		title="Viewing the World Aspect in the Cross Reference View">
+		<description>
+			Let us first look at the World Aspect. Select the World Aspect so that it 
+			appears in the editor. You see that the Cross Reference view now contains information 
+			about the World Aspect.
+			<br/>
+			<br/>
+			The <b>orange arrow</b> next to afterReturning() indicates that you have 
+			defined some after returning advice. Below this there is an <b>advises</b>
+			node which tells you that this piece of advice affects some code. Expanding
+			this node tells you that the sayHello() method in the HelloWorld class is
+			affected by this advice. Clicking on <b>HelloWorld.sayHello()</b> in the 
+			Cross Reference view will take you to this point in the HelloWorld class.
+			<br/>
+			<br/>
+			Press the &quot;Click to Complete&quot; button 
+			below when you've finished looking at the Cross Reference view for the World aspect.
+ 		</description>
+</item>
+
+
+	<item
+		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		title="Viewing the advised HelloWorld class in the Cross Reference View">
+		<description>
+			Select the HelloWorld class so that it appears in the editor. You see that the 
+			Cross Reference view now contains information about the advised HelloWorld class. 
+			Expanding all the nodes you see that the HelloWorld class has a method
+			<b>sayHello()</b> in it which is <b>advised by</b> the <b>afterReturning()</b> advice in 
+			the World aspect. Notice that the Cross Reference view only contains information
+			about those methods which are affected by advice.
+			<br/>
+			<br/>			
+			When you are comfortable with the different features AJDT offers via the Cross Reference 
+			View press the &quot;Click to Complete&quot; button below.
  		</description>
 </item>
 
