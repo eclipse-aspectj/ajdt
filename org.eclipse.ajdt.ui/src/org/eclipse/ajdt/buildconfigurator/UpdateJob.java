@@ -48,6 +48,7 @@ public class UpdateJob extends Job {
 	public UpdateJob(BuildConfigurator myBCor, int type, IResource myRes) {
 		super("Build configuration update");
 		setRule(myRes.getProject());
+		setSystem(true);
 		setPriority(Job.SHORT);
 		this.myBCor = myBCor;
 		this.type = type;
@@ -58,6 +59,7 @@ public class UpdateJob extends Job {
 			IResource myRes2) {
 		super("Build configuration update");
 		setRule(myRes.getProject());
+		setSystem(true);
 		setPriority(Job.SHORT);
 		this.myBCor = myBCor;
 		this.type = type;
