@@ -906,21 +906,9 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			try {
 				IResource[] children = ((IContainer) resource).members();
 				for (int i = 0; i < children.length; i++) {
-					// isLinked() method does not exist in 2.0 so use reflection
-					// to check it
-					try {
-						Method isLinkedMethod = IResource.class
-								.getDeclaredMethod("isLinked", new Class[] {});
-						boolean linked = ((Boolean) isLinkedMethod.invoke(
-								children[i], new Object[] {})).booleanValue();
-						if ((children[i] instanceof IFolder) && linked) {
-							resultList.add(children[i]);
-						}
-
-					} catch (Exception e) {
-						// Assume we're in 2.0 here
+					if ((children[i] instanceof IFolder) && children[i].isLinked()) {
+						resultList.add(children[i]);
 					}
-
 				}
 			} catch (CoreException e) {
 				e.printStackTrace();

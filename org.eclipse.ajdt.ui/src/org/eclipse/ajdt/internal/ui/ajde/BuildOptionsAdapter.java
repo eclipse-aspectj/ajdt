@@ -108,22 +108,18 @@ public class BuildOptionsAdapter
 	public final static boolean JAVA_OR_AJ_EXT_DEFAULT = false;
 
 	/**
-	 * Tries to get a project-specific nature options map if it exists (Eclipse 2.1+).  
-	 * If that are not found returns the JavaCore's map.
+	 * Tries to get a project-specific nature options map if it exists.  
+	 * If it is not found returns the JavaCore's map.
 	 */
 	public Map getJavaOptionsMap() {
 		Map optionsMap = null;
+			
+		JavaProject project;
 		try {
-			JavaProject project = (JavaProject)AspectJUIPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
-			
-			// for Eclipse 2.1+ code below should be: optionsMap = project.getOptions(true);
-			Class superclass = project.getClass();
-			Method getOptionsMethod = superclass.getDeclaredMethod( "getOptions",
-				new Class[]{ Boolean.TYPE });
-			optionsMap = (Map)getOptionsMethod.invoke(project, new Object[] { Boolean.TRUE });
-			
-		} catch (Exception ce){
-			// ignore
+			project = (JavaProject)AspectJUIPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
+			optionsMap = project.getOptions(true);
+		} catch (CoreException e) {
+			AspectJUIPlugin.logException(e);
 		}
 		
 		if (optionsMap == null) {
