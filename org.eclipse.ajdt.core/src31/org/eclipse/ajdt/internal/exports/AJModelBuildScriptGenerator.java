@@ -884,13 +884,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	}
 
 	private void filterNonExistingSourceFolders(String[] sources) {
-		File pluginRoot;
-		try {
-			pluginRoot = new File(getLocation(model));
-		} catch (CoreException e) {
-			BundleHelper.getDefault().getLog().log(e.getStatus());
-			return;
-		}
+		File pluginRoot = new File(getLocation(model));
 		for (int i = 0; i < sources.length; i++) {
 			File file = new File(pluginRoot, sources[i]);
 			if (!file.exists()) {
