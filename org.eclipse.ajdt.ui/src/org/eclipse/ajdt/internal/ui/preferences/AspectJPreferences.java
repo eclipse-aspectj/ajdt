@@ -50,12 +50,6 @@ public class AspectJPreferences {
 	 */
 	public static final String AJDE_JAR = "ajde.jar"; //$NON-NLS-1$
 
-	/**
-	 * Identifier for whether it was the addAspectJNature() that added the ajde
-	 * dependency
-	 */
-	public static final String HAS_SET_AJPLUGIN_DEPENDENCY = "Has_Set_AJPlugin_Dependency"; //$NON-NLS-1$
-
 	public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt"; //$NON-NLS-1$
 
 	public static final String ADVICE_DECORATOR = "aspectjPreferences.adviceDec"; //$NON-NLS-1$
@@ -96,9 +90,15 @@ public class AspectJPreferences {
 
 	public static final String PDE_AUTO_IMPORT_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.pdeAutoImportConfigDone"; //$NON-NLS-1$
 
+	public static final String PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.pdeAutoRemoveImportConfigDone"; //$NON-NLS-1$
+
 	public static final String ASK_PDE_AUTO_IMPORT = "org.eclipse.ajdt.ui.preferences.askPdeAutoImport"; //$NON-NLS-1$
 
 	public static final String DO_PDE_AUTO_IMPORT = "org.eclipse.ajdt.ui.preferences.doPdeAutoImport"; //$NON-NLS-1$
+
+	public static final String ASK_PDE_AUTO_REMOVE_IMPORT = "org.eclipse.ajdt.ui.preferences.askPdeAutoRemoveImport"; //$NON-NLS-1$
+
+	public static final String DO_PDE_AUTO_REMOVE_IMPORT = "org.eclipse.ajdt.ui.preferences.doPdeAutoRemoveImport"; //$NON-NLS-1$
 
 	public static final String VALUE_ERROR = JavaCore.ERROR;
 
@@ -430,6 +430,57 @@ public class AspectJPreferences {
 		return store.getBoolean(DO_PDE_AUTO_IMPORT);
 	}
 
+	/**
+	 * Helper set method
+	 * 
+	 * @param ask
+	 *            true if the user wants to be asked again about having auto
+	 *            removal of aspectj runtime library import upon removing aspectj nature
+	 *            from PDE projects.
+	 */
+	static public void setAskPDEAutoRemoveImport(boolean ask) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(ASK_PDE_AUTO_REMOVE_IMPORT, ask);
+	}
+	
+	/**
+	 * Helper get method used to determine whether to ask the user if they want
+	 * to automatically remove the the aspectj runtime library import from the 
+	 * appropriate plugin.
+	 * 
+	 * @return boolean true if user is to be asked
+	 */
+	static public boolean askPDEAutoRemoveImport() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getBoolean(ASK_PDE_AUTO_REMOVE_IMPORT);
+	}
+
+	static public void setPDEAutoRemoveImportConfigDone(boolean done) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE, done);
+	}
+
+	public static boolean isPDEAutoRemoveImportConfigDone() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getBoolean(PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE);
+	}
+
+	static public void setDoPDEAutoRemoveImport(boolean doImport) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(DO_PDE_AUTO_REMOVE_IMPORT, doImport);
+	}
+
+	static public boolean doPDEAutoRemoveImport() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getBoolean(DO_PDE_AUTO_REMOVE_IMPORT);
+	}
+	
 	// Project scope preferences
 
 	public static String getActiveBuildConfigurationName(IProject project) {

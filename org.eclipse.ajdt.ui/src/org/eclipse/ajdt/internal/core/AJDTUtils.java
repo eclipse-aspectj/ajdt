@@ -49,7 +49,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.pde.core.plugin.IPluginImport;
@@ -190,10 +189,6 @@ public class AJDTUtils {
 		newNatures[0] = ID_NATURE;
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		store.setDefault(project.getName()
-				+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
 
 		// Bugzilla 62625
 		if (project.hasNature(PDE.PLUGIN_NATURE)) {
@@ -209,15 +204,11 @@ public class AJDTUtils {
 			if (!hasAJPluginDependency(project)) {
 				getAndPrepareToChangePDEModel(project);
 				addAJPluginDependency(project);
-				store.setValue(project.getName()
-						+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, true);
 			}
 		} else {
 			// A Java project that is not a plugin project. Just add
 			// the aspectjrt.jar to the build path.
 			addAjrtToBuildPath(project);
-			store.setValue(project.getName()
-					+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
 		}
 
 		// PD: current thinking is not to change project dependencies to class
@@ -253,7 +244,7 @@ public class AJDTUtils {
 	public static void checkMyEclipseNature(IProject project) {
 		try {
 			// check project nature
-			if (project.hasNature("com.genuitec.eclipse.j2eedt.core.webnature") //$NON-NLS-1$
+			if (project.hasNature("com.genuitec.eclipse.j2eedt.core.webnature") // $NON-NLS-1$
 					|| project
 							.hasNature("com.genuitec.eclipse.j2eedt.core.ejbnature")) { //$NON-NLS-1$
 				//display message only once per eclipse startup
@@ -603,7 +594,7 @@ public class AJDTUtils {
 				.getActiveWorkbenchWindow();
 
 		boolean autoImport = false;
-		if ((AspectJPreferences.askPDEAutoImport() && confirmPDEAutoImport(window))
+		if ((AspectJPreferences.askPDEAutoImport() && confirmPDEAutoAddImport(window))
 				|| (AspectJPreferences.doPDEAutoImport())) {
 			autoImport = true;
 		}
@@ -821,25 +812,12 @@ public class AJDTUtils {
 
 		// Bugzilla 62625
 		if (project.hasNature(PDE.PLUGIN_NATURE)) {
-			// Bugzilla 72007
-			// Checks if it was ajdt that added the ajde dependancy and removes
-			// it if it was
-			IPreferenceStore store = AspectJUIPlugin.getDefault()
-					.getPreferenceStore();
-			store.setDefault(project.getName()
-					+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
-			boolean AJPluginDependancySetByAddAJNature = store
-					.getBoolean(project.getName()
-							+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY);
-			if (hasAJPluginDependency(project)
-					&& AJPluginDependancySetByAddAJNature) {
+//			// Bugzilla 72007
+//			// Checks if it was ajdt that added the ajde dependancy and removes
+//			// it if it was
+			if (hasAJPluginDependency(project)) {
 				getAndPrepareToChangePDEModel(project);
 				removeAJPluginDependency(project);
-				store
-						.setValue(
-								project.getName()
-										+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY,
-								false);
 			}
 		} else {
 			// Update the build classpath to try and remove the aspectjrt.jar
@@ -861,8 +839,8 @@ public class AJDTUtils {
 	}
 
 	// Bugzilla 72007
-	// This method checks wether the project already requires
-	// org.aspectj.ajde to be imported. Returns true if it does.
+	// This method checks whether the project already has
+	// org.aspectj.runtime imported. Returns true if it does.
 	private static boolean hasAJPluginDependency(IProject project) {
 
 		ManifestEditor manEd = getPDEManifestEditor(project);
@@ -879,7 +857,7 @@ public class AJDTUtils {
 						.getPackageFragmentRoots();
 				for (int i = 0; i < dependencies.length; i++) {
 					if (dependencies[i].getElementName().equals(
-							AspectJPreferences.AJDE_JAR))
+							"aspectjrt.jar")) // $NON-NLS-1$
 						return true;
 				}
 			} catch (JavaModelException e) {
@@ -900,37 +878,43 @@ public class AJDTUtils {
 	 * @param project
 	 */
 	private static void removeAJPluginDependency(IProject project) {
-		// Attempt to get hold of the open manifest editor
-		// for the current project.
-		ManifestEditor manEd = getPDEManifestEditor(project);
+		IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
+		.getActiveWorkbenchWindow();
+		if ((AspectJPreferences.askPDEAutoRemoveImport() && confirmPDEAutoRemoveImport(window))
+				|| (AspectJPreferences.doPDEAutoRemoveImport())) {
 
-		if (manEd != null) {
-			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
-			try {
-				removeImportFromPDEModel(model,
-						AspectJPlugin.RUNTIME_PLUGIN_ID);
-				manEd.doSave(new NullProgressMonitor());
-			} catch (CoreException e) {
-				AspectJUIPlugin
-						.getDefault()
-						.getErrorHandler()
-						.handleError(
+			// Attempt to get hold of the open manifest editor
+			// for the current project.
+			ManifestEditor manEd = getPDEManifestEditor(project);
+	
+			if (manEd != null) {
+				IPluginModel model = (IPluginModel) manEd.getAggregateModel();
+				try {
+					removeImportFromPDEModel(model,
+							AspectJPlugin.RUNTIME_PLUGIN_ID);
+					manEd.doSave(new NullProgressMonitor());
+				} catch (CoreException e) {
+					AspectJUIPlugin
+							.getDefault()
+							.getErrorHandler()
+							.handleError(
+									AspectJUIPlugin
+											.getResourceString("AutoPluginRemoveErrorDialog.title"),
+									AspectJUIPlugin
+											.getResourceString("AutoPluginRemoveErrorDialog.message"),
+									e);
+				}
+			}// end if we got a reference to the manifest editor
+			else {
+				MessageDialog
+						.openError(
+								AspectJUIPlugin.getDefault().getWorkbench()
+										.getActiveWorkbenchWindow().getShell(),
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.title"),
+										.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.message"),
-								e);
+										.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
 			}
-		}// end if we got a reference to the manifest editor
-		else {
-			MessageDialog
-					.openError(
-							AspectJUIPlugin.getDefault().getWorkbench()
-									.getActiveWorkbenchWindow().getShell(),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
 		}
 	}
 
@@ -1050,7 +1034,7 @@ public class AJDTUtils {
 	 * @return <code>true</code> if it's OK to import, <code>false</code>
 	 *         otherwise
 	 */
-	private static boolean confirmPDEAutoImport(IWorkbenchWindow window) {
+	private static boolean confirmPDEAutoAddImport(IWorkbenchWindow window) {
 
 		MessageDialogWithToggle dialog = MessageDialogWithToggle
 				.openQuestion(
@@ -1079,6 +1063,42 @@ public class AJDTUtils {
 		return result == 0;
 	}
 
+	/**
+	 * Prompts the user for whether to automatically remove the AspectJ runtime plug-in 
+	 * dependency when removing AspectJ nature from a PDE project.
+	 * 
+	 * @return <code>true</code> if it's OK to import, <code>false</code>
+	 *         otherwise
+	 */
+	private static boolean confirmPDEAutoRemoveImport(IWorkbenchWindow window) {
+
+		MessageDialogWithToggle dialog = MessageDialogWithToggle
+				.openQuestion(
+						window.getShell(),
+						AspectJUIPlugin
+								.getResourceString("PluginImportDialog.removeImportConfirmTitle"),
+						AspectJUIPlugin
+								.getResourceString("PluginImportDialog.removeImportConfirmMsg"),
+						AspectJUIPlugin
+								.getResourceString("PluginImportDialog.removeImportConfirmToggleMsg"),
+						false); // toggle is initially unchecked
+
+		int result = dialog.getReturnCode();
+
+		if (result >= 0 && dialog.getToggleState()) {
+			if (result == 0) {
+				// User chose Yes/Don't ask again, so always switch
+				AspectJPreferences.setDoPDEAutoRemoveImport(true);
+				AspectJPreferences.setAskPDEAutoRemoveImport(false);
+			} else {
+				// User chose No/Don't ask again, so never switch
+				AspectJPreferences.setDoPDEAutoRemoveImport(false);
+				AspectJPreferences.setAskPDEAutoRemoveImport(false);
+			}
+		}// end if
+		return result == 0;
+	}
+	
 	/**
 	 * Decorate icon based on modifiers, errors etc. Possible decorations are:
 	 * abstract, final, synchronized, static, runnable, warning, error,
