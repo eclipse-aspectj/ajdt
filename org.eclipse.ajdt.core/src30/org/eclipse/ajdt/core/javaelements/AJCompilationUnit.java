@@ -537,14 +537,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			return JAVA_PROJECT;
 		return super.getElementType();
 	}
-	
-	public boolean exists() {
-		boolean e = super.exists();
-		System.out.println("AJcu.exists: "+e);
-		return e;
-	}
-
-	
+		
 //	private static final String classToTrick = "org.eclipse.jdt.internal.corext.refactoring.reorg.OverwriteHelper";
 //	private static final int lenOfClassToTrick = classToTrick.length();
 //	
