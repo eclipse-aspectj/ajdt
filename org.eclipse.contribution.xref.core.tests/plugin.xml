@@ -15,7 +15,6 @@
       <import plugin="org.eclipse.contribution.xref.core"/>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.junit"/>
-      <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jdt.core"/>
    </requires>
 

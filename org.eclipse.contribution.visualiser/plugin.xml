@@ -15,19 +15,16 @@
       <library name="lib/draw2d.jar"/>
    </runtime>
    <requires>
-      <import plugin="org.eclipse.ui.views"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.jdt.core"/>
-      <import plugin="org.junit"/>
       <import plugin="org.eclipse.jdt.ui"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.search"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.aspectj.ajde"/>
    </requires>
 
    <extension-point id="providers" name="Visualiser Providers" schema="schema/providers.exsd"/>
