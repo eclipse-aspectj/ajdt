@@ -978,6 +978,40 @@
             value="true">
       </persistent>
 	</extension>
+	<extension
+		id="annotatedmarker"
+		name="Annotation Declaration Marker"
+		point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.declarationmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
+    <extension
+   	      id="sourceitdmarker"
+   	      name="Intertype Declaration Source Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.declarationmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
+	<extension
+		id="sourceannotatedmarker"
+		name="Annotation Declaration Source Marker"
+		point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.declarationmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
+
  
  <!-- Marker declarations -->   
      	<extension point="org.eclipse.ui.editors.annotationTypes">
@@ -1036,7 +1070,18 @@
    		 	super="org.eclipse.ajdt.aspectDeclaration"
             markerType="org.eclipse.ajdt.ui.itdmarker"
             name="org.eclipse.ajdt.intertypeDeclaration"/>
-
+	  <type
+   		 	super="org.eclipse.ajdt.aspectDeclaration"
+            markerType="org.eclipse.ajdt.ui.annotatedmarker"
+            name="org.eclipse.ajdt.annotationDeclaration"/>
+	  <type
+   		 	super="org.eclipse.ajdt.aspectDeclaration"
+            markerType="org.eclipse.ajdt.ui.sourceitdmarker"
+            name="org.eclipse.ajdt.sourceIntertypeDeclaration"/>
+	  <type
+   		 	super="org.eclipse.ajdt.aspectDeclaration"
+            markerType="org.eclipse.ajdt.ui.sourceannotatedmarker"
+            name="org.eclipse.ajdt.sourceAnnotationDeclaration"/>
 	</extension>
 
 
@@ -1120,6 +1165,18 @@
 		<specification
 			annotationType="org.eclipse.ajdt.intertypeDeclaration"
 			icon="icons/markers/itd.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.annotationDeclaration"
+			icon="icons/markers/itd.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceIntertypeDeclaration"
+			icon="icons/markers/source_itd.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceAnnotationDeclaration"
+			icon="icons/markers/source_itd.gif">
 		</specification>
 	</extension>
   

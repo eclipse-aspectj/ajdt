@@ -171,33 +171,79 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			// Go through the ITD markers
 			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);			
 			MenuManager declarationSubmenu = null;
+			MenuManager annotationSubmenu = null;
+			MenuManager annotatesSubmenu = null;
 		    boolean declarationSubmenuInitialized = false;
+			boolean annotationSubmenuInitialized = false;
+			boolean annotatesSubmenuInitialized = false;
 			if (decMarkers != null && decMarkers.length != 0) {
 				for (int j = 0; j < decMarkers.length; j++) {
-					IMarker m = decMarkers[j];					
+					IMarker m = decMarkers[j];
 					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
-						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
-						// marker (an advice marker) in effect on this line, so that if the run
-						// method of the action is driven, it can correctly jump to the right
-						// location in the aspect.
-						AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-						
-						// Initialize the submenu if we haven't done it already.
-						if (!declarationSubmenuInitialized) {
-							declarationSubmenu = new MenuManager(
-							  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.aspectDeclarations"));
-							if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized)) {
-								manager.add(new Separator());
-							}
-							manager.add(declarationSubmenu);			
-							declarationSubmenuInitialized = true; 
-						}
+						if(m.getType().equals(IAJModelMarker.ANNOTATED_MARKER)) {
+							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
+							// marker (an advice marker) in effect on this line, so that if the run
+							// method of the action is driven, it can correctly jump to the right
+							// location in the aspect.
+							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
 							
-					    // Add our new action to the submenu
-						declarationSubmenu.add(ama);
+							// Initialize the submenu if we haven't done it already.
+							if (!annotationSubmenuInitialized) {
+								annotationSubmenu = new MenuManager(
+								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotations"));
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized)) {
+									manager.add(new Separator());
+								}
+								manager.add(annotationSubmenu);			
+								annotationSubmenuInitialized = true; 
+							}
+								
+						    // Add our new action to the submenu
+							annotationSubmenu.add(ama);						
+						} else if(m.getType().equals(IAJModelMarker.SOURCE_ANNOTATED_MARKER)) {
+							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
+							// marker (an advice marker) in effect on this line, so that if the run
+							// method of the action is driven, it can correctly jump to the right
+							// location in the aspect.
+							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
+							
+							// Initialize the submenu if we haven't done it already.
+							if (!annotatesSubmenuInitialized) {
+								annotatesSubmenu = new MenuManager(
+								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotationAffects"));
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotationSubmenuInitialized)) {
+									manager.add(new Separator());
+								}
+								manager.add(annotatesSubmenu);			
+								annotatesSubmenuInitialized = true; 
+							}
+								
+						    // Add our new action to the submenu
+							annotatesSubmenu.add(ama);						
+						} else{
+							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
+							// marker (an advice marker) in effect on this line, so that if the run
+							// method of the action is driven, it can correctly jump to the right
+							// location in the aspect.
+							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
+							
+							// Initialize the submenu if we haven't done it already.
+							if (!declarationSubmenuInitialized) {
+								declarationSubmenu = new MenuManager(
+								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.aspectDeclarations"));
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized)) {
+									manager.add(new Separator());
+								}
+								manager.add(declarationSubmenu);			
+								declarationSubmenuInitialized = true; 
+							}
+								
+						    // Add our new action to the submenu
+							declarationSubmenu.add(ama);
+						}
 					}
 				}
-			}
+			}		
 			
 			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);
@@ -231,7 +277,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                     problemSubmenu = new MenuManager(
                                             AspectJUIPlugin
                                                     .getResourceString("EditorRulerContextMenu.relatedLocations"));
-                                    if (!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized)) {
+                                    if (!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized || annotationSubmenuInitialized)) {
                                         manager.add(new Separator());
                                     }
                                     manager.add(problemSubmenu);

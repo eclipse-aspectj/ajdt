@@ -328,6 +328,9 @@ public class StructureModelUtil {
 										|| (pNode.getKind() == IProgramElement.Kind.CLASS))) {
 							// source of advice rather than target
 							String adviceType = "advises";
+							if(advises.getName().equals("annotates")) {
+								adviceType = advises.getName();
+							}
 							// we need to determine the advice type from the source node
 							if (sourceNode.getExtraInfo() != null) {
 								adviceType += sourceNode.getExtraInfo()

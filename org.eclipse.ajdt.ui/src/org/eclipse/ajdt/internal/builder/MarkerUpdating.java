@@ -275,9 +275,19 @@ public class MarkerUpdating {
 				markerAcc='R';
 			}
 			marker.setAttribute(AspectJUIPlugin.ACCKIND_ATTRIBUTE,""+markerKind+markerAcc);
+		} else if(adviceType.equals("annotates")) { 
+			marker = ir
+				.createMarker(IAJModelMarker.SOURCE_ANNOTATED_MARKER);
 		} else {
-			// It's an Intertype Declaration
-			marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
+			if(programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR)
+					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD)
+					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD)
+					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE)) {
+				marker = ir.createMarker(IAJModelMarker.ANNOTATED_MARKER);
+			} else {
+				// It's an Intertype Declaration
+				marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
+			}
 		}
 		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt);
 		if (nodeRuntimeTest) {

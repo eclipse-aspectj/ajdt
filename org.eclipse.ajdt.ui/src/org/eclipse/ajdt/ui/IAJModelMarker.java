@@ -26,8 +26,11 @@ public interface IAJModelMarker {
 	public static final String DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicadvicemarker";
 	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker";
 	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker";
+	public static final String ANNOTATED_MARKER = "org.eclipse.ajdt.ui.annotatedmarker";
 	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker";
 	public static final String SOURCE_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcebeforeadvicemarker";
 	public static final String SOURCE_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceafteradvicemarker";
 	public static final String SOURCE_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcearoundadvicemarker";
+	public static final String SOURCE_ITD_MARKER = "org.eclipse.ajdt.ui.sourceitdmarker";
+	public static final String SOURCE_ANNOTATED_MARKER = "org.eclipse.ajdt.ui.sourceannotatedmarker";
 }
