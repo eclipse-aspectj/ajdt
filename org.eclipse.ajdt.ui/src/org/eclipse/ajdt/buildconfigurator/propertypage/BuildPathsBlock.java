@@ -217,13 +217,16 @@ public class BuildPathsBlock {
 				if (fCurrJProject.getProject().hasNature("org.eclipse.ajdt.ui.ajnature")){ //$NON-NLS-1$
 					fSourceContainerPage = new BCContainerWorkbookPage(
 							fWorkspaceRoot, fClassPathList, fBuildPathDialogField);
-				}else
+				} else
 					fSourceContainerPage = new SourceContainerWorkbookPage(
 							fWorkspaceRoot, fClassPathList, fBuildPathDialogField);
 			} catch (CoreException e1) {
 				fSourceContainerPage = new SourceContainerWorkbookPage(
 						fWorkspaceRoot, fClassPathList, fBuildPathDialogField);
-			}
+			} 
+		} else { // Sian - added this else block so that this class can be used in the new Aspectj project wizard (bug 78264)
+			fSourceContainerPage= new BCContainerWorkbookPage(fWorkspaceRoot,
+					 fClassPathList, fBuildPathDialogField);
 		}
 		//AspectJ Extension End (by Luzius)
 	

@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -49,9 +50,9 @@ public class AspectJProjectWizardTest extends TestCase {
 	private IProject newlyFoundProject;
 	private static int ID = 0;
 
-	AspectJWizardNewProjectCreationPage testPage;
+	JavaProjectWizardFirstPage testPage;
 
-	AspectJWizardNewProjectCreationPage secondTestPage;
+	AspectJProjectWizardSecondPage secondTestPage;
 
 	/*
 	 * @see TestCase#setUp()
@@ -98,26 +99,26 @@ public class AspectJProjectWizardTest extends TestCase {
 			fail("addPages() failed, 2 pages have not be accurately added.");
 		}
 
-		IWizardPage AJPage = projectWizard
-				.getPage("NewAspectjProjectCreationWizard");
-		IWizardPage JPage = projectWizard.getPage("NewJavaProjectWizardPage");
+		IWizardPage firstPage = projectWizard
+				.getPage("SimpleProjectFirstPage");
+		IWizardPage secondPage = projectWizard.getPage("JavaCapabilityConfigurationPage");
 
-		if (AJPage == null)
-			fail("addPages() has failed to add an AspectJWizardNewProjectCreationPage at the correct location.");
-		if (JPage == null)
-			fail("addPages() has failed to add a NewJavaProjectWizardPage at the correct location.");
+		if (firstPage == null)
+			fail("addPages() has failed to add a JavaProjectWizardFirstPage at the correct location.");
+		if (secondPage == null)
+			fail("addPages() has failed to add an AspectJProjectWizardSecondPage at the correct location.");
 
 		try {
-			AJTitleCorrect = AJPage
+			AJTitleCorrect = firstPage
 					.getTitle()
 					.equals(
 							AspectJUIPlugin
-									.getResourceString("NewAspectjProjectCreationWizard.MainPage.title"));
-			AJDescriptionCorrect = AJPage
+									.getResourceString("NewAspectJProject.CreateAnAspectJProject"));
+			AJDescriptionCorrect = firstPage
 					.getDescription()
 					.equals(
 							AspectJUIPlugin
-									.getResourceString("NewAspectjProjectCreationWizard.MainPage.description"));
+									.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription"));
 		} catch (NullPointerException e) {
 			fail("The title or description for the AJ page is incorrect.");
 		}
@@ -134,7 +135,7 @@ public class AspectJProjectWizardTest extends TestCase {
 	/**
 	 * Tests the projects which are created by the perform finish method
 	 */
-	public void testProjectWizardPerformFinish() {
+	public void testProjectWizardPerformFinish() throws Exception {
 
 		testSrcProject = createTestProject(ID);
 		String pDestinationName = "NotVisible" + ID;
@@ -203,7 +204,6 @@ public class AspectJProjectWizardTest extends TestCase {
 			assertTrue("The wizard created project has not been named correctly",
 				project.getName().equals(expectedProjectName));
 		}
-		
 		assertTrue("The Wizard created project doesnt appear in the workspace",
 				project.exists());
 		assertTrue("The Wizard created project has not opened properly",
@@ -258,11 +258,12 @@ public class AspectJProjectWizardTest extends TestCase {
 		dialog.setBlockOnOpen(false);
 		dialog.create();
 		dialog.open();
-		AspectJWizardNewProjectCreationPage curPage = (AspectJWizardNewProjectCreationPage) dialog
+		JavaProjectWizardFirstPage curPage = (JavaProjectWizardFirstPage) dialog
 				.getCurrentPage();
 		curPage.getWizard().performFinish();
+		
 		dialog.close();
-		testProjectWizard.getNewProject();
+//		testProjectWizard.getNewProject();
 		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);
 		return wizardCreatedProject;

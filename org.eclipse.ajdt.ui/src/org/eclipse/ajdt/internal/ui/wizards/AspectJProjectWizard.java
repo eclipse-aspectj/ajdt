@@ -1,13 +1,14 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the Common Public License v1.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/cpl-v10.html
-Contributors:
-Adrian Colyer, Andy Clement, Tracy Gardner - initial version
-Ian McGrath - added ability to use existing project structures
-...
+ * Copyright (c) 2002 - 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * Contributors:
+ * 		Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ * 		Ian McGrath - added ability to use existing project structures
+ * 		Sian January - updated to look like 3.0 new Java Project wizard
+ * 		...
 **********************************************************************/
 
 package org.eclipse.ajdt.internal.ui.wizards;
@@ -15,126 +16,108 @@ package org.eclipse.ajdt.internal.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
-import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPage;
+import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
+import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
+import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
-import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Wizard to create a new AspectJ project
  */
-public class AspectJProjectWizard
-	extends BasicNewProjectResourceWizard
-	implements IExecutableExtension {
-
-	protected NewJavaProjectWizardPage fJavaPage;
-	protected AspectJWizardNewProjectCreationPage fMainPage;
-	private IConfigurationElement fConfigElement;
-
-	/**
-	 * Create a new wizard
-	 */
-	public AspectJProjectWizard() {
-		super();
+public class AspectJProjectWizard extends NewElementWizard implements IExecutableExtension {
+    
+    protected JavaProjectWizardFirstPage fFirstPage;
+    protected AspectJProjectWizardSecondPage fSecondPage;
+    
+    private IConfigurationElement fConfigElement;
+    
+    public AspectJProjectWizard() {
 		setDefaultPageImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		setDialogSettings(AspectJUIPlugin.getDefault().getDialogSettings());
 		setWindowTitle(AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.title"));
-	}
+   }
 
-	/*
-	 * @see Wizard#addPages
-	 */
-	public void addPages() {
-		
-		//super.addPages();
-		fMainPage = new AspectJWizardNewProjectCreationPage("NewAspectjProjectCreationWizard");
-		fMainPage.setTitle(
-			AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.MainPage.title"));
-		fMainPage.setDescription(
-			AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.MainPage.description"));
-		fMainPage.setImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
-		
-		addPage(fMainPage);
-		IWorkspaceRoot root = AspectJPlugin.getWorkspace().getRoot();
-		fJavaPage = new NewJavaProjectWizardPage(root, fMainPage);
-		addPage(fJavaPage);
-	}
-
-	/*
-	 * @see Wizard#performFinish
+    /*
+     * @see Wizard#addPages
+     */	
+    public void addPages() {
+        super.addPages();
+        fFirstPage= new JavaProjectWizardFirstPage();
+        addPage(fFirstPage);
+        fFirstPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProject"));
+		fFirstPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription"));
+        fSecondPage= new AspectJProjectWizardSecondPage(fFirstPage);
+        fSecondPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettings"));
+        fSecondPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettingsDescription"));
+        addPage(fSecondPage);
+    }		
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jdt.internal.ui.wizards.NewElementWizard#finishPage(org.eclipse.core.runtime.IProgressMonitor)
+     */
+    protected void finishPage(IProgressMonitor monitor) throws InterruptedException, CoreException {
+    	fSecondPage.performFinish(monitor); // use the full progress monitor
+    }
+    
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.wizard.IWizard#performFinish()
 	 */
 	public boolean performFinish() {
-		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
-		IProject project = fJavaPage.getNewJavaProject().getProject();
-		boolean useExisting = fMainPage.useExistingProjectStructure();
-		
-		if(!useExisting) {	//overwrite any existing structure
-			IRunnableWithProgress op =
-				new WorkspaceModifyDelegatingOperation(fJavaPage.getRunnable());
-			try {
-				getContainer().run(false, true, op);
-			} catch (InvocationTargetException e) {
-				String title = AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.title");
-				String message = AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.message");
-				ExceptionHandler.handle(e, getShell(), title, message);
-				return false;
-				
-			} catch (InterruptedException e) {
-				return false;
-			}
-			
-			project = fJavaPage.getNewJavaProject().getProject();
+		boolean res= super.performFinish();
+		if (res) {
+	        BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
+	 		IProject project = fSecondPage.getJavaProject().getProject();
+	 		selectAndReveal(project);
+			boolean completed = finalizeNewProject(project, fFirstPage.getDetect());
+			res = completed;
 		}
-
-		else {	//use existing structure
-			
-			if(!fMainPage.hasCorrectCapitalisation()) { //auto correct the users capitalization
-				//To correct the name of the project a separate wizard is required so the text field
-				//can be set
-				IWorkspaceRoot root = AspectJPlugin.getWorkspace().getRoot();
-				AspectJWizardNewProjectCreationPage TempMainPage =
-					new AspectJWizardNewProjectCreationPage("NewAspectjProjectCreationWizard");
-				TempMainPage.setInitialProjectName(fMainPage.getCorrectCapitalization());
-				NewJavaProjectWizardPage TempJavaPage = new NewJavaProjectWizardPage(root, TempMainPage);
-				project = TempJavaPage.getNewJavaProject().getProject();
-				
-				//disable the buttons of the wizard
-				fMainPage.setPageComplete(false);
-				fJavaPage.setPageComplete(false);
-			}
-			
-			IProgressMonitor monitor = new NullProgressMonitor();
-			try {
-				project.create(monitor);
-				project.open(monitor);
-			} catch (CoreException e) {	
-		        String title = AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.build_error.title");
-		        String message = AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.build_error.message");
-		        ExceptionHandler.handle(e, getShell(), title, message);
-		        return false;
-			}
-		}
-		boolean completed = finalizeNewProject(project, useExisting);
-		return completed;
+		return res;
 	}
+    
+    protected void handleFinishException(Shell shell, InvocationTargetException e) {
+        String title= NewWizardMessages.getString("JavaProjectWizard.op_error.title"); //$NON-NLS-1$
+        String message= NewWizardMessages.getString("JavaProjectWizard.op_error_create.message");			 //$NON-NLS-1$
+        ExceptionHandler.handle(e, getShell(), title, message);
+    }	
+    
+    /*
+     * Stores the configuration element for the wizard.  The config element will be used
+     * in <code>performFinish</code> to set the result perspective.
+     */
+    public void setInitializationData(IConfigurationElement cfig, String propertyName, Object data) {
+        fConfigElement= cfig;
+    }
+    
+    /* (non-Javadoc)
+     * @see IWizard#performCancel()
+     */
+    public boolean performCancel() {
+        fSecondPage.performCancel();
+        return super.performCancel();
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.wizard.IWizard#canFinish()
+     */
+    public boolean canFinish() {
+        return super.canFinish();
+    }
 
-	
 	/**
 	 * Builds and adds the necessary properties to the new project and updates the workspace view
 	 */
@@ -197,16 +180,5 @@ public class AspectJProjectWizard
 		selectAndReveal(project);
 		AJDTEventTrace.newProjectCreated( project );
 		return true;
-	}
-	
-	/*
-	 * Stores the configuration element for the wizard.  The config element will be used
-	 * in <code>performFinish</code> to set the result perspective.
-	 */
-	public void setInitializationData(
-		IConfigurationElement cfig,
-		String propertyName,
-		Object data) {
-		fConfigElement = cfig;
 	}
 }
