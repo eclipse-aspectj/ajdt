@@ -17,6 +17,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
@@ -70,15 +71,13 @@ public class AJDTUtilsTest extends TestCase {
 		PluginTestProject testPluginProject = new PluginTestProject();
 		ProjectDependenciesUtils.waitForJobsToComplete(testPluginProject.getProject());
 		assertFalse("Plugin project shouldn't have AspectJ nature",
-				testPluginProject.getProject().hasNature(
-						AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.addAspectJNature(testPluginProject.getProject());
 		ProjectDependenciesUtils.waitForJobsToComplete(testPluginProject.getProject());
 		assertTrue("Plugin project should now have AspectJ nature",
-				testPluginProject.getProject().hasNature(
-						AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertTrue("Plugin should now import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.removeAspectJNature(testPluginProject.getProject());
@@ -86,8 +85,7 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
-				testPluginProject.getProject().hasNature(
-						AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		testPluginProject.dispose();
 		resetPluginEnvironment();
 	}
@@ -95,17 +93,17 @@ public class AJDTUtilsTest extends TestCase {
 	public void testAddAndRemoveAspectJNature() throws CoreException {
 		JavaTestProject testProject = new JavaTestProject("MyTestProject1");
 		assertFalse("Java project should not have AspectJ Nature",
-				testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		AJDTUtils.addAspectJNature(testProject.getProject());
 		assertTrue("Java project should now have AspectJ Nature",
-				testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertTrue("Build path should now contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		AJDTUtils.removeAspectJNature(testProject.getProject());
 		assertFalse("Java project should not have AspectJ Nature",
-				testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		testProject.dispose();

@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui;
 
 // --- imports ---
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -24,10 +23,10 @@ import java.util.ResourceBundle;
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
@@ -38,7 +37,7 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
+import org.eclipse.ajdt.javamodel.FileFilter;
 import org.eclipse.ajdt.javamodel.ResourceChangeListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -46,8 +45,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
@@ -169,7 +166,7 @@ public class AspectJUIPlugin
 	
 	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
-	public static final String ID_NATURE = PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+//	public static final String ID_NATURE = PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
     
 	// the plugin containing aspectjrt.jar
     public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
@@ -454,51 +451,53 @@ public class AspectJUIPlugin
 	}
 
 	/**
-	     * This function checks to see if the workbench is starting with a new version of AJDE (it persists
-	     * the version previously used by the workbench in a preference) - if a new version of AJDE is in
-	     * use then it goes through the projects and for any AspectJ project, it tries to ensure the
-	     * path to any aspectjrt.jar that it references is correct.  This fixes a migration issue we have
-	     * where the path includes the AJDE version - without this method you have to do it manually by
-	     * either editing the aspectjrt.jar entry or removing/readding the nature.
-	     * We also add the AspectJ code templates here.
-	     * 
-	     */
-	    private void checkAspectJVersion() {	    
-	    	
-		  IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+	 * This function checks to see if the workbench is starting with a new
+	 * version of AJDE (it persists the version previously used by the workbench
+	 * in a preference) - if a new version of AJDE is in use then it goes
+	 * through the projects and for any AspectJ project, it tries to ensure the
+	 * path to any aspectjrt.jar that it references is correct. This fixes a
+	 * migration issue we have where the path includes the AJDE version -
+	 * without this method you have to do it manually by either editing the
+	 * aspectjrt.jar entry or removing/readding the nature. We also add the
+	 * AspectJ code templates here.
+	 *  
+	 */
+	private void checkAspectJVersion() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
 
-		  // Version of AJDE now installed.
-		  String currentAjdeVersion = AspectJUIPlugin.getResourceString(AJDE_VERSION_KEY_CURRENT);
-		  
-		  // Version that the projects in this workspace used on the previous execution of eclipse.
-		  String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
+		// Version of AJDE now installed.
+		String currentAjdeVersion = AspectJUIPlugin
+				.getResourceString(AJDE_VERSION_KEY_CURRENT);
 
-		  try {
-		    if (previousAjdeVersion==null || !currentAjdeVersion.equals(previousAjdeVersion)) {
-		  	  AJDTEventTrace.generalEvent("New version of AJDE detected (now:"+
-		  	    currentAjdeVersion+") - checking aspectjrt.jar for each project.");
+		// Version that the projects in this workspace used on the previous
+		// execution of eclipse.
+		String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
+		if (previousAjdeVersion == null
+				|| !currentAjdeVersion.equals(previousAjdeVersion)) {
+			AJDTEventTrace.generalEvent("New version of AJDE detected (now:"
+					+ currentAjdeVersion
+					+ ") - checking aspectjrt.jar for each project.");
 
- 		      IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
-		      for(int i=0; i<projects.length;i++) { 
-			    if (projects[i].isOpen()) {
-				  IProject current = projects[i];
-				  if (current.hasNature(AspectJUIPlugin.ID_NATURE))
-				    AJDTUtils.verifyAjrtVersion(current);
-			    } 
-		      }
-		      
-		      checkTemplatesInstalled();
-		      checkProblemMarkersVisible();
-		      // no! don't verify config here - it can be too early for 
-		      // the supporting ui bits and pieces to be in place (race 
-		      // condition)
-		      //AJDTUtils.verifyWorkbenchConfiguration();
-		      store.putValue(AJDE_VERSION_KEY_PREVIOUS,currentAjdeVersion);
-		    }
-		  } catch (CoreException e) {
-			  AJDTEventTrace.generalEvent("Problem attempting to check aspectjrt.jar for");
-		  }
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+					.getProjects();
+			for (int i = 0; i < projects.length; i++) {
+				if (projects[i].isOpen()) {
+					IProject current = projects[i];
+					if (AspectJPlugin.isAJProject(current)) {
+						AJDTUtils.verifyAjrtVersion(current);
+					}
+				}
+			}
 
+			checkTemplatesInstalled();
+			checkProblemMarkersVisible();
+			// no! don't verify config here - it can be too early for
+			// the supporting ui bits and pieces to be in place (race
+			// condition)
+			//AJDTUtils.verifyWorkbenchConfiguration();
+			store.putValue(AJDE_VERSION_KEY_PREVIOUS, currentAjdeVersion);
+		}
 	}
 	    
 	 private void checkProblemMarkersVisible(){
@@ -669,6 +668,7 @@ public class AspectJUIPlugin
 		AJDTEventTrace.startup();    
 	    checkAspectJVersion();
 	    
+	    FileFilter.checkIfFileFilterEnabled();
 	    AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin.getWorkspace());
 		AJDTUtils.refreshPackageExplorer();
 	}

@@ -13,8 +13,8 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -116,7 +116,7 @@ public class AddAJNatureActionTest extends TestCase {
         
         // Attempt to add the nature
         aja.run(action);
-        assertTrue(proj.hasNature(AspectJUIPlugin.ID_NATURE));
+        assertTrue(AspectJPlugin.isAJProject(proj));
         // Restore altered preference value.
         //AspectJPreferences.setAskAspectJPerspectiveSwitch(originalAskVal);
     }

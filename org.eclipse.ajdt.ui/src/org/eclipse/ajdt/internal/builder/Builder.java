@@ -413,7 +413,7 @@ public class Builder extends IncrementalProjectBuilder {
 			try {
 				// Skip over any dependents that are themselves
 				// AspectJ projects
-				if (dependingProject.hasNature(AspectJUIPlugin.ID_NATURE)){
+				if (AspectJPlugin.isAJProject(dependingProject)) {
 					continue;
 				}
 				

@@ -13,6 +13,7 @@ package org.eclipse.ajdt.javamodel;
 import java.io.File;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;

@@ -14,20 +14,17 @@ package org.eclipse.ajdt.ajdocexport;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.Viewer;
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 
 public class JavadocProjectContentProvider implements ITreeContentProvider {
 
@@ -56,11 +53,8 @@ public class JavadocProjectContentProvider implements ITreeContentProvider {
 			IJavaProject[] javaprojects = JavaCore.create(root).getJavaProjects();
 			List ajProjects = new ArrayList(javaprojects.length);
 			for (int i=0; i<javaprojects.length; i++){
-				try {
-					if (javaprojects[i].getProject().hasNature(AspectJUIPlugin.ID_NATURE)){
-						ajProjects.add(javaprojects[i]);
-					}
-				} catch (CoreException e1) {
+				if (AspectJPlugin.isAJProject(javaprojects[i].getProject())) {
+					ajProjects.add(javaprojects[i]);
 				}
 			}
 			return ajProjects.toArray();		

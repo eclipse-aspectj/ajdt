@@ -9,15 +9,14 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.javamodel;
+package org.eclipse.ajdt.core.javaelements;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
-import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
@@ -36,10 +35,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Maintains a cache containing ICompilationUnits for .aj files and is
@@ -80,22 +75,10 @@ public class AJCompilationUnitManager {
 		return false;
 	}
 
-	void removeFileFromModel(IFile file) {
+	public void removeFileFromModel(IFile file) {
 		AJCompilationUnit unit = (AJCompilationUnit) compilationUnitStore
 				.get(file);
 		if (unit != null) {
-
-			IWorkbenchPage page = JavaPlugin.getActivePage();
-			if (page != null) {
-				IEditorPart part = page.findEditor(new FileEditorInput(file));
-				if (part != null)
-					if (!page.closeEditor(part, true))
-						//in case user cancels closeEditor, we should not
-						// remove unit from model
-						//TODO: maybe throw exception (?)
-						return;
-			}
-
 			try {
 				OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
 						.getParent()).getElementInfo();
@@ -105,10 +88,8 @@ public class AJCompilationUnitManager {
 
 			} catch (JavaModelException e) {
 			}
-
 			compilationUnitStore.remove(file);
 		}
-
 	}
 
 	private AJCompilationUnit createCU(IFile file) {
@@ -130,12 +111,9 @@ public class AJCompilationUnitManager {
 	}
 
 	private boolean creatingCUisAllowedFor(IFile file) {
-		return (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file
-				.getName())
-				&& (BuildConfigurator.getBuildConfigurator()
-						.getProjectBuildConfigurator(file.getProject()) != null) && (JavaCore
+		return (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())
+				&& AspectJPlugin.isAJProject(file.getProject()) && (JavaCore
 				.create(file.getProject()).isOnClasspath(file)));
-
 	}
 
 	public void initCompilationUnits(IProject project) {
@@ -149,19 +127,17 @@ public class AJCompilationUnitManager {
 		}
 	}
 
-	public void removeCUsfromJavaModel(IProject project) {
-
+	public List removeCUsfromJavaModel(IProject project) {
 		List l = new ArrayList(30);
 		addProjectToList(project, l);
 		Iterator iter = l.iterator();
 		while (iter.hasNext()) {
 			removeFileFromModel((IFile) iter.next());
 		}
+		return l;
 	}
 
 	public void initCompilationUnits(IWorkspace workspace) {
-		FileFilter.checkIfFileFilterEnabled();
-
 		ArrayList l = new ArrayList(20);
 		IProject[] projects = workspace.getRoot().getProjects();
 		for (int i = 0; i < projects.length; i++) {
@@ -178,9 +154,11 @@ public class AJCompilationUnitManager {
 
 	private void addProjectToList(IProject project, List l) {
 		//check if aj project
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		if (pbc != null) {
+		//		ProjectBuildConfigurator pbc =
+		// BuildConfigurator.getBuildConfigurator()
+		//				.getProjectBuildConfigurator(project);
+		//		if (pbc != null) {
+		if (AspectJPlugin.isAJProject(project)) {
 			try {
 				IJavaProject jp = JavaCore.create(project);
 				IClasspathEntry[] cpes = jp.getRawClasspath();

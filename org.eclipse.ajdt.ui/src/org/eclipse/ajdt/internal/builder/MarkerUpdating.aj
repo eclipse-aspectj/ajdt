@@ -106,22 +106,17 @@ public aspect MarkerUpdating {
 	 * Add markers to a file
 	 */
 	private static void addMarkersToFile(final IFile file) {	
-
 		IProject project = file.getProject();
 
 		// Don't add markers to resources in non AspectJ projects !
-		try {
-			if (project == null || !project.isOpen()
-					|| !project.hasNature(AspectJUIPlugin.ID_NATURE))
-				return;
-		} catch (CoreException e) {
+		if (project == null || !project.isOpen()
+				|| !AspectJPlugin.isAJProject(project)) {
+			return;
 		}
-
-		String path = file.getRawLocation().toOSString(); // Copes
-																	  // with
-																	  // linked
-																	  // src
-																	  // folders.
+			
+		// Copes with linked src folders
+		String path = file.getRawLocation().toOSString();
+		
 		// retrieve a map of line numbers to Vectors containing StructureNode
 		// objects
 		// Ask for the detailed version of the map (by specifying 'true') which

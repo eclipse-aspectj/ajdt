@@ -23,11 +23,12 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -208,11 +209,9 @@ public class AJProjectModel {
 		IProject project = file.getProject();
 
 		// Don't process files in non AspectJ projects
-		try {
-			if (project == null || !project.isOpen()
-					|| !project.hasNature(AspectJUIPlugin.ID_NATURE))
-				return;
-		} catch (CoreException e) {
+		if (project == null || !project.isOpen()
+				|| !AspectJPlugin.isAJProject(project)) {
+			return;
 		}
 
 		// Copes with linked src folders.

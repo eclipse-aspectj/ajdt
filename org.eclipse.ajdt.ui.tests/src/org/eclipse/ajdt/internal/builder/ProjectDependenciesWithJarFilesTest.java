@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
@@ -348,9 +349,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
@@ -447,9 +448,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 
 		// close all the projects so that they don't hang around and hold
 		// up the build for other tests
@@ -492,9 +493,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
@@ -620,9 +621,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 
 		// DONT know why trying to delete causes problems - maybe we're holding
 		// onto a reference somewhere - this doesn't happen when test this manually.
@@ -686,9 +687,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
@@ -802,9 +803,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// close all the projects so that they don't hang around and hold
 		// up the build for other tests
@@ -840,9 +841,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
@@ -901,9 +902,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project X should have a project dependency on project Y",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		assertFalse("project Y should not be an AJ project", 
-				projectY.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
-				projectX.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(projectX));
 		
 		// close all the projects so that they don't hang around and hold
 		// up the build for other tests

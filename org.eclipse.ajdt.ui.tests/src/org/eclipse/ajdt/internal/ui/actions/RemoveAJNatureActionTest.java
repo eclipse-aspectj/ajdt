@@ -13,9 +13,9 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -92,7 +92,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 	public void testRemovesAJNature() throws CoreException {
 		// Ensure that we are starting with a project that has an AspectJ
 		// nature.
-		assertTrue(testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
+		assertTrue(AspectJPlugin.isAJProject(testProject.getProject()));
 
 		// Next, create the necessary arguments for the nature addition.
 		ISelection sel = new StructuredSelection(testProject.getProject());
@@ -106,7 +106,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 
 		// Remove the nature
 		rna.run(action);
-		assertFalse(testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
+		assertFalse(AspectJPlugin.isAJProject(testProject.getProject()));
 	}
 
 	private void waitForJobsToComplete(IProject pro) {

@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.javamodel;
 
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -46,7 +47,7 @@ public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
 //				break;
 			case IResourceDelta.REMOVED:
 				//System.out.println("Removed: " + myRes);
-				AJCompilationUnitManager.INSTANCE.removeFileFromModel((IFile)myRes);
+				AJCompilationUnitUtils.removeFileFromModelAndCloseEditors((IFile)myRes);
 				AJDTUtils.refreshPackageExplorer();
 				break;
 			case IResourceDelta.ADDED:

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -74,7 +75,7 @@ public class InPathPropertyPage extends PropertyPage implements
         BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
         
         Control result;
-        if (thisProject == null || !isAspectJProject(thisProject)) {
+        if (thisProject == null || !AspectJPlugin.isAJProject(thisProject)) {
             result= createWithoutJava(parent);
         } else if (!thisProject.isOpen()) {
             result= createForClosedProject(parent);
@@ -96,14 +97,6 @@ public class InPathPropertyPage extends PropertyPage implements
         return null;
     }
     
-    private boolean isAspectJProject(IProject proj) {
-        try {
-            return proj.hasNature(AspectJUIPlugin.ID_NATURE);
-        } catch (CoreException e) {
-        }
-        return false;
-    }
-
     /*
      * Content for non-Java projects.
      */ 

@@ -15,8 +15,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -176,14 +176,11 @@ public class BuildConfigurator implements ISelectionListener {
 	}
 	
 	public boolean canManage(IProject proj) {
-		if ((proj == null) || (!proj.isOpen()))
+		if ((proj == null) || (!proj.isOpen())) {
 			return false;
-		try {
-			if (proj.getProject().hasNature(AspectJUIPlugin.ID_NATURE))
-				return true;
-		} catch (CoreException e) {
-			//obtaining nature failed, assume not aj project
-			return false;
+		}
+		if (AspectJPlugin.isAJProject(proj)) {
+			return true;
 		}
 		return false;
 	}

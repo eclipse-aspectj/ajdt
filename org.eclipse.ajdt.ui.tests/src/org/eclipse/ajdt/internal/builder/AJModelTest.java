@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

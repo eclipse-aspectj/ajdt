@@ -17,11 +17,11 @@ import java.util.Set;
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -174,9 +174,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 				annotationAccessWrapper
 						.setWrapped((IAnnotationAccessExtension) o);
 				return annotationAccessWrapper;
-			} else {
-				return o;
 			}
+			return o;
 		}
 		return super.getAdapter(key);
 	}
@@ -304,15 +303,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 			if (input instanceof IFileEditorInput) {
 				IFile f = ((IFileEditorInput) input).getFile();
 				IProject p = f.getProject();
-				try {
-					if (p.hasNature(AspectJUIPlugin.ID_NATURE)) {
-						contentOutlinePage = new AspectJContentOutlinePage(
-								this, f);
-						outlinePage = contentOutlinePage;
-					} else {
-						outlinePage = super.getAdapter(key);
-					}
-				} catch (CoreException cEx) {
+				if (AspectJPlugin.isAJProject(p)) {
+					contentOutlinePage = new AspectJContentOutlinePage(this, f);
+					outlinePage = contentOutlinePage;
+				} else {
 					outlinePage = super.getAdapter(key);
 				}
 			} else {

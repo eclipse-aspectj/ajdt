@@ -10,9 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import junit.framework.TestCase;
+
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -22,8 +24,6 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.ui.texteditor.ITextEditor;
-
-import junit.framework.TestCase;
 
 /**
  * This test checks that the order of entries on the classpath is preserved
@@ -54,7 +54,7 @@ public class ClasspathOrderTest extends TestCase {
 	public void testClasspathOrder() throws Exception {
 		assertFalse(
 				"ClasspathOrdering project shouldn't yet have AspectJ nature",
-				project.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(project));
 
 		String filename = "src/foo/OrderTest.java";
 		IResource res = project.findMember(filename);
@@ -79,7 +79,7 @@ public class ClasspathOrderTest extends TestCase {
 		AJDTUtils.addAspectJNature(project);
 		Utils.waitForJobsToComplete(project);
 		assertTrue("ClasspathOrdering project should now have AspectJ nature",
-				project.hasNature(AspectJUIPlugin.ID_NATURE));
+				AspectJPlugin.isAJProject(project));
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		Utils.waitForJobsToComplete(project);
 

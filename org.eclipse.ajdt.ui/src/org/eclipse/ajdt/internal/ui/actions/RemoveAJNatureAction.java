@@ -13,14 +13,15 @@ package org.eclipse.ajdt.internal.ui.actions;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -34,7 +35,7 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class RemoveAJNatureAction implements IObjectActionDelegate {
 
-	private IWorkbenchPart targetPart;
+//	private IWorkbenchPart targetPart;
 	private Vector selected = new Vector();
 
 	/**
@@ -72,16 +73,11 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 				}
 				if (object instanceof IProject) {
 					IProject project = (IProject) object;
-					try {
-						if (!(project.isOpen() && project.hasNature(AspectJUIPlugin.ID_NATURE))) {
+						if (!project.isOpen() || !AspectJPlugin.isAJProject(project)) {
 							enable = false;
 							break;
-						} else {
-							selected.add(project);
 						}
-					} catch (CoreException e) {
-						; // do something!
-					}
+						selected.add(project);
 				} else {
 					enable = false;
 					break;
@@ -95,7 +91,7 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 	 * From IObjectActionDelegate
 	 */
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-		this.targetPart = targetPart;
+//		this.targetPart = targetPart;
 	}
 
 }

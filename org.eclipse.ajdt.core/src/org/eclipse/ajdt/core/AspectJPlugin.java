@@ -8,6 +8,7 @@ import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
@@ -29,7 +30,10 @@ public class AspectJPlugin extends Plugin {
 	/**
 	 * The name of the default build config file for an AspectJ project
 	 */
-	public static final String DEFAULT_CONFIG_FILE = ".generated.lst";
+	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; //$NON-NLS-1$
+
+	private static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
+	private static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
 	/**
 	 * The constructor.
@@ -38,7 +42,7 @@ public class AspectJPlugin extends Plugin {
 		super();
 		plugin = this;
 		try {
-			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.resources.AspectJPluginResources");
+			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.resources.AspectJPluginResources"); //$NON-NLS-1$
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}
@@ -92,6 +96,23 @@ public class AspectJPlugin extends Plugin {
 		return ResourcesPlugin.getWorkspace();
 	}
 
+	/**
+	 * Returns true if the given project has the AspectJ nature. Returns
+	 * false otherwise, or if the nature could not be determined (e.g. the
+	 * project is closed).
+	 * @param project
+	 * @return
+	 */
+	public static boolean isAJProject(IProject project) {
+		try {
+			if ((project!=null) && project.hasNature(ID_NATURE)) {
+				return true;
+			}
+		} catch (CoreException e) {
+		}
+		return false;
+	}
+	
 	/**
 	 * Get the build configuration file to be used for building this project.
 	 * Use ".generated.lst" in the project directory

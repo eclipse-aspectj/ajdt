@@ -18,10 +18,9 @@ import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -294,24 +293,21 @@ public class AJModel {
 			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 					.getProjects();
 			for (int i = 0; i < projects.length; i++) {
-				try {
-					if (projects[i].isOpen()
-							&& projects[i].hasNature(AspectJUIPlugin.ID_NATURE)) {
-						String root = CoreUtils
-								.getProjectRootDirectory(projects[i]);
-						//System.out.println("project="+projects[i]);
-						//System.out.println("root="+root);
-						if (fileString.startsWith(root)) {
-							String path = fileString.substring(root.length());
-							//System.out.println("path="+path);
-							IPath ipath = new Path(path);
-							//System.out.println("ipath="+ipath);
-							IResource res = projects[i].findMember(ipath);
-							//System.out.println("res="+res);
-							return res;
-						}
+				if (projects[i].isOpen()
+						&& AspectJPlugin.isAJProject(projects[i])) {
+					String root = CoreUtils
+							.getProjectRootDirectory(projects[i]);
+					//System.out.println("project="+projects[i]);
+					//System.out.println("root="+root);
+					if (fileString.startsWith(root)) {
+						String path = fileString.substring(root.length());
+						//System.out.println("path="+path);
+						IPath ipath = new Path(path);
+						//System.out.println("ipath="+ipath);
+						IResource res = projects[i].findMember(ipath);
+						//System.out.println("res="+res);
+						return res;
 					}
-				} catch (CoreException ce) {
 				}
 			}
 		} catch (IOException e) {
@@ -319,47 +315,6 @@ public class AJModel {
 		return null;
 	}
 	
-	/*
-	public boolean isAdvisedBy(IJavaElement je) {
-		System.out.println("isAdvisedBy: "+je);
-		if (beingBuilt!=null) {
-			return false;
-		}
-		try {
-			IResource ir = je.getUnderlyingResource();
-			if ((ir != null) && (ir instanceof IFile)) {
-				IFile file = (IFile) ir;
-				initForFile(file);
-				IProject project = file.getProject();
-				Map ipeToije = (Map)perProjectProgramElementMap.get(project);
-				// look for je in map to find corresponding ipe
-				IProgramElement pe = null;
-				for (Iterator iter = ipeToije.entrySet().iterator(); (pe==null) && iter.hasNext();) {
-					Map.Entry e = (Map.Entry)iter.next();
-					if (je==e.getValue()) {
-						pe = (IProgramElement)e.getKey();
-					}
-				}
-				//System.out.println("pe="+pe);
-				if (pe!=null) {
-					IRelationshipMap irm = AsmManager.getDefault()
-						.getRelationshipMap();
-					IRelationship advisedBy = irm.get(pe,
-							IRelationship.Kind.ADVICE, "advised by", false, false);
-					IRelationship advisedByR = irm.get(pe,
-							IRelationship.Kind.ADVICE, "advised by", true, false);
-					if ((advisedBy!=null) || (advisedByR!=null)) {
-						return true;
-					}
-					return false;
-				}
-			}
-		} catch (JavaModelException e) {
-		}
-		return false;
-	}
-*/
-
 	/*
 	private void fillLineToOffsetMap(Map map, ICompilationUnit unit) {
 		String source;

@@ -13,9 +13,9 @@ package org.eclipse.ajdt.internal.ui.editor.contentassist;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

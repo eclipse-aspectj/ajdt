@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.javamodel;
 
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

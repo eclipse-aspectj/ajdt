@@ -10,9 +10,8 @@ Contributors:
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.internal.debug.ui.actions.ManageBreakpointRulerAction;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
@@ -56,18 +55,17 @@ public class AspectJBreakpointRulerActionDelegate extends AbstractRulerActionDel
 	/**
 	 * @see AbstractRulerActionDelegate#createAction()
 	 */
-	protected IAction createAction(ITextEditor editor, IVerticalRulerInfo rulerInfo) {
-		try {
-			IResource  resource;
-			IEditorInput editorInput = editor.getEditorInput();
-			if (editorInput instanceof IFileEditorInput) {
-				resource= ((IFileEditorInput)editorInput).getFile();
-				if (resource.getProject().hasNature(AspectJUIPlugin.ID_NATURE)){
-					//it's an AspectJ Project, use our action
-					return new AspectJBreakpointRulerAction(rulerInfo, editor, fEditorPart);
-				}
+	protected IAction createAction(ITextEditor editor,
+			IVerticalRulerInfo rulerInfo) {
+		IResource resource;
+		IEditorInput editorInput = editor.getEditorInput();
+		if (editorInput instanceof IFileEditorInput) {
+			resource = ((IFileEditorInput) editorInput).getFile();
+			if (AspectJPlugin.isAJProject(resource.getProject())) {
+				//it's an AspectJ Project, use our action
+				return new AspectJBreakpointRulerAction(rulerInfo, editor,
+						fEditorPart);
 			}
-		} catch (CoreException e) {
 		}
 		//	else: use jdts action
 		return new ManageBreakpointRulerAction(rulerInfo, editor);

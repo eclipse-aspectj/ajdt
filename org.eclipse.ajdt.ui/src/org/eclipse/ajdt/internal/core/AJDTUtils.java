@@ -22,11 +22,12 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
+import org.eclipse.ajdt.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -91,6 +92,8 @@ public class AJDTUtils {
 
 	private static int previousExecutionTime;
 	
+	private static final String ID_NATURE = AspectJUIPlugin.PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
 	 * D:\eclipse\workspace
@@ -126,13 +129,12 @@ public class AJDTUtils {
 		if (imageDescriptorCache.get(key) != null) {
 			//System.err.println("IDCache hit for "+key);
 			return (ImageDescriptor) imageDescriptorCache.get(key);
-		} else {
-			ImageDescriptor imageDescriptor = new JavaElementImageDescriptor(
-					base, decorations, size);
-			imageDescriptorCache.put(key, imageDescriptor);
-			//System.err.println("IDCache mis for "+key);
-			return imageDescriptor;
 		}
+		ImageDescriptor imageDescriptor = new JavaElementImageDescriptor(
+				base, decorations, size);
+		imageDescriptorCache.put(key, imageDescriptor);
+		//System.err.println("IDCache mis for "+key);
+		return imageDescriptor;
 	}
 
 	/**
@@ -189,7 +191,7 @@ public class AJDTUtils {
 		String[] prevNatures = description.getNatureIds();
 		String[] newNatures = new String[prevNatures.length + 1];
 		System.arraycopy(prevNatures, 0, newNatures, 1, prevNatures.length);
-		newNatures[0] = AspectJUIPlugin.ID_NATURE;
+		newNatures[0] = ID_NATURE;
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
@@ -365,8 +367,6 @@ public class AJDTUtils {
 					&& !(project
 							.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR)
 							.equals(""))) {
-				IPath pathToOutjar = new Path(project
-						.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR));
 				String outJar2 = AspectJUIPlugin.getDefault()
 						.getAjdtProjectProperties().getOutJar();
 				IPath pathToOutjar2 = new Path(outJar2);
@@ -685,9 +685,9 @@ public class AJDTUtils {
 			} catch (CoreException e) {
 			}
 		}
-		projects.add(0, (IProject[]) classFolderDependingProjects
+		projects.add(0, classFolderDependingProjects
 				.toArray(new IProject[] {}));
-		projects.add(1, (IProject[]) exportedLibraryDependingProjects
+		projects.add(1, exportedLibraryDependingProjects
 				.toArray(new IProject[] {}));
 		return projects;
 	}
@@ -986,7 +986,7 @@ public class AJDTUtils {
 		//remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature
 		// gets removed)
-		AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(project);
+		AJCompilationUnitUtils.removeCUsfromJavaModelAndCloseEditors(project);
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
 		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
@@ -999,7 +999,7 @@ public class AJDTUtils {
 		String[] newNatures = new String[prevNatures.length - 1];
 		int newPosition = 0;
 		for (int i = 0; i < prevNatures.length; i++) {
-			if (!prevNatures[i].equals(AspectJUIPlugin.ID_NATURE)) {
+			if (!prevNatures[i].equals(ID_NATURE)) {
 				// guard against array out of bounds which will occur if we
 				// get to here in a project that DOES NOT have the aj nature
 				// (should never happen).
@@ -1085,7 +1085,6 @@ public class AJDTUtils {
 			return false;
 		}
 
-		IPluginImport doomed = null;
 		for (int i = 0; i < imports.length; i++) {
 			IPluginImport importObj = imports[i];
 			if (importObj.getId().equals(AspectJUIPlugin.RUNTIME_PLUGIN_ID)) {
