@@ -40,7 +40,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
@@ -94,11 +93,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 */
 	public AspectJEditor() {
 		super();	
-		
-		// bug 77917 - use our own document provider so that we still get an
-		// annotation model for .aj files.
-		setDocumentProvider(AspectJUIPlugin.getDefault().getAJCompilationUnitDocumentProvider());
-		
+				
 		//		activeEditorList.add(this);
 		//		//this.setSourceViewerConfiguration()
 		//		AspectJTextTools textTools =
@@ -299,7 +294,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 			//getStatusLineManager().setErrorMessage(""); //$NON-NLS-1$
 
-			IWorkingCopyManager manager = AspectJUIPlugin.getDefault()
+			IWorkingCopyManager manager = JavaPlugin.getDefault()
 					.getWorkingCopyManager();
 			ICompilationUnit unit = manager.getWorkingCopy(getEditorInput());
 
@@ -395,7 +390,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 				//model.setIsActive(true);
 				//IAnnotationModel model =
 				// this.getDocumentProvider().getAnnotationModel(unit);
-				((IWorkingCopyManagerExtension) AspectJUIPlugin.getDefault()
+				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 				}
 			}
@@ -424,7 +419,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 
 			if ("aj".equals(fInput.getFile().getFileExtension())) {
-				AspectJUIPlugin.getDefault().getWorkingCopyManager().connect(input);
+				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
 		}
 	}
@@ -811,7 +806,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	}
 
 	protected IJavaElement getInputJavaElement() {
-		return AspectJUIPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput());
+		return JavaPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput());
 	}
 
 	/*
@@ -819,7 +814,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 */
 	protected void setOutlinePageInput(JavaOutlinePage page, IEditorInput input) {
 		if (page != null) {
-			IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+			IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
 			page.setInput(manager.getWorkingCopy(input));
 		}
 	}
@@ -835,7 +830,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * @return the most narrow element which includes the given offset
 	 */
 	protected IJavaElement getElementAt(int offset, boolean reconcile) {
-		IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
 		ICompilationUnit unit= manager.getWorkingCopy(getEditorInput());
 		
 		if (unit != null) {

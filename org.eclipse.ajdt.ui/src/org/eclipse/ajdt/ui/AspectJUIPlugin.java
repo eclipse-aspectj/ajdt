@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -33,7 +32,6 @@ import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
@@ -54,9 +52,6 @@ import org.eclipse.core.runtime.PluginVersionIdentifier;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
-import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -217,11 +212,6 @@ public class AspectJUIPlugin
 	private static AspectJUIPlugin plugin;
 
 	/**
-	 * remembers the current build configuration file for each project
-	 */
-	private static Hashtable projectToBuildChoice = new Hashtable();
-
-	/**
 	 * plugin resource bundle used for NLS
 	 */
 	private ResourceBundle resourceBundle;
@@ -352,11 +342,6 @@ public class AspectJUIPlugin
 	  "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
 
     public static final int PROGRESS_MONITOR_MAX = 100;
-
-	private ICompilationUnitDocumentProvider ajCompilationUnitDocumentProvider;
-
-	private IWorkingCopyManager workingCopyManager;
-
 
 	/**
 	 * Set the build configuration file to be used when building this project
@@ -975,28 +960,4 @@ public class AspectJUIPlugin
 						| IResourceChangeEvent.PRE_BUILD);
 	}
 
-	
-	/**
-	 * Get the AJCompilationUnitDocumentProvider
-	 * @return
-	 */
-	public ICompilationUnitDocumentProvider getAJCompilationUnitDocumentProvider() {
-		// bug 77917 - contribute our own document provider so that we still get an
-		// annotation model for .aj files.		
-		if (ajCompilationUnitDocumentProvider == null)
-			ajCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
-		return ajCompilationUnitDocumentProvider;
-	}
-
-	/**
-	 * Get the working copy manager
-	 * @return
-	 */
-	public IWorkingCopyManager getWorkingCopyManager() {
-		if (workingCopyManager == null) {
-			ICompilationUnitDocumentProvider provider= getAJCompilationUnitDocumentProvider();
-			workingCopyManager= new WorkingCopyManager(provider);
-		}
-		return workingCopyManager;
-	}
 }
