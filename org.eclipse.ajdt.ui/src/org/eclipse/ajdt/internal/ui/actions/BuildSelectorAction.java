@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.builder.Builder;
+import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -69,10 +70,10 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
 		IRunnableWithProgress op = new IRunnableWithProgress( ) {
             
             void doLocalBuild(IProgressMonitor pm) throws CoreException {
-                Builder.isLocalBuild = true;
+            	CompilerMonitor.isLocalBuild = true;
                 // Related to bug #40868 - Do not just call the aspectj builder, invoke *all* the builders defined.
                 project.build(IncrementalProjectBuilder.FULL_BUILD, pm);
-                Builder.isLocalBuild = false;
+                CompilerMonitor.isLocalBuild = false;
             }
             
 			public void run( IProgressMonitor pm ) {

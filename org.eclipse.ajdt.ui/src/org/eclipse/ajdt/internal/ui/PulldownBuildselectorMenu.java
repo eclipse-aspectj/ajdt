@@ -24,6 +24,7 @@ import org.eclipse.ajdt.buildconfigurator.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.builder.Builder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -287,11 +288,11 @@ public class PulldownBuildselectorMenu implements
 
 			void doLocalBuild(int buildType, IProgressMonitor pm)
 					throws CoreException {
-				Builder.isLocalBuild = true;
+				CompilerMonitor.isLocalBuild = true;
 				// Related to bug #40868 - Do not just call the aspectj builder,
 				// invoke *all* the builders defined.
 				project.build(IncrementalProjectBuilder.FULL_BUILD, pm);
-				Builder.isLocalBuild = false;
+				CompilerMonitor.isLocalBuild = false;
 			}
 
 			public void run(IProgressMonitor pm) {

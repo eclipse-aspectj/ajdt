@@ -22,7 +22,7 @@ import org.aspectj.ajde.ui.BuildConfigNode;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
+import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -145,7 +145,7 @@ public class BuildConfigEditor
 		// get an updated set of errors and warnings
 		clearMarkers( fileInput );
 		buildModel( fileInput );
-		CompilerMonitor.showOutstandingProblems( );
+		CompilerTaskListManager.showOutstandingProblems( );
 				
 		tree.removeAll();
 		populateTree();	
@@ -200,7 +200,7 @@ public class BuildConfigEditor
 
 		clearMarkers( fileInput );
 		buildModel( fileInput );
-		CompilerMonitor.showOutstandingProblems( );
+		CompilerTaskListManager.showOutstandingProblems( );
 		
 		AJDTEventTrace.editorOpened( fileInput.getFile() );
 	}
