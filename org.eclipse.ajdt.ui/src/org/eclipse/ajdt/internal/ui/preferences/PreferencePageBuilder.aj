@@ -420,7 +420,7 @@ aspect PreferencePageBuilder {
                                 .setTaskName(AspectJUIPlugin
                                         .getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
                         project.build(IncrementalProjectBuilder.FULL_BUILD,
-                                "org.eclipse.ajdt.ui.ajbuilder", null,
+                                AspectJPlugin.ID_BUILDER, null,
                                 new SubProgressMonitor(monitor, 2));
                     } catch (CoreException e) {
                         throw new InvocationTargetException(e);

@@ -633,7 +633,7 @@ public class AJDTUtils {
 				// The above scenario will not occur in the future if the
 				// user tells the dialog not to ask again.
 				project.build(IncrementalProjectBuilder.FULL_BUILD,
-						"org.eclipse.ajdt.ui.ajbuilder", null, null);
+						AspectJPlugin.ID_BUILDER, null, null);
 
 			} catch (CoreException e) {
 			}
