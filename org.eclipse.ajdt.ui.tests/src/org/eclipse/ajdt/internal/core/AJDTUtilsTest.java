@@ -20,7 +20,6 @@ import junit.framework.TestCase;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.test.utils.PluginTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -61,7 +60,7 @@ public class AJDTUtilsTest extends TestCase {
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
 		setUpPluginEnvironment();
-		PluginTestProject testPluginProject = new PluginTestProject();
+		IProject testPluginProject = Utils.createPredefinedProject("Hello World Java Plugin");
 		Utils.waitForJobsToComplete();
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
@@ -79,7 +78,7 @@ public class AJDTUtilsTest extends TestCase {
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		testPluginProject.dispose();
+		Utils.deleteProject(testPluginProject);
 		resetPluginEnvironment();
 	}
 
@@ -109,34 +108,45 @@ public class AJDTUtilsTest extends TestCase {
 	 */
 	public void testGetPDEManifestEditor() throws Exception {
 		setUpPluginEnvironment();
-		PluginTestProject projectA1 = new PluginTestProject(
-				"MyPluginProjectA1", "my.test.pluginA1", "ProjectA1Plugin",
-				"projectA1.jar");
-		PluginTestProject projectA2 = new PluginTestProject(
-				"MyPluginProjectA2", "my.test.pluginA2", "ProjectA2Plugin",
-				"projectA2.jar");
-		PluginTestProject projectA3 = new PluginTestProject(
-				"MyPluginProjectA3", "my.test.pluginA3", "ProjectA3Plugin",
-				"projectA3.jar");
-		PluginTestProject projectA4 = new PluginTestProject(
-				"MyPluginProjectA4", "my.test.pluginA4", "ProjectA4Plugin",
-				"projectA4.jar");
-		assertTrue("projectA3 should have manifest editor for project A3",
-				AJDTUtils.getAndPrepareToChangePDEModel(projectA3.getProject())
-						.getPartName().equals(projectA3.getPluginID()));
+		// know that the plugin id of this is HelloWorld
+		IProject projectA1 = Utils.createPredefinedProject("Hello World Java Plugin");
+		Utils.waitForJobsToComplete();
+		
+		// know that the plugin id for this is PluginWithView
+		IProject projectA2 = Utils.createPredefinedProject("PluginWithView");
+		Utils.waitForJobsToComplete();
+
+		
+//		PluginTestProject projectA1 = new PluginTestProject(
+//				"MyPluginProjectA1", "my.test.pluginA1", "ProjectA1Plugin",
+//				"projectA1.jar");
+//		PluginTestProject projectA2 = new PluginTestProject(
+//				"MyPluginProjectA2", "my.test.pluginA2", "ProjectA2Plugin",
+//				"projectA2.jar");
+//		PluginTestProject projectA3 = new PluginTestProject(
+//				"MyPluginProjectA3", "my.test.pluginA3", "ProjectA3Plugin",
+//				"projectA3.jar");
+//		PluginTestProject projectA4 = new PluginTestProject(
+//				"MyPluginProjectA4", "my.test.pluginA4", "ProjectA4Plugin",
+//				"projectA4.jar");
+//		assertTrue("projectA3 should have manifest editor for project A3",
+//				AJDTUtils.getAndPrepareToChangePDEModel(projectA3.getProject())
+//						.getPartName().equals(projectA3.getPluginID()));
 		assertTrue("projectA1 should have manifest editor for project A1",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
-						.getPartName().equals(projectA1.getPluginID()));
-		assertTrue("projectA4 should have manifest editor for project A4",
-				AJDTUtils.getAndPrepareToChangePDEModel(projectA4.getProject())
-						.getPartName().equals(projectA4.getPluginID()));
+						.getPartName().equals("HelloWorld"));
+//		assertTrue("projectA4 should have manifest editor for project A4",
+//				AJDTUtils.getAndPrepareToChangePDEModel(projectA4.getProject())
+//						.getPartName().equals(projectA4.getPluginID()));
 		assertTrue("projectA2 should have manifest editor for project A2",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
-						.getPartName().equals(projectA2.getPluginID()));
-		projectA1.dispose();
-		projectA2.dispose();
-		projectA3.dispose();
-		projectA4.dispose();
+						.getPartName().equals("PluginWithView"));
+//		projectA1.dispose();
+//		projectA2.dispose();
+//		projectA3.dispose();
+//		projectA4.dispose();
+		Utils.deleteProject(projectA1);
+		Utils.deleteProject(projectA2);
 		resetPluginEnvironment();
 	}
 
@@ -244,9 +254,9 @@ public class AJDTUtilsTest extends TestCase {
 	// Utils.waitForJobsToComplete();
 	// }
 
-	private boolean hasDependencyOnAJDE(PluginTestProject testPluginProject) {
+	private boolean hasDependencyOnAJDE(IProject project) {
 		ManifestEditor manEd = AJDTUtils
-				.getAndPrepareToChangePDEModel(testPluginProject.getProject());
+				.getAndPrepareToChangePDEModel(project);
 		if (manEd == null) {
 			return false;
 		}

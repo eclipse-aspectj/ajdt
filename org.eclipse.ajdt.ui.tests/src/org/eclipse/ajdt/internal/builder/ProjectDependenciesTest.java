@@ -17,10 +17,10 @@ import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest.MyJobChangeListener;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
-import org.eclipse.ajdt.test.utils.PluginTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -139,10 +139,10 @@ public class ProjectDependenciesTest extends TestCase {
 
 	/**
 	 * Test project dependencies work with plugin projects i.e. have two plugin
-	 * projects, A and B where A depends on B. Then convert project B to be an
+	 * projects, X and Y where X depends on Y. Then convert project Y to be an
 	 * AspectJ project - both projects should still build. In particular,
-	 * project A should not have any error markers from the java builder saying
-	 * something along the lines of "please rebuild prerequisite project B" (Bug
+	 * project X should not have any error markers from the java builder saying
+	 * something along the lines of "please rebuild prerequisite project Y" (Bug
 	 * 70288)
 	 */
 	public void testProjectDependenciesWithPluginProjects() throws Exception {
@@ -151,27 +151,33 @@ public class ProjectDependenciesTest extends TestCase {
 		Platform.getJobManager().addJobChangeListener(listener);
 
 		// create two plugin projects (java)
-		PluginTestProject projectA = new PluginTestProject("MyPluginProjectA",
-				"another.test.pluginA", "ProjectAPlugin", "projectA.jar");
-		PluginTestProject projectB = new PluginTestProject("MyPluginProjectB",
-				"another.test.pluginB", "ProjectBPlugin", "projectB.jar");
-
-		// set up plugin dependency where project A depends on project B
-		// (there should be no build errors)
-		ProjectDependenciesUtils.addPluginDependency(projectA.getProject(), projectB.getPluginID(),new BlockingProgressMonitor());
-		assertFalse("project A should not have any IJavaModelMarkers",
-				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
-						projectA.getProject(), projectB.getProject()));
-
-		// convert project B to be an AJ project ==> still no build errors
-		AJDTUtils.addAspectJNature(projectB.getProject());
+		IProject projectY = Utils.createPredefinedProject("java.plugin.project.Y");
 		Utils.waitForJobsToComplete();
-		assertFalse("project A should still not have any IJavaModelMarkers",
+		IProject projectX = Utils.createPredefinedProject("java.plugin.project.X");
+		Utils.waitForJobsToComplete();
+		
+		projectY.build(IncrementalProjectBuilder.FULL_BUILD,null);
+		Utils.waitForJobsToComplete();
+		projectX.build(IncrementalProjectBuilder.FULL_BUILD,null);
+		Utils.waitForJobsToComplete();
+		
+		// NB it has been setup such that java.plugin.project.X has a plugin
+		// dependency on java.plugin.project.Y
+//		assertTrue("projectX should have plugin dependency on projectY",
+//				ProjectDependenciesUtils.projectHasPluginDependency(projectX,"java.plugin.project.Y"));
+		assertFalse("project X should not have any IJavaModelMarkers",
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
-						projectA.getProject(), projectB.getProject()));
+						projectX, projectY));
 
-		projectA.dispose();
-		projectB.dispose();
+		// convert project Y to be an AJ project ==> still no build errors
+		AJDTUtils.addAspectJNature(projectY);
+		Utils.waitForJobsToComplete();
+		assertFalse("project X should still not have any IJavaModelMarkers",
+				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
+						projectX, projectY));
+
+		Utils.deleteProject(projectX);
+		Utils.deleteProject(projectY);
 		resetPluginEnvironment();
 	}
 

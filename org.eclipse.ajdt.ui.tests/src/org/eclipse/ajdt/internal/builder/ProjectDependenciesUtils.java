@@ -329,7 +329,7 @@ public class ProjectDependenciesUtils {
 		try {
 			String errorMessage = "The project cannot be built until its prerequisite "
 					+ prereqProject.getName()
-					+ " is built. Cleaning and building all projects is recommended";
+					+ " is built. Cleaning and rebuilding all projects is recommended";
 			IMarker[] javaModelMarkers = project.findMarkers(
 					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 					IResource.DEPTH_INFINITE);
@@ -410,6 +410,24 @@ public class ProjectDependenciesUtils {
 		//monitor.reset();
 		manifestFile.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		//monitor.waitForCompletion();
+	}
+	
+	public static boolean projectHasPluginDependency(IProject projectWhichHasDependency,
+			String pluginIdOfRequiredProject) throws JavaModelException {
+		ManifestEditor manEd = AJDTUtils.getPDEManifestEditor(projectWhichHasDependency);
+		AJDTUtils.getAndPrepareToChangePDEModel(projectWhichHasDependency);
+		if (manEd != null) {
+			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
+			IPluginImport[] imports = model.getPluginBase().getImports();
+			for (int i = 0; i < imports.length; i++) {
+				IPluginImport import1 = imports[i];
+				if (import1.getId().equals(pluginIdOfRequiredProject)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
 
