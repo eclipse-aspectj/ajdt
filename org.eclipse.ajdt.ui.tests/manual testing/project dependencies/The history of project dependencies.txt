@@ -1,0 +1,128 @@
+The nature of dependencies between projects has changed several times, this is a record
+of what has happened and when so that these changes can be tracked.
+
+
+- dependencies between projects were described as "Project" dependencies, (this includes
+  dependencies between (AJ and Java) and (AJ and AJ) projects.
+
+
+
+January 2004 - PROBLEM: Have Java project depending on AJ project. If problem within AJ 
+                        project then Java project is marked correctly (can't rebuild until 
+                        prerequisite is built). However, when AJ builds correctly,
+                        Java project isn't updated and cant be rebuilt.
+
+                        https://bugs.eclipse.org/bugs/show_bug.cgi?id=46271
+
+               SOLUTION: July 2004 
+
+                        When AJ project is created, create a state.dat file which the java 
+                        builder understands. It seems that this is all that is required for 
+                        the java builder to update itself.
+
+April 2004 - PROBLEM: when a java project depended on an AJ project, and workbench was shut 
+                      down and then restarted, the Java project had the error message "unable 
+                      to build because prerequisite project needs rebuilding". This message 
+                      wouldn't go away (and consequently this project wouldn't build) 
+                      no matter how many times you rebuilt the AJ project.
+
+                      https://bugs.eclipse.org/bugs/show_bug.cgi?id=56703
+
+             SOLUTION: April 2004 
+
+                      When a project is converted to an AJ project (or when an AJ project 
+                      builds) change all project dependencies to be class folder dependencies 
+                      (and reverse this when AJ nature is removed).
+          
+
+9th June 2004  - fix went in to Builder.java and AJDTUtils.java to change project dependencies 
+                 to class folder dependencies when AJ nature was added (or an AJ build occured) 
+                 and to switch them back when  AJ nature was removed.
+
+                 Also, trashed state.dat file because found that eclipse was forcing an aspectj
+                 build an excessive amount of times. Thought this might have something to do 
+                 with having a state.dat file around. (this was with one of the milestone
+                 releases of Eclipse 3 - so could have been because a milestone release).
+
+
+27th July 2004 - fix went in to Builder.java for bug 46271 to stop the state.dat file being 
+                 trashed (because trashing it actually removed a fix for a previous bug).
+
+
+26th August 2004 - fixed scenario where have dependencies on binary projects which just exports
+                   jars rather than having src/bin directories.
+
+
+27th August 2004 - fixed scenario not to add a class folder dependency when a binary project
+                   does not have any src.
+
+
+31st August 2004 - bug raised saying that references between dependent projects is broken:
+                   If have a Java project dependent on an AJ project and select a method in
+                   the java project which you know is mentioned in the AJ project, then with
+                   class folder dependencies, this isn't picked up via search > references
+                   > workspace. (It works automatically with project dependencies).
+
+                   https://bugs.eclipse.org/bugs/show_bug.cgi?id=72969
+
+                   Question: why did we change the dependencies in the first place and do
+                             we still need to do this? (otherwise this bug would be 
+                             quite tricky to fix).			
+
+
+6th September 2004 - Investigation and testing has shown that all "special case" scenarios which
+                     were delt with when there were class folder dependencies are handled
+                     automatically with project dependencies. Moreover, Georges fix for not
+                     trashing the state.dat file means that all original problems are actually
+                     fixed as well.
+
+                     Decision: - back out changing project --> class folder dependencies.
+                               - Change the asserts in the tests to make sure we're picking up
+                                 the "right" version of project dependencies.
+                               - commented these changes starting with a "PD".
+
+              ****** HOWEVER - need to be wary that Eclipse doesn't force us to build 
+                               excessively
+             
+             
+7th September 2004 - The following scenario is a problem with AJDT 1.1.12:
+
+                     Have various AJ and Java projects, where there is are project and classfolder
+                     dependencies. These build in the users workspace, however, when the user
+                     checks them into CVS and others check them out, the message "cant rebuild
+                     until prereq project is built" cannot be removed.
+                     
+                     Reply: The fact that it works for one workspace but not for others after a 
+                     check-out from CVS is a big clue. The importing (non-AspectJ) project will 
+                     be built by the Java builder. When it builds a Java project, it looks through 
+                     a special Java Builder state file to find the state for projects this project 
+                     depends on. If it finds no state records at all for the project, it asks the 
+                     project to build itself. When the project is built by the AspectJ compiler 
+                     though, the Java Builder's state is still not updated and you cannot get rid 
+                     of the "project cannot be built message". It was this reason that first led 
+                     us down the road (under the advice of the JDT team) of not using project 
+                     dependencies between aspectj projects, but instead using class folder 
+                     dependencies. However, in the case which was reported, the project dependencies
+                     need to stay (due to build requirements).
+
+                     To fix: revert the AspectJ plugin project in their workspaces back to a 
+                     Java project. Build it once and then switch it back to an Aspectj project. 
+                     Things should then be fine from that point on, even across workbench 
+                     restarts as the state files are persistent.                       
+
+                     PROBLEM: this is the original problem reported by Adrian to the JDT team,
+                     however, 1.1.12 does include George's fix for the state.dat file being
+                     there.
+                     
+                     THEREFORE: still need to fix this problem in the case of a CVS checkout
+                     (since state.dat file is created - through a forced java build - when a
+                     project is converted to an AJ project either through the New AJ project wizard
+                     or through "convert to aj project").
+                     
+8th September 2004 - Raised bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=73435 to investigate
+                     creating a meaningful state.dat file for an AJ project which is understood
+                     by the JavaBuilder.    
+                     
+                     Manual test added to check this.                
+                     
+                     

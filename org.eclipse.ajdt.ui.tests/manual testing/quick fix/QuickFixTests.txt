@@ -1,0 +1,39 @@
+Quick Fix Tests (bug 71998)
+===========================
+
+Test 1
+------
+Checkout the QuickFix test project.
+
+Open TestJava.java in the editor.
+
+It should contain one warning and one error, with a light bulb gutter annotation
+for each.
+
+The code causing the warning and error should be underlined in red and yellow
+respectively.
+
+Test that suitable quick fixes are available for both the warning and the error by:
+  - Right-click and select "Quick Fix" from the context menu
+  - Putting the cursor somewhere in the error/warning and pressing Ctrl-1
+  - Clicking on the light bulb
+
+  
+Test 2
+------
+Repeat the above in the TestAspect.java file, but the results should be as follows:
+
+  - light bulbs markers appears, but no completions are available.
+  
+Test 3
+------
+Repeat the above in the TestAspect2.aj file, but the results should be as follows:
+
+  - no light bulbs are present, just the standard error and warning markers.
+
+Test 4
+------
+Close TestJava.java and then reopen in by selecting Open With > Java Editor.
+
+Check for quick fixes as in test 1. Make sure the list of quick fixes is the same
+as before, and does not contain duplicates.

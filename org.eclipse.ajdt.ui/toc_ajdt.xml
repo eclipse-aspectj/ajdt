@@ -1,0 +1,8 @@
+<toc label="AJDT">
+	<topic label="AJDT User Guide">
+		<link toc="toc_ajdtuguide.xml" />		
+	</topic>
+	<topic label="FAQ" href="faq.html"/>
+	<topic label="AJDT Home" href="http://www.eclipse.org/ajdt"/>
+    <topic label="What's new" href="doc/whatsnew/newnoteworthy.html"/>
+</toc>

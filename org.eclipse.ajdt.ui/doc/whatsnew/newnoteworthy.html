@@ -1,0 +1,423 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="Content-Language" content="en-us">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+    <meta name="ProgId" content="FrontPage.Editor.Document">
+    <link rel="STYLESHEET" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <title>AJDT v1.1.11 - New and Noteworthy</title>
+  </head>
+
+  <body>
+    <h1>AJDT v1.1.11 - New and Noteworthy</h1>
+
+<table border="0" cellpadding="10" cellspacing="0" width="80%">
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Welcome pages</b></td>
+    <td width="70%" valign="top">
+
+      <p>Entries have been added to the Eclipse welcome pages for the
+      AJDT help pages, cheat sheet, and examples.</p>
+
+      <p><img src="welcome.png" width="352" height="68"></p>
+    </td>
+  </tr>
+
+  <tr>
+  <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>AspectJ cheat sheet</b></td>
+    <td width="70%" valign="top">
+
+      <p>A new cheat sheet has been included to help you get started
+      with AspectJ.  It can be accessed via <b>Help &gt; Cheat Sheets
+      &gt; AspectJ.</b> If this feature is deemed useful, further
+      cheat sheets may be added in future releases.</p>
+
+      <p><img src="cheatsheet.PNG" width="291" height="309"></p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New format for build configurations</b></td>
+    <td width="70%" valign="top">
+
+      <p>A better mechanism is now available for specifying which
+      source files to compile, and to allow easy switching between
+      multiple configurations. The existing <b>.lst</b> format is
+      simply a list of files, whereas the new <b>.ajproperties</b>
+      format allows more expressive declarations of which folders and
+      files to include and an optional list of folders and files to
+      exclude. Also, the standard properties file format used allows
+      for improved integration with external tools like Ant.</p>
+
+     <p>Support is included for converting between <b>.lst</b> files
+     and <b>.ajproperties</b> files. Also, the examples available via
+     <b>New &gt; Other &gt; AspectJ &gt; AspectJ Examples</b> have
+     been updated to use these new configuration files.</p>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Dynamic build configurations</b></td>
+
+    <td width="70%" valign="top">
+      <p>Source files and packages can now be dynamically included and
+      excluded from the current build configuration directly from the
+      Package Explorer, simply by right-clicking on the appropriate
+      resource and selecting the include or exclude menu
+      options. Affected resources are decorated appropriately to show
+      whether or not they are included.</p>
+
+      <p><img src="includeexclude.png" width="225" height="315"></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New build configuration editor</b></td>
+    <td width="70%" valign="top">
+
+      <p>Associated with the new <b>.ajproperties</b> files (and
+      replacing the old <b>.lst</b> file editor), this editor provides
+      an alternative way of editing a build configuration. Unlike the
+      menu options available from the Package Explorer, the editor can
+      be used on any build configuration, not just the active one.</p>
+
+      <p><img src="ajprops-editor.png" width="344" height="308"></p>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New AspectJ compiler preferences</b></td>
+    <td width="70%" valign="top">
+
+      <p>A new <b>AspectJ &gt; Compiler</b> preference page has been
+      added, similar to the Java Compiler page.</p>
+
+      <p>The <b>Style</b> tab
+      allows you to configure the AspectJ compiler settings for
+      various coding issues which can either be ignored, or appear as
+      warnings or errors in the Problems view.</p>
+      
+      <p><img src="ajcprefspage-style.png"
+      width="481" height="168"></p>
+
+      <p>The <b>Advanced</b>
+      tab allows additional options to be set in the compiler, with
+      a brief explanation of each one.</p>
+
+      <p><img src="ajcprefspage-advanced.png" width="481"
+      height="168"></td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New icons</b></td>
+    <td width="70%" valign="top">
+
+      <p>All of the icons across AJDT have been overhauled to bring
+      the tools into line with Eclipse 3.0. The icons for pointcuts,
+      advice, etc, have been redrawn in the Eclipse 3.0 style.
+
+      <p><img src="outline.PNG" width="286" height="479"></p>
+
+     </td>
+  </tr>
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New gutter annotations</b></td>
+    <td width="70%" valign="top">
+
+      <p>The gutter annotations have been completely overhauled.
+      There are now different gutter annotations depending on the kind
+      of advice (before/after/around) and these are marked with a '?'
+      if there is a test that will be executed at runtime to determine
+      whether the advice should run.</p>
+
+      <p><img src="editor.PNG" width="476" height="296"></p>
+
+      <p>Warnings and errors resulting from declare warning/error
+      statements have new icons to distinguish them from normal
+      errors/warnings:</p>
+
+      <p><img src="deow.PNG" width="384" height="172"></p>
+     </td>
+  </tr>
+  <tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Inter-type declarations</b></td>
+    <td width="70%" valign="top">
+
+   <p>Inter-type declarations now appear as gutter markers in the
+   editor, and as stripes in the Visualiser.</p>
+
+   <p><img src="itd_markers.png" width="576" height="325"></p>
+
+     </td>
+  </tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>InPath and AspectPath</b></td>
+    <td width="70%" valign="top">
+
+      <p>We now support the Eclipse approach for specifying these
+      kinds of classpath entity, rather than requiring the user to
+      enter a string.  There are two new project properties pages for
+      this.</p>
+
+      <p><img src="aspectpath.PNG" width="495" height="205"></p>
+      <p><img src="inpath.PNG" width="495" height="205"></p>
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Weaving messages</b></td>
+    <td width="70%" valign="top">
+
+      <p>There is a new <b>AspectJ &gt; Output weaving info
+      messages</b> option under properties for AspectJ
+      projects. Setting this causes informational weaving messages to
+      appear in the <b>Problems</b> view after the project has been
+      built.</p>
+
+      <p><img src="binarymessages.PNG" width="463" height="192"></p>
+
+     </td>
+  </tr>
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved support for plug-in projects</b></td>
+    <td width="70%" valign="top">
+
+      <p>Converting a plug-in project to an AspectJ project will now
+      automatically add the <b>org.aspectj.ajde</b> plug-in to your
+      project's list of required plug-ins. Projects will no longer
+      lose the AspectJ runtime library from the build path after
+      asking PDE to automatically calculate it. </p>
+
+      <p><img src="pluginprojects.png" width="382" height="228"></p>
+
+     </td>
+  </tr>
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New extensible Visualiser</b></td>
+    <td width="70%" valign="top">
+
+      <p>The Visualiser is now an extensible component with its own
+      extension points defined if you want to visualize your own data.
+      AJDT provides an extension that shows us the normal view that
+      AJDT users expect to see, with a number of enhancements:
+
+    <p>
+    <ul>
+      <li>New, clearer icons.</li>
+
+      <p><img src="visualiser.png" width="484" height="23"></p>
+
+      <li>Keyboard navigation, using the cursor keys or Tab and
+      Shift-Tab keys to traverse stripes. F2 displays a stripe's
+      tooltip, and pressing the space key opens an editor at the
+      appropriate location.</li>
+
+      <li>Integrated help system.</li>
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New visualisation options</b></td>
+    <td width="70%" valign="top">
+
+  <p>The following options have been added to the Visualiser:</p>
+
+    <ul>
+      <li>Improved support for large projects, including more colours
+      set by default in the menu, plus <b>Select All</b> and <b>Select
+      None</b> actions.
+
+      <li>A new preferences page that allows configuration of minimum
+      and maximum bar width and minimum stripe height.</li>
+
+      <li>Optional demarcation between classes in the package view:</li>
+
+      <p><img src="demarcation.png" width="378" height="317"></p>
+
+
+      <li><b>Absolute proportions</b> mode, where each line is at
+      least the minimum stripe height, so that stripes cannot overlap
+      each other. With this option disabled (the default), the bars
+      may be compressed vertically to fit within the view, like
+      this:</li>
+
+      <p><img src="without_absolute_proportions.png" width="495"
+      height="317"></p>
+
+      <p>With absolute proportions enabled the bars are not compressed,
+      and scrollbars are used if required:</p>
+
+      <p><img src="absolute_proportions.png" width="495" height="317"></p>
+
+    </ul>
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>ajdoc wizard</b></td>
+    <td width="70%" valign="top">
+
+   <p>The ajdoc tool is the AspectJ replacement for javadoc. There is
+   a new wizard similar to the javadoc wizard which makes use of this
+   tool. It can be accessed via the <b>Project &gt; Generate
+   ajdoc...</b> menu option.</p>
+
+   <p><img src="ajdoc.png" width="463" height="191"></p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Breakpoints in aspects</b></td>
+    <td width="70%" valign="top">
+
+<p>It is now possible to set breakpoints inside aspects. This can be
+done as usual by double-clicking the left-hand breakpoint ruler or by
+right-clicking the ruler and chosing the appropriate menu option.
+(Note: there is a limitation which means that in some cases breakpoints
+inside ‘around’ advice will not be triggered.)
+</p>
+
+   <p><img src="breakpoints.png" width="425" height="200"></p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+</table>
+
+  </body>
+</html>

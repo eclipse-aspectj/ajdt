@@ -1,0 +1,275 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Frequently Asked Questions about AJDT</title>
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="titlepage"><div><h2 class="title"><a name="d0e3"></a>Frequently Asked Questions about AJDT</h2></div><hr></div>
+<p>Last updated on 30th June 2004.
+</p>
+
+<div class="qandaset">
+      <dl><dt>1 <a href="#overview">Overview</a></dt>
+	<dd><dl>
+	<dt>1.  <a href="#q:whatisajdt">What is AJDT?</a></dt>
+	<dt>2.  <a href="#q:whodevelops">Who develops AJDT?</a></dt>
+	<dt>3.  <a href="#q:latestversion">Where can I get the latest version?</a></dt>
+	<dt>4.  <a href="#q:aspectj">How does AJDT relate to the AspectJ project?</a></dt>
+	</dl></dd>
+     <dt>2 <a href="#community">Community</a></dt>
+	<dd><dl>
+	<dt>1.  <a href="#q:newsgroups"> Are there any newsgroups for AJDT users? </a></dt>
+	<dt>2.  <a href="#q:bugs"> What do I do if I think I've found a bug in AJDT? </a></dt>
+	<dt>3.  <a href="#q:features">How can I request a new feature in AJDT?</a></dt>
+	<dt>4.  <a href="#q:mailinglists"> Is there an AJDT mailing list?</a></dt>
+	</dl></dd>
+     <dt>3 <a href="#using">Using AJDT</a></dt>
+	<dd><dl>
+	<dt>1.  <a href="#q:keywords"> Why aren't AspectJ keywords highlighted in the editor? </a></dt>
+	<dt>2.  <a href="#q:errorindication"> Why are keywords like "aspect" underlined as problems? </a></dt>
+	<dt>3.  <a href="#q:outlineupdate">Why doesn't the outline view update as I type in the editor?</a></dt>
+	<dt>4.  <a href="#q:debug"> How can I debug AspectJ programs in Eclipse?</a></dt>
+	<dt>5.  <a href="#q:visualiser">How does the Visualiser work?</a></dt>
+	<dt>6.  <a href="#q:joinpointprobe"> What happened to the JoinPoint probe?</a></dt>
+	</dl></dd>
+     <dt>4 <a href="#contributing">Contributing</a></dt>
+	<dd><dl>
+	<dt>1.  <a href="#q:contribute"> How can I contribute to the AJDT project? </a></dt>
+	<dt>2.  <a href="#q:examples"> How can I package my sample code for contribution to the examples plugin? </a></dt>
+	<dt>3.  <a href="#q:source"> Where will I find the source for AJDT? </a></dt>
+	<dt>4.  <a href="#q:develop">How do I setup an AJDT development environment in Eclipse?</a></dt>
+	</dl></dd>
+     <dt>5 <a href="#plans">Plans</a></dt>
+	<dd><dl>
+	<dt>1.  <a href="#q:next"> What new AJDT features are being worked on at the moment?</a></dt>
+	</dl></dd>
+      </dl>
+
+  <div class="qandadiv">
+      <h3 class="title"><a name="overview"></a>1 Overview</h3>
+	<div class="qandaentry"><div class="question"><p><a name="q:whatisajdt"></a>
+	<b>1. </b>What is AJDT?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  The AspectJ Development Tools project (AJDT) is a set of plugins for Eclipse that provide support for
+	  aspect-oriented software development using <a href="http://www.eclipse.org/aspectj">AspectJ</a> within the Eclipse IDE.
+	<div class="qandaentry"><div class="question"><p><a name="q:whodevelops"></a>
+	<b>2. </b>Who develops AJDT?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT is an open-source project hosted on eclipse.org, 
+	 <a href="http://dev.eclipse.org/viewcvs/indextech.cgi/~checkout~/org.eclipse.ajdt/contributors.html">current contributors</a> 
+                 are listed on the website. Anyone can get involved,
+	  see <a href="#q:contribute">"How can I contribute?"</a>
+	<div class="qandaentry"><div class="question"><p><a name="q:latestversion"></a>
+	<b>3. </b>Where can I get the latest version?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  Details about how to get hold of AJDT are available from the 
+  	 <a href="http://dev.eclipse.org/viewcvs/indextech.cgi/~checkout~/org.eclipse.ajdt/download.html">download page</a>.
+	<div class="qandaentry"><div class="question"><p><a name="q:aspectj"></a>
+	<b>4. </b>How does AJDT relate to the AspectJ project?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT provides Eclipse IDE integration for AspectJ, and includes the AJDE (AspectJ Development Environment) libraries from the AspectJ project as part of its
+                  packaging. Development of the AspectJ compiler and AJDE takes place under the <a href="http://www.eclipse.org/aspectj">AspectJ project</a>. 
+
+      <h3 class="title"><a name="community"></a>2 Community</h3>
+	<div class="qandaentry"><div class="question"><p><a name="q:newsgroups"></a>
+	<b>1. </b>Are there any newsgroups for AJDT users?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT is supported through the <a href="news://eclipse.org/eclipse.technology.ajdt">eclipse.technology.ajdt</a> newsgroup.
+	 A <a href="http://www.eclipse.org/newsportal/thread_frameset.php3?name=eclipse.technology.ajdt">web interface</a> is also available.
+	<div class="qandaentry"><div class="question"><p><a name="q:bugs"></a>
+	<b>2. </b>What do I do if I think I've found a bug in AJDT?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  First check the <a href="http://bugs.eclipse.org/bugs/buglist.cgi?bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&field0-0-0=product&type0-0-0=substring&value0-0-0=AJDT&field0-0-1=component&type0-0-1=substring&value0-0-1=AJDT&field0-0-2=short_desc&type0-0-2=substring&value0-0-2=AJDT&field0-0-3=status_whiteboard&type0-0-3=substring&value0-0-3=AJDT">
+                 bug database</a> to see if you've hit a known problem. There's also a view built into AJDT (Window->Show View->Other...->AspectJ->AJDT Event Trace)
+	that displays a lot of diagnostic information about the execution of the plugin (for example, it will show you the exact classpaths being used for compilation).
+	 If it appears to be a genuinely new bug, please submit a <a href="http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AJDT">bug report on AJDT using bugzilla</a>
+                 following the <a href="http://bugs.eclipse.org/bugs/bugwritinghelp.html">bug reporting guidelines</a>. 
+	<div class="qandaentry"><div class="question"><p><a name="q:features"></a>
+	<b>3. </b>How can I request a new feature in AJDT?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  Informal requests can be posted to the <a href="news://eclipse.org/eclipse.technology.ajdt">newsgroup</a> or 
+                 <a href="mailto:ajdt-dev@dev.eclipse.org">mailing list.</a> Formal requests can be made by raising an 
+                 <a href="http://bugs.eclipse.org/bugs/enter_bug.cgi?product=AJDT&version=unspecified&rep_platform=PC&op_sys=Windows+2000&priority=P3&bug_severity=enhancement&bug_status=NEW&assigned_to=&cc=&bug_file_loc=&short_desc=&comment=&maketemplate=Remember+values+as+bookmarkable+template&form_name=enter_bug">AJDT enhancement request</a>
+                on Bugzilla.
+	<div class="qandaentry"><div class="question"><p><a name="q:mailinglists"></a>
+	<b>4. </b>Is there an AJDT mailing list?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT has a developers mailing list, <a href="mailto:ajdt-dev@dev.eclipse.org">ajdt-dev@dev.eclipse.org</a>, with 
+                 <a href="http://dev.eclipse.org/mailman/listinfo/ajdt-dev">archives and subscription information</a> available online.
+	 Questions regarding the use of AspectJ the language are best directed to the <a href="http://dev.eclipse.org/viewcvs/indextech.cgi/~checkout~/aspectj-home/userResources.html">AspectJ users mailing list</a>.
+
+      <h3 class="title"><a name="using"></a>3 Using AJDT</h3>
+	<div class="qandaentry"><div class="question"><p><a name="q:keywords"></a>
+	<b>1. </b>Why aren't AspectJ keywords highlighted in the editor?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  The most common cause of this problem is opening Java files (files with the .java extension) using the JDT's Java Editor. AJDT provides an extension
+	 to the Java Editor, the AspectJ Editor, that recognizes AspectJ language structure and provides an outline view that displays crosscutting structure
+	information. To configure Eclipse so that Java files are opened with the AspectJ editor, select "preferences" from the Window menu.  Expand the workbench
+	preferences and click on "File Associations." Select file type "*.java," then select the AspectJ Editor and click the "Default" button. 
+	<div class="qandaentry"><div class="question"><p><a name="q:errorindication"></a>
+	<b>2. </b>Why are keywords like "aspect" underlined as problems (red squiggle underline)? </p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT doesn't yet provide an eager parser for AspectJ. The early problem indication support is therefore expecting to see a regular Java program, and
+	so treats AspectJ keywords as errors. The squiggles can be turned off by opening preferences from the Window menu: Expand the Java preferences and click
+	on "Editor." In the "Problem Indication" tab, uncheck the option "Show problems before compiling."
+	<div class="qandaentry"><div class="question"><p><a name="q:outlineupdate"></a>
+	<b>3. </b>Why doesn't the outline view update as I type in the editor?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT doesn't yet provide an eager parser for AspectJ, so the understanding of the editor buffer contents needed to update the outline view is only
+	after a compilation. The process of compiling creates a structure model (including the crosscutting information) that the outline view then renders.
+	<div class="qandaentry"><div class="question"><p><a name="q:debug"></a>
+	<b>4. </b>How can I debug AspectJ programs in Eclipse?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+   	<p>Working with with AspectJ programs in the debugger has the following limitations:
+	<ul>
+		<li>You can step into and through most aspect code but around advice is still problematic - use "step into" instead of "step over" on an advised line of source in order to step into the aspect code.
+		<li>If you use "step over" to step past a line of code, this will also step over any advice applied to that line in one step.
+	</ul>
+	</p>
+	<p>
+	NB. Since 1.1.11 breakpoints can be set in aspects as well as in classes.
+	</p>
+	<div class="qandaentry"><div class="question"><p><a name="q:visualiser"></a>
+	<b>5. </b>How does the Visualiser work?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+	      The Visualiser consists of two views, the Visualiser and the Visualiser Menu, both of which need to be open:
+	      Select "Window" , "Show View" , "Other... Visualiser" from the taskbar, then select "Visualiser" and "Visualiser Menu " and click OK. 
+	      Alternatively, open the Aspect Visualization perspective by clicking "Window", "Open Perspective", "Other... Aspect Visualization".
+	<p>
+	The Visualiser has a provider architecture - other plugins define content providers that plug in to 
+	the Visualiser through extension points.  Only one provider can be active at a time.  The active provider determines the bars and stripes that are shown.  
+	You can tell which provider is active from the Visualiser title bar.  If the AspectJ provider is not active by default, click
+	"Window", "Preferences", then select "Visualiser", select the AspectJ Provider, then click OK.
+	</p>
+	<p>
+	To visualize an AspectJ project, click on the AspectJ Project in the Package Explorer or the Projects view.  If the project has been built
+    the aspects defined in that project should 
+	appear in the Menu. The Visualiser shows all the classes in your project with bar length proportional to number of lines of code. Dark bars 
+	represent classes not affected by an aspect. Coloured lines on the white bars represent lines of code affected by the Aspect in the Menu 
+	with the corresponding colour.  It is also possible to click on individual classes or packages in the package explorer to see their individual representations. 
+	</p>
+	<p>The Visualiser starts in class view by default. Click on the package button to choose package view. Here each bar represents a package in your 
+	project and length is proportional to total number of lines. Package view was designed as an overview, particularly for large projects. 
+	Click on the class button to return to class view. 
+	</p>
+ 	<p> In either package or class view, clicking on the limit button restricts the view to affected bars only. Clicking again leaves limit mode. 
+	</p>
+	<p> To open the source file of a represented class, double click on the corresponding bar. To open a source file at a line 
+	affected by an aspect, double click on the corresponding coloured stripe. 
+	</p>	
+	<p>
+	If you would like to find out more the Visualiser has its own Eclipse help pages.
+	</p>                  
+	<div class="qandaentry"><div class="question"><p><a name="q:joinpointprobe"></a>
+	<b>6. </b>What happened to the JoinPoint probe?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  The JoinPoint probe was an experimental function that made a brief appearance in AJDT 0.5.2 and 0.6.0beta. We have temporarily removed
+	it from AJDT whilst we work out the correct user-interaction model and port the Swing UI to SWT.
+
+      <h3 class="title"><a name="contributing"></a>4 Contributing</h3>
+	<div class="qandaentry"><div class="question"><p><a name="q:contribute"></a>
+	<b>1. </b>How can I contribute to the AJDT project?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  Your contributions to the AJDT project are strongly welcomed! You can create a patch that fixes a bug or provides an enhancement and submit
+	it to the AJDT developers either as an attachment to a bug in Bugzilla, or as an attachment to a post to the newsgroup or developer mailing list.
+    You can also contribute sample code showing interesting uses of AspectJ, by adding entries to the example plugin.
+	All contributions must be made available under the <a href="http://www.eclipse.org/legal/termsofuse.html">terms of the Eclipse website</a> see
+	the Eclipse <a href="http://www.eclipse.org/legal/legalfaq.html#contributions">contribution and participation FAQ</a>. Sorry, but for legal reasons
+	we are unable to accept patches emailed directly to developers, and will normally ask you to resubmit these either via Bugzilla or the mailing list.
+	<p>AJDT development is run as a meritocracy, developers who have a track record of submitting good patches can become committers on the project.
+	
+	<div class="qandaentry"><div class="question"><p><a name="q:examples"></a>
+	<b>2. </b>How can I package my sample code for contribution to the examples plugin? </p></div>
+    <div class="answer"><p><a name="d0e26"></a><b></b>
+                  The org.eclipse.ajdt.examples plugin contains various sample projects which are made available under
+    the Examples category of the New wizard, from where they can be imported into your workspace as AspectJ projects.
+    It is easy to add new samples to this plugin, as follows:
+    <ul>
+    	<li>Create a jar file containing your source code, and at least one build configuration file. Place this
+    		in the archive folder of the examples plugin.
+    	<li>Add an entry to the plugin.xml file for your sample project, by copying one of the existing entries.
+    	<li>Change the src attribute of the import element to refer to your jar file, and change the title,
+    		description, pagetitle, and pagedescription property names as appropriate, and add
+    		corresponding entries to the plugin.properties file.
+    	<li>Change the build attribute to refer to your default build configuration file. Your project may contain
+    	    more configurations but the one specified here will be the one used to initially build the project.
+    	<li>Optionally, you can specify an open attribute to the projectsetup element, which refers to a file,
+    	    such as a README file, which is opened after the project has been imported to the workspace.   
+    </ul>
+	
+	<div class="qandaentry"><div class="question"><p><a name="q:source"></a>
+	<b>3. </b>Where will I find the source for AJDT? </p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  AJDT source is held in the Eclipse CVS repository under /home/technology, see the 
+	<a href="http://dev.eclipse.org/viewcvs/indextech.cgi/org.eclipse.ajdt/">root of the AJDT source tree online</a>. The latest source can be found
+	in subdirectories of org.eclipse.ajdt as follows:
+	<p>
+	<pre>
+  org.eclipse.ajdt
+	|
+	|--> AJDT_30M9_src
+		|--> org.eclipse.ajdt
+		|--> org.eclipse.ajdt.examples
+		|--> org.aspectj.ajde
+		|--> org.eclipse.aspectj
+		|--> org.eclipse.aspectj.feature
+		|--> org.eclipse.contribution.visualiser
+		|--> org.eclipse.contribution.visualiser.tests
+		|--> UpdateSite
+	</pre>
+	</p>
+	<div class="qandaentry"><div class="question"><p><a name="q:develop"></a>
+	<b>4. </b>How do I setup an AJDT development environment in Eclipse?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+                  Start with a clean workspace under Eclipse 3.0: 
+	<ul>
+	<li>Prepare your workspace for self-hosting: from the File menu select "Import...", choose "External plugins and fragments" and click "Next". Click
+	"Next" again, the press then "Select All" button and click "Finish." If you are not in it already, switch to the Java Perspective.
+                To reduce the clutter in the Package Explorer, click the downward pointing
+	arrow icon on the Package Explorer toolbar, then choose "Filters..." Check "Hide binary plug-in projects" and press OK.
+	<li>Create a CVS repository
+	connection to dev.eclipse.org: connection type pserver, your username and password (or anonymous), repository path /home/technology, for example
+	<pre>:pserver:anonymous@dev.eclipse.org:/home/technology</pre>
+	
+		<ul>
+		(Detailed instructions...)
+		<li>From the Window menu, select "Open Perspective..." , then "CVS Repository Exploring"
+		<li>From the context menu in the CVS Repositories view, select New... Repository Location
+		<li>Host = dev.eclipse.org, Repository path = /home/technology
+		<li>Your userid and password, or "anonymous"
+		<li>Connection type = pserver
+		<li>Click "Finish"
+		</ul><p></p>
+	<li>Use the CVS Repositories view to navigate to org.eclipse.ajdt/AJDT_30M9_src. Select all the folders
+	in that directory apart from "Update Site". From the context (right mouse button) menu select
+	"Check out".
+	Eclipse will build the projects as you import them, so you're ready to run the plugins
+	inside Eclipse straight away:
+	<ul>
+	<li>Switch back to the Java Perspective if you're not already in it...
+	<li>From the run menu select "Run..."
+	<li>Select "Run-time workbench" and click new
+	<li>Give your launch configuration a name, and click "Run"
+	<li>Subsequent runs can simpy use the launch configuration you just created
+	</ul>
+	Now you're ready to start enhancing the plugins by adding to or extending the code in your projects - just use run (or debug) to test your
+	changes. When you have a cool patch or bug fix to submit to the project, go the the "Team" item in the project context menu and
+	select "Create Patch..."
+	<p>Each of the projects you just created also contains an Ant build file, "build.xml." The default target builds a packaged version of the project in question.
+	Use the build.xml file in the "update" project to invoke a master build that builds an entire update site structure in its "dist" directory.
+	<ul>
+	<li>Copy the contents of the dist directory to a clean directory, outside of your workspace. For example, "ajupdate."
+	<li>From the help menu of the Eclipse in which you wish to install the AspectJ feature, choose "Software Updates..." and then "Update Manager."
+	<li>Expand the "My Computer" branch and navigate to the "ajupdate" directory, and then "AspectJ."
+	<li>Select "Eclipse AspectJ Development Tools" and then click on the "Install" button.
+	</ul>
+	</ul>
+    </p>
+
+   <h3 class="title"><a name="plans"></a>5 Plans</h3>
+	<div class="qandaentry"><div class="question"><p><a name="q:aspectj11"></a>
+	<b>1. </b>What new AJDT features are being worked on at the moment?</p></div>
+	<div class="answer"><p><a name="d0e26"></a><b></b>
+		See the <a href="http://dev.eclipse.org/viewcvs/indextech.cgi/~checkout~/org.eclipse.ajdt/tasks.html?rev=HEAD&content-type=text/html">task list</a> on our project home page.
+	</p>
+  </div>
+  </body>
+</html>

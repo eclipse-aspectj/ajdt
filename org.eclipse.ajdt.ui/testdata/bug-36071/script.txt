@@ -1,0 +1,3 @@
+
+- delete bin dir
+- make sure resources are copied over to bin dir

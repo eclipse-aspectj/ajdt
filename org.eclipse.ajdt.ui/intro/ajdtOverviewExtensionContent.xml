@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<introContent>
+  <!-- Extension to the SDK Overview Page. -->
+  <extensionContent alt-style="intro/css/ajdt.properties" style="intro/css/ajdtOverview.css" path="overview/page-content/overview-links/jdtAnchor">
+    <link label="AspectJ Development" url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-doc.htm" id="aspectj">
+      <text>Become familiar with developing AspectJ programs using Eclipse</text>
+    </link>
+  </extensionContent>
+</introContent>

@@ -1,0 +1,25 @@
+Installation Testing
+--------------------
+
+The scenarios which need to be tested are:
+
+(1) Install into a clean eclipse via update site
+(2) Install into a clean eclipse using a zip file
+(3) Upgrade from 1.1.11 via update site
+(4) Upgrade from 1.1.11 via zip file
+(5) Upgrade from 1.1.11 via Automatic Updates (under preferences > install/update)
+(6) Upgrade from 1.1.10
+(7) Try to install on eclipse 2.1 via update site --> expect this to not let you install AJDT
+    and gives an error saying require a 3.0.0 version of one of the eclipse plugins)
+(8) Install on latest eclipse 3.0.1 build via update site --> this should install, just don't know
+    how it will behave once installed (!)
+(9) Install on latest eclipse 3.1 build via update site --> this should install, just don't know
+    how it will behave once installed (!)  
+
+
+Things to check in each installation:
+-------------------------------------
+Use the examples wizard to create one of the example projects
+Check it builds and runs okay
+Switch to the visualisation perspective and check the bars are displayed
+   

@@ -1,0 +1,115 @@
+Tests included in this file:
+
+(1) Test to ensure not constantly rebuilding (bug 74174)
+(2) Test for bug 48518 - if contents of jar file changes, then want to force a 
+    build for dependent projects
+
+
+
+
+Test to ensure not constantly rebuilding (bug 74174)
+----------------------------------------------------
+
+(1) in a runtime workbench either use an existing AspectJ project, or check out 
+    	
+    	- org.eclipse.contribution.visualiser
+    	- org.aspectj.runtime
+   
+    from dev.eclipse.org
+    
+(2) convert org.eclipse.contribution.visualiser to be an AJ project by right 
+    clicking and selecting "Convert to AspectJ Project"
+    
+(3) create a new text file in org.eclipse.contribution.visualiser
+
+		- highlight org.eclipse.contribution.visualiser
+		- right click
+		- select "New > File"
+		- enter "test.txt" in the name
+		- click Finish
+		
+(4) The org.eclipse.contribution.visualiser project should NOT rebuild.
+
+		- check the progress monitor in the bottom right hand corner of
+		  your workbench - nothing should be there
+		- check the progress view (Window > Show View > Basic > Progress)- nothing
+		  should be there - no builds
+		  
+If any builds are being triggered then this test fails.		    
+
+
+		  		   
+Test for bug 48518 - if contents of jar file changes, then force a build for dependent projects
+------------------
+
+(1) Check out jarCreatingProject and jarDependentProject from:
+
+		dev.eclipse.org/org.eclipse.ajdt/.../org.eclipse.ajdt.test/test projects
+		
+(2) Check that jarDependentProject has a project dependency on jarCreatingProject:
+
+		- right click on jarDependentProject
+		- navigate to "properties"
+		- highlight "Java Build path" 
+		- navigate to the projects tab
+		- ensure the box next to "jarCreatingProject" is checked
+		- click ok
+		
+(3) Check that jarCreatingProject is sending its output to a jar file called myJar.jar
+
+		- right click on jarCreatingProject
+		- navigate to "properties"
+		- highlight "AspectJ" 
+		- ensure the box next to "Outjar" contains "myJar.jar"
+		- click ok
+		
+(4)	Build both projects - both should build with no errors - and check that "build automatically"
+    is selected (Project > Build Automatically)
+
+(up until now has been setup.....)
+
+(5) bring up abstract aspect A.aj in the editor (this is in jarCreatingProject)
+
+(6) add the following abstract pointcut to the aspect:
+
+    	public abstract pointcut another();	
+    	
+(7) save A.aj - this forces a build
+
+(8) RESULT: jarDependingProject should now be marked with errors due to 
+    problems in Concrete.aj. In the problems view, there is the following
+    message:
+    
+    "Inherited abstract pointcut p1.A.another() is not made concrete in Concrete"
+    
+    Looking in the AJDT Event Trace (Window > Show View > AspectJ > AJDT Event Trace), it
+    should contain messages like the following:
+    
+    13:29:59	 build: Kind=AUTOBUILD Project=jarDependentProject Mode=Full AspectJ compilation
+	13:29:59	 build: Examined delta - no source file changes for project jarDependentProject
+	13:29:59	 build: Examined delta - source file changes in required project jarDependentProject
+    
+(9) Comment out the abstract pointcut you've just inserted:
+
+		// public abstract pointcut another();	
+		
+(10) save A.aj - this forces a build
+
+(11) RESULT: there should be no build errors on jarCreatingProject and jarDependingProject		
+    
+(12) Create a text file in jarCreatingProject:
+
+		- right click on jarCreatingProject
+		- Select New > File
+		- Enter name test.txt
+		- click "OK"
+		
+(13) The AJDT event trace should contain something like the following:
+
+	13:36:22	 build: Kind=AUTOBUILD Project=jarCreatingProject Mode=Full AspectJ compilation
+	13:36:22	 build: Examined delta - no source file changes for project jarCreatingProject
+	13:36:22	 build: Kind=AUTOBUILD Project=jarDependentProject Mode=Full AspectJ compilation
+	13:36:22	 build: Examined delta - no source file changes for project jarDependentProject
+	
+	and consequently a rebuild of jarDependingProject should not occur.
+					

@@ -1,0 +1,16 @@
+
+1. If a .aj file contains correct AspectJ code, is in an AspectJ project and on
+the classpath, then it should be possible to expand it to see its children
+in the package explorer view.
+
+2. Does the .aj file filter work?
+The .aj file filter should be on by default and hide the IResource version
+of .aj files in the package explorer view if an ICompilationUnit version
+exists -> no duplicates of .aj files visible.
+Special case to test:
+Before having installed AJDT: enable/disable some random filters in package
+explorer (makes it save the preferences). Then install AJDT. You should
+now get a dialog telling you that you should enable the .aj file filter.
+
+
+

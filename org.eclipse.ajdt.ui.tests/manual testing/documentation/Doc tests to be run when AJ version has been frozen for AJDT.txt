@@ -1,0 +1,53 @@
+Documentation Testing
+---------------------
+
+*****************************************************************************************
+*                                                                                       *
+* this needs to be done when the version of AspectJ to be used with the next release of *
+* AJDT has been frozen (otherwise the links may break and it'll have to be done again!) *
+*                                                                                       *
+*****************************************************************************************
+
+AJDT DOCUMENTATION
+------------------
+
+(1) follow all the links and check they work
+
+AspectJ DOCUMENTATION
+---------------------
+
+(1) Expand all the nodes under "AspectJ Guide" in the Eclipse Help Contents.
+(2) Click on all the entries to check that the links are followed in the documentaion.
+    For example, Click Programming Guide > B. Language Semantics > Pointcuts and then 
+    all the links under this: Pointcut definition etc. Ensure that the correct page
+    (or section of the page) is opened in the help.    
+
+If they don't work then follow the following steps to fix the broken links:
+
+(1) Find the toc_XXX.xml file which is relevant:
+
+		toc_ajdevguide.xml - this is the table of contents for the development guide
+		toc_ajprogguide.xml - this is the table of contents for the programming guide
+		toc.xml - this is the main table of contents for the AspectJ Guide
+
+(2) Once you have the toc file, find the broken link.
+(3) Open the corresponding html file and find the place where the link should be pointing
+(4) There is a "name" at this place e.g. d0e4949. Copy this and paste it in the correct 
+    place in the toc file.
+    
+For example, assume by following Programming Guide > B. Language Semantics > Pointcuts,
+you find that the Poincut definition link is broken.
+
+(1) you know it's in the programming guide, therefore, you need toc_ajprogguide.xml.
+(2) In toc_ajprogguide.xml search for "Pointcut definition" and you find the following:
+
+		<topic label="Pointcut definition" href="doc/progguide/semantics-pointcuts.html#d0e4929"/>
+		
+(3) Open doc/progguide/semantics-pointcuts.html	and search for "Pointcut definition". This gives
+    the following line:      		
+
+        </dd></dl></div><div class="sect2"><a name="d0e4945"></a><div class="titlepage">
+        <div><h3 class="title"><a name="d0e4945"></a>Pointcut definition</h3></div></div><p>
+
+(4) notice that the name value in the html file is d0e4945, whereas the one in toc_ajprogguide.xml
+    is d0e4929. Therefore, replace the one in toc_ajprogguide.xml with d0e4945.

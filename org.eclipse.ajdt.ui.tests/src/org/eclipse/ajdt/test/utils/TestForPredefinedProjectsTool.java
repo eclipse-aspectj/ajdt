@@ -1,0 +1,69 @@
+/*******************************************************************************
+ * Copyright (c) 2004 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Luzius Meisser  - initial version
+ *******************************************************************************/
+
+package org.eclipse.ajdt.test.utils;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+
+import junit.framework.TestCase;
+
+/**
+ * Tests the PredefinedProject class
+ * 
+ * @author Luzius Meisser
+ */
+public class TestForPredefinedProjectsTool extends TestCase {
+	
+	public void testPredefinedProjectsTool() throws CoreException{
+		IProject p = Utils.getPredefinedProject("Hello World Project", false);
+		if (p == null)
+			fail("Project 'Hello World Project' could not be imported.");
+		IJavaProject jp = JavaCore.create(p);
+		try {
+			IType type = jp.findType("", "HelloWorld");
+			if (type == null)
+				fail("Project 'Hello World Project' was not imported correctly.");
+		} catch (JavaModelException e) {
+			fail("Project 'Hello World Project' was not imported correctly.");
+		}
+		
+		p = Utils.getPredefinedProject("project name that (hopefully) does not exist", false);
+		if (p != null)
+			fail("Could import project that does not exist.");
+	}
+	
+	/**
+	 * Tests whether you can access a project which was originally closed
+	 * i.e. is it reopened?
+	 * @throws Exception
+	 */
+	public void testProjectsToolWithClosedProjects() throws Exception {
+		IProject p = Utils.getPredefinedProject("Hello World Project", true);
+		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		monitor.reset();
+		p.close(monitor);
+		monitor.waitForCompletion();
+		
+		IProject p2 = Utils.getPredefinedProject("Hello World Project", true);
+		assertTrue("project should now be open",p2.isOpen());
+
+		monitor.reset();
+		p2.close(monitor);
+		monitor.waitForCompletion();		
+	}
+	
+}

@@ -1,0 +1,32 @@
+Testing Required for Bug fixes post 1.1.11 release
+(excluding those covered by individual test documents)
+
+70290 (Helen)
+	-	Visualiser/AJDT plugin didn't work in runtime workbench created from a 
+workbench which had AJDT installed.
+	-	Fix - stop the METADATA directory being created for the visualiser plugin by 
+changing the build script to create jar files rather than zip files.
+	-	Testing required = Setting off runtime workbench from workbench with 
+AJDT installed and checking it works. Also, check that in workbench where 
+AJDT is installed, that the AJDT related plugins can be imported as extenal 
+plugins and fragments (this was caused by the same problem)
+	
+71540 (Luzius)
+	-	When using AJDT with MyEclipse, the user will get an error when running his 
+servlets unless he adds aspectjrt.jar to the classpath of his application server. 
+Because this might not be obvious to every user, I have added a message 
+box that appears whenever AspectJ nature gets added to a MyEclipse project 
+and informs the user about that.
+	-	Test: Install MyEclipse, install AJDT, create Web Module Project, add 
+AspectJ nature. Does the message box appear? It should also appear only 
+once per eclipse-startup.
+
+71780 (Luzius)
+	- In 1.1.11, there was no gutter annotation for advice from injars.
+	- Test: Import the project "jarCreatingProject", set "output jar" in AspectJ
+	  properties of to myJar.jar and build.
+	  Import the project "jarDependentProject" and add "myJar.jar" to the "AspectJ 
+	  Aspect Path", do a build. Then open "C.java" in editor. If the main
+	  method has got an "advised by" icon in the gutter, everything is ok. 
+
+

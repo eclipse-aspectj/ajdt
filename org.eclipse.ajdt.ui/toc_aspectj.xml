@@ -1,0 +1,16 @@
+<toc label="AspectJ">
+	<topic label="AspectJ Home" href="http://www.eclipse.org/aspectj"/>		
+	<topic label="Programming Guide">
+		<link toc="toc_ajprogguide.xml" />		
+	</topic>
+	<topic label="Development Environment Guide">
+		<link toc="toc_ajdevguide.xml" />		
+	</topic>
+	<topic label="API Documentation" href="doc/api/index.html"/>
+	<topic label="README for v1.2" href="doc/aspectj/README-12.html"/>
+	<topic label="FAQ" href="doc/aspectj/faq.html"/>
+	<topic label="Porting Notes" href="doc/aspectj/porting.html"/>
+	<topic label="Changes in AspectJ" href="doc/aspectj/changes.html"/>
+	<topic label="Quick reference" href="doc/aspectj/quick.pdf"/>
+	<topic label="Quick reference (A4 formatted)" href="doc/aspectj/quickA4.pdf"/>
+</toc>

@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.ajdt.core" default="packaged-plugin">
+
+<description>
+Create a packaged org.eclipse.ajdt.core_version plugin distribution file
+</description>
+<!-- VERSION-STRING -->
+<!-- these property values will be overridden when called from the master build script -->
+<property name="ajdt.version" value="9.9.9" />
+<property name="ajde.version" value="9.9.9" />
+<property name="build.dir" value="build" />
+<property name="eclipse.build.version" value="3.0.0" />
+<property name="eclipse.home" value="c:/eclipse/30m8/eclipse"/>
+
+<property name="aspectj" value="c:/aspectj1.2" />
+<property name="aspectjrt" value="${aspectj}/lib/aspectjrt.jar" />
+<property name="aspectjtools" value="${aspectj}/lib/aspectjtools.jar" />
+
+<taskdef 
+    resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+	<classpath>
+	    <pathelement location="${aspectjtools}"/>
+	</classpath>
+</taskdef>
+
+<!-- To run this script from inside an automated build environment such 
+     as Cruise Control the following properties are expected to have
+     been set and passed in :-
+     * external.build (set to any value) 
+     * eclipse.home (set to the directory where Eclipse has been 
+       installed on the build machine)
+     * eclipse.build.version (override the value default value set above)
+     * aspectj (set to AspectJ install dir)
+-->
+
+<path id="project.class.path">
+    <pathelement location="src/"/>
+    <pathelement location="../org.aspectj.ajde/aspectjrt.jar"/>
+    <pathelement location="../org.aspectj.ajde/ajde.jar"/>
+    <!-- <pathelement location="../org.eclipse.aosd.relationships/build/relations.jar"/> -->
+    <!-- Below are dependencies that require a local install of Eclipse. -->
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.search_${eclipse.build.version}/search.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.runtime_${eclipse.build.version}/runtime.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.resources_${eclipse.build.version}/resources.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.debug.core_${eclipse.build.version}/dtcore.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.core_${eclipse.build.version}/jdtcore.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.core_${eclipse.build.version}/pdecore.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.runtime_${eclipse.build.version}/pdert.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde_${eclipse.build.version}/pde.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.debug.ui_${eclipse.build.version}/dtui.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.debug.ui_${eclipse.build.version}/jdiui.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.launching_${eclipse.build.version}/launching.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.junit_3.8.1/junit.jar"/>
+   	<pathelement location="${eclipse.home}/plugins/org.eclipse.core.boot_${eclipse.build.version}/boot.jar"/>
+   	<pathelement location="${eclipse.home}/plugins/org.eclipse.text_${eclipse.build.version}/text.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.osgi_${eclipse.build.version}/osgi.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.update.core_${eclipse.build.version}/updatecore.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.debug_${eclipse.build.version}/jdimodel.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.build_${eclipse.build.version}/pdebuild.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.filebuffers_${eclipse.build.version}/filebuffers.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ltk.core.refactoring_${eclipse.build.version}/refcore.jar"/>
+	
+	<!-- Java runtime library : depends on the JVM used to run Ant -->
+   	<pathelement location="${java.home}/lib/rt.jar"/>
+</path>
+
+<target name="init">
+  <mkdir dir="${build.dir}" />
+  <mkdir dir="dist"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="${build.dir}"/>
+  <delete dir="dist"/>
+</target>
+
+<target name="externalbuild" if="external.build" >
+	<delete dir="bin"/>
+	<mkdir dir="bin"/>
+	<property file="build.ajproperties"/>
+	<iajc srcdir="." destdir="bin" classpathRef="project.class.path"
+	    debug="false" verbose="true" fork="true" maxmem="256m"
+	    includes="${src.includes}" excludes="${src.excludes}" />
+	<!--
+	<javac srcdir="src" destdir="bin">
+		<classpath refid="project.class.path" />
+	</javac>
+	-->
+</target>
+
+<target name="eclipsebuild" unless="external.build" >
+	<eclipse.incrementalBuild project="org.eclipse.ajdt.core" />
+</target>
+
+<target name="buildproject" depends="externalbuild,eclipsebuild" />
+
+<target name="ajdtjar" depends="init"
+  description="Create ajdtcore.jar, the library containing the plug-in
+    class files and properties.">
+ <!-- The following ant call is intended to provide the flexibility 
+      to build AJDT from within Eclipse or else from a command line
+      run of Ant (e.g. in a Cruise Control environment).
+ -->
+ <antcall target="buildproject" />
+  <zip destfile= "${build.dir}/ajdtcore.jar" >
+  	<fileset dir="bin"/>
+  </zip>
+</target>
+
+<target name="ajdtsrcjar" depends="init"
+ description="The source jar file for ajdt core, ajdtcoresrc.jar">
+  <zip destfile= "${build.dir}/ajdtcoresrc.jar" >
+   <fileset dir="src"/>
+  </zip>
+</target>
+
+
+<target name="packaged-plugin" depends="ajdtjar, ajdtsrcjar"
+ description="Create the plugin jar file from the assembled components in the build dir">
+ <copy todir="${build.dir}">
+   <fileset dir=".">
+     <include name="*.xml"/>
+     <exclude name="build.*"/>
+     <include name="*.html"/>
+     <include name="*.properties"/>
+     <exclude name="plugin.*xml" />
+   </fileset>
+ </copy>
+ <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ 	<filterset begintoken="9" endtoken="9">
+ 		<filter token="2.2.2" value="${ajdt.version}"/>
+ 	</filterset>
+ </copy>
+ <zip destfile="dist/org.eclipse.ajdt.core_${ajdt.version}.jar" >
+   <fileset dir= "build" />
+ </zip>
+</target>
+
+</project>
