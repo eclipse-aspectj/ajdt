@@ -20,9 +20,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
+import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.pde.internal.ui.build.ClasspathHelper;
 import org.eclipse.pde.internal.ui.wizards.exports.PluginExportJob;
 
 /**

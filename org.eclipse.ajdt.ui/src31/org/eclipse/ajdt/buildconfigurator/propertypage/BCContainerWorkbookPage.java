@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -92,10 +93,10 @@ public class BCContainerWorkbookPage extends SourceContainerWorkbookPage {
 	private final int IDX_EDIT= 2;
 	private final int IDX_REMOVE= 3;	
 
-	public BCContainerWorkbookPage(IWorkspaceRoot root, ListDialogField classPathList, StringDialogField outputLocationField) {
-		super(root, classPathList, outputLocationField);
+	public BCContainerWorkbookPage(ListDialogField classPathList, StringDialogField outputLocationField) {
+		super(classPathList, outputLocationField);
 		
-		fWorkspaceRoot= root;
+		fWorkspaceRoot= ResourcesPlugin.getWorkspace().getRoot();
 		fClassPathList= classPathList;
 	
 		fOutputLocationField= outputLocationField;
