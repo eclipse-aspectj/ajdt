@@ -10,19 +10,17 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.utils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 
 /**
  * Utility class for common JDT functions required by providers
@@ -56,17 +54,10 @@ public class JDTUtils {
 	public static void openInEditor(IMarker marker) {
 		IWorkbenchPage page = VisualiserPlugin.getActiveWorkbenchWindow().getActivePage();
 		try {
-			// call via reflection to increase compatibility across Eclipse versions
-			Method m = IWorkbenchPage.class.getMethod("openEditor",new Class[]{IMarker.class});
-			if (m!=null) {
-				m.invoke(page, new Object[]{marker});
-			}
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		} 
+			IDE.openEditor(page, marker);
+		} catch (PartInitException e) {
+			VisualiserPlugin.logException(e);
+		}
 	}
 	
 	/**
