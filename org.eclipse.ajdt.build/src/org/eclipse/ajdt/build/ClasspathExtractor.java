@@ -54,7 +54,7 @@ System.out.println("args="+args);
 if (args instanceof String[]) {
 	String[] arg = (String[])args;
 	for (int i = 0; i < arg.length; i++) {
-		System.out.println("arg["+i+"]="+arg);
+		System.out.println("arg["+i+"]="+arg[i]);
 	}
 }
 		ensureProjectsExist(root);
