@@ -38,8 +38,9 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
@@ -61,6 +62,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	
 	private static Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
 	private static Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
+	private Action resetColorMemoryAction;
+	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239"; 
+	private IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
+	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys";
 
 	/**
 	 * Get a List of Stripes for the given member, which are its markups.
@@ -281,8 +286,21 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
 			String key = currentProject + ":::" + aspectName;
+			if(prefs.getString(key) == null) {
+				prefs.setDefault(key, "");
+			}
+			
+			// Save all keys we add in order that they can be reset.
+			String allColourKeys = prefs.getString(allPrefereceKeys);
+			if(allColourKeys == null) {
+				prefs.putValue(allPrefereceKeys, key);
+				prefs.setDefault(allPrefereceKeys, "");
+			} else {
+				allColourKeys += "," + key;
+				prefs.putValue(allPrefereceKeys, allColourKeys);
+			}
+			
 			String value = r + "," + g + "," + b;
-			IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
 			prefs.setValue(key, value);
 			if(savedColours == null) {
 				savedColours = new HashMap();
@@ -327,6 +345,16 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	public void activate() { 
 		if(VisualiserPlugin.menu != null) {
+			resetColorMemoryAction = new Action() {
+				public void run() {
+					resetSavedColours();
+					VisualiserPlugin.refresh();
+				}
+
+			};
+			resetColorMemoryAction.setImageDescriptor(AspectJImages.RESET_COLOURS.getImageDescriptor());
+			resetColorMemoryAction.setText(AspectJUIPlugin.getResourceString("ResetColorMemory"));
+			resetColorMemoryAction.setId(resetColorMemoryID);
 			hideErrorsAction = new Action() {
 				public int getStyle() {
 					return IAction.AS_CHECK_BOX;
@@ -338,7 +366,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 			};
 			hideErrorsAction.setImageDescriptor(AspectJImages.HIDE_ERRORS.getImageDescriptor());
-			hideErrorsAction.setToolTipText("Hide Errors");
+			hideErrorsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideErrors"));
 			hideWarningsAction = new Action() {
 				public int getStyle() {
 					return IAction.AS_CHECK_BOX;
@@ -350,15 +378,36 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 			};
 			hideWarningsAction.setImageDescriptor(AspectJImages.HIDE_WARNINGS.getImageDescriptor());
-			hideWarningsAction.setToolTipText("Hide Warnings");
+			hideWarningsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideWarnings"));
 			IActionBars menuActionBars = VisualiserPlugin.menu.getViewSite().getActionBars();
 			IToolBarManager toolBarManager = menuActionBars.getToolBarManager();
 			toolBarManager.add(hideErrorsAction);
 			toolBarManager.add(hideWarningsAction);
 			toolBarManager.update(true);
+			IMenuManager menuManager = menuActionBars.getMenuManager();
+			menuManager.add(new Separator());
+			menuManager.add(resetColorMemoryAction);
 		}
 	}
 	
+	/**
+	 * Reset all the saved colours
+	 */
+	protected void resetSavedColours() {
+		String colourKeys = prefs.getString(allPrefereceKeys);
+		if(colourKeys != null && colourKeys != "") {
+			String[] keys = colourKeys.split(",");
+			for (int i = 0; i < keys.length; i++) {
+				prefs.setToDefault(keys[i]);
+			}
+			prefs.setToDefault(allPrefereceKeys);
+		}
+		savedColours = new HashMap();
+		super.resetColours();
+	}
+
+
+
 	/**
 	 * Deactivate
 	 */
@@ -367,9 +416,12 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(VisualiserPlugin.menu != null) {
 			IActionBars menuActionBars = VisualiserPlugin.menu.getViewSite().getActionBars();
 			IToolBarManager toolBarManager = menuActionBars.getToolBarManager();
-			IContributionItem[] contributions = toolBarManager.getItems();
+//			IContributionItem[] contributions = toolBarManager.getItems();
 			toolBarManager.removeAll();
 			toolBarManager.update(true);
+			IMenuManager menuManager = menuActionBars.getMenuManager();
+			menuManager.remove(resetColorMemoryID);
+			menuManager.update(true);
 		}		
 	}
 	

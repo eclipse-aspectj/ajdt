@@ -218,6 +218,9 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/buildconfig/selected_buildconfig_file.gif");
 	public static final AJDTIcon BC_HALF_FILLED_PACKAGE = new AJDTIcon(
 				"icons/buildconfig/halffilledpackage.gif");
+
+	public static final AJDTIcon RESET_COLOURS = new AJDTIcon(
+				"icons/actions/reset_colours.gif");
 	
 	public static AspectJImages registry( ) {
 		if ( instance == null ) {
