@@ -312,6 +312,30 @@
             description="%ajFileFilterDesc"
             name="%ajFileFilter"
             id="org.eclipse.ajdt.javamodel.FileFilter"/>
+      <filter
+            id="org.eclipse.ajdt.ui.editor.outline.PointcutFilter"
+            name="%pointcutFilter.name"
+            description="%pointcutFilter.description"
+            class="org.eclipse.ajdt.internal.ui.editor.outline.PointcutFilter"
+            enabled="false"/>      
+      <filter
+            id="org.eclipse.ajdt.ui.editor.outline.AdviceFilter"
+            name="%adviceFilter.name"
+            description="%adviceFilter.description"
+            class="org.eclipse.ajdt.internal.ui.editor.outline.AdviceFilter"
+            enabled="false"/>      
+      <filter
+            id="org.eclipse.ajdt.ui.editor.outline.IntroductionFilter"
+            name="%introductionFilter.name"
+            description="%introductionFilter.description"
+            class="org.eclipse.ajdt.internal.ui.editor.outline.IntroductionFilter"
+            enabled="false"/>      
+      <filter
+            id="org.eclipse.ajdt.ui.editor.outline.DeclarationFilter"
+            name="%declarationFilter.name"
+            description="%declarationFilter.description"
+            class="org.eclipse.ajdt.internal.ui.editor.outline.DeclarationFilter"
+            enabled="false"/>      
    </extension>
 
 <!-- Define editors used by AspectJ -->
