@@ -46,7 +46,10 @@ public class AspectJPreferences {
     public static final String HAS_SET_AJPLUGIN_DEPENDENCY = "Has_Set_AJPlugin_Dependency";
     
     public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt";
-	/**
+
+    public static final String ADVICE_DECORATOR = "aspectjPreferences.adviceDec";
+
+    /**
 	 * Identifier for outline view mode selection
 	 */
 	public static final String ASPECTJ_OUTLINE = "org.eclipse.ajdt.ui.ajoutline2";
@@ -238,7 +241,12 @@ public class AspectJPreferences {
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		return store.getBoolean(ASPECTJ_OUTLINE);
 	}
-	
+
+	static public boolean isAdviceDecoratorActive() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		return store.getBoolean(ADVICE_DECORATOR);
+	}
+
 	static public boolean isAutobuildSuppressed() {
 		return false; // Bug 46653
 //		IPreferenceStore store = AspectJPlugin.getDefault().getPreferenceStore();

@@ -386,8 +386,9 @@ public class Builder extends IncrementalProjectBuilder {
 				AspectJUIPlugin.getDefault().getDisplay().syncExec(
 						new Runnable() {
 							public void run() {
-								AJModelUtils.refreshOutlineViews();
-
+								if (AspectJPreferences.isAdviceDecoratorActive()) {
+									AJModelUtils.refreshOutlineViews();
+								}
 								if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 									AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
 											.getContentProvider();

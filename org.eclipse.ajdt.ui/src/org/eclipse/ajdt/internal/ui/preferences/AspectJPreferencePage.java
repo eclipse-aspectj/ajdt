@@ -49,6 +49,7 @@ public class AspectJPreferencePage
 		//store.setDefault(AspectJPreferences.COMPILER_OPTIONS, "");
 		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
 		store.setDefault(AspectJPreferences.ASPECTJ_OUTLINE, false);
+		store.setDefault(AspectJPreferences.ADVICE_DECORATOR, true);
 		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
         store.setDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE, false);
         store.setDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT, true);
@@ -142,6 +143,8 @@ public class AspectJPreferencePage
 		createLabel(compilerOptionsComposite, 
 				AspectJUIPlugin.getResourceString("aspectjpreferences.fileExt.details"));
 
+		addField(createAdviceDecoratorField(compilerOptionsComposite));
+		
 	}
 
 	/**
@@ -223,6 +226,15 @@ public class AspectJPreferencePage
 			new BooleanFieldEditor(
 				AspectJPreferences.JAVA_OR_AJ_EXT,
 				AspectJUIPlugin.getResourceString("aspectjPreferences.fileExt"),
+				parent);
+		return editor;
+	}
+
+	private FieldEditor createAdviceDecoratorField(Composite parent) {
+		BooleanFieldEditor editor =
+			new BooleanFieldEditor(
+				AspectJPreferences.ADVICE_DECORATOR,
+				AspectJUIPlugin.getResourceString("aspectjPreferences.adviceDec"),
 				parent);
 		return editor;
 	}
