@@ -45,7 +45,8 @@ public class AspectJBreakpointRulerActionDelegate extends AbstractRulerActionDel
 // are handled the same by the AJDT editor as they are by the ID_CU_EDITOR
 // we have to ensure the targetEditor below is not nulled out.
 			if (!id.equals(JavaUI.ID_CU_EDITOR) && !id.equals(JavaUI.ID_CF_EDITOR) 
-			&& !id.equals(AspectJEditor.ASPECTJ_EDITOR_ID))
+			&& 
+			!id.equals(AspectJEditor.ASPECTJ_EDITOR_ID))
 				targetEditor= null;
 		}
 		super.setActiveEditor(callerAction, targetEditor);
@@ -68,7 +69,8 @@ public class AspectJBreakpointRulerActionDelegate extends AbstractRulerActionDel
 			}
 		} catch (CoreException e) {
 		}
-		//else: use jdts action
+		//	else: use jdts action
 		return new ManageBreakpointRulerAction(rulerInfo, editor);
 	}
+
 }

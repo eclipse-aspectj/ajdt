@@ -37,7 +37,6 @@ import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Assert;
@@ -51,9 +50,6 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -82,7 +78,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	public AspectJEditor() {
 		
 		super();	
-				
+		setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$	
 		//		activeEditorList.add(this);
 		//		//this.setSourceViewerConfiguration()
 		//		AspectJTextTools textTools =
@@ -91,29 +87,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		//			new JavaSourceViewerConfiguration(textTools, this));
 		//((PartSite)getSite()).getConfigurationElement()
 
-	}
-
-	public void createPartControl(Composite parent) {
-		super.createPartControl(parent);
-
-		//re-initialize the ruler context menu so we can add our
-		// ContextMenuManipulator
-		//(code copied from a super implementation of this method)
-		if (getRulerContextMenuId() != null) {
-			String id = getRulerContextMenuId() != null ? getRulerContextMenuId()
-					: DEFAULT_RULER_CONTEXT_MENU_ID;
-			MenuManager manager = new MenuManager(id, id);
-			manager.setRemoveAllWhenShown(true);
-			manager.addMenuListener(getContextMenuListener());
-
-			Control rulerControl = getVerticalRuler().getControl();
-			Menu fRulerContextMenu = manager.createContextMenu(rulerControl);
-			rulerControl.setMenu(fRulerContextMenu);
-			//rulerControl.addMouseListener(getRulerMouseListener());
-			getSite().registerContextMenu(getRulerContextMenuId(), manager,
-					getSelectionProvider());
-			manager.addMenuListener(new ContextMenuManipulator());
-		}
 	}
 
 	// Existing in this map means the modification has occurred
