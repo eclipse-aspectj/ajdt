@@ -11,8 +11,7 @@
       <library name="build.jar">
          <export name="*"/>
       </library>
-      <library name="lib/jdtcore.jar">
-       </library>
+      <library name="lib/jdtcore.jar"/>
    </runtime>
 
    <requires>

@@ -59,6 +59,8 @@
 				<pathelement path="../../plugins/org.eclipse.osgi_3.0.1/eclipseAdaptor.jar"/>
 				<pathelement path="../../plugins/org.eclipse.core.resources_3.0.1/bin"/>
 				<pathelement path="../../plugins/org.eclipse.core.resources_3.0.1/resources.jar"/>
+				<pathelement path="../../plugins/org.eclipse.core.resources.spysupport_1.0.2.200406111214.jar/resources.jar"/>
+				<pathelement path="../../plugins/org.eclipse.core.resources.spysupport_1.0.2.200406111214.jar"/>
 				<pathelement path="../../plugins/org.eclipse.core.resources.win32_3.0.0/resources.jar"/>
 				<pathelement path="../../plugins/org.eclipse.core.resources.win32_3.0.0/bin"/>
 				<pathelement path="../../plugins/org.eclipse.core.resources.win32_3.0.0/resources-win32.jar"/>
@@ -66,6 +68,8 @@
 				<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility_3.0.0/compatibility.jar"/>
 				<pathelement path="../../plugins/org.eclipse.update.configurator_3.0.0/bin"/>
 				<pathelement path="../../plugins/org.eclipse.update.configurator_3.0.0/configurator.jar"/>
+				<pathelement path="../../plugins/org.eclipse.jdt.launching_3.0.1/bin"/>
+				<pathelement path="../../plugins/org.eclipse.jdt.launching_3.0.1/launching.jar"/>
 				<pathelement path="../org.eclipse.jdt.core/bin"/>
 				<pathelement path="../org.eclipse.jdt.core/jdtcore.jar"/>
 				<pathelement path="../../plugins/org.eclipse.text_3.0.1/bin"/>
@@ -101,8 +105,6 @@
 				<pathelement path="../../plugins/org.apache.ant_1.6.2/lib/ant-xslp.jar"/>
 				<pathelement path="../../plugins/org.eclipse.team.core_3.0.0/bin"/>
 				<pathelement path="../../plugins/org.eclipse.team.core_3.0.0/team.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.launching_3.0.1/bin"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.launching_3.0.1/launching.jar"/>
 				<pathelement path="../../plugins/org.eclipse.debug.core_3.0.1/bin"/>
 				<pathelement path="../../plugins/org.eclipse.debug.core_3.0.1/dtcore.jar"/>
 				<pathelement path="../../plugins/org.eclipse.core.variables_3.0.0/bin"/>
@@ -111,6 +113,7 @@
 				<pathelement path="../org.eclipse.jdt.debug/jdi.jar"/>
 				<pathelement path="../org.eclipse.jdt.debug/jdimodel.jar"/>
 				<pathelement path="../org.eclipse.jdt.debug/tools.jar"/>
+				<pathelement path="lib/jdtcore.jar"/>
 			</classpath>
 			<src path="src/"			/>
 			</javac>
