@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -42,6 +43,7 @@ import org.eclipse.jdt.internal.ui.wizards.dialogfields.ListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.TreeListDialogField;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.wizards.BuildPathDialogAccess;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -69,7 +71,8 @@ public class AspectPathLibrariesWorkbookPage extends
     private final int IDX_ADDJAR= 0;
     private final int IDX_ADDEXT= 1;
     private final int IDX_ADDVAR= 2;
-    private final int IDX_ADDLIB= 3;
+    private final int IDX_ADDLIB= -1; // containers not supported
+    private final int IDX_ADDFOL= 3;
     
     private final int IDX_EDIT= 5;
     private final int IDX_REMOVE= 6;
@@ -84,8 +87,8 @@ public class AspectPathLibrariesWorkbookPage extends
             /* IDX_ADDJAR*/ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addjar.button"),   //$NON-NLS-1$
             /* IDX_ADDEXT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addextjar.button"), //$NON-NLS-1$
             /* IDX_ADDVAR */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addvariable.button"), //$NON-NLS-1$
-            /* IDX_ADDLIB */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
-//            /* IDX_ADDFOL */ AspectJPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
+            /* IDX_ADDLIB */ //AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
+            /* IDX_ADDFOL */ null, //AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
             /* */ null,  
             /* IDX_EDIT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.edit.button"), //$NON-NLS-1$
             /* IDX_REMOVE */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.remove.button") //$NON-NLS-1$
@@ -213,6 +216,9 @@ public class AspectPathLibrariesWorkbookPage extends
         case IDX_ADDLIB: /* add library */
             libentries= openContainerSelectionDialog(null);
             break;
+        case IDX_ADDFOL: /* add folder */
+            libentries= openClassFolderDialog(null);
+            break;          
         case IDX_EDIT: /* edit */
             editEntry();
             return;
@@ -234,12 +240,25 @@ public class AspectPathLibrariesWorkbookPage extends
                     curr.setAttribute(CPListElement.JAVADOC, JavaUI.getLibraryJavadocLocation(curr.getPath()));
                 }
             }
-            
+            if (!elementsToAdd.isEmpty() && (index == IDX_ADDFOL)) {
+                askForAddingExclusionPatternsDialog(elementsToAdd);
+            }
+
             fLibrariesList.addElements(elementsToAdd);
             if (index == IDX_ADDLIB) {
                 fLibrariesList.refresh();
             }
             fLibrariesList.postSetSelection(new StructuredSelection(libentries));
+        }
+    }
+
+    private void askForAddingExclusionPatternsDialog(List newEntries) {
+        HashSet modified= new HashSet();
+        fixNestingConflicts(newEntries, fAspectPathList.getElements(), modified);
+        if (!modified.isEmpty()) {
+            String title= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.title"); //$NON-NLS-1$
+            String message= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.message"); //$NON-NLS-1$
+            MessageDialog.openInformation(getShell(), title, message);
         }
     }
 

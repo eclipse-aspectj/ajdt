@@ -284,7 +284,7 @@ public class InPathBlock {
 
         for (int i = 0; i < nEntries; i++) {
             CPListElement entry = ((CPListElement) inPathEntries.get(i));
-            inpath[i] = JavaCore.getResolvedClasspathEntry(entry.getClasspathEntry());
+            inpath[i] = entry.getClasspathEntry();
         }
 
         monitor.worked(2);

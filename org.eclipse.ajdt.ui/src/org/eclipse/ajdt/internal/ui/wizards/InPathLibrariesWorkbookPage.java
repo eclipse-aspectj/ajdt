@@ -71,11 +71,11 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
     private final int IDX_ADDJAR= 0;
     private final int IDX_ADDEXT= 1;
     private final int IDX_ADDVAR= 2;
-    private final int IDX_ADDLIB= 3;
-    private final int IDX_ADDFOL= 4;
+    private final int IDX_ADDLIB= -1; // containers not supported
+    private final int IDX_ADDFOL= 3;
     
-    private final int IDX_EDIT= 6;
-    private final int IDX_REMOVE= 7;
+    private final int IDX_EDIT= 5;
+    private final int IDX_REMOVE= 6;
     
         
     public InPathLibrariesWorkbookPage(IWorkspaceRoot root, ListDialogField inpathList) {
@@ -87,7 +87,7 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
             /* IDX_ADDJAR*/ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addjar.button"),   //$NON-NLS-1$
             /* IDX_ADDEXT */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addextjar.button"), //$NON-NLS-1$
             /* IDX_ADDVAR */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addvariable.button"), //$NON-NLS-1$
-            /* IDX_ADDLIB */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
+            /* IDX_ADDLIB */ //AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
             /* IDX_ADDFOL */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
             /* */ null,  
             /* IDX_EDIT */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.edit.button"), //$NON-NLS-1$

@@ -24,6 +24,7 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaProject;
 
@@ -243,8 +244,11 @@ public class BuildOptionsAdapter
     
     public Set getInPath() {
     	IProject thisProject = AspectJUIPlugin.getDefault().getCurrentProject();
-		String inpath = AspectJPreferences.getProjectInPath(thisProject)[0];
+		String[] v = AspectJPreferences.getProjectInPath(thisProject);
 
+		// need to expand any variables on the path
+		String inpath = expandVariables(v[0], v[2]);
+		
         // Ensure that every entry in the list is a fully qualified one.
         inpath = fullyQualifyPathEntries(inpath);
 
@@ -257,6 +261,34 @@ public class BuildOptionsAdapter
 			return null;
 
 		return mapStringToSet(inpath, false);
+    }
+    
+    private String expandVariables(String path, String eKinds) {
+		StringBuffer resultBuffer = new StringBuffer();
+		StringTokenizer strTok = new StringTokenizer(path,
+				File.pathSeparator);
+		StringTokenizer strTok2 = new StringTokenizer(eKinds,
+				File.pathSeparator);
+		while (strTok.hasMoreTokens()) {
+			String current = strTok.nextToken();
+			int entryKind = Integer.parseInt(strTok2.nextToken());
+			if (entryKind==IClasspathEntry.CPE_VARIABLE) {
+				int slashPos = current.indexOf(
+						AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR, 0);
+				if (slashPos != -1) {
+					String exp = JavaCore.getClasspathVariable(current.substring(0,slashPos)).toOSString();
+					resultBuffer.append(exp);
+					resultBuffer.append(current.substring(slashPos));
+				} else {
+					String exp = JavaCore.getClasspathVariable(current).toOSString();
+					resultBuffer.append(exp);
+				}
+			} else {
+				resultBuffer.append(current);
+			}
+			resultBuffer.append(File.pathSeparator);
+		}
+		return resultBuffer.toString();
     }
     
     /**
@@ -337,7 +369,10 @@ public class BuildOptionsAdapter
 
 	public Set getAspectPath() {
 		IProject thisProject = AspectJUIPlugin.getDefault().getCurrentProject();
-        String aspectpath = AspectJPreferences.getProjectAspectPath(thisProject)[0];
+        String[] v = AspectJPreferences.getProjectAspectPath(thisProject);
+
+		// need to expand any variables on the path
+		String aspectpath = expandVariables(v[0], v[2]);
 
         // Ensure that every entry in the list is a fully qualified one.
         aspectpath = fullyQualifyPathEntries(aspectpath);
