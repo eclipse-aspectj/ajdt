@@ -156,7 +156,7 @@ public class VisualiserCanvas extends Canvas {
 					if (is instanceof StripeGeom) {
 						s = ((StripeGeom) is).stripe;
 					}
-					visualiser.handleClick(is.getMember(), "", s, //$NON-NLS-1$
+					visualiser.handleClick(is.getMember(), s, 
 							e.button);
 				}
 			}
@@ -319,7 +319,7 @@ public class VisualiserCanvas extends Canvas {
 				if (selectedItem instanceof StripeGeom) {
 					s = ((StripeGeom) selectedItem).stripe;
 				}
-				visualiser.handleClick(selectedItem.getMember(), "", //$NON-NLS-1$
+				visualiser.handleClick(selectedItem.getMember(),
 						s, 1);
 			}
 		} else if (ke.character == '\t') {

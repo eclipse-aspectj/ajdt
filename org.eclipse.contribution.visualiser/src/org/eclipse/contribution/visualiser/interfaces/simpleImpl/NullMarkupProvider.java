@@ -91,7 +91,7 @@ public class NullMarkupProvider implements IMarkupProvider {
 	 * should be performed.
 	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, String, int)
 	 */
-	public boolean processMouseclick(IMember member, Stripe stripe, String exactKind, int buttonClicked) {
+	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked) {
 		return true;
 	}
 

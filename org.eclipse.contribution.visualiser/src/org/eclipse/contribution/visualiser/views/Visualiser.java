@@ -663,7 +663,7 @@ public class Visualiser extends ViewPart {
 	 * @param stripe
 	 * @param buttonClicked
 	 */
-	protected void handleClick(IMember member, String kind, Stripe stripe,
+	protected void handleClick(IMember member, Stripe stripe,
 			int buttonClicked) {
 
 		boolean proceed = contentP.processMouseclick((member != null ? member
@@ -671,7 +671,7 @@ public class Visualiser extends ViewPart {
 
 		if (stripe != null)
 			proceed = markupP.processMouseclick(
-					(member != null ? member : null), stripe, kind,
+					(member != null ? member : null), stripe, 
 					buttonClicked)
 					&& proceed;
 

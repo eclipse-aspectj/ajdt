@@ -98,7 +98,6 @@ public interface IMarkupProvider {
 	 * Called when the user clicks on a stripe on a member in the visualiser - the information passed is
 	 * - The full name of the member, e.g. "ABC.B"
 	 * - The stripe that was clicked (which might contain multiple 'kinds')
-	 * - Exactly which 'kind' within the stripe was clicked
 	 * - The buttons pressed (1 is LH button, 3 is RH button)
 	 * 
 	 * The return value is whether the visualiser should take its normal action on this click.
@@ -110,7 +109,7 @@ public interface IMarkupProvider {
 	 * The call to the markup provider will occur regardless of whether 
 	 * true or false is returned here.
 	 */
-	public boolean processMouseclick(IMember member, Stripe stripe, String exactKind, int buttonClicked);
+	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked);
 	
 	
 	/**
