@@ -45,6 +45,7 @@ import org.eclipse.ajdt.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
+import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -386,9 +387,10 @@ public class Builder extends IncrementalProjectBuilder {
 				AJModelUtils.refreshOutlineViews();
 			}
 
-			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
+			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 				AJDTEventTrace.generalEvent("Not updating vis, display is disposed!");
-			else
+				AJDTEventTrace.generalEvent("Not updating XReference View, display is disposed!");
+			} else {
 				AspectJUIPlugin.getDefault().getDisplay().syncExec(
 						new Runnable() {
 							public void run() {
@@ -400,6 +402,13 @@ public class Builder extends IncrementalProjectBuilder {
 								}
 							}
 						});
+				AspectJUIPlugin.getDefault().getDisplay().syncExec(
+						new Runnable() {
+							public void run() {
+								XReferenceUIPlugin.refresh();
+							}
+						});
+			}
 			
 		} catch (Exception e) {
 			Ajde.getDefault().getErrorHandler().handleError("Compile failed.",

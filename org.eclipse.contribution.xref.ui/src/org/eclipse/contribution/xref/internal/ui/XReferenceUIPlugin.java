@@ -18,15 +18,24 @@ import java.util.ResourceBundle;
 
 import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.core.XReferenceAdapterFactory;
+import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.progress.UIJob;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -41,6 +50,8 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	//Resource bundle.
 	private ResourceBundle resourceBundle;
 
+	public static XReferenceView xrefView;
+	
 	private static Image relImage = null;
 	private static Image evaluateImage = null;
 
@@ -86,6 +97,21 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 		return plugin;
 	}
 
+	/**
+	 * Set the XReference view
+	 */
+	public void setXReferenceView(XReferenceView view) {
+		XReferenceUIPlugin.xrefView = view;
+	}
+
+	/**
+	 * Refresh the XReference view.
+	 */
+	public static void refresh() {
+		if (xrefView != null) {
+		 	XReferenceViewUpdateJob.getInstance().schedule();
+		}
+	}
 	/**
 	 * Returns the workspace instance.
 	 */
@@ -158,4 +184,44 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 		}
 		return relImage;
 	}
+	
 }
+
+// UIJob that updates the XReference View
+class XReferenceViewUpdateJob extends UIJob {
+		 private static XReferenceViewUpdateJob theJob;
+		 
+		 private XReferenceViewUpdateJob(String name){
+		 		 super (name);
+		 }
+		 
+		 public static XReferenceViewUpdateJob getInstance() {
+	 		 if(theJob == null) {
+ 		 		 theJob = new XReferenceViewUpdateJob(XReferenceUIPlugin.getResourceString("Jobs.XRefViewUpdate")); //$NON-NLS-1$
+ 		 		 theJob.setUser(true);
+ 		 		 theJob.setPriority(Job.SHORT);
+	 		 }
+	 		 return theJob;
+		 }
+		 
+		/* (non-Javadoc)
+		 * @see org.eclipse.ui.progress.UIJob#runInUIThread(org.eclipse.core.runtime.IProgressMonitor)
+		 */
+		public IStatus runInUIThread(IProgressMonitor monitor) {
+			monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
+	 		if (XReferenceUIPlugin.xrefView !=null) {
+	 			ISelection selection = XRefUIUtils.getCurrentSelection();
+	 			IWorkbenchPart workbenchPart = null;
+	 			if (XRefUIUtils.getActiveWorkbenchWindow() != null) {
+	 				workbenchPart = XRefUIUtils.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+	 			}
+	 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(true);
+	 		 	XReferenceUIPlugin.xrefView.selectionChanged(workbenchPart,selection);						
+	 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(false);
+	 		}
+	 		monitor.done();
+	 		return Status.OK_STATUS;
+		}
+		 
+}
+

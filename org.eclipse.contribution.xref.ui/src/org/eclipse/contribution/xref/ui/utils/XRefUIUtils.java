@@ -199,4 +199,11 @@ public class XRefUIUtils {
 		return xra;
 	}
 	
+	public static ISelection getCurrentSelection() {
+		IWorkbenchWindow window= JavaPlugin.getActiveWorkbenchWindow();
+		if (window != null) {
+			return window.getSelectionService().getSelection();
+		}
+		return null;
+	}
 }

@@ -61,7 +61,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
 
+	private boolean changeDrivenByBuild = false;
+	
 	public XReferenceView() {
+		XReferenceUIPlugin.xrefView = this;
 	}
 
 	/*
@@ -96,7 +99,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -107,8 +110,14 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection);
 		if (xra != null) {
 			lastSelection = xra;
-			if (linkingEnabled) {
+			if (linkingEnabled && !changeDrivenByBuild) {
 				viewer.setInput(xra);
+			} else if (changeDrivenByBuild){
+				Object o = viewer.getInput();
+				if (o instanceof IXReferenceAdapter) {
+					IXReferenceAdapter xrefAdapter = (IXReferenceAdapter)o;
+					viewer.setInput(xrefAdapter);					
+				}
 			}
 		}
 	}
@@ -126,6 +135,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			window.getSelectionService().removeSelectionListener(this);
 		}
 		persistSettings();
+		XReferenceUIPlugin.xrefView = null;
 	}
 
 	public boolean isLinkingEnabled() {
@@ -240,4 +250,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		doubleClickAction = new DoubleClickAction(getViewSite().getShell(),viewer);
 	}
 	
+	/**
+	 * @param changeDrivenByBuild The changeDrivenByBuild to set.
+	 */
+	public void setChangeDrivenByBuild(boolean changeDrivenByBuild) {
+		this.changeDrivenByBuild = changeDrivenByBuild;
+	}
 }

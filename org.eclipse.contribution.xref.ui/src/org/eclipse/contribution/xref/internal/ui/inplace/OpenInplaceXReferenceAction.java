@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.inplace;
 
+import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -46,7 +47,7 @@ public class OpenInplaceXReferenceAction implements IWorkbenchWindowActionDelega
 		Shell parent = JavaPlugin.getActiveWorkbenchShell();
 		xrefDialog = new XReferenceInplaceDialog(parent);
 
-		xrefDialog.setLastSelection(getCurrentSelection());
+		xrefDialog.setLastSelection(XRefUIUtils.getCurrentSelection());
 		xrefDialog.setWorkbenchPart(JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart());		
 		xrefDialog.open();		
 	}
@@ -62,12 +63,5 @@ public class OpenInplaceXReferenceAction implements IWorkbenchWindowActionDelega
 			xrefDialog = null; 
 		}
 	}
-
-	private ISelection getCurrentSelection() {
-		IWorkbenchWindow window= JavaPlugin.getActiveWorkbenchWindow();
-		if (window != null) {
-			return window.getSelectionService().getSelection();
-		}
-		return null;
-	}
+	
 }
