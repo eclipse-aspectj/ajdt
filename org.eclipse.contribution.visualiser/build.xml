@@ -92,8 +92,11 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
  <copy todir="${build.dir}/icons">
    <fileset dir="icons" />
  </copy>
+	
+	<property file="${eclipse.home}/ajdtworkspace.properties"/>
 	<javadoc destdir="doc/javadoc" access="public" use="true" notree="false" nonavbar="false" noindex="false" splitindex="true" author="true" version="true" nodeprecatedlist="false" nodeprecated="false" packagenames="org.eclipse.contribution.visualiser.core.resources,org.eclipse.contribution.visualiser.palettes,org.eclipse.contribution.visualiser.renderers,org.eclipse.contribution.visualiser.core,org.eclipse.contribution.visualiser.markerImpl,org.eclipse.contribution.visualiser.simpleImpl,org.eclipse.contribution.visualiser.jdtImpl,org.eclipse.contribution.visualiser.internal.preference,org.eclipse.contribution.visualiser.views,org.eclipse.contribution.visualiser.utils,org.eclipse.contribution.visualiser.interfaces,org.eclipse.contribution.visualiser" sourcepath="src" classpath="${aspectjrt};${classpath.org.eclipse.contribution.visualiser}"/>
- <copy todir="${build.dir}/doc">
+
+	<copy todir="${build.dir}/doc">
    <fileset dir="doc" />
  </copy>
  <copy todir="${build.dir}">
