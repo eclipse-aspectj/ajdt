@@ -10,7 +10,7 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 <property name="ajdt.version" value="9.9.9" />
 <property name="ajde.version" value="9.9.9" />
 <property name="build.dir" value="build" />
-<property name="eclipse.build.version" value="3.0.0" />
+<property name="eclipse.build.id" value="30" />
 <property name="eclipse.home" value="c:/eclipse/30m8/eclipse"/>
 
 <property name="aspectj" value="c:/aspectj1.2" />
@@ -30,7 +30,9 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
      * external.build (set to any value) 
      * eclipse.home (set to the directory where Eclipse has been 
        installed on the build machine)
-     * eclipse.build.version (override the value default value set above)
+     * eclipse.build.id (override the value default value set above)
+       this indicates which eclipse version to build for - there needs to
+       be a .ajproperties file to, e.g. build30.ajproperties
      * aspectj (set to AspectJ install dir)
 -->
 
@@ -48,7 +50,7 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<property file="build30.ajproperties"/>
+	<property file="build${eclipse.build.id}.ajproperties"/>
 	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.ajdt.core}"
 	    debug="false" verbose="true" fork="true" maxmem="256m"
 	    includes="${src.includes}" excludes="${src.excludes}" />
