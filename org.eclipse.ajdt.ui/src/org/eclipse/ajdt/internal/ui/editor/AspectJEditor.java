@@ -25,6 +25,7 @@ import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.visualiser.NodeHolder;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
@@ -72,7 +73,6 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  */
 public class AspectJEditor extends CompilationUnitEditor {
 
-	// as defined in plugin.xml
 	public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor";
 
 	private AspectJContentOutlinePage contentOutlinePage;
@@ -470,10 +470,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 			public void run() {
 				try {
 					// Wipe all the current advice markers
-					fInput.getFile().deleteMarkers(AspectJUIPlugin.ADVICE_MARKER,
+					fInput.getFile().deleteMarkers(IAJModelMarker.ADVICE_MARKER,
 							true, IResource.DEPTH_INFINITE);
 					fInput.getFile().deleteMarkers(
-							AspectJUIPlugin.DECLARATION_MARKER, true,
+							IAJModelMarker.DECLARATION_MARKER, true,
 							IResource.DEPTH_INFINITE);
 				} catch (CoreException ce) {
 					//if file has been deleted, don't throw exception
@@ -787,41 +787,41 @@ public class AspectJEditor extends CompilationUnitEditor {
 		if (useDefaultAdviceMarker) {
 			if (runtimeTest) {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.dynamicadvicemarker");
+						.createMarker(IAJModelMarker.DYNAMIC_ADVICE_MARKER);
 			} else {
 				if (adviceType == "") {
-					marker = ir.createMarker(AspectJUIPlugin.DECLARATION_MARKER);
+					marker = ir.createMarker(IAJModelMarker.DECLARATION_MARKER);
 				} else {
-					marker = ir.createMarker(AspectJUIPlugin.ADVICE_MARKER);
+					marker = ir.createMarker(IAJModelMarker.ADVICE_MARKER);
 				}
 			}
 		} else if (adviceType.equals("before")) {
 			if (runtimeTest) {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.dynamicbeforeadvicemarker");
+						.createMarker(IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER);
 			} else {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.beforeadvicemarker");
+						.createMarker(IAJModelMarker.BEFORE_ADVICE_MARKER);
 			}
 		} else if (adviceType.equals("around")) {
 			if (runtimeTest) {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.dynamicaroundadvicemarker");
+						.createMarker(IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER);
 			} else {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.aroundadvicemarker");
+						.createMarker(IAJModelMarker.AROUND_ADVICE_MARKER);
 			}
 		} else if (adviceType.startsWith("after")) {
 			if (runtimeTest) {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.dynamicafteradvicemarker");
+						.createMarker(IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER);
 			} else {
 				marker = ir
-						.createMarker("org.eclipse.ajdt.ui.afteradvicemarker");
+						.createMarker(IAJModelMarker.AFTER_ADVICE_MARKER);
 			}
 		} else {
 			// It's an Intertype Declaration
-			marker = ir.createMarker("org.eclipse.ajdt.ui.itdmarker");
+			marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
 		}
 		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt.intValue());
 		if (nodeRuntimeTest) {

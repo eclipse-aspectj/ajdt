@@ -29,6 +29,7 @@ import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.builder.Builder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -474,6 +475,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
             System.err.println("CompilerMessage received ]" + message + "[");
 
         problems.add(new ProblemTracker(message, location, kind));
+ 
         // When will showMessages() get called if we are not 'finishing off a
         // compilation' - the reason this
         // is important is that when AJDE is asked to build a model of a lst
@@ -537,6 +539,8 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                             if (ir.exists()) {
                                 ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
                                         IResource.DEPTH_INFINITE);
+                                ir.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
+                                        IResource.DEPTH_INFINITE);
                                 ir.deleteMarkers(IMarker.TASK, true,
                                         IResource.DEPTH_INFINITE);
                             }
@@ -561,9 +565,10 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                             //Bugfix 44155: Create marker of type TASK if
                             // problem is starts with todo, PROBLEM
                             // otherwise
-                            //AJDTEventTrace.generalEvent("Creating Marker,
-                            // kind: '" + p.kind + "'; text: '" + p.message
-                            // + "'");                            
+//                            AJDTEventTrace.generalEvent("Creating Marker, " +
+//                             "kind: '" + p.kind + "'; text: '" + p.message
+//                             + "'");  
+                        	
                             if (p.location != null) {
                                 ir = locationToResource(p.location, project);
                                 int prio = getTaskPriority(p);
@@ -573,7 +578,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                                 } else {
                                     if (p.declaredErrorOrWarning) {
                                         marker = ir
-                                                .createMarker("org.eclipse.ajdt.ui.problemmarker");
+                                                .createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
                                     } else {
                                     	// create Java marker with problem id so
 										// that quick fix is available
@@ -904,7 +909,6 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
         }
 
         public void run(IProgressMonitor monitor) {
-            System.out.println("Adding problem markers");
             while (problemIterator.hasNext()) {
                 ProblemTracker p = (ProblemTracker) problemIterator.next();
                 IResource ir = null;

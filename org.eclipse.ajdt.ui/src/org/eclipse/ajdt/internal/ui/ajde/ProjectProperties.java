@@ -36,6 +36,7 @@ import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -446,6 +447,10 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		try {
 			currProject
 					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+							(recurse ? IResource.DEPTH_INFINITE
+									: IResource.DEPTH_ZERO));
+			currProject
+					.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
 							(recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
 			currProject

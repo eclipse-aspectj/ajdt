@@ -26,6 +26,7 @@ import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -247,7 +248,10 @@ public class BuildConfigEditor
 				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
 				true,
 				IResource.DEPTH_INFINITE);
-
+			((IResource) input.getFile()).deleteMarkers(
+					IAJModelMarker.AJDT_PROBLEM_MARKER,
+					true,
+					IResource.DEPTH_INFINITE);
 		} catch (CoreException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError( e.getMessage(), e);
 		}

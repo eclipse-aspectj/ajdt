@@ -295,10 +295,6 @@ public class AspectJUIPlugin
 	 */
 	IResourceChangeListener resourceChangeListener;
 
-	// AJDT markers
-	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker";
-	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker";
-	
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice";
 	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-";

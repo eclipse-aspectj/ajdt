@@ -16,6 +16,7 @@ import java.io.File;
 
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -104,7 +105,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			// stored with the submenu entry gives the run() method of the inner class the
 			// ability to create a jump marker such that it can jump to the location where
 			// the advice is defined.
-			IMarker markers[] = ifile.findMarkers(AspectJUIPlugin.ADVICE_MARKER, true, 2);		    
+			IMarker markers[] = ifile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 2);		    
 			MenuManager adviceSubmenu = null;
 		    boolean adviceSubmenuInitialized = false;
 			if (markers != null && markers.length != 0) {
@@ -145,7 +146,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			// stored with the submenu entry gives the run() method of the inner class the
 			// ability to create a jump marker such that it can jump to the location where
 			// the advice is defined.
-			IMarker decMarkers[] = ifile.findMarkers(AspectJUIPlugin.DECLARATION_MARKER, true, 2);			
+			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);			
 			MenuManager declarationSubmenu = null;
 		    boolean declarationSubmenuInitialized = false;
 			if (decMarkers != null && decMarkers.length != 0) {
