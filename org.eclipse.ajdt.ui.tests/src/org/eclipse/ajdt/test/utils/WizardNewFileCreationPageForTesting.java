@@ -465,9 +465,9 @@ public class WizardNewFileCreationPageForTesting extends WizardPage implements L
 		if (initialContainerFullPath != null)
 			resourceGroup.setContainerFullPath(initialContainerFullPath);
 		else {
-			Iterator enum = currentSelection.iterator();
-			if (enum.hasNext()) {
-				Object object = enum.next();
+			Iterator iter = currentSelection.iterator();
+			if (iter.hasNext()) {
+				Object object = iter.next();
 				IResource selectedResource = null;
 				if (object instanceof IResource) {
 					selectedResource = (IResource) object;

@@ -726,9 +726,9 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 	 * Overrides method from WizardExportResourcePage
 	 */
 	protected void setupBasedOnInitialSelections() {
-		Iterator enum= fInitialSelection.iterator();
-		while (enum.hasNext()) {
-			Object selectedElement= enum.next();
+		Iterator iter= fInitialSelection.iterator();
+		while (iter.hasNext()) {
+			Object selectedElement= iter.next();
 
 			if (selectedElement instanceof IResource && !((IResource)selectedElement).isAccessible())
 				continue;

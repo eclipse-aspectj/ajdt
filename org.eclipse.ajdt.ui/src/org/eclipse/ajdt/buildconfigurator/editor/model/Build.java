@@ -75,9 +75,9 @@ public class Build implements IBuild {
 		fEntries.clear();
 		Properties properties = new Properties();
 		properties.load(source);
-		Enumeration enum = properties.keys();
-		while (enum.hasMoreElements()) {
-			String name = enum.nextElement().toString();
+		Enumeration iter = properties.keys();
+		while (iter.hasMoreElements()) {
+			String name = iter.nextElement().toString();
 			BuildEntry entry = (BuildEntry)fModel.getFactory().createEntry(name);
 			entry.processEntry(properties.get(name).toString());
 			fEntries.put(name, entry);

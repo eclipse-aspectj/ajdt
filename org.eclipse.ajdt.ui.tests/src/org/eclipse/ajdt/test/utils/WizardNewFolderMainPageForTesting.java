@@ -414,9 +414,9 @@ public class WizardNewFolderMainPageForTesting extends WizardPage implements
 	 * Initializes this page's controls.
 	 */
 	protected void initializePage() {
-		Iterator enum = currentSelection.iterator();
-		if (enum.hasNext()) {
-			Object next = enum.next();
+		Iterator iter = currentSelection.iterator();
+		if (iter.hasNext()) {
+			Object next = iter.next();
 			IResource selectedResource = null;
 			if (next instanceof IResource) {
 				selectedResource = (IResource) next;
