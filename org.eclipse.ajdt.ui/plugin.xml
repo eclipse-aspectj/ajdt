@@ -112,7 +112,20 @@
                menubarPath="additions"
                id="removeajnatureaction">
          </action>
-      </objectContribution>      
+      </objectContribution>   
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            nameFilter="plugin.xml"
+            id="org.eclipse.pde.ui.ajpluginToolSet">      
+               <action
+               label="%CreateAntBuildFile"
+               helpContextId="org.eclipse.pde.doc.user.create_plugin_jars"
+               class="org.eclipse.ajdt.internal.ui.actions.BuildPluginAction"
+               menubarPath="org.eclipse.pde.ui.plugin.tools/group2"
+               enablesFor="1"
+               id="org.eclipse.pde.ui.BuildPluginAction">
+         </action>
+      </objectContribution>   
  
 	<!--
 	Restrict selection to be a project with an AspectJ nature.
@@ -164,6 +177,18 @@
                id="renametojavaaction">
          </action>
       </objectContribution>
+      
+      <objectContribution 
+      		objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
+            adaptable="true"
+            id="ifilecontributions">
+          <action
+          	    label="Delete"
+          	    class="org.eclipse.ajdt.ui.refactoring.DeleteAction"
+          	    menubarPath="edit"
+          	    id="delete">
+          </action>
+       </objectContribution>
 
    <!--Our Toggle breakpoint action and JDT's other breakpoint actions-->
      <viewerContribution
@@ -1484,8 +1509,20 @@
          <enablement>
             <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
          </enablement>
-      </renameParticipant>
+      </renameParticipant>   
+    </extension>  
+    
+    <extension point="org.eclipse.ltk.core.refactoring.deleteParticipants"> 
+	  <deleteParticipant
+		    id="org.eclipse.ajdt.deleteParticipant"
+		    name="org.eclipse.ajdt.deleteParticipant" 
+		    class="org.eclipse.ajdt.ui.refactoring.DeleteParticipant">
+	    <enablement>
+	        <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
+	    </enablement>
+	 </deleteParticipant>
    </extension>
+   
    <extension
          point="org.eclipse.contribution.xref.core.providers">
       <xrefProvider
