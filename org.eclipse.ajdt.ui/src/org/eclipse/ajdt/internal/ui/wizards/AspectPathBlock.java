@@ -87,8 +87,8 @@ public class AspectPathBlock {
     private BuildPathBasePage fCurrPage;
 	private List existingAspectPath;
     
-    public static boolean aspectPathChanged = false;
-    public static boolean updatedAspectPath = false;
+    private static boolean aspectPathChanged = false;
+    private static boolean aspectPathUpdated = false;
     private List origAspectPathElements;
 	
     public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
@@ -169,7 +169,7 @@ public class AspectPathBlock {
             }
 
             aspectPathChanged = false;
-            updatedAspectPath = false;
+            aspectPathUpdated = false;
             
             doStatusLineUpdate();
         }
@@ -432,4 +432,38 @@ public class AspectPathBlock {
         }
     }       
 
+    /**
+     * Returns whether or not the aspect path setting saved in the 
+     * project preference store has been updated 
+     */
+    public static boolean aspectPathHasBeenUpdated() {
+        return aspectPathUpdated;
+    }
+    
+    /**
+     * Sets whether or not the aspect path setting has changed 
+     * in the preference page
+     */
+    public static void setAspectPathUpdated(boolean aspectPathUpdated) {
+        AspectPathBlock.aspectPathUpdated = aspectPathUpdated;
+    }
+    
+    /**
+     * Returns whether or not the aspect path setting has been updated 
+     * in the preference store
+     */
+    public static boolean aspectPathHasChanged() {
+        return aspectPathChanged;
+    }
+    
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the aspect path setting in the preference page hasn't been
+     * changed and that the preference store setting also hasn't
+     * been updated.
+     */
+    public void resetChangeSettings() {
+        setAspectPathUpdated(false);
+        aspectPathChanged = false;
+    }
 }

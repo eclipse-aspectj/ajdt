@@ -15,8 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
-import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
-import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -106,8 +104,8 @@ public class AspectJProjectPropertiesPage
     private static int BROWSE_FOR_CLASSJARS = 0;
     private static int BROWSE_FOR_ASPECTJARS = 1;
 
-    public static boolean outjarSettingChanged = false;
-    public static boolean outjarSettingUpdated = false;
+    private static boolean aspectjSettingChanged = false;
+    private static boolean aspectjSettingUpdated = false;
 
 	/**
 	 * Build the page of properties that can be set on a per project basis for the
@@ -163,7 +161,7 @@ public class AspectJProjectPropertiesPage
 		  new StringFieldEditor("",
 		    AspectJUIPlugin.getResourceString("compilerPropsPage.outputJar"),
             row3Comp);
-
+				
         // ------------------------- END OF FOURTH ROW ------------------------
 
         //Composite row4Comp = createRowComposite(pageComposite,2);
@@ -280,8 +278,8 @@ public class AspectJProjectPropertiesPage
 
         updatePageContents();
 
-        outjarSettingChanged = false;
-        outjarSettingUpdated = false;
+        aspectjSettingChanged = false;
+        aspectjSettingUpdated = false;
         
 		return pageComposite;
 	}
@@ -293,7 +291,6 @@ public class AspectJProjectPropertiesPage
 	private Button buildButton(Composite container, String label) {
 		Button btn = new Button(container, SWT.CHECK);
 		btn.setText(label);
-		
 
 		GridData data = new GridData();
 		data.horizontalSpan = 3;
@@ -419,7 +416,6 @@ public class AspectJProjectPropertiesPage
 	 */
 	private String retrieveSettingString(QualifiedName key) {
 		try {
-
 			String value = thisProject.getPersistentProperty(key);
 			return value;
 		} catch (CoreException ce) {
@@ -534,30 +530,7 @@ public class AspectJProjectPropertiesPage
 	 * of persistent properties against the project resource.
 	 * This method is also called if the user clicks 'Apply' on the property page.
 	 */
-	
 	public boolean performOk() {
-	
-	    // Verify the input sets of jars are valid (both classes and aspects)
-	
-//	    String invalidClassesJars = findInvalidJars(inputJarsEditor.getStringValue());
-//	    //ASCFIXME - Need to NLSify this string...
-//		if (invalidClassesJars!=null) {
-//		  AspectJPlugin.getDefault().getErrorHandler().handleWarning(
-//		    "The following files specified on the list of input "+
-//		    "(classes) jars do not exist:\n"+invalidClassesJars);
-//		    return false;
-//		}
-//	    
-//	    String invalidAspectJars = findInvalidJars(aspectJarsEditor.getStringValue());
-//	    //ASCFIXME - Need to NLSify this string...
-//		if (invalidAspectJars!=null) {
-//		  AspectJPlugin.getDefault().getErrorHandler().handleWarning(
-//		    "The following files specified on the list of input "+
-//		    "(aspect) jars do not exist:\n"+invalidAspectJars);
-//		    return false;
-//		}
-		
-	
 		// check the output jar value and make relative to project output dir if 
 		// needed.
 		String outJar = outputJarEditor.getStringValue();
@@ -574,61 +547,27 @@ public class AspectJProjectPropertiesPage
 			}
 		
 		}
-
-	
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		try {
-		    if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding() && 
-		            !(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(outputJarEditor.getStringValue()))) {
-		        outjarSettingChanged = true;
-            }
+		    if (somethingHasChanged()) {
+		        // NOTE: in this property page, we only note changes when Ok is pressed
+		        // rather than keeping a record as we go along. This is probably ok in this
+		        // case because the AspectJ page is always looked at first. Might need
+		        // to change this though by attaching listeners to the various boxes
+		        // and acting accordingly
+		        aspectjSettingChanged = true;
+		    }
 		    
 			preserveSetting(BuildOptionsAdapter.INCREMENTAL_COMPILATION, incremental_modeBtn.getSelection());
 			preserveSetting(BuildOptionsAdapter.BUILD_ASM,buildAsmBtn.getSelection());
 			preserveSetting(BuildOptionsAdapter.WEAVEMESSAGES,showweavemessagesBtn.getSelection());
-//			preserveSetting(
-//				BuildOptionsAdapter.PREPROCESS,
-//				preprocessModeBtn.getSelection());
-//			preserveSetting(BuildOptionsAdapter.SOURCE14, source14modeBtn.getSelection());
-//			preserveSetting(BuildOptionsAdapter.WORKING_DIR,workingDirEditor.getStringValue());
-	//		preserveSetting(BuildOptionsAdapter.INPUTJARS,inputJarsEditor.getStringValue());
 			preserveSetting(BuildOptionsAdapter.OUTPUTJAR,outputJarEditor.getStringValue());
-		//	preserveSetting(BuildOptionsAdapter.ASPECTJARS,aspectJarsEditor.getStringValue());
-			
-			preserveSetting(
-				BuildOptionsAdapter.CHAR_ENC,"");
-				//characterEncodingEditor.getStringValue());
-//			preserveSetting(
-//				BuildOptionsAdapter.COMPILATION_STRICTNESS,
-//				calculateStrictnessFromButtons());
-//			preserveSetting(
-//				BuildOptionsAdapter.PORTING_MODE,
-//				portingModeBtn.getSelection());
+			preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
 			preserveSetting(
 				BuildOptionsAdapter.NON_STANDARD_OPTS,
 				nonStandardOptionsEditor.getStringValue());
-//			preserveSetting(BuildOptionsAdapter.JAVA_OR_AJ_EXT,fileExtBtn.getSelection());
-			
-			// build the project now only if 
-			// - the oujar setting has changed, and
-			// - either the inpath setting has changed and been updated, or the inpath setting
-			//   hasn't changed, and
-			// - either the aspect path setting has changed and been updated
-			//   or the aspect path setting hasn't changed
-			// - either the compiler settings have changed and been updated or the
-			//   compiler settings haven't changed.
-			outjarSettingUpdated = true;
-		    if (outjarSettingChanged 
-		            && ((InPathBlock.inPathChanged && InPathBlock.updatedInPath) 
-		                    || !InPathBlock.inPathChanged)
-		            && ((AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath) 
-		                    || !AspectPathBlock.aspectPathChanged)
-		            && ((CompilerPropertyPage.compilerSettingsChanged 
-		                    && CompilerPropertyPage.compilerSettingsUpdated) 
-	                        || !CompilerPropertyPage.compilerSettingsChanged)) {
-		        doProjectBuild();
-		    }
-		    
+
+			aspectjSettingUpdated = true;
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringStore"),
@@ -638,56 +577,32 @@ public class AspectJProjectPropertiesPage
 		return true;
 	}
 
+	private boolean somethingHasChanged() {
+	    if (!AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding()) {
+            return false;
+        }
+	    if (!(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(outputJarEditor.getStringValue()))
+	            || !(retrieveSettingString(BuildOptionsAdapter.NON_STANDARD_OPTS).equals(nonStandardOptionsEditor.getStringValue()))
+	            || (retrieveSettingBoolean(BuildOptionsAdapter.INCREMENTAL_COMPILATION) != incremental_modeBtn.getSelection()) 
+	            || (retrieveSettingBoolean(BuildOptionsAdapter.BUILD_ASM) != buildAsmBtn.getSelection()) 
+	            || (retrieveSettingBoolean(BuildOptionsAdapter.WEAVEMESSAGES) != showweavemessagesBtn.getSelection())) {
+	        return true;
+        }
+	    return false;
+	}
+	
 	/**
-	 * All compiler properties for the project are reset to their default
-	 * values.  This is called when 'Defaults' is clicked on the property
-	 * page.  The implementation actually deletes all the property values by
-	 * setting them to null, then calls "ensurePropertiesInitialized" to
-	 * get them reset to the defaults - this means the default setting logic
-	 * is all in one place - BuildOptionsAdapter.ensurePropertiesInitialized
+	 * Bug 76811: All fields in the preference page are put back to their
+	 * default values. The underlying settings are not changed until "ok"
+	 * is clicked. This now behaves like the jdt pages.
 	 */
 	public void performDefaults() {
 		AJDTEventTrace.projectPropertiesDefaulted(thisProject);
-		try {
-		    boolean outjarChanged = false;
-		    if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding() && 
-		            !(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(""))) {
-		        outjarChanged = true;
-            }
-		    
-			thisProject.setPersistentProperty(BuildOptionsAdapter.INCREMENTAL_COMPILATION, null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.PREPROCESS, null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.SOURCE14, null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.WORKING_DIR, null);
-			thisProject.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR,null);
-			thisProject.setPersistentProperty(BuildOptionsAdapter.ASPECTJARS,null);
-			thisProject.setPersistentProperty(BuildOptionsAdapter.SOURCEROOTS,null);
-			thisProject.setPersistentProperty(BuildOptionsAdapter.INPUTJARS,null);
-
-			thisProject.setPersistentProperty(BuildOptionsAdapter.CHAR_ENC, null);
-//			thisProject.setPersistentProperty(
-//				BuildOptionsAdapter.COMPILATION_STRICTNESS,
-//				null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.PORTING_MODE, null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.NON_STANDARD_OPTS, null);
-//			thisProject.setPersistentProperty(BuildOptionsAdapter.JAVA_OR_AJ_EXT,null);
-			BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
-
-			// Keep the widgets up to date!
-			updatePageContents();
-
-			// build the project if the outjar setting has changed
-			// note the difference between what happens here and what happens when "OK" is 
-			// clicked - this is deliberate because clicking ok has different implications
-			if (outjarChanged) {
-			    doProjectBuild();
-			}
-		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString(
-					"projectProperties.exceptionDefaultingProperties"),
-				ce);
-		}
+		incremental_modeBtn.setSelection(BuildOptionsAdapter.INCREMENTAL_COMPILATION_DEFAULT);
+		buildAsmBtn.setSelection(BuildOptionsAdapter.BUILD_ASM_DEFAULT);		
+		showweavemessagesBtn.setSelection(BuildOptionsAdapter.WEAVE_MESSAGES_DEFAULT);
+		outputJarEditor.setStringValue("");
+		nonStandardOptionsEditor.setStringValue("");
 	}
 
 	/**
@@ -695,10 +610,7 @@ public class AspectJProjectPropertiesPage
 	 */
 	public void widgetDefaultSelected(SelectionEvent se) {
 		widgetSelected(se);
-
 	}
-
-
 
 	/**
 	 * Handle selection of an item in the menu.
@@ -707,7 +619,6 @@ public class AspectJProjectPropertiesPage
 		Object source = se.getSource();
 		if (source instanceof Button) {
 			Button btn = (Button) source;
-            
 			// Keep the buttons in the radio group consistent
             
 //			if (btn.equals(compileMode_normalBtn)) {
@@ -744,58 +655,11 @@ public class AspectJProjectPropertiesPage
 	 * Ensure the widgets state reflects the persistent property values.
 	 */
 	public void updatePageContents() {
-		incremental_modeBtn.setSelection(
-			retrieveSettingBoolean(BuildOptionsAdapter.INCREMENTAL_COMPILATION));
-
-		buildAsmBtn.setSelection(
-			retrieveSettingBoolean(BuildOptionsAdapter.BUILD_ASM));
-		
+		incremental_modeBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.INCREMENTAL_COMPILATION));
+		buildAsmBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.BUILD_ASM));		
 		showweavemessagesBtn.setSelection(retrieveSettingBoolean(BuildOptionsAdapter.WEAVEMESSAGES));
-
-//		preprocessModeBtn.setSelection(
-//			retrieveSettingBoolean(BuildOptionsAdapter.PREPROCESS));
-//
-//		workingDirEditor.setStringValue(
-//			retrieveSettingString(BuildOptionsAdapter.WORKING_DIR));
-			
-//		inputJarsEditor.setStringValue(
-//		    retrieveSettingString(BuildOptionsAdapter.INPUTJARS));
-		outputJarEditor.setStringValue(
-		    retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR));
-//		aspectJarsEditor.setStringValue(
-//		    retrieveSettingString(BuildOptionsAdapter.ASPECTJARS));
-		//characterEncodingEditor.setStringValue(
-		//	retrieveSettingString(BuildOptionsAdapter.CHAR_ENC));
-
-//		source14modeBtn.setSelection(
-//			retrieveSettingBoolean(BuildOptionsAdapter.SOURCE14));
-//
-//		portingModeBtn.setSelection(
-//			retrieveSettingBoolean(BuildOptionsAdapter.PORTING_MODE));
-//
-//		// Check the strictness and set the three radio buttons appropriately.
-//		String strictness =
-//			retrieveSettingString(BuildOptionsAdapter.COMPILATION_STRICTNESS);
-//		boolean b1 = false;
-//		boolean b2 = false;
-//		boolean b3 = false;
-//		if (strictness.equals(BuildOptionsAdapter.COMPILATION_STRICTNESS_NORMAL))
-//			b1 = true;
-//
-//		else if (strictness.equals(BuildOptionsAdapter.COMPILATION_STRICTNESS_LENIENT))
-//			b2 = true;
-//
-//		else if (strictness.equals(BuildOptionsAdapter.COMPILATION_STRICTNESS_STRICT))
-//			b3 = true;
-//
-//		compileMode_normalBtn.setSelection(b1);
-//		compileMode_lenientBtn.setSelection(b2);
-//		compileMode_strictBtn.setSelection(b3);
-
-		nonStandardOptionsEditor.setStringValue(
-			retrieveSettingString(BuildOptionsAdapter.NON_STANDARD_OPTS));
-//		fileExtBtn.setSelection(
-//			retrieveSettingBoolean(BuildOptionsAdapter.JAVA_OR_AJ_EXT));
+		outputJarEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR));
+		nonStandardOptionsEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.NON_STANDARD_OPTS));
 	}
  
 	protected void doProjectBuild() { 
@@ -992,4 +856,38 @@ public class AspectJProjectPropertiesPage
 //        }
 //    }
 //    
+
+	/**
+     * Returns whether or not the aspecj settings have changed 
+     * in the preference page
+     */
+    public static boolean aspectjSettingHasChanged() {
+        return aspectjSettingChanged;
+    }
+
+    /**
+     * Returns whether or not the aspectj settings saved in the 
+     * project preference store have been updated 
+     */
+    public static boolean aspectjSettingHasBeenUpdated() {
+        return aspectjSettingUpdated;
+    }
+    
+    /**
+     * Returns the project for which this page is currently open.
+     */
+    public IProject getThisProject() {
+        return thisProject;
+    }
+    
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the compiler settings in the preference page haven't been
+     * changed and that the preference store settings also haven't
+     * been updated.
+     */   
+    public void resetChangeSettings() {
+        aspectjSettingChanged = false;
+        aspectjSettingUpdated = false;
+    }
 }

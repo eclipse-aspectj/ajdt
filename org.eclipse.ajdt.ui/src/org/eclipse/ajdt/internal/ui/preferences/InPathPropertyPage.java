@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
-import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -91,7 +88,6 @@ public class InPathPropertyPage extends PropertyPage implements
         return result;
     }
 
-    
     private IProject getProject() {
         IAdaptable adaptable = getElement();
         if (adaptable != null) {
@@ -259,28 +255,7 @@ public class InPathPropertyPage extends PropertyPage implements
                 // cancelled
                 return false;
             }
-            InPathBlock.updatedInPath = true;
-            // only build here if:
-            // - autobuilding is set and
-            // - the inpath settings have changed and 
-            // - either the aspect path has changed and the fields have been updated or the aspect path 
-            //   hasn't changed and
-            // - either the outjar setting has changed and fields updated or the outjar setting 
-            //   hasn't changed and
-			// - either the compiler settings have changed and been updated or the
-			//   compiler settings haven't changed.
-            if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding()
-                    && InPathBlock.inPathChanged
-                    && ( (AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath)
-                            || !AspectPathBlock.aspectPathChanged)
-                    && ( (AspectJProjectPropertiesPage.outjarSettingChanged 
-                            && AspectJProjectPropertiesPage.outjarSettingUpdated) 
-                            || !AspectJProjectPropertiesPage.outjarSettingChanged)
-                    && ((CompilerPropertyPage.compilerSettingsChanged 
-                            && CompilerPropertyPage.compilerSettingsUpdated) 
-                            || !CompilerPropertyPage.compilerSettingsChanged)) {
-                doProjectBuild();
-            }
+            InPathBlock.setUpdatedInPath(true);
         }
         return true;
     }
@@ -323,4 +298,20 @@ public class InPathPropertyPage extends PropertyPage implements
 		}
 	}
 
+    /**
+     * @return Returns the project for which the inpath is being set
+     */
+    public IProject getThisProject() {
+        return thisProject;
+    }
+ 
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the inpath setting in the preference page hasn't been
+     * changed and that the preference store settings also haven't
+     * been updated.
+     */
+    public void resetChangeSettings() {
+        fInPathBlock.resetChangeSettings();
+    }
 }

@@ -11,20 +11,16 @@ Ian McGrath - Adapted for the properties page
 
 package org.eclipse.ajdt.internal.ui;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.preferences.PreferencePageSupport;
 import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.jdt.internal.ui.util.TabFolderLayout;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
@@ -33,8 +29,6 @@ import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogFie
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -50,9 +44,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
-import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
-import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 
 /**
 * Used to operate the AspectJ compiler properties page that appear when an aspectJ project is right
@@ -104,11 +95,10 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	private static String ENABLED = JavaCore.ENABLED;
 	private static String DISABLED = JavaCore.DISABLED;
 
-	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton; 
+	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton, serializableButton; 
 	
 	private IProject thisProject;
 	private boolean initialised = false; //if the default properties settings have been entered into the store
-	private int switches; // counts the number of switches between use project settings and use workspace settings
 	
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
@@ -117,15 +107,14 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	private SelectionButtonDialogField fUseProjectSettings;
 	private TabFolder folder;
 
-	public static boolean compilerSettingsChanged = false;
-	public static boolean compilerSettingsUpdated = false;
-	private SelectionButtonDialogField origSelection;
+	private static boolean compilerSettingsChanged = false;
+	private static boolean compilerSettingsUpdated = false;
+	private static boolean doBuild = true;
 	
 	public CompilerPropertyPage() {
 		super();
 		fCheckBoxes = new ArrayList();
 		fComboBoxes = new ArrayList();
-		switches = 0; 
 		
 		IDialogFieldListener listener= new IDialogFieldListener() {
 			public void dialogFieldChanged(DialogField field) {
@@ -212,8 +201,8 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	 * from IWorkbenchPreferencePage
 	 */
 	public void init(IWorkbench workbench) {
-	    compilerSettingsChanged = false;
-	    compilerSettingsUpdated = false;
+	    setCompilerSettingsChanged(false);
+	    setCompilerSettingsUpdated(false);
 	}
 
 	/**
@@ -274,10 +263,8 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		IPreferenceStore store = getPreferenceStore();
 		if(store.getBoolean(thisProject + "useProjectSettings")) {
 			fUseProjectSettings.setSelection(true);
-			origSelection = fUseProjectSettings;
 		} else {
 			fUseWorkspaceSettings.setSelection(true);
-			origSelection = fUseWorkspaceSettings;
 		}
 		updateEnableState();
 		return composite;
@@ -397,14 +384,17 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		noweaveButton.addSelectionListener(checkBoxListener);
 		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_serializable_aspects.label"); //$NON-NLS-1$
-		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
+		serializableButton = addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
+		serializableButton.addSelectionListener(checkBoxListener);
 
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_lazy_tjp.label"); //$NON-NLS-1$
 		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_LAZY_TJP,enableDisableValues, 0);
+		lazytjpButton.addSelectionListener(checkBoxListener);
 
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
 		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
-
+		noinlineButton.addSelectionListener(checkBoxListener);
+		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable.label"); //$NON-NLS-1$
 		reweaveButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE,enableDisableValues, 0);
 		reweaveButton.addSelectionListener(checkBoxListener);
@@ -425,34 +415,14 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		return AspectJUIPlugin.getDefault().getPreferenceStore();
 	}
 	
-	/*
-	 * (non-Javadoc) Method declared on PreferencePage
-	 */
 	public boolean performOk() {
 		IPreferenceStore store = getPreferenceStore();
 
-		boolean lintChanges = false;
-		for (int i = fComboBoxes.size() - 1; i >= 0; i--) {
-			Combo curr = (Combo) fComboBoxes.get(i);
-			ControlData data = (ControlData) curr.getData();
-			String value = data.getValue(curr.getSelectionIndex());
-			if (!value.equals(store.getString(thisProject.toString() + data.getKey()))) {
-				lintChanges = true;
-				store.setValue(thisProject + data.getKey(), value);
-			}
-		}
+		boolean projectSettingsChanged = projectSettingsHaveChanged(true);
+		if (!compilerSettingsHaveChanged()) {
+            setCompilerSettingsChanged(projectSettingsChanged);
+        }
 
-		boolean advancedChanges = false;
-		for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
-			Button curr = (Button) fCheckBoxes.get(i);
-			ControlData data = (ControlData) curr.getData();
-			boolean value = curr.getSelection();
-			if (value != store.getBoolean(thisProject.toString() + data.getKey())) {
-				advancedChanges = true;
-				store.setValue(thisProject.toString() + data.getKey(), value);
-			}
-		}
-		
 		boolean projectWorkspaceChanges = false;
 		if(store.getBoolean(thisProject + "useProjectSettings") !=  useProjectSettings()) {
 			projectWorkspaceChanges = true;
@@ -461,8 +431,8 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
-		if (lintChanges || advancedChanges || projectWorkspaceChanges || ((switches > 1) && useProjectSettings())) {
-			boolean doBuild = false;
+		if (projectWorkspaceChanges || (projectSettingsChanged && useProjectSettings())) {
+			
 			String[] strings = getProjectBuildDialogStrings();
 			if (strings != null) {
 				MessageDialog dialog = new MessageDialog(getShell(),
@@ -475,33 +445,100 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 				    // by only setting compilerSettingsUpdated to be true here, means that
 				    // the user wont select "don't want to build" here and then get a build
 				    // from other pages.
-					compilerSettingsUpdated = true;
+				    setCompilerSettingsUpdated(true);
 					doBuild = true;
 				} else if (res != 1) {
+				    doBuild = false;
 					return false; // cancel pressed
+				} else {
+				    doBuild = false;
 				}
-			}
-			// build here if 
-			// - have chosen to do build, and 
-			// - either inpath setting has changed and been updated, or hasn't changed, and
-			// - either outjar setting has changed and been updated, or hasn't chnaged, and
-			// - either aspect path setting has changed and been updated, or hasn't changed.
-			// if not, then one of the other preference pages will pick up the build
-			if (doBuild 
-			        &&( (InPathBlock.inPathChanged && InPathBlock.updatedInPath)
-                            || !InPathBlock.inPathChanged)
-                    && ( (AspectJProjectPropertiesPage.outjarSettingChanged 
-                            && AspectJProjectPropertiesPage.outjarSettingUpdated) 
-                            || !AspectJProjectPropertiesPage.outjarSettingChanged)
-                    && ( (AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath)
-                            || !AspectPathBlock.aspectPathChanged)) {
-				doProjectBuild();
 			}
 		}
 
 		return true;
 	}
+	
+	/**
+	 * Checks whether any of the settings have changed since the 
+	 * property page was initialized.
+	 */
+	private boolean settingsHaveChanged() {
+	    // If have switched between using project and workbench settings, just
+	    // return true. If originally chose to use the workbench settings and still are, 
+	    // then return no changes. If have switched between using project and workbench
+	    // settings just return true. Otherwise, go through each setting and check
+	    // whether there have been any changes.
+	    if (getPreferenceStore().getBoolean(thisProject + "useProjectSettings") != useProjectSettings()) {
+            return true;
+        } else if (!(getPreferenceStore().getBoolean(thisProject + "useProjectSettings")) && !useProjectSettings()){
+            return false;
+        }
+        return projectSettingsHaveChanged(false);
+	}
+	
+	/**
+	 * Checks whether the project settings have changed. If you want
+	 * to update the preference store then each settings is checked and 
+	 * the store update accordingly if there is a change. If not, then 
+	 * this return true at the first change it finds and false otherwise.
+	 */
+	private boolean projectSettingsHaveChanged(boolean updatePreferenceStore) {
+	    IPreferenceStore store = getPreferenceStore();
+		List tempComboBoxes = new ArrayList();
+		tempComboBoxes.addAll(fComboBoxes);
+		List tempCheckBoxes = new ArrayList();
+		tempCheckBoxes.addAll(fCheckBoxes);
 
+		boolean settingsChanged = false;
+		
+		String[] settingKeys = getKeys();
+		walkThroughKeys: for (int i = 0; i < settingKeys.length; i++) {
+            String key = settingKeys[i];
+            String storeValue = store.getString(thisProject.toString() + key);
+            if (!storeValue.equals("")) {
+                if (!storeValue.equals("true") && !storeValue.equals("false")) {
+                    // this is a combo box
+            		for (int j = 0; j < tempComboBoxes.size(); j++) {
+            			Combo curr = (Combo) tempComboBoxes.get(j);
+            			ControlData data = (ControlData) curr.getData();
+            			if (key.equals(data.getKey())) {
+                            if (!storeValue.equals(data.getValue(curr.getSelectionIndex()))) {
+                                if (updatePreferenceStore) {
+                                    settingsChanged = true;
+                                    store.setValue(thisProject.toString() + data.getKey(), data.getValue(curr.getSelectionIndex()));
+                                } else {
+                                    return true;
+                                }
+                            }
+                            tempComboBoxes.remove(curr);
+                            continue walkThroughKeys;
+                        }
+            		}                                                    
+                } else {
+                    // this is a check box
+               		for (int j = 0; j < tempCheckBoxes.size(); j++) {
+            			Button curr = (Button) tempCheckBoxes.get(j);
+            			ControlData data = (ControlData) curr.getData();
+            			if (key.equals(data.getKey())) {
+                            if (!storeValue.equals((new Boolean(curr.getSelection())).toString())) {
+                                if (updatePreferenceStore) {
+                                    settingsChanged = true;
+                                    store.setValue(thisProject.toString() + data.getKey(), curr.getSelection());
+                                } else {
+                                    return true;
+                                }                            
+                            }
+                            tempCheckBoxes.remove(curr);
+                            continue walkThroughKeys;
+                        }
+            		}
+                }               
+            }
+        }
+		return settingsChanged;	    
+	}
+	
 	/**
 	 * Get the preference store for AspectJ mode
 	 */
@@ -511,36 +548,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		String message = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.needsprojectbuild.message"); //$NON-NLS-1$
 		return new String[]{title, message};
-	}
-
-	protected void doProjectBuild() { 
-		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
-		try {
-			dialog.run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException {
-					monitor.beginTask("", 2); //$NON-NLS-1$
-					try {
-						monitor
-								.setTaskName(AspectJUIPlugin
-										.getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
-						thisProject.build(
-								IncrementalProjectBuilder.FULL_BUILD,
-								new SubProgressMonitor(monitor, 2));
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					} finally {
-						monitor.done();
-					}
-				}
-			});
-		} catch (InterruptedException e) {
-			// cancelled by user
-		} catch (InvocationTargetException e) {
-			String message = AspectJUIPlugin
-					.getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
-		}
 	}
 
 	/*
@@ -608,12 +615,10 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		l.setLayoutData(gridData);
 		createLabel(parent,"");//filler
 		
-
 		boolean currValue = getPreferenceStore().getBoolean(thisProject.toString() + key);
 		checkBox.setSelection(currValue);
 
 		fCheckBoxes.add(checkBox);
-
 		return checkBox;
 	}
 
@@ -640,7 +645,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		if ((currValue != null) && (currValue.length() > 0)) {
 			comboBox.select(data.getSelection(currValue));
 		}
-
+		comboBox.addSelectionListener(this);
 		fComboBoxes.add(comboBox);
 	}
 
@@ -676,8 +681,11 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 					reweaveButton.setSelection(false);
 				}
 			}
+			// update whether or not the overall settings have changed.
+			setCompilerSettingsChanged(settingsHaveChanged());
 		}
 		public void widgetDefaultSelected(SelectionEvent e) {
+		    widgetSelected(e);
 		}		
 	}
 	
@@ -701,6 +709,9 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	}
 	
 	public void widgetSelected(SelectionEvent se) {
+	    if (se.getSource() instanceof Combo) {
+            setCompilerSettingsChanged(settingsHaveChanged());
+        }
 	}
 	
 	/**
@@ -713,15 +724,9 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 			AJCompilerPreferencePage page= new AJCompilerPreferencePage();
 			PreferencePageSupport.showPreferencePage(getShell(), id, page);
 		} else {
-		    // only update this once, since current behaviour is to ask if want a build
-		    // whenever compiler settings have changed - even if change it back before
-		    // pressing "ok".
-		    if (!compilerSettingsChanged && field != origSelection) {
-                compilerSettingsChanged = true;
-            }
-			switches++;
 			updateEnableState();
 		}
+		setCompilerSettingsChanged(settingsHaveChanged());
 	}
 
 	/**
@@ -729,14 +734,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	 */	
 	private void updateEnableState() {
 		if (useProjectSettings()) {
-			for(int i = 0; i< fComboBoxes.size(); i++) {
-				Combo box = (Combo)fComboBoxes.get(i);
-				box.setEnabled(true);
-			}
-			for(int i = 0; i< fCheckBoxes.size(); i++) {
-				Button checkBox = (Button)fCheckBoxes.get(i);
-				checkBox.setEnabled(true);
-			}
+		    readStateForAndEnable(folder);
 			boolean buttonSelected = noweaveButton.getSelection();
 			if (buttonSelected) {
 				lazytjpButton.setSelection(false);
@@ -750,21 +748,131 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 			reweaveCompressButton.setEnabled(!buttonSelected);
 		}
 		else {
-			for(int i = 0; i< fComboBoxes.size(); i++) {
-				Combo box = (Combo)fComboBoxes.get(i);
-				box.setEnabled(false);
-			}
-			for(int i = 0; i< fCheckBoxes.size(); i++) {
-				Button checkBox = (Button)fCheckBoxes.get(i);
-				checkBox.setEnabled(false);
-			}	 
+		    readStateForAndDisable(folder);
 		}
 	}
-		
+
+	/**
+	 * Disables all the composites below the given one (the
+	 * reverse of readStateForAndEnable(Control control)).
+	 * Edited from the private method in ControlEnableState
+	 * of the same name.
+	 */
+	private void readStateForAndDisable(Control control) {
+		if (control instanceof Composite) {
+			Composite c = (Composite) control;
+			Control[] children = c.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				readStateForAndDisable(children[i]);
+			}
+		}
+		control.setEnabled(false);
+	}
+	
+	/**
+	 * Enables all the composites below the given one (the
+	 * reverse of readStateForAndDiable(Control control))
+	 */
+	private void readStateForAndEnable(Control control) {
+		if (control instanceof Composite) {
+			Composite c = (Composite) control;
+			Control[] children = c.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				readStateForAndEnable(children[i]);
+			}
+		}
+		control.setEnabled(true);	    
+	}
+	
 	/**
 	 * Checks the status of the project settings button, returns true if selected
 	 */
 	private boolean useProjectSettings() {
 		return fUseProjectSettings.isSelected();
 	}
+	
+	/**
+	 * Returns the keys used for all the different settings on the
+	 * AspectJ compiler property page. 
+	 */
+	private String[] getKeys() {
+		String[] keys= new String[] {
+		    	PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME,
+		    	PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
+		    	PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP,
+		    	PREF_AJ_INVALID_WILDCARD_TYPE_NAME,
+		    	PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER,
+		    	PREF_AJ_UNRESOLVABLE_MEMBER,
+		    	PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL,
+		    	PREF_AJ_INCOMPATIBLE_SERIAL_VERSION,
+		    	PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD,
+		    	PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT,
+		    	PREF_ENABLE_NO_WEAVE,
+		    	PREF_ENABLE_SERIALIZABLE_ASPECTS,
+		    	PREF_ENABLE_LAZY_TJP,
+		    	PREF_ENABLE_NO_INLINE,
+		    	PREF_ENABLE_REWEAVABLE,
+		    	PREF_ENABLE_REWEAVABLE_COMPRESS,
+			};
+		return keys;
+	}
+	
+    /**
+     * @return Returns the the project for which this preference
+     *         page is open.
+     */
+    public IProject getThisProject() {
+        return thisProject;
+    }
+    
+    /**
+     * Sets whether or not the compiler settings have been changed 
+     * in the preference page
+     */
+    private static void setCompilerSettingsChanged(boolean compilerSettingsChanged) {
+        CompilerPropertyPage.compilerSettingsChanged = compilerSettingsChanged;
+    }
+    
+    /**
+     * Sets whether or not the compiler settings have been updated 
+     * in the preference store
+     */
+    private static void setCompilerSettingsUpdated(
+            boolean compilerSettingsUpdated) {
+        CompilerPropertyPage.compilerSettingsUpdated = compilerSettingsUpdated;
+    }
+    
+    /**
+     * Returns whether or not the compiler settings have changed 
+     * in the preference page
+     */
+	public static boolean compilerSettingsHaveChanged() {
+	    return compilerSettingsChanged;
+	}
+	
+    /**
+     * Returns whether or not the compiler settings saved in the 
+     * project preference store have been updated 
+     */
+	public static boolean compilerSettingsHaveBeenUpdated() {
+	    return compilerSettingsUpdated;
+	}
+	
+    /**
+     * Returns whether or not the user has chosen to do a build
+     */
+	public static boolean chosenToDoBuild() {
+	    return doBuild;
+	}
+    
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the compiler settings in the preference page haven't been
+     * changed and that the preference store settings also haven't
+     * been updated.
+     */
+    public void resetChangeSettings() {
+        setCompilerSettingsChanged(false);
+        setCompilerSettingsUpdated(false);
+    }
 }

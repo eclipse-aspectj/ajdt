@@ -16,21 +16,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
-import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -259,28 +254,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
                 // cancelled
                 return false;
             }
-            AspectPathBlock.updatedAspectPath = true;
-            // only build here if:
-            // - autobuilding is set and
-            // - the aspect path settings have changed and 
-            // - either the inpath has changed and the fields have been updated or the inpath 
-            //   hasn't changed and
-            // - either the outjar setting has changed and fields updated or the outjar setting 
-            //   hasn't changed and
-			// - either the compiler settings have changed and been updated or the
-			//   compiler settings haven't changed.
-            if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding()
-                    && AspectPathBlock.aspectPathChanged
-                    && ( (InPathBlock.inPathChanged && InPathBlock.updatedInPath)
-                            || !InPathBlock.inPathChanged)
-                    && ( (AspectJProjectPropertiesPage.outjarSettingChanged 
-                            && AspectJProjectPropertiesPage.outjarSettingUpdated) 
-                            || !AspectJProjectPropertiesPage.outjarSettingChanged)
-                    && ((CompilerPropertyPage.compilerSettingsChanged 
-                            && CompilerPropertyPage.compilerSettingsUpdated) 
-                            || !CompilerPropertyPage.compilerSettingsChanged)) {
-                doProjectBuild();
-            }
+            AspectPathBlock.setAspectPathUpdated(true);
         }
         return true;
     }
@@ -292,34 +266,20 @@ public class AspectPathPropertyPage extends PropertyPage implements
             IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE); // TODO : Do we use help contexts ??
     }
     
-	protected void doProjectBuild() { 
-		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
-		try {
-			dialog.run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException {
-					monitor.beginTask("", 2); //$NON-NLS-1$
-					try {
-						monitor
-								.setTaskName(AspectJUIPlugin
-										.getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
-						thisProject.build(IncrementalProjectBuilder.FULL_BUILD,
-						        "org.eclipse.ajdt.ui.ajbuilder", 
-						        null,
-						        new SubProgressMonitor(monitor, 2));
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					} finally {
-						monitor.done();
-					}
-				}
-			});
-		} catch (InterruptedException e) {
-			// cancelled by user
-		} catch (InvocationTargetException e) {
-			String message = AspectJUIPlugin
-					.getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
-		}
-	}
+    /**
+     * @return Returns the project for which the aspect path is being set
+     */
+    public IProject getThisProject() {
+        return thisProject;
+    }
+    
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the inpath setting in the preference page hasn't been
+     * changed and that the preference store settings also haven't
+     * been updated.
+     */
+    public void resetChangeSettings() {
+        fAspectPathBlock.resetChangeSettings();
+    }
 }

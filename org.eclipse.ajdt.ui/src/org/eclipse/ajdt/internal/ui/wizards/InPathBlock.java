@@ -87,8 +87,8 @@ public class InPathBlock {
     private InPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
     
-    public static boolean inPathChanged = false;
-    public static boolean updatedInPath = false;
+    private static boolean inPathChanged = false;
+    private static boolean updatedInPath = false;
     private List origInPathElements;
     
     public InPathBlock(IStatusChangeListener context, int pageToShow) {
@@ -443,5 +443,40 @@ public class InPathBlock {
             fCurrPage = newPage;
             fPageIndex = tabItem.getParent().getSelectionIndex();
         }
-    }       
+    } 
+    
+    /**
+     * Returns whether or not the inpath setting has changed 
+     * in the preference page
+     */
+    public static boolean inPathHasChanged() {
+        return inPathChanged;
+    }
+    
+    /**
+     * Returns whether or not the inpath setting saved in the 
+     * project preference store has been updated 
+     */
+    public static boolean inPathHasBeenUpdated() {
+        return updatedInPath;
+    }
+    
+    /**
+     * Sets whether or not the inpath setting has been updated 
+     * in the preference store
+     */
+    public static void setUpdatedInPath(boolean updatedInPath) {
+        InPathBlock.updatedInPath = updatedInPath;
+    }
+
+    /**
+     * Resets the change settings to be false e.g. says
+     * that the inpath setting in the preference page hasn't been
+     * changed and that the preference store setting also hasn't
+     * been updated.
+     */
+    public void resetChangeSettings() {
+        setUpdatedInPath(false);
+        inPathChanged = false;
+    }
 }
