@@ -125,4 +125,43 @@ April 2004 - PROBLEM: when a java project depended on an AJ project, and workben
                      
                      Manual test added to check this.                
                      
+7th October 2004   - Work around for bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=73435 
+					 integrated (is in 1.2M1).
+					 
+					 Have tried various ways to create a state.dat file which the java builder
+					 understands, all of which have lead nowhere. The main reason is that the
+					 required methods/fields are all default access. Creating copies in ajdt.core
+					 plugin (with the same package names) causes class loading problems at 
+					 runtime. Everything else, there are visibility issues as well as 
+					 serialization problems (State objects need to have the correct package
+					 name etc). Therefore, have introduced the workaroud.
+					 
+					 WORKAROUND: Change the workspace settings (Window > Preferences > Java
+					 > Compiler > Java Builder) not to abort on classpath errors. If the 
+					 current project:
+					 
+					 	(a) has no build state
+					 	(b) has dependent projects which are NOT AJ projects
+					 	
+					 then this is done (if the projects are using the project preferences
+					 rather than the workspace ones, then these are changed).
+					 
+					 Known behaviour: if checkout 2 projects, A and B where A depends on B, 
+					 A is a Java Project, B is an AJ project then will build. Switch A to
+					 use project preferences and rebuild. Switch workspace preferences back to
+					 abort on classpath errors and rebuild. Finally, switch A to use workbench
+					 preferences. There is then the "must build prerequisite project" error
+					 message, however, a rebuild DOES fix this.
+					 
+					 (manual tests have been added to check this)
+					 
+					 LONG TERM (for 1.2M2): look into trying to force a dummy java build 
+					 on checkout.
+					 
+11th October 2004 -  after discussion on the JDT newsgroup on this, have raised a feature
+                     request against JDT core:
                      
+                     https://bugs.eclipse.org/bugs/show_bug.cgi?id=76025
+                     
+                     to see if they can make it possible for other builders to create a valid
+                     state.dat which the javabuilder understands.					 	                  
