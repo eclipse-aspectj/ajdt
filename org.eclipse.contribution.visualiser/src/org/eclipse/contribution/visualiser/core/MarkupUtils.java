@@ -1,0 +1,259 @@
+/*******************************************************************************
+ * Copyright (c) 2003, 2004 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     Andy Clement - initial version
+ *******************************************************************************/
+package org.eclipse.contribution.visualiser.core;
+
+import java.util.List;
+
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
+
+/**
+ * Utility class containing methods for processing Stripes
+ */
+public class MarkupUtils {
+
+
+	/**
+	 * Processes a list of stripes to deal with the overlapping cases
+	 * @param stripes
+	 */
+	public static void processStripes(List stripes) {
+		long start = System.currentTimeMillis();
+		if (stripes == null)
+			return;
+
+		final boolean debug = false;
+		// We are looking for markups that 'clash' and we'll break them into smaller pieces.
+
+		int splits = 1;
+		int loop = 0;
+		while (splits > 0) {
+			if (debug)
+				VisualiserPlugin.log(
+					2,
+					"Stripe processing, iteration: " + (loop + 1));
+			//else System.err.print("("+(loop+1)+")");
+			splits = 0;
+			for (int j = 0; j < stripes.size(); j++) {
+				for (int i = 0; i < stripes.size(); i++) {
+					if (i != j) {
+						Stripe stripe1 = (Stripe) stripes.get(i);
+						Stripe stripe2 = (Stripe) stripes.get(j);
+						if (debug)
+							VisualiserPlugin.log(
+								2,
+								"Processing " + stripe1 + " and " + stripe2);
+						if (stripe2.getOffset() < stripe1.getOffset()
+							|| (stripe2.getOffset() == stripe1.getOffset()
+								&& stripe2.getDepth() < stripe1.getDepth())) {
+							// Changeround
+							if (debug)
+								VisualiserPlugin.log(2, "Stripe change round");
+							stripe2 = (Stripe) stripes.get(i);
+							stripe1 = (Stripe) stripes.get(j);
+						}
+						int stripe1start = stripe1.getOffset();
+						int stripe2start = stripe2.getOffset();
+						int dep1 = stripe1.getDepth();
+						int dep2 = stripe2.getDepth();
+						int stripe1end = stripe1start + dep1;
+						int stripe2end = stripe2start + dep2;
+
+						// What cases are there...
+						if (stripe1end > stripe2start
+							&& stripe2end < stripe1end) {
+							if (debug) {
+
+								VisualiserPlugin.log(
+									2,
+									"Stripe split - type 1: stripe2 is entirely within stripe1");
+								VisualiserPlugin.log(2, "Stripe1: " + stripe1);
+								VisualiserPlugin.log(2, "Stripe2: " + stripe2);
+								VisualiserPlugin.log(2, "");
+							}
+							// Stripe1 finishes after Stripe2 starts
+							// Shorten stripe1 and stripe2 and build a stripe3 between them !
+							Stripe stripe3 = new Stripe();
+							stripe3.addKinds(stripe1.getKinds());
+							stripe3.addKinds(stripe2.getKinds());
+							stripe3.setOffset(stripe2start);
+							stripe3.setDepth(dep2);
+							stripes.add(i + 1, stripe3);
+							stripe1.setDepth(stripe2start - stripe1start);
+							stripe2.setOffset(stripe2start + dep2);
+							stripe2.setDepth(
+								dep1 - dep2 - (stripe2start - stripe1start));
+							stripe2.setKinds(stripe1.getKinds());
+							// stripe2.setDepth(dep2-((off1+dep1)-off2));
+							if (debug) {
+								VisualiserPlugin.log(2, "Stripe1: " + stripe1);
+								VisualiserPlugin.log(2, "Stripe3: " + stripe3);
+								VisualiserPlugin.log(2, "Stripe2: " + stripe2);
+							}
+							splits++;
+
+						} else if (stripe1end > stripe2start) {
+							// two cases, normal and the case when stripe1end == stripe2end !
+
+							if (stripe1end != stripe2end) {
+								if (stripe1start != stripe2start) {
+									if (debug) {
+
+										VisualiserPlugin.log(
+											2,
+											"Stripe split - type 2: stripe1 finishes after stripe2 starts");
+										VisualiserPlugin.log(
+											2,
+											"Stripe1: " + stripe1);
+										VisualiserPlugin.log(
+											2,
+											"Stripe2: " + stripe2);
+
+										VisualiserPlugin.log(2, "");
+									}
+									// Stripe1 finishes after Stripe2 starts
+									// Shorten stripe1 and stripe2 and build a stripe3 between them !
+									Stripe stripe3 = new Stripe();
+									stripe3.addKinds(stripe1.getKinds());
+									stripe3.addKinds(stripe2.getKinds());
+									stripe3.setOffset(stripe2start);
+									stripe3.setDepth(
+										(stripe1start + dep1) - stripe2start);
+									stripes.add(i + 1, stripe3);
+									stripe1.setDepth(
+										stripe2start - stripe1start);
+
+									stripe2.setOffset(stripe1start + dep1);
+									stripe2.setDepth(
+										dep2
+											- ((stripe1start + dep1)
+												- stripe2start));
+									if (debug) {
+
+										VisualiserPlugin.log(
+											2,
+											"Stripe1: " + stripe1);
+										VisualiserPlugin.log(
+											2,
+											"Stripe3: " + stripe3);
+										VisualiserPlugin.log(
+											2,
+											"Stripe2: " + stripe2);
+									}
+								} else {
+									if (debug) {
+
+										VisualiserPlugin.log(
+											2,
+											"Stripe split - type 4: stripe1 and stripe2 start at the same point");
+										VisualiserPlugin.log(
+											2,
+											"Stripe1: " + stripe1);
+										VisualiserPlugin.log(
+											2,
+											"Stripe2: " + stripe2);
+
+										VisualiserPlugin.log(2, "");
+									}
+									if (stripe1end == stripe2end) {
+										stripe2.addKinds(stripe1.getKinds());
+										stripes.remove(i);
+									} else if (stripe1end > stripe2end) {
+										stripe2.addKinds(stripe1.getKinds());
+										stripe1.setOffset(stripe2end);
+										stripe1.setDepth(dep1 - dep2);
+									} else {
+										stripe2.setOffset(stripe1end);
+										stripe2.setDepth(dep2 - dep1);
+										stripe1.addKinds(stripe2.getKinds());
+									}
+									VisualiserPlugin.log(
+										2,
+										"NewStripe1: " + stripe1);
+									VisualiserPlugin.log(
+										2,
+										"NewStripe2: " + stripe2);
+								}
+							} else {
+								if (debug) {
+
+									VisualiserPlugin.log(
+										2,
+										"Stripe split - type 3: stripe2 starts half way down stripe 1 - they both finish at the same point");
+									VisualiserPlugin.log(
+										2,
+										"Stripe1: " + stripe1);
+									VisualiserPlugin.log(
+										2,
+										"Stripe2: " + stripe2);
+
+									VisualiserPlugin.log(2, "");
+								} 
+
+								// Stripe1 finishes after Stripe2 starts
+								// Shorten stripe1 and stripe2 and build a stripe3 between them !
+								//	Stripe stripe3 = new Stripe();
+								stripe2.addKinds(stripe1.getKinds());
+								//stripe3.addKinds(stripe2.getKinds());
+								//stripe3.setOffset(stripe2start);
+								stripe2.setDepth(
+									(stripe1start + dep1) - stripe2start);
+								//stripes.add(i + 1, stripe3);
+								stripe1.setDepth(stripe2start - stripe1start);
+
+								//stripe2.setOffset(stripe1start + dep1);
+								//stripe2.setDepth(
+								//	dep2 - ((stripe1start + dep1) - stripe2start));
+								if (debug) {
+
+									VisualiserPlugin.log(
+										2,
+										"Stripe1: " + stripe1);
+									//														VisualiserPlugin.log(2,"Stripe3: " + stripe3);
+									VisualiserPlugin.log(
+										2,
+										"Stripe2: " + stripe2);
+								}
+							}
+							splits++;
+						}
+
+					}
+				}
+			}
+			if (debug)
+				VisualiserPlugin.log(2, "Splits on this iteration: " + splits);
+		}
+//		for (int j = 0; j < stripes.size() - 1; j++) {
+//			for (int i = 0; i < stripes.size() - 1; i++) {
+//				Stripe stripe1 = (Stripe) stripes.get(i);
+//				Stripe stripe2 = (Stripe) stripes.get(i + 1);
+//				// Special case, if the stripe1 has kinds 'A' 'B' and the updated stripe2 has kinds 'B' 'C' then swap the stripe2 ones round
+//				// so that the 'B's line up.
+//				List kinds1 = stripe1.getKinds();
+//				List kinds2 = stripe2.getKinds();
+//				if (kinds1.size() > 1 && kinds2.size() > 1) {
+//					if (kinds1.get(1).equals(kinds2.get(0))) {
+//						VisualiserPlugin.log(2, "----------------------");
+//						VisualiserPlugin.log(2, "Stripe swapping: Before:");
+//						VisualiserPlugin.log(2, "Stripe1:" + stripe1);
+//						VisualiserPlugin.log(2, "Stripe2:" + stripe2);
+//						String k = (String) kinds2.remove(0);
+//						kinds2.add(1, k);
+//						VisualiserPlugin.log(2, "Stripe swapping: After:");
+//						VisualiserPlugin.log(2, "Stripe1:" + stripe1);
+//						VisualiserPlugin.log(2, "Stripe2:" + stripe2);
+//						VisualiserPlugin.log(2, "----------------------");
+//					}
+//				}
+//			}
+//		}
+	}
+}

@@ -1,0 +1,4 @@
+src.includes = src/
+src.excludes = src/org/eclipse/contribution/visualiser/utils/RenderingMonitor.java,\
+               src/org/eclipse/contribution/visualiser/utils/RenderingMonitorInfo.aj,\
+               src/org/eclipse/contribution/visualiser/utils/Enforcement.aj

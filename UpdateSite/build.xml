@@ -1,0 +1,209 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.aspectj.updatesite" default="feature-pack">
+
+<!--
+
+This is the master build file that will build all the subprojects in turn
+and create a packaged AJDT release.
+
+The properties specified here override those in the subproject build files when
+running a master build. 
+
+The key targets are:
+* clean (obvious),
+* ajdejars (which recreates the jars in the ajde plugin from an aspectj
+  distribution
+* update-site which builds everything and creates an update-site
+* publish, which uploads the update-site to ajdt/dev/update on eclipse.org
+* release, which uploads the update-site to ajdt/update on eclipse.org
+
+to run the last two targets you need an account on dev.eclipse.org
+-->
+
+<!-- VERSION-STRING -->
+<!-- visualiser version is set separately by the visualiser plugin itself, must be copied into here when
+     new update site is being constructed -->
+<property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
+<property name="aspectj.feature.version" value="1.2.0.${cctimestamp}" />
+<property name="ajdt.version" value="1.2.0.${cctimestamp}" />
+<property name="ajde.version" value="1.2.0.${cctimestamp}" />
+<property name="aspectj.release.name" value="1.2.0" />
+<property name="aspectj.version" value="1.2.0" />
+<property name="visualiser.version" value="2.1.0.${cctimestamp}"/>
+
+<property file="ftp.properties" />
+
+<description>
+Creates an update site structure for AspectJ
+</description>
+
+<target name="init">
+  <mkdir dir="dist"/>
+  <mkdir dir="fpack_dist"/>
+  <delete file="ajdt_${aspectj.feature.version}_archive.zip"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="dist"/>
+  <delete dir="fpack_dist"/>
+  <ant dir="../org.aspectj.runtime" inheritAll="true" target="clean" />
+  <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
+  <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.examples" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.aspectj" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.test" inheritAll="true" target="clean"/>
+</target>
+
+	
+<target name="feature-pack" depends="update-site"
+	    description="Build zip of plugins that can be unzipped in eclipse install dir">
+	<echo message="Constructing feature pack for AJDT ${aspectj.feature.version}"/>
+	<mkdir dir="fpack_dist/plugins"/>
+	<mkdir dir="fpack_dist/features"/>
+	
+	<copy todir="fpack_dist/." file="readme.txt"/>
+	<mkdir dir="fpack_dist/features/org.eclipse.aspectj_${aspectj.feature.version}"/>
+	<unzip dest="fpack_dist/features/org.eclipse.aspectj_${aspectj.feature.version}"
+	        src="dist/features/org.eclipse.aspectj_${aspectj.feature.version}.jar"/>	
+	
+	<mkdir dir="fpack_dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}"
+	        src="dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}.jar"/>	
+
+	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.core_${ajdt.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.core_${ajdt.version}"
+	        src="dist/plugins/org.eclipse.ajdt.core_${ajdt.version}.jar"/>	
+
+	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}"
+	        src="dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}.jar"/>	
+
+	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"
+	        src="dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}.jar"/>	
+		
+	<mkdir dir="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"
+	        src="dist/plugins/org.aspectj.runtime_${ajde.version}.jar"/>
+
+	<mkdir dir="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"
+	        src="dist/plugins/org.aspectj.ajde_${ajde.version}.jar"/>
+
+	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"
+	        src="dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}.jar"/>
+
+	<zip destfile="ajdt_${aspectj.feature.version}_archive.zip"
+		 basedir="fpack_dist"/>
+</target>
+
+<target name="update-site" depends="init"
+ description="Build the update site structure">
+ 
+ <ant dir="../org.aspectj.runtime" inheritAll="true" />
+ <ant dir="../org.aspectj.ajde" inheritAll="true" />
+ <!--ant dir="../org.eclipse.aosd.relationships" inheritAll="true"/-->
+ <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true"/>
+ <ant dir="../org.eclipse.ajdt.core" inheritAll="true"/>
+ <ant dir="../org.eclipse.ajdt.ui" inheritAll="true"/>
+ <ant dir="../org.eclipse.ajdt.examples" inheritAll="true"/>
+ <ant dir="../org.eclipse.aspectj" inheritAll="true" />
+ <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
+ <ant dir="../org.eclipse.ajdt.test" inheritAll="true" />
+	
+ <copy file="site.xml" todir="dist">
+ 	<filterset>
+ 		<filter token="AJFVERSION" value="${aspectj.feature.version}"/>
+ 	</filterset>
+ </copy>
+ <copy file="../org.eclipse.aspectj.feature/dist/org.eclipse.aspectj_${aspectj.feature.version}.jar"
+       todir="dist/features" />
+ <copy file="../org.eclipse.aspectj/dist/org.eclipse.aspectj_${aspectj.feature.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.core/dist/org.eclipse.ajdt.core_${ajdt.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.ui/dist/org.eclipse.ajdt.ui_${ajdt.version}.jar"
+	   todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.examples/dist/org.eclipse.ajdt.examples_${ajdt.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.aspectj.runtime/dist/org.aspectj.runtime_${ajde.version}.jar"
+       todir="dist/plugins" />  
+ <copy file="../org.aspectj.ajde/dist/org.aspectj.ajde_${ajde.version}.jar"
+	   todir="dist/plugins" />  
+ <copy file="../org.eclipse.contribution.visualiser/dist/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
+       todir="dist/plugins" />     
+</target>
+
+<target name="publish" depends="update-site">
+	<ftp server="download.eclipse.org" 
+		remotedir="devupdate"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist">
+			<include name="site.xml"/>
+		</fileset>
+	</ftp>
+	<ftp server="download.eclipse.org" 
+		remotedir="devupdate/features"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist/features"/>
+	</ftp>
+	<ftp server="download.eclipse.org" 
+		remotedir="devupdate/plugins"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist/plugins"/>
+	</ftp>
+</target>
+
+<target name="release" depends="update-site">
+	<fail message="this failure was deliberately inserted to prevent accidental publishing of a release" />
+	<ftp server="download.eclipse.org" 
+		remotedir="update"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist">
+			<include name="site.xml"/>
+		</fileset>
+	</ftp>
+	<ftp server="download.eclipse.org" 
+		remotedir="update/features"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist/features"/>
+	</ftp>
+	<ftp server="download.eclipse.org" 
+		remotedir="update/plugins"
+		userid="${ftp.userid}"
+		password="${ftp.pwd}"
+		binary="true"
+		verbose="true"
+	>
+		<fileset dir="dist/plugins"/>
+	</ftp>
+</target>
+
+</project>

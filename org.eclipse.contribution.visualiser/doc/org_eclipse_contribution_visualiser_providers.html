@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HEAD><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<STYLE type="text/css">
+div.dtd-fragment {
+	width: 100%;
+	border: none;
+	background-color: #eee;
+}
+</STYLE>
+<link rel="STYLESHEET" href="book.css" charset="ISO-8859-1" type="text/css">
+</HEAD>
+<HTML>
+<BODY>
+<H1><CENTER>Visualiser Providers</CENTER></H1>
+<b><i>Identifier: </i></b>org.eclipse.contribution.visualiser.providers<p>
+<b><i>Description: </i></b>This extension point is used to plug in to the Visualiser by specifying a provider.  Each extension must provide an implementor of <FONT face="Courier New" size="-1">org.eclipse.contribution.visualiser.interfaces.IContentProvider</font> and an implementor of <FONT face="Courier New" size="-1">org.eclipse.contribution.visualiser.interfaces.IMarkupProvider</font>.<p><b><i>Configuration Markup:</i></b><p>
+<p><samp><font color="#800000">&nbsp;&nbsp; &lt;!ELEMENT <a name="e.extension">extension</a> (<a href="#e.contentProvider">contentProvider</a>)&gt;</font></samp>
+<br><br><samp><font color="#800000">&nbsp;&nbsp; &lt;!ATTLIST extension</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;point&nbsp;CDATA #REQUIRED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id&nbsp;&nbsp;&nbsp;&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp; &gt;</font></samp>
+<ul>
+</ul>
+<p><samp><font color="#800000">&nbsp;&nbsp; &lt;!ELEMENT <a name="e.contentProvider">contentProvider</a> EMPTY&gt;</font></samp>
+<p>&nbsp;&nbsp; Content Provider definition.</p>
+<p></p>
+<samp><font color="#800000">&nbsp;&nbsp; &lt;!ATTLIST contentProvider</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CDATA #REQUIRED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CDATA #REQUIRED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CDATA #REQUIRED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;markupclass&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;priority&nbsp;&nbsp;&nbsp;&nbsp;CDATA #IMPLIED</samp>
+<br><samp>&nbsp;&nbsp; &gt;</font></samp>
+<ul>
+<li><b>class</b> - Content Provider class (must implement org.eclipse.contribution.visualiser.interface.IContentProvider).</li>
+<li><b>id</b> - Unique ID for the provider</li>
+<li><b>name</b> - Name of the provider, to be used in the Visualiser preference page.</li>
+<li><b>description</b> - Description of the provider, to be used in the Visualiser preference page.</li>
+<li><b>markupclass</b> - Markup provider class (must implement org.eclipse.contribution.visualiser.interfaces.IMarkupProvider).</li>
+<li><b>title</b> - Title, to be used in the Visualiser view's title.</li>
+<li><b>priority</b> - Integer value where 0 is the lowest, stating the priority of the provider in the list on the Visualiser preference page.  This value also determines which of the available providers is selected by default.</li>
+</ul>
+<b><i>Examples: </i></b>An example of a simple file-based provider:
+<P><FONT face="Courier New" color="#000080" size="-1">&lt;extension<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;id=<FONT color="#008000">&quot;file_providers&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;name=<FONT color="#008000">&quot;File Providers&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;point=<FONT color="#008000">&quot;org.eclipse.contribution.visualiser.providers&quot;<FONT color="#000080">&gt;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;contentProvider<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;markupclass=<FONT color="#008000">&quot;org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileMarkupProvider&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name=<FONT color="#008000">&quot;File content provider&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;priority=<FONT color="#008000">&quot;0&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description=<FONT color="#008000">&quot;Simple test provider that reads flat file to determine groups, members and marks&quot;<FONT color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class=<FONT color="#008000">&quot;org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileContentProvider&quot;<font color="#000080"><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id=<FONT color="#008000">&quot;filecontentprovider&quot;<font color="#000080">&gt;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/contentProvider&gt;<BR>
+&lt;/extension&gt;</FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></FONT></P><p>
+<b><i>Supplied Implementation: </i></b>Several implementation examples are included with the Visualiser<p>
+<font size="-1" color="#336699">
+</font>
+</BODY>
+</HTML>

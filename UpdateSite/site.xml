@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+	<description>
+	This update site provides the AspectJ feature and related
+	tools.
+	</description>
+	<!-- VERSION-STRING -->	
+	<feature id="org.eclipse.aspectj" version="@AJFVERSION@"
+	         url="features/org.eclipse.aspectj_@AJFVERSION@.jar">
+		<category name="org.eclipse.aspectj"/>
+	</feature>
+
+	<category-def name="org.eclipse.aspectj" label="AspectJ"/>
+</site>
+  

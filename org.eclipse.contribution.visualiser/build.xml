@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.contribution.visualiser" default="packaged-plugin">
+
+<description>
+Create a packaged org.eclipse.contribution.visualiser_version plugin distribution file
+</description>
+<!-- VERSION-STRING -->
+<!-- these property values will be overridden when called from the master build script -->
+<property name="visualiser.version" value="9.9.9" />
+<property name="build.dir" value="build" />
+<property name="eclipse.build.version" value="3.0.0" />
+
+<property name="aspectj" value="c:/aspectj1.2" />
+<property name="aspectjrt" value="${aspectj}/lib/aspectjrt.jar" />
+<property name="aspectjtools" value="${aspectj}/lib/aspectjtools.jar" />
+	
+<taskdef 
+    resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+	<classpath>
+	    <pathelement location="${aspectjtools}"/>
+	</classpath>
+</taskdef>
+
+<!-- To run this script from inside an automated build environment such 
+     as Cruise Control the following properties are expected to have
+     been set and passed in :-
+     * external.build (set to any value) 
+     * eclipse.home (set to the directory where Eclipse has been 
+       installed on the build machine)
+     * eclipse.build.version (override the value default value set above)
+     * aspectj (set to AspectJ install dir)
+-->
+
+<path id="project.class.path">
+	<pathelement location="${aspectjrt}"/>
+    <pathelement location="src/"/>
+    <pathelement location="lib/draw2d.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.runtime_${eclipse.build.version}/runtime.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.resources_${eclipse.build.version}/resources.jar"/>
+    <!-- Build platform issue with the below one  ? -->
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.swt.win32_${eclipse.build.version}/ws/win32/swt.jar"/>   
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui_${eclipse.build.version}/ui.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.osgi_${eclipse.build.version}/osgi.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jface_${eclipse.build.version}/jface.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jface.text_${eclipse.build.version}/jfacetext.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui.workbench_${eclipse.build.version}/workbench.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.core_${eclipse.build.version}/jdtcore.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.ui_${eclipse.build.version}/jdt.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.search_${eclipse.build.version}/search.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.text_${eclipse.build.version}/text.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui.editors_${eclipse.build.version}/editors.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui.workbench.texteditor_${eclipse.build.version}/texteditor.jar"/>
+    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui.ide_${eclipse.build.version}/ide.jar"/>
+</path>
+
+<target name="init">
+  <mkdir dir="${build.dir}" />
+  <mkdir dir="dist"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="${build.dir}"/>
+  <delete dir="dist"/>
+</target>
+
+<target name="externalbuild" if="external.build" >
+	<delete dir="bin"/>
+	<mkdir dir="bin"/>
+	<property file="build.ajproperties"/>
+	<iajc srcdir="." destdir="bin" classpathRef="project.class.path"
+		debug="false" verbose="true"
+		includes="${src.includes}" excludes="${src.excludes}" />
+    <!--
+    <javac srcdir="src" destdir="bin">
+		<classpath refid="project.class.path" />
+	</javac>
+	-->
+</target>
+
+<target name="eclipsebuild" unless="external.build" >
+	<eclipse.incrementalBuild project="org.eclipse.contribution.visualiser" />
+</target>
+
+<target name="buildproject" depends="externalbuild,eclipsebuild" />
+
+<target name="visualiserjar" depends="init"
+  description="Create Visualiser.jar, the library containing the plug-in
+    class files and properties.">
+ <!-- The following ant call is intended to provide the flexibility 
+      to build the Visualiser from within Eclipse or else from a command line
+      run of Ant (e.g. in a Cruise Control environment).
+ -->
+ <antcall target="buildproject" />
+ <copy file="src/org/eclipse/contribution/visualiser/VisualiserPluginResources.properties" 
+ 	 tofile="bin/org/eclipse/contribution/visualiser/VisualiserPluginResources.properties"
+ 	 overwrite="true"/>
+  <zip destfile= "${build.dir}/Visualiser.jar" >
+  	<fileset dir="bin"/>
+  </zip>
+</target>
+
+<target name="visualisersrcjar" depends="init"
+ description="The source jar file for Visualiser, Visualisersrc.jar">
+  <zip destfile= "${build.dir}/Visualisersrc.jar" >
+   <fileset dir="src"/>
+  </zip>
+</target>
+
+
+<target name="packaged-plugin" depends="visualiserjar, visualisersrcjar"
+ description="Create the plugin jar file from the assembled components in the build dir">
+ <copy todir="${build.dir}/icons">
+   <fileset dir="icons" />
+ </copy>
+ <copy todir="${build.dir}/doc">
+   <fileset dir="doc" />
+ </copy>
+ <copy todir="${build.dir}">
+   <fileset dir=".">
+     <include name="*.xml"/>
+     <exclude name="build.*"/>
+     <include name="*.html"/>
+     <include name="*.properties"/>
+   	 <include name="Content.vis"/>
+  	 <include name="Markup.mvis"/>
+     <exclude name="plugin.*xml" />
+   </fileset>
+ </copy>
+ <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ 	<filterset begintoken="9" endtoken="9">
+ 		<filter token="2.2.2" value="${visualiser.version}"/>
+ 	</filterset>
+ </copy>  
+ <copy file="lib/draw2d.jar" tofile="${build.dir}/lib/draw2d.jar">
+ </copy>  
+
+ <zip destfile= "dist/org.eclipse.contribution.visualiser_${visualiser.version}.jar" >
+   <fileset dir= "build" />
+ </zip>
+</target>
+</project>

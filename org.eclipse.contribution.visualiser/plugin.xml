@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<plugin
+   id="org.eclipse.contribution.visualiser"
+   name="Visualiser Plug-in"
+   version="92.2.29"
+   provider-name="Eclipse.org"
+   class="org.eclipse.contribution.visualiser.VisualiserPlugin">
+
+   <runtime>
+      <library name="Visualiser.jar">
+         <export name="*"/>
+      </library>
+      <library name="lib/draw2d.jar"/>
+   </runtime>
+   <requires>
+      <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.junit"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.search"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.aspectj.ajde"/>
+   </requires>
+
+   <extension-point id="providers" name="Visualiser Providers" schema="schema/org.eclipse.aosd.visualiser.providers.exsd"/>
+   <extension-point id="renderers" name="Visualiser Renderers" schema="schema/renderers.exsd"/>
+   <extension-point id="palettes" name="Visualiser Palettes" schema="schema/palettes.exsd"/>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Visualiser"
+            id="Visualiser">
+      </category>
+      <view
+            name="Visualiser"
+            icon="icons/visualiser.gif"
+            category="Visualiser"
+            class="org.eclipse.contribution.visualiser.views.Visualiser"
+            id="org.eclipse.contribution.visualiser.views.Visualiser">
+      </view>
+      <view
+            name="Visualiser Menu"
+            icon="icons/vismenu.gif"
+            category="Visualiser"
+            class="org.eclipse.contribution.visualiser.views.Menu"
+            id="org.eclipse.contribution.visualiser.views.Menu">
+      </view>
+      
+      <!-- enable this view to monitor rendering info - requires RenderingMonitorInfo aspect -->
+      <!--
+      <view
+            name="Rendering monitor"
+            icon="icons/visualiser.gif"
+            category="Visualiser"
+            class="org.eclipse.contribution.visualiser.utils.RenderingMonitor"
+            id="org.eclipse.contribution.visualiser.utils.RenderingMonitor">
+      </view>
+      -->
+   </extension>
+<!--extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="Visualiser.views.VisView">
+         </view>
+      </perspectiveExtension>
+   </extension-->
+   <extension
+         id="inbuilt_providers"
+         name="Inbuilt Providers"
+         point="org.eclipse.contribution.visualiser.providers">
+    <!-- Sian - Removed as this does not currently show any stripes.
+      <contentProvider
+            markupclass="org.eclipse.contribution.visualiser.jdtimpl.JDTMarkupProvider"
+            name="JDT Content Provider"
+            priority="5"
+            description="Provider that shows Java packages and classes in the visualiser, marks are the Eclipse resource markers"
+            class="org.eclipse.contribution.visualiser.jdtimpl.JDTContentProvider"
+            id="jdtcontentprovider">
+      </contentProvider>
+      -->
+      <contentProvider
+            markupclass="org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileMarkupProvider"
+            name="File content provider"
+            priority="0"
+            description="Simple test provider that reads flat file to determine groups and members and marks"
+            class="org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileContentProvider"
+            id="filecontentprovider">
+      </contentProvider>
+      <contentProvider
+            markupclass="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsMarkupProvider"
+            name="JDT Search Results Content Provider"
+            priority="5"
+            description="Provider that shows Java search results in the visualiser"
+            class="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsContentProvider"
+            id="jdtsearchresultscontentprovider">
+      </contentProvider>
+      <contentProvider
+            markupclass="org.eclipse.contribution.visualiser.markerimpl.MarkerMarkupProvider"
+            name="Resources and Markers"
+            priority="6"
+            description="Provider that shows markers in the visualiser"
+            class="org.eclipse.contribution.visualiser.markerimpl.ResourceContentProvider"
+            id="markercontentprovider">
+      </contentProvider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="%VisualiserPreferencePage"
+            class="org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencePage"
+            id="org.eclipse.contribution.visualiser.prefspage">
+      </page>
+   </extension>
+	
+	<!-- Documentation -->
+   <extension
+         point="org.eclipse.help.toc">
+      <toc
+            file="doc/toc.xml"
+            primary="true">
+      </toc>
+   </extension>
+   <extension
+         point="org.eclipse.help.toc">
+      <toc
+            file="doc/toc_using.xml">
+      </toc>
+      <toc
+            file="doc/toc_extending.xml">
+      </toc>
+      <toc
+            file="doc/toc_reference.xml">
+      </toc>
+   </extension>
+
+   <extension
+         point="org.eclipse.contribution.visualiser.renderers">
+         <renderer class="org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer"
+             name="Default style"
+             id="defaultstyle">
+         </renderer>
+         <renderer class="org.eclipse.contribution.visualiser.views.GradientVisualiserRenderer"
+             name="Gradient bars"
+             id="gradientbars">
+         </renderer>
+         <renderer class="org.eclipse.contribution.visualiser.views.CylinderRenderer"
+             name="Cylinder shading"
+             id="cylinderbars">
+         </renderer>
+   </extension>
+   
+   <extension
+         point="org.eclipse.contribution.visualiser.palettes">
+         <palette class="org.eclipse.contribution.visualiser.core.DefaultVisualiserPalette"
+             name="Default palette"
+             id="defaultpalette">
+         </palette>
+   </extension>
+</plugin>
