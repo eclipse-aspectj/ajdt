@@ -92,6 +92,7 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
  <copy todir="${build.dir}/icons">
    <fileset dir="icons" />
  </copy>
+ <ant antfile="javadoc.xml" />
  <copy todir="${build.dir}/doc">
    <fileset dir="doc" />
  </copy>
