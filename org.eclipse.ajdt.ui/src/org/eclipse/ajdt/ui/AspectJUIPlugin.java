@@ -692,7 +692,7 @@ public class AspectJUIPlugin
 		if (resourceChangeListener == null){
 			resourceChangeListener = new BCResourceChangeListener();
 			// listener for build configurator
-			getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE | IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_BUILD);
+			enableBuildConfiguratorResourceChangeListener();
 			// listener for aspectj model
 			getWorkspace().addResourceChangeListener(new ResourceChangeListener(), IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE | IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_BUILD);
 		}
@@ -970,5 +970,26 @@ public class AspectJUIPlugin
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 			"Exception occurred whilst retrieiving all .lst files in a project",ce);
 		}
+	}
+	
+	/**
+	 * Disable the build configurator's resource change listener.
+	 *  
+	 */
+	public void disableBuildConfiguratorResourceChangeListener() {
+		getWorkspace().removeResourceChangeListener(resourceChangeListener);
+	}
+
+	/**
+	 * Enable the build configurator's resource change listener.
+	 *  
+	 */
+	public void enableBuildConfiguratorResourceChangeListener() {
+		getWorkspace().addResourceChangeListener(
+				resourceChangeListener,
+				IResourceChangeEvent.PRE_CLOSE
+						| IResourceChangeEvent.PRE_DELETE
+						| IResourceChangeEvent.POST_CHANGE
+						| IResourceChangeEvent.PRE_BUILD);
 	}
 }
