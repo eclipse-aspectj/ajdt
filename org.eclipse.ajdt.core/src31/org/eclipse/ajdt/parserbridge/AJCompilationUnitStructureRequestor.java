@@ -21,6 +21,9 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeMethodDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
@@ -39,9 +42,9 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -90,9 +93,26 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterNames,
 			char[][] exceptionTypes,
 			AbstractMethodDeclaration methodDeclaration) {
+
 				enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
 					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false, methodDeclaration);
 		}
+	
+	public void enterMethod(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,null);
+	}
+	
+	public void enterMethod(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,null);
+	}
+	
+	public void enterMethod(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi,AbstractMethodDeclaration mdecl) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,mdecl);
+	}
+	
+	public void enterMethod(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi,AbstractMethodDeclaration mdecl) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,mdecl);
+	}
 	
 	protected void enterMethod(
 			int declarationStart,
@@ -106,7 +126,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			boolean isConstructor,
 			AbstractMethodDeclaration methodDeclaration) {
-
+		
 			if (methodDeclaration instanceof AdviceDeclaration){
 				enterAdvice(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (AdviceDeclaration)methodDeclaration);
 				return;
@@ -127,17 +147,17 @@ public class AJCompilationUnitStructureRequestor extends
 				return;
 			}
 			
-			MethodInfo mi = new MethodInfo();
+			org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi = 
+				new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo();
 			mi.declarationStart = declarationStart;
 			mi.modifiers = modifiers;
-			mi.returnType = returnType;
 			mi.name = name;
 			mi.nameSourceStart = nameSourceStart;
 			mi.nameSourceEnd = nameSourceEnd;
-			mi.parameterTypes = parameterTypes;
 			mi.parameterNames = parameterNames;
+			mi.parameterTypes = parameterTypes;
 			mi.exceptionTypes = exceptionTypes;
-			mi.isConstructor = false;
+			
 			super.enterMethod(mi);
 		}
 	
@@ -153,9 +173,10 @@ public class AJCompilationUnitStructureRequestor extends
 		char[] superclass,
 		char[][] superinterfaces,
 		boolean isAspect) {
-
+		
 		if (!isAspect) {
-			TypeInfo ti = new TypeInfo();
+			org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo ti = 
+				new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo();
 			ti.declarationStart = declarationStart;
 			ti.modifiers = modifiers;
 			ti.name = name;
@@ -163,7 +184,7 @@ public class AJCompilationUnitStructureRequestor extends
 			ti.nameSourceEnd = nameSourceEnd;
 			ti.superclass = superclass;
 			ti.superinterfaces = superinterfaces;
-			enterType(ti);
+			super.enterType(ti);
 		} else {
 		
 		Object parentInfo = this.infoStack.peek();
@@ -182,7 +203,7 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setHandle(handle);
 		info.setSourceRangeStart(declarationStart);
 		info.setFlags(modifiers);
-		//info.setName(name);
+		// odd !! info.setName(name);
 		info.setNameSourceStart(nameSourceStart);
 		info.setNameSourceEnd(nameSourceEnd);
 		info.setSuperclassName(superclass);
@@ -231,6 +252,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			AdviceDeclaration decl) {
 		
+			
 				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
 				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 				AdviceElement handle = null;
@@ -286,7 +308,7 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] parameterNames,
 			char[][] exceptionTypes,
 			InterTypeDeclaration decl) {
-
+		
 				nameSourceEnd = nameSourceStart + decl.getDeclaredSelector().length - 1; 
 		
 				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
@@ -487,92 +509,58 @@ public class AJCompilationUnitStructureRequestor extends
 			this.hasSyntaxErrors = true;
 		}		
 	}
-	
-	public void enterClass(int declarationStart, int modifiers, char[] name,
-			int nameSourceStart, int nameSourceEnd, char[] superclass,
-			char[][] superinterfaces) {
-		TypeInfo ti = new TypeInfo();
-		ti.kind = IGenericType.CLASS_DECL;
-		ti.declarationStart = declarationStart;
-		ti.modifiers = modifiers;
-		ti.name = name;
-		ti.nameSourceStart = nameSourceStart;
-		ti.nameSourceEnd = nameSourceEnd;
-		ti.superclass = superclass;
-		ti.superinterfaces = superinterfaces;
-		super.enterType(ti);
+
+	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,isAspect);
 	}
 
-	public void enterConstructor(int declarationStart, int modifiers, char[] name,
-			int nameSourceStart, int nameSourceEnd, char[][] parameterTypes,
-			char[][] parameterNames, char[][] exceptionTypes) {
-		MethodInfo mi = new MethodInfo();
-		mi.declarationStart = declarationStart;
-		mi.modifiers = modifiers;
-		mi.name = name;
-		mi.nameSourceStart = nameSourceStart;
-		mi.nameSourceEnd = nameSourceEnd;
-		mi.parameterTypes = parameterTypes;
-		mi.parameterNames = parameterNames;
-		mi.exceptionTypes = exceptionTypes;
+	public void enterConstructor(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo methodInfo) {
+		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo mi = 
+			new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo();
+		mi.declarationStart = methodInfo.declarationStart;
+		mi.modifiers = methodInfo.modifiers;
+		mi.name = methodInfo.name;
+		mi.nameSourceStart = methodInfo.nameSourceStart;
+		mi.nameSourceEnd = methodInfo.nameSourceEnd;
+		mi.parameterNames = methodInfo.parameterNames;
+		mi.parameterTypes = methodInfo.parameterTypes;
+		mi.exceptionTypes = methodInfo.exceptionTypes;
 		mi.isConstructor = true;
-		super.enterConstructor(mi);
+		enterConstructor(mi);
 	}
 
-	public void enterField(int declarationStart, int modifiers, char[] type,
-			char[] name, int nameSourceStart, int nameSourceEnd) {
-		FieldInfo fi = new FieldInfo();
-		fi.declarationStart = declarationStart;
-		fi.modifiers = modifiers;
-		fi.type = type;
-		fi.name = name;
-		fi.nameSourceStart = nameSourceStart;
-		fi.nameSourceEnd = nameSourceEnd;
-		super.enterField(fi);
+	public void enterField(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fieldInfo) {
+		org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo fi = 
+			new org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo();
+		fi.declarationStart = fieldInfo.declarationStart;
+		fi.modifiers = fieldInfo.modifiers;
+		fi.type = fieldInfo.type;
+		fi.name = fieldInfo.name;
+		fi.nameSourceStart = fieldInfo.nameSourceStart;
+		fi.nameSourceEnd = fieldInfo.nameSourceEnd;
+		enterField(fi);
 	}
 
-	public void enterInterface(int declarationStart, int modifiers, char[] name,
-			int nameSourceStart, int nameSourceEnd, char[][] superinterfaces) {
-		TypeInfo ti = new TypeInfo();
-		ti.kind = IGenericType.INTERFACE_DECL;
-		ti.declarationStart = declarationStart;
-		ti.modifiers = modifiers;
-		ti.name = name;
-		ti.nameSourceStart = nameSourceStart;
-		ti.nameSourceEnd = nameSourceEnd;
-		ti.superinterfaces = superinterfaces;
-		enterType(ti);
-	}
-
-	public void enterMethod(int declarationStart, int modifiers, char[] returnType,
-			char[] name, int nameSourceStart, int nameSourceEnd,
-			char[][] parameterTypes, char[][] parameterNames,
-			char[][] exceptionTypes) {
-		MethodInfo mi = new MethodInfo();
-		mi.declarationStart = declarationStart;
-		mi.modifiers = modifiers;
-		mi.returnType = returnType;
-		mi.name = name;
-		mi.nameSourceStart = nameSourceStart;
-		mi.nameSourceEnd = nameSourceEnd;
-		mi.parameterTypes = parameterTypes;
-		mi.parameterNames = parameterNames;
-		mi.exceptionTypes = exceptionTypes;
-		mi.isConstructor = false;
-		super.enterMethod(mi);
+	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,false);
 	}
 	
-	public void exitClass(int declarationEnd) {
-		super.exitMember(declarationEnd);
-	}
-
-	public void exitInterface(int declarationEnd) {
-		super.exitMember(declarationEnd);
-	}
-
-	public void exitMethod(int declarationEnd) {
-		super.exitMember(declarationEnd);
+	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,isAspect);
 	}
 
 
+
+	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,false);
+	}
+
+//	public void exitMethod(int declarationEnd, int defaultValueStart, int defaultValueEnd) {
+//		super.exitMethod(declarationEnd);
+//	}
+//
+//	public void exitType(int declarationEnd) {
+//		super.exitClass(declarationEnd);
+//	}
+	
 }
