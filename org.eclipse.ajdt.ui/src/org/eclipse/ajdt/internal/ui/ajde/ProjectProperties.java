@@ -110,28 +110,28 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				return out.getLocation().toOSString();
 			}
 
-			//          Bug 37033 - get the path right, stupid!
-			//			// Bug21998: Use the project location rather than the workspace
+			// Bug 37033 - get the path right, stupid!
+			// // Bug21998: Use the project location rather than the workspace
 			// location.
-			//			String workspaceLoc =
+			// String workspaceLoc =
 			// currProject.getLocation().removeLastSegments(1).toOSString();
 			//
-			//			IJavaProject jProject = JavaCore.create(currProject);
-			//			String relativePath = jProject.getOutputLocation().toOSString();
-			//			return workspaceLoc + relativePath;
+			// IJavaProject jProject = JavaCore.create(currProject);
+			// String relativePath = jProject.getOutputLocation().toOSString();
+			// return workspaceLoc + relativePath;
 
 			// find the resource that corresponds with this path (if its a
 			// linked folder this will enable us to dereference it).
 
-			//			IResource r =
+			// IResource r =
 			// currProject.findMember(workspaceRelativeOutputPath.removeFirstSegments(1));
-			//			String ret = "";
-			//			if ( r != null ) ret = r.getLocation().toOSString();
-			//			AJDTEventTrace.generalEvent("Output path =" + ret);
+			// String ret = "";
+			// if ( r != null ) ret = r.getLocation().toOSString();
+			// AJDTEventTrace.generalEvent("Output path =" + ret);
 			//			
-			//			System.err.println(">>>> ret: " + ret + ", r: " + r);
+			// System.err.println(">>>> ret: " + ret + ", r: " + r);
 			//			
-			//			return ret;
+			// return ret;
 		} catch (CoreException ce) {
 			Ajde.getDefault().getErrorHandler().handleError(
 					AspectJUIPlugin.getResourceString("noOutputDir"), ce);
@@ -167,7 +167,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * All the source files in the current project, as a List of java.io.Files.
 	 */
 	public List getProjectSourceFiles() {
-		IProject activeProject = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject activeProject = AspectJUIPlugin.getDefault()
+				.getCurrentProject();
 		return getProjectSourceFiles(activeProject,
 				CoreUtils.ASPECTJ_SOURCE_FILTER);
 	}
@@ -175,7 +176,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	/**
 	 * version to use when you know the project
 	 */
-	public List getProjectSourceFiles(IProject project, CoreUtils.FilenameFilter filter) {
+	public List getProjectSourceFiles(IProject project,
+			CoreUtils.FilenameFilter filter) {
 
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
@@ -206,13 +208,14 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		// bug 73035: use this build classpath resolver which is a direct
 		// copy from JDT, so the classpath environment is much closer between
 		// AspectJ and Java projects.
-		return new BuildClasspathResolver().getClasspath(AspectJPlugin.getWorkspace().getRoot(),jp);
+		return new BuildClasspathResolver().getClasspath(AspectJPlugin
+				.getWorkspace().getRoot(), jp);
 	}
-	
+
 	/**
-	 * get the classpath to use for compiling the current project.
-	 * NOTE: This is not currently used, after being replaced by the above version
-	 * which uses BuildClasspathResolver
+	 * get the classpath to use for compiling the current project. NOTE: This is
+	 * not currently used, after being replaced by the above version which uses
+	 * BuildClasspathResolver
 	 */
 	public String getOldClasspath() {
 		// bug 36577 - about time we stopped using our own hokey classpath
@@ -227,9 +230,11 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					.computeUnresolvedRuntimeClasspath(jp);
 			HashSet cp = new HashSet();
 			for (int i = 0; i < rtcp.length; i++) {
-				IRuntimeClasspathEntry[] resolved = RuntimeClasspathCalculator.resolveRuntimeClasspathEntry(
-				//IRuntimeClasspathEntry[] resolved = JavaRuntime.resolveRuntimeClasspathEntry(
-						rtcp[i], jp);
+				IRuntimeClasspathEntry[] resolved = RuntimeClasspathCalculator
+						.resolveRuntimeClasspathEntry(
+						// IRuntimeClasspathEntry[] resolved =
+								// JavaRuntime.resolveRuntimeClasspathEntry(
+								rtcp[i], jp);
 				for (int j = 0; j < resolved.length; j++) {
 					cp.add(resolved[j].getLocation());
 				}
@@ -241,49 +246,49 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		} catch (CoreException cEx) {
 		}
 
-		//		StringBuffer classpath = new StringBuffer();
+		// StringBuffer classpath = new StringBuffer();
 		//
-		//		// Related to bug21998: Use the project location rather than the
+		// // Related to bug21998: Use the project location rather than the
 		// workspace location, this allows
-		//		// for projects who keep their source/binaries in a location other
+		// // for projects who keep their source/binaries in a location other
 		// than the workspace directories.
-		//		//String prependPath =
+		// //String prependPath =
 		// AspectJPlugin.getWorkspace().getRoot().getLocation().toOSString();
-		//		IProject currProject =
+		// IProject currProject =
 		// AspectJPlugin.getDefault().getCurrentProject();
 		//
-		//		classpath.append(getAspectjrtClasspath());
-		//		classpath.append(File.pathSeparator);
-		//		IProject project = AspectJPlugin.getDefault().getCurrentProject();
+		// classpath.append(getAspectjrtClasspath());
+		// classpath.append(File.pathSeparator);
+		// IProject project = AspectJPlugin.getDefault().getCurrentProject();
 		//
-		//		Set projectClasspathSet = new HashSet();
-		//		Set circularDependencyPreventer = new HashSet();
+		// Set projectClasspathSet = new HashSet();
+		// Set circularDependencyPreventer = new HashSet();
 		//
-		//		circularDependencyPreventer.add(project);
+		// circularDependencyPreventer.add(project);
 		//
-		//		if (project != null) {
-		//			try {
+		// if (project != null) {
+		// try {
 		//
-		//				getJavaProjectClasspath(currProject, projectClasspathSet,
+		// getJavaProjectClasspath(currProject, projectClasspathSet,
 		// circularDependencyPreventer,false);
 		//
-		//			} catch (CoreException corex) {
-		//				String message = AspectJPlugin.getResourceString("jmCoreException");
-		//				Status status = new Status(Status.ERROR, AspectJPlugin.PLUGIN_ID,
+		// } catch (CoreException corex) {
+		// String message = AspectJPlugin.getResourceString("jmCoreException");
+		// Status status = new Status(Status.ERROR, AspectJPlugin.PLUGIN_ID,
 		// Status.OK, message, corex);
-		//				Shell shell =
+		// Shell shell =
 		// AspectJPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-		//				ErrorDialog.openError(shell,
+		// ErrorDialog.openError(shell,
 		// AspectJPlugin.getResourceString("ajErrorDialogTitle"), message,
 		// status);
-		//			}
-		//		}
+		// }
+		// }
 		//
-		//		for (Iterator iter = projectClasspathSet.iterator(); iter.hasNext();)
+		// for (Iterator iter = projectClasspathSet.iterator(); iter.hasNext();)
 		// {
-		//			classpath.append((String) iter.next());
-		//			classpath.append(File.pathSeparator);
-		//		}
+		// classpath.append((String) iter.next());
+		// classpath.append(File.pathSeparator);
+		// }
 
 		if (AspectJUIPlugin.isDebugging) {
 			// It's *always* a classpath problem ;-). Better print it out.
@@ -374,7 +379,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					IProject projectDependancy = AspectJPlugin.getWorkspace()
 							.getRoot().getProject(name);
 
-					//					if classpathEntries[i].isExported())
+					// if classpathEntries[i].isExported())
 
 					if (projectDependancy.exists()
 							&& projectDependancy.isOpen()
@@ -445,8 +450,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		IProject currProject = AspectJUIPlugin.getDefault().getCurrentProject();
 		try {
 			currProject
-					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
-							(recurse ? IResource.DEPTH_INFINITE
+					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+							false, (recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
 			currProject
 					.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
@@ -469,6 +474,20 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		return root.getFileForLocation(path);
 	}
 
+	/*
+	 * Lightweight form of canonical path conversion - only converts
+	 * windows-style drive letters to uppercase.
+	 */
+	private String toCanonical(String path) {
+		if ((path.charAt(1) == ':')
+				&& (((path.charAt(0) >= 'a') && (path.charAt(0) <= 'z')) || ((path
+						.charAt(0) >= 'A') && (path.charAt(0) <= 'Z')))) {
+			return Character.toUpperCase(path.charAt(0)) + path.substring(1);
+		} else {
+			return path;
+		}
+	}
+
 	/**
 	 * Return the IResource within the project that maps to the given File
 	 */
@@ -477,7 +496,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		// full path contains absolute file system paths, we need to undo the
 		// effects of any "symbolic linking" in the workspace to ensure that we
 		// return the correct IResource.
-		String toMatch = fullPath.replace('\\', '/');
+		String toMatch = toCanonical(fullPath.replace('\\', '/'));
 		try {
 			IJavaProject jp = JavaCore.create(p);
 			IClasspathEntry[] cpes = jp.getRawClasspath();
@@ -490,7 +509,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 								.findMember(pe.removeFirstSegments(1));
 						if (ires instanceof IFolder) {
 							IFolder f = (IFolder) ires;
-							if (toMatch.startsWith(f.getLocation().toString())) {
+							if (toMatch.startsWith(toCanonical(f.getLocation()
+									.toString()))) {
 								// this is what it was all about!
 								// we have a possible symbolic link within our
 								// project to the file
@@ -505,8 +525,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 							// I think this is when the project has no src/bin
 							// dirs
 							IProject iproj = ((IProject) ires);
-							if (toMatch.startsWith(iproj.getLocation()
-									.toString())) {
+							if (toMatch.startsWith(toCanonical(iproj
+									.getLocation().toString()))) {
 								// this is what it was all about!
 								// we have a possible symbolic link within our
 								// project to the file
@@ -544,47 +564,48 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			StringBuffer cpath = new StringBuffer();
 
 			// This isn't require for Eclipse 3.0
-//			IPluginRegistry reg = Platform.getPluginRegistry();
-//			
-//			String ajVersion = AspectJPlugin
-//					.getResourceString(AJDE_VERSION_KEY);
-//
-//			if (ajVersion.equals(AJDE_DEV)) {
-//				// working from developer edition, not a release
-//				ajVersion = AJDE_VERSION_DEV;
-//			}
-//
-//			int maj = 1;
-//			int min = 1;
-//			int svc = 1;
-//			try {
-//				StringTokenizer tok = new StringTokenizer(ajVersion, ".");
-//				maj = Integer.parseInt(tok.nextToken());
-//				min = Integer.parseInt(tok.nextToken());
-//				svc = Integer.parseInt(tok.nextToken());
-//			} catch (Exception ex) {
-//				System.err.println("Exception parsing AJDE version: " + ex);
-//			}
+			// IPluginRegistry reg = Platform.getPluginRegistry();
+			//			
+			// String ajVersion = AspectJPlugin
+			// .getResourceString(AJDE_VERSION_KEY);
+			//
+			// if (ajVersion.equals(AJDE_DEV)) {
+			// // working from developer edition, not a release
+			// ajVersion = AJDE_VERSION_DEV;
+			// }
+			//
+			// int maj = 1;
+			// int min = 1;
+			// int svc = 1;
+			// try {
+			// StringTokenizer tok = new StringTokenizer(ajVersion, ".");
+			// maj = Integer.parseInt(tok.nextToken());
+			// min = Integer.parseInt(tok.nextToken());
+			// svc = Integer.parseInt(tok.nextToken());
+			// } catch (Exception ex) {
+			// System.err.println("Exception parsing AJDE version: " + ex);
+			// }
 
-			
 			// first look for the version we really want...
-//			IPluginDescriptor ajdePluginDesc = reg.getPluginDescriptor(
-//					"org.aspectj.ajde", new PluginVersionIdentifier(maj, min,
-//							svc));
-//
-//			if (ajdePluginDesc == null) {
-//				// then try *any* version
-//				ajdePluginDesc = reg.getPluginDescriptor("org.aspectj.ajde");
-//			}
+			// IPluginDescriptor ajdePluginDesc = reg.getPluginDescriptor(
+			// "org.aspectj.ajde", new PluginVersionIdentifier(maj, min,
+			// svc));
+			//
+			// if (ajdePluginDesc == null) {
+			// // then try *any* version
+			// ajdePluginDesc = reg.getPluginDescriptor("org.aspectj.ajde");
+			// }
 
-			// This returns the bundle with the highest version or null if none found
+			// This returns the bundle with the highest version or null if none
+			// found
 			// - for Eclipse 3.0 compatibility
-			Bundle ajdeBundle = Platform.getBundle(AspectJUIPlugin.RUNTIME_PLUGIN_ID);
+			Bundle ajdeBundle = Platform
+					.getBundle(AspectJUIPlugin.RUNTIME_PLUGIN_ID);
 
 			String pluginLoc = null;
 			// 3.0 using bundles instead of plugin descriptors
-//			if (ajdePluginDesc != null) {
-//				URL installLoc = ajdePluginDesc.getInstallURL();
+			// if (ajdePluginDesc != null) {
+			// URL installLoc = ajdePluginDesc.getInstallURL();
 			if (ajdeBundle != null) {
 				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
 				URL resolved = null;
@@ -632,37 +653,37 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	/**
 	 * Find all the ".java" and ".aj" files in the project.
 	 */
-	//	Change Luzius begin
-	//original version:
-	//private void getAllFiles(IResource[] resource_list, List allProjectFiles,
+	// Change Luzius begin
+	// original version:
+	// private void getAllFiles(IResource[] resource_list, List allProjectFiles,
 	// Hashtable fileToResourceHt, FilenameFilter filter){
-	//Luzius' version:
+	// Luzius' version:
 	private void getAllFiles(IResource[] resource_list, List allProjectFiles,
 			Hashtable fileToResourceHt, CoreUtils.FilenameFilter filter,
 			BuildConfiguration bc) {
-		//change Luzius end
-		//		System.err.println(JavaCore.getOptions().keySet());
-		//		System.err.println("? getAllFiles() option="
+		// change Luzius end
+		// System.err.println(JavaCore.getOptions().keySet());
+		// System.err.println("? getAllFiles() option="
 		// +JavaCore.getOption("org.eclipse.jdt.core.builder.resourceCopyExclusionFilter"));
 
 		try {
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
 
-				//				Change Luzius begin
-				//check exclusion patterns
-				//original version:
-				//if (ir instanceof IContainer) {
-				//	getAllFiles(((IContainer) ir).members(), allProjectFiles,
+				// Change Luzius begin
+				// check exclusion patterns
+				// original version:
+				// if (ir instanceof IContainer) {
+				// getAllFiles(((IContainer) ir).members(), allProjectFiles,
 				// fileToResourceHt,filter);
-				//}
-				//else if (filter.accept(ir.getName())) {
-				//Luzius' version:
+				// }
+				// else if (filter.accept(ir.getName())) {
+				// Luzius' version:
 				if (ir instanceof IContainer) {
 					getAllFiles(((IContainer) ir).members(), allProjectFiles,
 							fileToResourceHt, filter, bc);
 				} else if (filter.accept(ir.getName()) && bc.isIncluded(ir)) {
-					//change Luzius end
+					// change Luzius end
 
 					allProjectFiles
 							.add(new File(ir.getLocation().toOSString()));
@@ -676,7 +697,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	}
 
 	private void getProjectRelativePaths(IResource[] resource_list,
-			List allProjectFiles, CoreUtils.FilenameFilter filter, int trimSegments) {
+			List allProjectFiles, CoreUtils.FilenameFilter filter,
+			int trimSegments) {
 		try {
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
@@ -715,7 +737,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		while (iter.hasNext()) {
 
 			ir = (IResource) iter.next();
-			//System.err.println("AC_temp_debug:
+			// System.err.println("AC_temp_debug:
 			// ProjectProperties.getBuildConfigFiles(): Path to a .lst is
 			// "+ir.getFullPath().toOSString());
 			lstFiles_Strings.add(ir.getFullPath().toOSString());
@@ -724,8 +746,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	}
 
 	public String getDefaultBuildConfigFile() {
-		String defaultLstFile = (AspectJUIPlugin.getDefault().getCurrentProject()
-				.getLocation().toOSString()
+		String defaultLstFile = (AspectJUIPlugin.getDefault()
+				.getCurrentProject().getLocation().toOSString()
 				+ File.separator + AspectJPlugin.DEFAULT_CONFIG_FILE);
 		return defaultLstFile;
 	}
@@ -735,14 +757,14 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		String currentLstFile = AspectJPlugin
 				.getBuildConfigurationFile(AspectJUIPlugin.getDefault()
 						.getCurrentProject());
-		//System.err.println("AC_temp_debug:
+		// System.err.println("AC_temp_debug:
 		// ProjectProperties.getLastActiveBuildConfigFile(): Returning
 		// "+currentLstFile);
 		return currentLstFile;
 	}
 
 	// The following methods added for AspectJ 1.1
-	//--------------------------------------------
+	// --------------------------------------------
 
 	/**
 	 * Get the set of input jar files for this compilation. Set members should
@@ -779,7 +801,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 						.getFolder(workspaceRelativeOutputPath);
 				realOutputLocation = out.getLocation().toOSString();
 			}
-			//AJDTEventTrace.generalEvent("Project getOutputLocation path: " +
+			// AJDTEventTrace.generalEvent("Project getOutputLocation path: " +
 			// realOutputLocation);
 
 			for (int i = 0; i < classpathEntries.length; i++) {
@@ -791,8 +813,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					IResource[] srcContainer = new IResource[] { project
 							.findMember(sourcePath) };
 					getProjectRelativePaths(srcContainer, files,
-							CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
-									.segmentCount() - 1);
+							CoreUtils.RESOURCE_FILTER, srcContainer[0]
+									.getFullPath().segmentCount() - 1);
 
 					ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
 
@@ -801,13 +823,13 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 						String fullPath = getResourceFullPath(srcContainer[0],
 								relPath, linkedSrcFolders);
 
-						//put file on list if not in output path
+						// put file on list if not in output path
 						if (!fullPath.startsWith(realOutputLocation)
 								&& !relPath.endsWith(".classpath")
 								&& !relPath.endsWith(".project")
 								&& !relPath.endsWith(".ajsym")
 								&& !relPath.endsWith(".lst")) {
-							//AJDTEventTrace.generalEvent("Added to file list
+							// AJDTEventTrace.generalEvent("Added to file list
 							// (full): " + fullPath);
 							File file = new File(fullPath);
 							map.put(relPath, file);
@@ -816,13 +838,13 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				}
 			}
 		} catch (JavaModelException jmEx) {
-        	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
 					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
 		}
 
 		return map;
-		//		return new HashSet(list);
+		// return new HashSet(list);
 	}
 
 	public boolean getIncrementalMode() {
@@ -830,11 +852,11 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				.getIncrementalMode();
 	}
 
-//	public String getFileExt() {
-//		boolean javaOrAjExt = AspectJPlugin.getDefault()
-//				.getAjdtBuildOptionsAdapter().getJavaOrAjExt();
-//		return ".aj";//(javaOrAjExt ? ".java" : ".aj");
-//	}
+	// public String getFileExt() {
+	// boolean javaOrAjExt = AspectJPlugin.getDefault()
+	// .getAjdtBuildOptionsAdapter().getJavaOrAjExt();
+	// return ".aj";//(javaOrAjExt ? ".java" : ".aj");
+	// }
 
 	/**
 	 * Get the output jar file for the compilation results. Return null to leave
@@ -872,7 +894,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			try {
 				IResource[] children = ((IContainer) resource).members();
 				for (int i = 0; i < children.length; i++) {
-					if ((children[i] instanceof IFolder) && children[i].isLinked()) {
+					if ((children[i] instanceof IFolder)
+							&& children[i].isLinked()) {
 						resultList.add(children[i]);
 					}
 				}
