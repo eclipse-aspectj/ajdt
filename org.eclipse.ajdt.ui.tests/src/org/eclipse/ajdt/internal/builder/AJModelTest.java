@@ -79,8 +79,7 @@ public class AJModelTest extends TestCase {
 				{ "GetInfo", "GetInfo" },
 				{ "declare warning: \"field set\"", "declare warning: \"field set\"" },
 				{ "declare parents: implements Serializable", "declare parents" },
-				// declare soft has disappeared
-			    // { "declare soft: tjp.DemoException", "declare soft" },
+			    { "declare soft: tjp.DemoException", "declare soft" },
 				{ "Demo.itd(int)", "Demo.itd" },
 				{ "Demo.f", "Demo.f" },
 				{ "before(): <anonymous pointcut>", "before" },
