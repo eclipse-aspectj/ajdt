@@ -11,6 +11,7 @@ package org.eclipse.ajdt.internal.builder;
 
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.IAJModelMarker;
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -40,7 +41,12 @@ public class AdviceMarkersTest extends TestCase {
 	
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		myProject.delete(true, new NullProgressMonitor());
+		try {
+			myProject.delete(true, new NullProgressMonitor());
+		} catch (ResourceException e) {
+			// we don't mind if the delete fails, it shouldn't make the test itself fail
+			e.printStackTrace();
+		}
 	}
 	
 }
