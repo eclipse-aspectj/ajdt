@@ -35,28 +35,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 
 /**
- * Aspect responsible for advice and declaration markers.  
+ * Class responsible for advice and declaration markers.  
  * Updates the markers for a given project when it is built.
  */
-public aspect MarkerUpdating {
-
-	private pointcut buildPerformed(Builder builder): 
-		execution(* Builder.build(..)) && target(builder);
-	
-	before(Builder builder): buildPerformed(builder) {
-		IProject project = builder.getProject();
-		deleteAllMarkers(project);		
-	}
-	
-//	after(Builder builder) returning: buildPerformed(builder) {
-//		IProject project = builder.getProject();
-//		addNewMarkers(project);
-//	}
+public class MarkerUpdating {
 
 	/**
 	 * Delete the advice markers for a project
 	 */
-	private void deleteAllMarkers(final IProject project) {	
+	public static void deleteAllMarkers(final IProject project) {	
 		try {
 			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
