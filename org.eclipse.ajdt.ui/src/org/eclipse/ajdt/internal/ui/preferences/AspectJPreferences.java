@@ -85,8 +85,9 @@ public class AspectJPreferences {
 
 	public static final String PREF_RUN_FOR_AJDT_VERSION = "org.eclipse.ajdt.ui.preferences.prefRunForAjdtVersion"; //$NON-NLS-1$
 
-	// public static final String AJDT_PREF_RUN_120 =
-	// "org.eclipse.ajdt.ui.preferences.ajdtPrefRun120";
+	public static final String PERFORM_AUTO_BUILDER_MIGRATION = "org.eclipse.ajdt.ui.preferences.perform.auto.migration";
+
+	public static final String AUTO_BUILDER_MIGRATION_SETTING = "org.eclipse.ajdt.ui.preferences.auto.migration.setting";
 
 	public static final String PDE_AUTO_IMPORT_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.pdeAutoImportConfigDone"; //$NON-NLS-1$
 
@@ -370,6 +371,33 @@ public class AspectJPreferences {
 		return isShowing;
 	}
 
+	// preferences relating to migration of ajdt eclipse builder
+	
+	public static boolean isAutoBuilderMigrationEnabled() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getBoolean(PERFORM_AUTO_BUILDER_MIGRATION);
+	}
+
+	public static void setAutoBuilderMigrationEnabled(boolean enabled) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(PERFORM_AUTO_BUILDER_MIGRATION, enabled);
+	}
+
+	public static boolean isAutoBuilderMigrationSetToRemoveOldBuilder() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getBoolean(AUTO_BUILDER_MIGRATION_SETTING);
+	}
+
+	public static void setAutoBuilderMigrationRemoveOldBuilder(boolean remove) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(AUTO_BUILDER_MIGRATION_SETTING, remove);
+	}
+
+	
 	/**
 	 * This is used in the case of a CVS checkout of multiple projects only want
 	 * to show the AJDT Preference Config Wizard once and not one copy for each

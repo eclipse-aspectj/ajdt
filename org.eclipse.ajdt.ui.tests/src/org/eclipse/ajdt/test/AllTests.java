@@ -41,6 +41,7 @@ import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.internal.ui.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizardTest;
@@ -165,6 +166,9 @@ public class AllTests {
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 		Utils.blockPreferencesConfigWizard();
 
+		AspectJPreferences.setAutoBuilderMigrationEnabled(true);
+		AspectJPreferences.setAutoBuilderMigrationRemoveOldBuilder(true);
+		
 		IWorkbenchWindow window = PlatformUI.getWorkbench()
 				.getActiveWorkbenchWindow();
 
