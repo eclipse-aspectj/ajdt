@@ -454,7 +454,9 @@ public class PointcutNavigatorView extends ViewPart {
 		pinStructureModel = new TogglePushpinAction();
 		pinStructureModel.setText("Pin structure model");
 		pinStructureModel.setToolTipText("Pin structure model");
-		pinStructureModel.setImageDescriptor(AspectJImages.PUSHPIN.getImageDescriptor( ) );
+		
+		// MPC: I've commented this out temporarily, to fix the build
+		//pinStructureModel.setImageDescriptor(AspectJImages.PUSHPIN.getImageDescriptor( ) );
 		
 		action2 = new Action() {
 			public void run() {
