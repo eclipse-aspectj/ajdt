@@ -1,4 +1,10 @@
 src.includes = src/,\
                src31/
 src.excludes = src/org/eclipse/ajdt/utils/,\
-               src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj
+               src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj,\
+               src/org/eclipse/ajdt/internal/launching/AJApplicationLaunchConfigurationDelegate.java,\
+               src/org/eclipse/ajdt/internal/ui/editor/AspectJBreakpointRulerActionDelegate.java,\
+               src/org/eclipse/ajdt/internal/ui/wizards/exports/AJJarFileExportOperation.java,\
+               src31/org/eclipse/ajdt/internal/ui/actions/BuildPluginAction.java,\
+               src31/org/eclipse/ajdt/internal/ui/wizards/exports/AJPluginExportJob.java,\
+               src31/org/eclipse/ajdt/internal/ui/wziards/exports/AJPluginExportWizard.java
