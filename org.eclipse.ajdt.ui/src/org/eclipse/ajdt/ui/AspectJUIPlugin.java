@@ -33,6 +33,7 @@ import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
@@ -69,6 +70,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -350,6 +352,8 @@ public class AspectJUIPlugin
 	  "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
 
     public static final int PROGRESS_MONITOR_MAX = 100;
+
+	private AJCompilationUnitDocumentProvider ajCompilationUnitDocumentProvider;
 
 
 	/**
@@ -985,5 +989,18 @@ public class AspectJUIPlugin
 						| IResourceChangeEvent.PRE_DELETE
 						| IResourceChangeEvent.POST_CHANGE
 						| IResourceChangeEvent.PRE_BUILD);
+	}
+
+	
+	/**
+	 * Get the AJCompilationUnitDocumentProvider
+	 * @return
+	 */
+	public IDocumentProvider getAJCompilationUnitDocumentProvider() {
+		// bug 77917 - contribute our own document provider so that we still get an
+		// annotation model for .aj files.		
+		if (ajCompilationUnitDocumentProvider == null)
+			ajCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
+		return ajCompilationUnitDocumentProvider;
 	}
 }
