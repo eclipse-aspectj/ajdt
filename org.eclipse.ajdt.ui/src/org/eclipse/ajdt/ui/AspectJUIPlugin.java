@@ -24,13 +24,18 @@ import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
 import org.eclipse.ajdt.buildconfigurator.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.EclipseVersion;
+import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.ui.EventTraceLogger;
+import org.eclipse.ajdt.internal.ui.actions.UICoreOperations;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
+import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
@@ -72,7 +77,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
 // --- end imports ---
-
+//hellos
 /**
  * The main plugin class used in the desktop for AspectJ integration.
  * <p>
@@ -148,8 +153,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	// the id of this plugin
 	public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
 
-	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
-
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
 	// public static final String ID_NATURE = PLUGIN_ID + ".ajnature";
@@ -206,16 +209,16 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private ProjectProperties ajdtProjectProperties;
 
 	/**
-	 * Compiler monitor listens to AspectJ compilation events (build progress
-	 * and compilations errors/warnings)
-	 */
-	private CompilerMonitor ajdtCompilerMonitor;
-
-	/**
 	 * Editor adapter used by AJDE tools to control editor when needed
 	 */
 	private EditorAdapter ajdtEditorAdapter;
 
+	/**
+	 * Compiler monitor listens to AspectJ compilation events (build progress
+	 * and compilations errors/warnings)
+	 */
+	private CompilerMonitor ajdtCompilerMonitor;
+	
 	/**
 	 * Build options passed to AJDE
 	 */
@@ -532,13 +535,13 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return ajdtErrorHandler;
 	}
 
-	/**
-	 * return the compiler monitor used for build progress monitoring and
-	 * compilation errors/warnings
-	 */
-	public CompilerMonitor getCompilerMonitor() {
-		return ajdtCompilerMonitor;
-	}
+//	/**
+//	 * return the compiler monitor used for build progress monitoring and
+//	 * compilation errors/warnings
+//	 */
+//	public CompilerMonitor getCompilerMonitor() {
+//		return ajdtCompilerMonitor;
+//	}
 
 	/**
 	 * Access the ProjectPropertiesAdapter required by the AJDE tools
@@ -598,6 +601,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 
+		// listen for builds of AJ projects
+		AJBuilder.addAJBuildListener(new UIBuildListener());
+		
 		// Update project menu and listen for project selections
 		new BCWorkbenchWindowInitializer();
 
@@ -643,8 +649,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		initDebugging();
 
+		// set the UI version of core operations
+		AspectJPlugin.getDefault().setCoreOperations(new UICoreOperations());
+		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
+		
 		ajdtProjectProperties = new ProjectProperties();
-		ajdtCompilerMonitor = new CompilerMonitor();
+		
+		// replace the core compiler monitor with the UI one
+		AspectJPlugin.getDefault().setCompilerMonitor(new CompilerMonitor());
+		
 		ajdtEditorAdapter = new EditorAdapter();
 		ajdtErrorHandler = new ErrorHandler();
 		ajdtBuildOptions = new BuildOptionsAdapter();
@@ -652,9 +665,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		ajdtUIAdapter = new IdeUIAdapter();
 		ajdtStructureFactory = new AJDTStructureViewNodeFactory(ajdtImages);
 
-		Ajde.init(ajdtEditorAdapter, ajdtCompilerMonitor // task list manager
-				, ajdtCompilerMonitor // build progress monitor
-				, ajdtProjectProperties, ajdtBuildOptions,
+		Ajde.init(ajdtEditorAdapter, CompilerTaskListManager.getInstance(), // task list manager
+				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
+				ajdtProjectProperties, ajdtBuildOptions,
 				ajdtStructureFactory, ajdtUIAdapter, ajdtErrorHandler);
 
 		checkEclipseVersion();

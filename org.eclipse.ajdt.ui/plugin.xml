@@ -287,6 +287,9 @@
    </extension>
 
 <!-- Define AspectJ Builder -->
+<!-- Note: this is now the *OLD* builder, and is only here to migrate project settings
+     to the new builder. The real builder is now defined in the org.eclipse.ajdt.core
+     plugin, with id org.eclipse.ajdt.core.ajbuilder -->
    <extension
          id="ajbuilder"
          name="AspectJ Builder"

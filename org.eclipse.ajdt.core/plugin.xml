@@ -28,4 +28,16 @@
        class="org.eclipse.ajdt.internal.core.AspectJRTInitializer"/>
    </extension>
 
+   <!-- Define AspectJ Builder -->
+   <extension
+         id="ajbuilder"
+         name="AspectJ Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder>
+         <run
+               class="org.eclipse.ajdt.core.builder.AJBuilder">
+         </run>
+      </builder>
+   </extension>
+
 </plugin>

@@ -4,7 +4,13 @@ import java.io.File;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.eclipse.ajdt.core.builder.AJCompilerMonitor;
+import org.eclipse.ajdt.core.builder.CompilerMonitor;
+import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.internal.core.AJLogger;
+import org.eclipse.ajdt.internal.core.CoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.core.StandinCoreOperations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -30,6 +36,8 @@ public class AspectJPlugin extends Plugin {
 	// the plugin containing aspectjrt.jar
 	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
 
+	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
+
 	/**
 	 * The name of the default build config file for an AspectJ project
 	 */
@@ -38,6 +46,14 @@ public class AspectJPlugin extends Plugin {
 	private static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
 	private static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
+	/**
+	 * Compiler monitor listens to AspectJ compilation events (build progress
+	 * and compilations errors/warnings)
+	 */
+	private AJCompilerMonitor ajdtCompilerMonitor;
+
+	private CoreOperations coreOperations;
+	
 	/**
 	 * The constructor.
 	 */
@@ -114,6 +130,36 @@ public class AspectJPlugin extends Plugin {
 		} catch (CoreException e) {
 		}
 		return false;
+	}
+	
+	/**
+	 * return the compiler monitor used for build progress monitoring and
+	 * compilation errors/warnings
+	 */
+	public AJCompilerMonitor getCompilerMonitor() {
+		if (ajdtCompilerMonitor==null) {
+			ajdtCompilerMonitor = new CompilerMonitor();
+		}
+		return ajdtCompilerMonitor;
+	}
+
+	public void setCompilerMonitor(AJCompilerMonitor monitor) {
+		ajdtCompilerMonitor = monitor;
+	}
+
+	public CoreOperations getCoreOperations() {
+		if (coreOperations==null) {
+			coreOperations = new StandinCoreOperations();
+		}
+		return coreOperations;
+	}
+	
+	public void setCoreOperations(CoreOperations coreOps) {
+		coreOperations = coreOps;
+	}
+	
+	public void setAJLogger(AJLogger logger) {
+		AJLog.setLogger(logger);
 	}
 	
 	/**
