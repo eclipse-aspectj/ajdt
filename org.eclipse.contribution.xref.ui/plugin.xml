@@ -37,7 +37,21 @@
             id="org.eclipse.contribution.xref.ui.views.XReferenceView">
       </view>
    </extension>
- 
+
+    <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               relative="org.eclipse.ui.views.ContentOutline"
+               visible="false"
+               id="org.eclipse.contribution.xref.ui.views.XReferenceView"
+               relationship="bottom"
+               ratio="0.6">
+         </view>
+      </perspectiveExtension>
+    </extension>
+         
 <!-- commenting this out for now.... not contributing a preference page 
    <extension
          point="org.eclipse.ui.preferencePages">
