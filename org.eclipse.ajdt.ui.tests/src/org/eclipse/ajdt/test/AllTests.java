@@ -18,6 +18,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguratorTest;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest;
 import org.eclipse.ajdt.buildconfigurator.UtilTests;
 import org.eclipse.ajdt.internal.builder.AdviceMarkersTest;
+import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesWithJarFilesTest;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest;
@@ -98,6 +99,7 @@ public class AllTests {
 		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
 		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
 		
 		// javamodel tests
 		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
