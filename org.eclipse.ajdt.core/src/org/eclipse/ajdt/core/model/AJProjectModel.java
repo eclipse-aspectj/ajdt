@@ -200,6 +200,15 @@ public class AJProjectModel {
 								.get(ipe);
 						IJavaElement targetEl = (IJavaElement) ipeToije
 								.get(link);
+											
+						if (targetEl==null) {
+							// There is no java element corresponding to the target program
+							// element in this project - it is either in a different project
+							// or in a jar, or outside the workspace. Create a placeholder
+							// element. In future we could look for the resource in the
+							// workspace, and locate the real java element for it
+							targetEl = new AJCodeElement(null,0,"injar aspect: "+link.getName());
+						}
 
 						AJRelationshipType ajRel = (AJRelationshipType) kindMap.get(rel
 								.getName());
