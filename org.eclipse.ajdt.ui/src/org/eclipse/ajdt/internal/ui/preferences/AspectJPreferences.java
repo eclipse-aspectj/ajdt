@@ -57,6 +57,8 @@ public class AspectJPreferences {
 	 * be shown again.  If true, don't show.
 	 */
 	public static final String AJDT_PREF_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.ajdtPrefConfigDone";
+
+	public static final String AJDT_PREF_RUN_120 = "org.eclipse.ajdt.ui.preferences.ajdtPrefRun120";
 	
     public static final String PDE_AUTO_IMPORT_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.pdeAutoImportConfigDone";
 
@@ -228,7 +230,25 @@ public class AspectJPreferences {
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();	
 		return store.getBoolean(AJDT_PREF_CONFIG_DONE); 
 	}
+
+	/**
+	 * Helper set method used by AJDTPrefConfigPage
+	 */
+	static public void setRunAJDT120(boolean done) {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		store.setValue(AJDT_PREF_RUN_120, done);
+	}
 	
+	/**
+	 * Helper get method used by AJDTUtils to determine whether
+	 * this is the first time we've run a 1.2.0 version of AJDT in this
+	 * workspace
+	 */
+	static public boolean isRunAJDT120() {
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();	
+		return store.getBoolean(AJDT_PREF_RUN_120); 
+	}
+
 	// whether or not the AJDT Peference config wizard is already showing
 	private static boolean isShowing = false;
 	
