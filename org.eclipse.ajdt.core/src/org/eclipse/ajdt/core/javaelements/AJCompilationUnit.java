@@ -84,19 +84,20 @@ public class AJCompilationUnit extends CompilationUnit{
 		originalContentMode--;
 	}
 
+	
+//	/**
+//	 * When creating, the name is converted from Aspect.aj into Aspect.java.
+//	 * This improves compatibility with jdt code that checks file extensions.
+//	 * Known locations where jdt fails without changing the extension:
+//	 *  - when trying to move an aj file, jdt code fails before we can display
+//	 *    our warning in org.eclipse.ajdt.internal.ui.actions.RefractoringMoveAction
+//	 * 
+//	 */
 //	public AJCompilationUnit(IFile ajFile){
 //		super(CompilationUnitTools.getParentPackage(ajFile), CompilationUnitTools.convertAJToJavaFileName(ajFile.getName()), DefaultWorkingCopyOwner.PRIMARY);
 //		this.ajFile = ajFile;
 //	}
-	
-	/**
-	 * When creating, the name is converted from Aspect.aj into Aspect.java.
-	 * This improves compatibility with jdt code that checks file extensions.
-	 * Known locations where jdt fails without changing the extension:
-	 *  - when trying to move an aj file, jdt code fails before we can display
-	 *    our warning in org.eclipse.ajdt.internal.ui.actions.RefractoringMoveAction
-	 * 
-	 */
+
 	public AJCompilationUnit(IFile ajFile){
 		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), DefaultWorkingCopyOwner.PRIMARY);
 		this.ajFile = ajFile;
@@ -400,7 +401,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 	
 	//unfortunately, the following three methods do not seem to get called at all
-	//how could we make these refactoring operations work?
+	//how could we make these refactoring operations work? (related bug: 74426)
 	public void move(IJavaElement container, IJavaElement sibling,
 			String rename, boolean force, IProgressMonitor monitor)
 			throws JavaModelException {
