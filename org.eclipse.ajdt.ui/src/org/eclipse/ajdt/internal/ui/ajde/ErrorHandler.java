@@ -73,12 +73,18 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	}
 
 	/**
-	 * Display an error dialog with exception trace, and record the error in
-	 * the log for the plugin
+	 * Display an error dialog with exception
 	 */
 	public void handleError(String message, Throwable t) {
+		handleError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+				message, t);
+	}
+	
+	/**
+	 * Display an error dialog with exception
+	 */
+	public void handleError(final String title, final String message, Throwable t) {
 		final IStatus status;
-		final String message_final = message;
 
 		// If the throwable is a CoreException then retrieve its status, otherwise
 		// build a new status object
@@ -103,8 +109,8 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						// causes the messy duplication of the message in the dialog that appears.
 						ErrorDialog.openError(
 							shell,
-							AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
-							message_final,
+							title,
+							message,
 							status);
 
 					}

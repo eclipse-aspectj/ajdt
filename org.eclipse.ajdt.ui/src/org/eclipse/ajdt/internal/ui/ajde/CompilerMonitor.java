@@ -43,13 +43,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Preferences;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.swt.widgets.Shell;
 
 /**
  * The compiler monitor interface is used by the AspectJ builder. Just before
@@ -837,14 +835,9 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                 }
             }
         } catch (JavaModelException jmEx) {
-            String message = AspectJUIPlugin.getResourceString("jmCoreException");
-            Status status = new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID,
-                    Status.OK, message, jmEx);
-            Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
-                    .getShell();
-            org.eclipse.jface.dialogs.ErrorDialog.openError(shell,
-                    AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
-                    message, status);
+        	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
         }
 
         if (ret == null)

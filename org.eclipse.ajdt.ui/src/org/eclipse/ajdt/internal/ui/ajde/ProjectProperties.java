@@ -48,7 +48,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -56,8 +55,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.Bundle;
 
 /**
@@ -823,13 +820,9 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				}
 			}
 		} catch (JavaModelException jmEx) {
-			String message = AspectJUIPlugin.getResourceString("jmCoreException");
-			Status status = new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID,
-					Status.OK, message, jmEx);
-			Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
-					.getShell();
-			ErrorDialog.openError(shell, AspectJUIPlugin
-					.getResourceString("ajErrorDialogTitle"), message, status);
+        	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
 		}
 
 		return map;

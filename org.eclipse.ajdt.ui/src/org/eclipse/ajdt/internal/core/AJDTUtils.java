@@ -46,7 +46,6 @@ import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -1047,15 +1046,15 @@ public class AJDTUtils {
 				removeImportFromPDEModel(model, AspectJUIPlugin.RUNTIME_PLUGIN_ID);
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
-				ErrorDialog
-						.openError(
-								AspectJUIPlugin.getDefault()
-										.getActiveWorkbenchWindow().getShell(),
+	        	AspectJUIPlugin
+						.getDefault()
+						.getErrorHandler()
+						.handleError(
 								AspectJUIPlugin
 										.getResourceString("AutoPluginRemoveErrorDialog.title"),
 								AspectJUIPlugin
 										.getResourceString("AutoPluginRemoveErrorDialog.message"),
-								e.getStatus());
+								e);
 			}
 		}// end if we got a reference to the manifest editor
 		else {

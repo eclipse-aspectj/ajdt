@@ -38,7 +38,6 @@ import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -154,16 +153,15 @@ public class InPathPropertyPage extends PropertyPage implements
         try {
             initalInpath = getInitialInpathValue(project);
         } catch (CoreException ce) {
-            ErrorDialog
-                    .openError(
-                            AspectJUIPlugin.getDefault()
-                                    .getActiveWorkbenchWindow().getShell(),
-                            AspectJUIPlugin
-                                    .getResourceString("InPathProp.exceptionInitializingInpath.title"),
-                            AspectJUIPlugin
-                                    .getResourceString("InPathProp.exceptionInitializingInpath.message"),
-                            ce.getStatus());
-
+        	AspectJUIPlugin
+					.getDefault()
+					.getErrorHandler()
+					.handleError(
+							AspectJUIPlugin
+									.getResourceString("InPathProp.exceptionInitializingInpath.title"),
+							AspectJUIPlugin
+									.getResourceString("InPathProp.exceptionInitializingInpath.message"),
+							ce);
         }
 
         fInPathBlock.init(JavaCore.create(project), null, initalInpath);
