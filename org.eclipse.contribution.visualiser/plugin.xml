@@ -150,19 +150,19 @@
    <extension
          point="org.eclipse.contribution.visualiser.renderers">
          <renderer class="org.eclipse.contribution.visualiser.views.ClassicVisualiserRenderer"
-             name="Classic"
+             name="%Renderer.classic.name"
              id="classic">
          </renderer>
          <renderer class="org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer"
-             name="Default"
+             name="%Renderer.default.name"
              id="default">
          </renderer>
          <renderer class="org.eclipse.contribution.visualiser.views.GradientVisualiserRenderer"
-             name="Gradient bars"
+             name="%Renderer.gradient.name"
              id="gradientbars">
          </renderer>
          <renderer class="org.eclipse.contribution.visualiser.views.CylinderRenderer"
-             name="Cylinder shading"
+             name="%Renderer.cylinders.name"
              id="cylinderbars">
          </renderer>
    </extension>
@@ -170,8 +170,12 @@
    <extension
          point="org.eclipse.contribution.visualiser.palettes">
          <palette class="org.eclipse.contribution.visualiser.core.DefaultVisualiserPalette"
-             name="Default palette"
+             name="%Palette.default.name"
              id="defaultpalette">
+         </palette>
+         <palette class="org.eclipse.contribution.visualiser.core.BrightVisualiserPalette"
+             name="%Palette.bright.name"
+             id="brightpalette">
          </palette>
    </extension>
 </plugin>
