@@ -251,7 +251,7 @@ public class AJModel {
 	
 	public String getJavaElementLinkName(IJavaElement je) {
 		if (je==null) {
-			return "";
+			return ""; //$NON-NLS-1$
 		}
 		IJavaProject jp = je.getJavaProject();
 		if (jp==null) {
