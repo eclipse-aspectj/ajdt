@@ -782,7 +782,7 @@ public class UnresolvedElementsSubProcessor {
 					label= CorrectionMessages.getFormattedString("UnresolvedElementsSubProcessor.changemethodtargetcast2.description", targetName); //$NON-NLS-1$
 				}
 			}
-			proposals.add(new CastCompletionProposal(label, cu, target, null, 3));
+			proposals.add(new CastCompletionProposal(label, cu, target, (String)null, 3));
 		}
 	}
 
@@ -1124,7 +1124,7 @@ public class UnresolvedElementsSubProcessor {
 			ITypeBinding binding= nodeToCast.resolveTypeBinding();
 			if (binding == null || TypeRules.canCast(castType, binding)) {
 				String castTypeName= castType.getQualifiedName();
-				ASTRewriteCorrectionProposal proposal= TypeMismatchSubProcessor.createCastProposal(context, castTypeName, nodeToCast, 6);
+				ASTRewriteCorrectionProposal proposal= TypeMismatchSubProcessor.createCastProposal(context, castTypeName, null, nodeToCast, 6);
 				String[] arg= new String[] { getArgumentName(cu, arguments, idx), castTypeName};
 				proposal.setDisplayName(CorrectionMessages.getFormattedString("UnresolvedElementsSubProcessor.addargumentcast.description", arg)); //$NON-NLS-1$
 				proposals.add(proposal);
