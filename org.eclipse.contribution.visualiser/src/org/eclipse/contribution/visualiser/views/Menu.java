@@ -293,7 +293,7 @@ public class Menu extends ViewPart {
 	/**
 	 * Get the active state of a kind (i.e. is the checkbox checked).
 	 * @param kind - the kind
-	 * @return
+	 * @return true if the kind is active
 	 */	
 	public boolean getActive(IMarkupKind kind) {
 		if (kindActive==null) return true;
@@ -305,7 +305,7 @@ public class Menu extends ViewPart {
 	/**
 	 * Get the active state of a kind by name(i.e. is the checkbox checked).
 	 * @param kindName - the kind name
-	 * @return
+	 * @return true if the kind with the given name is active
 	 */
 	public boolean getActive(String kindName) {
 		if(kinds == null) {
@@ -408,7 +408,7 @@ public class Menu extends ViewPart {
 
 	/**
 	 * @param markupCategories
-	 * @return
+	 * @return the number of markup kinds that are active
 	 */
 	private int getNumberToShow(Set markupCategories) {
 		int num = 0;
