@@ -53,6 +53,16 @@ public class SynchronizationUtils {
 			}
 		}
 		//System.out.println("joined building");
+
+		//joinIndexing();
+		//joinTypesCache();
+		
+		// Join jobs
+		joinJobs(0, 0, 500);
+		//System.out.println("joined jobs");
+	}
+
+	private static void joinIndexing() throws CoreException {
 		// Join indexing
 		new SearchEngine().searchAllTypeNames(
 			null,
@@ -63,18 +73,18 @@ public class SynchronizationUtils {
 			new Requestor(),
 			IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
 			null);
+	}
+	
+	private static void joinTypesCache() {
 		// Join all types cache
 		try {
 		AllTypesCache.getTypes(SearchEngine.createJavaSearchScope(new IJavaElement[0]), 
 			IJavaSearchConstants.CLASS, new NullProgressMonitor(), new ArrayList());
 		} catch (NullPointerException e) {
-			// somethings this NPEs, don't know why. let's ignore it
-		}
-		// Join jobs
-		joinJobs(0, 0, 500);
-		//System.out.println("joined jobs");
+			// sometimes this NPEs, don't know why. let's ignore it
+		}		
 	}
-
+	
 	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
 		runEventQueue();
