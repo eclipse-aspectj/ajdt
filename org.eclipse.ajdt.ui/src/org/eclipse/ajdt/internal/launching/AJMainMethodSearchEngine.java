@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,8 +50,8 @@ import org.eclipse.jface.util.Assert;
 public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
 	/**
-	 * Searches for all main methods in the given scope. Also searches the AJDE
-	 * structure model for Aspects that have main methods.
+	 * Searches for all main methods in the given scope. Also searches 
+	 * for Aspects that have main methods.
 	 */
 	public Object[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
 			IJavaSearchScope scope, int style, boolean includeSubtypes)
@@ -105,8 +105,8 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
 
 	/**
-	 * Searches for all main methods in the given scope. Also searches the AJDE
-	 * structure model for Aspects that have main methods.
+	 * Searches for all main methods in the given scope. Also searches 
+     * for Aspects that have main methods.
 	 */
 	public Object[] searchMainMethodsIncludingAspects(IRunnableContext context,
 			final IJavaSearchScope scope, final int style,
@@ -195,40 +195,8 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 */
 	private List searchUnitsInPackage(IJavaSearchScope scope,
 			IPackageFragment packageFragment) throws JavaModelException {
-//		List aspectsFound = new ArrayList();
-//		ICompilationUnit[] units = packageFragment.getCompilationUnits();
-//		for (int i = 0; i < units.length; i++) {
-//			if (scope.encloses(units[i])) {
-//				Set aspects = getAllAspects(units[i], packageFragment);
-//				aspectsFound.addAll(aspects);
-//			}
-//		}
-//		aspectsFound.addAll(getAllAspects(packageFragment));
-//		return aspectsFound;
 		return new ArrayList(getAllAspects(packageFragment));
 	}
-
-//	/**
-//	 * Get any aspect IProgramElements for a CompilationUnit
-//	 * 
-//	 * @param unit
-//	 * @return Set of Object[] containing IProgramElements in location 0 and
-//	 *         IProjects in location 1
-//	 */
-//	private Set getAllAspects(ICompilationUnit unit,
-//			IPackageFragment parentPackageFragment) {
-//		String unitName = unit.getElementName().substring(0,
-//				unit.getElementName().indexOf(".")); //$NON-NLS-1$
-//		Set aspects = getAllAspects(parentPackageFragment);
-//		for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-//			Object[] element = (Object[]) iter.next();
-//			IProgramElement aspectElement = (IProgramElement) element[0];
-//			if (!(aspectElement.getName().equals(unitName))) {
-//				iter.remove();
-//			}
-//		}
-//		return aspects;
-//	}
 
 	/**
 	 * Iterates through all the packages in a project and returns a Set
@@ -236,33 +204,9 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * 
 	 * @param JP
 	 *            the project
-	 * @return Set of Object[] where element 0 in the array is an
-	 *         IProgramElement representing the Aspect and element 1 is an
-	 *         IProject, being the project that contains the aspect.
+	 * @return Set of AJCompilationUnits
 	 */
 	private Set getAllAspects(IJavaProject jp) {
-//		IProject project = jp.getProject();
-//		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-//		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
-//				.getActiveConfigFile()))) {
-//			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-//					configFile);
-//		}
-//
-//		List structureModelPackages = StructureModelUtil.getPackagesInModel();
-//		Set aspects = new HashSet();
-//
-//		Iterator it = structureModelPackages.iterator();
-//		while (it.hasNext()) {
-//			Object[] progNodes = (Object[]) it.next();
-//
-//			IProgramElement packageNode = (IProgramElement) progNodes[0];//it.next();
-//
-//			Set temp = getAspectsInPackage(packageNode, project);
-//
-//			aspects.addAll(temp);
-//		}
-//		return aspects;
 		try {
 			return new HashSet(getActiveMainTypesFromAJCompilationUnits(AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp)));
 		} catch (CoreException e) {
@@ -275,35 +219,9 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * active.
 	 * 
 	 * @param packageElement
-	 * @return Set of Object[] where element 0 in the array is an
-	 *         IProgramElement representing the Aspect and element 1 is an
-	 *         IProject, being the project that contains the aspect.
+	 * @return Set of AJCompilationUnits
 	 */
 	private Set getAllAspects(IPackageFragment packageElement) {
-//		IProject project = packageElement.getJavaProject().getProject();
-//		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-//		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
-//				.getActiveConfigFile()))) {
-//			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-//					configFile);
-//		}
-//
-//		List packages = StructureModelUtil.getPackagesInModel();
-//		Set aspects = new HashSet();
-//
-//		Iterator it = packages.iterator();
-//		while (it.hasNext()) {
-//			Object[] progNodes = (Object[]) it.next();
-//
-//			IProgramElement packageNode = (IProgramElement) progNodes[0];
-//			if (packageNode.getName().equals(packageElement.getElementName())) {
-//
-//				Set temp = getAspectsInPackage(packageNode, project);
-//				aspects.addAll(temp);
-//				break;
-//			}
-//		}
-//		return aspects;
 		List aspects = new ArrayList();
 		try {
 			aspects = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitsForPackage(packageElement);
@@ -314,6 +232,12 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		
 	}
 
+	/**
+	 * Get a List of the active (included in current build configuration) main types (IType)
+	 * from the List of AJCompilationUnits passed in
+	 * @param aspects
+	 * @return
+	 */
 	private List getActiveMainTypesFromAJCompilationUnits(List aspects) {
 		List mainTypes = new ArrayList();
 		try {
@@ -338,39 +262,4 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		return mainTypes;
 	}
 
-//	/**
-//	 * Get all the Aspects in a given package node of the structure model
-//	 * 
-//	 * @param packageNode -
-//	 *            structure model package
-//	 * @param project -
-//	 *            associated IProject
-//	 * @return Set of Object[] where element 0 in the array is an
-//	 *         IProgramElement representing the Aspect and element 1 is an
-//	 *         IProject, being the project that contains the aspect.
-//	 */
-//	private Set getAspectsInPackage(IProgramElement packageNode,
-//			IProject project) {
-//		List files = StructureModelUtil.getFilesInPackage(packageNode);
-//		Set aspects = new HashSet();
-//		for (Iterator it = files.iterator(); it.hasNext();) {
-//			IProgramElement fileNode = (IProgramElement) it.next();
-//			if (fileNode.getKind().equals(IProgramElement.Kind.FILE_JAVA)
-//					|| fileNode.getKind().equals(
-//							IProgramElement.Kind.FILE_ASPECTJ)) {
-//				List children = fileNode.getChildren();
-//				for (Iterator iter = children.iterator(); iter.hasNext();) {
-//					IProgramElement child = (IProgramElement) iter.next();
-//					if (child != null
-//							&& child.getKind().equals(
-//									IProgramElement.Kind.ASPECT)) {
-//						if (child.isRunnable()) {
-//							aspects.add(new Object[] { child, project });
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return aspects;
-//	}
 }
