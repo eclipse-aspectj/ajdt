@@ -23,6 +23,13 @@
       <import plugin="org.eclipse.ajdt.ui"/>
    </requires>
 
+   <extension-point id="projectsetup" name="Project setup" schema="schema/wizardconfig.exsd"/>
+
+<!-- Each example needs two extensions (with the same "id" for each):
+     1. org.eclipse.ui.newWizards, to appear in the New wizard
+     2. org.eclipse.ajdt.examples.projectsetup, to configure the example wizard appropriately
+-->
+
  <extension 
 	point="org.eclipse.ui.newWizards">
 	<category
@@ -40,17 +47,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesTJP.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesTJP.pagetitle"
-        	pagedescription="%AspectJExamplesTJP.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesTJP.title">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>           
-           <import dest="" src="archive/tjp.jar"/>
-        </projectsetup>
-      </wizard>	
-      
+      </wizard>	     
      <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesIntroduction"
 		name="%AspectJExamplesIntroduction.title"
@@ -60,17 +57,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesIntroduction.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesIntroduction.pagetitle"
-        	pagedescription="%AspectJExamplesIntroduction.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesIntroduction.title">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/introduction.jar"/>
-        </projectsetup>
-      </wizard>	
-      
+      </wizard>	     
       <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesTracing"
 		name="%AspectJExamplesTracing.title"
@@ -80,19 +67,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesTracing.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesTracing.pagetitle"
-        	pagedescription="%AspectJExamplesTracing.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesTracing.title"
-        	build="notrace.ajproperties">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/tracing.jar"/>
-        </projectsetup>
-      </wizard>	
-
-     
+      </wizard>	    
       <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesBean"
 		name="%AspectJExamplesBean.title"
@@ -102,17 +77,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesBean.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesBean.pagetitle"
-        	pagedescription="%AspectJExamplesBean.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesBean.title">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/bean.jar"/>
-        </projectsetup>
-      </wizard>	
-     
+      </wizard>	    
       <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesObserver"
 		name="%AspectJExamplesObserver.title"
@@ -122,17 +87,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesObserver.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesObserver.pagetitle"
-        	pagedescription="%AspectJExamplesObserver.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesObserver.title">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/observer.jar"/>
-        </projectsetup>
-      </wizard>	
-     
+      </wizard>	     
       <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesTelecom"
 		name="%AspectJExamplesTelecom.title"
@@ -142,18 +97,7 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesTelecom.description</description>
-	    <projectsetup
-        	pagetitle="%AspectJExamplesTelecom.pagetitle"
-        	pagedescription="%AspectJExamplesTelecom.pagedescription"
-         	label="%AspectJExamplesCreationWizard.label"
-        	name="%AspectJExamplesTelecom.title"
-        	build="basic.ajproperties">
-           <nature id="org.eclipse.ajdt.ui.ajnature"/>
-           <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/telecom.jar"/>
-        </projectsetup>
       </wizard>	
-
       <wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesSpacewar"
 		name="%AspectJExamplesSpacewar.title"
@@ -163,7 +107,74 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesSpacewar.description</description>
+      </wizard>	
+ </extension>  
+
+<extension point="org.eclipse.ajdt.examples.projectsetup">
 	    <projectsetup
+	        id="org.eclipse.ajdt.examples.AspectJExamplesTJP"
+        	pagetitle="%AspectJExamplesTJP.pagetitle"
+        	pagedescription="%AspectJExamplesTJP.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesTJP.title">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>           
+           <import src="archive/tjp.jar"/>
+        </projectsetup>
+	    <projectsetup
+	        id="org.eclipse.ajdt.examples.AspectJExamplesBean"
+        	pagetitle="%AspectJExamplesBean.pagetitle"
+        	pagedescription="%AspectJExamplesBean.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesBean.title">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/bean.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJExamplesIntroduction"
+        	pagetitle="%AspectJExamplesIntroduction.pagetitle"
+        	pagedescription="%AspectJExamplesIntroduction.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesIntroduction.title">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/introduction.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJExamplesTracing"
+        	pagetitle="%AspectJExamplesTracing.pagetitle"
+        	pagedescription="%AspectJExamplesTracing.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesTracing.title"
+        	build="notrace.ajproperties">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/tracing.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJExamplesObserver"
+        	pagetitle="%AspectJExamplesObserver.pagetitle"
+        	pagedescription="%AspectJExamplesObserver.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesObserver.title">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/observer.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJExamplesTelecom"
+        	pagetitle="%AspectJExamplesTelecom.pagetitle"
+        	pagedescription="%AspectJExamplesTelecom.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+        	name="%AspectJExamplesTelecom.title"
+        	build="basic.ajproperties">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/telecom.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJExamplesSpacewar"
         	pagetitle="%AspectJExamplesSpacewar.pagetitle"
         	pagedescription="%AspectJExamplesSpacewar.pagedescription"
          	label="%AspectJExamplesCreationWizard.label"
@@ -171,10 +182,8 @@
         	build="demo.ajproperties">
            <nature id="org.eclipse.ajdt.ui.ajnature"/>
            <nature id="org.eclipse.jdt.core.javanature"/>
-           <import dest="" src="archive/spacewar.jar"/>
+           <import src="archive/spacewar.jar"/>
         </projectsetup>
-      </wizard>	
-
- </extension>  
+</extension>
 
 </plugin>

@@ -18,7 +18,10 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -42,6 +45,8 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
 public class AspectJExampleCreationWizard extends Wizard implements INewWizard, IExecutableExtension {
+
+	public static final String PROJECT_SETUP_EXTENSION = "org.eclipse.ajdt.examples.projectsetup"; //$NON-NLS-1$
 
 	private AspectJExampleCreationWizardPage[] fPages;
 	private IConfigurationElement fConfigElement;
@@ -68,19 +73,30 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 	 */	
 	public void addPages() {
 		super.addPages();
+
+		String id = fConfigElement.getAttribute("id"); //$NON-NLS-1$
+		IConfigurationElement child = getProjectSetupInfo(id);
 		
-		IConfigurationElement[] children = fConfigElement.getChildren("projectsetup"); //$NON-NLS-1$
-		if (children == null || children.length == 0) {
-			AspectJExamplePlugin.log("descriptor must contain one ore more projectsetup tags"); //$NON-NLS-1$
-			return;
+		fPages=  new AspectJExampleCreationWizardPage[1];
+		fPages[0]= new AspectJExampleCreationWizardPage(0, child);
+		addPage(fPages[0]);
+	}
+	
+	private IConfigurationElement getProjectSetupInfo(String matchingID) {
+		IExtensionPoint exP = Platform.getExtensionRegistry()
+				.getExtensionPoint(PROJECT_SETUP_EXTENSION);
+		IExtension[] exs = exP.getExtensions();
+
+		for (int i = 0; i < exs.length; i++) {
+			IConfigurationElement[] ces = exs[i].getConfigurationElements();
+			for (int j = 0; j < ces.length; j++) {
+				String id = ces[j].getAttribute("id"); //$NON-NLS-1$
+				if (id.equals(matchingID)) {
+					return ces[j];
+				}
+			}
 		}
-		
-		fPages=  new AspectJExampleCreationWizardPage[children.length];
-		
-		for (int i= 0; i < children.length; i++) {
-			fPages[i]= new AspectJExampleCreationWizardPage(i, children[i]);
-			addPage(fPages[i]);
-		}
+		return null;
 	}
 	
 	/*
