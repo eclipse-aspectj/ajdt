@@ -37,7 +37,7 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 
 	public static final String PLUGIN_ID = "org.eclipse.contribution.visualiser"; //$NON-NLS-1$
 
-	public static int LOGLEVEL = 2;
+	public static int LOGLEVEL = 0;
 
 	public static Visualiser visualiser;
 	
@@ -190,8 +190,10 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	 * @param message
 	 */
 	public static void log(int logLevel, String message) {
-		if (logLevel<=LOGLEVEL) System.err.println(message);		
-		VisualiserPlugin.getDefault().getLog().log(new Status(Status.INFO, "org.eclipse.contribution.visualiser", 0, message, null)); //$NON-NLS-1$
+		if (logLevel<=LOGLEVEL) {
+		    System.err.println(message);		
+			VisualiserPlugin.getDefault().getLog().log(new Status(Status.INFO, "org.eclipse.contribution.visualiser", 0, message, null)); //$NON-NLS-1$
+		}
 	}
 
 	/**
