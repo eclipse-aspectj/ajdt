@@ -25,6 +25,7 @@
       <import plugin="org.eclipse.search"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.aspectj.runtime"/>
    </requires>
 
    <extension-point id="providers" name="Visualiser Providers" schema="schema/providers.exsd"/>

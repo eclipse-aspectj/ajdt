@@ -7,28 +7,33 @@
  * 
  * Contributors:
  *     Luzius Meisser - initial implementation
+ *     Sian January - added support for eager parsing
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.aspectj.ajdt.internal.compiler.lookup.AjLookupEnvironment;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.ajdt.internal.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.internal.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
+import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser;
+import org.eclipse.ajdt.parserbridge.AJSourceElementParser2;
+import org.eclipse.ajdt.parserbridge.wrapperclasses.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -40,14 +45,16 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
+import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
@@ -55,6 +62,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
+import org.eclipse.jdt.internal.core.PackageFragment;
 
 
 /**
@@ -108,6 +116,17 @@ public class AJCompilationUnit extends CompilationUnit{
 		this.ajFile = ajFile;
 	}
 	
+	/**
+ * @param fragment
+ * @param elementName
+ * @param workingCopyOwner
+ */
+public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCopyOwner workingCopyOwner) {
+	super(fragment, elementName, workingCopyOwner);
+	this.ajFile = (IFile)fragment.getCompilationUnit(elementName).getResource();
+	// TODO Auto-generated constructor stub
+}
+
 	public Object getElementInfo() throws JavaModelException{
 		Object info = super.getElementInfo();
 		return info;
@@ -224,44 +243,19 @@ public class AJCompilationUnit extends CompilationUnit{
 			unitInfo.setTimestamp(((IFile)underlyingResource).getModificationStamp());
 			
 			// compute other problems if needed
-			CompilationUnitDeclaration compilationUnitDeclaration = null;
+			org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration compilationUnitDeclaration = null;
 			try {
 			if (computeProblems){
 				perWorkingCopyInfo.beginReporting();
 				
-//				final org.eclipse.jdt.core.IProblemRequestor origpr = perWorkingCopyInfo;
-//				IProblemRequestor probreq = new IProblemRequestor(){
-//
-//					public void acceptProblem(IProblem problem) {
-//						origpr.acceptProblem(new DefaultProblem(
-//					problem.getOriginatingFileName(),
-//					problem.getMessage(),
-//					problem.getID(),
-//					problem.getArguments(),
-//					problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
-//					problem.getSourceStart(),
-//					problem.getSourceEnd(),
-//					problem.getSourceLineNumber()));
-//						
-//					}
-//
-//					public void beginReporting() {
-//						origpr.beginReporting();	
-//					}
-//
-//					public void endReporting() {
-//						origpr.endReporting();
-//						
-//					}
-//
-//					public boolean isActive() {
-//						return origpr.isActive();
-//					}
-//					
-//				};
-//				
-//				compilationUnitDeclaration = CompilationUnitProblemFinder.process(unit, null, contents, parser, null, probreq, problemFactory, false/*don't cleanup cu*/, null);
-				
+				AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(unit, this);
+				AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(this, (AJCompilationUnitInfo)getElementInfo(), null);
+				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true); 
+
+				AjLookupEnvironment le =
+					new AjLookupEnvironment(null, new CompilerOptions(options), null, null);		
+				unit.scope = new CompilationUnitScope(unit, le);
+				compilationUnitDeclaration = AJCompilationUnitProblemFinder.process(ajcudw, this, contents, parser2, null, perWorkingCopyInfo, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), false/*don't cleanup cu*/, null);
 				
 //				provisional -- only reports syntax errors				
 				IProblem[] problems = unit.compilationResult.problems;
@@ -285,11 +279,12 @@ public class AJCompilationUnit extends CompilationUnit{
 				
 			}
 				
-				if (info instanceof ASTHolderCUInfo) {
-//				int astLevel = ((ASTHolderCUInfo) info).astLevel;
-//				org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, unit, contents, options, computeProblems, pm);
-//				((ASTHolderCUInfo) info).ast = cu;
-				}
+				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
+					
+					int astLevel = ((ASTHolderAJCUInfo) info).astLevel;
+					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, pm);
+					((ASTHolderAJCUInfo) info).ast = cu;
+				} 
 			} finally {
 			    if (compilationUnitDeclaration != null) {
 			        compilationUnitDeclaration.cleanUp();
@@ -305,6 +300,24 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	protected Object createElementInfo() {
 		return new AJCompilationUnitInfo();
+	}
+
+	public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(boolean createAST, int astLevel, IProgressMonitor monitor) throws JavaModelException {
+		if (isConsistent()) return null;
+			
+		// create a new info and make it the current info
+		// (this will remove the info and its children just before storing the new infos)
+		if (createAST) {
+			ASTHolderAJCUInfo info = new ASTHolderAJCUInfo();
+			info.astLevel = astLevel;
+			openWhenClosed(info, monitor);
+			org.eclipse.jdt.core.dom.CompilationUnit result = info.ast;
+			info.ast = null;
+			return result;
+		} else {
+			openWhenClosed(createElementInfo(), monitor);
+			return null;
+		}
 	}
 	
 //	protected boolean buildStructureOld(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException{
@@ -326,6 +339,25 @@ public class AJCompilationUnit extends CompilationUnit{
 //	}
 	
 
+	/**
+	 * @see ICompilationUnit#getWorkingCopy(WorkingCopyOwner, IProblemRequestor, IProgressMonitor)
+	 */
+	public ICompilationUnit getWorkingCopy(WorkingCopyOwner workingCopyOwner, IProblemRequestor problemRequestor, IProgressMonitor monitor) throws JavaModelException {
+		if (!isPrimary()) return this;
+		
+		JavaModelManager manager = JavaModelManager.getJavaModelManager();
+		
+		CompilationUnit workingCopy = new AJCompilationUnit((PackageFragment)getParent(), getElementName(), workingCopyOwner);
+		JavaModelManager.PerWorkingCopyInfo perWorkingCopyInfo = 
+			manager.getPerWorkingCopyInfo(workingCopy, false/*don't create*/, true/*record usage*/, null/*not used since don't create*/);
+		if (perWorkingCopyInfo != null) {
+			return perWorkingCopyInfo.getWorkingCopy(); // return existing handle instead of the one created above
+		}
+		BecomeWorkingCopyOperation op = new BecomeWorkingCopyOperation(workingCopy, problemRequestor);
+		op.runOperation(monitor);
+		return workingCopy;
+	}
+	
 	//used by package explorer
 	public IJavaElement[] getChildren() throws JavaModelException{
 		return super.getChildren();
@@ -382,20 +414,30 @@ public class AJCompilationUnit extends CompilationUnit{
 		return javaCompBuffer;
 	}	
 	
-	//reconciling is not (yet?) supported for .aj files 
-	public IMarker[] reconcile() throws JavaModelException {
-		return null;
-	}
-//	reconciling is not (yet?) supported for .aj files - disable problem detection 
-	public void reconcile(boolean forceProblemDetection,
-			IProgressMonitor monitor) throws JavaModelException {
-		super.reconcile(false, monitor);
-	}
 //	reconciling is not (yet?) supported for .aj files - disable problem detection
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
 			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
 			IProgressMonitor monitor) throws JavaModelException {
-		return super.reconcile(astLevel, false, workingCopyOwner, monitor);
+		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
+		if (workingCopyOwner == null) workingCopyOwner = DefaultWorkingCopyOwner.PRIMARY;
+		
+		boolean createAST = false;
+		if (astLevel == AST.JLS2) {
+			// client asking for level 2 AST; these are supported
+			createAST = true;
+		} else if (astLevel == AST.JLS3) {
+			// client asking for level 3 ASTs; these are not supported
+			// TODO (jerome) - these should also be supported in 1.5 stream
+			createAST = false;
+		} else {
+			// client asking for no AST (0) or unknown ast level
+			// either way, request denied
+			createAST = false;
+		}
+		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, forceProblemDetection, workingCopyOwner);
+		op.runOperation(monitor);
+		return op.ast;
+//		return super.reconcile(astLevel, false, workingCopyOwner, monitor);
 	}
 	
 

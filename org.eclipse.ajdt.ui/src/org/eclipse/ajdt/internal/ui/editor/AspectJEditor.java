@@ -47,10 +47,12 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -87,15 +89,18 @@ public class AspectJEditor extends CompilationUnitEditor {
 		//		setSourceViewerConfiguration(
 		//			new JavaSourceViewerConfiguration(textTools, this));
 		//((PartSite)getSite()).getConfigurationElement()
-
 	}
-
+	
 	// Existing in this map means the modification has occurred
 	static Set modifiedAspectToClass = new HashSet();
 
 	private AJSourceViewerConfiguration fAJSourceViewerConfiguration;
 
 	private boolean isEditingAjFile = false;
+
+	private AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
+
+	private AJCompilationUnitAnnotationModel annotationModel;
 
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
@@ -332,9 +337,15 @@ public class AspectJEditor extends CompilationUnitEditor {
 		super.setSourceViewerConfiguration(configuration);
 	}
 
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		IDocument document = getDocumentProvider().getDocument(getEditorInput());
+		ISourceViewer sourceViewer= getSourceViewer();
+		sourceViewer.setDocument(document, annotationModel);
+	}
+	
 	public void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
-
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
 
@@ -350,13 +361,15 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 				//TODO: if we want to get errors/warnings markers from the
 				//parser, pass the appropriate ProblemRequestor instead of null
-				unit.becomeWorkingCopy(null, null);
-
-				//CompilationUnitAnnotationModel model = new
-				// CompilationUnitAnnotationModel(fInput.getFile());
-				//model.setIsActive(true);
-				//IAnnotationModel model =
-				// this.getDocumentProvider().getAnnotationModel(unit);
+				annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
+				annotationModel.setIsActive(true);
+				annotationModel.setCompilationUnit(unit);
+				unit.becomeWorkingCopy(annotationModel, null);
+				if(fGlobalAnnotationModelListener == null) {
+					fGlobalAnnotationModelListener = new AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener();
+					fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
+				}
+				annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);
 				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 				}
@@ -384,6 +397,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			if ("aj".equals(fInput.getFile().getFileExtension())) {
 				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
+			
 		}
 	}
 
@@ -564,4 +578,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 	public static Set getActiveEditorList() {
 		return activeEditorList;
 	}
+	
+
 }

@@ -1,2 +1,4 @@
 src.includes = src/,\
                src30/
+src.excludes = src30/org/eclipse/ajdt/core/javaelements/AJSourceElementParser.java,\
+               src/org/eclipse/ajdt/parserbridge/AJParser.java
