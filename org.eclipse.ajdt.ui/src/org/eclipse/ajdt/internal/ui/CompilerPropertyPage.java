@@ -57,6 +57,10 @@ import org.osgi.service.prefs.BackingStoreException;
 */
 public class CompilerPropertyPage extends PropertyPage {
 
+	// TODO - these need to be changed to booleans - bug 90174
+	private static final String VALUE_TRUE = "true";
+	private static final String VALUE_FALSE = "false";
+
 	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton;  
 	
 	private IProject thisProject;
@@ -88,16 +92,16 @@ public class CompilerPropertyPage extends PropertyPage {
 		// these options are being set to "true" or "false" (rather than AspectJPreferences.VALUE_ENABLED
 		// or AspectJPreferences.VALUE_DISABLED) because the underlying code works in true/false
 		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
-		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, "false");
-		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, "false");
-		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false");
-		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, "false");
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, "false");
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress,"false");
+		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress,VALUE_FALSE);
 		
-		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, "true");
-		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, "true");
-		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, VALUE_TRUE);
+		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, VALUE_TRUE);
+		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages, VALUE_FALSE);
 		
 		defaultValueMap.put(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, AspectJPreferences.VALUE_IGNORE);
@@ -105,7 +109,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		defaultValueMap.put(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
 		
 		// bug 87128
-		defaultValueMap.put(AspectJPreferences.OPTION_1_5, "false");
+		defaultValueMap.put(AspectJPreferences.OPTION_1_5, VALUE_FALSE);
 	}
 
 	/**
@@ -661,7 +665,7 @@ public class CompilerPropertyPage extends PropertyPage {
 			String storeValue = AspectJPreferences.getStringPrefValue(thisProject, key);
 			if (!storeValue.equals("")) {
 				// bug 87128 - why checking against "true/false"
-				if (!storeValue.equals("true") && !storeValue.equals("false")) {
+				if (!storeValue.equals(VALUE_TRUE) && !storeValue.equals(VALUE_FALSE)) {
 					// this is a combo box
 					for (int j = 0; j < tempComboBoxes.size(); j++) {
 						Combo curr = (Combo) tempComboBoxes.get(j);
@@ -684,7 +688,7 @@ public class CompilerPropertyPage extends PropertyPage {
 						ControlData data = (ControlData) curr.getData();
 						if (key.equals(data.getKey())) {
 							// bug 87128 - why checking against "true/false"
-							String stringValue = curr.getSelection() ? "true" : "false";
+							String stringValue = curr.getSelection() ? VALUE_TRUE : VALUE_FALSE;
 							if (!storeValue.equals(stringValue)) {
 								settingsChanged = true;
 								setPrefValue(thisProject, data.getKey(),
@@ -739,7 +743,7 @@ public class CompilerPropertyPage extends PropertyPage {
 				curr.setEnabled(true);
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.setSelection(defaultValue.equals("true"));
+			curr.setSelection(defaultValue.equals(VALUE_TRUE));
 		}
 	}
 
@@ -791,9 +795,9 @@ public class CompilerPropertyPage extends PropertyPage {
 			currValue = (String)defaultValueMap.get(key);
 		} else if (currValue.equals(AspectJPreferences.VALUE_ENABLED)) {
 			// this case deals with backwards compatibility
-			currValue = "true"; //$NON-NLS$
+			currValue = VALUE_TRUE; 
 		}
-		checkBox.setSelection(currValue.equals("true"));//$NON-NLS$
+		checkBox.setSelection(currValue.equals(VALUE_TRUE));
 
 		fCheckBoxes.add(checkBox);
 		return checkBox;
