@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
@@ -41,7 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.help.WorkbenchHelp;
 
 /**
  * This class is the same as NewPackageWizardPage except for the
@@ -147,7 +145,7 @@ public class NewPackageWizardPageForTesting extends NewContainerWizardPage {
 		
 		setControl(composite);
 		Dialog.applyDialogFont(composite);
-		WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.NEW_PACKAGE_WIZARD_PAGE);
+		//WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.NEW_PACKAGE_WIZARD_PAGE);
 	}
 	
 	/**

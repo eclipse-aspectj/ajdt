@@ -18,18 +18,13 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -43,10 +38,6 @@ public class AspectJProjectWizardTest extends TestCase {
 
 	private File testDestinationFile;
 	private File testSrcFile;
-	private JavaTestProject testSrcProject;
-	private  IProject wizardCreatedProject;
-	private IProject newlyFoundProject;
-	private static int ID = 0;
 
 	JavaProjectWizardFirstPage testPage;
 
@@ -65,26 +56,6 @@ public class AspectJProjectWizardTest extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		
-		if((testDestinationFile != null) && testDestinationFile.exists())
-			deleteDirectory(testDestinationFile);
-		if((testSrcFile != null) && testSrcFile.exists())
-			deleteDirectory(testSrcFile);
-		if((testSrcFile != null) && 
-			AspectJPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile().exists()) {
-			
-			deleteDirectory(AspectJPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile());
-		}
-		
-		try {
-			if (testSrcProject != null) 
-				testSrcProject.dispose();
-			if ((wizardCreatedProject != null) && wizardCreatedProject.exists()) 
-				wizardCreatedProject.delete(true, null);
-			if ((newlyFoundProject != null) && newlyFoundProject.exists())
-				newlyFoundProject.delete(true, null);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void testProjectWizardPageAddition() {
@@ -135,7 +106,9 @@ public class AspectJProjectWizardTest extends TestCase {
 	 */
 	public void testProjectWizardPerformFinish() throws Exception {
 
-		testSrcProject = createTestProject(ID);
+		IProject testSrcProject = Utils.createPredefinedProject("SourceProject1");
+		IJavaProject javaProject = JavaCore.create(testSrcProject);
+		int ID = 1;
 		String pDestinationName = "NotVisible" + ID;
 		String pSrcName = testSrcProject.getName();
 		ID++;
@@ -146,7 +119,7 @@ public class AspectJProjectWizardTest extends TestCase {
 				.append(pSrcName).toFile();
 
 		copyFileStructure(testSrcFile, testDestinationFile);
-		wizardCreatedProject = makeNewWizardProject("TestWizardProject");
+		IProject wizardCreatedProject = makeNewWizardProject("TestWizardProject");
 		runGeneralTests(wizardCreatedProject, "TestWizardProject");
 		IJavaProject jp = JavaCore.create(wizardCreatedProject);
 
@@ -157,13 +130,13 @@ public class AspectJProjectWizardTest extends TestCase {
 			fail("Failed attempting to find the output location of the project");
 		}
 		
-		newlyFoundProject = makeNewWizardProject(pDestinationName);		// The wizard should make the project from the one
+		IProject newlyFoundProject = makeNewWizardProject(pDestinationName);		// The wizard should make the project from the one
 		runGeneralTests(newlyFoundProject, pDestinationName); 			// existing in the file structure
 		IJavaProject discoveredAJProject = JavaCore.create(newlyFoundProject);
 		
 		try {
 			assertTrue("The wizard discovered project does not have the correct output folder",
-				testSrcProject.getJavaProject().getOutputLocation().lastSegment().equals(
+				javaProject.getOutputLocation().lastSegment().equals(
 						discoveredAJProject.getOutputLocation().lastSegment()));
 			
 		} catch (JavaModelException e) {	
@@ -190,6 +163,11 @@ public class AspectJProjectWizardTest extends TestCase {
 		assertTrue("An incorrect file has been created during the discovery of the project",
 				newlyFoundProject.findMember(wrongFile) == null);
 		
+		Utils.deleteProject(testSrcProject);
+		Utils.deleteProject(wizardCreatedProject);
+		Utils.deleteProject(newlyFoundProject);
+	
+		Utils.waitForJobsToComplete();
 	}
 
 	/**
@@ -267,41 +245,41 @@ public class AspectJProjectWizardTest extends TestCase {
 	/**
 	 * Generates an ajdt project in the workspace with some test files
 	 */
-	public JavaTestProject createTestProject(int ID) throws CoreException {
-
-		ID++;
-		JavaTestProject testSrcProject = null;
-
-		// sets up the aj test project
-		testSrcProject = new JavaTestProject("SourceProject" + ID);
-		Utils.waitForJobsToComplete();
-		AJDTUtils.addAspectJNature(testSrcProject.getProject());
-		Utils.waitForJobsToComplete();
-		IPackageFragment testPackage = testSrcProject
-				.createPackage("TestPackage");
-
-		IType helloType = testSrcProject.createType(testPackage, "Hello.java",
-				"public class Hello {\n"
-						+ "  public static void main(String[] args) {\n"
-						+ "    Hello.printMessage();\n" + "  }\n"
-						+ "	 private static void printMessage() {\n"
-						+ "    System.out.println(\"Hello\");\n" + "  }\n"
-						+ "}");
-
-		testSrcProject
-				.createFile(
-						(IFolder) helloType.getPackageFragment()
-								.getUnderlyingResource(),
-						"Asp.aj",
-						"package TestPackage;"
-								+ "public aspect Asp {\n"
-								+ "  pointcut extendMessage() : call(* Hello.printMessage(..));\n"
-								+ "  before() : extendMessage() {\n"
-								+ "    System.out.println(\"Pre Message\");\n"
-								+ "  }\n" + "}");
-
-		return testSrcProject;
-	}
+//	public JavaTestProject createTestProject(int ID) throws CoreException {
+//
+//		ID++;
+//		JavaTestProject testSrcProject = null;
+//
+//		// sets up the aj test project
+//		testSrcProject = new JavaTestProject("SourceProject" + ID);
+//		Utils.waitForJobsToComplete();
+//		AJDTUtils.addAspectJNature(testSrcProject.getProject());
+//		Utils.waitForJobsToComplete();
+//		IPackageFragment testPackage = testSrcProject
+//				.createPackage("TestPackage");
+//
+//		IType helloType = testSrcProject.createType(testPackage, "Hello.java",
+//				"public class Hello {\n"
+//						+ "  public static void main(String[] args) {\n"
+//						+ "    Hello.printMessage();\n" + "  }\n"
+//						+ "	 private static void printMessage() {\n"
+//						+ "    System.out.println(\"Hello\");\n" + "  }\n"
+//						+ "}");
+//
+//		testSrcProject
+//				.createFile(
+//						(IFolder) helloType.getPackageFragment()
+//								.getUnderlyingResource(),
+//						"Asp.aj",
+//						"package TestPackage;"
+//								+ "public aspect Asp {\n"
+//								+ "  pointcut extendMessage() : call(* Hello.printMessage(..));\n"
+//								+ "  before() : extendMessage() {\n"
+//								+ "    System.out.println(\"Pre Message\");\n"
+//								+ "  }\n" + "}");
+//
+//		return testSrcProject;
+//	}
 
 	/**
 	 * Copies a project from one location to another. Used instead of the

@@ -19,7 +19,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -83,22 +82,25 @@ public class AJDTUtilsTest extends TestCase {
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
-		JavaTestProject testProject = new JavaTestProject("MyTestProject1");
+		IProject testProject = Utils.createPredefinedProject("project.java.Y");
+		IJavaProject jY = JavaCore.create(testProject);
+		Utils.waitForJobsToComplete();
+		
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
-				hasAjrtOnBuildPath(testProject.getJavaProject()));
+				hasAjrtOnBuildPath(jY));
 		AJDTUtils.addAspectJNature(testProject.getProject());
 		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin
 				.isAJProject(testProject.getProject()));
 		assertTrue("Build path should now contain aspectjrt.jar",
-				hasAjrtOnBuildPath(testProject.getJavaProject()));
+				hasAjrtOnBuildPath(jY));
 		AJDTUtils.removeAspectJNature(testProject.getProject());
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
-		assertFalse("Build path shouldn't contain aspectjrt.jar",
-				hasAjrtOnBuildPath(testProject.getJavaProject()));
-		testProject.dispose();
+		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
+		Utils.deleteProject(testProject);
+		Utils.waitForJobsToComplete();
 	}
 
 	/**
@@ -116,35 +118,12 @@ public class AJDTUtilsTest extends TestCase {
 		IProject projectA2 = Utils.createPredefinedProject("PluginWithView");
 		Utils.waitForJobsToComplete();
 
-		
-//		PluginTestProject projectA1 = new PluginTestProject(
-//				"MyPluginProjectA1", "my.test.pluginA1", "ProjectA1Plugin",
-//				"projectA1.jar");
-//		PluginTestProject projectA2 = new PluginTestProject(
-//				"MyPluginProjectA2", "my.test.pluginA2", "ProjectA2Plugin",
-//				"projectA2.jar");
-//		PluginTestProject projectA3 = new PluginTestProject(
-//				"MyPluginProjectA3", "my.test.pluginA3", "ProjectA3Plugin",
-//				"projectA3.jar");
-//		PluginTestProject projectA4 = new PluginTestProject(
-//				"MyPluginProjectA4", "my.test.pluginA4", "ProjectA4Plugin",
-//				"projectA4.jar");
-//		assertTrue("projectA3 should have manifest editor for project A3",
-//				AJDTUtils.getAndPrepareToChangePDEModel(projectA3.getProject())
-//						.getPartName().equals(projectA3.getPluginID()));
 		assertTrue("projectA1 should have manifest editor for project A1",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
 						.getPartName().equals("HelloWorld"));
-//		assertTrue("projectA4 should have manifest editor for project A4",
-//				AJDTUtils.getAndPrepareToChangePDEModel(projectA4.getProject())
-//						.getPartName().equals(projectA4.getPluginID()));
 		assertTrue("projectA2 should have manifest editor for project A2",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
 						.getPartName().equals("PluginWithView"));
-//		projectA1.dispose();
-//		projectA2.dispose();
-//		projectA3.dispose();
-//		projectA4.dispose();
 		Utils.deleteProject(projectA1);
 		Utils.deleteProject(projectA2);
 		resetPluginEnvironment();

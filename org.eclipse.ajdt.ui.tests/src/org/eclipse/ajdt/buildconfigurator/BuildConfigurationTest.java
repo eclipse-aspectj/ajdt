@@ -17,8 +17,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -34,9 +32,7 @@ import org.eclipse.jdt.core.JavaCore;
  */
 public class BuildConfigurationTest extends TestCase {
 
-	IProject javaProject = null;
 	IProject ajProject = null;
-	JavaTestProject tp,tp2;
 
 	IFile fileA;
 	IFile fileB;
@@ -48,13 +44,7 @@ public class BuildConfigurationTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		//create JavaProject
-		tp = new JavaTestProject("Java Project created by BuildConfigurationTest");
-		javaProject = tp.getProject();
-		
-		tp2 = new JavaTestProject("AJ Project created by BuildConfigurationTest");
-		ajProject = tp2.getProject();
-		AJDTUtils.addAspectJNature(ajProject);		
+		ajProject = Utils.createPredefinedProject("AJ Project For BuildConfigurationTest");
 		
 		Utils.waitForJobsToComplete();
 		setupSandboxSourceFolder();
@@ -66,12 +56,7 @@ public class BuildConfigurationTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		try {
-			tp.dispose();
-			tp2.dispose();
-		} catch (CoreException e) {
-			// do nothing - don't care if problems occur here....
-		}
+		Utils.deleteProject(ajProject);
 	}
 
 	private void setupSandboxSourceFolder() throws Exception{

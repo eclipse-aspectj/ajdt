@@ -15,8 +15,6 @@ import java.io.ByteArrayInputStream;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -32,18 +30,11 @@ import org.eclipse.jdt.core.JavaCore;
  */
 public class BuildConfiguratorTest extends TestCase {
 
+	IProject ajProject = null;
 	IProject javaProject = null;
 
-	IProject ajProject = null;
-
-	JavaTestProject tp, tp2;
-
-	static int testNum = 200;
-
 	IFile fileA;
-
 	IFile fileB;
-
 	IFile fileDef;
 
 	/*
@@ -52,17 +43,10 @@ public class BuildConfiguratorTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		//create JavaProject
-		tp = new JavaTestProject(
-				"Java Project created by BuildConfiguratorTest" + testNum);
-		javaProject = tp.getProject();
-
-		tp2 = new JavaTestProject("AJ Project created by BuildConfiguratorTest"
-				+ testNum++);
-		ajProject = tp2.getProject();
-		AJDTUtils.addAspectJNature(ajProject);
-
+		ajProject = Utils.createPredefinedProject("AJ Project For BuildConfigurationTest");
 		Utils.waitForJobsToComplete();
+		javaProject = Utils.createPredefinedProject("java.project.Y");
+		
 		setupSandboxSourceFolder();
 		Utils.waitForJobsToComplete();
 
@@ -73,12 +57,13 @@ public class BuildConfiguratorTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		try {
-			tp.dispose();
-			tp2.dispose();
-		} catch (CoreException e) {
-			// do nothing - don't care if problems occur here....
+		if (ajProject != null) {
+			Utils.deleteProject(ajProject);			
 		}
+		if (javaProject != null) {
+			Utils.deleteProject(javaProject);			
+		}
+		Utils.waitForJobsToComplete();
 	}
 
 	private void setupSandboxSourceFolder() throws Exception {

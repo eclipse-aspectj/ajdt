@@ -15,12 +15,9 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -30,42 +27,14 @@ import org.eclipse.jface.viewers.StructuredSelection;
  *  
  */
 public class RemoveAJNatureActionTest extends TestCase {
-	private JavaTestProject testProject = null;
 
-	//private AJTestProject testProject = null;
-	//private IAspectJProject ajp = null;
+	private IProject testProject = null;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-
-	
-		// create a Java project that contains all the various Java elements...
-		// create a project
-		testProject = new JavaTestProject("Test AJ Project");
-
+		testProject = Utils.createPredefinedProject("project.java.Y");
 		Utils.waitForJobsToComplete();
-		// create a package
-		IPackageFragment testPackage = testProject.createPackage("mypackage");
-
-		Utils.waitForJobsToComplete();
-		// add a couple of Java files in the package
-		IType helloType = testProject.createType(testPackage, "Hello.java",
-				"public class Hello {\n"
-						+ "  public static void main(String[] args) {\n"
-						+ "    System.out.println(\"Hello\");\n" + "  }\n"
-						+ "}");
-
-		testProject.createFile((IFolder) helloType
-				.getPackageFragment().getUnderlyingResource(), "Goodbye.aj",
-				"public class Goodbye {\n" + "  public Goodbye() {};\n"
-						+ "  public static void main(String[] args) {\n"
-						+ "    System.out.println(message);\n" + "  }\n"
-						+ "  public String message = \"Goodbye\";\n" + "}");
-
-		// Now create an AspectJ project.
-		//        ajp = AspectJCore.create(testProject.getProject());
-		//        ajp.addAspectJNature();
-		AJDTUtils.addAspectJNature(testProject.getProject());
+		AJDTUtils.addAspectJNature(testProject);
 		Utils.waitForJobsToComplete();
 	}
 
@@ -74,20 +43,17 @@ public class RemoveAJNatureActionTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		try {
-			testProject.dispose();
-		} catch (CoreException e) {
-			// don't care that problem occured here....
-		}
+		Utils.deleteProject(testProject);
+		Utils.waitForJobsToComplete();
 	}
 
 	public void testRemovesAJNature() throws CoreException {
 		// Ensure that we are starting with a project that has an AspectJ
 		// nature.
-		assertTrue(AspectJPlugin.isAJProject(testProject.getProject()));
+		assertTrue(AspectJPlugin.isAJProject(testProject));
 
 		// Next, create the necessary arguments for the nature addition.
-		ISelection sel = new StructuredSelection(testProject.getProject());
+		ISelection sel = new StructuredSelection(testProject);
 		IAction action = new Action() {
 			public void run() {
 				// NO OP
@@ -98,7 +64,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 
 		// Remove the nature
 		rna.run(action);
-		assertFalse(AspectJPlugin.isAJProject(testProject.getProject()));
+		assertFalse(AspectJPlugin.isAJProject(testProject));
 	}
 
 }
