@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
@@ -117,7 +118,19 @@ public class XRefUIUtils {
 					synchronized (unit) {
 						unit.reconcile(ICompilationUnit.NO_AST, false, null, null);
 					}
-					return unit.getElementAt(offset);
+					IJavaElement elementAt = unit.getElementAt(offset);
+					if (elementAt != null) {
+						return elementAt;
+					} else {
+						// this is if the selection in the editor
+						// is outside the {} of the class or aspect
+						IJavaElement[] children = unit.getChildren();
+						for (int i = 0; i < children.length; i++) {
+							if (children[i] instanceof SourceType) {
+								return children[i];
+							}
+						}
+					}
 				} else if (unit.isConsistent())
 					return unit.getElementAt(offset);
 					

@@ -106,45 +106,8 @@ public class XReferenceContentProvider
 			if (o instanceof IJavaElement) {
 				je = (JavaElement) o;
 			}
-			IJavaElement[] extra = xreferenceAdapter.getExtraChildren(je);
-			IJavaElement[] children = null;
 			if (je != null) {
-				try {
-					List l = new ArrayList();
-					children = je.getChildren();
-					for (int i = 0; i < children.length; i++) {
-						l.add(children[i]);
-					}
-					if (extra!=null) {
-						for (int i = 0; i < extra.length; i++) {
-							l.add(extra[i]);
-						}
-					}
-					children = (IJavaElement[])l.toArray(new IJavaElement[]{});
-					for (int i = 0; i < children.length; i++) {
-						IJavaElement child = children[i];
-						IAdaptable a = (IAdaptable) child;
-						IXReferenceAdapter xrefAdapterChild = null;
-						if (a != null) {
-							xrefAdapterChild =
-								(IXReferenceAdapter) a.getAdapter(
-									IXReferenceAdapter.class);
-						}
-						if (xrefAdapterChild != null) {
-							TreeParent childNode =
-								new TreeParent(xrefAdapterChild.toString());
-							childNode.setData(
-								xrefAdapterChild.getReferenceSource());
-							Collection xrc = xrefAdapterChild.getXReferences();
-							if (!xrc.isEmpty()) {
-								root.addChild(childNode);
-								addXReferencesToTree(childNode, xrc);
-							}
-						}
-					}
-				} catch (JavaModelException e) {
-					e.printStackTrace();
-				}
+				addChildren(root,je,xreferenceAdapter);
 			}
 		} else if (input != null) {
 			TreeParent root = new TreeParent(input.getClass().getName());
@@ -153,6 +116,54 @@ public class XReferenceContentProvider
 		}
 	}
 
+	private boolean addChildren(TreeParent parent, JavaElement je, IXReferenceAdapter xreferenceAdapter) {
+		boolean hasChildren = false;
+		try {
+			IJavaElement[] extra = xreferenceAdapter.getExtraChildren(je);
+			List l = new ArrayList();
+			IJavaElement[] children = je.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				l.add(children[i]);
+			}
+			if (extra!=null) {
+				for (int i = 0; i < extra.length; i++) {
+					l.add(extra[i]);
+				}
+			}
+			children = (IJavaElement[])l.toArray(new IJavaElement[]{});
+			for (int i = 0; i < children.length; i++) {
+				IJavaElement child = children[i];
+				IAdaptable a = (IAdaptable) child;
+				IXReferenceAdapter xrefAdapterChild = null;
+				if (a != null) {
+					xrefAdapterChild =
+						(IXReferenceAdapter) a.getAdapter(
+							IXReferenceAdapter.class);
+				}
+				if (xrefAdapterChild != null) {
+					TreeParent childNode =
+						new TreeParent(xrefAdapterChild.toString());
+					childNode.setData(
+						xrefAdapterChild.getReferenceSource());
+					Collection xrc = xrefAdapterChild.getXReferences();
+					if (!xrc.isEmpty()) {
+						parent.addChild(childNode);
+						addXReferencesToTree(childNode, xrc);
+						hasChildren = true;
+					} else {
+						JavaElement subJe = (JavaElement)child;
+						if (addChildren(childNode,subJe,xreferenceAdapter)) {
+							parent.addChild(childNode);
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+		return hasChildren;		
+	}
+	
 	private void addXReferencesToTree(
 		TreeParent parent,
 		Collection xreferences) {

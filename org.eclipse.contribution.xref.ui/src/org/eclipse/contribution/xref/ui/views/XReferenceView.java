@@ -30,6 +30,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -79,7 +80,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		contentProvider = new XReferenceContentProvider();
 		viewer.setContentProvider(contentProvider);
 		viewer.setLabelProvider(new XReferenceLabelProvider());
-		viewer.setAutoExpandLevel(4);
+		viewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 		
 		restorePersistedSettings();
 		makeActions();
@@ -107,8 +108,12 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection);
+		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection);		
 		if (xra != null) {
+			if (lastSelection != null 
+					&& xra.getReferenceSource().equals(lastSelection.getReferenceSource())) {
+				return;
+			}
 			lastSelection = xra;
 			if (linkingEnabled && !changeDrivenByBuild) {
 				viewer.setInput(xra);
@@ -214,6 +219,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			}
 			if (xra != null) {
 				viewer.setInput(xra);
+				lastSelection = xra;
 			}
 		}
 	}
