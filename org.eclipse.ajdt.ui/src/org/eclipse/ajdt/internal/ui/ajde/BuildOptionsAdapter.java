@@ -624,10 +624,15 @@ public class BuildOptionsAdapter
 				File.pathSeparator);
 		while (strTok.hasMoreTokens()) {
 			String current = strTok.nextToken();
-			if (current.startsWith(AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR)) {
-				// This part of the path string starts with a slash and so
-				// is relative to the workspace. Need to replace this part
-				// of the path string with a fully qualified equivalent.
+			File f = new File(current);
+			if (f.exists() && f.isAbsolute()) {
+				// entry not relative to workspace (it's fully qualifed)
+				resultBuffer.append(current);
+			} else {
+			//if (current.startsWith(AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR)) {
+				// Try to resolve path relative to the workspace. Need to
+				// replace part of the path string with a fully qualified
+				// equivalent.
 				String projectName = null;
 				int slashPos = current.indexOf(
 						AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR, 1);
@@ -674,9 +679,6 @@ public class BuildOptionsAdapter
 					}
 				}// end else entry not found in workspace
 			}// end if entry is relative to workspace
-			else {
-				resultBuffer.append(current);
-			}// end else entry not relative to workspace (is fully qualifed)
 			resultBuffer.append(File.pathSeparator);
 		}// end while more tokens to process
 
