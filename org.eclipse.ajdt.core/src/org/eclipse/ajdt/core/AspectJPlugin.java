@@ -1,15 +1,31 @@
+/*******************************************************************************
+ * Copyright (c) 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Matt Chapman - initial version
+ *******************************************************************************/
 package org.eclipse.ajdt.core;
 
 import java.io.File;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
+import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
+import org.eclipse.ajdt.core.builder.CoreBuildOptions;
+import org.eclipse.ajdt.core.builder.CoreErrorHandler;
+import org.eclipse.ajdt.core.builder.CoreProjectProperties;
+import org.eclipse.ajdt.core.builder.CoreTaskListManager;
+import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.IAJLogger;
 import org.eclipse.ajdt.internal.core.ICoreOperations;
-import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.StandinCoreOperations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -53,7 +69,12 @@ public class AspectJPlugin extends Plugin {
 	private IAJCompilerMonitor ajdtCompilerMonitor;
 
 	private ICoreOperations coreOperations;
-	
+
+	/**
+	 * The currently selected project
+	 */
+	private IProject currentProject;
+
 	/**
 	 * The constructor.
 	 */
@@ -72,6 +93,11 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		
+		Ajde.init(null, new CoreTaskListManager(), // task list manager
+				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
+				new CoreProjectProperties(), new CoreBuildOptions(),
+				null, null, new CoreErrorHandler());
 	}
 
 	/**
@@ -86,6 +112,35 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public static AspectJPlugin getDefault() {
 		return plugin;
+	}
+
+	/**
+	 * get the current project, if nobody has set a project yet, use the first
+	 * open project in the workspace
+	 */
+	public IProject getCurrentProject() {
+		IProject current = null;
+		if (currentProject != null) {
+			current = currentProject;
+		} else {
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+					.getProjects();
+			for (int i = 0; i < projects.length; i++) {
+				if (projects[i].isOpen()) {
+					current = projects[i];
+					break;
+				}
+			}
+		}
+		return current;
+	}
+
+	/**
+	 * set the current project - called by the builder when we're about to do a
+	 * build.
+	 */
+	public void setCurrentProject(IProject project) {
+		currentProject = project;
 	}
 
 	/**

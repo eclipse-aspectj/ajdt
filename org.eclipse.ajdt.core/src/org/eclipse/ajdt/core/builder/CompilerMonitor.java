@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.builder;
 
 import java.util.List;
 
+import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -21,92 +22,101 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class CompilerMonitor implements IAJCompilerMonitor {
 
-    private IProgressMonitor monitor = null;
+	private IProgressMonitor monitor = null;
 
-    private long compileStartTime;
+	private long compileStartTime;
 
-    /**
-     * Is this CompilerMonitor instance currently 'in use' ?
-     */
-    private boolean compilationInProgress = false;
+	/**
+	 * Is this CompilerMonitor instance currently 'in use' ?
+	 */
+	private boolean compilationInProgress = false;
 
 	public boolean finished() {
 		return !compilationInProgress;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#start(java.lang.String)
 	 */
 	public void start(String configFile) {
-		System.out.println("start core compiler monitor");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#setProgressText(java.lang.String)
 	 */
 	public void setProgressText(String text) {
-		System.out.println("set progress: "+text);
+		AJLog.log("AJC: "+text);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#setProgressBarVal(int)
 	 */
 	public void setProgressBarVal(int newVal) {
-		System.out.println("set progress bar:"+newVal);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#incrementProgressBarVal()
 	 */
 	public void incrementProgressBarVal() {
-		System.out.println("increment progress bar");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#setProgressBarMax(int)
 	 */
 	public void setProgressBarMax(int maxVal) {
-		System.out.println("set progress bar max: "+maxVal);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#getProgressBarMax()
 	 */
 	public int getProgressBarMax() {
-		System.out.println("get progress bar max");
 		return 0;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.aspectj.ajde.BuildProgressMonitor#finish()
 	 */
 	public void finish() {
 		compilationInProgress = false;
-		System.out.println("finish called");
+		AJLog.log("AJC: Build finished");
 	}
-	
-    /**
-     * Called from the Builder to set up the compiler for a new build.
-     */
-    public void prepare(IProject project, List buildList,
-            IProgressMonitor eclipseMonitor) {
-        monitor = eclipseMonitor;
-        if (monitor != null) {
-//            monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"),
-//                    AspectJUIPlugin.PROGRESS_MONITOR_MAX);
-        	monitor.beginTask("new compile",10);
-        }
 
-        compileStartTime = System.currentTimeMillis();
-        System.out.println("compilation now in progress");
-        compilationInProgress = true;
-    }
-    
-    public static void clearOtherProjectMarkers(IProject p) {
-    
-    }
-    
-    public static void showOutstandingProblems() {
-    	
-    }
+	/**
+	 * Called from the Builder to set up the compiler for a new build.
+	 */
+	public void prepare(IProject project, List buildList,
+			IProgressMonitor eclipseMonitor) {
+		monitor = eclipseMonitor;
+		if (monitor != null) {
+			// monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"),
+			// AspectJUIPlugin.PROGRESS_MONITOR_MAX);
+			monitor.beginTask("AJC build", 100);
+		}
+
+		compileStartTime = System.currentTimeMillis();
+		AJLog.log("AJC: Starting new build for project " + project.getName());
+		compilationInProgress = true;
+	}
+
+	public static void clearOtherProjectMarkers(IProject p) {
+
+	}
+
+	public static void showOutstandingProblems() {
+
+	}
 }

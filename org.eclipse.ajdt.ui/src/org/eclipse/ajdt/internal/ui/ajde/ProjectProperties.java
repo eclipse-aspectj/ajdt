@@ -34,8 +34,8 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
@@ -61,26 +61,8 @@ import org.eclipse.jdt.launching.JavaRuntime;
  * ProjectProperties is used to pass all the user, project and plugin settings
  * to AJ Tools.
  */
-public class ProjectProperties implements ProjectPropertiesAdapter {
-
-	/**
-	 * Computed classpath to aspectjrt.jar
-	 */
-	private String aspectjrtPath = null;
+public class ProjectProperties extends CoreProjectProperties implements ProjectPropertiesAdapter {
 	
-	/**
-	 * Created in getClasspath(), should be flushed at end of build
-	 */
-	private String cachedClasspath = null;
-
-	/*
-	 * @see ProjectPropertiesAdapter#getAjcWorkingDir()
-	 */
-	public String getAjcWorkingDir() {
-		return AspectJPlugin.getWorkspace().getRoot().getLocation()
-				.toOSString();
-	}
-
 	/**
 	 * Called to determine where the resultant class files should go when AJC is
 	 * compiling code. We grab the location from the current project and convert
@@ -88,7 +70,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 */
 	public String getOutputPath() {
 		try {
-			IProject currProject = AspectJUIPlugin.getDefault()
+			IProject currProject = AspectJPlugin.getDefault()
 					.getCurrentProject();
 			IJavaProject jProject = JavaCore.create(currProject);
 			IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
@@ -131,35 +113,12 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		return null;
 	}
 
-	/**
-	 * The name of the current project
-	 */
-	public String getProjectName() {
-		return AspectJUIPlugin.getDefault().getCurrentProject().getName();
-	}
-
-	/*
-	 * @see ProjectPropertiesAdapter#getClassToExecute()
-	 */
-	public String getClassToExecute() {
-		System.err
-				.println("*** AJ Plugin: ProjectProperties.getClassToExecute NOT IMPLEMENTED ***");
-		return null;
-	}
-
-	/**
-	 * The home directory of the current project
-	 */
-	public String getRootProjectDir() {
-		IProject project = AspectJUIPlugin.getDefault().getCurrentProject();
-		return project.getLocation().toOSString();
-	}
 
 	/**
 	 * All the source files in the current project, as a List of java.io.Files.
 	 */
 	public List getProjectSourceFiles() {
-		IProject activeProject = AspectJUIPlugin.getDefault()
+		IProject activeProject = AspectJPlugin.getDefault()
 				.getCurrentProject();
 		return getProjectSourceFiles(activeProject,
 				CoreUtils.ASPECTJ_SOURCE_FILTER);
@@ -181,35 +140,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 
 	}
 
-	/*
-	 * @see ProjectPropertiesAdapter#getProjectSourcePath()
-	 */
-	public String getProjectSourcePath() {
-		IProject p = AspectJUIPlugin.getDefault().getCurrentProject();
-		// todo - how to tell if the root of the project source tree??
-		// is it a getPersistentProperty( )??
-		return p.getLocation().toOSString();
-	}
-
-	/**
-	 * get the classpath to use for compiling the current project.
-	 */
-	public String getClasspath() {
-		if (cachedClasspath!=null) return cachedClasspath;
-		IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
-		IJavaProject jp = JavaCore.create(proj);
-		// bug 73035: use this build classpath resolver which is a direct
-		// copy from JDT, so the classpath environment is much closer between
-		// AspectJ and Java projects.
-		cachedClasspath = new BuildClasspathResolver().getClasspath(AspectJPlugin
-				.getWorkspace().getRoot(), jp);
-		return cachedClasspath;
-	}
 	
-	public void flushClasspathCache() {
-		cachedClasspath = null;
-	}
-
 	/**
 	 * get the classpath to use for compiling the current project. NOTE: This is
 	 * not currently used, after being replaced by the above version which uses
@@ -222,7 +153,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		StringBuffer classpath = new StringBuffer();
 
 		try {
-			IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
+			IProject proj = AspectJPlugin.getDefault().getCurrentProject();
 			IJavaProject jp = JavaCore.create(proj);
 			IRuntimeClasspathEntry[] rtcp = JavaRuntime
 					.computeUnresolvedRuntimeClasspath(jp);
@@ -414,27 +345,15 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		}
 	}
 
-	/*
-	 * @see ProjectPropertiesAdapter#getBootClasspath()
-	 */
-	public String getBootClasspath() {
-		return null;
-	}
 
 	/*
 	 * @see ProjectPropertiesAdapter#getExecutionArgs()
 	 */
 	public String getExecutionArgs() {
-		IProject project = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject project = AspectJPlugin.getDefault().getCurrentProject();
 		return AspectJPreferences.getCompilerOptions(project);
 	}
 
-	/*
-	 * @see ProjectPropertiesAdapter#getVmArgs()
-	 */
-	public String getVmArgs() {
-		return null;
-	}
 
 	// ----------- end of ProjectPropertiesAdapter interface methods
 	// ------------
@@ -445,7 +364,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * resource (the project) are removed.
 	 */
 	public void clearMarkers(boolean recurse) {
-		IProject currProject = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject currProject = AspectJPlugin.getDefault().getCurrentProject();
 		try {
 			currProject
 					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
@@ -655,24 +574,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		return lstFiles_Strings;
 	}
 
-	public String getDefaultBuildConfigFile() {
-		String defaultLstFile = (AspectJUIPlugin.getDefault()
-				.getCurrentProject().getLocation().toOSString()
-				+ File.separator + AspectJPlugin.DEFAULT_CONFIG_FILE);
-		return defaultLstFile;
-	}
-
-	public String getLastActiveBuildConfigFile() {
-
-		String currentLstFile = AspectJPlugin
-				.getBuildConfigurationFile(AspectJUIPlugin.getDefault()
-						.getCurrentProject());
-		// System.err.println("AC_temp_debug:
-		// ProjectProperties.getLastActiveBuildConfigFile(): Returning
-		// "+currentLstFile);
-		return currentLstFile;
-	}
-
 	// The following methods added for AspectJ 1.1
 	// --------------------------------------------
 
@@ -692,7 +593,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * this option.
 	 */
 	public Map getSourcePathResources() {
-		IProject project = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject project = AspectJPlugin.getDefault().getCurrentProject();
 		IJavaProject jProject = JavaCore.create(project);
 		Map map = new HashMap();
 		try {
@@ -755,11 +656,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 
 		return map;
 		// return new HashSet(list);
-	}
-
-	public boolean getIncrementalMode() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getIncrementalMode();
 	}
 
 	// public String getFileExt() {
