@@ -103,6 +103,12 @@ public class CompilerPropertyPage extends PropertyPage {
 	private static String ENABLED = JavaCore.ENABLED;
 	private static String DISABLED = JavaCore.DISABLED;
 
+	private static final String PREF_ENABLE_AJ5 = AspectJPreferences.OPTION_1_5;
+	private static final String PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS = AspectJPreferences.OPTION_noJoinpointsForBridgeMethods;
+	private static final String PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS = AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs;
+	private static final String PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED = AspectJPreferences.OPTION_enumAsTargetForDecpIgnored;
+	private static final String PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED = AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored;
+
 	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton;  
 	
 	private IProject thisProject;
@@ -201,6 +207,12 @@ public class CompilerPropertyPage extends PropertyPage {
 		store.setDefault(thisProject + PREF_ENABLE_BUILD_ASM, true);
 		store.setDefault(thisProject + PREF_ENABLE_WEAVE_MESSAGES, false);
 
+		store.setDefault(thisProject + PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS, WARNING);
+		store.setDefault(thisProject + PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS, IGNORE);
+		store.setDefault(thisProject + PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED, WARNING);
+		store.setDefault(thisProject + PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED, WARNING);
+		
+		store.setDefault(thisProject + PREF_ENABLE_AJ5, false);
 		
 		store.setDefault(thisProject + "useProjectSettings", false);
 		initialised = true;
@@ -271,6 +283,13 @@ public class CompilerPropertyPage extends PropertyPage {
 		item
 				.setText(AspectJUIPlugin
 						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
+		item.setControl(aspectjComposite);
+
+		aspectjComposite = createAJ5TabContent(folder);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
 		item.setControl(aspectjComposite);
 		
 		Dialog.applyDialogFont(composite);
@@ -454,6 +473,79 @@ public class CompilerPropertyPage extends PropertyPage {
 		return composite;
 	}
 
+
+	/**
+	 * @param folder
+	 * @return
+	 */
+	private Composite createAJ5TabContent(TabFolder folder) {
+		String[] errorWarningIgnore = new String[]{ERROR, WARNING, IGNORE};
+
+		String[] errorWarningIgnoreLabels = new String[]{
+				AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.error"), //$NON-NLS-1$
+				AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.warning"), //$NON-NLS-1$
+				AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.ignore") //$NON-NLS-1$
+		};
+
+		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
+
+		int nColumns = 3;
+
+		GridLayout layout = new GridLayout();
+		layout.numColumns = nColumns;
+
+		Composite composite = new Composite(folder, SWT.NULL);
+		composite.setLayout(layout);
+
+		Label description = new Label(composite, SWT.WRAP);
+		description
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_5.description")); //$NON-NLS-1$
+		GridData gd = new GridData();
+		gd.horizontalSpan = nColumns;
+		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
+		description.setLayoutData(gd);
+	
+		
+		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.enable_aj5.label"); //$NON-NLS-1$
+		addCheckBox(composite, label, PREF_ENABLE_AJ5, enableDisableValues, 0, false);
+
+		new Label(composite, SWT.NONE);
+		
+		Label description2 = new Label(composite, SWT.WRAP);
+		description2
+				.setText(AspectJUIPlugin
+						.getResourceString("CompilerConfigurationBlock.aj_messages.description")); //$NON-NLS-1$
+		GridData gd2 = new GridData();
+		gd2.horizontalSpan = nColumns;
+		description2.setLayoutData(gd2);
+		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.noJoinpointsForBridgeMethods"); //$NON-NLS-1$
+		addComboBox(composite, label, PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.cantMatchArrayTypeOnVarargs"); //$NON-NLS-1$
+		addComboBox(composite, label, PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.enumAsTargetForDecpIgnored"); //$NON-NLS-1$
+		addComboBox(composite, label, PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.annotationAsTargetForDecpIgnored"); //$NON-NLS-1$
+		addComboBox(composite, label, PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		
+		return composite;
+	}
 
 	/**
 	 * Get the preference store for AspectJ mode
@@ -860,6 +952,11 @@ public class CompilerPropertyPage extends PropertyPage {
 				PREF_ENABLE_BUILD_ASM,
 				PREF_ENABLE_INCREMENTAL,
 				PREF_ENABLE_WEAVE_MESSAGES,
+				PREF_ENABLE_AJ5,
+				PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED,
+				PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS,
+				PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED,
+				PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS,
 			};
 		return keys;
 	}

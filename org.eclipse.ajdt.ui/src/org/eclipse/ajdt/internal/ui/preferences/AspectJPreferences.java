@@ -9,7 +9,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 Julie Waterhouse - added methods to get/set ajdtPrefConfigDone - August 3, 2003
 Matt Chapman - added support for Xlint and advanced options
 Ian McGrath - added support for the properties page
-Sian January - moved in other options
+Sian January - moved in other options and added 1.5 options
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
@@ -85,6 +85,16 @@ public class AspectJPreferences {
 	public static final String OPTION_ReportNeedSerialVersionUIDField   = "org.aspectj.ajdt.core.compiler.lint.NeedSerialVersionUIDField"; 
 	public static final String OPTION_ReportIncompatibleSerialVersion   = "org.aspectj.ajdt.core.compiler.lint.BrokeSerialVersionCompatibility";
 	public static final String OPTION_ReportNoInterfaceCtorJoinpoint   = "org.aspectj.ajdt.core.compiler.lint.NoInterfaceCtorJoinpoint";
+
+	// AspectJ 5 Options
+	public static final String OPTION_1_5 = "org.aspectj.ajdt.core.compiler.aj5";
+	
+	// AspectJ 5 Lint Options
+	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods";
+	public static final String OPTION_cantMatchArrayTypeOnVarargs = "org.aspectj.ajdt.core.compiler.lint.cantMatchArrayTypeOnVarargs";
+	public static final String OPTION_enumAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.enumAsTargetForDecpIgnored";
+	public static final String OPTION_annotationAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.annotationAsTargetForDecpIgnored";
+	
 	
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave                 = "org.aspectj.ajdt.core.compiler.weaver.NoWeave";
@@ -110,11 +120,17 @@ public class AspectJPreferences {
 			{ OPTION_ReportCannotImplementLazyTJP, "canNotImplementLazyTjp" },
 			{ OPTION_ReportNeedSerialVersionUIDField, "needsSerialVersionUIDField" },
 			{ OPTION_ReportIncompatibleSerialVersion, "brokeSerialVersionCompatibility" },
-			{ OPTION_ReportNoInterfaceCtorJoinpoint, "noInterfaceCtorJoinpoint" }
+			{ OPTION_ReportNoInterfaceCtorJoinpoint, "noInterfaceCtorJoinpoint" },
+			{ OPTION_noJoinpointsForBridgeMethods, "noJoinpointsForBridgeMethods"},
+			{ OPTION_cantMatchArrayTypeOnVarargs, "cantMatchArrayTypeOnVarargs"},
+			{ OPTION_enumAsTargetForDecpIgnored, "enumAsTargetForDecpIgnored"},
+			{ OPTION_annotationAsTargetForDecpIgnored, "annotationAsTargetForDecpIgnored"}
 	};
 
 	// name of the file to write the Xlint options to
 	private static String XlintProperties = "Xlint.properties";
+
+
     
 	/**
 	 * Helper get method used by AspectJPreference page
@@ -230,6 +246,9 @@ public class AspectJPreferences {
 		}
 		if (store.getBoolean(prefix+OPTION_XReweavableCompress)) {
 			opts+="-Xreweavable:compress ";
+		}
+		if (store.getBoolean(prefix+OPTION_1_5)) {
+			opts+="-1.5 ";
 		}
 		return opts;
 	}
