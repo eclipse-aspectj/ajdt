@@ -23,7 +23,6 @@ import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.jdom.IDOMMethod;
-import org.eclipse.jdt.core.jdom.IDOMNode;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
@@ -65,30 +64,7 @@ public boolean equals(Object o) {
 	if (!(o instanceof AspectJMemberElement)) return false;
 	return super.equals(o) && Util.equalArraysOrNull(fParameterTypes, ((AspectJMemberElement)o).fParameterTypes);
 }
-/**
- * @see JavaElement#equalsDOMNode
- * @deprecated JDOM is obsolete
- */
-// TODO - JDOM - remove once model ported off of JDOM
-protected boolean equalsDOMNode(IDOMNode node) {
-	if (node.getNodeType() == IDOMNode.METHOD) {
-		try {
-			IDOMMethod m = (IDOMMethod)node;
-			if (isConstructor()) {
-				return 
-					(m.isConstructor() || m.getName().equals(this.getElementName()) /* case of a constructor that is being renamed */) 
-						&& signatureEquals(m);
-			} else {
-				return super.equalsDOMNode(node) && signatureEquals(m);
-			}
-		} catch (JavaModelException e) {
-			return false;
-		}
-	} else {
-		return false;
-	}
 
-}
 /**
  * @see IJavaElement
  */
@@ -139,6 +115,12 @@ public String getHandleMemento() {
  */
 protected char getHandleMementoDelimiter() {
 	return JavaElement.JEM_METHOD;
+}
+/* (non-Javadoc)
+ * @see org.eclipse.jdt.core.IMethod#getKey()
+ */
+public String getKey() {
+	return getKey(this);
 }
 /**
  * @see IMethod
@@ -225,7 +207,12 @@ public boolean isConstructor() throws JavaModelException {
 public boolean isMainMethod() throws JavaModelException {
 	return this.isMainMethod(this);
 }
-
+/* (non-Javadoc)
+ * @see org.eclipse.jdt.core.IMethod#isResolved()
+ */
+public boolean isResolved() {
+	return false;
+}
 /**
  * @see IMethod#isSimilar(IMethod)
  */

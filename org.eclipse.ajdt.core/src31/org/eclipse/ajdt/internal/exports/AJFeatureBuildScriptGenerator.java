@@ -35,12 +35,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.AssemblyInformation;
 import org.eclipse.pde.internal.build.BundleHelper;
 import org.eclipse.pde.internal.build.Config;
 import org.eclipse.pde.internal.build.IPDEBuildConstants;
-import org.eclipse.pde.internal.build.Policy;
+import org.eclipse.pde.internal.build.Messages;
 import org.eclipse.pde.internal.build.SourceFeatureInformation;
 import org.eclipse.pde.internal.build.SourceFeatureWriter;
 import org.eclipse.pde.internal.build.Utils;
@@ -56,7 +57,8 @@ import org.eclipse.update.core.model.IncludedFeatureReferenceModel;
 import org.eclipse.update.core.model.URLEntryModel;
 
  /**
-  * Copied from org.eclipse.pde.internal.build.builder to enable AspectJ
+  * Copied from org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator
+  * to enable AspectJ
   * plugins to be correctly exported.
   * Changes marked with // AspectJ Change
   * 
@@ -111,8 +113,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	public AJFeatureBuildScriptGenerator(String featureId, String versionId, AssemblyInformation informationGathering) throws CoreException {
  		if (featureId == null) {
- 			String message = Policy.bind("error.missingFeatureId"); //$NON-NLS-1$
- 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, message, null));
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, Messages.error_missingFeatureId, null));
  		}
  		this.featureIdentifier = featureId;
  		this.searchedVersion = versionId;
@@ -141,7 +142,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  				model = getSite(false).getRegistry().getResolvedBundle(identifier.getIdentifier(), versionRequested);
  			}
  			if (model == null) {
- 				String message = Policy.bind("exception.missingPlugin", entry.getVersionedIdentifier().toString()); //$NON-NLS-1$
+ 				String message = NLS.bind("exception.missingPlugin", entry.getVersionedIdentifier().toString()); //$NON-NLS-1$
  				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, message, null));
  			} else {
  				result.add(model);
@@ -207,9 +208,8 @@ import org.eclipse.update.core.model.URLEntryModel;
  	public void generate() throws CoreException {
  		String message;
  		if (workingDirectory == null) {
- 			message = Policy.bind("error.missingInstallLocation"); //$NON-NLS-1$
- 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_BUILDDIRECTORY_LOCATION_MISSING, message, null)); //$NON-NLS-1$
- 		}
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_BUILDDIRECTORY_LOCATION_MISSING, Messages.error_missingInstallLocation, null));
+		}
  		initializeVariables();
  		// if the feature defines its own custom script, we do not generate a
  		// new one but we do try to update the version number
@@ -219,7 +219,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  			try {
  				updateVersion(buildFile, PROPERTY_FEATURE_VERSION_SUFFIX, feature.getVersionedIdentifier().getVersion().toString());
  			} catch (IOException e) {
- 				message = Policy.bind("exception.writeScript", buildFile.toString()); //$NON-NLS-1$
+ 				message = NLS.bind("exception.writeScript", buildFile.toString()); //$NON-NLS-1$
  				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_SCRIPT, message, e));
  			}
  			return;
@@ -389,7 +389,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	private void generateCleanTarget() throws CoreException {
  		script.println();
- 		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, Policy.bind("build.feature.clean", featureIdentifier)); //$NON-NLS-1$
+ 		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, NLS.bind("build.feature.clean", featureIdentifier)); //$NON-NLS-1$
  		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar", null); //$NON-NLS-1$ //$NON-NLS-2$
  		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".bin.dist.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
  		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".log.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
@@ -603,7 +603,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	private void generateBuildUpdateJarTarget() {
  		script.println();
- 		script.printTargetDeclaration(TARGET_BUILD_UPDATE_JAR, TARGET_INIT, null, null, Policy.bind("build.feature.buildUpdateJar", featureIdentifier)); //$NON-NLS-1$
+ 		script.printTargetDeclaration(TARGET_BUILD_UPDATE_JAR, TARGET_INIT, null, null, NLS.bind("build.feature.buildUpdateJar", featureIdentifier)); //$NON-NLS-1$
  		Map params = new HashMap(1);
  		params.put(PROPERTY_TARGET, TARGET_BUILD_UPDATE_JAR);
  		script.printAntCallTask(TARGET_ALL_CHILDREN, null, params);
@@ -632,7 +632,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	protected void generateZipDistributionWholeTarget() {
  		script.println();
- 		script.printTargetDeclaration(TARGET_ZIP_DISTRIBUTION, TARGET_INIT, null, null, Policy.bind("build.feature.zips", featureIdentifier)); //$NON-NLS-1$
+ 		script.printTargetDeclaration(TARGET_ZIP_DISTRIBUTION, TARGET_INIT, null, null, NLS.bind("build.feature.zips", featureIdentifier)); //$NON-NLS-1$
  		script.printDeleteTask(featureTempFolder, null, null);
  		script.printMkdirTask(featureTempFolder);
  		Map params = new HashMap(1);
@@ -786,8 +786,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	public void setFeature(String featureID) throws CoreException {
  		if (featureID == null) {
- 			String message = Policy.bind("error.missingFeatureId"); //$NON-NLS-1$
- 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, message, null));
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, Messages.error_missingFeatureId, null));
  		}
  		this.featureIdentifier = featureID;
  	}
@@ -849,7 +848,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	private void generateBuildJarsTarget() throws CoreException {
  		script.println();
- 		script.printTargetDeclaration(TARGET_BUILD_JARS, TARGET_INIT, null, null, Policy.bind("build.feature.buildJars", featureIdentifier)); //$NON-NLS-1$
+ 		script.printTargetDeclaration(TARGET_BUILD_JARS, TARGET_INIT, null, null, NLS.bind("build.feature.buildJars", featureIdentifier)); //$NON-NLS-1$
  		Map params = new HashMap(1);
  		params.put(PROPERTY_TARGET, TARGET_BUILD_JARS);
  		script.printAntCallTask(TARGET_ALL_CHILDREN, null, params);
@@ -867,7 +866,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 */
  	private void generateRefreshTarget() {
  		script.println();
- 		script.printTargetDeclaration(TARGET_REFRESH, TARGET_INIT, PROPERTY_ECLIPSE_RUNNING, null, Policy.bind("build.feature.refresh", featureIdentifier)); //$NON-NLS-1$
+ 		script.printTargetDeclaration(TARGET_REFRESH, TARGET_INIT, PROPERTY_ECLIPSE_RUNNING, null, NLS.bind("build.feature.refresh", featureIdentifier)); //$NON-NLS-1$
  		script.printConvertPathTask(new Path(featureRootLocation).removeLastSegments(0).toOSString().replace('\\', '/'), PROPERTY_RESOURCE_PATH, false);
  		script.printRefreshLocalTask(getPropertyFormat(PROPERTY_RESOURCE_PATH), "infinite"); //$NON-NLS-1$
  		Map params = new HashMap(2);
@@ -973,7 +972,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  			model = getSite(false).getRegistry().getResolvedBundle(extraPlugins[i].startsWith("plugin@") ? extraPlugins[i].substring(7) : extraPlugins[i].substring(8)); //$NON-NLS-1$
 
  			if (model == null) {
- 				String message = Policy.bind("exception.missingPlugin", extraPlugins[i]); //$NON-NLS-1$
+ 				String message = NLS.bind("exception.missingPlugin", extraPlugins[i]); //$NON-NLS-1$
  				BundleHelper.getDefault().getLog().log(new Status(IStatus.WARNING, extraPlugins[i], EXCEPTION_PLUGIN_MISSING, message, null));
  				continue;
  			}
@@ -1004,14 +1003,14 @@ import org.eclipse.update.core.model.URLEntryModel;
  		Path templatePluginXML = new Path("templates/plugin/" + DEFAULT_PLUGIN_FILENAME_DESCRIPTOR); //$NON-NLS-1$
  		URL templatePluginURL = BundleHelper.getDefault().find(templatePluginXML);
  		if (templatePluginURL == null) {
- 			IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, Policy.bind("error.readingDirectory", templatePluginURL.toExternalForm()), null); //$NON-NLS-1$
+ 			IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind("error.readingDirectory", templatePluginURL.toExternalForm()), null); //$NON-NLS-1$
  			BundleHelper.getDefault().getLog().log(status);
  			return null;
  		}
  		try {
  			buffer = readFile(templatePluginURL.openStream()); //$NON-NLS-1$
  		} catch (IOException e1) {
- 			String message = Policy.bind("exception.readingFile", templatePluginURL.toExternalForm()); //$NON-NLS-1$
+ 			String message = NLS.bind("exception.readingFile", templatePluginURL.toExternalForm()); //$NON-NLS-1$
  			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_READING_FILE, message, e1));
  		}
  		int beginId = scan(buffer, 0, REPLACED_PLUGIN_ID);
@@ -1022,7 +1021,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  		try {
  			Utils.transferStreams(new ByteArrayInputStream(buffer.toString().getBytes()), new FileOutputStream(sourcePluginDirURL.append(DEFAULT_PLUGIN_FILENAME_DESCRIPTOR).toOSString()));
  		} catch (IOException e1) {
- 			String message = Policy.bind("exception.readingFile", templatePluginURL.toExternalForm()); //$NON-NLS-1$
+ 			String message = NLS.bind("exception.readingFile", templatePluginURL.toExternalForm()); //$NON-NLS-1$
  			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_READING_FILE, message, e1));
  		}
  		Collection copiedFiles = Utils.copyFiles(featureRootLocation + '/' + "sourceTemplatePlugin", sourcePluginDir.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1042,10 +1041,10 @@ import org.eclipse.update.core.model.URLEntryModel;
  					buildFile.close();
  				}
  			} catch (FileNotFoundException e) {
- 				String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
+ 				String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
  				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  			} catch (IOException e) {
- 				String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
+ 				String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
  				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  			}
  		}
@@ -1063,7 +1062,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  			Path fragmentPath = new Path("templates/fragment/" + DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR);//$NON-NLS-1$
  			URL templateLocation = BundleHelper.getDefault().find(fragmentPath);
  			if (templateLocation == null) {
- 				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, Policy.bind("error.readingDirectory", fragmentPath.toString()), null); //$NON-NLS-1$
+ 				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind("error.readingDirectory", fragmentPath.toString()), null); //$NON-NLS-1$
  				BundleHelper.getDefault().getLog().log(status);
  				return;
  			}
@@ -1098,15 +1097,15 @@ import org.eclipse.update.core.model.URLEntryModel;
  						buildFile.close();
  					}
  				} catch (FileNotFoundException e) {
- 					String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
+ 					String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
  					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  				} catch (IOException e) {
- 					String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
+ 					String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$
  					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  				}
  			}
  		} catch (IOException e) {
- 			String message = Policy.bind("exception.writingFile", sourceFragmentDir.getName()); //$NON-NLS-1$	
+ 			String message = NLS.bind("exception.writingFile", sourceFragmentDir.getName()); //$NON-NLS-1$	
  			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, null));
  		}
  		getSite(false).getRegistry().addBundle(sourceFragmentDir);
@@ -1215,7 +1214,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  				writer.close();
  			}
  		} catch (IOException e) {
- 			String message = Policy.bind("error.creatingFeature", sourceFeature.getFeatureIdentifier()); //$NON-NLS-1$
+ 			String message = NLS.bind("error.creatingFeature", sourceFeature.getFeatureIdentifier()); //$NON-NLS-1$
  			throw new CoreException(new Status(IStatus.OK, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  		}
  		Collection copiedFiles = Utils.copyFiles(featureRootLocation + '/' + "sourceTemplateFeature", sourceFeatureDir); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1236,10 +1235,10 @@ import org.eclipse.update.core.model.URLEntryModel;
  				output.close();
  			}
  		} catch (FileNotFoundException e) {
- 			String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
+ 			String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
  			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  		} catch (IOException e) {
- 			String message = Policy.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
+ 			String message = NLS.bind("exception.writingFile", buildProperty.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
  			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
  		}
  		getSite(false).addFeatureReferenceModel(sourceDir);

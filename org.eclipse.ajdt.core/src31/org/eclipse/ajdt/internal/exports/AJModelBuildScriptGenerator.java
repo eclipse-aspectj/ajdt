@@ -30,12 +30,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BundleHelper;
 import org.eclipse.pde.internal.build.Config;
 import org.eclipse.pde.internal.build.IBuildPropertiesConstants;
 import org.eclipse.pde.internal.build.IXMLConstants;
-import org.eclipse.pde.internal.build.Policy;
+import org.eclipse.pde.internal.build.Messages;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.FileSet;
 import org.eclipse.pde.internal.build.ant.JavacTask;
@@ -144,14 +145,14 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 			} catch (IOException e) {
 				try {
 					scriptStream.close();
-					String message = Policy.bind("exception.writingFile", scriptLocation + '/' + scriptName); //$NON-NLS-1$ //$NON-NLS-2$
+					String message = NLS.bind("exception.writingFile", scriptLocation + '/' + scriptName); //$NON-NLS-1$ //$NON-NLS-2$
 					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
 				} catch (IOException e1) {
 					// Ignored		
 				}
 			}
 		} catch (FileNotFoundException e) {
-			String message = Policy.bind("exception.writingFile", scriptLocation + '/' + scriptName); //$NON-NLS-1$ //$NON-NLS-2$
+			String message = NLS.bind("exception.writingFile", scriptLocation + '/' + scriptName); //$NON-NLS-1$ //$NON-NLS-2$
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
 		}
 	}
@@ -163,8 +164,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	public void generate() throws CoreException {
 		String message;
 		if (model == null) {
-			message = Policy.bind("error.missingElement"); //$NON-NLS-1$
-			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, message, null));
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, Messages.error_missingElement, null));
 		}
 
 		// If the the plugin we want to generate is a source plugin, and the feature that required the generation of this plugin is not being asked to build the source
@@ -198,11 +198,11 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 */
 	private void checkBootAndRuntime() throws CoreException {
 		if (getSite(false).getRegistry().getResolvedBundle(PI_BOOT) == null) {
-			IStatus status = new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, Policy.bind("exception.missingPlugin", PI_BOOT), null);//$NON-NLS-1$
+			IStatus status = new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, NLS.bind("exception.missingPlugin", PI_BOOT), null);//$NON-NLS-1$
 			throw new CoreException(status);
 		}
 		if (getSite(false).getRegistry().getResolvedBundle(PI_RUNTIME) == null) {
-			IStatus status = new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, Policy.bind("exception.missingPlugin", PI_RUNTIME), null);//$NON-NLS-1$
+			IStatus status = new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, NLS.bind("exception.missingPlugin", PI_RUNTIME), null);//$NON-NLS-1$
 			throw new CoreException(status);
 		}
 	}
@@ -338,7 +338,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		Properties properties = getBuildProperties();
 		// AspectJ Change Begin
 		ModelBuildScriptGenerator.CompiledEntry[] availableJars = extractEntriesToCompile(properties);
-		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, Policy.bind("build.plugin.clean", model.getSymbolicName())); //$NON-NLS-1$
+		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, NLS.bind("build.plugin.clean", model.getSymbolicName())); //$NON-NLS-1$
 		if (!binaryPlugin) {
 			for (int i = 0; i < availableJars.length; i++) {
 				String jarName = ((CompiledEntry)availableJars[i]).getName(true);
@@ -548,7 +548,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 */
 	private void generateZipPluginTarget() throws CoreException {
 		script.println();
-		script.printTargetDeclaration(TARGET_ZIP_PLUGIN, TARGET_INIT, null, null, Policy.bind("build.plugin.zipPlugin", model.getSymbolicName())); //$NON-NLS-1$
+		script.printTargetDeclaration(TARGET_ZIP_PLUGIN, TARGET_INIT, null, null, NLS.bind("build.plugin.zipPlugin", model.getSymbolicName())); //$NON-NLS-1$
 		script.printDeleteTask(getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
 		script.printMkdirTask(getPropertyFormat(PROPERTY_TEMP_FOLDER));
 		script.printAntCallTask(TARGET_BUILD_JARS, null, null);
@@ -569,7 +569,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 */
 	private void generateBuildUpdateJarTarget() {
 		script.println();
-		script.printTargetDeclaration(TARGET_BUILD_UPDATE_JAR, TARGET_INIT, null, null, Policy.bind("build.plugin.buildUpdateJar", model.getSymbolicName())); //$NON-NLS-1$
+		script.printTargetDeclaration(TARGET_BUILD_UPDATE_JAR, TARGET_INIT, null, null, NLS.bind("build.plugin.buildUpdateJar", model.getSymbolicName())); //$NON-NLS-1$
 		script.printDeleteTask(getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
 		script.printMkdirTask(getPropertyFormat(PROPERTY_TEMP_FOLDER));
 		script.printAntCallTask(TARGET_BUILD_JARS, null, null);
@@ -586,7 +586,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 */
 	private void generateRefreshTarget() throws CoreException {
 		script.println();
-		script.printTargetDeclaration(TARGET_REFRESH, TARGET_INIT, PROPERTY_ECLIPSE_RUNNING, null, Policy.bind("build.plugin.refresh")); //$NON-NLS-1$
+		script.printTargetDeclaration(TARGET_REFRESH, TARGET_INIT, PROPERTY_ECLIPSE_RUNNING, null, Messages.build_plugin_refresh);
 		script.printConvertPathTask(new Path(getLocation(model)).removeLastSegments(0).toOSString().replace('\\', '/'), PROPERTY_RESOURCE_PATH, false);
 		script.printRefreshLocalTask(getPropertyFormat(PROPERTY_RESOURCE_PATH), "infinite"); //$NON-NLS-1$
 		script.printTargetEnd();
@@ -650,8 +650,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 */
 	public void setModel(BundleDescription model) throws CoreException {
 		if (model == null) {
-			String message = Policy.bind("error.missingElement"); //$NON-NLS-1$
-			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, message, null));
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, Messages.error_missingElement, null));
 		}
 		this.model = model;
 		if (getBuildProperties().size() != 0) {
@@ -672,7 +671,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	public void setModelId(String modelId) throws CoreException {
 		BundleDescription newModel = getModel(modelId);
 		if (newModel == null) {
-			String message = Policy.bind("exception.missingElement", modelId); //$NON-NLS-1$
+			String message = NLS.bind("exception.missingElement", modelId); //$NON-NLS-1$
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_ELEMENT_MISSING, message, null));
 		}
 		setModel(newModel);
@@ -753,7 +752,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 			generateSRCTarget(jar);
 		}
 		script.println();
-		script.printTargetDeclaration(TARGET_BUILD_JARS, TARGET_INIT, null, null, Policy.bind("build.plugin.buildJars", pluginModel.getSymbolicName())); //$NON-NLS-1$
+		script.printTargetDeclaration(TARGET_BUILD_JARS, TARGET_INIT, null, null, NLS.bind("build.plugin.buildJars", pluginModel.getSymbolicName())); //$NON-NLS-1$
 		for (Iterator iter = compiledJarNames.iterator(); iter.hasNext();) {
 			String name = ((CompiledEntry) iter.next()).getName(false);
 			script.printAvailableTask(name, replaceVariables(getJARLocation(name), true));
@@ -783,7 +782,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	private void generateCompilationTarget(List classpath, CompiledEntry entry) throws CoreException {
 		script.println();
 		String name = entry.getName(false);
-		script.printTargetDeclaration(name, TARGET_INIT, null, entry.getName(true), Policy.bind("build.plugin.jar", name)); //$NON-NLS-1$
+		script.printTargetDeclaration(name, TARGET_INIT, null, entry.getName(true), NLS.bind("build.plugin.jar", name)); //$NON-NLS-1$
 		String destdir = getTempJARFolderLocation(entry.getName(true));
 		script.printDeleteTask(destdir, null, null);
 		script.printMkdirTask(destdir);
@@ -889,7 +888,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 			File file = new File(pluginRoot, sources[i]);
 			if (!file.exists()) {
 				sources[i] = null;
-				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, EXCEPTION_SOURCE_LOCATION_MISSING, Policy.bind("warning.cannotLocateSource", file.getAbsolutePath()), null); //$NON-NLS-1$
+				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, EXCEPTION_SOURCE_LOCATION_MISSING, NLS.bind("warning.cannotLocateSource", file.getAbsolutePath()), null); //$NON-NLS-1$
 				BundleHelper.getDefault().getLog().log(status);
 			}
 		}
@@ -963,7 +962,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		try {
 			updateVersion(buildFile, PROPERTY_VERSION_SUFFIX, model.getVersion().toString());
 		} catch (IOException e) {
-			String message = Policy.bind("exception.writeScript", buildFile.toString()); //$NON-NLS-1$
+			String message = NLS.bind("exception.writeScript", buildFile.toString()); //$NON-NLS-1$
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_SCRIPT, message, e));
 		}
 		return;
