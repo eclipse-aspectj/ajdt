@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionProcessor;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -552,7 +553,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 		private void initializeImages() {
 			// http://bugs.eclipse.org/bugs/show_bug.cgi?id=18936
 			if (!fQuickFixImagesInitialized) {
-//				if (isProblem() && indicateQuixFixableProblems() && JavaCorrectionProcessor.hasCorrections(this)) { // no light bulb for tasks
+				if (isProblem() && indicateQuixFixableProblems() && JavaCorrectionProcessor.hasCorrections(this)) { // no light bulb for tasks
 					if (!fgQuickFixImagesInitialized) {
 						fgQuickFixImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_PROBLEM);
 						fgQuickFixErrorImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_ERROR);
@@ -562,7 +563,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 						fImage= fgQuickFixErrorImage;
 					else
 						fImage= fgQuickFixImage;
-//				}
+				}
 				fQuickFixImagesInitialized= true;
 			}
 		}
