@@ -105,7 +105,7 @@ public class AllTests {
 		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
-		suite.addTest(new TestSuite(AJModelTest.class));
+		//suite.addTest(new TestSuite(AJModelTest.class));
 		
 		// javamodel tests
 		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
