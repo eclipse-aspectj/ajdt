@@ -113,46 +113,46 @@
 	<topic label="Join Points" href="doc/progguide/semantics-joinPoints.html"/>
 	<topic label="Pointcuts" href="doc/progguide/semantics-pointcuts.html">
 
-		<topic label="Pointcut definition" href="doc/progguide/semantics-pointcuts.html#d0e4945"/>
-		<topic label="Context exposure" href="doc/progguide/semantics-pointcuts.html#d0e4987"/>
-		<topic label="Primitive pointcuts" href="doc/progguide/semantics-pointcuts.html#d0e5035"/>
-		<topic label="Signatures" href="doc/progguide/semantics-pointcuts.html#d0e5341"/>
-		<topic label="Matching" href="doc/progguide/semantics-pointcuts.html#d0e5389"/>
-		<topic label="Type patterns" href="doc/progguide/semantics-pointcuts.html#d0e5571"/>
+		<topic label="Pointcut definition" href="doc/progguide/semantics-pointcuts.html#d0e5080"/>
+		<topic label="Context exposure" href="doc/progguide/semantics-pointcuts.html#d0e5122"/>
+		<topic label="Primitive pointcuts" href="doc/progguide/semantics-pointcuts.html#d0e5197"/>
+		<topic label="Signatures" href="doc/progguide/semantics-pointcuts.html#d0e5541"/>
+		<topic label="Matching" href="doc/progguide/semantics-pointcuts.html#d0e5589"/>
+		<topic label="Type patterns" href="doc/progguide/semantics-pointcuts.html#d0e5817"/>
 	</topic>
 
 	<topic label="Advice" href="doc/progguide/semantics-advice.html">
 
-		<topic label="Advice modifiers" href="doc/progguide/semantics-advice.html#d0e5858"/>
-		<topic label="Advice and checked exceptions" href="doc/progguide/semantics-advice.html#d0e5866"/>
-		<topic label="Advice precedence" href="doc/progguide/semantics-advice.html#d0e5930"/>
-		<topic label="Reflective access to the join point" href="doc/progguide/semantics-advice.html#d0e6007"/>
+		<topic label="Advice modifiers" href="doc/progguide/semantics-advice.html#d0e6148"/>
+		<topic label="Advice and checked exceptions" href="doc/progguide/semantics-advice.html#d0e6156"/>
+		<topic label="Advice precedence" href="doc/progguide/semantics-advice.html#d0e6220"/>
+		<topic label="Reflective access to the join point" href="doc/progguide/semantics-advice.html#d0e6297"/>
 	</topic>
 
 	<topic label="Static crosscutting" href="doc/progguide/semantics-declare.html">
 
-		<topic label="Inter-type member declarations" href="doc/progguide/semantics-declare.html#d0e6068"/>
-		<topic label="Access modifiers" href="doc/progguide/semantics-declare.html#d0e6236"/>
-		<topic label="Conflicts" href="doc/progguide/semantics-declare.html#d0e6251"/>
-		<topic label="Extension and Implementation" href="doc/progguide/semantics-declare.html#d0e6348"/>
-		<topic label="Interfaces with members" href="doc/progguide/semantics-declare.html#d0e6391"/>
-		<topic label="Warnings and Errors" href="doc/progguide/semantics-declare.html#d0e6435"/>
-		<topic label="Softened exceptions" href="doc/progguide/semantics-declare.html#d0e6467"/>
-		<topic label="Advice Precedence" href="doc/progguide/semantics-declare.html#d0e6510"/>
-		<topic label="Statically determinable pointcuts" href="doc/progguide/semantics-declare.html#d0e6573"/>
+		<topic label="Inter-type member declarations" href="doc/progguide/semantics-declare.html#d0e6358"/>
+		<topic label="Access modifiers" href="doc/progguide/semantics-declare.html#d0e6526"/>
+		<topic label="Conflicts" href="doc/progguide/semantics-declare.html#d0e6543"/>
+		<topic label="Extension and Implementation" href="doc/progguide/semantics-declare.html#d0e6640"/>
+		<topic label="Interfaces with members" href="doc/progguide/semantics-declare.html#d0e6683"/>
+		<topic label="Warnings and Errors" href="doc/progguide/semantics-declare.html#d0e6727"/>
+		<topic label="Softened exceptions" href="doc/progguide/semantics-declare.html#d0e6759"/>
+		<topic label="Advice Precedence" href="doc/progguide/semantics-declare.html#d0e6802"/>
+		<topic label="Statically determinable pointcuts" href="doc/progguide/semantics-declare.html#d0e6865"/>
 	</topic>
 
 	<topic label="Aspects" href="doc/progguide/semantics-aspects.html">
 
-		<topic label="Aspect Extension" href="doc/progguide/semantics-aspects.html#d0e6617"/>
-		<topic label="Aspect instantiation" href="doc/progguide/semantics-aspects.html#d0e6637"/>
-		<topic label="Aspect privilege" href="doc/progguide/semantics-aspects.html#d0e6800"/>
+		<topic label="Aspect Extension" href="doc/progguide/semantics-aspects.html#d0e6929"/>
+		<topic label="Aspect instantiation" href="doc/progguide/semantics-aspects.html#d0e6949"/>
+		<topic label="Aspect privilege" href="doc/progguide/semantics-aspects.html#d0e7112"/>
 	</topic>
 </topic>
 
 	<topic label="C. Implementation Notes" href="doc/progguide/implementation.html">
 
-		<topic label="Compiler Notes" href="doc/progguide/implementation.html#d0e6832"/>
+		<topic label="Compiler Notes" href="doc/progguide/implementation.html#d0e7144"/>
 		<topic label="Bytecode Notes" href="doc/progguide/apcs02.html"/>
 	</topic>
 </toc>
