@@ -54,8 +54,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 * marked with a PD in the comment).
 	 */
 	public void testHowDealingWithProjectDependencies() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
-		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
+		IProject projectY = Utils.getPredefinedProject("project.java.Y");
+		IProject projectX = Utils.getPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
@@ -180,8 +180,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 * various sequences - ensuring that the dependencies remain as they should
 	 */
 	public void testProjectDependencies1() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
-		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
+		IProject projectY = Utils.getPredefinedProject("project.java.Y");
+		IProject projectX = Utils.getPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should

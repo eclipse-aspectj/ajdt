@@ -44,7 +44,7 @@ public class AJComparatorTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("AJProject83082", true);
+		project = Utils.getPredefinedProject("AJProject83082");
 		model = AJModel.getInstance();
 		model.createMap(project);
 

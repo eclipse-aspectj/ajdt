@@ -41,7 +41,7 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("QuickFix", true);
+		project = Utils.getPredefinedProject("QuickFix");
 	}
 
 	/*

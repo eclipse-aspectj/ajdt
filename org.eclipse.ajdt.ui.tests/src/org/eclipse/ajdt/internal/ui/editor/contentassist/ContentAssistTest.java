@@ -39,7 +39,7 @@ public class ContentAssistTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
-		fProject = Utils.getPredefinedProject("CodeCompletionTestArea", true);
+		fProject = Utils.getPredefinedProject("CodeCompletionTestArea");
 	}
 
 	/*

@@ -112,7 +112,7 @@ public class AllTests {
 				
 		// internal.builder tests
 		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
-		//suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
+		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));

@@ -103,7 +103,7 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 	}
 	
 	public void testIfProjectWithoutSourceFolderWorks() throws CoreException{
-		IProject project = Utils.getPredefinedProject("WithoutSourceFolder", true);
+		IProject project = Utils.getPredefinedProject("WithoutSourceFolder");
 		Utils.waitForJobsToComplete();
 		IFile f = project.getFile("A.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(f);

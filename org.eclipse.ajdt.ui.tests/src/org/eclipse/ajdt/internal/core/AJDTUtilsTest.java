@@ -25,7 +25,6 @@ import org.eclipse.ajdt.test.utils.PluginTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -42,7 +41,7 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 
 /**
  * @author hawkinsh
- *  
+ * 
  */
 public class AJDTUtilsTest extends TestCase {
 
@@ -60,7 +59,8 @@ public class AJDTUtilsTest extends TestCase {
 		super.tearDown();
 	}
 
-	public void testAddAndRemoveAspectJNatureWithPluginProject() throws Exception {
+	public void testAddAndRemoveAspectJNatureWithPluginProject()
+			throws Exception {
 		setUpPluginEnvironment();
 		PluginTestProject testPluginProject = new PluginTestProject();
 		Utils.waitForJobsToComplete();
@@ -91,8 +91,8 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		AJDTUtils.addAspectJNature(testProject.getProject());
-		assertTrue("Java project should now have AspectJ Nature",
-				AspectJPlugin.isAJProject(testProject.getProject()));
+		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin
+				.isAJProject(testProject.getProject()));
 		assertTrue("Build path should now contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		AJDTUtils.removeAspectJNature(testProject.getProject());
@@ -101,14 +101,14 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		testProject.dispose();
-		}
+	}
 
 	/**
 	 * This tests whether you get back the manifest editor for the project you
 	 * require.
-	 *  
+	 * 
 	 */
-	public void testGetPDEManifestEditor() throws Exception{
+	public void testGetPDEManifestEditor() throws Exception {
 		setUpPluginEnvironment();
 		PluginTestProject projectA1 = new PluginTestProject(
 				"MyPluginProjectA1", "my.test.pluginA1", "ProjectA1Plugin",
@@ -141,38 +141,40 @@ public class AJDTUtilsTest extends TestCase {
 		resetPluginEnvironment();
 	}
 
-	public void testChangeProjectToClassDependencies() throws Exception{
+	public void testChangeProjectToClassDependencies() throws Exception {
 		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
 		Utils.waitForJobsToComplete();
 		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
 		Utils.waitForJobsToComplete();
 		// this ensures a src folder is created.
 		jtp2.getSourceFolder();
-		Utils.waitForJobsToComplete();	
-		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),jtp2.getProject());
+		Utils.waitForJobsToComplete();
+		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),
+				jtp2.getProject());
 		Utils.waitForJobsToComplete();
 		assertTrue("test project 1 has a project dependency on test project 2",
-				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("project"));
+				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
+						.equals("project"));
 		AJDTUtils.changeProjectDependencies(jtp2.getProject());
 		Utils.waitForJobsToComplete();
-		assertTrue("test project 1 has a class folder dependency on test project 2",
-				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("classfolder"));			
+		assertTrue(
+				"test project 1 has a class folder dependency on test project 2",
+				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
+						.equals("classfolder"));
 		jtp1.dispose();
 		jtp2.dispose();
-		}
-	
+	}
+
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+		IProject projectY = Utils.getPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(projectY);
 		Utils.waitForJobsToComplete();
-		
+
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.addAjrtToBuildPath(projectY);
 		Utils.waitForJobsToComplete();
-		
+
 		assertTrue("project.java.Y should have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
@@ -181,34 +183,38 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
-			
+		Utils.deleteProject(projectY);
 	}
-	
-	private String checkDependencyType(IJavaProject projectToHaveDependency, 
+
+	private String checkDependencyType(IJavaProject projectToHaveDependency,
 			IProject projectDependedOn) {
 		try {
-			IClasspathEntry[] cpEntry = projectToHaveDependency.getRawClasspath();
+			IClasspathEntry[] cpEntry = projectToHaveDependency
+					.getRawClasspath();
 			for (int i = 0; i < cpEntry.length; i++) {
 				IClasspathEntry entry = cpEntry[i];
 				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT
-						&& entry.getPath().equals(projectDependedOn.getFullPath())) {
+						&& entry.getPath().equals(
+								projectDependedOn.getFullPath())) {
 					return "project";
-				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY){
-					List outputLocationPaths = AJDTUtils.getOutputLocationPaths(projectDependedOn);
-					for (Iterator iterator = outputLocationPaths.iterator(); iterator.hasNext();) {
+				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					List outputLocationPaths = AJDTUtils
+							.getOutputLocationPaths(projectDependedOn);
+					for (Iterator iterator = outputLocationPaths.iterator(); iterator
+							.hasNext();) {
 						IPath path = (IPath) iterator.next();
 						if (entry.getPath().equals(path)) {
 							return "classfolder";
 						}
 					}
-				}	
+				}
 			}
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
 		return "none";
 	}
-	
+
 	private boolean hasAjrtOnBuildPath(IJavaProject javaProject) {
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
@@ -225,23 +231,22 @@ public class AJDTUtilsTest extends TestCase {
 		return false;
 	}
 
-
-
-//	private void addImportToPDEModel(IPluginModel model, String importId)
-//			throws CoreException {
-//
-//		IPluginImport importNode = model.getPluginFactory().createImport();
-//		importNode.setId(importId);
-//		model.getPluginBase().getImports();
-//		model.getPluginBase().add(importNode);
-//
-//		IFile manifestFile = (IFile) model.getUnderlyingResource();
-//		manifestFile.refreshLocal(IResource.DEPTH_INFINITE, null);
-//		Utils.waitForJobsToComplete();
-//	}
+	// private void addImportToPDEModel(IPluginModel model, String importId)
+	// throws CoreException {
+	//
+	// IPluginImport importNode = model.getPluginFactory().createImport();
+	// importNode.setId(importId);
+	// model.getPluginBase().getImports();
+	// model.getPluginBase().add(importNode);
+	//
+	// IFile manifestFile = (IFile) model.getUnderlyingResource();
+	// manifestFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+	// Utils.waitForJobsToComplete();
+	// }
 
 	private boolean hasDependencyOnAJDE(PluginTestProject testPluginProject) {
-		ManifestEditor manEd = AJDTUtils.getAndPrepareToChangePDEModel(testPluginProject.getProject());
+		ManifestEditor manEd = AJDTUtils
+				.getAndPrepareToChangePDEModel(testPluginProject.getProject());
 		if (manEd == null) {
 			return false;
 		}
@@ -273,12 +278,11 @@ public class AJDTUtilsTest extends TestCase {
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
 	}
-	
 
 	public static class MyJobChangeListener implements IJobChangeListener {
 
 		private List scheduledBuilds = new ArrayList();
-		
+
 		public void aboutToRun(IJobChangeEvent event) {
 		}
 
@@ -286,7 +290,7 @@ public class AJDTUtilsTest extends TestCase {
 		}
 
 		public void done(IJobChangeEvent event) {
-			if (event.getJob().getPriority() == Job.BUILD ) {
+			if (event.getJob().getPriority() == Job.BUILD) {
 				System.out.println(">> finished a build");
 				scheduledBuilds.remove(event.getJob());
 			}
@@ -297,7 +301,7 @@ public class AJDTUtilsTest extends TestCase {
 		}
 
 		public void scheduled(IJobChangeEvent event) {
-			if (event.getJob().getPriority() == Job.BUILD ) {
+			if (event.getJob().getPriority() == Job.BUILD) {
 				System.out.println(">> scheduled a build");
 				scheduledBuilds.add(event.getJob());
 			}
@@ -305,12 +309,11 @@ public class AJDTUtilsTest extends TestCase {
 
 		public void sleeping(IJobChangeEvent event) {
 		}
-		
+
 		public boolean buildsAreScheduled() {
 			return !(scheduledBuilds.isEmpty());
 		}
-		
+
 	}
 
 }
-

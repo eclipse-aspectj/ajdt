@@ -28,8 +28,7 @@ public class ProjectPropertiesTest extends TestCase {
 
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
-		IProject project = Utils.getPredefinedProject("Hello World Project",
-				true);
+		IProject project = Utils.getPredefinedProject("Hello World Project");
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
@@ -61,5 +60,7 @@ public class ProjectPropertiesTest extends TestCase {
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2);
+
+		Utils.deleteProject(project);
 	}
 }

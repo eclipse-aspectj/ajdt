@@ -67,7 +67,7 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFile() throws CoreException {
 		// test setup.....
-		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject");
 		//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 		//monitor.reset();
 		//simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
@@ -198,7 +198,7 @@ public class BuilderTest extends TestCase {
 	 * @throws CoreException
 	 */
 	public void testCreateAndRemoveNewNonSrcFileFromDefaultPackage() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject");
 //		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 //		monitor.reset();
 //		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
@@ -315,7 +315,7 @@ public class BuilderTest extends TestCase {
 	 * @throws CoreException
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithMultipleSrcDirs() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("MultipleSourceFolders", true);
+		IProject simpleProject = Utils.getPredefinedProject("MultipleSourceFolders");
 //		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 //		monitor.reset();
 //		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
@@ -428,7 +428,7 @@ public class BuilderTest extends TestCase {
 	 * @throws CoreException
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithNonStandardOutputDir() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("NonStandardOutputLocation", true);
+		IProject simpleProject = Utils.getPredefinedProject("NonStandardOutputLocation");
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();
@@ -535,7 +535,7 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testUpdateNonSrcFile() throws CoreException, IOException {
 		// create the project and the new file
-		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject");
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();
@@ -700,7 +700,7 @@ public class BuilderTest extends TestCase {
 	 * @throws CoreException
 	 */
 	public void testCopyAndRemoveResourceWithoutSrcFolder() throws CoreException {
-		IProject project = Utils.getPredefinedProject("WithoutSourceFolder", true);
+		IProject project = Utils.getPredefinedProject("WithoutSourceFolder");
 
 		IJavaProject javaProject = JavaCore.create(project);
 		Utils.waitForJobsToComplete();
@@ -779,7 +779,7 @@ public class BuilderTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testCreateAndDeleteNewPackage() throws Exception {
-		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject");
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();
@@ -892,7 +892,7 @@ public class BuilderTest extends TestCase {
 
 	
 	public void testCreateAndDeleteNewFolder() throws CoreException {
-		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
+		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject");
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();

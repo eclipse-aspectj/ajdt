@@ -67,7 +67,7 @@ public class Utils{
 	 * @return The requested project if successfully imported, null otherwise
 	 * @throws CoreException
 	 */
-	public static IProject getPredefinedProject(String projectName, final boolean overwrite) throws CoreException{
+	public static IProject getPredefinedProject(String projectName) throws CoreException{
 		Utils.waitForJobsToComplete();
 		
 		File sourceDir;
@@ -80,7 +80,8 @@ public class Utils{
 		
 		IOverwriteQuery oq = new IOverwriteQuery(){
 			public String queryOverwrite(String input){
-				return overwrite? YES: NO;
+				return YES;
+				//return overwrite? YES: NO;
 			}
 		};
 		ImportOperation impop = new ImportOperation(destFolder.getFullPath(), sourceDir, FileSystemStructureProvider.INSTANCE, oq);

@@ -44,7 +44,7 @@ public class AJModelTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("MarkersTest", true);
+		project = Utils.getPredefinedProject("MarkersTest");
 	}
 
 	/*

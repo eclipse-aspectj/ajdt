@@ -36,7 +36,7 @@ public class CodeFormatTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("CodeFormat", true);
+		project = Utils.getPredefinedProject("CodeFormat");
 		
 	}
 	
