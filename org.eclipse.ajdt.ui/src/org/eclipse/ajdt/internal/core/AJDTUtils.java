@@ -384,7 +384,6 @@ public class AJDTUtils {
 				}
 				// Forcing a build here if there is an outjar - otherwise have to build the project
 				// manually twice.
-				System.out.println("about to call build because there was an outjar: project " + project.getName());
 				project.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 				AspectJUIPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE,null);
 			}

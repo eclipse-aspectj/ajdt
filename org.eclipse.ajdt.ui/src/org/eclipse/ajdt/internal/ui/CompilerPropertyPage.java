@@ -50,7 +50,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 * clicked and the properties option selected, found under the AspectJ Compiler tab.
 *
 */
-public class CompilerPropertyPage extends PropertyPage implements SelectionListener {
+public class CompilerPropertyPage extends PropertyPage {
 
 	public final String COMPILER_PB_INVALID_ABSOLUTE_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName;
 	public final String COMPILER_PB_INVALID_WILDCARD_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidWildcardTypeName;
@@ -95,7 +95,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	private static String ENABLED = JavaCore.ENABLED;
 	private static String DISABLED = JavaCore.DISABLED;
 
-	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton, serializableButton; 
+	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton;  
 	
 	private IProject thisProject;
 	private boolean initialised = false; //if the default properties settings have been entered into the store
@@ -106,10 +106,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	private SelectionButtonDialogField fChangeWorkspaceSettings;
 	private SelectionButtonDialogField fUseProjectSettings;
 	private TabFolder folder;
-
-	private static boolean compilerSettingsChanged = false;
-	private static boolean compilerSettingsUpdated = false;
-	private static boolean doBuild = true;
 	
 	public CompilerPropertyPage() {
 		super();
@@ -201,8 +197,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	 * from IWorkbenchPreferencePage
 	 */
 	public void init(IWorkbench workbench) {
-	    setCompilerSettingsChanged(false);
-	    setCompilerSettingsUpdated(false);
 	}
 
 	/**
@@ -299,7 +293,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 						.getResourceString("CompilerConfigurationBlock.aj_messages.description")); //$NON-NLS-1$
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
-		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 
 		String label = AspectJUIPlugin
@@ -361,7 +354,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
 		
 		CheckBoxListener checkBoxListener = new CheckBoxListener();
-		
+						
 		int nColumns = 3;
 
 		GridLayout layout = new GridLayout();
@@ -381,19 +374,16 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 
 		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_no_weave.label"); //$NON-NLS-1$
 		noweaveButton = addCheckBox(composite, label, PREF_ENABLE_NO_WEAVE, enableDisableValues, 0);
-		noweaveButton.addSelectionListener(checkBoxListener);
+	    noweaveButton.addSelectionListener(checkBoxListener);
 		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_serializable_aspects.label"); //$NON-NLS-1$
-		serializableButton = addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
-		serializableButton.addSelectionListener(checkBoxListener);
-
+		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
+		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_lazy_tjp.label"); //$NON-NLS-1$
 		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_LAZY_TJP,enableDisableValues, 0);
-		lazytjpButton.addSelectionListener(checkBoxListener);
 
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
 		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
-		noinlineButton.addSelectionListener(checkBoxListener);
 		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable.label"); //$NON-NLS-1$
 		reweaveButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE,enableDisableValues, 0);
@@ -415,13 +405,17 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		return AspectJUIPlugin.getDefault().getPreferenceStore();
 	}
 	
+	/**
+	 * overriding performApply() for PreferencePaageBuilder.aj
+	 */
+	public void performApply() {  
+	    performOk();
+	}
+
 	public boolean performOk() {
 		IPreferenceStore store = getPreferenceStore();
 
 		boolean projectSettingsChanged = projectSettingsHaveChanged(true);
-		if (!compilerSettingsHaveChanged()) {
-            setCompilerSettingsChanged(projectSettingsChanged);
-        }
 
 		boolean projectWorkspaceChanges = false;
 		if(store.getBoolean(thisProject + "useProjectSettings") !=  useProjectSettings()) {
@@ -432,7 +426,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
 		if (projectWorkspaceChanges || (projectSettingsChanged && useProjectSettings())) {
-			
+			boolean doBuild = false;
 			String[] strings = getProjectBuildDialogStrings();
 			if (strings != null) {
 				MessageDialog dialog = new MessageDialog(getShell(),
@@ -445,7 +439,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 				    // by only setting compilerSettingsUpdated to be true here, means that
 				    // the user wont select "don't want to build" here and then get a build
 				    // from other pages.
-				    setCompilerSettingsUpdated(true);
 					doBuild = true;
 				} else if (res != 1) {
 				    doBuild = false;
@@ -645,7 +638,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		if ((currValue != null) && (currValue.length() > 0)) {
 			comboBox.select(data.getSelection(currValue));
 		}
-		comboBox.addSelectionListener(this);
+
 		fComboBoxes.add(comboBox);
 	}
 
@@ -655,7 +648,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	 * the remaining buttons accordingly (to make it less confusing
 	 * for the user)
 	 */	
-	private class CheckBoxListener implements SelectionListener {
+	 private class CheckBoxListener implements SelectionListener {
 
 		public void widgetSelected(SelectionEvent e) {
 			if (e.getSource().equals(noweaveButton)) {
@@ -681,8 +674,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 					reweaveButton.setSelection(false);
 				}
 			}
-			// update whether or not the overall settings have changed.
-			setCompilerSettingsChanged(settingsHaveChanged());
 		}
 		public void widgetDefaultSelected(SelectionEvent e) {
 		    widgetSelected(e);
@@ -703,17 +694,7 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 			reweaveCompressButton.setEnabled(!buttonSelected);
 		}						
 	}
-	
-	public void widgetDefaultSelected(SelectionEvent se) {
-		widgetSelected(se);
-	}
-	
-	public void widgetSelected(SelectionEvent se) {
-	    if (se.getSource() instanceof Combo) {
-            setCompilerSettingsChanged(settingsHaveChanged());
-        }
-	}
-	
+		
 	/**
 	 * Listens to various buttons and can load the workspace preference page in a seperate window
 	 * and determines if the enabled status of the GUI's button and checkboxes need refreshing
@@ -726,7 +707,6 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		} else {
 			updateEnableState();
 		}
-		setCompilerSettingsChanged(settingsHaveChanged());
 	}
 
 	/**
@@ -823,56 +803,5 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
      */
     public IProject getThisProject() {
         return thisProject;
-    }
-    
-    /**
-     * Sets whether or not the compiler settings have been changed 
-     * in the preference page
-     */
-    private static void setCompilerSettingsChanged(boolean compilerSettingsChanged) {
-        CompilerPropertyPage.compilerSettingsChanged = compilerSettingsChanged;
-    }
-    
-    /**
-     * Sets whether or not the compiler settings have been updated 
-     * in the preference store
-     */
-    private static void setCompilerSettingsUpdated(
-            boolean compilerSettingsUpdated) {
-        CompilerPropertyPage.compilerSettingsUpdated = compilerSettingsUpdated;
-    }
-    
-    /**
-     * Returns whether or not the compiler settings have changed 
-     * in the preference page
-     */
-	public static boolean compilerSettingsHaveChanged() {
-	    return compilerSettingsChanged;
-	}
-	
-    /**
-     * Returns whether or not the compiler settings saved in the 
-     * project preference store have been updated 
-     */
-	public static boolean compilerSettingsHaveBeenUpdated() {
-	    return compilerSettingsUpdated;
-	}
-	
-    /**
-     * Returns whether or not the user has chosen to do a build
-     */
-	public static boolean chosenToDoBuild() {
-	    return doBuild;
-	}
-    
-    /**
-     * Resets the change settings to be false e.g. says
-     * that the compiler settings in the preference page haven't been
-     * changed and that the preference store settings also haven't
-     * been updated.
-     */
-    public void resetChangeSettings() {
-        setCompilerSettingsChanged(false);
-        setCompilerSettingsUpdated(false);
     }
 }

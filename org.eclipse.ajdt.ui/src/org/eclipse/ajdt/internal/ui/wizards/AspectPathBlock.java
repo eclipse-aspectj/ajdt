@@ -87,10 +87,6 @@ public class AspectPathBlock {
     private BuildPathBasePage fCurrPage;
 	private List existingAspectPath;
     
-    private static boolean aspectPathChanged = false;
-    private static boolean aspectPathUpdated = false;
-    private List origAspectPathElements;
-	
     public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
         fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
         fContext= context;
@@ -168,9 +164,6 @@ public class AspectPathBlock {
                 fLibrariesPage.init(fCurrJProject);
             }
 
-            aspectPathChanged = false;
-            aspectPathUpdated = false;
-            
             doStatusLineUpdate();
         }
     
@@ -178,22 +171,6 @@ public class AspectPathBlock {
         fAspectPathStatus.setOK();
 
         List elements = fAspectPathList.getElements();
-
-        // checking to see whether settings have changed since last save
-        if (origAspectPathElements == null) {
-            origAspectPathElements = elements;
-        } else if (origAspectPathElements.size() != elements.size()) {
-            aspectPathChanged = true;
-        } else {
-            // resetting this flag because could have changed mind
-            aspectPathChanged = false;
-            for (int i = 0; i < origAspectPathElements.size(); i++) {
-                if (!(origAspectPathElements.get(i).equals(elements.get(i)))) {
-                    aspectPathChanged = true;
-                    break;
-                }
-            }
-        }
 
         CPListElement entryMissing = null;
         int nEntriesMissing = 0;
@@ -432,38 +409,4 @@ public class AspectPathBlock {
         }
     }       
 
-    /**
-     * Returns whether or not the aspect path setting saved in the 
-     * project preference store has been updated 
-     */
-    public static boolean aspectPathHasBeenUpdated() {
-        return aspectPathUpdated;
-    }
-    
-    /**
-     * Sets whether or not the aspect path setting has changed 
-     * in the preference page
-     */
-    public static void setAspectPathUpdated(boolean aspectPathUpdated) {
-        AspectPathBlock.aspectPathUpdated = aspectPathUpdated;
-    }
-    
-    /**
-     * Returns whether or not the aspect path setting has been updated 
-     * in the preference store
-     */
-    public static boolean aspectPathHasChanged() {
-        return aspectPathChanged;
-    }
-    
-    /**
-     * Resets the change settings to be false e.g. says
-     * that the aspect path setting in the preference page hasn't been
-     * changed and that the preference store setting also hasn't
-     * been updated.
-     */
-    public void resetChangeSettings() {
-        setAspectPathUpdated(false);
-        aspectPathChanged = false;
-    }
 }

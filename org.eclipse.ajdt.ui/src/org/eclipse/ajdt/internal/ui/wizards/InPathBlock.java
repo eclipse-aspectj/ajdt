@@ -87,10 +87,6 @@ public class InPathBlock {
     private InPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
     
-    private static boolean inPathChanged = false;
-    private static boolean updatedInPath = false;
-    private List origInPathElements;
-    
     public InPathBlock(IStatusChangeListener context, int pageToShow) {
         fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
         fContext= context;
@@ -183,9 +179,6 @@ public class InPathBlock {
                 fLibrariesPage.init(fCurrJProject);
             }
 
-            inPathChanged = false;
-            updatedInPath = false;
-            
             doStatusLineUpdate();
         }
     
@@ -193,22 +186,6 @@ public class InPathBlock {
         fInPathStatus.setOK();
 
         List elements = fInPathList.getElements();
-
-        // checking to see whether settings have changed since last save
-        if (origInPathElements == null) {
-            origInPathElements = elements;
-        } else if (origInPathElements.size() != elements.size()) {
-            inPathChanged = true;
-        } else {
-            // resetting this flag because could have changed mind
-            inPathChanged = false;
-            for (int i = 0; i < origInPathElements.size(); i++) {
-                if (!(origInPathElements.get(i).equals(elements.get(i)))) {
-                    inPathChanged = true;
-                    break;
-                }
-            }
-        }
 
         CPListElement entryMissing = null;
         int nEntriesMissing = 0;
@@ -443,40 +420,5 @@ public class InPathBlock {
             fCurrPage = newPage;
             fPageIndex = tabItem.getParent().getSelectionIndex();
         }
-    } 
-    
-    /**
-     * Returns whether or not the inpath setting has changed 
-     * in the preference page
-     */
-    public static boolean inPathHasChanged() {
-        return inPathChanged;
-    }
-    
-    /**
-     * Returns whether or not the inpath setting saved in the 
-     * project preference store has been updated 
-     */
-    public static boolean inPathHasBeenUpdated() {
-        return updatedInPath;
-    }
-    
-    /**
-     * Sets whether or not the inpath setting has been updated 
-     * in the preference store
-     */
-    public static void setUpdatedInPath(boolean updatedInPath) {
-        InPathBlock.updatedInPath = updatedInPath;
-    }
-
-    /**
-     * Resets the change settings to be false e.g. says
-     * that the inpath setting in the preference page hasn't been
-     * changed and that the preference store setting also hasn't
-     * been updated.
-     */
-    public void resetChangeSettings() {
-        setUpdatedInPath(false);
-        inPathChanged = false;
-    }
+    }       
 }

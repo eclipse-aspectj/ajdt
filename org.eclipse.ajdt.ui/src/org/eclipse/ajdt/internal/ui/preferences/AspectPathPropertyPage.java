@@ -223,7 +223,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
         }
         return pageSettings;
     }
-
+  
     /*
      * @see IPreferencePage#performOk
      */
@@ -253,7 +253,6 @@ public class AspectPathPropertyPage extends PropertyPage implements
                 // cancelled
                 return false;
             }
-            AspectPathBlock.setAspectPathUpdated(true);
         }
         return true;
     }
@@ -270,15 +269,5 @@ public class AspectPathPropertyPage extends PropertyPage implements
      */
     public IProject getThisProject() {
         return thisProject;
-    }
-    
-    /**
-     * Resets the change settings to be false e.g. says
-     * that the inpath setting in the preference page hasn't been
-     * changed and that the preference store settings also haven't
-     * been updated.
-     */
-    public void resetChangeSettings() {
-        fAspectPathBlock.resetChangeSettings();
     }
 }
