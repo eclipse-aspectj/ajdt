@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
 
+import org.eclipse.ajdt.internal.builder.AJModel;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -48,6 +49,7 @@ public class BCResourceChangeListener implements IResourceChangeListener {
 			IResource res = event.getResource();
 			if (res.getType() == IResource.PROJECT) {
 				myBCor.closeProject((IProject) res);
+				AJModel.getInstance().clearMap((IProject) res);
 			}
 		} else if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 			// avoid processing deltas for non-AspectJ projects,

@@ -174,6 +174,10 @@ public class AJModel {
 		}
 	}
 	
+	public void clearMap(final IProject project) {
+		projectModelMap.remove(project);
+	}
+	
 //	private void initForProject(IProject project) {
 //		StructureModelUtil.initialiseAJDE(project);
 //		if (!projectSet.contains(project)) {
