@@ -144,6 +144,8 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		"within", "withincode",
 		// Pointcut designators: control flow
 		"cflow", "cflowbelow",
+		// Pointcut Designators for annotations
+		"@annotation", "@within", "@withincode", "@this", "@target", "@args",
 		// Advice
 		"before", "after", "around", "proceed", "throwing" , "returning" ,
 		"adviceexecution" ,
