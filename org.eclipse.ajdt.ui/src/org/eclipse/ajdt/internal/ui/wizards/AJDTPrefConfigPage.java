@@ -84,7 +84,9 @@ public class AJDTPrefConfigPage extends WizardPage {
 				
 				Label label = new Label(workbench, SWT.NONE);
 				label.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.editorMessage"));
-				label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));							
+				GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalIndent = 20;
+				label.setLayoutData(gd);							
 
 			//}
 //			if (!AJDTConfigSettings.isUnusedImportsDisabled()) {	
@@ -95,8 +97,14 @@ public class AJDTPrefConfigPage extends WizardPage {
 			//if (!AJDTConfigSettings.isAnalyzeAnnotationsDisabled()) {	
 				analyzeAnnotationsCheckbox = new Button(workbench, SWT.CHECK);		
 				analyzeAnnotationsCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.analyzeannotations"));
-				analyzeAnnotationsCheckbox.setSelection(true);
+				analyzeAnnotationsCheckbox.setSelection(false);
 				
+				label = new Label(workbench, SWT.NONE);
+				label.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.annotationsMessage"));
+				gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalIndent = 20;
+				label.setLayoutData(gd);							
+
 				openXRefView = new Button(workbench, SWT.CHECK);		
 				openXRefView.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView"));
 				openXRefView.setSelection(true);
@@ -137,9 +145,8 @@ public class AJDTPrefConfigPage extends WizardPage {
 		//boolean dontAskAgain = dontAskAgainCheckbox.getSelection();
 		
 		// turn the "analyse annotations" off
-		if (disableAnalyzeAnnotations) {
-			AJDTConfigSettings.disableAnalyzeAnnotations();
-		}
+		AJDTConfigSettings.disableAnalyzeAnnotations(disableAnalyzeAnnotations);
+		
 		
 		// set the unused imports to warning, rather than error
 //		if (disableUnusedImports) {

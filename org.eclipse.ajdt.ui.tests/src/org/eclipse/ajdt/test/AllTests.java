@@ -70,8 +70,8 @@ public class AllTests {
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-//		
-//		// buildconfigurator tests
+		
+		// buildconfigurator tests
 		suite.addTest(new TestSuite(UtilTests.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
@@ -159,7 +159,7 @@ public class AllTests {
 		if (setupDone) {
 			return;
 		}
-		AJDTConfigSettings.disableAnalyzeAnnotations();
+		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 		Utils.blockPreferencesConfigWizard();
 
 		IWorkbenchWindow window = PlatformUI.getWorkbench()

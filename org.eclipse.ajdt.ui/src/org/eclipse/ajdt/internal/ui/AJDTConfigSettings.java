@@ -50,9 +50,9 @@ public class AJDTConfigSettings {
 	/**
 	 * Set the editor preference to turn off analyze annotations
 	 */
-	static public void disableAnalyzeAnnotations() {
+	static public void disableAnalyzeAnnotations(boolean disable) {
 		IPreferenceStore store = JavaPlugin.getDefault().getPreferenceStore();		
-		store.setValue(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS, false);		
+		store.setValue(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS, !disable);		
 	}
 	
 	/**
