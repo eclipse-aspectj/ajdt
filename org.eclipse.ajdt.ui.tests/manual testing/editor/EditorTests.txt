@@ -1,0 +1,36 @@
+Editor Manual Tests
+
+1. Close Editors Automatically (bug 61679)
+
+a.	Install AJDT and one of the examples (e.g. Tracing).  Click ‘Window’ > 
+‘Preferences’ > ‘Workbench’ > ‘Editors’.  Check the ‘Close editors 
+automatically’ checkbox and change the ‘Number of opened editors before 
+closing’ value to 1.  Click ‘OK’.  
+
+b.	Activate the tracev1 configuration and build the project if necessary. 
+Then open the Circle class in the tracing package.  Check that the outline 
+view matches the structure of the class.  Open the TraceMyClasses aspect in the
+tracing.version1 package and check that the outline view reflects the 
+structure of the aspect.
+
+
+2. Syntax Highlighting (bug 62265)
+AspectJ keywords do not get highlighted any 
+more if there is a dot '.' in front of them.
+
+a.	Install AJDT and open a .aj file.  
+b.	Check that “before” gets highlighted, but not “.before”
+c.	Repeat for “get” and “.get”
+d.	Check that “.static” is still highlighted
+e.	Do the same check in a .java file.
+
+
+3. Linked source folders containing .aj files (bug 77917)
+
+a. Install AJDT and the Spacewar example.
+b. Move the spacewar package to a location outside the workspace and create a 
+linked folder to it in your Spacewar project.
+c. Re-build the project and check that it builds and works normally.
+d. Double click on one of the .aj files in the spacewar package to open in the
+editor.
+e. Ensure that both margins are present in the editor window.
