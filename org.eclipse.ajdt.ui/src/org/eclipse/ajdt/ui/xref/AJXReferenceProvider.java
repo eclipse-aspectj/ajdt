@@ -66,6 +66,10 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		return myClasses;
 	}
 
+	public IJavaElement[] getExtraChildren(IJavaElement je) {
+		return AJModel.getInstance().getExtraChildren(je);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -77,7 +81,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 
 		List xrefs = new ArrayList();
 		IJavaElement je = (IJavaElement) o;
-
+		
 		AJModel model = AJModel.getInstance();
 		//System.out.println("je=" + je + " (" + je.hashCode() + ")");
 		for (int i = 0; i < showRels.length; i++) {
