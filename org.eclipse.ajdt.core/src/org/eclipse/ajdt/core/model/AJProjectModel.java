@@ -92,24 +92,22 @@ public class AJProjectModel {
 	 * @return
 	 */
 	public boolean isAdvised(IJavaElement je) {
-		if (je.getElementType() == IJavaElement.METHOD) {
-			List advisedBy = getRelatedElements(
-					AJRelationshipManager.ADVISED_BY, je);
-			if ((advisedBy != null) && (advisedBy.size() > 0)) {
-				return true;
-			}
-			// check for advised code elements
-			List extras = getExtraChildren(je);
-			if (extras != null) {
-                for (Iterator iter = extras.iterator(); iter.hasNext();) {
-                    IJavaElement element = (IJavaElement) iter.next();
-                    advisedBy = getRelatedElements(AJRelationshipManager.ADVISED_BY,element);
-					if ((advisedBy != null) && (advisedBy.size() > 0)) {
-					    return true;
-					}
-                }
-            }			
+		List advisedBy = getRelatedElements(
+				AJRelationshipManager.ADVISED_BY, je);
+		if ((advisedBy != null) && (advisedBy.size() > 0)) {
+			return true;
 		}
+		// check for advised code elements
+		List extras = getExtraChildren(je);
+		if (extras != null) {
+			for (Iterator iter = extras.iterator(); iter.hasNext();) {
+				IJavaElement element = (IJavaElement) iter.next();
+                advisedBy = getRelatedElements(AJRelationshipManager.ADVISED_BY,element);
+                if ((advisedBy != null) && (advisedBy.size() > 0)) {
+                	return true;
+                }
+            }
+        }			
 		return false;
 	}
 
@@ -280,8 +278,8 @@ public class AJProjectModel {
 						l.add(el);
 					}
 					if (el != null) {
-						//System.out.println("el=" + el + " (" +
-						// el.getClass() + ") "+el.hashCode()+")");
+//						System.out.println("el=" + el + " (" +
+//						 el.getClass() + ") "+el.hashCode()+")");
 						ipeToije.put(node, el);
 						jeLinkNames.put(el, node.toLinkLabelString());
 					}

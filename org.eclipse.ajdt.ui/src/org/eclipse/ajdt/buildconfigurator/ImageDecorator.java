@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
@@ -190,17 +191,23 @@ public class ImageDecorator implements ILabelDecorator {
 				// problems with package, better don't do anything
 				// can be ignored
 			}
-		} else if (AspectJPreferences.isAdviceDecoratorActive()
-				&& (element instanceof IJavaElement)) {
-			if (AJModel.getInstance().isAdvised((IJavaElement) element)) {
-				MyCompositeImageDesc overlay = new MyCompositeImageDesc(image);
-				img = overlay.getImage();
-				return img;
-			}
-		} else {
-			return null;
 		}
-		if (img != null){
+
+		// add the orange triangle to the icon if this method, 
+		// class or aspect is advised
+		if (AspectJPreferences.isAdviceDecoratorActive()
+				&& (element instanceof IMethod || element instanceof SourceType)) {
+			if (AJModel.getInstance().isAdvised((IJavaElement) element)) {
+				Image baseImage = img;
+				if (baseImage == null) {
+					baseImage = image;
+				}
+				MyCompositeImageDesc overlay = new MyCompositeImageDesc(baseImage);
+				img = getRegistry().get(overlay);
+			}
+		}
+
+		if (img != null){			
 			preventRecursion = true;
 			
 			//the Java ProblemsDecorator is not registered in the official
@@ -217,14 +224,14 @@ public class ImageDecorator implements ILabelDecorator {
 	}
 	
 	class MyCompositeImageDesc extends CompositeImageDescriptor {
-		private Image baseImage;
+		private Image fBaseImage;
 
-		private Point size;
+		private Point fSize;
 
 		public MyCompositeImageDesc(Image baseImage) {
-			this.baseImage = baseImage;
+			this.fBaseImage = baseImage;
 
-			size = new Point(baseImage.getBounds().width,
+			fSize = new Point(baseImage.getBounds().width,
 					baseImage.getBounds().height);
 			//System.out.println("size=" + size);
 		}
@@ -235,7 +242,7 @@ public class ImageDecorator implements ILabelDecorator {
 			// (second layer)
 
 			// Draw the base image using the base image's image data
-			drawImage(baseImage.getImageData(), 0, 0);
+			drawImage(fBaseImage.getImageData(), 0, 0);
 
 			// Method to create the overlay image data
 			// Get the image data from the Image store or by other means
@@ -248,9 +255,23 @@ public class ImageDecorator implements ILabelDecorator {
 			int yValue = 0;
 			drawImage(overlayImageData, xValue, yValue);
 		}
-
-		public Image getImage() {
-			return createImage();
+		
+		/* (non-Javadoc)
+		 * Method declared on Object.
+		 */
+		public boolean equals(Object object) {
+			if (object == null || !MyCompositeImageDesc.class.equals(object.getClass()))
+				return false;
+				
+			MyCompositeImageDesc other= (MyCompositeImageDesc)object;
+			return (fBaseImage.equals(other.fBaseImage) && fSize.equals(other.fSize));
+		}
+		
+		/* (non-Javadoc)
+		 * Method declared on Object.
+		 */
+		public int hashCode() {
+			return fBaseImage.hashCode() | fSize.hashCode();
 		}
 
 		/*
@@ -259,7 +280,7 @@ public class ImageDecorator implements ILabelDecorator {
 		 * @see org.eclipse.jface.resource.CompositeImageDescriptor#getSize()
 		 */
 		protected Point getSize() {
-			return size;
+			return fSize;
 		}
 	}
 	
