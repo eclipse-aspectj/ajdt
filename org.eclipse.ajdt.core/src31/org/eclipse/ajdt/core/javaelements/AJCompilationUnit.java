@@ -570,59 +570,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 		return null;
 	}
-	
-	static int counter = 0;
-	
-	private static final String classToTrick2 = "org.eclipse.jdt.internal.corext.refactoring.reorg.ReorgPolicyFactory";
-	private static final int lenOfClassToTrick2= classToTrick2.length();
-
-	/**
-	 * Of all places we have used this hack, this is the worst. :) getElementType() gets called
-	 * over and over again, especially when trying to drag & drop an AJCompilationUnit.
-	 * But when having tested this, we did not feel any difference so we think we can have it
-	 * in here for the moment.
-	 * In case you want to deactivate the hack at this place, the commented out methods at the
-	 * end of this class should be inserted again, otherwise moving aj files while abort with
-	 * an ugly exception.
-	 * 
-	 * Effect: when trying to drag&drop an AJCompilationUnit, the "forbidden" icon shows up and
-	 * prevents any move operation from happening in an early stage. This results in a much nicer
-	 * user experience than before.
-	 */	
-	public int getElementType() {
-		StackTraceElement elem = (new RuntimeException()).getStackTrace()[3];
-		//System.out.println("call number " + counter++ + " by " + elem.getMethodName() + " in " + elem.getClassName());
-		String className = elem.getClassName();
-		if ((lenOfClassToTrick2 == className.length()) && classToTrick2.equals(className))
-			return JAVA_PROJECT;
-		return super.getElementType();
-	}
-	
-//	private static final String classToTrick = "org.eclipse.jdt.internal.corext.refactoring.reorg.OverwriteHelper";
-//	private static final int lenOfClassToTrick = classToTrick.length();
-//	
-//	//contains the "evil exception hack" -> use getElementNameQuickly instead
-//	public String getElementName() {
-//		StackTraceElement elem = (new RuntimeException()).getStackTrace()[1];
-//		//System.out.println("call number " + counter++ + " by " + elem.getMethodName() + " in " + elem.getClassName());
-//		String className = elem.getClassName();
-//		if ((lenOfClassToTrick == className.length()) && classToTrick.equals(className))
-//			return CompilationUnitTools.convertAJToJavaFileName(super.getElementName());
-//		return super.getElementName();
-//	}
-//
-//	//similar go getElementName, but without "evil exception hack"
-//	public String getElementNameQuickly() {
-//		return super.getElementName();
-//	}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.eclipse.jdt.internal.compiler.env.IDependent#getFileName()
-//	 */
-//	public char[] getFileName() {
-//		return getElementNameQuickly().toCharArray();
-//	}
-	
+		
 	public String getHandleIdentifier() {
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		String callerName = (new RuntimeException()).getStackTrace()[1]
