@@ -349,8 +349,9 @@ public class XReferenceInplaceDialog {
 				if (tree.equals(e.getSource())) {
 					Object o = tree.getItem(new Point(e.x, e.y));
 					TreeItem selection = tree.getSelection()[0];
-					if (selection.equals(o))
+					if (selection.equals(o)) {
 						gotoSelectedElement();
+					}
 				}
 			}
 		});
@@ -654,6 +655,17 @@ public class XReferenceInplaceDialog {
 		if (selectedElement instanceof IStructuredSelection) {
 			Object sel =(IStructuredSelection) selectedElement;
 			Object data = ((TreeObject) sel).getData();
+			if (data != null) {
+			    if (data instanceof IXReferenceNode) {
+			        XRefUIUtils.revealInEditor(((IXReferenceNode)data).getJavaElement());  
+			    } else if (data instanceof IJavaElement) {
+			    	XRefUIUtils.revealInEditor((IJavaElement) data);
+			    }
+			    dispose();
+			}
+		} else if (selectedElement instanceof TreeObject) {
+			TreeObject item = (TreeObject) selectedElement;
+			Object data = item.getData();
 			if (data != null) {
 			    if (data instanceof IXReferenceNode) {
 			        XRefUIUtils.revealInEditor(((IXReferenceNode)data).getJavaElement());  
