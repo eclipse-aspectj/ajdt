@@ -65,7 +65,6 @@ import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
-import org.eclipse.jdt.internal.core.ReconcileWorkingCopyOperation;
 
 
 /**
@@ -429,29 +428,28 @@ public class AJCompilationUnit extends CompilationUnit{
 //	}
 
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
-//	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
-//			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
-//			IProgressMonitor monitor) throws JavaModelException {
-//		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
-//		if (workingCopyOwner == null) workingCopyOwner = DefaultWorkingCopyOwner.PRIMARY;
-//		
-//		boolean createAST = false;
-//		if (astLevel == AST.JLS2) {
-//			// client asking for level 2 AST; these are supported
-//			createAST = true;
-//		} else if (astLevel == AST.JLS3) {
-//			// client asking for level 3 ASTs; these are not supported
-//			createAST = false;
-//		} else {
-//			// client asking for no AST (0) or unknown ast level
-//			// either way, request denied
-//			createAST = false;
-//		}
-//		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, forceProblemDetection, workingCopyOwner);
-//		op.runOperation(monitor);
-//		return op.ast;
-//	}
-	
+	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
+			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
+			IProgressMonitor monitor) throws JavaModelException {
+		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
+		if (workingCopyOwner == null) workingCopyOwner = DefaultWorkingCopyOwner.PRIMARY;
+		
+		boolean createAST = false;
+		if (astLevel == AST.JLS2) {
+			// client asking for level 2 AST; these are supported
+			createAST = true;
+		} else if (astLevel == AST.JLS3) {
+			// client asking for level 3 ASTs; these are not supported
+			createAST = false;
+		} else {
+			// client asking for no AST (0) or unknown ast level
+			// either way, request denied
+			createAST = false;
+		}
+		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, forceProblemDetection, workingCopyOwner);
+		op.runOperation(monitor);
+		return op.ast;
+	}
 
 	public IJavaElement[] codeSelect(int offset, int length,
 			WorkingCopyOwner workingCopyOwner) throws JavaModelException {
