@@ -149,9 +149,13 @@
 
    <extension
          point="org.eclipse.contribution.visualiser.renderers">
+         <renderer class="org.eclipse.contribution.visualiser.views.ClassicVisualiserRenderer"
+             name="Classic"
+             id="classic">
+         </renderer>
          <renderer class="org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer"
-             name="Default style"
-             id="defaultstyle">
+             name="Default"
+             id="default">
          </renderer>
          <renderer class="org.eclipse.contribution.visualiser.views.GradientVisualiserRenderer"
              name="Gradient bars"
