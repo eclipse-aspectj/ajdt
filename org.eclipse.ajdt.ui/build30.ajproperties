@@ -1,0 +1,3 @@
+src.includes = src/,\
+               src30/
+src.excludes = src/org/eclipse/ajdt/utils/

@@ -78,8 +78,7 @@ public class AJClasspathModel extends ClasspathModel {
 			}
 		}
 		if (entryParent != null) {
-			//((ClasspathGroup) entryParent).addEntry(newEntry);
-			addEntryToClasspathGroup((ClasspathGroup) entryParent,newEntry);
+			((ClasspathGroup) entryParent).addEntry(newEntry);
 		} else {
 			childEntries.add(newEntry);
 		}
@@ -110,9 +109,7 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 		bootstrapEntries.removeAll();
 		for (int i = 0; i < entries.length; i++) {
-			//bootstrapEntries.addEntry(new ClasspathEntry(entries[i],
-			//		bootstrapEntries));
-			addEntryToClasspathGroup(bootstrapEntries,new ClasspathEntry(entries[i],
+			bootstrapEntries.addEntry(new ClasspathEntry(entries[i],
 					bootstrapEntries));
 		}
 	}
@@ -126,8 +123,7 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 		userEntries.removeAll();
 		for (int i = 0; i < entries.length; i++) {
-			//userEntries.addEntry(new ClasspathEntry(entries[i], userEntries));
-			addEntryToClasspathGroup(userEntries,new ClasspathEntry(entries[i], userEntries));
+			userEntries.addEntry(new ClasspathEntry(entries[i], userEntries));
 		}
 	}
 
@@ -143,9 +139,7 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 		aspectPathEntries.removeAll();
 		for (int i = 0; i < entries.length; i++) {
-			//aspectPathEntries.addEntry(new ClasspathEntry(entries[i],
-			//		aspectPathEntries));
-			addEntryToClasspathGroup(aspectPathEntries,new ClasspathEntry(entries[i],
+			aspectPathEntries.addEntry(new ClasspathEntry(entries[i],
 					aspectPathEntries));
 		}
 	}
@@ -189,9 +183,7 @@ public class AJClasspathModel extends ClasspathModel {
 				canBeRemoved);
 
 		for (int i = 0; i < entries.length; i++) {
-			//group.addEntry(new ClasspathEntry(entries[i], group));
-			addEntryToClasspathGroup(group, new ClasspathEntry(entries[i],
-					group));
+			group.addEntry(new ClasspathEntry(entries[i], group));
 		}
 
 		if (addEntry) {
@@ -224,33 +216,5 @@ public class AJClasspathModel extends ClasspathModel {
 			}
 		}
 		return new IClasspathEntry[0];
-	}
-
-	/**
-	 * Use this instead of calling group.addEntry(), so that we can use either the Eclipse 3.0 or
-	 * 3.1 version of this internal API (the 3.1 version has an extra parameter).
-	 * @param group
-	 * @param entry
-	 */
-	private void addEntryToClasspathGroup(ClasspathGroup group,
-			IClasspathEntry entry) {
-		Class clazz = group.getClass();
-		Method m;
-		try {
-			try {
-				m = clazz.getMethod("addEntry",
-						new Class[] { IClasspathEntry.class });
-				m.invoke(group, new Object[] { entry });
-			} catch (NoSuchMethodException e) {
-				m = clazz.getMethod("addEntry", new Class[] {
-						IClasspathEntry.class, Object.class });
-				m.invoke(group, new Object[] { entry, null });
-			}
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		}
 	}
 }

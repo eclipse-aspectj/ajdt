@@ -48,7 +48,7 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<property file="build.ajproperties"/>
+	<property file="build30.ajproperties"/>
 	<iajc srcdir="." destdir="bin"
 		classpath="${aspectjrt};${classpath.org.eclipse.ajdt.ui};../org.eclipse.contribution.visualiser/build/Visualiser.jar"
 	    debug="false" verbose="true" fork="true" maxmem="256m"
