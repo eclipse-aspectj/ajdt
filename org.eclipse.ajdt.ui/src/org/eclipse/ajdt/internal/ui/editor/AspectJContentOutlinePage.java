@@ -20,7 +20,7 @@ import org.aspectj.ajde.ui.StructureViewManager;
 import org.aspectj.ajde.ui.StructureViewProperties;
 import org.aspectj.ajde.ui.StructureViewRenderer;
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.internal.builder.Builder;
+import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNode;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
@@ -169,8 +169,8 @@ implements StructureViewRenderer {
 		// add this extra text to stop us geting empty view structure updates
 		// caused by builds from other projects.
 		IProject myProject = input.getProject( );
-		IProject builtProject = Builder.getLastBuildTarget();
-		if ( input.getProject().equals( Builder.getLastBuildTarget() )  ) {
+		IProject builtProject = AJBuilder.getLastBuildTarget();
+		if ( input.getProject().equals( AJBuilder.getLastBuildTarget() )  ) {
 			AJDTEventTrace.modelUpdated( input );
 
 			this.view = view;
