@@ -34,3 +34,12 @@ c. Re-build the project and check that it builds and works normally.
 d. Double click on one of the .aj files in the spacewar package to open in the
 editor.
 e. Ensure that both margins are present in the editor window.
+
+
+4. Toggle Breakpoints (bug 71718)
+
+a. Open an aspect that contains some advice.  
+b. Click somewhere in the advice body and press Ctrl+B on the keyboard.  A breakpoint
+should appear in the margin.  Press Ctrl+B again and the breakpoint should disappear.
+c. Double click in the margin and a breakpoint should appear.  Double click again and
+the breakpoint should disappear.

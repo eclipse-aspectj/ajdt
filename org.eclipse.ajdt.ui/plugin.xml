@@ -1269,4 +1269,12 @@
       </renameParticipant>
    </extension>
 
+	<extension point="org.eclipse.core.runtime.adapters">
+         <factory 
+            class="org.eclipse.ajdt.internal.debug.ui.actions.AJRetargettableActionAdapterFactory" 
+            adaptableType="org.eclipse.ajdt.internal.ui.editor.AspectJEditor">
+            <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
+         </factory>
+    </extension>
+
 </plugin>
