@@ -228,7 +228,30 @@ public class AspectJPreferences {
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();	
 		return store.getBoolean(AJDT_PREF_CONFIG_DONE); 
 	}
-    
+	
+	// whether or not the AJDT Peference config wizard is already showing
+	private static boolean isShowing = false;
+	
+	/**
+	 * This is used in the case of a CVS checkout of multiple projects
+	 * only want to show the AJDT Preference Config Wizard once and not
+	 * one copy for each AJ project checked out.
+	 * 
+	 */
+	static public boolean isAJDTPrefConfigShowing() {
+	    return isShowing;
+	}
+
+	/**
+	 * This is used in the case of a CVS checkout of multiple projects
+	 * only want to show the AJDT Preference Config Wizard once and not
+	 * one copy for each AJ project checked out.
+	 * 
+	 */
+	static public void setAJDTPrefConfigShowing(boolean showing) { 
+	    isShowing = showing;
+	}
+	    
     /**
      * Helper set method
      * 

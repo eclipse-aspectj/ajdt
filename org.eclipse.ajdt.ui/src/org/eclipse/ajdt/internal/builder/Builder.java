@@ -36,6 +36,7 @@ import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJContentOutlinePage;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
@@ -62,6 +63,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 /**
@@ -159,6 +161,15 @@ public class Builder extends IncrementalProjectBuilder {
 			System.err
 					.println("Building at " + new java.util.Date().toString());
 
+		if (!AspectJPreferences.isAJDTPrefConfigShowing()) {
+            AspectJPreferences.setAJDTPrefConfigShowing(true);
+    		Display.getDefault().asyncExec(new Runnable() {
+    			public void run() {
+    				AJDTUtils.verifyWorkbenchConfiguration();
+    			}
+    		});            
+        }
+		
 		buildCancelled = false;
 
 		IProject project = getProject();
