@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.eclipse.ajdt.core.javaelements.IAJCodeElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -91,31 +92,47 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
-				List allRelationships = AJModel.getInstance().getAllRelationships(jp.getProject(), new AJRelationshipType[] {AJRelationshipManager.ADVISES, AJRelationshipManager.ANNOTATES, AJRelationshipManager.DECLARED_ON, AJRelationshipManager.MATCHED_BY});
+				List allRelationships = AJModel.getInstance().getAllRelationships(jp.getProject(), new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ANNOTATED_BY, AJRelationshipManager.ASPECT_DECLARATIONS, AJRelationshipManager.MATCHES_DECLARE});
 				
 				for (Iterator iter = allRelationships.iterator(); iter
 						.hasNext();) {
 					List kinds = new ArrayList();
 					AJRelationship element = (AJRelationship) iter.next();
-					IJavaElement enclosingAspect = element.getSource().getAncestor(IJavaElement.TYPE);
+					IJavaElement target = element.getTarget();
 					
-					// Get fully qualified name if aspect is an inner aspect
-					String aspectName = enclosingAspect.getElementName();
-					IJavaElement loopElement = enclosingAspect;
-					while(loopElement.getParent() instanceof IType) {
-						loopElement = loopElement.getParent();
-						aspectName = loopElement.getElementName() + "." + aspectName; // $NON-NLS-1$
-					}
-					String aspectFullName = aspectName;
-					String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-					if(!(aspectPackageName.equals(""))) { // $NON-NLS-1$
-						aspectFullName = aspectPackageName + "." + aspectFullName; // $NON-NLS-1$
+					String aspectFullName;
+					String aspectName;
+					
+					if(!(target instanceof IAJCodeElement)) {
+						IJavaElement enclosingAspect = element.getTarget().getAncestor(IJavaElement.TYPE);
+						
+						// Get fully qualified name if aspect is an inner aspect
+						aspectName = enclosingAspect.getElementName();
+						IJavaElement loopElement = enclosingAspect;
+						while(loopElement.getParent() instanceof IType) {
+							loopElement = loopElement.getParent();
+							aspectName = loopElement.getElementName() + "." + aspectName; // $NON-NLS-1$
+						}
+						aspectFullName = aspectName;
+						String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+						if(!(aspectPackageName.equals(""))) { // $NON-NLS-1$
+							aspectFullName = aspectPackageName + "." + aspectFullName; // $NON-NLS-1$
+						}
+					} else { // It's an injar aspect so we wno't be able to find the parents
+						aspectFullName = target.getElementName();
+						String[] parts = aspectFullName.split(" "); // $NON-NLS-1$
+						String aNameWithExtension = parts[parts.length - 1];
+						if(aNameWithExtension.indexOf('.') != -1) { // $NON-NLS-1$
+							aspectName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
+						} else {
+							aspectName = aNameWithExtension;
+						}
 					}
 					
-					int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getTarget());
-					String memberName = element.getTarget().getAncestor(IJavaElement.COMPILATION_UNIT).getElementName();
+					int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getSource());
+					String memberName = element.getSource().getAncestor(IJavaElement.COMPILATION_UNIT).getElementName();
 					memberName = memberName.substring(0, memberName.lastIndexOf(".")); // $NON-NLS-1$
-					String packageName = element.getTarget().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+					String packageName = element.getSource().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
 					if(!(packageName.equals(""))) { // $NON-NLS-1$
 						memberName = packageName + "." + memberName; // $NON-NLS-1$
 					}
@@ -124,7 +141,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 						kindMap = new HashMap();
 					}
 					if(element.getRelationship().equals(AJRelationshipManager.MATCHED_BY)) {
-						String sourceName = element.getSource().getElementName();					
+						String sourceName = element.getTarget().getElementName();					
 						boolean errorKind = sourceName.startsWith(aspectJErrorKind);
 						if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) {
 							markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); // $NON-NLS-1$
