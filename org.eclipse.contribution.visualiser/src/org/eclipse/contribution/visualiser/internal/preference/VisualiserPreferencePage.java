@@ -27,7 +27,6 @@ import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.jdt.internal.ui.util.TabFolderLayout;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
