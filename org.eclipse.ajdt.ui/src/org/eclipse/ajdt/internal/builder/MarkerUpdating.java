@@ -278,6 +278,9 @@ public class MarkerUpdating {
 		} else if(adviceType.equals("annotates")) { 
 			marker = ir
 				.createMarker(IAJModelMarker.SOURCE_ANNOTATED_MARKER);
+		} else if(adviceType.equals("declared on")){
+			marker = ir
+				.createMarker(IAJModelMarker.SOURCE_ITD_MARKER);
 		} else {
 			if(programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR)
 					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD)

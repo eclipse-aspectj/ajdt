@@ -10,6 +10,8 @@ Contributors:
     Andy Clement, 1st Version, 7th October 2002
     Matt Chapman - add support for Go To Related Location entries
                  - add support for Advises entries
+    Sian January - support for "aspect declarations", "annotates", 
+    				"declared by" and "annotated by" menus
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
@@ -169,10 +171,12 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			}
 
 			// Go through the ITD markers
-			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);			
+			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);	
+			MenuManager declaresSubmenu = null;
 			MenuManager declarationSubmenu = null;
 			MenuManager annotationSubmenu = null;
 			MenuManager annotatesSubmenu = null;
+			boolean declaresSubmenuInitialized = false;
 		    boolean declarationSubmenuInitialized = false;
 			boolean annotationSubmenuInitialized = false;
 			boolean annotatesSubmenuInitialized = false;
@@ -191,7 +195,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							if (!annotationSubmenuInitialized) {
 								annotationSubmenu = new MenuManager(
 								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotations"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized)) {
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized || declaresSubmenuInitialized)) {
 									manager.add(new Separator());
 								}
 								manager.add(annotationSubmenu);			
@@ -211,7 +215,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							if (!annotatesSubmenuInitialized) {
 								annotatesSubmenu = new MenuManager(
 								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotationAffects"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotationSubmenuInitialized)) {
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotationSubmenuInitialized || declaresSubmenuInitialized)) {
 									manager.add(new Separator());
 								}
 								manager.add(annotatesSubmenu);			
@@ -220,7 +224,27 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 								
 						    // Add our new action to the submenu
 							annotatesSubmenu.add(ama);						
-						} else{
+						} else if (m.getType().equals(IAJModelMarker.SOURCE_ITD_MARKER)) {
+							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
+							// marker (an advice marker) in effect on this line, so that if the run
+							// method of the action is driven, it can correctly jump to the right
+							// location in the aspect.
+							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
+							
+							// Initialize the submenu if we haven't done it already.
+							if (!declaresSubmenuInitialized) {
+								declaresSubmenu = new MenuManager(
+								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.declaredOn"));
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized || declarationSubmenuInitialized)) {
+									manager.add(new Separator());
+								}
+								manager.add(declaresSubmenu);			
+								declaresSubmenuInitialized = true; 
+							}
+								
+						    // Add our new action to the submenu
+							declaresSubmenu.add(ama);
+						} else {
 							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
 							// marker (an advice marker) in effect on this line, so that if the run
 							// method of the action is driven, it can correctly jump to the right
@@ -231,7 +255,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							if (!declarationSubmenuInitialized) {
 								declarationSubmenu = new MenuManager(
 								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.aspectDeclarations"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized)) {
+								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized || declaresSubmenuInitialized)) {
 									manager.add(new Separator());
 								}
 								manager.add(declarationSubmenu);			
