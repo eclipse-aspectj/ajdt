@@ -28,6 +28,7 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationshipMap;
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
@@ -175,7 +176,7 @@ public class Builder extends IncrementalProjectBuilder {
 		IProject project = getProject();
 		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
 		ajPlugin.setCurrentProject(project);
-		long buildstarttime = System.currentTimeMillis();
+		long buildstarttime = System.currentTimeMillis();	
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
 		String inc = project.getPersistentProperty(BuildOptionsAdapter.INCREMENTAL_COMPILATION);
@@ -232,7 +233,7 @@ public class Builder extends IncrementalProjectBuilder {
 
 			if (kind != FULL_BUILD) {
 				// need to add check here for whether the classpath has changed
-				if (!sourceFilesChanged(dta)){
+				if (!sourceFilesChanged(dta, project)){
 					AJDTEventTrace
 							.generalEvent("build: Examined delta - no source file changes for project " 
 									+ project.getName() );
@@ -243,7 +244,7 @@ public class Builder extends IncrementalProjectBuilder {
 					// also to build the current project
 					for (int i = 0; i < requiredProjects.length; i++) {
 						IResourceDelta delta = getDelta(requiredProjects[i]);
-						if (sourceFilesChanged(delta)) {
+						if (sourceFilesChanged(delta, project)) {
 							AJDTEventTrace
 								.generalEvent("build: Examined delta - source file changes in "
 										+ "required project " + requiredProjects[i].getName() );
@@ -258,11 +259,11 @@ public class Builder extends IncrementalProjectBuilder {
 			}
 
 			monitor = progressMonitor;
-
+			
 			AJDTEventTrace.build(project, AspectJUIPlugin
 					.getBuildConfigurationFile(project), ajPlugin
 					.getAjdtProjectProperties().getClasspath());
-
+			
 			ProjectProperties props = ajPlugin.getAjdtProjectProperties();
 			List projectFiles = props.getProjectSourceFiles(project,
 					ProjectProperties.ASPECTJ_SOURCE_FILTER);
@@ -346,7 +347,7 @@ public class Builder extends IncrementalProjectBuilder {
 			}
 
 			waitForBuildCompletion(compilerMonitor);
-
+			
 			if (buildCancelled) {
 				markReferencingProjects(project, buildPrereqsMessage);
 			} else {
@@ -392,8 +393,7 @@ public class Builder extends IncrementalProjectBuilder {
 		} catch (Exception e) {
 			Ajde.getDefault().getErrorHandler().handleError("Compile failed.",
 					e);
-		}
-
+		}	
 		return requiredProjects;
 	}
 	
@@ -652,6 +652,7 @@ public class Builder extends IncrementalProjectBuilder {
 		if (monitor != null && buildManager != null && monitor.isCanceled()) {
 			buildManager.abortBuild();
 			buildCancelled = true;
+			AJDTEventTrace.generalEvent("build: Build cancelled as requested");
 		}
 	}
 
@@ -810,17 +811,21 @@ public class Builder extends IncrementalProjectBuilder {
 		}
 	}
 
-	/**
-	 * @param dta
-	 * @return
-	 */
-	private boolean sourceFilesChanged(IResourceDelta dta) {
+	private boolean sourceFilesChanged(IResourceDelta dta, IProject project) {
 		if (dta == null)
 			return true;
 		String resname = dta.getFullPath().toString();
-		//System.err.println(resname);
+
 		if (resname.endsWith(".java") || resname.endsWith(".aj")) {
-			return true;
+			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+				.getProjectBuildConfigurator(project);
+			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			List includedFileNames = bc.getIncludedJavaFileNames(ProjectProperties.ASPECTJ_SOURCE_FILTER);
+		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
+                return true;
+            } else {
+                return false;
+            }
 		} else if (resname.endsWith(".lst")
 				&& !resname.endsWith("/generated.lst")) {
 			return true;
@@ -829,7 +834,7 @@ public class Builder extends IncrementalProjectBuilder {
 			int i = 0;
 			IResourceDelta[] kids = dta.getAffectedChildren();
 			while (!kids_results && i < kids.length) {
-				kids_results = kids_results | sourceFilesChanged(kids[i]);
+				kids_results = kids_results | sourceFilesChanged(kids[i], project);
 				i++;
 			}
 			return kids_results;
