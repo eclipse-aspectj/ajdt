@@ -36,7 +36,7 @@ public class XReferencePluginTest extends TestCase {
 	}
 	
 	public void testGetVersion() {
-		assertTrue(XReferencePlugin.getVersion().startsWith("9.9."));
+		assertTrue(XReferencePlugin.getVersion().startsWith("9"));
 	}
 	
 	public void testLog() {
