@@ -374,7 +374,7 @@ public class AspectJPreferences {
     
     public static String getActiveBuildConfigurationName(IProject project) {
      	IScopeContext projectScope = new ProjectScope(project);
-    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
     	return projectNode.get(ACTIVE_CONFIG,"");
     }
     
