@@ -698,4 +698,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	protected void clean(IProgressMonitor monitor) throws CoreException {
+		// this method is used for clearing the state of a project
+		// and all the problem markers, after which an IncrementalProjectBuilder.FULL_BUILD
+		// happens (called from BuildManager). Therefore, by providing an
+		// empty implementation we still get the full build, which in our case 
+		// removes all the problem markers. When we have a state.dat file, we need
+		// to clear it here.
+	}
 }
