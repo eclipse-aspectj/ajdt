@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -243,7 +244,7 @@ public class BuildConfigEditor
 	private void clearMarkers( IFileEditorInput input ) {
 		try {
 			((IResource) input.getFile()).deleteMarkers(
-				IMarker.PROBLEM,
+				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
 				true,
 				IResource.DEPTH_INFINITE);
 

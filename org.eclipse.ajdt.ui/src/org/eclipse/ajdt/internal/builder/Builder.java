@@ -57,6 +57,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -657,7 +658,7 @@ public class Builder extends IncrementalProjectBuilder {
 
 	private void markProject(IProject project, String errorMessage) {
 		try {
-			IMarker errorMarker = project.createMarker(IMarker.PROBLEM);
+			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {

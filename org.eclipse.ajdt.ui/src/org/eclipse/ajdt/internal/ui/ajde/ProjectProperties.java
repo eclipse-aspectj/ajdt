@@ -49,6 +49,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -444,7 +445,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		IProject currProject = AspectJUIPlugin.getDefault().getCurrentProject();
 		try {
 			currProject
-					.deleteMarkers(IMarker.PROBLEM, true,
+					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
 							(recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
 			currProject

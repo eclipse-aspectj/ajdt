@@ -535,7 +535,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                         ir = (IResource) affectedResourceIterator.next();
                         try {
                             if (ir.exists()) {
-                                ir.deleteMarkers(IMarker.PROBLEM, true,
+                                ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
                                         IResource.DEPTH_INFINITE);
                                 ir.deleteMarkers(IMarker.TASK, true,
                                         IResource.DEPTH_INFINITE);
@@ -600,7 +600,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                                             new Integer(p.location.getLine()));
                                 }
                             } else {
-                                marker = project.createMarker(IMarker.PROBLEM);
+                                marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                             }
                             setSeverity(marker, p.kind);
                             
@@ -916,7 +916,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                         ir = AspectJUIPlugin.getDefault().getCurrentProject();
                     }
                     try {
-                        IMarker im = ir.createMarker(IMarker.PROBLEM);
+                        IMarker im = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                         if (p.location.getLine() > 0) {
                             im.setAttribute(IMarker.LINE_NUMBER, p.location
                                     .getLine());
