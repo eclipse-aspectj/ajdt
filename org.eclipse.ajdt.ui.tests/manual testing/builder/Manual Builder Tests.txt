@@ -111,4 +111,35 @@ Test for bug 48518 - if contents of jar file changes, then force a build for dep
 	13:36:22	 build: Examined delta - no source file changes for project jarDependentProject
 	
 	and consequently a rebuild of jarDependingProject should not occur.
-					
+
+
+
+
+Test for bug 74401 - External jars on inpath not found
+------------------------------------------------------
+
+(1) Check out bug74401 test project
+
+(2) Right click > Project projects > AspectJ Inpath
+
+(3) Set hello.jar as a (workspace) JAR
+
+(4) Rebuild project and check it builds okay
+
+(5) Right click > Project projects > AspectJ Inpath
+
+(6) Remove jar file and add it again this time as an external JAR file
+
+(7) Rebuild project and check it builds okay
+
+(8) Right click > Project projects > AspectJ Inpath
+
+(9) Remove jar file, Add Variable... > Configure Variable... > New...
+    Enter MY_JAR as name and press Folder... and select the project
+    folder. Press OK > OK then select MY_JAR from list and press
+    Extend... and select hello.jar
+
+(10) Rebuild project and check it builds okay
+
+
+				
