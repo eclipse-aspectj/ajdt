@@ -14,7 +14,6 @@ import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.views.VisualiserCanvas;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -32,11 +31,7 @@ public class DefaultVisualiserRenderer extends ClassicVisualiserRenderer {
 
 	private int spacing = 4;
 
-	private int columnTitleHeight = -1;//18;
-
 	private int margin = 6;
-
-	private Font sysFont;
 
 	protected Color outlineColor = new Color(Display.getDefault(), 172, 168,
 			153);
@@ -89,14 +84,22 @@ public class DefaultVisualiserRenderer extends ClassicVisualiserRenderer {
 		for (int i = 0; i < cornerData.length; i++) {
 			byte[] b = cornerData[i];
 			gc.setForeground(colorList[b[0]]);
-			gc.drawLine(b[1], b[2], b[3], b[4]);
+			if (b[1]==b[3] && b[2]==b[4]) {
+				gc.drawPoint(b[1], b[2]);
+			} else {
+				gc.drawLine(b[1], b[2], b[3], b[4]);
+			}
 		}
 
 		// draw right-hand corner
 		for (int i = 0; i < cornerData.length; i++) {
 			byte[] b = cornerData[i];
 			gc.setForeground(colorList[b[0]]);
-			gc.drawLine(width - b[1], b[2], width - b[3], b[4]);
+			if (b[1]==b[3] && b[2]==b[4]) {
+				gc.drawPoint(width - b[1], b[2]);
+			} else {
+				gc.drawLine(width - b[1], b[2], width - b[3], b[4]);
+			}
 		}
 
 		header = headerImg.getImageData();
