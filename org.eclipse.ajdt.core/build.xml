@@ -33,37 +33,6 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
      * eclipse.build.version (override the value default value set above)
      * aspectj (set to AspectJ install dir)
 -->
-	
-<path id="old.project.class.path">
-    <pathelement location="src/"/>
-    <pathelement location="../org.aspectj.runtime/aspectjrt.jar"/>
-    <pathelement location="../org.aspectj.ajde/ajde.jar"/>
-    <!-- <pathelement location="../org.eclipse.aosd.relationships/build/relations.jar"/> -->
-    <!-- Below are dependencies that require a local install of Eclipse. -->
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.search_${eclipse.build.version}/search.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.runtime_${eclipse.build.version}/runtime.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.resources_${eclipse.build.version}/resources.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.debug.core_${eclipse.build.version}/dtcore.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.core_${eclipse.build.version}/jdtcore.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.core_${eclipse.build.version}/pdecore.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.runtime_${eclipse.build.version}/pdert.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde_${eclipse.build.version}/pde.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.debug.ui_${eclipse.build.version}/dtui.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.debug.ui_${eclipse.build.version}/jdiui.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.launching_${eclipse.build.version}/launching.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.junit_3.8.1/junit.jar"/>
-   	<pathelement location="${eclipse.home}/plugins/org.eclipse.core.boot_${eclipse.build.version}/boot.jar"/>
-   	<pathelement location="${eclipse.home}/plugins/org.eclipse.text_${eclipse.build.version}/text.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.osgi_${eclipse.build.version}/osgi.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.update.core_${eclipse.build.version}/updatecore.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.debug_${eclipse.build.version}/jdimodel.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.pde.build_${eclipse.build.version}/pdebuild.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.filebuffers_${eclipse.build.version}/filebuffers.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.ltk.core.refactoring_${eclipse.build.version}/refcore.jar"/>
-	
-	<!-- Java runtime library : depends on the JVM used to run Ant -->
-   	<pathelement location="${java.home}/lib/rt.jar"/>
-</path>
 
 <target name="init">
   <mkdir dir="${build.dir}" />

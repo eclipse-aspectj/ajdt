@@ -20,25 +20,6 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
      * eclipse.build.version (override the value default value set above)
 -->
 
-<path id="project.class.path">
-    <pathelement location="testsrc/"/>
-    <pathelement location="lib/draw2d.jar"/>
-	<pathelement location="../org.eclipse.contribution.visualiser/build/Visualiser.jar" />
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.runtime_${eclipse.build.version}/runtime.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.core.resources_${eclipse.build.version}/resources.jar"/>
-    <!-- Build platform issue with the below one  ? -->
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.swt.win32_${eclipse.build.version}/ws/win32/swt.jar"/>   
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui_${eclipse.build.version}/ui.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.osgi_${eclipse.build.version}/osgi.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jface_${eclipse.build.version}/jface.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jface.text_${eclipse.build.version}/jfacetext.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.ui.workbench_${eclipse.build.version}/workbench.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.core_${eclipse.build.version}/jdtcore.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.jdt.ui_${eclipse.build.version}/jdt.jar"/>
-    <pathelement location="${eclipse.home}/plugins/org.eclipse.search_${eclipse.build.version}/search.jar"/>
-	<pathelement location="${eclipse.home}/plugins/org.junit_3.8.1/junit.jar" />
-</path>
-
 <target name="init">
   <mkdir dir="${build.dir}" />
   <mkdir dir="dist"/>
@@ -52,9 +33,8 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
 <target name="externalbuild" if="external.build" >
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
-	<javac srcdir="testsrc" destdir="bin">
-		<classpath refid="project.class.path" />
-	</javac>
+	<property file="${eclipse.home}/ajdtworkspace.properties"/>
+	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.visualiser.tests}"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >
