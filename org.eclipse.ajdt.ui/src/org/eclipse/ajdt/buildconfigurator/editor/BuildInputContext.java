@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2003 IBM Corporation and others.
+ * Copyright (c) 2000, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,6 +64,8 @@ public class BuildInputContext extends InputContext {
 				File file = (File)((SystemFileEditorInput)input).getAdapter(File.class);
 				model.setInstallLocation(file.getParent());
 				model.setCharset(getDefaultCharset());
+			} else {
+				model.setCharset(getDefaultCharset());
 			}
 			model.load();
 		}
@@ -74,10 +76,6 @@ public class BuildInputContext extends InputContext {
 	 * @see org.eclipse.pde.internal.ui.neweditor.InputContext#getId()
 	 */
 	public String getId() {
-		return CONTEXT_ID;
-	}
-
-	protected String getPartitionName() {
 		return CONTEXT_ID;
 	}
 	
@@ -141,4 +139,8 @@ public class BuildInputContext extends InputContext {
 		AbstractEditingModel model = (AbstractEditingModel)getModel();
 		model.reconciled(model.getDocument());
 	}	
+	
+	protected String getPartitionName() {
+		return "___build_partition"; //$NON-NLS-1$
+	}
 }
