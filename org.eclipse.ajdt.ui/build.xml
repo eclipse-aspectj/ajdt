@@ -76,8 +76,8 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
       run of Ant (e.g. in a Cruise Control environment).
  -->
  <antcall target="buildproject" />
- <copy file="src/org/eclipse/ajdt/internal/core/resources/AspectJPluginResources.properties" 
- 	 tofile="bin/org/eclipse/ajdt/internal/core/resources/AspectJPluginResources.properties"
+ <copy file="src/org/eclipse/ajdt/internal/ui/resources/AspectJPluginResources.properties" 
+ 	 tofile="bin/org/eclipse/ajdt/internal/ui/resources/AspectJPluginResources.properties"
  	 overwrite="true">
  	<filterset>
  		<filter token="AJDEVERSION" value="${ajde.version}"/>
