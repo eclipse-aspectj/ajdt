@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -108,6 +109,11 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (part instanceof PackageExplorerPart) {
+			// don't want to respond to changes in selection
+			// in the package explorer
+			return;
+		}
 		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);		
 		if (xra != null) {
 			if (lastSelection != null 
