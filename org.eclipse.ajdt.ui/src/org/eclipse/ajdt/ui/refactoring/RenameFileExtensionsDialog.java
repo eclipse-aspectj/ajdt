@@ -166,6 +166,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 
 				// Set of all the currently active aspects in the project
 				Set aspects = StructureModelUtil.getAllAspects(project, true);
+				
 				IJavaProject jp = JavaCore.create(project);
 				ProjectBuildConfigurator pbc = BuildConfigurator
 						.getBuildConfigurator().getProjectBuildConfigurator(jp);
@@ -196,7 +197,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 													.isIncluded(resource))) {
 										// do not rename this file if it is not
 										// active
-										break;
+										continue;
 									}
 
 									boolean isAspect = aspects
@@ -336,7 +337,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 													.isIncluded(resource))) {
 										// do not rename this file if it is not
 										// active
-										break;
+										continue;
 									}
 									if ((!convertToAJ && resource
 											.getFileExtension().equals("aj")) //$NON-NLS-1$
