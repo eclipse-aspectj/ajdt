@@ -21,7 +21,7 @@ import org.aspectj.lang.reflect.CodeSignature;
 // loads of nonsense advice added to test for different
 // markers
 aspect GetInfo {
-
+	declare warning : set(int Demo.x) : "field set";
 	declare parents : Demo implements Serializable;
 	
 	declare soft : DemoException : execution(void go());
@@ -86,4 +86,6 @@ aspect GetInfo {
 					+ " = " + args[i]);
 		}
 	}
+	
+	
 }
