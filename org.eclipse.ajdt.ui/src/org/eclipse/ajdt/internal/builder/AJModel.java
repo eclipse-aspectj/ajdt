@@ -11,35 +11,22 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IRelationship;
-import org.aspectj.asm.IRelationshipMap;
-import org.aspectj.bridge.ISourceLocation;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.ui.IEditorPart;
@@ -61,10 +48,6 @@ public class AJModel {
     //map a IProgramElement to its corresponding IJavaElement
 	//private Map ipeToije = new HashMap();
 
-	// map a IJavaElement to a List of IJavaElements
-	private Map advisesMap = new HashMap();
-
-	private Map advisedByMap = new HashMap();
 
 	// list of projects we know about
 	private Set projectSet = new HashSet();
@@ -75,6 +58,14 @@ public class AJModel {
 	
 	// needs which project is being built, if any
 	private IProject beingBuilt = null;
+
+	// map a IJavaElement to a List of IJavaElements
+	//private Map perProjectAdvisesMap = new HashMap();
+
+	//private Map perProjectAdvisedByMap = new HashMap();
+	
+	//new
+	private Map projectModelMap = new HashMap();
 	
 	private AJModel() {
 
@@ -97,47 +88,8 @@ public class AJModel {
 	 * from IProgramElement instead of line numbers, as otherwise we have to do a
 	 * somewhat time consuming conversion. We also have to make sure our new data
 	 * structure contains all the information we need throughout AJDT.
+
 	 
-	public void createMap(final IProject project) {
-		System.out.println("creating map for project: " + project);
-		projectSet.add(project);
-		ipeToije.clear();
-		advisesMap.clear();
-		advisedByMap.clear();
-		try {
-			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) {
-					long start = System.currentTimeMillis();
-					try {
-						project.accept(new IResourceVisitor() {
-							public boolean visit(IResource resource) {
-								if (resource instanceof IFolder) {
-									return true;
-								} else if (resource instanceof IFile) {
-									IFile f = (IFile) resource;
-									if (ProjectProperties.ASPECTJ_SOURCE_FILTER
-											.accept(f.getName())) {
-										createMapForFile(f);
-									}
-									return false;
-								} else {
-									return true;
-								}
-							}
-						});
-					} catch (CoreException coreEx) {
-					}
-					long cp1 = System.currentTimeMillis();
-					long elapsed = cp1 - start;
-					System.out.println("processed files in " + elapsed);
-					processRelationships();
-					elapsed = System.currentTimeMillis() - cp1;
-					System.out.println("processed rels in " + elapsed);
-				}
-			}, null);
-		} catch (CoreException coreEx) {
-		}
-	}
 	
 	private void init(IJavaElement je) {
 		IProject project = je.getJavaProject().getProject();
@@ -156,70 +108,71 @@ public class AJModel {
 					+ " project known");
 		}
 	}
-
+*/
+	/*
 	public List getAdvisesElements(IJavaElement je) {
-		init(je);
-		return (List) advisesMap.get(je);
+		//init(je);
+		IJavaProject jp= je.getJavaProject();
+		if (jp==null) {
+			return null;
+		}
+		IProject proj = jp.getProject();
+		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		if (pm==null) {
+			return null;
+		}
+		return pm.getAdvisesElements(je);
 	}
 
 	public List getAdvisedByElements(IJavaElement je) {
-		init(je);
-		return (List) advisedByMap.get(je);
+		//init(je);
+		IJavaProject jp= je.getJavaProject();
+		if (jp==null) {
+			return null;
+		}
+		IProject proj = jp.getProject();
+		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		if (pm==null) {
+			return null;
+		}
+		return pm.getAdvisedByElements(je);
+	}
+	*/
+
+	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
+		//init(je);
+		IJavaProject jp= je.getJavaProject();
+		if (jp==null) {
+			return null;
+		}
+		IProject proj = jp.getProject();
+		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		if (pm==null) {
+			return null;
+		}
+		return pm.getRelatedElements(rel, je);
 	}
 	
-	private void processRelationships() {
-		IRelationshipMap relMap = AsmManager.getDefault().getRelationshipMap();
-		for (Iterator iter = relMap.getEntries().iterator(); iter.hasNext();) {
-			String sourceOfRelationship = (String) iter.next();
-			IProgramElement ipe = AsmManager.getDefault().getHierarchy()
-					.findElementForHandle(sourceOfRelationship);
-			List relationships = relMap.get(ipe);
-			for (Iterator iterator = relationships.iterator(); iterator
-					.hasNext();) {
-				Relationship rel = (Relationship) iterator.next();
-				List targets = rel.getTargets();
-				for (Iterator iterator2 = targets.iterator(); iterator2
-						.hasNext();) {
-					String t = (String) iterator2.next();
-					IProgramElement link = AsmManager.getDefault()
-							.getHierarchy().findElementForHandle(t);
-					System.err.println("relMap entry:  "
-							+ ipe.toLinkLabelString() + ", relationship: "
-							+ rel.getName() + ", target: "
-							+ link.toLinkLabelString());
-					IJavaElement sourceEl = (IJavaElement) ipeToije.get(ipe);
-					IJavaElement targetEl = (IJavaElement) ipeToije.get(link);
-					System.err.println("Eclipse entry: "
-							+ sourceEl.getElementName() + ", relationship: "
-							+ rel.getName() + ", target: "
-							+ targetEl.getElementName());
-					if (rel.getName().startsWith("advises")) {
-						System.out.println("advises");
-						List l = (List) advisesMap.get(sourceEl);
-						if (l == null) {
-							l = new ArrayList();
-							advisesMap.put(sourceEl, l);
-						}
-						l.add(targetEl);
-					}
-					if (rel.getName().startsWith("advised by")) {
-						System.out.println("advised by");
-						List l = (List) advisesMap.get(sourceEl);
-						if (l == null) {
-							l = new ArrayList();
-							advisedByMap.put(sourceEl, l);
-						}
-						l.add(targetEl);
-					}
+	
+	// new
+	public void createMap(final IProject project) {
+		System.out.println("creating map for project: " + project);
+		final AJProjectModel projectModel = new AJProjectModel(project);
+		projectModelMap.put(project,projectModel);
+		//clearAJModel(project);
+		try {
+			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+				public void run(IProgressMonitor monitor) {
+					projectModel.createProjectMap();
 				}
-			}
+			}, null);
+		} catch (CoreException coreEx) {
+			coreEx.printStackTrace();
 		}
 	}
-
-*/
 	
-	private void initForProject(IProject project) {
-		StructureModelUtil.initialiseAJDE(project);
+//	private void initForProject(IProject project) {
+//		StructureModelUtil.initialiseAJDE(project);
 //		if (!projectSet.contains(project)) {
 //			System.out.println("map requested for project: " + project
 //					+ " project not known");
@@ -230,8 +183,9 @@ public class AJModel {
 //			System.out.println("read structure model in " + elapsed + "ms");
 //			//projectSet.add(project);
 //		}
-	}
+//	}
 	
+	/*
 	private void initForFile(IFile file) {
 		IProject project = file.getProject();
 		initForProject(project);
@@ -245,35 +199,66 @@ public class AJModel {
 			fileSet.add(file);
 		}
 	}
-
+*/
 	public void aboutToBuild(IProject project) {
 		beingBuilt = project;
 	}
 	
+	/*
 	public void clearAJModel(IProject project) {
 		beingBuilt = null;
-		Set fileSet = (Set)perProjectFileSet.get(project);
-		if (fileSet!=null) {
-			fileSet.clear();
-		}
+//		Set fileSet = (Set)perProjectFileSet.get(project);
+//		if (fileSet!=null) {
+//			fileSet.clear();
+//		}
 		Map ipeToije = (Map)perProjectProgramElementMap.get(project);
 		if (ipeToije!=null) {
 			ipeToije.clear();
 		}
-		//System.out.println("cleared maps for project "+project);
+		Map advisesMap = (Map)perProjectAdvisesMap.get(project);
+		if (advisesMap != null) {
+			advisesMap.clear();
+		}
+		Map advisedByMap = (Map)perProjectAdvisedByMap.get(project);
+		if (advisedByMap != null) {
+			advisedByMap.clear();
+		}
+		System.out.println("cleared maps for project "+project);
 	}
-
+*/
+	
+	public String getJavaElementLinkName(IJavaElement je) {
+		IJavaProject jp = je.getJavaProject();
+		if (jp==null) {
+			return je.getElementName();
+		}
+		IProject proj = jp.getProject();
+		AJProjectModel pm = (AJProjectModel)projectModelMap.get(proj);
+		if (pm==null) {
+			return je.getElementName();
+		}
+		return pm.getJavaElementLinkName(je);
+	}
+	
 	/**
 	 * Maps the given IProgramElement to its corresponding IJavaElement
 	 * @param ipe
 	 * @return
 	 */
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
+		return null;
+	}
+	/*
+	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
 		IResource res = programElementToResource(ipe);
 		if (res!=null && (res instanceof IFile)) {
 			IFile file = (IFile)res;
-			initForFile(file);
+			//initForFile(file);
+			System.out.println("ipe="+ipe+" ("+ipe.hashCode()+")");
+			System.out.println("project="+file.getProject());
+			
 			Map ipeToije = (Map)perProjectProgramElementMap.get(file.getProject());
+			System.out.println("ipeToije="+ipeToije.hashCode());
 			return (IJavaElement)ipeToije.get(ipe);
 		}
 		return null;
@@ -311,7 +296,7 @@ public class AJModel {
 		}
 		return null;
 	}
-	
+	*/
 	/**
 	 * Is this element advised by something (doesn't matter what). Doesn't
 	 * trigger fullscale initialization, just the structure model
@@ -322,7 +307,11 @@ public class AJModel {
 	 * @return
 	 */
 	public boolean isAdvisedBy(IJavaElement je) {
-		//System.out.println("isBuilding="+Builder.isBuilding+" isAdvisedBy: "+je);
+		return false;
+	}
+	/*
+	public boolean isAdvisedBy(IJavaElement je) {
+		System.out.println("isAdvisedBy: "+je);
 		if (beingBuilt!=null) {
 			return false;
 		}
@@ -359,77 +348,9 @@ public class AJModel {
 		}
 		return false;
 	}
+*/
 
-
-	private void createMapForFile(final IFile file) {
-		IProject project = file.getProject();
-
-		// Don't process files in non AspectJ projects
-		try {
-			if (project == null || !project.isOpen()
-					|| !project.hasNature(AspectJUIPlugin.ID_NATURE))
-				return;
-		} catch (CoreException e) {
-		}
-
-		// Copes with linked src folders.
-		String path = file.getRawLocation().toOSString();
-
-		//System.out.println("createMapForFile: " + path);
-
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
-				true, true);
-		if (annotationsMap == null) {
-			return;
-		}
-
-		ICompilationUnit unit = AJCompilationUnitManager.INSTANCE
-				.getAJCompilationUnit(file);
-		if (unit == null) {
-			unit = JavaCore.createCompilationUnitFrom(file);
-		}
-
-		Map lineToOffset = new HashMap();
-		fillLineToOffsetMap(lineToOffset, unit);
-
-		Map ipeToije = (Map)perProjectProgramElementMap.get(project);
-		if (ipeToije==null) {
-			ipeToije = new HashMap();
-			perProjectProgramElementMap.put(project,ipeToije);
-		}
-		
-		Set keys = annotationsMap.keySet();
-		for (Iterator it = keys.iterator(); it.hasNext();) {
-			Object key = it.next();
-			//System.out.println("key="+key);
-			List annotations = (List) annotationsMap.get(key);
-			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
-				IProgramElement node = (IProgramElement) it2.next();
-				//System.out.println("node="+node);
-				ISourceLocation sl = node.getSourceLocation();
-				Integer os = (Integer) lineToOffset.get(new Integer(sl
-						.getLine()));
-				//System.out.println("os="+os);
-				int offset = os.intValue() + sl.getColumn() + 12;
-				//System.out.println("offset="+offset);
-				if (unit != null) {
-					try {
-						IJavaElement el = unit.getElementAt(offset);
-						if (el != null) {
-//							System.out.println("el=" + el + " (" +
-//							 el.getClass() + ")");
-							ipeToije.put(node, el);
-						}
-					} catch (JavaModelException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-
-				}
-			}
-		}
-	}
-
+	/*
 	private void fillLineToOffsetMap(Map map, ICompilationUnit unit) {
 		String source;
 		try {
@@ -446,7 +367,8 @@ public class AJModel {
 		} catch (JavaModelException e) {
 		}
 	}
-
+*/
+	
 	/**
 	 * Goes through all the open editors and updates the outline page for
 	 * each (if they are using the standard Java outline page.

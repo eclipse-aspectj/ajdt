@@ -378,7 +378,7 @@ public class Builder extends IncrementalProjectBuilder {
 			MarkerUpdating.addNewMarkers(project);
 			
 			//System.out.println("build finished");
-			AJModel.getInstance().clearAJModel(project);
+			AJModel.getInstance().createMap(project);
 
 			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
 				AJDTEventTrace.generalEvent("Not updating vis, display is disposed!");
