@@ -23,11 +23,9 @@ import junit.framework.TestCase;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
@@ -47,8 +45,6 @@ public class AJModelTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = Utils.getPredefinedProject("MarkersTest", true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete(project);
 	}
 
 	/*
@@ -56,6 +52,7 @@ public class AJModelTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 	
 	public void testProgramElementToJavaElementDemo() {

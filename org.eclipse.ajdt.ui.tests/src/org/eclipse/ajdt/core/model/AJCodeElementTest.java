@@ -45,45 +45,15 @@ public class AJCodeElementTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 		project = Utils.getPredefinedProject("AJProject83082", true);
-		monitor.reset();
-		project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		Utils.waitForJobsToComplete(project);
 		AJModel model = AJModel.getInstance();
 		model.createMap(project);
 
 		IFolder src = project.getFolder("src");
-		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
-		}
 		IFolder com = src.getFolder("com");
-		if (!com.exists()){
-			monitor.reset();
-			com.create(true, true, monitor);
-			monitor.waitForCompletion();
-		}
 		IFolder ibm = com.getFolder("ibm");
-		if (!ibm.exists()){
-			monitor.reset();
-			ibm.create(true, true, monitor);
-			monitor.waitForCompletion();
-		}
 		IFolder wpstest = ibm.getFolder("wpstest");
-		if (!wpstest.exists()){
-			monitor.reset();
-			wpstest.create(true, true, monitor);
-			monitor.waitForCompletion();
-		}
 		IFolder aspectjPackage = wpstest.getFolder("aspectj");
-		if (!aspectjPackage.exists()){
-			monitor.reset();
-			aspectjPackage.create(true, true, monitor);
-			monitor.waitForCompletion();
-		}
 		IFile main = aspectjPackage.getFile("Main.java");
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		ajCodeElements = createAJCodeElements(model,annotationsMap);
@@ -95,6 +65,7 @@ public class AJCodeElementTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 
 	public void testHashCode() {

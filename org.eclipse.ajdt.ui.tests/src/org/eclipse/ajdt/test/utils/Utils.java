@@ -99,13 +99,32 @@ public class Utils{
 		IProject project = root.getProject(destFolder.getName());
 		// if project isn't open, then open it
 		if (project != null && !(project.isOpen())) {
-			BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-			monitor.reset();
-			project.open(monitor);
-			monitor.waitForCompletion();
+			//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+			//monitor.reset();
+			//project.open(monitor);
+			project.open(null);
+			//monitor.waitForCompletion();
 		}
 		
+		Utils.waitForJobsToComplete(project);
 		return project;
+	}
+
+	public static void deleteProject(IProject project) {
+		// make sure nothing is still using the project
+		Utils.waitForJobsToComplete(project);
+		
+		try {
+			// perform the delete
+			project.delete(true, true, null);
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			System.out.println("***delete failed***");
+			e.printStackTrace();
+		}
+		
+		// make sure delete has finished
+		Utils.waitForJobsToComplete(project);
 	}
 	
 	/**
@@ -145,19 +164,28 @@ public class Utils{
 		}
 	}
 	
+	public static void waitForJobsToComplete() {
+		waitForJobsToComplete(null);
+	}
+	
 	public static void waitForJobsToComplete(IProject pro){
-		Job job = new Job("Dummy Job"){
-			public IStatus run(IProgressMonitor m){
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-	    job.schedule();
-	    try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
+		try {
+			SynchronizationUtils.joinBackgroudActivities();
+//		Job job = new Job("Dummy Job"){
+//			public IStatus run(IProgressMonitor m){
+//				return Status.OK_STATUS;
+//			}
+//		};
+//		job.setPriority(Job.DECORATE);
+//		job.setRule(pro);
+//	    job.schedule();
+//	    try {
+//			job.join();
+//		} catch (InterruptedException e) {
+//			// Do nothing
+//		}
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
 	}
 
