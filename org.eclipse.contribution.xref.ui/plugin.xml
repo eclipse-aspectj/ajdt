@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.eclipse.contribution.xref.ui"
+   name="%pluginName"
+   version="92.2.29"
+   provider-name="%providerName"
+   class="org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin">
+
+   <runtime>
+      <library name="xrefui.jar">
+         <export name="*"/>
+      </library>
+   </runtime>
+
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.contribution.xref.core"/>
+      <import plugin="org.aspectj.runtime"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.ui.ide"/>
+   </requires>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="Cross References"
+            icon="icons/XRefIcon.gif"
+            category="org.eclipse.jdt.ui.java"
+            class="org.eclipse.contribution.xref.internal.ui.views.XReferenceView"
+            id="org.eclipse.contribution.xref.internal.ui.views.xReferenceView">
+      </view>
+   </extension>
+ 
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="%XRefPreferencePage"
+            class="org.eclipse.contribution.xref.internal.ui.preference.XReferencePreferencePage"
+            id="org.eclipse.contribution.xref.prefspage">
+      </page>
+   </extension> 
+   
+<!--   <extension point = "org.eclipse.ui.actionSets">
+	   <actionSet 
+	       id="org.eclipse.contribution.xref.ActionSet"
+		   label="XReference Actions"
+		   visible="false">
+		   <action 
+		       id="openXRefDialog"
+			   menubarPath="navigate/open.ext2"
+			   label="Open XReference View"
+			   class="org.eclipse.contribution.xref.internal.ui.actions.OpenXReferenceDialogAction"
+			   definitionId="org.eclipse.contribution.ui.show.xrefdialog">
+		   </action>
+	   </actionSet>
+   </extension>
+-->
+<!-- =========================================================================== -->
+<!-- command definitions                                                         -->
+<!-- =========================================================================== -->
+<!--   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Category Name"
+            description="Category Description"
+            id="org.eclipse.contribution.xref.ui.category">
+      </category>
+      <command
+            name="Name of command"
+            description="Description of command"
+            category="org.eclipse.contribution.xref.ui.category"
+            id="org.eclipse.contribution.ui.show.xrefdialog">
+      </command>
+      <keyBinding
+            string="Ctrl+Alt+X"
+            scope="org.eclipse.ui.globalScope"
+            command="org.eclipse.contribution.ui.show.xrefdialog"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+   </extension>-->
+
+<!--   <extension
+         point="org.eclipse.jdt.ui.javaEditorInplaceContribution">
+      <inplaceContribution
+            name="SHOW_XREF"
+            class="org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInformationControl"
+            prefix="ShowXRef."
+            commandID="org.eclipse.contribution.xref.show.xref">
+      </inplaceContribution>
+   </extension>-->
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            name="%ActionDefinition.show.xrefView"
+            description="%ActionDefinition.show.xrefView.description"
+            category="org.eclipse.ui.category.navigate"
+            id="org.eclipse.contribution.xref.show.xref">
+      </command>
+      <keyBinding
+            string="Ctrl+Alt+X"
+            scope="org.eclipse.jdt.ui.javaEditorScope"
+            command="org.eclipse.contribution.xref.show.xref"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+   </extension>    
+
+</plugin>

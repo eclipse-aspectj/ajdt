@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.eclipse.contribution.xref.core.test"
+   name="%pluginName"
+   version="92.2.29"
+   provider-name="%providerName">
+
+   <runtime>
+      <library name="xrefcoretest.jar">
+         <export name="*"/>
+      </library>
+   </runtime>
+   <requires>
+      <import plugin="org.eclipse.contribution.xref.core"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.junit"/>
+      <import plugin="org.eclipse.core.resources"/>
+   </requires>
+
+   <extension
+         point="org.eclipse.contribution.xref.core.providers">
+      <xrefProvider
+            enabled="true"
+            label="My Label"
+            class="org.eclipse.contribution.xref.internal.core.TestProvider"
+            id="org.eclipse.contribution.xref.core.test.testProvider">
+      </xrefProvider>
+      <xrefProvider
+            enabled="true"
+            label="My Label 2"
+            class="org.eclipse.contribution.xref.internal.core.UnknownProvider"
+            id="org.eclipse.contribution.xref.core.test.unknownProvider">
+      </xrefProvider>
+   </extension>
+
+</plugin>

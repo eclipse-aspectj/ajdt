@@ -28,6 +28,7 @@ to run the last two targets you need an account on dev.eclipse.org
 <property name="aspectj.feature.version" value="1.2.0.${cctimestamp}" />
 <property name="ajdt.version" value="1.2.0.${cctimestamp}" />
 <property name="ajde.version" value="1.2.0.${cctimestamp}" />
+<property name="xref.version" value="1.2.0.${cctimestamp}" />
 <property name="aspectj.release.name" value="1.2.0" />
 <property name="aspectj.version" value="1.2.0" />
 <property name="visualiser.version" value="2.1.0.${cctimestamp}"/>
@@ -57,6 +58,10 @@ Creates an update site structure for AspectJ
   <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.test" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.core.test" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.ui.test" inheritAll="true" target="clean"/>
 </target>
 
 	
@@ -95,6 +100,14 @@ Creates an update site structure for AspectJ
 	<unzip dest="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"
 	        src="dist/plugins/org.aspectj.ajde_${ajde.version}.jar"/>
 
+	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.xref.core_${xref.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.xref.core_${xref.version}"
+	        src="dist/plugins/org.eclipse.contribution.xref.core_${xref.version}.jar"/>
+
+	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}"
+	        src="dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}.jar"/>
+
 	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"/>
 	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"
 	        src="dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}.jar"/>
@@ -111,6 +124,10 @@ Creates an update site structure for AspectJ
  <!--ant dir="../org.eclipse.aosd.relationships" inheritAll="true"/-->
  <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.core.test" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.ui.test" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.core" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.ui" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.examples" inheritAll="true"/>
@@ -139,6 +156,10 @@ Creates an update site structure for AspectJ
 	   todir="dist/plugins" />  
  <copy file="../org.eclipse.contribution.visualiser/dist/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
        todir="dist/plugins" />     
+ <copy file="../org.eclipse.contribution.xref.core/dist/org.eclipse.contribution.xref.core_${xref.version}.jar"
+	   todir="dist/plugins" />
+ <copy file="../org.eclipse.contribution.xref.ui/dist/org.eclipse.contribution.xref.ui_${xref.version}.jar"
+	   todir="dist/plugins" />
 </target>
 
 <target name="publish" depends="update-site">

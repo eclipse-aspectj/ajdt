@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.contribution.xref.core.test" default="packaged-plugin">
+
+<description>
+Create a packaged org.eclipse.contribution.xref.core.test_version plugin distribution file
+</description>
+<!-- VERSION-STRING -->
+<!-- these property values will be overridden when called from the master build script -->
+<property name="xref.version" value="1.2.0" />
+<property name="build.dir" value="build" />
+<property name="eclipse.build.version" value="3.0.0" />
+
+<!-- To run this script from inside an automated build environment such 
+     as Cruise Control the following properties are expected to have
+     been set and passed in :-
+     * external.build (set to any value) 
+     * eclipse.home (set to the directory where Eclipse has been 
+       installed on the build machine)
+     * eclipse.build.version (override the value default value set above)
+-->
+
+<target name="init">
+  <mkdir dir="${build.dir}" />
+  <mkdir dir="dist"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="${build.dir}"/>
+  <delete dir="dist"/>
+</target>
+
+<target name="externalbuild" if="external.build" >
+	<delete dir="bin"/>
+	<mkdir dir="bin"/>
+	<property file="${eclipse.home}/ajdtworkspace.properties"/>
+	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.core.test}"/>
+</target>
+
+<target name="eclipsebuild" unless="external.build" >
+	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.core.test" />
+</target>
+
+<target name="buildproject" depends="externalbuild,eclipsebuild" />
+
+<target name="xrefcoretestjar" depends="init"
+  description="Create xrefcoretest.jar, the library containing the plug-in
+    class files and properties.">
+ <!-- The following ant call is intended to provide the flexibility 
+      to build the Visualiser from within Eclipse or else from a command line
+      run of Ant (e.g. in a Cruise Control environment).
+ -->
+ <antcall target="buildproject" />
+  <zip destfile= "${build.dir}/xrefcoretest.jar" >
+  	<fileset dir="bin"/>
+  </zip>
+</target>
+
+<target name="xrefcoretestsrcjar" depends="init"
+ description="The source jar file for xref core tests, xrefcoretestsrc.jar">
+  <zip destfile= "${build.dir}/xrefcoretestsrc.jar" >
+   <fileset dir="testsrc"/>
+  </zip>
+</target>
+
+
+<target name="packaged-plugin" depends="xrefcoretestjar, xrefcoretestsrcjar"
+ description="Create the plugin jar file from the assembled components in the build dir">
+ <copy todir="${build.dir}">
+   <fileset dir=".">
+     <include name="*.xml"/>
+     <exclude name="build.*"/>
+     <include name="*.html"/>
+     <include name="*.properties"/>
+     <exclude name="plugin.*xml" />
+   </fileset>
+ </copy>
+ <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ 	<filterset begintoken="9" endtoken="9">
+ 		<filter token="2.2.2" value="${xref.version}"/>
+ 	</filterset>
+ </copy>  
+
+ <zip destfile= "dist/org.eclipse.contribution.xref.core.test_${xref.version}.jar" >
+   <fileset dir= "build" />
+ </zip>
+</target>
+</project>
