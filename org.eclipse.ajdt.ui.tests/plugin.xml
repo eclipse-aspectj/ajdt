@@ -36,6 +36,7 @@
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.contribution.visualiser.tests"/>
       <import plugin="org.eclipse.ajdt.core"/>
+      <import plugin="org.eclipse.search"/>
    </requires>
 
 </plugin>
