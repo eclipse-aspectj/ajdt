@@ -417,6 +417,9 @@ public class AspectJProjectPropertiesPage
 	private String retrieveSettingString(QualifiedName key) {
 		try {
 			String value = thisProject.getPersistentProperty(key);
+			if (value==null) {
+				return "";
+			}
 			return value;
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
