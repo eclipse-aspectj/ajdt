@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.aspectj.ajde" default="packaged-plugin">
+
+	<description>
+Creates a packaged plug-in jar for AJDE
+</description>
+
+	<!-- VERSION-STRING -->
+	<!-- these property values will be overridden when called from the master build script -->
+	<property name="ajde.version" value="9.9.9" />
+
+
+	<property name="build.dir" value="build" />
+	<property name="ajde.build.dir" value="build/ajdetemp" />
+
+	<property file="aspectjlib.properties" />
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="dist" />
+	</target>
+
+	<target name="clean" depends="init">
+		<delete dir="${build.dir}" />
+		<delete dir="dist" />
+	</target>
+
+	<target name="packaged-plugin" depends="init" description="Create the plugin jar file from the assembled components in the build dir">
+		<copy todir="${build.dir}" includeemptydirs="false">
+			<fileset dir=".">
+				<exclude name="build.*" />
+				<exclude name=".*" />
+				<exclude name="*/*" />
+				<exclude name="plugin.*xml" />
+				<exclude name="aspectjlib.properties" />
+				<depth max="0" />
+			</fileset>
+		</copy>
+		 <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+		 	<filterset begintoken="9" endtoken="9">
+		 		<filter token="2.2.2" value="${ajde.version}"/>
+		 	</filterset>
+		 </copy>
+		<copy todir="${build.dir}/doc">
+			<fileset dir="doc" />
+		</copy>
+		<copy todir="${build.dir}/icons">
+			<fileset dir="icons" />
+		</copy>
+		<zip destfile="dist/org.aspectj.ajde_${ajde.version}.jar">
+			<fileset dir="build" />
+		</zip>
+	</target>
+
+	<target name="copy doc" description="This copies the aspectj docs into the org.eclipse.ajde 
+		plugin. By default, it only copies over any changes from the current version">
+		<copy todir="doc" failonerror="false">
+			<fileset dir="${aspectj.doc.dir}">
+				<exclude name="examples" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="ajde.jar" depends="copy doc" description="When a new version of AspectJ is 
+		released, drop the aspectjrt.jar and aspectjtools.jar from the AJ lib directory into 
+		the org.aspectj.ajde directory, and then run 'ant ajde.jar' to create an ajde.jar 
+		update from them. Also need to copy aspectjrt.jar to org.aspectj.runtime plugin.">
+		<!-- <copy file="${aspectj.lib.dir}/aspectjrt.jar" tofile="aspectjrt.jar" overwrite="true" /> -->
+		<copy file="${aspectj.lib.dir}/aspectjrt.jar" tofile="../org.aspectj.runtime/aspectjrt.jar" overwrite="true" />
+		<copy file="${aspectj.lib.dir}/aspectjtools.jar" tofile="aspectjtools.jar" overwrite="true" />
+		<mkdir dir="${ajde.build.dir}" />
+		<unzip dest="${ajde.build.dir}" src="aspectjtools.jar" />
+		<delete includeemptydirs="true">
+			<fileset dir="${ajde.build.dir}">
+				<exclude name="org/aspectj/**/*.*" />
+			</fileset>
+		</delete>
+		<zip destfile="ajde.jar">
+			<fileset dir="${ajde.build.dir}" />
+		</zip>
+		<delete dir="${ajde.build.dir}" />
+
+		<!-- pull out the src zip -->
+		<copy file="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip" tofile="ajde-src.zip" />
+	</target>
+
+</project>

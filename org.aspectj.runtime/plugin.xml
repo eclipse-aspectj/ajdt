@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.aspectj.runtime"
+   name="%pluginName"
+   version="92.2.29"
+   provider-name="%providerName">
+
+   <runtime>
+      <library name="aspectjrt.jar">
+         <export name="*"/>
+      </library>
+   </runtime>
+
+</plugin>
