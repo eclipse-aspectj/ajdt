@@ -150,24 +150,21 @@ public class XReferenceContentProvider
 						parent.addChild(childNode);
 						addXReferencesToTree(childNode, xrc);
 						hasChildren = true;
-					// commenting this out for now...it was put in to 
-					// populate the view with the xrefs for the entire
-					// file, however, started to cause ClassCastExceptions
-					// at line 400 in JavaElement	
-//					} else {
-//						JavaElement subJe = (JavaElement)child;
-//						if (addChildren(childNode,subJe,xreferenceAdapter)) {
-//							parent.addChild(childNode);
-//						}
+					} else {
+						JavaElement subJe = (JavaElement)child;
+						if (addChildren(childNode,subJe,xreferenceAdapter)) {
+							parent.addChild(childNode);
+						}
 					}
 				}
 			}
 		} catch (JavaModelException e) {
-			e.printStackTrace();
+			// don't care about this exception
+			//e.printStackTrace();
 		}
 		return hasChildren;		
 	}
-	
+		
 	private void addXReferencesToTree(
 		TreeParent parent,
 		Collection xreferences) {

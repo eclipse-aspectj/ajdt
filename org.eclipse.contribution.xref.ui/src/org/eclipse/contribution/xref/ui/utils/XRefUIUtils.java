@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
@@ -57,13 +58,11 @@ public class XRefUIUtils {
 	 * Computes and returns the source reference.
 	 * 
 	 * This is taken from the computeHighlightRangeSourceReference() method
-	 * in the JavaEditor class which is used to populate the outline view, with the
-	 * added boolean argument used by the inplace view as to whether or not to
-	 * show the parent crosscutting
+	 * in the JavaEditor class which is used to populate the outline view
 	 * 
 	 * @return the computed source reference
 	 */
-	public static ISourceReference computeHighlightRangeSourceReference(JavaEditor editor, boolean showParentCrosscutting) {
+	public static ISourceReference computeHighlightRangeSourceReference(JavaEditor editor) {
 		ISourceViewer sourceViewer = editor.getViewer();
 		if (sourceViewer == null)
 			return null;
@@ -73,15 +72,13 @@ public class XRefUIUtils {
 			return null;
 		
 		int caret= 0;
-		if (!showParentCrosscutting) {
-			if (sourceViewer instanceof ITextViewerExtension5) {
-				ITextViewerExtension5 extension= (ITextViewerExtension5)sourceViewer;
-				caret= extension.widgetOffset2ModelOffset(styledText.getCaretOffset());
-			} else {
-				int offset= sourceViewer.getVisibleRegion().getOffset();
-				caret= offset + styledText.getCaretOffset();
-			}			
-		}
+		if (sourceViewer instanceof ITextViewerExtension5) {
+			ITextViewerExtension5 extension= (ITextViewerExtension5)sourceViewer;
+			caret= extension.widgetOffset2ModelOffset(styledText.getCaretOffset());
+		} else {
+			int offset= sourceViewer.getVisibleRegion().getOffset();
+			caret= offset + styledText.getCaretOffset();
+		}			
 
 		IJavaElement element= getElementAt(editor, caret, true);
 		
@@ -93,7 +90,6 @@ public class XRefUIUtils {
 			IImportDeclaration declaration= (IImportDeclaration) element;
 			IImportContainer container= (IImportContainer) declaration.getParent();
 			ISourceRange srcRange= null;
-			
 			try {
 				srcRange= container.getSourceRange();
 			} catch (JavaModelException e) {
@@ -206,8 +202,33 @@ public class XRefUIUtils {
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
 		    if (part instanceof JavaEditor) {
 			    JavaEditor je = (JavaEditor)part;
-			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je,showParentCrosscutting);
-			    a = (IAdaptable)(IJavaElement)sourceRef;                
+			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
+			    IJavaElement javaElement = (IJavaElement)sourceRef;
+			    // if we want to show the parent crosscutting (in the case of the
+			    // inplace view) and we're not already showing the xrefs for the entire
+			    // file, then need to show the xrefs for the parent of the current IJavaElement,
+			    // with some fiddling if we've selected an import or package statement.
+			    if (showParentCrosscutting && !(javaElement instanceof SourceType)) {	
+			    	if ((javaElement instanceof IImportDeclaration) 
+			    			|| (javaElement instanceof IPackageDeclaration) ) {
+			    		ICompilationUnit parent = null;
+				    	if (javaElement.getElementType() == IJavaElement.IMPORT_DECLARATION) {
+							parent = (ICompilationUnit)(javaElement.getParent().getParent()); 
+						} else if (javaElement.getElementType() == IJavaElement.PACKAGE_DECLARATION){
+							parent = (ICompilationUnit)javaElement.getParent();
+						}
+						if (parent != null 
+								&& parent.findPrimaryType() != null 
+								&& (parent.findPrimaryType() instanceof SourceType)) {
+							a = (IAdaptable)parent.findPrimaryType();
+						}
+					} else {
+					    IJavaElement parent = javaElement.getParent();
+					    a = (IAdaptable)parent;
+					}
+				} else {
+					a = (IAdaptable)javaElement;
+				}
             }
 		}
 		if (a != null) {
