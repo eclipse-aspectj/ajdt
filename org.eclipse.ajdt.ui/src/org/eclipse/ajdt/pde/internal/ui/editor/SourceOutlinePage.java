@@ -23,24 +23,18 @@ import org.eclipse.ui.views.contentoutline.*;
 /**
  * Content outline page for the XML editor.
  */
-public class SourceOutlinePage extends ContentOutlinePage implements IReconcilingParticipant, ISortableContentOutlinePage{
+public class SourceOutlinePage extends ContentOutlinePage implements IReconcilingParticipant{
 	
 	private IEditingModel fModel;
 	private IBaseLabelProvider fLabelProvider;
 	private IContentProvider fContentProvider;
-	private ViewerSorter fDefaultSorter;
 	private ViewerSorter fViewerSorter;
-	private boolean sorted;
-	TreeViewer viewer;
 	
-	public SourceOutlinePage(IEditingModel model, IBaseLabelProvider lProvider,
-			IContentProvider cProvider, ViewerSorter defaultSorter,
-			ViewerSorter sorter) {
+	public SourceOutlinePage(IEditingModel model, IBaseLabelProvider lProvider, IContentProvider cProvider, ViewerSorter sorter) {
 		super();
 		fModel = model;
 		fLabelProvider = lProvider;
 		fContentProvider = cProvider;
-		fDefaultSorter = defaultSorter;
 		fViewerSorter = sorter;
 	}
 		
@@ -49,13 +43,10 @@ public class SourceOutlinePage extends ContentOutlinePage implements IReconcilin
 	 */
 	public void createControl(Composite parent) {
 		super.createControl(parent);
-		viewer= getTreeViewer();
+		TreeViewer viewer= getTreeViewer();
 		viewer.setContentProvider(fContentProvider);
 		viewer.setLabelProvider(fLabelProvider);
-		if(sorted)
-			viewer.setSorter(fViewerSorter);
-		else
-			viewer.setSorter(fDefaultSorter);
+		viewer.setSorter(fViewerSorter);
 		viewer.setInput(fModel);
 		viewer.expandAll();
 	}
@@ -83,22 +74,11 @@ public class SourceOutlinePage extends ContentOutlinePage implements IReconcilin
 			return;
 		control.getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				if(control.isDisposed()){
-					return;
-				}
 				control.setRedraw(false);
 				getTreeViewer().refresh();
 				getTreeViewer().expandAll();
 				control.setRedraw(true);
 			}
 		});
-	}
-	public void sort (boolean sorting){
-		sorted = sorting;
-		if(viewer!=null)
-			if(sorting)
-				viewer.setSorter(fViewerSorter);
-			else
-				viewer.setSorter(fDefaultSorter);
 	}
 }

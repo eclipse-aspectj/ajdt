@@ -177,18 +177,24 @@ public abstract class ModelUndoManager
 	
 	private String getUndoText() {
 		IModelChangedEvent op = getCurrentOperation();
-		if (op == null) {
+		if (op==null) {
 			return PDEPlugin.getResourceString(KEY_NO_UNDO);
 		}
-		return PDEPlugin.getFormattedMessage(KEY_UNDO, getOperationText(op));	
+		else {
+			String opText = getOperationText(op);
+			return PDEPlugin.getFormattedMessage(KEY_UNDO, opText);
+		}
 	}
 
 	private String getRedoText() {
 		IModelChangedEvent op = getNextOperation();
-		if (op == null) {
+		if (op==null) {
 			return PDEPlugin.getResourceString(KEY_NO_REDO);
 		}
-		return PDEPlugin.getFormattedMessage(KEY_REDO, getOperationText(op));
+		else {
+			String opText = getOperationText(op);
+			return PDEPlugin.getFormattedMessage(KEY_REDO, opText);
+		}
 	}
 		
 	private String getOperationText(IModelChangedEvent op) {

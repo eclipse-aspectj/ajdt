@@ -43,7 +43,6 @@ public class PDEMultiPagePropertySheet implements IPropertySheetPage {
 	}
 
 	public void createControl(Composite parent) {
-		disposed = false;
 		pagebook = new PageBook(parent, SWT.NULL);
 		defaultPage.createControl(pagebook);
 		if (currentPage != null)
@@ -64,12 +63,6 @@ public class PDEMultiPagePropertySheet implements IPropertySheetPage {
 	}
 	public void dispose() {
 		updateActionBars();
-		
-		for (Enumeration enm=recMap.elements(); enm.hasMoreElements();) {
-			PageRec rec = (PageRec)enm.nextElement();
-			rec.bars.dispose();
-		}
-		recMap.clear();
 
 		if (pagebook != null && !pagebook.isDisposed())
 			pagebook.dispose();

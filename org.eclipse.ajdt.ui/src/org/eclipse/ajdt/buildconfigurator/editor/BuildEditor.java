@@ -17,7 +17,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.pde.core.build.IBuildModel;
 import org.eclipse.pde.internal.core.build.IBuildObject;
 import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.ajdt.pde.internal.ui.editor.ISortableContentOutlinePage;
 import org.eclipse.ajdt.pde.internal.ui.editor.MultiSourceEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
@@ -145,10 +144,6 @@ public class BuildEditor extends MultiSourceEditor {
 	 */
 	protected PDESourcePage createSourcePage(PDEFormEditor editor, String title, String name, String contextId) {
 		return new BuildSourcePage(editor, title, name);
-	}
-	
-	protected ISortableContentOutlinePage createContentOutline() {
-		return new BuildOutlinePage(this);
 	}
 	
 	protected IPropertySheetPage getPropertySheet(PDEFormPage page) {

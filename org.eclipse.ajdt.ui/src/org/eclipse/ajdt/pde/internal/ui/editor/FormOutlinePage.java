@@ -13,10 +13,8 @@ import java.util.ArrayList;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.pde.core.*;
-import org.eclipse.pde.internal.core.plugin.ImportObject;
 import org.eclipse.pde.internal.ui.*;
 import org.eclipse.pde.internal.ui.elements.DefaultContentProvider;
-import org.eclipse.pde.internal.ui.model.IDocumentNode;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
@@ -25,10 +23,8 @@ import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class FormOutlinePage extends ContentOutlinePage
 		implements
-			IModelChangedListener, ISortableContentOutlinePage {
+			IModelChangedListener {
 	private boolean stale;
-	private ViewerSorter fViewerSorter;
-	private boolean sorted;
 	public class BasicContentProvider extends DefaultContentProvider
 			implements
 				ITreeContentProvider {
@@ -57,33 +53,14 @@ public class FormOutlinePage extends ContentOutlinePage
 			return PDEPlugin.getDefault().getLabelProvider().getImage(obj);
 		}
 	}
-	public class BasicSorter extends ViewerSorter {
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ViewerSorter#category(java.lang.Object)
-		 */
-		public int category(Object element) {
-			Object[] pages = getPages();
-			for(int i=0; i<pages.length; i++){
-				if(pages[i]==element){
-					return i;
-				}
-			}
-			return Integer.MAX_VALUE;
-		}
-	}
 	protected TreeViewer treeViewer;
 	protected PDEFormEditor editor;
-	protected boolean editorSelection = false;
-	protected boolean outlineSelection = false;
+	
 	public FormOutlinePage(PDEFormEditor editor) {
 		this.editor = editor;
 	}
 	protected ITreeContentProvider createContentProvider() {
 		return new BasicContentProvider();
-	}
-	protected ViewerSorter createOutlineSorter(){
-		fViewerSorter = new BasicSorter();
-		return fViewerSorter;
 	}
 	public void createControl(Composite parent) {
 		Tree widget = new Tree(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -91,11 +68,6 @@ public class FormOutlinePage extends ContentOutlinePage
 		treeViewer.addSelectionChangedListener(this);
 		treeViewer.setContentProvider(createContentProvider());
 		treeViewer.setLabelProvider(createLabelProvider());
-		createOutlineSorter();
-		if(sorted)
-			treeViewer.setSorter(fViewerSorter);
-		else
-			treeViewer.setSorter(null);
 		treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
 		treeViewer.setUseHashlookup(true);
 		treeViewer.setInput(editor);
@@ -163,21 +135,14 @@ public class FormOutlinePage extends ContentOutlinePage
 	}
 	
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (editorSelection)
-			return;
-		outlineSelection = true;
-		try {
-			ISelection selection = event.getSelection();
-			if (selection.isEmpty() == false
-					&& selection instanceof IStructuredSelection) {
-				IStructuredSelection ssel = (IStructuredSelection) selection;
-				Object item = ssel.getFirstElement();
-				selectionChanged(item);
-			}
-			fireSelectionChanged(selection);
-		} finally {
-			outlineSelection = false;
+		ISelection selection = event.getSelection();
+		if (selection.isEmpty() == false
+				&& selection instanceof IStructuredSelection) {
+			IStructuredSelection ssel = (IStructuredSelection) selection;
+			Object item = ssel.getFirstElement();
+			selectionChanged(item);
 		}
+		fireSelectionChanged(selection);
 	}
 	public void setFocus() {
 		if (treeViewer != null)
@@ -187,46 +152,5 @@ public class FormOutlinePage extends ContentOutlinePage
 		if (treeViewer == null)
 			return StructuredSelection.EMPTY;
 		return treeViewer.getSelection();
-	}
-	public void sort (boolean sorting){
-		sorted = sorting;
-		if(treeViewer!=null)
-			if(sorting)
-				treeViewer.setSorter(fViewerSorter);
-			else
-				treeViewer.setSorter(null);
-	}
-	/*
-	 * (non-Javadoc) Method declared on ISelectionProvider.
-	 */
-	public void setSelection(ISelection selection) {
-		if (outlineSelection)
-			return;
-		editorSelection = true;
-		try {
-			if (treeViewer == null)
-				return;
-			if (!selection.isEmpty()
-					&& selection instanceof IStructuredSelection) {
-				Object item = ((IStructuredSelection) selection)
-						.getFirstElement();
-				if (item instanceof ImportObject) {
-					selection = new StructuredSelection(((ImportObject) item)
-							.getImport());
-				}
-				if (item instanceof IDocumentNode) {
-					while (null == treeViewer.testFindItem(item)) {
-						item = ((IDocumentNode) item).getParentNode();
-						if (item == null) {
-							break;
-						} 
-						selection = new StructuredSelection(item);					
-					}
-				}
-			}
-			treeViewer.setSelection(selection);
-		} finally {
-			editorSelection = false;
-		}
 	}
 }

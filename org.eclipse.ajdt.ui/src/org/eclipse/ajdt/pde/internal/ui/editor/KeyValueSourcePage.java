@@ -38,7 +38,7 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.neweditor.PDESourcePage#createViewerSorter()
 	 */
-	protected ViewerSorter createDefaultOutlineSorter() {
+	protected ViewerSorter createViewerSorter() {
 		return new ViewerSorter() {
 			public int compare(Viewer viewer, Object e1, Object e2) {
 				IDocumentKey key1 = (IDocumentKey)e1;
@@ -74,13 +74,6 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 		int length = key.getLength();
 		setHighlightRange(offset, length, true);
 		sourceViewer.setSelectedRange(offset, key.getName().length());
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.pde.internal.ui.editor.PDESourcePage#createOutlineSorter()
-	 */
-	protected ViewerSorter createOutlineSorter() {
-		return new ViewerSorter();
 	}
 
 }

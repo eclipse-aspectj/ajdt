@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
  * @author dejan
@@ -27,7 +28,7 @@ import org.eclipse.ui.IActionBars;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class EmptyOutlinePage implements ISortableContentOutlinePage {
+public class EmptyOutlinePage implements IContentOutlinePage {
 	private Composite control;
 	/**
 	 * 
@@ -84,10 +85,5 @@ public class EmptyOutlinePage implements ISortableContentOutlinePage {
 	 * @see org.eclipse.jface.viewers.ISelectionProvider#setSelection(org.eclipse.jface.viewers.ISelection)
 	 */
 	public void setSelection(ISelection selection) {
-	}
-	/* (non-Javadoc)
-	 * @see org.eclipse.pde.internal.ui.editor.ISortable#sort(boolean)
-	 */
-	public void sort(boolean sorting) {
 	}
 }
