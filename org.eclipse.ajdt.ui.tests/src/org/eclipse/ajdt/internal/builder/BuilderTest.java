@@ -187,6 +187,7 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 		
+		Utils.deleteProject(simpleProject);
 	}
 
 	/**
@@ -302,6 +303,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile2.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		Utils.waitForJobsToComplete();
 		assertFalse("newFile2.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
+
+		Utils.deleteProject(simpleProject);
 	}
 
 	/**
@@ -413,6 +416,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
+
+		Utils.deleteProject(simpleProject);
 	}
 
 	/**
@@ -518,6 +523,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
+
+		Utils.deleteProject(simpleProject);
 	}
 
 	/**
@@ -682,6 +689,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFile4.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		Utils.waitForJobsToComplete();
 		assertFalse("newFile4.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
+
+		Utils.deleteProject(simpleProject);
 	}
 
 	/**
@@ -758,6 +767,7 @@ public class BuilderTest extends TestCase {
 		// why there is a sleep above.
 		assertFalse("newFile.txt should NOT exist in the top dir(path=" + path + ")",new File(path).exists());
 
+		Utils.deleteProject(project);
 	}
 
 	
@@ -876,6 +886,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage3.exists());
 
 		Utils.waitForJobsToComplete();
+		
+		Utils.deleteProject(simpleProject);
 	}
 
 	
@@ -980,6 +992,7 @@ public class BuilderTest extends TestCase {
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder3.exists());
 		Utils.waitForJobsToComplete();
 
+		Utils.deleteProject(simpleProject);
 	}
 
 	

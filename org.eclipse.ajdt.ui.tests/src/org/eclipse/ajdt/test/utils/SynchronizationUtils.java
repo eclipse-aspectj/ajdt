@@ -25,6 +25,7 @@ import org.eclipse.jdt.core.search.ITypeNameRequestor;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.internal.corext.util.AllTypesCache;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -112,8 +113,12 @@ public class SynchronizationUtils {
 	}
 	
 	private static void runEventQueue(Shell shell) {
-		while (shell.getDisplay().readAndDispatch()) {
-			// do nothing
+		try {
+			while (shell.getDisplay().readAndDispatch()) {
+				// do nothing
+			}
+		} catch (SWTException e) {
+			System.err.println(e);
 		}
 	}
 	

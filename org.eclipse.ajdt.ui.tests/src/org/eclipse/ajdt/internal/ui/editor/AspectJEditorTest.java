@@ -43,6 +43,7 @@ public class AspectJEditorTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 	
 	private void openFileTest(IFile file, boolean shouldBeOpenedInAspectJEditor){

@@ -23,6 +23,8 @@ import org.eclipse.ajdt.internal.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
+import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionTest;
+import org.eclipse.ajdt.internal.ui.editor.AspectJEditorTest;
 import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
@@ -75,8 +77,8 @@ public class AllTests {
 		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
 //
 //		// internal.ui.editor tests
-//		suite.addTest(new TestSuite(AspectJEditorTest.class));
-//		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
+		suite.addTest(new TestSuite(AspectJEditorTest.class));
+		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
 //
 //		// code format tests
 		suite.addTest(new TestSuite(CodeFormatTest.class));

@@ -64,6 +64,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 	
 	public void testSetBreakpointA(){
@@ -92,17 +93,17 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 		ITextEditor editorPart = (ITextEditor)Utils.openFileInEditor(sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete(sourcefile.getProject());
+		Utils.waitForJobsToComplete();
 		
 		//toggling breakpoint on line 17 should add it
 		setBreakpoint(17, true, sourcefile, editorPart);
 		
-		Utils.waitForJobsToComplete(sourcefile.getProject());
+		Utils.waitForJobsToComplete();
 		
 		//toggling breakpoint on line 17 should remove it agin
 		setBreakpoint(17, true, sourcefile, editorPart);
 		
-		Utils.waitForJobsToComplete(sourcefile.getProject());
+		Utils.waitForJobsToComplete();
 		
 		//toggling breakpoint on line 100 should not be possible
 		setBreakpoint(100, false, sourcefile, editorPart);
@@ -113,7 +114,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 		clickLine(line, rulerInfo);
 		int numOfMarkers = getNumOfMarkers(file, editor);
 		(new AspectJBreakpointRulerAction(rulerInfo, editor, editor)).run();
-		Utils.waitForJobsToComplete(file.getProject());
+		Utils.waitForJobsToComplete();
 		
 		int newNumOfMarkers = getNumOfMarkers(file, editor);
 		//hasBreakpointOnCurrentLine(file, editor);
