@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 public class ProjectBuildConfigurationTest2 extends TestCase {
 
 	public void testBug84310a() throws Exception {
+		final String expected = "build";
 		IProject project = Utils.createPredefinedProject("bug84310a");
 
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
@@ -31,8 +32,8 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 				"Didn't get a project build configurator for our project", pbc);
 
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-		if (!bc.getName().equals("build")) {
-			fail("The active build configuration for project bug84310a should be \"build\". Instead it's: "
+		if (!bc.getName().equals(expected)) {
+			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: "
 					+ bc.getName());
 		}
 
@@ -40,6 +41,7 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 	}
 
 	public void testBug84310b() throws Exception {
+		final String expected = "aardvark";
 		IProject project = Utils.createPredefinedProject("bug84310b");
 
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
@@ -49,12 +51,32 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 				"Didn't get a project build configurator for our project", pbc);
 
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-		if (!bc.getName().equals("aardvark")) {
-			fail("The active build configuration for project bug84310a should be \"aardvark\". Instead it's: "
+		if (!bc.getName().equals(expected)) {
+			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: "
 					+ bc.getName());
 		}
 		
 		Utils.deleteProject(project);
 	}
 
+	public void testGetActiveConfigFromSettings() throws Exception {
+		final String expected = "monkey";
+		// this project should have a preference value under the .settings
+		// directory indicating the active build configuration
+		IProject project = Utils.createPredefinedProject("DotSettings");
+
+		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
+		ProjectBuildConfigurator pbc = conf
+				.getProjectBuildConfigurator(project);
+		assertNotNull(
+				"Didn't get a project build configurator for our project", pbc);
+
+		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		if (!bc.getName().equals(expected)) {
+			fail("The active build configuration for project DotSettings should be \""+expected+"\". Instead it's: "
+					+ bc.getName());
+		}
+
+		Utils.deleteProject(project);
+	}
 }
