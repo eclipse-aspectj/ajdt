@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.parserbridge;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
@@ -39,6 +41,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -470,5 +473,36 @@ public class AJCompilationUnitStructureRequestor extends
 		if ((problem.getID() & IProblem.Syntax) != 0){
 			this.hasSyntaxErrors = true;
 		}		
+	}
+	
+	/**
+	 * Resolves duplicate handles by incrementing the occurrence count of the
+	 * handle being created until there is no conflict.
+	 */
+	protected void resolveDuplicates(IJavaElement handle) {
+		Class clazz = CompilationUnitStructureRequestor.class;
+		Method m;
+		try {
+			try {
+				// version in eclipse 3.0.0, 3.0.1, and 3.1M1
+				m = clazz.getDeclaredMethod("resolveDuplicates", //$NON-NLS-1$
+						new Class[] { IJavaElement.class });
+				m.invoke(this, new Object[] { handle });
+			} catch (NoSuchMethodException e) {
+				// version in eclipse 3.1M2, and possibly later
+				m = clazz
+						.getDeclaredMethod(
+								"resolveDuplicates", new Class[] { //$NON-NLS-1$
+								Class
+										.forName("org.eclipse.jdt.internal.core.SourceRefElement") }); //$NON-NLS-1$
+				m.invoke(this, new Object[] { handle });
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		} catch (ClassNotFoundException e) {
+		}
 	}
 }
