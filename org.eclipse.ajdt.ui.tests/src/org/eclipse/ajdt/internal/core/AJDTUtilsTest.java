@@ -18,9 +18,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -31,7 +29,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
@@ -58,7 +55,7 @@ public class AJDTUtilsTest extends TestCase {
 
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
-		setUpPluginEnvironment();
+		Utils.setUpPluginEnvironment();
 		IProject testPluginProject = Utils.createPredefinedProject("Hello World Java Plugin");
 		Utils.waitForJobsToComplete();
 		assertFalse("Plugin project shouldn't have AspectJ nature",
@@ -78,7 +75,7 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		Utils.deleteProject(testPluginProject);
-		resetPluginEnvironment();
+		Utils.resetPluginEnvironment();
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
@@ -109,7 +106,7 @@ public class AJDTUtilsTest extends TestCase {
 	 * 
 	 */
 	public void testGetPDEManifestEditor() throws Exception {
-		setUpPluginEnvironment();
+		Utils.setUpPluginEnvironment();
 		// know that the plugin id of this is HelloWorld
 		IProject projectA1 = Utils.createPredefinedProject("Hello World Java Plugin");
 		Utils.waitForJobsToComplete();
@@ -126,7 +123,7 @@ public class AJDTUtilsTest extends TestCase {
 						.getPartName().equals("PluginWithView"));
 		Utils.deleteProject(projectA1);
 		Utils.deleteProject(projectA2);
-		resetPluginEnvironment();
+		Utils.resetPluginEnvironment();
 	}
 
 	// We now longer change project dependencies in this way, so test removed
@@ -249,23 +246,6 @@ public class AJDTUtilsTest extends TestCase {
 			}
 		}
 		return false;
-	}
-
-	private void setUpPluginEnvironment() throws CoreException {
-		// set the project up so that when asked, the pde plugin
-		// is added automatically and the preference configurations
-		// have all been set up (therefore don't need user
-		// interaction.
-		AspectJPreferences.setAskPDEAutoImport(false);
-		AspectJPreferences.setDoPDEAutoImport(true);
-		AspectJPreferences.setPDEAutoImportConfigDone(true);
-	}
-
-	private void resetPluginEnvironment() {
-		IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
-		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
-		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
-		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
 	}
 
 	public static class MyJobChangeListener implements IJobChangeListener {

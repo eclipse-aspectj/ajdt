@@ -15,15 +15,11 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest.MyJobChangeListener;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
  * @author hawkinsh
@@ -146,7 +142,7 @@ public class ProjectDependenciesTest extends TestCase {
 	 * 70288)
 	 */
 	public void testProjectDependenciesWithPluginProjects() throws Exception {
-		setUpPluginEnvironment();
+		Utils.setUpPluginEnvironment();
 		MyJobChangeListener listener = new MyJobChangeListener();
 		Platform.getJobManager().addJobChangeListener(listener);
 
@@ -178,7 +174,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-		resetPluginEnvironment();
+		Utils.resetPluginEnvironment();
 	}
 
 	/**
@@ -297,22 +293,6 @@ public class ProjectDependenciesTest extends TestCase {
 //		monitor.waitForCompletion();
 	}
 
-	private void setUpPluginEnvironment() throws CoreException {
-		// set the project up so that when asked, the pde plugin
-		// is added automatically and the preference configurations
-		// have all been set up (therefore don't need user
-		// interaction.
-		AspectJPreferences.setAskPDEAutoImport(false);
-		AspectJPreferences.setDoPDEAutoImport(true);
-		AspectJPreferences.setPDEAutoImportConfigDone(true);
-	}
-
-	private void resetPluginEnvironment() {
-		IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
-		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
-		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
-		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
-	}
 
 
 }

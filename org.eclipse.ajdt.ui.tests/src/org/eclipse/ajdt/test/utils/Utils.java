@@ -25,6 +25,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -182,6 +183,29 @@ public class Utils{
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void setUpPluginEnvironment() throws CoreException {
+		// set the project up so that when asked, the pde plugin
+		// is added automatically and the preference configurations
+		// have all been set up (therefore don't need user
+		// interaction.
+		AspectJPreferences.setAskPDEAutoImport(false);
+		AspectJPreferences.setDoPDEAutoImport(true);
+		AspectJPreferences.setPDEAutoImportConfigDone(true);
+		AspectJPreferences.setAskPDEAutoRemoveImport(false);
+		AspectJPreferences.setDoPDEAutoRemoveImport(true);
+		AspectJPreferences.setPDEAutoRemoveImportConfigDone(true);
+	}
+
+	public static void resetPluginEnvironment() {
+		IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
+		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
+		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
+		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
+		ps.setToDefault(AspectJPreferences.PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE);
+		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT);
+		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT);
 	}
 
 }
