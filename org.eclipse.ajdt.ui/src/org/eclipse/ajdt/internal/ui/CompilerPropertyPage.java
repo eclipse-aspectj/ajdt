@@ -716,7 +716,7 @@ public class CompilerPropertyPage extends PropertyPage {
 				curr.setEnabled(true);
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.setSelection(defaultValue.equals("enabled"));
+			curr.setSelection(defaultValue.equals(JavaCore.ENABLED));
 		}
 	}
 
@@ -763,9 +763,10 @@ public class CompilerPropertyPage extends PropertyPage {
 		createLabel(parent,"");//filler
 		
 		String currValue = AspectJPreferences.getStringPrefValue(thisProject,key);
-		if (currValue.equals("")) {
+		if (currValue.equals("") || currValue.equals("true") || currValue.equals("false")) { //$NON-NLS-1$ //$NON-NLS-1$ //$NON-NLS-1$
 			currValue = (String)defaultValueMap.get(key);
 		}
+		
 		checkBox.setSelection(currValue.equals(JavaCore.ENABLED));
 
 		fCheckBoxes.add(checkBox);
@@ -922,17 +923,6 @@ public class CompilerPropertyPage extends PropertyPage {
 			}
 		}
 		control.setEnabled(true);
-		if (control instanceof Combo) {
-			Combo curr = (Combo) control;
-			ControlData data = (ControlData) curr.getData();
-			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.select(data.getSelection(defaultValue));			
-		} else if (control instanceof Button){
-			Button curr = (Button) control;
-			ControlData data = (ControlData) curr.getData();
-			String defaultValue = (String)defaultValueMap.get(data.getKey());
-			curr.setSelection(defaultValue.equals("enabled"));
-		}
 	}
 	
 	/**

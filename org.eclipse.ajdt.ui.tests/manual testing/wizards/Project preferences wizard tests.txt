@@ -98,5 +98,17 @@ The following behaviour should be seen:
 	(9) Bringing up the preference page with "use workspace settings" 
 		check, switching to using project settings, changing a couple 
 		of the settings and then returning to using workspace settings 
-		should not prompt for a build (if haven't changed workspace settings).     (PREFS_19)        
+		should not prompt for a build (if haven't changed workspace settings).     (PREFS_19)    
+		
+Test for default values on AJ compiler page
+-------------------------------------------
+
+(1) Check out Simple AJ Project (must have a new version of this - not changed project
+    properties for this project yet)
+(2) Right click on Simple AJ Project > select properties > AspectJ Compiler
+(3) Click "use project settings"
+(4) navigate to the "other" tab
+(5) check that "use incremental" and "create stucture model" options are checked, 
+    whereas output weaving messages isn't.											(PREFS_20)
+    		    
 	           			
