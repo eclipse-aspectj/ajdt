@@ -27,12 +27,14 @@ import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
+import org.eclipse.contribution.visualiser.markerImpl.ResourceMember;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.StealthMarkupKind;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
 import org.eclipse.contribution.visualiser.utils.MarkupUtils;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
@@ -258,6 +260,11 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				IJavaElement jEl = ((JDTMember)member).getResource();
 				if (jEl != null) {
 					JDTUtils.openInEditor(jEl.getResource(), stripe.getOffset());
+				}
+			} else if (member instanceof ResourceMember) {
+				IResource res = ((ResourceMember)member).getResource();
+				if (res != null) {
+					JDTUtils.openInEditor(res, stripe.getOffset());
 				}
 			}
 			return false;

@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
@@ -24,6 +25,8 @@ import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTGroup;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
+import org.eclipse.contribution.visualiser.utils.JDTUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -140,13 +143,18 @@ public class AJDTContentProvider extends JDTContentProvider {
 							if(res != null) {
 								String name = res.getName();
 								name = name.substring(0, name.lastIndexOf("."));
-								IMember member = new JDTMember(name, jEl);
+								IMember member;
+								if (jEl != null) {
+									member = new JDTMember(name, jEl);
+								} else {
+									member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
+								}
 								member.setSize(((Integer)info[1]).intValue());
 								group.add(member);
 								currentMembers.add(member);
 								if(defaultPackage) {
 									((SimpleMember)member).setFullName(member.getName());
-								}
+								}							
 							}
 						}
 						if(group.getSize().intValue() > 0) {
@@ -170,7 +178,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 						IJavaElement jEl = JavaCore.create(res);
 						String name = res.getName();
 						name = name.substring(0, name.lastIndexOf("."));
-						IMember member = new JDTMember(name, jEl);
+						IMember member;
+						if (jEl != null) {
+							member = new JDTMember(name, jEl);
+						} else {
+							member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
+						}
 						member.setSize(((Integer)info[1]).intValue());
 						group.add(member);
 						currentMembers.add(member);
@@ -198,7 +211,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 					IJavaElement jEl = JavaCore.create(res);
 					String name = res.getName();
 					name = name.substring(0, name.lastIndexOf("."));
-					IMember member = new JDTMember(name, jEl);
+					IMember member;
+					if (jEl != null) {
+						member = new JDTMember(name, jEl);
+					} else {
+						member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
+					}
 					member.setSize(((Integer)info[1]).intValue());
 					group.add(member);
 					currentMembers.add(member);
@@ -239,6 +257,32 @@ public class AJDTContentProvider extends JDTContentProvider {
 	public void reset() {
 		currentGroups = null;
 		currentMembers = null;		
+	}
+	
+	
+	/**
+	 * Process a mouse click on a member
+	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#processMouseclick(IMember, boolean, int)
+	 */
+	public boolean processMouseclick(
+		IMember member,
+		boolean markupWasClicked,
+		int buttonClicked) {
+		
+		if(buttonClicked != 1){
+			return true;	
+		}
+		if(markupWasClicked) {
+			return false;
+		}
+		if (member instanceof JDTMember) {
+			IJavaElement jEl = ((JDTMember)member).getResource();
+			if (jEl != null) {
+				JDTUtils.openInEditor(jEl.getResource(), JDTUtils.getClassDeclLineNum(jEl));
+			}
+		}
+		
+		return false;
 	}
 	
 }
