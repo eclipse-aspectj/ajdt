@@ -45,11 +45,13 @@ import org.eclipse.ajdt.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -226,6 +228,11 @@ public class Builder extends IncrementalProjectBuilder {
 			// in this project has changed (a .java file, a .aj file or a 
 			// .lst file)
 			IResourceDelta dta = getDelta(getProject());
+			// copy over any new resources (bug 78579)
+			if(dta != null) {
+				copyResources(javaProject,dta);
+			}
+			
 
 			if (kind != FULL_BUILD) {
 				// need to add check here for whether the classpath has changed
@@ -1046,4 +1053,234 @@ public class Builder extends IncrementalProjectBuilder {
 		}
 		return count;
 	}
+	
+	/**
+	 * Returns the CPE_SOURCE classpath entries for the given IJavaProject
+	 * 
+	 * @param IJavaProject
+	 */
+	private IClasspathEntry[] getSrcClasspathEntry(IJavaProject javaProject) throws JavaModelException {
+		List srcEntries = new ArrayList();
+		if (javaProject == null) {
+			return new IClasspathEntry[0];
+		}
+		IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
+		for (int j = 0; j < cpEntry.length; j++) {
+			IClasspathEntry entry = cpEntry[j];
+			if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				srcEntries.add(entry);
+			}
+		}	
+		return (IClasspathEntry[]) srcEntries.toArray(new IClasspathEntry[srcEntries.size()]);
+	}
+	
+	/**
+	 * Copies non-src resources to the output directory (bug 78579). The main
+	 * part of this method was taken from 
+	 * org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta)
+	 * 
+	 * @param IJavaProject - the project which is being built
+	 * @param IResourceDelta - the projects delta
+	 * @throws CoreException
+	 */
+	private boolean copyResources(IJavaProject project, IResourceDelta delta) throws CoreException {
+		IClasspathEntry[] srcEntries = getSrcClasspathEntry(project);
+
+		for (int i = 0, l = srcEntries.length; i < l; i++) {
+			IClasspathEntry srcEntry = srcEntries[i];
+			IPath srcPath = srcEntry.getPath().removeFirstSegments(1);			
+			IContainer srcContainer = getContainerForGivenPath(srcPath,project.getProject());
+
+			if(srcContainer.equals(project.getProject())) {				
+				int segmentCount = delta.getFullPath().segmentCount();
+				IResourceDelta[] children = delta.getAffectedChildren();
+				for (int j = 0, m = children.length; j < m; j++)
+					if (!isExcludedFromProject(project,children[j].getFullPath(),srcEntries))
+						copyResources(project, children[j], srcEntry, segmentCount);
+			} else {
+				IPath projectRelativePath = srcEntry.getPath().removeFirstSegments(1);
+				projectRelativePath.makeRelative();
+				
+				IResourceDelta sourceDelta = delta.findMember(projectRelativePath);
+				if (sourceDelta != null) {
+					if (sourceDelta.getKind() == IResourceDelta.REMOVED) {
+						return false; // removed source folder should not make it here, but handle anyways (ADDED is supported)
+					}
+					int segmentCount = sourceDelta.getFullPath().segmentCount();
+					IResourceDelta[] children = sourceDelta.getAffectedChildren();
+					try {
+						for (int j = 0, m = children.length; j < m; j++)
+							copyResources(project, children[j], srcEntry, segmentCount);
+					} catch (org.eclipse.core.internal.resources.ResourceException e) {
+						// catch the case that a package has been renamed and collides on disk with an as-yet-to-be-deleted package
+						if (e.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
+							return false;
+						}
+						throw e; // rethrow
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Copies non-src resources to the output directory (bug 78579). The main
+	 * part of this method was taken from 
+	 * org.eclipse.jdt.internal.core.builder.IncrementalImageBuilder.findSourceFiles(IResourceDelta,ClasspathMultiDirectory,int)
+	 * 
+	 * @param IJavaProject - the project which is being built
+	 * @param IResourceDelta - the projects delta
+	 * @param IClasspathEntry - the src entry on the classpath
+	 * @param int - the segment count
+	 * 
+	 * @throws CoreException
+	 */
+	private void copyResources(IJavaProject javaProject, IResourceDelta sourceDelta, IClasspathEntry srcEntry, int segmentCount) throws CoreException {
+		IResource resource = sourceDelta.getResource();
+        IPath outputPath = srcEntry.getOutputLocation();
+        if (outputPath == null) {
+			outputPath = javaProject.getOutputLocation();
+		}
+        outputPath = outputPath.removeFirstSegments(1).makeRelative();   
+
+        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());        
+        IContainer srcContainer = getContainerForGivenPath(srcEntry.getPath().removeFirstSegments(1),javaProject.getProject());
+
+		switch(resource.getType()) {
+			case IResource.FOLDER :
+				switch (sourceDelta.getKind()) {
+					case IResourceDelta.ADDED :
+						IPath addedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
+						createFolder(addedPackagePath, outputFolder); // ensure package exists in the output folder
+						// fall thru & collect all the resource files
+					case IResourceDelta.CHANGED :
+						IResourceDelta[] children = sourceDelta.getAffectedChildren();
+						for (int i = 0, l = children.length; i < l; i++)
+							copyResources(javaProject, children[i],srcEntry, segmentCount);
+						return;
+					case IResourceDelta.REMOVED :
+						IPath removedPackagePath = resource.getFullPath().removeFirstSegments(segmentCount);
+					    IClasspathEntry[] srcEntries = getSrcClasspathEntry(javaProject);
+					    if (srcEntries.length > 1) {
+							for (int i = 0, l = srcEntries.length; i < l; i++) {
+								IPath srcPath = srcEntries[i].getPath().removeFirstSegments(1);
+								IFolder srcFolder = javaProject.getProject().getFolder(srcPath);
+								if (srcFolder.getFolder(removedPackagePath).exists()) {
+									// only a package fragment was removed, same as removing multiple source files
+									createFolder(removedPackagePath, outputFolder); // ensure package exists in the output folder
+									IResourceDelta[] removedChildren = sourceDelta.getAffectedChildren();
+									for (int j = 0, m = removedChildren.length; j < m; j++)
+										copyResources(javaProject,removedChildren[j], srcEntry, segmentCount);
+									return;
+								}
+							}
+						}
+						IFolder removedPackageFolder = outputFolder.getFolder(removedPackagePath);
+						if (removedPackageFolder.exists())
+							removedPackageFolder.delete(IResource.FORCE, null);
+				}
+				return;
+			case IResource.FILE :
+				// only do something if the output folder is different to the src folder
+				if (!outputFolder.equals(srcContainer)) {
+					// copy all resource deltas to the output folder
+					IPath resourcePath = resource.getFullPath().removeFirstSegments(segmentCount);
+					if (resourcePath == null) return;
+					// don't want to copy over .aj or .java files
+			        if (resourcePath.getFileExtension() != null 
+			        		&& (resourcePath.getFileExtension().equals("aj") //$NON-NLS-1$
+			        				|| resourcePath.getFileExtension().equals("java"))) { //$NON-NLS-1$
+						return;
+					}
+			        IResource outputFile = outputFolder.getFile(resourcePath);
+					switch (sourceDelta.getKind()) {
+						case IResourceDelta.ADDED :
+							if (outputFile.exists()) {
+								AJDTEventTrace.generalEvent("Deleting existing file " + resourcePath);//$NON-NLS-1$
+								outputFile.delete(IResource.FORCE, null);
+							}
+							AJDTEventTrace.generalEvent("Copying added file " + resourcePath);//$NON-NLS-1$
+							createFolder(resourcePath.removeLastSegments(1), outputFolder); 
+							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
+							outputFile.setDerived(true);
+							outputFile.setReadOnly(false); // just in case the original was read only
+							return;
+						case IResourceDelta.REMOVED :
+							if (outputFile.exists()) {
+								AJDTEventTrace.generalEvent("Deleting removed file " + resourcePath);//$NON-NLS-1$
+								outputFile.delete(IResource.FORCE, null);
+							}
+							return;
+						case IResourceDelta.CHANGED :
+							if ((sourceDelta.getFlags() & IResourceDelta.CONTENT) == 0
+									&& (sourceDelta.getFlags() & IResourceDelta.ENCODING) == 0)
+								return; // skip it since it really isn't changed
+							if (outputFile.exists()) {
+								AJDTEventTrace.generalEvent("Deleting existing file " + resourcePath);//$NON-NLS-1$
+								outputFile.delete(IResource.FORCE, null);
+							}
+							AJDTEventTrace.generalEvent("Copying changed file " + resourcePath);//$NON-NLS-1$
+							createFolder(resourcePath.removeLastSegments(1), outputFolder);
+							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
+							outputFile.setDerived(true);
+							outputFile.setReadOnly(false); // just in case the original was read only
+					}					
+				}
+				return;
+		}
+	}
+
+	/**
+	 * Returns the IContainer for the given path in the given project
+	 * 
+	 * @param path
+	 * @param project
+	 * @return
+	 */
+	private IContainer getContainerForGivenPath(IPath path, IProject project) {
+		if (path.toOSString().equals("")) {
+			return project;
+		}	
+		return project.getFolder(path);
+	}
+	
+	/**
+	 * Creates folder with the given path in the given output folder. This method is taken
+	 * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.createFolder(..)
+	 */
+	private IContainer createFolder(IPath packagePath, IContainer outputFolder) throws CoreException {
+		if (packagePath.isEmpty()) return outputFolder;
+		IFolder folder = outputFolder.getFolder(packagePath);
+		if (!folder.exists()) {
+			createFolder(packagePath.removeLastSegments(1), outputFolder);
+			folder.create(true, true, null);
+			folder.setDerived(true);
+		}
+		return folder;
+	}
+
+	/**
+	 * This method is taken
+	 * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.isExcludedFromProject(IPath)
+	 */
+	private boolean isExcludedFromProject(IJavaProject javaProject, IPath childPath, IClasspathEntry[] srcEntries) throws JavaModelException {
+		// answer whether the folder should be ignored when walking the project as a source folder
+		if (childPath.segmentCount() > 2) return false; // is a subfolder of a package
+
+		for (int j = 0, k = srcEntries.length; j < k; j++) {
+			IPath outputPath = srcEntries[j].getOutputLocation();
+	        if (outputPath == null) {
+	        	outputPath = javaProject.getOutputLocation();
+	        }
+	        outputPath = outputPath.removeFirstSegments(1).makeRelative();        
+			if (childPath.equals(getContainerForGivenPath(outputPath,javaProject.getProject()).getFullPath())) return true;
+			
+			IPath srcPath = srcEntries[j].getPath().removeFirstSegments(1);
+			if (childPath.equals(getContainerForGivenPath(srcPath,javaProject.getProject()).getFullPath())) return true;
+		}
+		// skip default output folder which may not be used by any source folder
+		return childPath.equals(javaProject.getOutputLocation());
+	}
+	
 }
