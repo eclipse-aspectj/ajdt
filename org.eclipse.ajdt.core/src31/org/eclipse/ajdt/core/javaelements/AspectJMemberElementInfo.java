@@ -31,6 +31,8 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	protected ExtraInformation extra;
 	
 	private char[] name;
+	private char[] returnType;
+	private boolean isConstructor;
 	
 	public Kind getAJKind() {
 		return kind;
@@ -136,5 +138,17 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 			paramSignatures[i] = Signature.createTypeSignature(this.argumentTypeNames[i], false);
 		}
 		return Signature.createMethodSignature(paramSignatures, Signature.createTypeSignature(this.returnType, false));
+	}
+	
+	public boolean isConstructor() {
+		return isConstructor;
+	}
+	
+	public boolean isAnnotationMethod() {
+		return false;
+	}
+	
+	public char[] getReturnTypeName() {
+		return returnType;
 	}
 }
