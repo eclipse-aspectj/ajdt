@@ -340,21 +340,6 @@ public class Builder extends IncrementalProjectBuilder {
 
 			waitForBuildCompletion(compilerMonitor);
 
-			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
-				System.err.println("Not updating vis, display is disposed!");
-			else
-				AspectJUIPlugin.getDefault().getDisplay().asyncExec(
-						new Runnable() {
-							public void run() {
-								if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-									AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
-											.getContentProvider();
-									provider.reset();
-									VisualiserPlugin.refresh();
-								}
-							}
-						});
-
 			if (buildCancelled) {
 				markReferencingProjects(project, buildPrereqsMessage);
 			} else {
@@ -385,6 +370,21 @@ public class Builder extends IncrementalProjectBuilder {
 			// before returning, check to see if the project sent it's output
 			// to an outjar and if so, then update any depending projects
 			checkOutJarEntry(project);
+			
+			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
+				AJDTEventTrace.generalEvent("Not updating vis, display is disposed!");
+			else
+				AspectJUIPlugin.getDefault().getDisplay().syncExec(
+						new Runnable() {
+							public void run() {
+								if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
+									AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
+											.getContentProvider();
+									provider.reset();
+									VisualiserPlugin.refresh();
+								}
+							}
+						});
 			
 		} catch (Exception e) {
 			Ajde.getDefault().getErrorHandler().handleError("Compile failed.",
