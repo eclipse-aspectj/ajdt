@@ -94,7 +94,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 		// bug 77917 - use our own document provider so that we still get an
 		// annotation model for .aj files.
-		setDocumentProvider(AspectJUIPlugin.getDefault().getAJCompilationUnitDocumentProvider());
+		//setDocumentProvider(AspectJUIPlugin.getDefault().getAJCompilationUnitDocumentProvider());
 		
 		//		activeEditorList.add(this);
 		//		//this.setSourceViewerConfiguration()
