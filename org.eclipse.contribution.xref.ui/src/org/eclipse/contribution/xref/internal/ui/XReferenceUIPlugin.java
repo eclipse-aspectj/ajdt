@@ -13,6 +13,7 @@ package org.eclipse.contribution.xref.internal.ui;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -133,6 +134,14 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 		}
 	}
 
+	public static String getFormattedString(String key, String arg) {
+		return getFormattedString(key, new String[] { arg });
+	}
+	
+	public static String getFormattedString(String key, String[] args) {
+		return MessageFormat.format(getResourceString(key), args);	
+	}
+	
 	/**
 	 * Returns the plugin's resource bundle,
 	 */

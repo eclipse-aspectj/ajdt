@@ -108,7 +108,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection);		
+		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);		
 		if (xra != null) {
 			if (lastSelection != null 
 					&& xra.getReferenceSource().equals(lastSelection.getReferenceSource())) {

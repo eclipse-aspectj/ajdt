@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.inplace;
 
+import java.util.List;
+
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
@@ -49,6 +51,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
@@ -62,6 +65,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -87,6 +91,12 @@ import org.eclipse.swt.widgets.Tracker;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommand;
+import org.eclipse.ui.commands.ICommandManager;
+import org.eclipse.ui.commands.IKeySequenceBinding;
+import org.eclipse.ui.keys.KeySequence;
+import org.eclipse.ui.keys.SWTKeySupport;
 
 /**
  * Class to create and populate the inplace Cross Reference view.
@@ -143,6 +153,18 @@ public class XReferenceInplaceDialog {
 	private ISelection lastSelection;
 	private IWorkbenchPart workbenchPart;
 
+	/**
+	 * Fields for view toggling support - to show or hide 
+	 * parent crosscutting
+	 */	
+	private final String invokingCommandId = "org.eclipse.contribution.xref.show.xref";	
+	private boolean isShowingParentCrosscutting = false;
+	private ICommand invokingCommand;
+	private KeyAdapter keyAdapter;
+	private KeySequence[] invokingCommandKeySequences;
+	private Label statusField;
+	private IXReferenceAdapter previousXRefAdapter;
+
 	private Action doubleClickAction;
 	private boolean isDeactivateListenerActive= false;
 	private Composite composite, viewMenuButtonComposite;
@@ -151,7 +173,8 @@ public class XReferenceInplaceDialog {
 	private Shell parentShell;
 	private Shell dialogShell;
 	private TreeViewer viewer;
-		
+	private XReferenceContentProvider contentProvider;
+	
 	/**
 	 * Constructor which takes the parent shell
 	 */
@@ -168,6 +191,17 @@ public class XReferenceInplaceDialog {
 		if (dialogShell != null) {
 				close();
 		}
+		
+		if (invokingCommandId != null) {
+			ICommandManager commandManager= PlatformUI.getWorkbench().getCommandSupport().getCommandManager();
+			invokingCommand = commandManager.getCommand(invokingCommandId);
+			if (invokingCommand != null && !invokingCommand.isDefined())
+				invokingCommand= null;
+			else
+				// Pre-fetch key sequence - do not change because scope will change later.
+				getInvokingCommandKeySequences();
+		}
+		
 		createShell();
 		createComposites();
 		filterText = createFilterText(viewMenuButtonComposite);
@@ -178,6 +212,7 @@ public class XReferenceInplaceDialog {
 //		customFiltersActionGroup = new CustomFiltersActionGroup(
 //				"org.eclipse.contribution.xref.QuickXRef", viewer);//$NON-NLS-1$
 
+		createStatusField(composite);		
 		addListenersToTree(viewer);
 		// set the tab order
 		viewMenuButtonComposite.setTabList(new Control[] {filterText});
@@ -231,7 +266,7 @@ public class XReferenceInplaceDialog {
 		viewer = new TreeViewer(parent, SWT.SINGLE | (style & ~SWT.MULTI));
 		viewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		XReferenceContentProvider contentProvider = new XReferenceContentProvider();
+		contentProvider = new XReferenceContentProvider();
 		viewer.setContentProvider(contentProvider);
 		viewer.setLabelProvider(new XReferenceLabelProvider());
 		viewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
@@ -242,16 +277,6 @@ public class XReferenceInplaceDialog {
 		viewer.addFilter(new NamePatternFilter());
 		viewer.addFilter(new MemberFilter());
 		
-		doubleClickAction = new DoubleClickAction(dialogShell, viewer);
-
-		viewer.addDoubleClickListener(new IDoubleClickListener() {
-			public void doubleClick(DoubleClickEvent event) {
-				doubleClickAction.run();
-				if (dialogShell != null && dialogShell.isDisposed()) {
-					dispose();
-				}
-			}
-		});
 		return viewer;
 	}
 	
@@ -270,6 +295,7 @@ public class XReferenceInplaceDialog {
 		composite.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 		viewMenuButtonComposite.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 		toolBar.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		statusField.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW));
 
 		// set the background colour
 		viewer.getTree().setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
@@ -277,6 +303,7 @@ public class XReferenceInplaceDialog {
 		composite.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		viewMenuButtonComposite.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		toolBar.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		statusField.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 	}
 	
 // --------------------- adding listeners ---------------------------
@@ -356,6 +383,18 @@ public class XReferenceInplaceDialog {
 			}
 		});
 
+		doubleClickAction = new DoubleClickAction(dialogShell, treeViewer);
+
+		treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+			public void doubleClick(DoubleClickEvent event) {
+				doubleClickAction.run();
+				if (dialogShell != null && dialogShell.isDisposed()) {
+					dispose();
+				}
+			}
+		});
+		
+		treeViewer.getTree().addKeyListener(getKeyAdapter());
 	}
 	
 	private void addListenersToShell() {
@@ -480,6 +519,105 @@ public class XReferenceInplaceDialog {
 		//customFiltersActionGroup.fillViewMenu(viewMenu);
 	}
 
+	// --------------------- creating and filling the status field ---------------------------	
+		
+	private void createStatusField(Composite parent) {
+		
+		Composite comp= new Composite(parent, SWT.NONE);
+		GridLayout layout= new GridLayout(1, false);
+		layout.marginHeight= 0;
+		layout.marginWidth= 0;
+		comp.setLayout(layout);
+		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		createHorizontalSeparator(comp);
+
+		// Status field label
+		statusField = new Label(parent, SWT.RIGHT);
+		statusField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		statusField.setText(getStatusFieldText());
+		Font font= statusField.getFont();
+		Display display= parent.getDisplay();
+		FontData[] fontDatas= font.getFontData();
+		for (int i= 0; i < fontDatas.length; i++)
+			fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
+		Font statusTextFont= new Font(display, fontDatas);
+		statusField.setFont(statusTextFont);
+	}
+
+	private String getStatusFieldText() {
+		KeySequence[] sequences = getInvokingCommandKeySequences();
+		if (sequences == null || sequences.length == 0)
+			return ""; //$NON-NLS-1$
+		
+		String keySequence= sequences[0].format();
+		
+		if (isShowingParentCrosscutting)
+			return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.hideParentCrosscutting", keySequence); //$NON-NLS-1$
+		else
+			return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.showParentCrosscutting", keySequence); //$NON-NLS-1$
+	}
+	
+	private KeySequence[] getInvokingCommandKeySequences() {
+		if (invokingCommandKeySequences == null) {
+			if (invokingCommand != null) {
+				List list = invokingCommand.getKeySequenceBindings();
+				if (!list.isEmpty()) {
+					invokingCommandKeySequences= new KeySequence[list.size()];
+					for (int i= 0; i < invokingCommandKeySequences.length; i++) {
+						invokingCommandKeySequences[i]= ((IKeySequenceBinding) list.get(i)).getKeySequence();
+					}
+					return invokingCommandKeySequences;
+				}		
+			}
+		}
+		return invokingCommandKeySequences;
+	}
+	
+	private KeyAdapter getKeyAdapter() {
+		if (keyAdapter == null) {
+			keyAdapter= new KeyAdapter() {
+				public void keyPressed(KeyEvent e) {
+					int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
+					KeySequence keySequence = KeySequence.getInstance(SWTKeySupport.convertAcceleratorToKeyStroke(accelerator));
+					KeySequence[] sequences= getInvokingCommandKeySequences();
+					if (sequences == null)
+						return;
+					for (int i= 0; i < sequences.length; i++) {
+						if (sequences[i].equals(keySequence)) {
+							e.doit= false;
+							toggleShowParentCrosscutting();
+							return;
+						}
+					}
+				}
+			};			
+		}
+		return keyAdapter;		
+	}
+	
+	protected void toggleShowParentCrosscutting() {
+		if (lastSelection != null && workbenchPart != null) {
+			IXReferenceAdapter xra = null;
+			if (!isShowingParentCrosscutting) {
+				xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,true);
+			} else {
+				xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+			}
+			if (xra != null) {
+				viewer.setInput(xra);
+			}
+		}
+		
+		isShowingParentCrosscutting = !isShowingParentCrosscutting;
+		updateStatusFieldText();
+	}
+	
+	protected void updateStatusFieldText() {
+		if (statusField != null)
+			statusField.setText(getStatusFieldText());
+	}
+	
 	// ----------- all to do with setting the bounds of the dialog -------------
 
 	/**
@@ -653,6 +791,7 @@ public class XReferenceInplaceDialog {
 			}
 		});
 
+		filterText.addKeyListener(getKeyAdapter());
 		return filterText;
 	}
 
@@ -992,9 +1131,11 @@ public class XReferenceInplaceDialog {
 	
 	private void createContents() {
 		if (lastSelection != null && workbenchPart != null) {
-			IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection);
-			if (xra != null) {
-				viewer.setInput(xra);
+			//IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+			previousXRefAdapter = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+			
+			if (previousXRefAdapter != null) {
+				viewer.setInput(previousXRefAdapter);
 			}
 		}
 	}

@@ -57,11 +57,13 @@ public class XRefUIUtils {
 	 * Computes and returns the source reference.
 	 * 
 	 * This is taken from the computeHighlightRangeSourceReference() method
-	 * in the JavaEditor class which is used to populate the outline view.
+	 * in the JavaEditor class which is used to populate the outline view, with the
+	 * added boolean argument used by the inplace view as to whether or not to
+	 * show the parent crosscutting
 	 * 
 	 * @return the computed source reference
 	 */
-	public static ISourceReference computeHighlightRangeSourceReference(JavaEditor editor) {
+	public static ISourceReference computeHighlightRangeSourceReference(JavaEditor editor, boolean showParentCrosscutting) {
 		ISourceViewer sourceViewer = editor.getViewer();
 		if (sourceViewer == null)
 			return null;
@@ -71,12 +73,14 @@ public class XRefUIUtils {
 			return null;
 		
 		int caret= 0;
-		if (sourceViewer instanceof ITextViewerExtension5) {
-			ITextViewerExtension5 extension= (ITextViewerExtension5)sourceViewer;
-			caret= extension.widgetOffset2ModelOffset(styledText.getCaretOffset());
-		} else {
-			int offset= sourceViewer.getVisibleRegion().getOffset();
-			caret= offset + styledText.getCaretOffset();
+		if (!showParentCrosscutting) {
+			if (sourceViewer instanceof ITextViewerExtension5) {
+				ITextViewerExtension5 extension= (ITextViewerExtension5)sourceViewer;
+				caret= extension.widgetOffset2ModelOffset(styledText.getCaretOffset());
+			} else {
+				int offset= sourceViewer.getVisibleRegion().getOffset();
+				caret= offset + styledText.getCaretOffset();
+			}			
 		}
 
 		IJavaElement element= getElementAt(editor, caret, true);
@@ -189,7 +193,7 @@ public class XRefUIUtils {
 		.getActiveWorkbenchWindow();
 	}
 
-	public static IXReferenceAdapter getXRefAdapterForSelection(IWorkbenchPart part, ISelection selection) {
+	public static IXReferenceAdapter getXRefAdapterForSelection(IWorkbenchPart part, ISelection selection, boolean showParentCrosscutting) {
 		IAdaptable a = null;
 		IXReferenceAdapter xra = null;
 		if (selection instanceof IStructuredSelection) {
@@ -202,7 +206,7 @@ public class XRefUIUtils {
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
 		    if (part instanceof JavaEditor) {
 			    JavaEditor je = (JavaEditor)part;
-			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
+			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je,showParentCrosscutting);
 			    a = (IAdaptable)(IJavaElement)sourceRef;                
             }
 		}
