@@ -35,6 +35,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
 /**
@@ -97,6 +98,11 @@ public class Visualiser extends ViewPart {
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
 	public void createPartControl(Composite parent) {
+		try {	
+			getSite().getPage().showView("org.eclipse.contribution.visualiser.views.Menu");
+		} catch (PartInitException pie) {
+			VisualiserPlugin.logException(pie);
+		}
 		visCanvas = new VisualiserCanvas(parent, this);
 		makeActions();
 		contributeToActionBars();
