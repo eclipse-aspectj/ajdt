@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,12 @@ public class Builder extends IncrementalProjectBuilder {
 	private IProgressMonitor monitor;
 
 	/**
+	 * keeps track of the last workbench preference 
+	 * (for workaround for bug 73435)
+	 */
+	private String lastWorkbenchPreference = JavaCore.ABORT;
+	
+	/**
 	 * Constructor for AspectJBuilder
 	 */
 	public Builder() {
@@ -171,6 +178,14 @@ public class Builder extends IncrementalProjectBuilder {
 			}
 		}
 
+		// workaround for bug 73435
+		IProject[] dependingProjects = getDependingProjects(project);
+		JavaProject javaProject = (JavaProject)JavaCore.create(project);
+		if (!javaProject.hasBuildState() && dependingProjects.length > 0) {
+			updateJavaCompilerPreferences(project,dependingProjects);
+		}
+		// end of workaround
+		
 		// The message to feature in the problems view of depending projects
 		String buildPrereqsMessage = "The project cannot be built until its prerequisite "
 				+ project.getName()
@@ -370,6 +385,48 @@ public class Builder extends IncrementalProjectBuilder {
 		return requiredProjects;
 	}
 	
+	/**
+	 * This is the workaround discussed in bug 73435 for the case when projects are
+	 * checked out from CVS, the AJ projects have no valid build state and projects
+	 * depend on them.
+	 */
+	private void updateJavaCompilerPreferences(IProject project, IProject[] dependingProjects) {
+		boolean setWorkbenchPref = false;
+		for (int i = 0; i < dependingProjects.length; i++) {
+			IProject dependingProject = dependingProjects[i];
+			try {
+				if (dependingProject.hasNature(AspectJUIPlugin.ID_NATURE)) {
+					continue;
+				}
+			} catch (CoreException e) {
+				AspectJUIPlugin.logException(e);
+			}
+			JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
+			String[] names = jp.getPreferences().propertyNames();
+			if (names.length == 0 && !setWorkbenchPref) {
+				Hashtable options = JavaCore.getOptions();
+				String workbenchSetting = (String)options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+				if (lastWorkbenchPreference.equals(JavaCore.ABORT) && workbenchSetting.equals(JavaCore.IGNORE)) {
+					lastWorkbenchPreference = JavaCore.IGNORE;
+				} else if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
+						&& workbenchSetting.equals(JavaCore.ABORT)){
+					if (!setWorkbenchPref) {
+						options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+						JavaCore.setOptions(options);	
+						setWorkbenchPref = true;	
+						lastWorkbenchPreference = JavaCore.IGNORE;
+					}
+				} else if (lastWorkbenchPreference.equals(JavaCore.IGNORE) 
+						&& workbenchSetting.equals(JavaCore.ABORT)){
+					lastWorkbenchPreference = JavaCore.ABORT;
+				}
+			} else if (names.length > 0) {
+				jp.setOption(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+				lastWorkbenchPreference = (String)JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+			}
+		}		
+	}
+
 	/**
 	 * If a project has specified an outjar then update the classpath of
 	 * depending projects to include this outjar (unless the classpath already
