@@ -14,7 +14,7 @@ The code causing the warning and error should be underlined in red and yellow
 respectively.
 
 Test that suitable quick fixes are available for both the warning and the error by:
-  - Right-click and select "Quick Fix" from the context menu
+  - Right-click the gutter annotation and select "Quick Fix" from the context menu
   - Putting the cursor somewhere in the error/warning and pressing Ctrl-1
   - Clicking on the light bulb
 

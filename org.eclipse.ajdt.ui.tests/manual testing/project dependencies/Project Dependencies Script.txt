@@ -257,52 +257,6 @@ Testing output jar switch with "external" jars (part of 43674)
 		- if you open up the .classpath file, then it doesn't contain an entry with path 
 		  "C:/temp/secondjar.jar"		    
 
-
-
-PLUGIN PROJECTS
----------------
-
-Setup required:
-
-- Clean workbench
-- Check out from CVS the org.eclipse.contribution.visualiser 
-  and org.eclipse.contribution.visualiser.tests projects
-- Ensure Auto building is enabled (Project > Build automatically)
-- Bring up the AJDT Event trace view (Window > Show View > Other > AspectJ > Event Trace)
-- If you’re running in a runtime workbench, then you’ll also need to have the org.aspecth.ajde 
-  project in your runtime workbench (otherwise neither of the visualiser projects will build)
-
-
-Test sequence:
---------------   
-
-(1) Convert visualiser project to be an AspectJ project (right click to bring up projects 
-    context menu > Convert to AspectJ project) choosing to add the org.aspectj.ajde project 
-    as a dependency
-
-    RESULT: - Both projects build ok with no error markers in the problems view
-
-(2) Run the visualiser tests by selecting AllTests and Run as Junit Plugin Test 
-
-    RESULT: - All visualiser tests should pass  
-
-(3) Remove AspectJ nature from visualiser plugin (right click to bring up context menu 
-    > Remove AspectJ Nature 
-
-    RESULT: - Both projects should build ok with no error markers in the problems view 
- 
-(4) Run the visualiser tests by selecting AllTests and Run as Junit Plugin Test 
-
-    RESULT: - All visualiser tests should pass  
-
-(5) Convert both the visualiser and visualiser.tests projects to be AspectJ projects 
-
-    RESULT: - Both projects should build ok with no error markers in the problems view  
-
-(6) Run the visualiser tests by selecting AllTests and Run as Junit Plugin Test 
-
-    RESULT: - All visualiser tests should pass 
-    
     
 
       	     

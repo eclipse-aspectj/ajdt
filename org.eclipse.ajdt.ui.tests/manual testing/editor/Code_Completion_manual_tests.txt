@@ -1,0 +1,17 @@
+Tests included in this file:
+
+For Luzius' history of code completion, details of the current implementation, 
+and its limitations see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=74419
+
+Areas to cover:
+
+- from within a method
+- outside any methods
+- from within advice - before, after, around
+- from within an intertype declaration          <------ is likely to be the most problematic
+
+different situations:
+
+- in a .java 
+- in a .aj file
+- in an aspect which extends an abstract aspect
