@@ -13,10 +13,12 @@ package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.aspectj.ajde.TaskListManager;
@@ -70,7 +72,7 @@ public class CompilerTaskListManager implements TaskListManager {
     /**
      * resources that were affected by the compilation.
      */
-    private static List affectedResources = new ArrayList();
+    private static Set affectedResources = new HashSet();
 
     /**
      * Markers created in projects other than the one under compilation, which
@@ -140,9 +142,8 @@ public class CompilerTaskListManager implements TaskListManager {
     public void clearTasks() {
         if (AspectJUIPlugin.DEBUG_COMPILER)
             System.err.println("clearTasks() called");
-
-        affectedResources = new ArrayList();
-        problems = new ArrayList();
+        affectedResources.clear();
+        problems.clear();
     }
 
     /*
@@ -193,10 +194,12 @@ public class CompilerTaskListManager implements TaskListManager {
             public void run(IProgressMonitor monitor) {
 
                 try {
+                	
                     Iterator affectedResourceIterator = affectedResources
                             .iterator();
-                    IResource ir = null;
                     //boolean wipedProjectLevelMarkers = false;
+                    AJDTEventTrace.generalEvent("Types affected during build = "+affectedResources.size());
+                    IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
                         ir = (IResource) affectedResourceIterator.next();
                         try {
@@ -216,7 +219,7 @@ public class CompilerTaskListManager implements TaskListManager {
                         }
                     }
 
-                    IProject project = AJBuilder.getLastBuildTarget();
+                    IProject  project = AJBuilder.getLastBuildTarget();
                     Iterator problemIterator = problems.iterator();
                     ProblemTracker p = null;
                     while (problemIterator.hasNext()) {
@@ -278,16 +281,16 @@ public class CompilerTaskListManager implements TaskListManager {
                                 		.hasNext();) {
                                     ISourceLocation sLoc = (ISourceLocation) iter
                                     .next();
-                                    marker.setAttribute(
-                                            AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-                                            +(relCount++),
-										sLoc.getSourceFile().getAbsolutePath()
-											+ ":::"
-											+ sLoc.getLine()
-											+ ":::"
-											+ sLoc.getEndLine()
-											+ ":::"
-											+ sLoc.getColumn());
+                                    StringBuffer attrData = new StringBuffer();
+                                    attrData.append(sLoc.getSourceFile().getAbsolutePath());
+                                    attrData.append(":::");
+                                    attrData.append(sLoc.getLine());
+                                    attrData.append(":::");
+                                    attrData.append(sLoc.getEndLine());
+                                    attrData.append(":::");
+                                    attrData.append(sLoc.getColumn());
+                                    marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
+                                          +(relCount++),attrData.toString());
                                 }
                             }
                             
