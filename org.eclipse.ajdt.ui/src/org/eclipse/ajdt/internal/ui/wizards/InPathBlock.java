@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelStatus;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaConventions;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
@@ -314,7 +315,7 @@ public class InPathBlock {
 
         for (int i = 0; i < nEntries; i++) {
             CPListElement entry = ((CPListElement) inPathEntries.get(i));
-            inpath[i] = entry.getClasspathEntry();
+            inpath[i] = JavaCore.getResolvedClasspathEntry(entry.getClasspathEntry());
         }
 
         monitor.worked(2);
