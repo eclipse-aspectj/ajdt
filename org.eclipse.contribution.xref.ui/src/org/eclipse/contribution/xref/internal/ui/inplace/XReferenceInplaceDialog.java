@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.inplace;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
@@ -132,6 +133,7 @@ public class XReferenceInplaceDialog {
 	private Text filterText;
 	private StringMatcher stringMatcher;
 	private Font statusTextFont;
+	private List filteredElements = new ArrayList();
 
 	/**
 	 * Remembers the bounds for this information control.
@@ -157,7 +159,7 @@ public class XReferenceInplaceDialog {
 	 * Fields for view toggling support - to show or hide 
 	 * parent crosscutting
 	 */	
-	private final String invokingCommandId = "org.eclipse.contribution.xref.show.xref";	
+	private final String invokingCommandId = "org.eclipse.contribution.xref.show.xref";	//$NON-NLS-1$
 	private boolean isShowingParentCrosscutting = false;
 	private ICommand invokingCommand;
 	private KeyAdapter keyAdapter;
@@ -174,6 +176,7 @@ public class XReferenceInplaceDialog {
 	private Shell dialogShell;
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
+	private XReferenceLabelProvider labelProvider;
 	
 	/**
 	 * Constructor which takes the parent shell
@@ -268,7 +271,8 @@ public class XReferenceInplaceDialog {
 
 		contentProvider = new XReferenceContentProvider();
 		viewer.setContentProvider(contentProvider);
-		viewer.setLabelProvider(new XReferenceLabelProvider());
+		labelProvider = new XReferenceLabelProvider();
+		viewer.setLabelProvider(labelProvider);
 		viewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 
 		// adding these filters which restrict the contents of 
@@ -851,8 +855,9 @@ public class XReferenceInplaceDialog {
 		}
 		stringMatcherUpdated();
 	}
-
+	
 	private void stringMatcherUpdated() {
+		filteredElements.clear();
 		// refresh viewer to refilter
 		viewer.getControl().setRedraw(false);
 		viewer.refresh();
@@ -920,21 +925,49 @@ public class XReferenceInplaceDialog {
 
 			String matchName = ((ILabelProvider) treeViewer.getLabelProvider())
 					.getText(element);
-			if (matchName != null && matcher.match(matchName))
+			if (matchName != null && matcher.match(matchName)) {
+				if (element instanceof TreeParent) {
+					filteredElements.add(element);
+				}
 				return true;
-
-			return hasUnfilteredChild(treeViewer, element);
+			}
+			return hasUnfilteredChild(treeViewer, element);			
 		}
 
 		private boolean hasUnfilteredChild(TreeViewer viewer, Object element) {
 			if (element instanceof TreeParent) {
 				Object[] children = ((ITreeContentProvider) viewer
 						.getContentProvider()).getChildren(element);
-				for (int i = 0; i < children.length; i++)
-					if (select(viewer, element, children[i]))
+				for (int i = 0; i < children.length; i++) {
+					
+					if (select(viewer, element, children[i])) {
 						return true;
+					}
+				}
 			}
 			return false;
+		}
+		
+		/*
+		 * (non-Javadoc) Method declared on ViewerFilter.
+		 */
+		public Object[] filter(Viewer viewer, Object parent, Object[] elements) {
+			int size = elements.length;
+			ArrayList out = new ArrayList(size);
+			for (int i = 0; i < size; ++i) {
+				Object element = elements[i];
+				if (filteredElements.contains(parent)) {
+					if (element instanceof TreeParent) {
+						filteredElements.add(element);						
+					}
+					out.add(element);
+				} else if (filteredElements.contains(element)) {
+					out.add(element);
+				} else if (select(viewer, parent, element)) {
+					out.add(element);
+				}
+			}
+			return out.toArray();
 		}
 	}
 
@@ -1024,6 +1057,9 @@ public class XReferenceInplaceDialog {
 		storeBounds();
 		toolBar = null;
 		viewMenuManager = null;
+		labelProvider.dispose();
+		contentProvider.dispose();
+		
 	}
 	
 	public void dispose() {
@@ -1138,6 +1174,7 @@ public class XReferenceInplaceDialog {
 				viewer.setInput(previousXRefAdapter);
 			}
 		}
+		filterText.setText(""); //$NON-NLS-1
 	}
 		
 	/**

@@ -55,4 +55,8 @@ public class XReferenceLabelProvider extends LabelProvider {
 			return XReferenceUIPlugin.getDefault().getXReferenceImage();
 		}
 	}
+	
+	public void dispose() {
+		labelProvider = null;
+	}
 }
