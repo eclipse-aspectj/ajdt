@@ -5,7 +5,7 @@
  * available at http://www.eclipse.org/legal/cpl-v10.html
  * 
  * Contributors: Sian January - initial version
- * ... 
+ *               Matt Chapman - add source of advice markers
  ******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
@@ -60,6 +60,8 @@ public aspect MarkerUpdating {
 					// Delete all the existing markers
 					try {
 						project.deleteMarkers(IAJModelMarker.ADVICE_MARKER,
+								true, IResource.DEPTH_INFINITE);
+						project.deleteMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER,
 								true, IResource.DEPTH_INFINITE);
 						project.deleteMarkers(
 								IAJModelMarker.DECLARATION_MARKER, true,
@@ -140,7 +142,6 @@ public aspect MarkerUpdating {
 					boolean sameType = true;
 					boolean runtimeTst = false;
 
-					NodeHolder nh = (NodeHolder) v.get(0);
 					if (v.size() > 1) {
 						NodeHolder first = (NodeHolder) v.get(0);
 						String adviceType = first.node.getExtraInfo() == null ? null
@@ -178,38 +179,11 @@ public aspect MarkerUpdating {
 						final NodeHolder noddyHolder = (NodeHolder) v
 								.get(j);
 						final IProgramElement sn = noddyHolder.node;
-						// Thread required to ensure marker created and
-						// set atomically
-						// (and so reflected correctly in the ruler).
-
-						ISourceLocation sl_sn = sn.getSourceLocation();
-						String label = sn.toLinkLabelString();
-						String adviceType = sn.getName();
-						IMarker marker = createMarker(linenumberInt,
+						createMarker(linenumberInt.intValue(),
 								runtimeTest, file, sn,
 								useDefaultAdviceMarker,
-								noddyHolder.runtimeTest);
-
-						// Crude format is "FFFF:::NNNN:::NNNN:::NNNN"
-						// Filename:::StartLine:::EndLine:::ColumnNumber
-
-						// Grab the location of the pointcut
-						ISourceLocation sLoc2 = sn.getSourceLocation();
-						// was asn
-						marker.setAttribute(IMarker.PRIORITY,
-								IMarker.PRIORITY_HIGH);
-						marker
-								.setAttribute(
-										AspectJUIPlugin.SOURCE_LOCATION_ATTRIBUTE,
-										sLoc2.getSourceFile()
-												.getAbsolutePath()
-												+ ":::"
-												+ sLoc2.getLine()
-												+ ":::"
-												+ sLoc2.getEndLine()
-												+ ":::"
-												+ sLoc2.getColumn());
-
+								noddyHolder.runtimeTest,
+								noddyHolder.adviceType);
 					}
 				} catch (CoreException ce) {
 					AspectJUIPlugin.getDefault().getErrorHandler()
@@ -230,17 +204,12 @@ public aspect MarkerUpdating {
 	 * @return the IMarker created
 	 * @throws CoreException
 	 */
-	private IMarker createMarker(final Integer linenumberInt,
+	private IMarker createMarker(int linenumberInt,
 			final boolean runtimeTest, final IResource ir,
 			IProgramElement programElement, boolean useDefaultAdviceMarker,
-			boolean nodeRuntimeTest) throws CoreException {
+			boolean nodeRuntimeTest, String adviceType) throws CoreException {
 
 		String label = programElement.toLinkLabelString();
-		String adviceType = "";
-		if (programElement.getExtraInfo() != null) {
-			adviceType = programElement.getExtraInfo()
-					.getExtraAdviceInformation();
-		}
 		IMarker marker;
 		if (useDefaultAdviceMarker) {
 			if (runtimeTest) {
@@ -277,11 +246,26 @@ public aspect MarkerUpdating {
 				marker = ir
 						.createMarker(IAJModelMarker.AFTER_ADVICE_MARKER);
 			}
+		} else if (adviceType.startsWith("advises")) {
+			String subType = adviceType.substring("advises".length());
+			if (subType.startsWith("before")) {
+				marker = ir
+					.createMarker(IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER);
+			} else if (subType.startsWith("after")) {
+				marker = ir
+					.createMarker(IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER);
+			} else if (subType.startsWith("around")) {
+				marker = ir
+				.createMarker(IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER);
+			} else {
+				marker = ir
+					.createMarker(IAJModelMarker.SOURCE_ADVICE_MARKER);
+			}
 		} else {
 			// It's an Intertype Declaration
 			marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
 		}
-		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt.intValue());
+		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt);
 		if (nodeRuntimeTest) {
 			label = label
 					+ " "
@@ -289,6 +273,22 @@ public aspect MarkerUpdating {
 							.getResourceString("AspectJEditor.runtimetest");
 		}
 		marker.setAttribute(IMarker.MESSAGE, label);
+		marker.setAttribute(IMarker.PRIORITY,
+				IMarker.PRIORITY_HIGH);
+		ISourceLocation sLoc2 = programElement.getSourceLocation();
+		
+		// Crude format is "FFFF:::NNNN:::NNNN:::NNNN"
+		// Filename:::StartLine:::EndLine:::ColumnNumber
+		marker.setAttribute(
+						AspectJUIPlugin.SOURCE_LOCATION_ATTRIBUTE,
+						sLoc2.getSourceFile()
+								.getAbsolutePath()
+								+ ":::"
+								+ sLoc2.getLine()
+								+ ":::"
+								+ sLoc2.getEndLine()
+								+ ":::"
+								+ sLoc2.getColumn());
 		return marker;
 	}
 	

@@ -701,9 +701,9 @@
       <attribute
             name="sourceLocationOfAdvice">
       </attribute>
+   </extension>
 
 <!-- Markers for different types of advice -->      
-   </extension>
    <extension
    	      id="beforeadvicemarker"
    	      name="Before Advice Marker"
@@ -726,7 +726,7 @@
             value="true">
       </persistent>
    </extension>
-    <extension
+   <extension
    	      id="aroundadvicemarker"
    	      name="Around Advice Marker"
    	      point="org.eclipse.core.resources.markers">
@@ -737,6 +737,55 @@
             value="true">
       </persistent>
    </extension>
+<!-- Markers to show the source of advice -->   
+    <extension
+   	      id="sourceadvicemarker"
+   	      name="Source of Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+     <persistent
+            value="true">
+      </persistent>
+            <attribute
+            name="sourceLocationOfAdvice">
+      </attribute>     
+   </extension>
+   <extension
+   	      id="sourcearoundadvicemarker"
+   	      name="Source of Around Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
+      </super>
+     <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+   	      id="sourcebeforeadvicemarker"
+   	      name="Source of Before Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
+      </super>
+     <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+   	      id="sourceafteradvicemarker"
+   	      name="Source of After Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
+      </super>
+     <persistent
+            value="true">
+      </persistent>
+   </extension>
+
 
 <!-- AJDT Problem markers -->
    <extension
@@ -910,6 +959,22 @@
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.aroundadvicemarker"
             name="org.eclipse.ajdt.aroundAdvice"/>
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourceadvicemarker"
+            name="org.eclipse.ajdt.sourceAdvice"/>            
+      <type
+            super="org.eclipse.ajdt.sourceAdvice"
+            markerType="org.eclipse.ajdt.ui.sourcebeforeadvicemarker"
+            name="org.eclipse.ajdt.sourceBeforeAdvice"/>            
+      <type
+            super="org.eclipse.ajdt.sourceAdvice"
+            markerType="org.eclipse.ajdt.ui.sourceafteradvicemarker"
+            name="org.eclipse.ajdt.sourceAfterAdvice"/>            
+      <type
+            super="org.eclipse.ajdt.sourceAdvice"
+            markerType="org.eclipse.ajdt.ui.sourcearoundadvicemarker"
+            name="org.eclipse.ajdt.sourceAroundAdvice"/>            
 	  <type
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.dynamicafteradvicemarker"
@@ -965,6 +1030,22 @@
 		<specification
 			annotationType="org.eclipse.ajdt.aroundAdvice"
 			icon="icons/markers/around_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceAdvice"
+			icon="icons/markers/source_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceBeforeAdvice"
+			icon="icons/markers/source_before_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceAfterAdvice"
+			icon="icons/markers/source_after_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceAroundAdvice"
+			icon="icons/markers/source_around_advice.gif">
 		</specification>
 		<specification
 			annotationType="org.eclipse.ajdt.dynamicBeforeAdvice"

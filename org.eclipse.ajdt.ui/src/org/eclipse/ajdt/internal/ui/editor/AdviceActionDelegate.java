@@ -9,6 +9,7 @@ Contributors:
     IBM Corporation - Initial implementation
     Andy Clement, 1st Version, 7th October 2002
     Matt Chapman - add support for Go To Related Location entries
+                 - add support for Advises entries
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
@@ -98,7 +99,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			
 			// Which line was right clicked in the ruler?
 			int linenumber = rulerInfo.getLineOfLastMouseButtonActivity();
-
+			Integer clickedLine = new Integer(linenumber+1);
+			
 			// Go through the advice markers attached to this file, if any have a line number that
 			// matches the line clicked by the user, create the submenu (if it has not already
 			// been created) and add a new submenu entry for the advice.  The data that is
@@ -108,13 +110,9 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			IMarker markers[] = ifile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 2);		    
 			MenuManager adviceSubmenu = null;
 		    boolean adviceSubmenuInitialized = false;
-			if (markers != null && markers.length != 0) {
-				
-				Integer clickedLine = new Integer(linenumber+1);
-				
+			if (markers != null && markers.length != 0) {							
 				for (int j = 0; j < markers.length; j++) {
-					IMarker m = markers[j];
-					
+					IMarker m = markers[j];					
 					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
 						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));//.substring(8);
 						// substring(8) skips the 'Advice: ' bit on the front.
@@ -139,28 +137,40 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 					}
 				}
 			}
+			
+			// Go through source of advice markers
+			IMarker sMarkers[] = ifile.findMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER, true, 2);
+			MenuManager sourceAdviceSubmenu = null;
+		    boolean sourceAdviceSubmenuInitialized = false;
+			if (sMarkers != null && sMarkers.length != 0) {				
+				for (int j = 0; j < sMarkers.length; j++) {
+					IMarker m = sMarkers[j];
+					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
+						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));
+						AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
+						// Initialize the submenu if we haven't done it already.
+						if (!sourceAdviceSubmenuInitialized) {
+							sourceAdviceSubmenu = new MenuManager(
+							  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.adviceAffects"));
+							manager.add(new Separator());
+							manager.add(sourceAdviceSubmenu);			
+							sourceAdviceSubmenuInitialized = true; 
+						}
+						// Add our new action to the submenu
+						sourceAdviceSubmenu.add(ama);
+					}
+				}
+			}
 
-			// Go through the ITD markers attached to this file, if any have a line number that
-			// matches the line clicked by the user, create the submenu (if it has not already
-			// been created) and add a new submenu entry for the advice.  The data that is
-			// stored with the submenu entry gives the run() method of the inner class the
-			// ability to create a jump marker such that it can jump to the location where
-			// the advice is defined.
+			// Go through the ITD markers
 			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);			
 			MenuManager declarationSubmenu = null;
 		    boolean declarationSubmenuInitialized = false;
 			if (decMarkers != null && decMarkers.length != 0) {
-				
-				Integer clickedLine = new Integer(linenumber+1);
-				
 				for (int j = 0; j < decMarkers.length; j++) {
-					IMarker m = decMarkers[j];
-					
+					IMarker m = decMarkers[j];					
 					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
-						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));//.substring(8);
-						// substring(8) skips the 'Advice: ' bit on the front.
-						
-						// Build a new action for our menu.  Set the text label and remember the
+						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
 						// marker (an advice marker) in effect on this line, so that if the run
 						// method of the action is driven, it can correctly jump to the right
 						// location in the aspect.
@@ -170,7 +180,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 						if (!declarationSubmenuInitialized) {
 							declarationSubmenu = new MenuManager(
 							  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.aspectDeclarations"));
-							if(!adviceSubmenuInitialized) {
+							if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized)) {
 								manager.add(new Separator());
 							}
 							manager.add(declarationSubmenu);			
@@ -183,18 +193,12 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 				}
 			}
 			
-			// Go through the problem markers attached to this file, if any have a line number that
-			// matches the line clicked by the user, create the submenu (if it has not already
-			// been created) and add a new submenu entry for the advice.  The data that is
-			// stored with the submenu entry gives the run() method of the inner class the
-			// ability to create a jump marker such that it can jump to the location where
-			// the advice is defined.
+			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);
             MenuManager problemSubmenu = null;
             boolean problemSubmenuInitialized = false;
             if (probMarkers != null && probMarkers.length != 0) {
-                Integer clickedLine = new Integer(linenumber + 1);
-                for (int j = 0; j < probMarkers.length; j++) {
+                 for (int j = 0; j < probMarkers.length; j++) {
                     IMarker m = probMarkers[j];
                     if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
                         int relCount = 0;
@@ -221,7 +225,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                     problemSubmenu = new MenuManager(
                                             AspectJUIPlugin
                                                     .getResourceString("EditorRulerContextMenu.relatedLocations"));
-                                    if (!(adviceSubmenuInitialized || declarationSubmenuInitialized)) {
+                                    if (!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized)) {
                                         manager.add(new Separator());
                                     }
                                     manager.add(problemSubmenu);

@@ -1,27 +1,13 @@
-
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- *
- * This file is part of the IDE support for the AspectJ(tm)
- * programming language; see http://aspectj.org
- *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * either http://www.mozilla.org/MPL/ or http://aspectj.org/MPL/.
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is AspectJ.
- *
- * The Initial Developer of the Original Code is Xerox Corporation. Portions
- * created by Xerox Corporation are Copyright (C) 1999-2002 Xerox Corporation.
- * All Rights Reserved.
- *
- * Contributor(s):
- */
+/*******************************************************************************
+ * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
 
 package org.eclipse.ajdt.ui.visualiser;
 
@@ -246,13 +232,26 @@ public class StructureModelUtil {
 					
 					// Advice with no runtime test
 					IRelationship advises = irm.get(node,IRelationship.Kind.ADVICE,"advised by",false,false); 
-					List toStoreNoRuntimeTest = processTargets(advises,needIndividualNodes);
+					List toStoreNoRuntimeTest = processTargets(advises,needIndividualNodes,node);
 					toStore.addAll(toStoreNoRuntimeTest);
 					
 					// Advice with a runtime test
 					advises = irm.get(node,IRelationship.Kind.ADVICE,	"advised by",true,false); 
-					List toStoreWithRuntimeTest = processTargets(advises,needIndividualNodes);
+					List toStoreWithRuntimeTest = processTargets(advises,needIndividualNodes,node);
 					toStore.addAll(toStoreWithRuntimeTest);
+					
+					// reverse relationships, only required for editor
+					if (needIndividualNodes) {
+						// Advice with no runtime test
+						IRelationship advisesR = irm.get(node,IRelationship.Kind.ADVICE,"advises",false,false); 
+						List toStoreNoRuntimeTestR = processTargets(advisesR,needIndividualNodes,node);
+						toStore.addAll(toStoreNoRuntimeTestR);
+					
+						// Advice with a runtime test
+						advisesR = irm.get(node,IRelationship.Kind.ADVICE,	"advises",true,false); 
+						List toStoreWithRuntimeTestR = processTargets(advisesR,needIndividualNodes,node);
+						toStore.addAll(toStoreWithRuntimeTestR);
+					}
 					
 					// Lets have a mooch for other kinds of advice too !!
 
@@ -272,7 +271,7 @@ public class StructureModelUtil {
 				   		  IRelationship.Kind.DECLARE_INTER_TYPE,
 				   		  AsmRelationshipProvider.INTER_TYPE_DECLARED_BY,false,false);
 				      if (intertypeDecls!=null) {
-				   	    List toStoreIntertypeDecls = processTargets(intertypeDecls,needIndividualNodes);
+				   	    List toStoreIntertypeDecls = processTargets(intertypeDecls,needIndividualNodes,node);
 					    toStore.addAll(toStoreIntertypeDecls);
 				      }
 		//		   }
@@ -293,7 +292,8 @@ public class StructureModelUtil {
 	/**
 	 * Go through the targets of a relationship.
 	 */
-	private static List processTargets(IRelationship advises,boolean needIndividualNodes) {
+	private static List processTargets(IRelationship advises,boolean needIndividualNodes,
+			IProgramElement sourceNode) {
 		List aspectsAndAdvice = new Vector();
 		if (advises != null) {
 			List targets = advises.getTargets();
@@ -303,15 +303,33 @@ public class StructureModelUtil {
 				if (targetHandle != null) {
 					IProgramElement pNode = AsmManager.getDefault().getHierarchy().findElementForHandle(targetHandle);
 
-					if (pNode != null) {						
-						if (pNode.getKind() == IProgramElement.Kind.ADVICE ||
+					if (pNode != null) {
+						if (needIndividualNodes &&
+								((pNode.getKind() == IProgramElement.Kind.METHOD)
+										|| (pNode.getKind() == IProgramElement.Kind.CODE))) {
+							// source of advice rather than target
+							String adviceType = "advises";
+							// we need to determine the advice type from the source node
+							if (sourceNode.getExtraInfo() != null) {
+								adviceType += sourceNode.getExtraInfo()
+									.getExtraAdviceInformation();
+							}
+							NodeHolder noddyHolder = new NodeHolder(pNode,advises.hasRuntimeTest(),
+									adviceType);
+							aspectsAndAdvice.add(noddyHolder);
+						} else if (pNode.getKind() == IProgramElement.Kind.ADVICE ||
 							isIntertypeKind(pNode.getKind()) ||
 							//if FILE_JAVA, guess it's an injar aspect
 							(pNode.getKind() == IProgramElement.Kind.FILE_JAVA)) {
 							IProgramElement theAspect = null;
 							if (needIndividualNodes) {
 								// Put the advice node and relevant info in the map
-								NodeHolder noddyHolder = new NodeHolder(pNode,advises.hasRuntimeTest());
+								String adviceType = "";
+								if (pNode.getExtraInfo() != null) {
+									adviceType = pNode.getExtraInfo().getExtraAdviceInformation();
+								}
+								NodeHolder noddyHolder = new NodeHolder(pNode,advises.hasRuntimeTest(),
+										adviceType);
 								aspectsAndAdvice.add(noddyHolder);
 							} else {
 								// Put the aspect node (parent of the advice node) in the map
