@@ -25,12 +25,16 @@ import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.ICompletionRequestor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -38,6 +42,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
@@ -563,4 +568,36 @@ public class AJCompilationUnit extends CompilationUnit{
 //		return getElementNameQuickly().toCharArray();
 //	}
 	
+	public String getHandleIdentifier() {
+		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
+		String callerName = (new RuntimeException()).getStackTrace()[1]
+				.getClassName();
+		// are we being called in the context of a delete operation?
+		if (callerName.equals(deletionClass)) {
+			// neeed to perform the delete ourselves (bug 74426)
+			IResource res = getResource();
+			IContainer parent = res.getParent();
+			if (parent.getType() == IResource.FOLDER) {
+				IFolder folder = (IFolder) parent;
+				String newName = CompilationUnitTools
+						.convertAJToJavaFileName(res.getName());
+				IFile dummyFile = folder.getFile(newName);
+				while (dummyFile.exists()) {
+					newName = newName.substring(0, newName.lastIndexOf('.'))
+							.concat("9").concat(".java"); //$NON-NLS-1$ //$NON-NLS-2$
+					dummyFile = folder.getFile(newName);
+				}
+				try {
+					dummyFile.create(null, false, null);
+					// delete the real .aj file
+					res.delete(true, null);
+				} catch (CoreException e) {
+				}
+				ICompilationUnit dummyUnit = JavaCore
+						.createCompilationUnitFrom(dummyFile);
+				return dummyUnit.getHandleIdentifier();
+			}
+		}
+		return super.getHandleIdentifier();
+	}
 }

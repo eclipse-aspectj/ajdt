@@ -16,6 +16,7 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurationTest;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguratorTest;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest;
+import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest2;
 import org.eclipse.ajdt.buildconfigurator.UtilTests;
 import org.eclipse.ajdt.core.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.model.AJComparatorTest;
@@ -45,6 +46,7 @@ import org.eclipse.ajdt.internal.ui.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest;
+import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.test.utils.Utils;
@@ -71,6 +73,7 @@ public class AllTests {
 		// buildconfigurator tests
 		suite.addTest(new TestSuite(UtilTests.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
+		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
 		suite.addTest(new TestSuite(BuildConfigurationTest.class));
 		suite.addTest(new TestSuite(BuildConfiguratorTest.class));
 		
@@ -122,6 +125,7 @@ public class AllTests {
 		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
+		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
 		
 		// ras tests
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
@@ -142,34 +146,44 @@ public class AllTests {
 		//$JUnit-END$
 		return suite;
 	}
-	
-	// prevents AJDTPrefWizard from popping up during tests
-	// and simulates normal usage by closing the welcome page, and opening the
-	// java perspective
-	private static void setupAJDTPlugin(){
+		
+	/**
+	 * Prevents AJDTPrefWizard from popping up during tests and simulates normal
+	 * usage by closing the welcome page, and opening the java perspective
+	 */
+	public static synchronized void setupAJDTPlugin() {
+		if (setupDone) {
+			return;
+		}
 		AJDTConfigSettings.disableAnalyzeAnnotations();
 		Utils.blockPreferencesConfigWizard();
-		
-		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		
+
+		IWorkbenchWindow window = PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow();
+
 		// close welcome page
-		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager().getIntro();
-		if (intro!=null) {
+		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
+				.getIntro();
+		if (intro != null) {
 			PlatformUI.getWorkbench().getIntroManager().closeIntro(intro);
 		}
-		
+
 		// open Java perspective
 		try {
-			PlatformUI.getWorkbench().showPerspective(JavaUI.ID_PERSPECTIVE,window);
+			PlatformUI.getWorkbench().showPerspective(JavaUI.ID_PERSPECTIVE,
+					window);
 		} catch (WorkbenchException e) {
 		}
-		
+
 		// open Cross Ref view
 		try {
 			window.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e1) {
 		}
-		
+
 		Utils.waitForJobsToComplete();
+		setupDone = true;
 	}
+
+	private static boolean setupDone = false;
 }
