@@ -306,7 +306,9 @@ public class StructureModelUtil {
 					if (pNode != null) {
 						if (needIndividualNodes &&
 								((pNode.getKind() == IProgramElement.Kind.METHOD)
-										|| (pNode.getKind() == IProgramElement.Kind.CODE))) {
+										|| (pNode.getKind() == IProgramElement.Kind.CODE))
+										|| (pNode.getKind() == IProgramElement.Kind.CONSTRUCTOR)
+										|| (pNode.getKind() == IProgramElement.Kind.ASPECT)) {
 							// source of advice rather than target
 							String adviceType = "advises";
 							// we need to determine the advice type from the source node
