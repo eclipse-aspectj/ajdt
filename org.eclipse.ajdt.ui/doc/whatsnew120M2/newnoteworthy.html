@@ -1,0 +1,312 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+<link rel="STYLESHEET" href="book.css" charset="ISO-8859-1" type="text/css">
+    <title>AJDT 1.2.0 M2 - New and Noteworthy</title>
+  </head>
+
+  <body>
+    <h1>AJDT 1.2.0 M2 - New and Noteworthy</h1>
+
+<table border="0" cellpadding="10" cellspacing="0" width="80%">
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Overview</b></td>
+    <td width="70%" valign="top">
+
+      <p>In addition to the inclusion of AspectJ 1.5.0M1 and various
+      miscellaneous improvements, many of the changes in this
+      milestone release are centred around the theme of closer and
+      more consistent integration with Eclipse. We now encourage (and
+      set as default) a new setup whereby the Java editor is always
+      used for .java files, aspects are contained in .aj files, and
+      the standard Java outline page is always used, all without loss
+      of functionality. See the relevant sections below for the
+      changes that have made this possible. </p>
+
+      <p>Being a milestone release, this is a work in progress, but
+      feedback on these changes is very welcome.</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New Cross References view</b></td>
+    <td width="70%" valign="top">
+
+      <p>This is a completely new view which shows how a given element
+      is related to other elements. For example which advice is
+      affecting a given method, or the places advised by a given piece
+      of advice. The view tracks various selections, including single
+      clicks in the package explorer and double clicks in the
+      editor.</p>
+
+      <img src="xref.png" width="411" height="128">
+
+      <p>If you select a method, the cross references view shows you
+      the relationships involving that method, plus any that involve
+      code elements within the method (such as when the setting of a
+      field is advised). If you select a class or aspect, you will
+      see the relationships involving that class/aspect, plus any
+      that involve the methods contained in the class/aspect.</p>
+
+      <p>The view supports navigation, so you can double-click on an
+      element to open the containing resource in the editor, with that
+      element selected.</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Advice image decorator</b></td>
+
+    <td width="70%" valign="top">
+      <p>An image decorator has been added to indicate which Java
+      elements are being advised. A small orange arrow to the left of
+      the icon is used, as shown in the enlargement below. This
+      decorator is used anywhere that the standard Java decorator is
+      used, which includes the package explorer, the Java outline
+      view, the Cross Reference view, and the members view in the Java
+      browsing perspective. A preference page option is available if
+      you wish to disable this function.</p>
+
+    <img src="advicedecorator.png" width="347" height="215">
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Outline view improvements</b></td>
+    <td width="70%" valign="top">
+
+      <p>The standard Java outline view shows the structure of your
+      classes and aspects, just like in the package explorer. Instead
+      of requiring a build like the custom outline view (which is now
+      disabled by default), the view updates based on the eagerly
+      parsed structure of the current document. Filters are available
+      to hide various different types of element, such as pointcuts and
+      advice. The same aspect structure is also shown in the in-place
+      outline view in the AspectJ editor.</p>
+
+      <img src="inplace.png" width="298" height="357">
+
+  </tr>
+
+
+  <tr>
+    <td colspan="2">
+      <hr>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New advises markers</b></td>
+    <td width="70%" valign="top">
+
+      <p>Markers are added to the left-hand gutter of the editor to
+      indicate where advice will take effect at runtime (or may take
+      effect, if there is a dynamic test to the pointcut). Firstly,
+      these markers now appear when using the Java editor, not just
+      with the AspectJ editor. Secondly, additional markers have been
+      added at the source of these relationships, namely the advice
+      itself. The icons used are flipped versions of the existing
+      ones. Selecting the context menu from one of these markers will
+      show an "Advises" menu, similar to the "Advised By" menu shown
+      at the other end of the relationship. As well as being more
+      consistent, these new markers provide an additional means of
+      navigating the aspect-oriented structure of your code.</p>
+
+      <img src="advises.png" width="432" height="325">
+
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>AspectJ 1.5.0M1</b></td>
+    <td width="70%" valign="top">
+
+      <p>The first milestone release of AspectJ 5 is included, with
+      all the accompanying documentation available in the Eclipse help
+      system, including the AspectJ 5 Developer's Notebook.</p>
+
+      <p>A new preference page has been added to allow the setting of
+      the new options available with the AspectJ 5 compiler.</p>
+ 
+      <img src="50opts.png" width="341" height="278">
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Global incremental option</b></td>
+    <td width="70%" valign="top">
+
+      <p>We encourage you to try out the incremental compilation
+      mode. It's not as fast as we'd like, but it should work just
+      fine, and still be quicker than a full build. To make activating
+      this easier, we've moved the option to the new "Other" tab of
+      the AspectJ compiler preference page, so that it can be set
+      globally if desired.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved diagnostics</b></td>
+    <td width="70%" valign="top">
+
+      <p>Now that AJDT is itself built with AspectJ, we can make use
+      of its capabilities throughout the codebase. In addition to
+      various enforcement and monitoring development-time aspects, we
+      are now using aspects to improve our first failure data
+      capture. This means our plugins are now much better at writing
+      to the Eclipse .log file when an exception occurs, and more
+      information is included in the log file.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved Mac OS X support</b></td>
+    <td width="70%" valign="top">
+
+      <p>We don't usually have the resources to do much testing on
+      this platform, but we have done some this time. We fixed a few
+      bugs in AJDT and discovered an SWT bug which has since been
+      fixed in the Eclipse 3.1 line.</p>
+
+      <p>[insert screenshot to prove it!]</p>
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Bug fixes</b></td>
+    <td width="70%" valign="top">
+
+      <p>This release contains a fairly large number of bug fixes. The full list is available in
+
+<a href="https://bugs.eclipse.org/bugs/buglist.cgi?short_desc_type=allwordssubstr&short_desc=&product=AJDT&target_milestone=1.2.0+M2&long_desc_type=allwordssubstr&long_desc=&bug_file_loc_type=allwordssubstr&bug_file_loc=&keywords_type=allwords&keywords=&bug_status=RESOLVED&bug_status=VERIFIED&bug_status=CLOSED&resolution=FIXED&bug_severity=blocker&bug_severity=critical&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&emailtype1=substring&email1=&emailtype2=substring&email2=&bugidtype=include&bug_id=&votes=&changedin=&chfieldfrom=&chfieldto=Now&chfieldvalue=&cmdtype=doit&order=Reuse+same+sort+as+last+time&field0-0-0=noop&type0-0-0=noop&value0-0-0=">Bugzilla.</a>
+
+The more notable ones are:
+
+<ul>
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=70658">70658</a> Advised by gutter annotation & context menu missing
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=71718">71718</a> Setting breakpoints does not work
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=73859">73859</a> Changing the aspect path etc should trigger a rebuild
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=74401">74401</a> External jars on inpath not found on Linux
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=75373">75373</a> problem-markers created by other builders disappear
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=75392">75392</a> Visualiser doesn't always refresh after a build
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=75776">75776</a> Deleting AJ project triggers a build which results in an NPE
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=76811">76811</a> AJDT's project properties pages do not behave like JDT's
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=76903">76903</a> Wrong classpath for ajdoc
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=77179">77179</a> Build configurator error when renaming packages
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=77261">77261</a> Shouldn't be able to include files from outside a source folder
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=77296">77296</a> Visualiser handle click doesn't work with .aj files
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=77297">77297</a> Visualiser shows duplicate entries with multiple source folders
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=77705">77705</a> Visualiser menu checkboxes not working on the Mac
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78023">78023</a> Source format removes privileged keyword
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78052">78052</a> Eclipse 3.1M3 issues
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78578">78578</a> AJDT Preferences Configuration Wizard reappears
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=79979">79979</a> Missing markers for declare parents
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=80060">80060</a> Clean/Build Takes Extremely Long Time
+
+</ul>
+</p>
+
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Previous release</b></td>
+    <td width="70%" valign="top">
+
+      <p>See also information about the previous release:</p>
+
+      <p><a href="../whatsnew120M1/newnoteworthy.html">AJDT v1.2.0 M1 - New
+      and Noteworthy</a></p>
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+</table>
+
+  </body>
+</html>
