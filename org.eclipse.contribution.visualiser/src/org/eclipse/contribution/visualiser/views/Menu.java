@@ -346,6 +346,9 @@ public class Menu extends ViewPart {
 		 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){ //$NON-NLS-1$
 
 		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+		 		 		 		 		if ((canvas==null) || canvas.isDisposed()) {
+		 		 		 		 			return Status.OK_STATUS;
+		 		 		 		 		}
 		 		 		 		 		 clear();
 		 		 		 		 		 Set markupKinds = vmp.getAllMarkupKinds();
 		 		 		 		 		 int numKindsToShow = getNumberToShow(markupKinds);

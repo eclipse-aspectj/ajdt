@@ -458,8 +458,10 @@ public class Visualiser extends ViewPart {
 		 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
 
 		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
-		 		 		 		 		 visCanvas.redraw(data);
-		 		 		 		 		 return Status.OK_STATUS;
+		 		 		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
+		 		 		 		 			visCanvas.redraw(data);
+		 		 		 		 		}
+		 		 		 		 		return Status.OK_STATUS;
 		 		 		 		 }};
 		 		 }
 		 		 return redrawJob;
