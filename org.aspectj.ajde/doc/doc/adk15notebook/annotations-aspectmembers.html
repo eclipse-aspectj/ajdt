@@ -1,0 +1,55 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Annotating Aspects</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM 5 Development Kit Developer's Notebook"><link rel="up" href="annotations.html" title="Chapter 2. Annotations"><link rel="previous" href="annotations.html" title="Chapter 2. Annotations"><link rel="next" href="annotations-pointcuts-and-advice.html" title="Join Point Matching based on Annotations"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Annotating Aspects</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="annotations.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 2. Annotations</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="annotations-pointcuts-and-advice.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="annotations-aspectmembers"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-aspectmembers"></a>Annotating Aspects</h2></div></div><p>
+    	AspectJ 5 supports annotations on aspects, and on method, field,
+    	constructor, advice, and inter-type declarations within aspects. 
+    	Method and advice parameters may also be annotated.
+    	Annotations are not permitted on pointcut declarations or on 
+    	<tt>declare</tt> statements.
+    </p><p>
+    	The following example illustrates the use of annotations in aspects:
+    </p><pre class="programlisting">
+		@AspectAnnotation
+		public abstract aspect ObserverProtocol {
+		
+			@InterfaceAnnotation
+			interface Subject {}
+		
+			@ITDFieldAnnotation
+			private List Subject.observers;  
+				
+			@ITDMethodAnnotation
+			public void Subject.addObserver() { ... }
+			
+			@ITDMethodAnnotation
+			public void Subject.removeObserver() { ... }
+			
+			@MethodAnnotation
+			private void notifyObservers(Subject subject) { ... }
+			
+			/**
+			 * Delegate to concrete sub-aspect the actual form of
+			 * notification for a given type of Subject.
+			 */
+			@MethodAnnotation
+			protected abstract void notifySubject(Subject s);
+			
+			/* no annotations on pointcuts */
+			abstract pointcut observedEvent(Subject subject);
+			
+			@AdviceAnnotation
+			after(Subject subject) returning : observedEvent(subject) {
+				notifyObservers(subject);  
+			} 
+		}
+	</pre><p>
+    An annotation on an aspect will be inherited by sub-aspects, iff it has
+    the <tt>@Inherited</tt> meta-annotation.
+    </p><p>
+        AspectJ 5 supports a new XLint warning, "the pointcut associated with this
+        advice does not match any join points". The warning is enabled by default and
+        will be emitted by the compiler if the pointcut expression associated with an 
+        advice statement can be statically determined to not match any join points. The
+        warning can be suppressed for an individual advice statement by using the 
+        <tt>@SuppressWarnings({"unmatched"})</tt> annotation. (See JLS 9.6.1.5).
+    </p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="annotations.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="annotations-pointcuts-and-advice.html">Next</a></td></tr><tr><td width="40%" align="left">Chapter 2. Annotations&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="annotations.html">Up</a></td><td width="40%" align="right">&nbsp;Join Point Matching based on Annotations</td></tr></table></div></body></html>
