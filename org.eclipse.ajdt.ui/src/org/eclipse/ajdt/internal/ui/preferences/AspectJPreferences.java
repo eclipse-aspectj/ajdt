@@ -49,7 +49,7 @@ public class AspectJPreferences {
 	/**
 	 * Identifier for outline view mode selection
 	 */
-	public static final String ASPECTJ_OUTLINE = "org.eclipse.ajdt.ui.ajoutline";
+	public static final String ASPECTJ_OUTLINE = "org.eclipse.ajdt.ui.ajoutline2";
 	
 	public static final String AUTOBUILD_SUPPRESSED = "org.eclipse.ajdt.ui.preferences.autobuildSuppressed";
 	

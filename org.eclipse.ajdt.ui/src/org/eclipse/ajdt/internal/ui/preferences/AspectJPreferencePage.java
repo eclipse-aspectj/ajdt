@@ -48,7 +48,7 @@ public class AspectJPreferencePage
 	public static void initDefaults(IPreferenceStore store) {
 		//store.setDefault(AspectJPreferences.COMPILER_OPTIONS, "");
 		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
-		store.setDefault(AspectJPreferences.ASPECTJ_OUTLINE, true);
+		store.setDefault(AspectJPreferences.ASPECTJ_OUTLINE, false);
 		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
         store.setDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE, false);
         store.setDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT, true);
@@ -117,9 +117,9 @@ public class AspectJPreferencePage
 		itw1.setDocument(
 			new Document(
 			  "Please refer to the forum eclipse.technology.ajdt\n"+
-			  "on the eclipse.org website.\n"));
+			  "on the eclipse.org website."));
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		//createLabel(compilerOptionsComposite, ""); // Spacer
 		createLabel(compilerOptionsComposite, "Licensing");
 		ITextViewer itw2 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 		
@@ -135,6 +135,9 @@ public class AspectJPreferencePage
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
 		addField(createAJOutlineField(compilerOptionsComposite));
+		createLabel(compilerOptionsComposite, 
+				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
+		
 		addField(createJavaOrAJField(compilerOptionsComposite));
 		createLabel(compilerOptionsComposite, 
 				AspectJUIPlugin.getResourceString("aspectjpreferences.fileExt.details"));
