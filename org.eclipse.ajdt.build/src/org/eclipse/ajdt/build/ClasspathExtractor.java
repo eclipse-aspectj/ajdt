@@ -42,21 +42,24 @@ public class ClasspathExtractor implements IPlatformRunnable {
 
 	public static final String OUT_FILE = "ajdtworkspace.properties";
 	
+	private String outDir = ".";
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.boot.IPlatformRunnable#run(java.lang.Object)
 	 */
 	public Object run(Object args) throws Exception {
+		// first arg is the directory to write properties file to
+		if (args instanceof String[]) {
+			String[] arg = (String[])args;
+			if (arg.length>0) {
+				outDir = arg[0]; 
+			}
+		}
+		System.out.println("output dir="+outDir);
 		IWorkspace workspace = BuildPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
 		String workspaceLoc = root.getLocation().toOSString();
-		System.out.println("workspaceLoc" + workspaceLoc);
-System.out.println("args="+args);
-if (args instanceof String[]) {
-	String[] arg = (String[])args;
-	for (int i = 0; i < arg.length; i++) {
-		System.out.println("arg["+i+"]="+arg[i]);
-	}
-}
+		System.out.println("workspaceLoc=" + workspaceLoc);
 		ensureProjectsExist(root);
 		
 		// first make sure all projects are open and in sync
@@ -75,7 +78,7 @@ if (args instanceof String[]) {
 		
 		// now resolve the classpath of those projects we're interested in
 		// and write it out to a file
-		FileWriter props = new FileWriter(OUT_FILE);
+		FileWriter props = new FileWriter(outDir + File.separator + OUT_FILE);
 		BufferedWriter writer = new BufferedWriter(props);
 
 		for (int i = 0; i < projects.length; i++) {
