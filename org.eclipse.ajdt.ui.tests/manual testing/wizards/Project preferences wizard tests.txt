@@ -110,5 +110,17 @@ Test for default values on AJ compiler page
 (4) navigate to the "other" tab
 (5) check that "use incremental" and "create stucture model" options are checked, 
     whereas output weaving messages isn't.											(PREFS_20)
+    		 
+Test weaving messages output
+----------------------------
+
+(1) check out Simple AJ Project
+(2) ensure that the problems view is showing in your workbench
+(3) Right click on Simple AJ Project > select properties > AspectJ Compiler
+(4) Click "use project settings"
+(5) navigate to the "other" tab
+(6) select "show weaving messages"
+(7) Click "ok" and in the resultant popup, choose to build now
+(8) weaving messages should be sent to the problems view  (PREFS_21)
     		    
 	           			
