@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.ui;
 
-import org.eclipse.contribution.xref.internal.ui.views.NavigationHistoryManagerTest;
-import org.eclipse.contribution.xref.internal.ui.views.XReferenceViewTest;
+import org.eclipse.contribution.xref.ui.views.NavigationHistoryManagerTest;
+import org.eclipse.contribution.xref.ui.views.XReferenceViewTest;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;

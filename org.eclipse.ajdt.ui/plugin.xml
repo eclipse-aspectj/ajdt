@@ -51,6 +51,7 @@
       <import plugin="org.eclipse.ajdt.core"/>
       <import plugin="org.aspectj.runtime"/>
       <import plugin="org.eclipse.contribution.xref.core"/>
+      <import plugin="org.eclipse.contribution.xref.ui"/>
    </requires>
 
 

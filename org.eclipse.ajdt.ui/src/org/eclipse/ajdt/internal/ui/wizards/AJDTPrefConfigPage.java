@@ -18,6 +18,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
  */
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -27,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PartInitException;
 
 /**
  * This class is the only page of the AJDT preferences configuration wizard.  
@@ -36,9 +38,10 @@ public class AJDTPrefConfigPage extends WizardPage {
 
 	// widgets
 	private Button aspectJEditorDefaultCheckbox = null;
-	private Button unusedImportsCheckbox = null;
+//	private Button unusedImportsCheckbox = null;
 	private Button analyzeAnnotationsCheckbox = null;
-	private Button dontAskAgainCheckbox = null;
+	private Button openXRefView;
+//	private Button dontAskAgainCheckbox = null;
 	
 	/**
 	 * Creates the page AJDT Preference Configuration main (only) page.
@@ -93,6 +96,10 @@ public class AJDTPrefConfigPage extends WizardPage {
 				analyzeAnnotationsCheckbox = new Button(workbench, SWT.CHECK);		
 				analyzeAnnotationsCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.analyzeannotations"));
 				analyzeAnnotationsCheckbox.setSelection(true);
+				
+				openXRefView = new Button(workbench, SWT.CHECK);		
+				openXRefView.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView"));
+				openXRefView.setSelection(true);
 			//}
 		//}	
 		new Label(composite, SWT.NONE); // vertical spacer
@@ -142,6 +149,14 @@ public class AJDTPrefConfigPage extends WizardPage {
 		// set the default editor for .java files
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(makeAspectJEditorDefault);
 			
+		if(openXRefView.getSelection()) {
+			try {
+				AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(XReferenceView.ID);
+			} catch (PartInitException e) {
+				AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+						AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+			}
+		}
 		return true;
 	}
 }

@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.internal.ui.views;
+package org.eclipse.contribution.xref.ui.views;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,16 +22,17 @@ import org.eclipse.contribution.xref.core.XReference;
  * @author hawkinsh
  *  
  */
-public class TestXRefProviderWithEntities implements IXReferenceProvider {
+public class TestXRefProvider implements IXReferenceProvider {
 
-	private String testAssociate;
+	public static boolean beBad = false; // for setting up test conditions
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getClasses()
 	 */
 	public Class[] getClasses() {
-		return new Class[] { TestXRefClassWithEntities.class };
+		return new Class[] { TestXRefClass.class };
 	}
 
 	/*
@@ -42,8 +43,6 @@ public class TestXRefProviderWithEntities implements IXReferenceProvider {
 	public Collection getXReferences(Object o) {
 		XReference e = new XReference("extends");
 		XReference i = new XReference("implements");
-		testAssociate = "test associate";
-		e.addAssociate(testAssociate);
 		List l = new ArrayList();
 		l.add(e);
 		l.add(i);
@@ -51,8 +50,9 @@ public class TestXRefProviderWithEntities implements IXReferenceProvider {
 	}
 
  	public String getProviderDescription() {
- 		return "Definition of TestXRefProviderWithEntities";
+ 		return "Definition of TestXRefProvider";
  		
  	}
 
+	
 }

@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.internal.ui.views;
+package org.eclipse.contribution.xref.ui.views;
 
 import junit.framework.TestCase;
 
@@ -17,6 +17,7 @@ import org.eclipse.contribution.xref.internal.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -55,7 +56,7 @@ public class XReferenceViewTest extends TestCase {
 	public void testShowHide() throws PartInitException {
 		IViewPart view =
 			getPage().showView(
-				"org.eclipse.contribution.xref.internal.ui.views.xReferenceView");
+				XReferenceView.ID);
 		getPage().hideView(view);
 	}
 

@@ -9,15 +9,15 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.internal.ui.views;
+package org.eclipse.contribution.xref.ui.views;
 
 /**
  * @author hawkinsh
  *
  */
-public class TestXRefClassWithEntities {
-	
-	public TestXRefClassWithEntities() {
+public class TestXRefClass {
+
+	public TestXRefClass() {
 	}
 
 }

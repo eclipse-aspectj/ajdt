@@ -46,9 +46,11 @@ public class BCResourceDeltaVisitor implements IResourceDeltaVisitor {
 	 */
 	public boolean visit(IResourceDelta delta) {
 		IResource myRes = delta.getResource();
+		//System.out.println("visiting: "+myRes);
 		if (myRes.getType() == IResource.FILE) {
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED:
+				//System.out.println("changed");
 				if (BuildConfiguration.EXTENSION.equals(myRes
 						.getFileExtension())) {
 					new UpdateJob(myBCor, UpdateJob.BUILD_CONFIG_CHANGED, myRes)
@@ -59,6 +61,7 @@ public class BCResourceDeltaVisitor implements IResourceDeltaVisitor {
 				}
 				break;
 			case IResourceDelta.REMOVED:
+				//System.out.println("removed");
 				//Build Configuration has been deleted
 				if (BuildConfiguration.EXTENSION.equals(myRes
 						.getFileExtension())) {
@@ -67,6 +70,7 @@ public class BCResourceDeltaVisitor implements IResourceDeltaVisitor {
 				}
 				break;
 			case IResourceDelta.ADDED:
+				//System.out.println("added");
 				if ((delta.getFlags() & IResourceDelta.MOVED_FROM) == 0){
 					if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes
 							.getName())) {

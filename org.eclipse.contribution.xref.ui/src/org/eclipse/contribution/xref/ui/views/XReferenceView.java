@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.internal.ui.views;
+package org.eclipse.contribution.xref.ui.views;
 
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
@@ -63,7 +63,7 @@ import org.eclipse.ui.part.ViewPart;
 public class XReferenceView extends ViewPart implements ISelectionListener {
 
 	public static final String ID =
-		"org.eclipse.contribution.xref.internal.ui.views.XReferenceView";
+		"org.eclipse.contribution.xref.ui.views.XReferenceView";
 	private static final String LINK_ID = ID + ".link";
 	private static final String SELECTION_ID = ID + ".selection";
 

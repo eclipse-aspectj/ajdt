@@ -9,6 +9,7 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -37,27 +38,40 @@ public class BCResourceChangeListener implements IResourceChangeListener {
 		myBCor = BuildConfigurator.getBuildConfigurator();
 	}
 	public void resourceChanged(IResourceChangeEvent event) {
-		/*try {
-			IResource r = event.getResource();
-			if (r == null) return;
-			IProject proj = r.getProject();
-			if (!proj.hasNature(AspectJPlugin.ID_NATURE)) return;
-		} catch (CoreException e1) {
-			e1.printStackTrace();
-			return;
-		}*/
-		if ((event.getType() == IResourceChangeEvent.PRE_CLOSE) || (event.getType() == IResourceChangeEvent.PRE_DELETE)) {
+		/*
+		 * try { IResource r = event.getResource(); if (r == null) return;
+		 * IProject proj = r.getProject(); if
+		 * (!proj.hasNature(AspectJPlugin.ID_NATURE)) return; } catch
+		 * (CoreException e1) { e1.printStackTrace(); return; }
+		 */
+		if ((event.getType() == IResourceChangeEvent.PRE_CLOSE)
+				|| (event.getType() == IResourceChangeEvent.PRE_DELETE)) {
 			IResource res = event.getResource();
-			if (res.getType() == IResource.PROJECT){
-				myBCor.closeProject((IProject)res);
+			if (res.getType() == IResource.PROJECT) {
+				myBCor.closeProject((IProject) res);
 			}
-		} else if (event.getType() == IResourceChangeEvent.POST_CHANGE){
+		} else if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 			IResourceDelta delta = event.getDelta();
-			if (delta != null)
+			if (delta != null) {
+				IResource res = delta.getAffectedChildren()[0].getResource();
+				IProject proj = res.getProject();
+				System.out.println("delta resource changed: proj=" + proj);
+				boolean skip = false;
 				try {
-					delta.accept(myDeltaVisitor);
-				} catch (CoreException e) {
+				if (!proj.hasNature(AspectJUIPlugin.ID_NATURE)) {
+					skip = true;
+					System.out.println("skip");
 				}
+				} catch (CoreException e) {
+					
+				}
+				if (!skip) {
+					try {
+						delta.accept(myDeltaVisitor);
+					} catch (CoreException e) {
+					}
+				}
+			}
 		}
 	}
 }

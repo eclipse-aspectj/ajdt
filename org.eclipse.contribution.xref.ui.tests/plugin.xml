@@ -26,13 +26,13 @@
       <xrefProvider
             label="Test XReference Provider Label"
             enabled="true"
-            class="org.eclipse.contribution.xref.internal.ui.views.TestXRefProvider"
+            class="org.eclipse.contribution.xref.ui.views.TestXRefProvider"
             id="org.eclipse.contribution.xref.core.test.testXRefProvider">
       </xrefProvider>
       <xrefProvider
             label="Test XReference Provider With Entities Label"
             enabled="true"
-            class="org.eclipse.contribution.xref.internal.ui.views.TestXRefProviderWithEntities"
+            class="org.eclipse.contribution.xref.ui.views.TestXRefProviderWithEntities"
             id="org.eclipse.contribution.xref.core.test.testXRefProviderWithEntities">
       </xrefProvider>
    </extension>

@@ -19,7 +19,7 @@ import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInformationControl;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
-import org.eclipse.contribution.xref.internal.ui.views.XReferenceView;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.internal.ui.views;
+package org.eclipse.contribution.xref.ui.views;
 
 import org.eclipse.contribution.xref.internal.ui.actions.NavigationHistoryManager;
 
