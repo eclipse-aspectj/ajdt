@@ -1,0 +1,59 @@
+<toc label="The AspectJ Development Kit Developer's Workbook">
+<topic label="Index" href="doc/adk15notebook/index.html"/>
+<topic label="1. Join Point signatures" href="doc/adk15notebook/jpsigs.html">
+
+	<topic label="Join Point Matching" href="doc/adk15notebook/jpsigs.html#join-point-matching"/>
+	<topic label="Join Point Signatures" href="doc/adk15notebook/join-point-signatures.html"/>
+	<topic label="Join Point Modifiers" href="doc/adk15notebook/join-point-modifiers.html"/>
+	<topic label="Sumamry of Join Point Matching" href="doc/adk15notebook/join-point-matching-summary.html"/>
+
+</topic>
+
+<topic label="2. Annotations" href="doc/adk15notebook/annotations.html">
+
+	<topic label="Annotations in Java 5" href="doc/adk15notebook/annotations.html#annotations-inJava5"/>
+	<topic label="Anotating Aspects" href="doc/adk15notebook/annotations-aspectmembers.html"/>
+	<topic label="Join Point Matching based on Annotations" href="doc/adk15notebook/annotations-pointcuts-and-advice.html"/>
+	<topic label="Using Annotations with declare statements" href="doc/adk15notebook/annotations-decp.html"/>
+	<topic label="Declare Annotation" href="doc/adk15notebook/annotations-declare.html"/>
+	<topic label="Inter-type Declarations" href="doc/adk15notebook/annotations-itds.html"/>
+
+</topic>
+
+<topic label="3. Generics" href="doc/adk15notebook/generics.html">
+
+	<topic label="Generics in Java 5" href="doc/adk15notebook/generics.html#generics-inJava5"/>
+
+</topic>
+
+<topic label="4. Autoboxing and Unboxing" href="doc/adk15notebook/autoboxing.html">
+
+	<topic label="Autoboxing and Unboxing in Java 5" href="doc/adk15notebook/autoboxing.html#boxing-inJava5"/>
+	<topic label="Autoboxing and Join Point matching in AspectJ 5" href="doc/adk15notebook/autoboxing-in-aspectj5.html"/>
+	<topic label="Inter-type method declarations and method dispatch" href="doc/adk15notebook/autoboxing-and-method-dispatch.html"/>
+</topic>
+
+<topic label="5. Covariance" href="doc/adk15notebook/covariance.html">
+
+	<topic label="Covariance in Java 5" href="doc/adk15notebook/covariance.html#covariance-inJava5o"/>
+	<topic label="Covariant methods and Join Point matching" href="doc/adk15notebook/covariance-and-join-point-matching.html"/>
+</topic>
+
+<topic label="6. Varargs" href="doc/adk15notebook/varargs.html">
+	
+	<topic label="Variable-length Argument Lists in Java 5" href="doc/adk15notebook/varargs.html#varargs-inJava5"/>
+	<topic label="Using Variable-length arguments in advice and pointcut expressions" href="doc/adk15notebook/varargs-in-pcds.html"/>
+</topic>
+
+<topic label="7. Enumerated Types" href="doc/adk15notebook/enumeratedtypes.html">
+
+	<topic label="Enumerated Types in Java 5" href="doc/adk15notebook/enumeratedtypes.html#enums-in-java5"/>
+	<topic label="Enumerated Types in AspectJ 5" href="doc/adk15notebook/\enums-in-aspectj5.html"/>
+</topic>
+
+<topic label="8. The pertypewithin Aspect Instantiation Model" href="doc/adk15notebook/pertypewithin.html"/>
+<topic label="9. New Reflection Interfaces" href="doc/adk15notebook/reflection.html"/>
+<topic label="10. Other Changes in AspectJ 5" href="doc/adk15notebook/miscellaneous.html"/>
+<topic label="A. A Grammar for the AspectJ 5 Language" href="doc/adk15notebook/grammar.html"/>
+
+</toc>

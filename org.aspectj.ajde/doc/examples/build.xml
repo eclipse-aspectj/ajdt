@@ -73,6 +73,8 @@
             location="${aspectj.lib.dir}/aspectjrt.jar"/> 
       <property name="aspectjtools.jar"
             location="${aspectj.lib.dir}/aspectjtools.jar"/> 
+      <property name="aspectjweaver.jar"
+    		location="${aspectj.lib.dir}/aspectjweaver.jar"/>
 
       <!-- created directories -->
       <property name="classes.dir"
@@ -435,17 +437,17 @@
        </java>
        <echo message="---------- running without tracing - FINISH "/>
 
-       <!-- run appliaction with LTW to add tracing -->
+       <!-- run application with LTW to add tracing -->
        <echo message="---------- running with tracing - START"/>
        <java classname="tracing.ExampleMain"
          fork="true">
          <classpath>
-            <pathelement path="${aspectjrt.jar}"/> 
-            <pathelement path="${aspectjtools.jar}"/> 
+            <pathelement path="${aspectjweaver.jar}"/> 
          </classpath>
 		 <jvmarg line="-showversion"/>
 		 <sysproperty key="java.system.class.loader" value="org.aspectj.weaver.WeavingURLClassLoader"/>
          <sysproperty key="aj.weaving.verbose" value="True"/>
+       	 <sysproperty key="org.aspectj.weaver.showWeaveInfo" value="True"/>
          <sysproperty key="aj.class.path" path="${jar.dir}/tracingLib.jar:${jar.dir}/tracingApp.jar"/>
          <sysproperty key="aj.aspect.path" path="${jar.dir}/tracingLib.jar"/>
        </java>

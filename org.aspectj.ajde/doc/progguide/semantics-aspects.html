@@ -53,8 +53,8 @@
         The criteria used to determine how an aspect is instantiated
         is inherited from its parent aspect.  If the aspect has no parent
         aspect, then by default the aspect is a singleton aspect.
-      </p><div class="sect3"><a name="d0e6961"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6961"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e6965"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e6971"></a><tt>aspect <i><tt>Id</tt></i> issingleton { ... }</tt></li></ul></div><p>
-          By default (or by using the modifier <tt>issingleton</tt>)
+      </p><div class="sect3"><a name="d0e6961"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6961"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e6965"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e6971"></a><tt>aspect <i><tt>Id</tt></i> issingleton() { ... }</tt></li></ul></div><p>
+          By default (or by using the modifier <tt>issingleton()</tt>)
           an aspect has exactly one instance that cuts across the entire
           program.  That instance is available at any time during program
           execution with the static method <tt>aspectOf()</tt>
