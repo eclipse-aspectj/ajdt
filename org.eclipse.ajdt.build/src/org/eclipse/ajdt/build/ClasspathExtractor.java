@@ -51,9 +51,12 @@ public class ClasspathExtractor implements IPlatformRunnable {
 		String workspaceLoc = root.getLocation().toOSString();
 		System.out.println("workspaceLoc" + workspaceLoc);
 
+		ensureProjectsExist(root);
+		
 		// first make sure all resources are in sync
 		IProject[] projects = root.getProjects();
 		for (int i = 0; i < projects.length; i++) {
+			System.out.println("project["+i+"]="+projects[i]);
 			if (projects[i].isAccessible()
 				&& projects[i].hasNature(JavaCore.NATURE_ID)) {
 				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -277,26 +280,30 @@ public class ClasspathExtractor implements IPlatformRunnable {
 //		return null;
 //	}
 //
-//	/*
-//	 * New projects get copied into the workspace directory, but they aren't visible
-//	 * from inside Eclipse until createProject() has been called for them
-//	 */
-//	private void ensureProjectsExist(IWorkspace workspace) {
-//		String workspaceLoc = workspace.getRoot().getLocation().toOSString();
-//		System.out.println("workspaceLoc" + workspaceLoc);
-//
-//		File ws = new File(workspaceLoc);
-//		File[] contents = ws.listFiles();
-//		for (int i = 0; i < contents.length; i++) {
-//			if (contents[i].isDirectory()
-//				&& !contents[i].getName().startsWith(".")) {
-//				System.out.println("project=" + contents[i].getName());
-//				IProject project =
-//					workspace.getRoot().getProject(contents[i].getName());
-//				if (!project.exists()) {
-//					System.out.println("doesn't exist");
-//				}
-//			}
-//		}
-//	}
+	/*
+	 * New projects get copied into the workspace directory, but they aren't visible
+	 * from inside Eclipse until createProject() has been called for them
+	 */
+	private void ensureProjectsExist(IWorkspaceRoot root) {
+		String workspaceLoc = root.getLocation().toOSString();
+
+		File ws = new File(workspaceLoc);
+		File[] contents = ws.listFiles();
+		for (int i = 0; i < contents.length; i++) {
+			if (contents[i].isDirectory()
+					&& !contents[i].getName().startsWith(".")) {
+				IProject project = root.getProject(contents[i].getName());
+				if (!project.exists()) {
+					System.out.println("project " + contents[i].getName()
+							+ "doesn't exist, creating");
+					try {
+						project.create(null);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
 }
