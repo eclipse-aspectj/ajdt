@@ -363,10 +363,8 @@ public class AJDTUtils {
 	public static void checkAndChangeDependencies(IProject project) {
 		changeProjectDependencies(project);
 		try {
-			if (project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR) != null
-					&& !(project
-							.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR)
-							.equals(""))) {
+			String outJar = BuildOptionsAdapter.getProjectOutJar(project);
+			if ((outJar!=null) && !outJar.equals("")) {
 				String outJar2 = AspectJUIPlugin.getDefault()
 						.getAjdtProjectProperties().getOutJar();
 				IPath pathToOutjar2 = new Path(outJar2);

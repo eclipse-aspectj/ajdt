@@ -365,7 +365,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, outJar);
+		BuildOptionsAdapter.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 
 		// build the project so it picks up the outjar and sends 
@@ -398,7 +398,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertFalse("project X should not have a class folder dependency on project Y",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, "");
+		BuildOptionsAdapter.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -514,7 +514,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, outJar);
+		BuildOptionsAdapter.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -543,7 +543,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		// now set the outjar option back to nothing and build projectY 
 		// to send output to bin directory rather than jar file
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, "");
+		BuildOptionsAdapter.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -675,7 +675,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file mainWork.jar
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY);
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, outJar);
+		BuildOptionsAdapter.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -704,7 +704,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file newJar.jar
 		// setup the outjar
 		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY);
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, outJar2);
+		BuildOptionsAdapter.setProjectOutJar(projectY,outJar2);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists());
 
@@ -734,7 +734,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, "");
+		BuildOptionsAdapter.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -811,7 +811,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		
 		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY);
-		projectY.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR, outJar);
+		BuildOptionsAdapter.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -891,12 +891,13 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		IProject jarDependentProject = Utils.createPredefinedProject("jarDependentProject");
 
 		// sanity check on setup of projects....
-		String outjar = jarCreatingProject.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);
+		
+		String outjar = BuildOptionsAdapter.getProjectOutJar(jarCreatingProject);
 		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
 		if(outjar == null || !outjar.equals("myJar.jar")) {			
-			jarCreatingProject.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR,jar);
+			BuildOptionsAdapter.setProjectOutJar(jarCreatingProject,jar);
 		}
-		outjar = jarCreatingProject.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);
+		outjar = BuildOptionsAdapter.getProjectOutJar(jarCreatingProject);
 		assertEquals("the outjar should be called myjar.jar",jar,outjar);
 		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
 				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));

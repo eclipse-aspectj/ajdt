@@ -72,7 +72,7 @@ public class InPathPropertyPage extends PropertyPage implements
         thisProject = getProject();
         
         // TODO : Only ensure inpath is initialised ??
-        BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
+        //BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
         
         Control result;
         if (thisProject == null || !AspectJPlugin.isAJProject(thisProject)) {
@@ -162,13 +162,13 @@ public class InPathPropertyPage extends PropertyPage implements
     private IClasspathEntry[] getInitialInpathValue(IProject project)
             throws CoreException {
         List result = new ArrayList();
-        String paths = project
-                .getPersistentProperty(BuildOptionsAdapter.INPATH);
-        String cKinds = project
-                .getPersistentProperty(BuildOptionsAdapter.INPATH_CON_KINDS);
-        String eKinds = project
-                .getPersistentProperty(BuildOptionsAdapter.INPATH_ENT_KINDS);
-
+        String[] v = BuildOptionsAdapter.getProjectInPath(project);
+        if (v==null) {
+        	return null;
+        }
+        String paths = v[0];
+        String cKinds = v[1];
+        String eKinds = v[2];
         if ((paths != null && paths.length() > 0)
                 && (cKinds != null && cKinds.length() > 0)
                 && (eKinds != null && eKinds.length() > 0)) {

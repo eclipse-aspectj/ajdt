@@ -299,12 +299,8 @@ public class AspectPathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
         
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.ASPECTPATH, aspectpathBuffer.toString());
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.ASPECTPATH_CON_KINDS, contentKindBuffer.toString());
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.ASPECTPATH_ENT_KINDS, entryKindBuffer.toString());
+        BuildOptionsAdapter.setProjectAspectPath(fCurrJProject.getProject(),aspectpathBuffer.toString(),
+        		contentKindBuffer.toString(),entryKindBuffer.toString());
         
         LaunchConfigurationManagementUtils.updateAspectPaths(fCurrJProject, existingAspectPath, aspectPathEntries);
     }

@@ -314,12 +314,8 @@ public class InPathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
         
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.INPATH, inpathBuffer.toString());
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.INPATH_CON_KINDS, contentKindBuffer.toString());
-        fCurrJProject.getProject().setPersistentProperty(
-                BuildOptionsAdapter.INPATH_ENT_KINDS, entryKindBuffer.toString());
+        BuildOptionsAdapter.setProjectInPath(fCurrJProject.getProject(),inpathBuffer.toString(),
+        		contentKindBuffer.toString(), entryKindBuffer.toString());
     }
    
     /**

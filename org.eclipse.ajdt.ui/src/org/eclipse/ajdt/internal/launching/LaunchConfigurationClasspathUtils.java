@@ -156,14 +156,14 @@ public class LaunchConfigurationClasspathUtils {
 	public static IRuntimeClasspathEntry[] getAspectpath(IProject project)
 			throws CoreException {
 		List result = new ArrayList();
-		String paths = project
-				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH);
-		String cKinds = project
-				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_CON_KINDS);
-		String eKinds = project
-				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_ENT_KINDS);
-
-		if ((paths != null && paths.length() > 0)
+        String[] v = BuildOptionsAdapter.getProjectAspectPath(project);
+        if (v==null) {
+        	return null;
+        }
+        String paths = v[0];
+        String cKinds = v[1];
+        String eKinds = v[2];
+  		if ((paths != null && paths.length() > 0)
 				&& (cKinds != null && cKinds.length() > 0)
 				&& (eKinds != null && eKinds.length() > 0)) {
 			StringTokenizer sTokPaths = new StringTokenizer(paths,

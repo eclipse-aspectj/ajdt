@@ -29,52 +29,43 @@ import org.eclipse.jdt.internal.core.JavaProject;
 public class BuildOptionsAdapter
 	implements org.aspectj.ajde.BuildOptionsAdapter {
 
-//	public final static QualifiedName PREPROCESS =
-//		new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.preProcess");
-//	public final static QualifiedName SOURCE14 =
-//		new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.source14");
-//	public final static QualifiedName PORTING_MODE =
-//		new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.portingMode");
-//	public final static QualifiedName WORKING_DIR =
-//		new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.workingDirectory");
-		
-	public final static QualifiedName INPUTJARS =
-	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.inputJars"); 
-    public final static QualifiedName INPUTJARSBROWSEDIR =
-        new QualifiedName(AspectJUIPlugin.PLUGIN_ID,
-        "BuildOptions.inputJarsBrowseDir");    
-    public final static QualifiedName ASPECTJARSBROWSEDIR =
-        new QualifiedName(AspectJUIPlugin.PLUGIN_ID,
-        "BuildOptions.aspectJarsBrowseDir");    
+//	private final static QualifiedName INPUTJARS =
+//	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.inputJars"); 
+//	private final static QualifiedName INPUTJARSBROWSEDIR =
+//        new QualifiedName(AspectJUIPlugin.PLUGIN_ID,
+//        "BuildOptions.inputJarsBrowseDir");    
+//    private final static QualifiedName ASPECTJARSBROWSEDIR =
+//        new QualifiedName(AspectJUIPlugin.PLUGIN_ID,
+//        "BuildOptions.aspectJarsBrowseDir");    
 
-    public final static QualifiedName INPATH = 
+    private final static QualifiedName INPATH = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.inpath");
-    public final static QualifiedName INPATH_CON_KINDS = 
+    private final static QualifiedName INPATH_CON_KINDS = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.inpathConKinds");
-    public final static QualifiedName INPATH_ENT_KINDS = 
+    private final static QualifiedName INPATH_ENT_KINDS = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.inpathEntKinds");
-    public final static QualifiedName ASPECTPATH = 
+    private final static QualifiedName ASPECTPATH = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectpath");
-    public final static QualifiedName ASPECTPATH_CON_KINDS = 
+    private final static QualifiedName ASPECTPATH_CON_KINDS = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectpathConKinds");
-    public final static QualifiedName ASPECTPATH_ENT_KINDS = 
+    private final static QualifiedName ASPECTPATH_ENT_KINDS = 
         new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectpathEntKinds");
     
-	public final static QualifiedName OUTPUTJAR = 
+	private final static QualifiedName OUTPUTJAR = 
 	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.outputJar");	    
-	public final static QualifiedName SOURCEROOTS =
-	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.sourceRoots");
-	public final static QualifiedName ASPECTJARS =
-	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectJars");
+//	private final static QualifiedName SOURCEROOTS =
+//	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.sourceRoots");
+//	private final static QualifiedName ASPECTJARS =
+//	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectJars");
 	
-		// Temporarily removing this option, will return nothing to the caller.
-	public final static QualifiedName CHAR_ENC =	
-		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.characterEncoding");
+//		// Temporarily removing this option, will return nothing to the caller.
+//	private final static QualifiedName CHAR_ENC =	
+//		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.characterEncoding");
 
-	public final static QualifiedName COMPILATION_STRICTNESS =
-		new QualifiedName(
-			AspectJUIPlugin.PLUGIN_ID,
-			"BuildOptions.compilationStrictness");
+//	private final static QualifiedName COMPILATION_STRICTNESS =
+//		new QualifiedName(
+//			AspectJUIPlugin.PLUGIN_ID,
+//			"BuildOptions.compilationStrictness");
 
 //	public final static QualifiedName JAVA_OR_AJ_EXT =
 //			new QualifiedName(AspectJPlugin.PLUGIN_ID, "BuildOptions.javaOrAjExt");
@@ -94,8 +85,8 @@ public class BuildOptionsAdapter
 //	public final static String COMPILATION_STRICTNESS_DEFAULT =
 //		COMPILATION_STRICTNESS_NORMAL;
 	public final static String NON_STANDARD_OPTS_DEFAULT = "-Xlint";
-	public final static String CHAR_ENC_DEFAULT =
-		System.getProperty("file.encoding");
+//	public final static String CHAR_ENC_DEFAULT =
+//		System.getProperty("file.encoding");
 	//	java.util.Locale.getDefault().getDisplayName();
 	public final static boolean JAVA_OR_AJ_EXT_DEFAULT = false;
 
@@ -202,7 +193,7 @@ public class BuildOptionsAdapter
 	 * @see BuildOptionsAdapter#getNonStandardOptions()
 	 */
 	public String getNonStandardOptions() {
-		ensurePropertiesInitialized();
+		//ensurePropertiesInitialized();
 		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();
 		String nonStandardOptions = AspectJPreferences.getCompilerOptions(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
@@ -299,7 +290,7 @@ public class BuildOptionsAdapter
 	 * @see BuildOptionsAdapter#getUseJavacMode()
 	 */
 	public boolean getIncrementalMode() {
-		ensurePropertiesInitialized();
+		//ensurePropertiesInitialized();
 		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();			
 		boolean incrementalMode = AspectJPreferences.getIncrementalOption(currentProject);
 		
@@ -313,7 +304,7 @@ public class BuildOptionsAdapter
 	}
 	
 	public boolean getBuildAsm() {
-		ensurePropertiesInitialized();
+		//ensurePropertiesInitialized();
 		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();		
 		boolean buildAsm = AspectJPreferences.getBuildASMOption(currentProject);
 
@@ -325,7 +316,7 @@ public class BuildOptionsAdapter
 	}
 	
 	public boolean getShowWeaveMessages() {
-		ensurePropertiesInitialized();
+		//ensurePropertiesInitialized();
 		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();	
 		boolean showweavemessages =  AspectJPreferences.getShowWeaveMessagesOption(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
@@ -426,109 +417,145 @@ public class BuildOptionsAdapter
 		project.setPersistentProperty(key, value);
 	}
 
-	/** 
-	 * Ensure the properties are initialized before they are used.
-	 */
-	private void ensurePropertiesInitialized() { 
-		ensurePropertiesInitialized(AspectJUIPlugin.getDefault().getCurrentProject());
+//	/** 
+//	 * Ensure the properties are initialized before they are used.
+//	 */
+//	private void ensurePropertiesInitialized() { 
+//		ensurePropertiesInitialized(AspectJUIPlugin.getDefault().getCurrentProject());
+//	}
+
+	public static String getProjectOutJar(IProject project) {
+		try {
+			String v = project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);
+			if (v==null) {
+				preserveSetting(project,BuildOptionsAdapter.OUTPUTJAR,"");
+				return "";
+			}
+			return v;
+		} catch (CoreException e) {
+		}
+		return "";
+	}
+	
+	public static void setProjectOutJar(IProject project, String value) throws CoreException {
+		preserveSetting(project,BuildOptionsAdapter.OUTPUTJAR,value);
+	}
+	
+	public static String[] getProjectInPath(IProject project) {
+		String[] v = new String[3];
+		try {
+			v[0] = project.getPersistentProperty(BuildOptionsAdapter.INPATH);
+			if (v[0]==null) {
+				preserveSetting(project,BuildOptionsAdapter.INPATH,"");
+			}
+			v[1] = project.getPersistentProperty(BuildOptionsAdapter.INPATH_CON_KINDS);
+			if (v[1]==null) {
+				preserveSetting(project,BuildOptionsAdapter.INPATH_CON_KINDS,"");
+			}
+			v[2] = project.getPersistentProperty(BuildOptionsAdapter.INPATH_ENT_KINDS);
+			if (v[2]==null) {
+				preserveSetting(project,BuildOptionsAdapter.INPATH_ENT_KINDS,"");
+			}
+		} catch (CoreException e) {
+		}
+		return v;
 	}
 
-	public static void ensurePropertiesInitialized(IProject project) {
+	public static void setProjectInPath(IProject project, String path, String cKinds, String eKinds) {
 		try {
-//			if (project.getPersistentProperty(BuildOptionsAdapter.PREPROCESS) == null)
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.PREPROCESS,
-//					BuildOptionsAdapter.PREPROCESS_DEFAULT);
-//			if (project.getPersistentProperty(BuildOptionsAdapter.SOURCE14) == null)
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.SOURCE14,
-//					BuildOptionsAdapter.SOURCE14_DEFAULT);
-//			if (project.getPersistentProperty(BuildOptionsAdapter.WORKING_DIR) == null)
-//				// ASCFIXME - Is this the right default?
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.WORKING_DIR,
-//					project.getLocation().toOSString());
-            
-            if (project.getPersistentProperty(BuildOptionsAdapter.INPUTJARSBROWSEDIR) == null)
-              preserveSetting(project, BuildOptionsAdapter.INPUTJARSBROWSEDIR,
-                                       project.getLocation().toOSString());  
-            if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTJARSBROWSEDIR) == null)
-              preserveSetting(project, BuildOptionsAdapter.ASPECTJARSBROWSEDIR,
-                                       project.getLocation().toOSString());                 
-
-            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH) == null)
-                  preserveSetting(project,BuildOptionsAdapter.INPATH,"");
-            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH_CON_KINDS) == null)
-                preserveSetting(project,BuildOptionsAdapter.INPATH_CON_KINDS,"");
-            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH_ENT_KINDS) == null)
-                preserveSetting(project,BuildOptionsAdapter.INPATH_ENT_KINDS,"");
-            
-            if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH) == null)
-                    preserveSetting(project, BuildOptionsAdapter.ASPECTPATH, "");
-            if (project
-                    .getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_CON_KINDS) == null)
-                    preserveSetting(project,
-                            BuildOptionsAdapter.ASPECTPATH_CON_KINDS, "");
-            if (project
-                    .getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_ENT_KINDS) == null)
-                    preserveSetting(project,
-                            BuildOptionsAdapter.ASPECTPATH_ENT_KINDS, "");
-            
-            
-			if (project.getPersistentProperty(BuildOptionsAdapter.INPUTJARS) == null)
-			  preserveSetting(project,BuildOptionsAdapter.INPUTJARS,"");
-			if (project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR) == null)
-			  preserveSetting(project,BuildOptionsAdapter.OUTPUTJAR,"");
-			if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTJARS) == null)
-			  preserveSetting(project,BuildOptionsAdapter.ASPECTJARS,"");
-			if (project.getPersistentProperty(BuildOptionsAdapter.SOURCEROOTS) == null)
-			  preserveSetting(project,BuildOptionsAdapter.SOURCEROOTS,"");
-			  
-			if (project.getPersistentProperty(BuildOptionsAdapter.CHAR_ENC) == null)
-				// Is this right? It comes out as "English" when perhaps it ought to be "ISO8859-1"
-				preserveSetting(
-					project,
-					BuildOptionsAdapter.CHAR_ENC,
-					BuildOptionsAdapter.CHAR_ENC_DEFAULT);
-//			if (project.getPersistentProperty(BuildOptionsAdapter.COMPILATION_STRICTNESS)
-//				== null)
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.COMPILATION_STRICTNESS,
-//					BuildOptionsAdapter.COMPILATION_STRICTNESS_DEFAULT);
-//			if (project.getPersistentProperty(BuildOptionsAdapter.PORTING_MODE) == null)
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.PORTING_MODE,
-//					BuildOptionsAdapter.PORTING_MODE_DEFAULT);
-//			if (project.getPersistentProperty(BuildOptionsAdapter.NON_STANDARD_OPTS)
-//				== null)
-//				preserveSetting(
-//					project,
-//					BuildOptionsAdapter.NON_STANDARD_OPTS,
-//					BuildOptionsAdapter.NON_STANDARD_OPTS_DEFAULT);
-
-//			if (project.getPersistentProperty(BuildOptionsAdapter.JAVA_OR_AJ_EXT) == null)
-//				preserveSetting(project,
-//					BuildOptionsAdapter.JAVA_OR_AJ_EXT,
-//					BuildOptionsAdapter.JAVA_OR_AJ_EXT_DEFAULT);
-		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString(
-					"buildOptionsAdapter.exceptionInitializingProperties"),
-				ce);
+			preserveSetting(project,BuildOptionsAdapter.INPATH,path);
+			preserveSetting(project,BuildOptionsAdapter.INPATH_CON_KINDS,cKinds);
+			preserveSetting(project,BuildOptionsAdapter.INPATH_ENT_KINDS,eKinds);
+		} catch (CoreException e) {
 		}
 	}
+
+	public static String[] getProjectAspectPath(IProject project) {
+		String[] v = new String[3];
+		try {
+			v[0] = project.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH);
+			if (v[0]==null) {
+				preserveSetting(project,BuildOptionsAdapter.ASPECTPATH,"");
+			}
+			v[1] = project.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_CON_KINDS);
+			if (v[1]==null) {
+				preserveSetting(project,BuildOptionsAdapter.ASPECTPATH_CON_KINDS,"");
+			}
+			v[2] = project.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_ENT_KINDS);
+			if (v[2]==null) {
+				preserveSetting(project,BuildOptionsAdapter.ASPECTPATH_ENT_KINDS,"");
+			}
+		} catch (CoreException e) {
+		}
+		return v;
+	}
+
+	public static void setProjectAspectPath(IProject project, String path, String cKinds, String eKinds) {
+		try {
+			preserveSetting(project,BuildOptionsAdapter.ASPECTPATH,path);
+			preserveSetting(project,BuildOptionsAdapter.ASPECTPATH_CON_KINDS,cKinds);
+			preserveSetting(project,BuildOptionsAdapter.ASPECTPATH_ENT_KINDS,eKinds);
+		} catch (CoreException e) {
+		}
+	}
+	
+//	public static void ensurePropertiesInitialized(IProject project) {
+//		try {           
+//            if (project.getPersistentProperty(BuildOptionsAdapter.INPUTJARSBROWSEDIR) == null)
+//              preserveSetting(project, BuildOptionsAdapter.INPUTJARSBROWSEDIR,
+//                                       project.getLocation().toOSString());  
+//            if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTJARSBROWSEDIR) == null)
+//              preserveSetting(project, BuildOptionsAdapter.ASPECTJARSBROWSEDIR,
+//                                       project.getLocation().toOSString());                 
+
+//            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH) == null)
+//                  preserveSetting(project,BuildOptionsAdapter.INPATH,"");
+//            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH_CON_KINDS) == null)
+//                preserveSetting(project,BuildOptionsAdapter.INPATH_CON_KINDS,"");
+//            if (project.getPersistentProperty(BuildOptionsAdapter.INPATH_ENT_KINDS) == null)
+//                preserveSetting(project,BuildOptionsAdapter.INPATH_ENT_KINDS,"");
+            
+//            if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH) == null)
+//                    preserveSetting(project, BuildOptionsAdapter.ASPECTPATH, "");
+//            if (project
+//                    .getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_CON_KINDS) == null)
+//                    preserveSetting(project,
+//                            BuildOptionsAdapter.ASPECTPATH_CON_KINDS, "");
+//            if (project
+//                    .getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_ENT_KINDS) == null)
+//                    preserveSetting(project,
+//                            BuildOptionsAdapter.ASPECTPATH_ENT_KINDS, "");
+            
+            
+//			if (project.getPersistentProperty(BuildOptionsAdapter.INPUTJARS) == null)
+//			  preserveSetting(project,BuildOptionsAdapter.INPUTJARS,"");
+//			if (project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR) == null)
+//			  preserveSetting(project,BuildOptionsAdapter.OUTPUTJAR,"");
+//			if (project.getPersistentProperty(BuildOptionsAdapter.ASPECTJARS) == null)
+//			  preserveSetting(project,BuildOptionsAdapter.ASPECTJARS,"");
+//			if (project.getPersistentProperty(BuildOptionsAdapter.SOURCEROOTS) == null)
+//			  preserveSetting(project,BuildOptionsAdapter.SOURCEROOTS,"");
+			  
+//			if (project.getPersistentProperty(BuildOptionsAdapter.CHAR_ENC) == null)
+//				// Is this right? It comes out as "English" when perhaps it ought to be "ISO8859-1"
+//				preserveSetting(
+//					project,
+//					BuildOptionsAdapter.CHAR_ENC,
+//					BuildOptionsAdapter.CHAR_ENC_DEFAULT);
+//		} catch (CoreException ce) {
+//			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+//				AspectJUIPlugin.getResourceString(
+//					"buildOptionsAdapter.exceptionInitializingProperties"),
+//				ce);
+//		}
+//	}
 
 	/**
 	 * Method getOutJar.
 	 * @return String
 	 */
 	public String getOutJar() {
-		ensurePropertiesInitialized();
+		//ensurePropertiesInitialized();
 		String outputJar = retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR);
 		
 		// If outputJar does not start with a slash, we might need to prepend the project
@@ -566,21 +593,22 @@ public class BuildOptionsAdapter
 	 * @return Set
 	 */
 	public Set getInJars() {
-		ensurePropertiesInitialized();
-		String inputJars= retrieveSettingString(BuildOptionsAdapter.INPUTJARS);
-        
-		if (AspectJUIPlugin.DEBUG_BUILDER) {
-			System.out.println(
-				"BuildOptionsAdapter.getInJars called, returning :"
-					+ inputJars);
-		}
-		if (inputJars.length()==0) return null; 
-		
-		return mapStringToSet(inputJars,false);
+		return null;
+//		ensurePropertiesInitialized();
+//		String inputJars= retrieveSettingString(BuildOptionsAdapter.INPUTJARS);
+//        
+//		if (AspectJUIPlugin.DEBUG_BUILDER) {
+//			System.out.println(
+//				"BuildOptionsAdapter.getInJars called, returning :"
+//					+ inputJars);
+//		}
+//		if (inputJars.length()==0) return null; 
+//		
+//		return mapStringToSet(inputJars,false);
 	}
     
     public Set getInPath() {
-        ensurePropertiesInitialized();
+        //ensurePropertiesInitialized();
 		String inpath = retrieveSettingString(BuildOptionsAdapter.INPATH);
 
         // Ensure that every entry in the list is a fully qualified one.
@@ -674,7 +702,7 @@ public class BuildOptionsAdapter
 	}
 
 	public Set getAspectPath() {
-        ensurePropertiesInitialized();
+        //ensurePropertiesInitialized();
         String aspectpath = retrieveSettingString(BuildOptionsAdapter.ASPECTPATH);
 
         // Ensure that every entry in the list is a fully qualified one.
@@ -758,16 +786,16 @@ public class BuildOptionsAdapter
 	 * @return Set
 	 */
 	public Set getSourceRoots() {
-		ensurePropertiesInitialized();
-		String sourceRoots= retrieveSettingString(BuildOptionsAdapter.SOURCEROOTS);
-
-		if (AspectJUIPlugin.DEBUG_BUILDER) {
-			System.out.println(
-				"BuildOptionsAdapter.getSourceRoots called, returning :"
-					+ sourceRoots);
-		}
-		
-		return mapStringToSet(sourceRoots,false);
-
+		return null;
+//		ensurePropertiesInitialized();
+//		String sourceRoots= retrieveSettingString(BuildOptionsAdapter.SOURCEROOTS);
+//
+//		if (AspectJUIPlugin.DEBUG_BUILDER) {
+//			System.out.println(
+//				"BuildOptionsAdapter.getSourceRoots called, returning :"
+//					+ sourceRoots);
+//		}
+//		
+//		return mapStringToSet(sourceRoots,false);
 	}
 }

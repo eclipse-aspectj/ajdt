@@ -20,7 +20,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -64,7 +63,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		// Grab the resource (must be a project) for which this property page
 		// is being created
 		thisProject = (IProject) getElement();
-		BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
+		//BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
 		Composite pageComposite = createPageComposite(parent, 3);
 
         // This will cover the top row of the panel.
@@ -195,67 +194,67 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
         return composite;   
     }
 
-	/**
-	 * Preserves a boolean value for a named field on the project resource.
-	 * Actually converts the boolean to a string and delegates to the 
-	 * other implementation of preserveSetting() that takes a string as the
-	 * value to store.
-	 */
-	private void preserveSetting(QualifiedName key, boolean flag)
-		throws CoreException {
-		preserveSetting(key, new Boolean(flag).toString());
-	}
+//	/**
+//	 * Preserves a boolean value for a named field on the project resource.
+//	 * Actually converts the boolean to a string and delegates to the 
+//	 * other implementation of preserveSetting() that takes a string as the
+//	 * value to store.
+//	 */
+//	private void preserveSetting(QualifiedName key, boolean flag)
+//		throws CoreException {
+//		preserveSetting(key, new Boolean(flag).toString());
+//	}
+//
+//	/**
+//	 * Preserve a key/value pair as a persistent property against the 
+//	 * project resource.
+//	 */
+//	private void preserveSetting(QualifiedName key, String value)
+//		throws CoreException {
+//		thisProject.setPersistentProperty(key, value);
+//	}
 
-	/**
-	 * Preserve a key/value pair as a persistent property against the 
-	 * project resource.
-	 */
-	private void preserveSetting(QualifiedName key, String value)
-		throws CoreException {
-		thisProject.setPersistentProperty(key, value);
-	}
+//	/** 
+//	 * Retrieve a persistent property value and return it.  If the key is
+//	 * not found, this will return null *but* that should not occur because
+//	 * ensurePropertiesInitialized() makes sure all the keys have valid 
+//	 * values when the properties page first appears for a project.
+//	 */
+//	private String retrieveSettingString(QualifiedName key) {
+//		try {
+//			String value = thisProject.getPersistentProperty(key);
+//			if (value==null) {
+//				return "";
+//			}
+//			return value;
+//		} catch (CoreException ce) {
+//			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+//				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
+//				ce);
+//		}
+//		return "";
+//	}
 
-	/** 
-	 * Retrieve a persistent property value and return it.  If the key is
-	 * not found, this will return null *but* that should not occur because
-	 * ensurePropertiesInitialized() makes sure all the keys have valid 
-	 * values when the properties page first appears for a project.
-	 */
-	private String retrieveSettingString(QualifiedName key) {
-		try {
-			String value = thisProject.getPersistentProperty(key);
-			if (value==null) {
-				return "";
-			}
-			return value;
-		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
-				ce);
-		}
-		return "";
-	}
-
-	/**
-	 * Retrieve a persistent property value, convert it to a boolean and return it.
-	 * If the key is not found, this will return 'false' *but* that should not 
-	 * occur because ensurePropertiesInitialized() makes sure all the keys have 
-	 * valid values when the properties page first appears for a project.
-	 */
-	private boolean retrieveSettingBoolean(QualifiedName key) {
-		try {
-			String value = thisProject.getPersistentProperty(key);
-			if (value == null)
-				return false;
-			boolean valueB = new Boolean(value).booleanValue();
-			return valueB;
-		} catch (CoreException ce) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
-				ce);
-		}
-		return false;
-	}
+//	/**
+//	 * Retrieve a persistent property value, convert it to a boolean and return it.
+//	 * If the key is not found, this will return 'false' *but* that should not 
+//	 * occur because ensurePropertiesInitialized() makes sure all the keys have 
+//	 * valid values when the properties page first appears for a project.
+//	 */
+//	private boolean retrieveSettingBoolean(QualifiedName key) {
+//		try {
+//			String value = thisProject.getPersistentProperty(key);
+//			if (value == null)
+//				return false;
+//			boolean valueB = new Boolean(value).booleanValue();
+//			return valueB;
+//		} catch (CoreException ce) {
+//			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+//				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
+//				ce);
+//		}
+//		return false;
+//	}
 	
 	private String findInvalidJars(String setOfJars) {
 
@@ -363,8 +362,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		}
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		try {
-			preserveSetting(BuildOptionsAdapter.OUTPUTJAR,outputJarEditor.getStringValue());
-			preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
+			BuildOptionsAdapter.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
+			//preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
 			AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
@@ -404,7 +403,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * Ensure the widgets state reflects the persistent property values.
 	 */
 	public void updatePageContents() {
-		outputJarEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR));
+		outputJarEditor.setStringValue(BuildOptionsAdapter.getProjectOutJar(thisProject));
 		nonStandardOptionsEditor.setStringValue(AspectJPreferences.getCompilerOptions(thisProject));
 	}
  	
