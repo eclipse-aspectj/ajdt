@@ -17,6 +17,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
  * All Rights Reserved.
  */
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 //import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.wizard.WizardPage;
@@ -142,7 +143,7 @@ public class AJDTPrefConfigPage extends WizardPage {
 		}
 		
 //		if (dontAskAgain) {
-//			AspectJPreferences.setAJDTPrefConfigDone(true);
+			AspectJPreferences.setAJDTPrefConfigDone(true);
 //		}
 		
 		return true;
