@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -56,7 +57,7 @@ public class AspectJPreferences {
 
     public static final String ADVICE_DECORATOR = "aspectjPreferences.adviceDec";
 
-    public static final String ACTIVE_CONFIG = "active.build.configuration";
+    public static final String ACTIVE_CONFIG = "org.eclipse.ajdt.ui.activeBuildConfiguration";
 
     /**
 	 * Identifier for outline view mode selection
@@ -379,8 +380,11 @@ public class AspectJPreferences {
     
     public static void setActiveBuildConfigurationName(IProject project, String configName) {
      	IScopeContext projectScope = new ProjectScope(project);
-       	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+       	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
       	projectNode.put(ACTIVE_CONFIG,configName);
+      	if (configName.equals(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE)) {
+      		projectNode.remove(ACTIVE_CONFIG);
+      	}
        	try {
 			projectNode.flush();
 		} catch (BackingStoreException e) {
@@ -389,7 +393,7 @@ public class AspectJPreferences {
     
 	public static void setCompilerOptions(IProject project, String value) {
 		IScopeContext projectScope = new ProjectScope(project);
-       	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+       	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
       	projectNode.put(COMPILER_OPTIONS,value);
       	if (value.equals("")) {
       		projectNode.remove(COMPILER_OPTIONS);

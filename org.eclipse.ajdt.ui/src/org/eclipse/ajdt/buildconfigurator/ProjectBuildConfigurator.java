@@ -67,10 +67,6 @@ public class ProjectBuildConfigurator{
 	}
 	
 	private void storeActiveBuildConfigurationName(String configName){
-		if (configName.equals(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE)) {
-			// don't need to store setting if it's the default
-			return;
-		}
 		IProject project = javaProject.getProject();
 		AspectJPreferences.setActiveBuildConfigurationName(project,configName);
 	}
