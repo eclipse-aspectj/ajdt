@@ -64,57 +64,6 @@ import org.eclipse.jdt.launching.JavaRuntime;
 public class ProjectProperties extends CoreProjectProperties implements ProjectPropertiesAdapter {
 	
 	/**
-	 * Called to determine where the resultant class files should go when AJC is
-	 * compiling code. We grab the location from the current project and convert
-	 * it to a string.
-	 */
-	public String getOutputPath() {
-		try {
-			IProject currProject = AspectJPlugin.getDefault()
-					.getCurrentProject();
-			IJavaProject jProject = JavaCore.create(currProject);
-			IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
-
-			if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-				// root
-				return jProject.getResource().getLocation().toOSString();
-			} else {
-				IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-						.getFolder(workspaceRelativeOutputPath);
-				return out.getLocation().toOSString();
-			}
-
-			// Bug 37033 - get the path right, stupid!
-			// // Bug21998: Use the project location rather than the workspace
-			// location.
-			// String workspaceLoc =
-			// currProject.getLocation().removeLastSegments(1).toOSString();
-			//
-			// IJavaProject jProject = JavaCore.create(currProject);
-			// String relativePath = jProject.getOutputLocation().toOSString();
-			// return workspaceLoc + relativePath;
-
-			// find the resource that corresponds with this path (if its a
-			// linked folder this will enable us to dereference it).
-
-			// IResource r =
-			// currProject.findMember(workspaceRelativeOutputPath.removeFirstSegments(1));
-			// String ret = "";
-			// if ( r != null ) ret = r.getLocation().toOSString();
-			// AJDTEventTrace.generalEvent("Output path =" + ret);
-			//			
-			// System.err.println(">>>> ret: " + ret + ", r: " + r);
-			//			
-			// return ret;
-		} catch (CoreException ce) {
-			Ajde.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("noOutputDir"), ce);
-		}
-		return null;
-	}
-
-
-	/**
 	 * All the source files in the current project, as a List of java.io.Files.
 	 */
 	public List getProjectSourceFiles() {

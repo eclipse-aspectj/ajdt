@@ -26,6 +26,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -165,8 +166,28 @@ public class CoreProjectProperties implements ProjectPropertiesAdapter {
 		cachedClasspath = null;
 	}
 
+	/**
+	 * Called to determine where the resultant class files should go when AJC is
+	 * compiling code. We grab the location from the current project and convert
+	 * it to a string.
+	 */
 	public String getOutputPath() {
-		return "";
+		IProject currProject = AspectJPlugin.getDefault().getCurrentProject();
+		IJavaProject jProject = JavaCore.create(currProject);
+		IPath workspaceRelativeOutputPath;
+		try {
+			workspaceRelativeOutputPath = jProject.getOutputLocation();
+		} catch (JavaModelException e) {
+			return currProject.getLocation().toOSString();
+		}
+		if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+			// root
+			return jProject.getResource().getLocation().toOSString();
+		} else {
+			IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
+					workspaceRelativeOutputPath);
+			return out.getLocation().toOSString();
+		}
 	}
 
 	/*
