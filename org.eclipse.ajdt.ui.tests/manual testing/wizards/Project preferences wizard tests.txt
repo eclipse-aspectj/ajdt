@@ -18,13 +18,16 @@ Tests for 73859 - changes in aspectpath etc. should cause a build if "build auto
 	
 The following behaviour should be seen:
 
-	(1) If a build occurs it should only happen once (per click of Apply 
-		or Ok) no matter how many of the different settings you change
+	(1) If a build occurs it should only happen once (per click of  
+		Ok) no matter how many of the different settings you change
 	(2) if the compiler settings have changed and you choose not to build 
 		now then no build takes place
 	(3) If, after several clicks, you revert all the settings to what 
 	    they were before you started, then no build takes place
-	(4) Pressing cancel means none of the changes are set       	
+	(4) Pressing cancel means none of the changes are set 
+	(5) Pressing apply just applies the changes to that page - a build
+	    should happen if there are changes on that page and you
+	    have chosen to build.      	
  
 (4) Now choose not to build automatically and repeat the above tests. 
 	The following behaviour should now be seen:
