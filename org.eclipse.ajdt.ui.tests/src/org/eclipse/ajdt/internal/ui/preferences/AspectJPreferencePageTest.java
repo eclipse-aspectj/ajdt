@@ -65,7 +65,7 @@ public class AspectJPreferencePageTest extends TestCase {
         ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
         
         
-        assertEquals(true, ps.getBoolean(AspectJPreferences.ASPECTJ_OUTLINE));
+        assertEquals(false, ps.getBoolean(AspectJPreferences.ASPECTJ_OUTLINE));
         assertEquals(false, ps.getBoolean(AspectJPreferences.JAVA_OR_AJ_EXT));
         assertEquals(true, ps.getBoolean(AspectJPreferences.AUTOBUILD_SUPPRESSED));
         assertEquals(false, ps.getBoolean(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE));
