@@ -1512,17 +1512,6 @@
       </renameParticipant>   
     </extension>  
     
-    <extension point="org.eclipse.ltk.core.refactoring.deleteParticipants"> 
-	  <deleteParticipant
-		    id="org.eclipse.ajdt.deleteParticipant"
-		    name="org.eclipse.ajdt.deleteParticipant" 
-		    class="org.eclipse.ajdt.ui.refactoring.DeleteParticipant">
-	    <enablement>
-	        <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
-	    </enablement>
-	 </deleteParticipant>
-   </extension>
-   
    <extension
          point="org.eclipse.contribution.xref.core.providers">
       <xrefProvider
