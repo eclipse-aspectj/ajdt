@@ -5,6 +5,6 @@ src.includes = src/telecom/AbstractSimulation.java,\
                src/telecom/LongDistance.java,\
                src/telecom/Customer.java,\
                src/telecom/Timer.java,\
-               src/telecom/Timing.java,\
-               src/telecom/TimerLog.java,\
+               src/telecom/Timing.aj,\
+               src/telecom/TimerLog.aj,\
                src/telecom/TimingSimulation.java
