@@ -259,7 +259,7 @@ public class StructureModelUtil {
 					//System.out.println("annotated list: "+toStoreAnnotated);
 					toStore.addAll(toStoreAnnotated);
 					
-//					 reverse relationships, only required for editor
+					// reverse relationships, only required for editor
 					if (needIndividualNodes) {
 						IRelationship annotates = irm.get(node,IRelationship.Kind.DECLARE_INTER_TYPE,
 								AsmRelationshipProvider.ANNOTATES,false,false);
@@ -324,7 +324,8 @@ public class StructureModelUtil {
 								((pNode.getKind() == IProgramElement.Kind.METHOD)
 										|| (pNode.getKind() == IProgramElement.Kind.CODE)
 										|| (pNode.getKind() == IProgramElement.Kind.CONSTRUCTOR)
-										|| (pNode.getKind() == IProgramElement.Kind.ASPECT))) {
+										|| (pNode.getKind() == IProgramElement.Kind.ASPECT)
+										|| (pNode.getKind() == IProgramElement.Kind.CLASS))) {
 							// source of advice rather than target
 							String adviceType = "advises";
 							// we need to determine the advice type from the source node
