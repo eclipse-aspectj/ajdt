@@ -204,11 +204,12 @@ public class XRefUIUtils {
 			    JavaEditor je = (JavaEditor)part;
 			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
 			    IJavaElement javaElement = (IJavaElement)sourceRef;
-			    // if we want to show the parent crosscutting (in the case of the
-			    // inplace view) and we're not already showing the xrefs for the entire
-			    // file, then need to show the xrefs for the parent of the current IJavaElement,
-			    // with some fiddling if we've selected an import or package statement.
-			    if (showParentCrosscutting && !(javaElement instanceof SourceType)) {	
+			    // if we want to show the parent crosscutting and we're not already showing 
+			    // the xrefs for the entire file, then need to show the xrefs for the parent 
+			    // of the current IJavaElement, with some fiddling if we've selected 
+			    // an import or package statement.
+			    if (javaElement != null 
+			    		&& showParentCrosscutting && !(javaElement instanceof SourceType)) {	
 			    	if ((javaElement instanceof IImportDeclaration) 
 			    			|| (javaElement instanceof IPackageDeclaration) ) {
 			    		ICompilationUnit parent = null;
