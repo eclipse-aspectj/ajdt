@@ -112,6 +112,11 @@ public class AllTests {
 		
 		// ras tests
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
+
+		// xref tests
+		suite.addTest(org.eclipse.contribution.xref.core.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.xref.ui.AllTests.suite());
+
 		
 		//$JUnit-END$
 		return suite;

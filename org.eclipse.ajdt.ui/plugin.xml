@@ -49,6 +49,8 @@
       <import plugin="org.apache.ant"/>
       <import plugin="org.eclipse.ltk.core.refactoring"/>
       <import plugin="org.eclipse.ajdt.core"/>
+      <import plugin="org.aspectj.runtime"/>
+      <import plugin="org.eclipse.contribution.xref.core"/>
    </requires>
 
 
@@ -1465,6 +1467,15 @@
             <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
          </enablement>
       </renameParticipant>
+   </extension>
+   <extension
+         point="org.eclipse.contribution.xref.core.providers">
+      <xrefProvider
+            label="AspectJ XReference Provider"
+            enabled="true"
+            class="org.eclipse.ajdt.ui.xref.AJXReferenceProvider"
+            id="org.eclipse.ajdt.ui.xref.providers.AJXReferenceProvider">
+      </xrefProvider>
    </extension>
 
 	<extension point="org.eclipse.core.runtime.adapters">
