@@ -186,12 +186,6 @@ public class AspectJPreferencesTest extends TestCase {
 	}
 	
 	public void testGetShowWeaveMessagesOptionViaWorkbenchPreferences() throws Exception {
-		IProject project = Utils.createPredefinedProject("Simple AJ Project");
-		IJavaProject jp = JavaCore.create(project);
-
-		IPreferenceStore prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();
-		
-		AJCompilerPreferencePage.initDefaults(prefStore);
 		assertFalse("default setting is not to show weave info",
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 		// know that when "show weave messages" is selected in the preference
