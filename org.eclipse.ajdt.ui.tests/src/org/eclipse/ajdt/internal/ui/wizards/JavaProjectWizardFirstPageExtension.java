@@ -235,9 +235,9 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 	/**
 	 * Request a project layout.
 	 */
-	private final class LayoutGroup implements Observer, IDialogFieldListener {
+	protected final class LayoutGroup implements Observer, IDialogFieldListener {
 
-		private final SelectionButtonDialogField fStdRadio, fSrcBinRadio, fConfigureButton;
+		protected final SelectionButtonDialogField fStdRadio, fSrcBinRadio, fConfigureButton;
 		private final Group fGroup;
 		
 		public LayoutGroup(Composite composite) {
@@ -413,7 +413,7 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 
 	private NameGroup fNameGroup;
 	protected LocationGroup fLocationGroup;
-	private LayoutGroup fLayoutGroup;
+	protected LayoutGroup fLayoutGroup;
 	private DetectGroup fDetectGroup;
 	private Validator fValidator;
 

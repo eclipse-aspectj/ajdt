@@ -34,6 +34,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -250,16 +251,17 @@ public class AspectJProjectWizardTest extends TestCase {
 		Shell shell = JavaPlugin.getActiveWorkbenchShell();
 		testProjectWizard.init(JavaPlugin.getDefault().getWorkbench(), null);
 		testProjectWizard.setProjectDefaultName(projectName);
-		WizardDialog dialog = new WizardDialog(shell, testProjectWizard);
+		MyWizardDialog dialog = new MyWizardDialog(shell, testProjectWizard);
 
 		dialog.setBlockOnOpen(false);
 		dialog.create();
 		dialog.open();
 		JavaProjectWizardFirstPage curPage = (JavaProjectWizardFirstPage) dialog
 				.getCurrentPage();
-		curPage.getWizard().performFinish();
+		dialog.finishPressed();
+//				((AspectJProjectWizardExtension)curPage.getWizard()).finish();
 		
-		dialog.close();
+//		dialog.close();
 //		testProjectWizard.getNewProject();
 		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);
@@ -371,4 +373,21 @@ public class AspectJProjectWizardTest extends TestCase {
 		}
 	}
 
+	private class MyWizardDialog extends WizardDialog {
+
+		/**
+		 * @param parentShell
+		 * @param newWizard
+		 */
+		public MyWizardDialog(Shell parentShell, IWizard newWizard) {
+			super(parentShell, newWizard);
+			// TODO Auto-generated constructor stub
+		}
+		
+		public void finishPressed() {
+			super.finishPressed();
+		}
+		
+	}
+	
 }

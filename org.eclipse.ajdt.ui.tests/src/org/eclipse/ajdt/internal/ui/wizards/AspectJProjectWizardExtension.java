@@ -52,5 +52,8 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
 		super.createPageControls(pageContainer);
 		 fFirstPage.setName(projectDefaultName);
 	     ((JavaProjectWizardFirstPageExtension)fFirstPage).fLocationGroup.fWorkspaceRadio.setSelection(true);
+	     ((JavaProjectWizardFirstPageExtension)fFirstPage).fLayoutGroup.fStdRadio.setSelection(true);
 	}
+
+	
 }
