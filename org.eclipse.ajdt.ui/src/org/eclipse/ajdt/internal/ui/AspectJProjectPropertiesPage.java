@@ -16,6 +16,7 @@ import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.QualifiedName;
@@ -565,6 +566,12 @@ public class AspectJProjectPropertiesPage
 	
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		try {
+		    boolean outjarChanged = false;
+		    if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding() && 
+		            !(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(outputJarEditor.getStringValue()))) {
+		        outjarChanged = true;
+            }
+		    
 			preserveSetting(BuildOptionsAdapter.INCREMENTAL_COMPILATION, incremental_modeBtn.getSelection());
 			preserveSetting(BuildOptionsAdapter.BUILD_ASM,buildAsmBtn.getSelection());
 			preserveSetting(BuildOptionsAdapter.WEAVEMESSAGES,showweavemessagesBtn.getSelection());
@@ -590,6 +597,12 @@ public class AspectJProjectPropertiesPage
 				BuildOptionsAdapter.NON_STANDARD_OPTS,
 				nonStandardOptionsEditor.getStringValue());
 //			preserveSetting(BuildOptionsAdapter.JAVA_OR_AJ_EXT,fileExtBtn.getSelection());
+			
+			// build the project if the outjar setting has changed
+		    if (outjarChanged) {
+				thisProject.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null,null);  
+            }
+		    
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringStore"),
@@ -610,6 +623,12 @@ public class AspectJProjectPropertiesPage
 	public void performDefaults() {
 		AJDTEventTrace.projectPropertiesDefaulted(thisProject);
 		try {
+		    boolean outjarChanged = false;
+		    if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding() && 
+		            !(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(""))) {
+		        outjarChanged = true;
+            }
+		    
 			thisProject.setPersistentProperty(BuildOptionsAdapter.INCREMENTAL_COMPILATION, null);
 //			thisProject.setPersistentProperty(BuildOptionsAdapter.PREPROCESS, null);
 //			thisProject.setPersistentProperty(BuildOptionsAdapter.SOURCE14, null);
@@ -631,6 +650,10 @@ public class AspectJProjectPropertiesPage
 			// Keep the widgets up to date!
 			updatePageContents();
 
+			// build the project if the outjar setting has changed
+			if (outjarChanged) {
+				thisProject.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null,null);  
+            }
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 				AspectJUIPlugin.getResourceString(
