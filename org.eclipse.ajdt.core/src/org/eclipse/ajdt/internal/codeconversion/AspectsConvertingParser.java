@@ -492,7 +492,21 @@ public class AspectsConvertingParser implements TerminalTokens {
 			addReplacement(pos, 1, rep);
 
 			if (content[spaceordot] == ' ') {
-				typeReferences.add(new String(content, space + 1, pos - space - 1));
+				String type = new String(content, space + 1, pos - space - 1);
+				boolean validIdentifier = true;
+				for (int i = 0; validIdentifier && (i < type.length()); i++) {
+					char c = type.charAt(i);
+					if (i==0) {
+						if (!Character.isJavaIdentifierStart(c)) {
+							validIdentifier = false;
+						}
+					} else if (!Character.isJavaIdentifierPart(c)) {
+						validIdentifier = false;
+					}
+				}
+				if (validIdentifier) {
+					typeReferences.add(type);
+				}
 			} else {
 				do {
 					addReplacement(spaceordot, 1, rep);
@@ -625,16 +639,19 @@ public class AspectsConvertingParser implements TerminalTokens {
 		if (typeReferences == null)
 			return;
 
-		char[] decl = new char[] { ' ', 'x', ';' };
+		//char[] decl = new char[] { ' ', 'x', ';' };
 		int pos = findLast('}');
 		if (pos < 0)
 			return;
 		StringBuffer temp = new StringBuffer(typeReferences.size() * 10);
 		Iterator iter = typeReferences.iterator();
+		int varCount=1;
 		while (iter.hasNext()) {
 			String ref = (String) iter.next();
 			temp.append(ref);
-			temp.append(decl);
+			temp.append(" x"); //$NON-NLS-1$
+			temp.append(varCount++);
+			temp.append(';');
 		}
 		char[] decls = new char[temp.length()];
 		temp.getChars(0, decls.length, decls, 0);
