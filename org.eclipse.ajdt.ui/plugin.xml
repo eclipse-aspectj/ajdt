@@ -111,16 +111,21 @@
          </action>
       </objectContribution>      
  
+	<!--
+	Restrict selection to be a project with an AspectJ nature.
+	Specifying an "IJavaProject" objectClass would mean that
+	this contribution would become unavailable for web and EJB
+	projects in IBM Rational 6.x tools.
+	--> 
      <objectContribution
-            objectClass="org.eclipse.jdt.core.IJavaProject"
+            objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
             id="iprojectcontributions">
-
-          <visibility>
-         	 <objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
-          </visibility>
-
-          <action
+         <filter
+               name="nature"
+               value="org.eclipse.ajdt.ui.ajnature">
+         </filter>
+         <action
                label="%convertExt"
                class="org.eclipse.ajdt.ui.refactoring.RenameFileExtensionsAction"
                menubarPath="additions"
@@ -128,6 +133,7 @@
                enablesFor="1">
          </action>
       </objectContribution>
+
       <objectContribution
             objectClass="org.eclipse.jdt.core.ICompilationUnit"
             adaptable="true"
@@ -410,6 +416,33 @@
 					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
                         id="org.eclipse.jdt.ui.JavaPerspective"/>				
+					<!--
+					Below two shortcuts for IBM Rational 6.x tooling.
+					-->                        
+					<perspectiveShortcut
+                        id="com.ibm.etools.j2ee.J2EEPerspective"/>				
+					<perspectiveShortcut
+                        id="com.ibm.etools.webtools.webperspective.WebToolsPerspective"/>				
+    	</perspectiveExtension>
+
+		<!--
+		Below two perspective extensions added for IBM Rational 6.x tooling.
+		-->    	
+    	<perspectiveExtension 
+			targetID="com.ibm.etools.j2ee.J2EEPerspective">
+					<actionSet id="ajactionset"/>
+					<newWizardShortcut id="ajaspectwizard"/>
+					<newWizardShortcut id="ajprojectwizard"/>	
+					<perspectiveShortcut
+                        id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
+    	</perspectiveExtension>
+    	<perspectiveExtension 
+			targetID="com.ibm.etools.webtools.webperspective.WebToolsPerspective">
+					<actionSet id="ajactionset"/>
+					<newWizardShortcut id="ajaspectwizard"/>
+					<newWizardShortcut id="ajprojectwizard"/>	
+					<perspectiveShortcut
+                        id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
     	</perspectiveExtension>
    </extension>
 
