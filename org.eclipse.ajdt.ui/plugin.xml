@@ -312,8 +312,7 @@
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard"
             id="org.eclipse.ajdt.ui.ajPluginExportWizard">
          <description>
-            Export the selected plug-ins and/or fragments in a form suitable for 
-deploying in an Eclipse product. Includes support for AspectJ.
+            %ajExportWizard.description
          </description>
          <selection
                name="plugin.xml"
@@ -333,8 +332,7 @@ deploying in an Eclipse product. Includes support for AspectJ.
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJJarPackageWizard"
             id="org.eclipse.ajdt.internal.ui.wizards.exports.AJJarPackageWizard">
          <description>
-            Package resources into a jar file in the local file system.  Includes
-support for AspectJ projects.
+            %ajJarExportWizard.description
          </description>
          <selection
                class="org.eclipse.core.resources.IResource">
