@@ -129,7 +129,7 @@ public class AspectJProjectWizard
 		        return false;
 			}
 		}
-
+		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		boolean completed = finalizeNewProject(project, useExisting);
 		return completed;
 	}
