@@ -325,7 +325,8 @@ public class StructureModelUtil {
 										|| (pNode.getKind() == IProgramElement.Kind.CODE)
 										|| (pNode.getKind() == IProgramElement.Kind.CONSTRUCTOR)
 										|| (pNode.getKind() == IProgramElement.Kind.ASPECT)
-										|| (pNode.getKind() == IProgramElement.Kind.CLASS))) {
+										|| (pNode.getKind() == IProgramElement.Kind.CLASS)
+										|| (pNode.getKind() == IProgramElement.Kind.FIELD))) {
 							// source of advice rather than target
 							String adviceType = "advises";
 							if(advises.getName().equals("annotates")) {
