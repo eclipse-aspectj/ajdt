@@ -10,6 +10,7 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -33,6 +34,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
+import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jface.action.IContributionItem;
@@ -48,6 +50,7 @@ import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
@@ -55,6 +58,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -518,6 +522,25 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// be correct already.
 		}
 		super.setFocus();
+		
+		// Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 
+		if(isEditingAjFile) {
+			IViewPart view = getEditorSite().getPage().findView( PackageExplorerPart.VIEW_ID);
+			if(view != null) {
+				PackageExplorerPart packageExplorer = (PackageExplorerPart)view;
+				try {
+					Method isLinkingEnabledMethod = PackageExplorerPart.class.getDeclaredMethod("isLinkingEnabled", new Class[]{});
+					isLinkingEnabledMethod.setAccessible(true);
+					boolean linkingEnabled = ((Boolean)isLinkingEnabledMethod.invoke(packageExplorer, new Object[]{})).booleanValue();
+					if(linkingEnabled) {
+						IFileEditorInput fInput = (IFileEditorInput) input;
+						AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
+						packageExplorer.selectReveal(new StructuredSelection(ajc));
+					}					
+				} catch (Exception e) {
+				}
+			}
+		}
 	}
 
 	public void gotoMarker(IMarker marker) {
