@@ -49,10 +49,8 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -594,24 +592,6 @@ public class AspectJUIPlugin
 	 */
 	public ErrorHandler getErrorHandler() {
 		return ajdtErrorHandler;
-	}
-
-	/**
-	 * Write the given exception or error to the log file (without displaying a dialog)
-	 * @param e
-	 */
-	public static void logException(Throwable e) {
-		IStatus status = null;
-		if (e instanceof CoreException) {
-			status = ((CoreException) e).getStatus();
-		} else {
-			String message = e.getMessage();
-			if (message == null) {
-				message = e.toString();
-			}
-			status = new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, message, e);
-		}
-		getDefault().getLog().log(status);
 	}
 	
 	/**

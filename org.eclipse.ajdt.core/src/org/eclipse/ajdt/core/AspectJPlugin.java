@@ -1,11 +1,10 @@
 package org.eclipse.ajdt.core;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.Status;
 import org.osgi.framework.BundleContext;
-import java.util.*;
 
 /**
  * The main plugin class to be used in the desktop.
@@ -75,23 +74,4 @@ public class AspectJPlugin extends Plugin {
 	public ResourceBundle getResourceBundle() {
 		return resourceBundle;
 	}
-	
-	/**
-	 * Write the given exception or error to the log file (without displaying a dialog)
-	 * @param e
-	 */
-	public static void logException(Throwable e) {
-		IStatus status = null;
-		if (e instanceof CoreException) {
-			status = ((CoreException) e).getStatus();
-		} else {
-			String message = e.getMessage();
-			if (message == null) {
-				message = e.toString();
-			}
-			status = new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, IStatus.OK, message, e);
-		}
-		getDefault().getLog().log(status);
-	}
-
 }

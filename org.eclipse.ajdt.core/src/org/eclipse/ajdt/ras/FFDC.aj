@@ -15,24 +15,73 @@ import org.aspectj.lang.*;
 
 public abstract aspect FFDC {
 	
-    public abstract pointcut ffdcScope ();
+	/** 
+	 * Scope of FFDC policy e.g. packages, classes, methods is declared by
+	 * sub-aspect.
+	 */ 
+    protected abstract pointcut ffdcScope ();
     
-    final pointcut staticContext () : !this(Object);
-    final pointcut nonStaticContext (Object obj) : this(obj);
-    final pointcut caughtThrowable (Throwable th) : handler(Throwable+) && args(th);
+    private pointcut staticContext () : !this(Object);
+    private pointcut nonStaticContext (Object obj) : this(obj);
+    private pointcut caughtThrowable (Throwable th) : handler(Throwable+) && args(th);
 
-    // Advice for catch blocks in static contexts
-    before (Throwable th) : caughtThrowable(th) && ffdcScope() && staticContext() {
-       processStaticFFDC(th,thisJoinPointStaticPart);
+    /** 
+     * Exclude FFDC aspects from exception reporting to avoid unwanted
+     * recursion
+     */
+    private pointcut excluded () : within(FFDC+);
+
+    /** 
+     * Advice for catch blocks in static context
+     */
+    before (Throwable th) : caughtThrowable(th) && ffdcScope() && !excluded() && staticContext() {
+       processStaticFFDC(th,thisJoinPointStaticPart,thisEnclosingJoinPointStaticPart);
     }
 
-    // Advice for catch blocks in non-static contexts
-    before (Throwable th, Object obj) : caughtThrowable(th) && ffdcScope() && nonStaticContext(obj) {
-       processNonStaticFFDC(th,obj,thisJoinPointStaticPart );
+    /** 
+     * Advice for catch blocks in non-static context. Extract the object
+     * that caught the exception
+     */
+    before (Throwable th, Object obj) : caughtThrowable(th) && ffdcScope() && !excluded() && nonStaticContext(obj) {
+       processNonStaticFFDC(th,obj,thisJoinPointStaticPart,thisEnclosingJoinPointStaticPart);
     }
+
+    /** 
+     * Template method for consumption of raw FFDC in a static context
+     */ 
+    protected void processStaticFFDC (Throwable th, JoinPoint.StaticPart tjp, JoinPoint.StaticPart ejp) {
+    	processStaticFFDC(th,getSourceId(tjp,ejp));
+    }
+
+    /** 
+     * Template method for consumption of raw FFDC in a non-static context
+     */ 
+    protected void processNonStaticFFDC (Throwable th, Object obj, JoinPoint.StaticPart tjp, JoinPoint.StaticPart ejp) {
+    	processNonStaticFFDC(th,obj,getSourceId(tjp,ejp));
+    }
+
+    /** Generate source id describing where an exception is caught
+     * 
+	 * @return a String containing fully qualified class name, method name,
+	 * source file name and line number
+     */ 
+    protected String getSourceId (JoinPoint.StaticPart tjp, JoinPoint.StaticPart ejp) {
+    	StringBuffer sourceId = new StringBuffer();
+		String typeName = ejp.getSignature().getDeclaringTypeName();
+		String name = ejp.getSignature().getName();
+		String sourceLocation = tjp.getSourceLocation().toString();
+    	sourceId.append(typeName).append(".").append(name);
+    	sourceId.append("(").append(sourceLocation).append(")");
+    	return sourceId.toString();
+    }
+
+    /** Template method for consumption of static FFDC
+     * 
+     */ 
+    protected abstract void processStaticFFDC (Throwable th, String sourceId);
     
-    protected abstract void processStaticFFDC (Throwable th, JoinPoint.StaticPart tjp);
-
-    protected abstract void processNonStaticFFDC (Throwable th, Object obj, JoinPoint.StaticPart tjp);
-
+    /** Template method for consumption of non-static FFDC
+     * 
+     */
+    protected abstract void processNonStaticFFDC (Throwable th, Object obj, String sourcId);
 }
