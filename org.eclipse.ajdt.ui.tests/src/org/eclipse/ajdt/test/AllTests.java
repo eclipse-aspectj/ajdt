@@ -42,6 +42,7 @@ import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardTest;
+import org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.internal.ui.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.javamodel.AspectsConvertingParserTest;
@@ -69,8 +70,8 @@ public class AllTests {
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-		
-		// buildconfigurator tests
+//		
+//		// buildconfigurator tests
 		suite.addTest(new TestSuite(UtilTests.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
@@ -92,7 +93,7 @@ public class AllTests {
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
-
+		
 		// code format tests
 		suite.addTest(new TestSuite(CodeFormatTest.class));
 		
@@ -109,6 +110,9 @@ public class AllTests {
 		
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
+		
+		// new build configuration wizard
+		suite.addTest(new TestSuite(BuildConfigurationFileWizardTest.class));
 		
 		// export wizard tests
 		suite.addTest(new TestSuite(AJCTaskTest.class));
