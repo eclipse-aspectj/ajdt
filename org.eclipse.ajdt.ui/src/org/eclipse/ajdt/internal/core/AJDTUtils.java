@@ -824,7 +824,7 @@ public class AJDTUtils {
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			try {
-				addImportToPDEModel(model, AspectJUIPlugin.RUNTIME_PLUGIN_ID);
+				addImportToPDEModel(model, AspectJPlugin.RUNTIME_PLUGIN_ID);
 				manEd.doSave(new NullProgressMonitor());
 
 				// Forced build necessary here. When the project has the new
@@ -1084,7 +1084,7 @@ public class AJDTUtils {
 
 		for (int i = 0; i < imports.length; i++) {
 			IPluginImport importObj = imports[i];
-			if (importObj.getId().equals(AspectJUIPlugin.RUNTIME_PLUGIN_ID)) {
+			if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
 				return true;
 			}
 		}
@@ -1103,7 +1103,7 @@ public class AJDTUtils {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			try {
 				removeImportFromPDEModel(model,
-						AspectJUIPlugin.RUNTIME_PLUGIN_ID);
+						AspectJPlugin.RUNTIME_PLUGIN_ID);
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
 				AspectJUIPlugin
@@ -1195,8 +1195,7 @@ public class AJDTUtils {
 	 */
 	public static void verifyAjrtVersion(IProject current) {
 		IJavaProject javaProject = JavaCore.create(current);
-		String ajrtPath = AspectJUIPlugin.getDefault()
-				.getAjdtProjectProperties().getAspectjrtClasspath();
+		String ajrtPath = CoreUtils.getAspectjrtClasspath();
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			ArrayList tempCP = new ArrayList();

@@ -155,9 +155,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	// public static final String ID_NATURE = PLUGIN_ID + ".ajnature";
 	// //$NON-NLS-1$
 
-	// the plugin containing aspectjrt.jar
-	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
-
 	private static final String AJDE_VERSION_KEY_CURRENT = "ajde.version"; //$NON-NLS-1$
 
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$

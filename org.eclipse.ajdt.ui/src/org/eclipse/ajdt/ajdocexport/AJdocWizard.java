@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -299,7 +300,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			File file = File.createTempFile("javadoc-arguments", ".tmp"); //$NON-NLS-1$//$NON-NLS-2$
 			
 			String jreDir = JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath();
-			String aspectjrtDir = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectjrtClasspath();
+			String aspectjrtDir = CoreUtils.getAspectjrtClasspath();
 			String aspectjtoolsDir = ""; //$NON-NLS-1$
 			URL ajdeURL = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID).getEntry("ajde.jar"); //$NON-NLS-1$
 			URL coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("runtime.jar"); //$NON-NLS-1$ //$NON-NLS-2$

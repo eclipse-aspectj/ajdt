@@ -255,7 +255,7 @@ public class AJDTUtilsTest extends TestCase {
 
 		for (int i = 0; i < imports.length; i++) {
 			IPluginImport importObj = imports[i];
-			if (importObj.getId().equals(AspectJUIPlugin.RUNTIME_PLUGIN_ID)) {
+			if (importObj.getId().equals(AspectJPlugin.RUNTIME_PLUGIN_ID)) {
 				return true;
 			}
 		}

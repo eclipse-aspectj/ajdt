@@ -22,4 +22,10 @@
       <import plugin="org.eclipse.jdt.core"/>
    </requires>
 
+   <!-- ASPECTJRT_LIB classpath variable -->
+   <extension point="org.eclipse.jdt.core.classpathVariableInitializer">
+     <classpathVariableInitializer variable="ASPECTJRT_LIB"
+       class="org.eclipse.ajdt.internal.core.AspectJRTInitializer"/>
+   </extension>
+
 </plugin>

@@ -27,6 +27,9 @@ public class AspectJPlugin extends Plugin {
 	// plugin containing aspectjtools.jar, or the contents thereof
     public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; //$NON-NLS-1$
 
+	// the plugin containing aspectjrt.jar
+	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
+
 	/**
 	 * The name of the default build config file for an AspectJ project
 	 */

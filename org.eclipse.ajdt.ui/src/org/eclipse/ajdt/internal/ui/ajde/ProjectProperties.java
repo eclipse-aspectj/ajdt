@@ -13,12 +13,12 @@
  Geoff Longman 11/27/2002 Change getClasspath to retrieve entire classpath from
  Project dependencies.
 
+ Matt Chapman - moved getAspectjrtClasspath to core plugin (84967)
+
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +49,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -57,7 +56,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.osgi.framework.Bundle;
 
 /**
  * ProjectProperties is used to pass all the user, project and plugin settings
@@ -548,95 +546,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * plugins/org.aspectj.ajde_ <VERSION>/aspectjrt.jar
 	 */
 	public String getAspectjrtClasspath() {
-
-		if (aspectjrtPath == null) {
-			StringBuffer cpath = new StringBuffer();
-
-			// This isn't require for Eclipse 3.0
-			// IPluginRegistry reg = Platform.getPluginRegistry();
-			//			
-			// String ajVersion = AspectJPlugin
-			// .getResourceString(AJDE_VERSION_KEY);
-			//
-			// if (ajVersion.equals(AJDE_DEV)) {
-			// // working from developer edition, not a release
-			// ajVersion = AJDE_VERSION_DEV;
-			// }
-			//
-			// int maj = 1;
-			// int min = 1;
-			// int svc = 1;
-			// try {
-			// StringTokenizer tok = new StringTokenizer(ajVersion, ".");
-			// maj = Integer.parseInt(tok.nextToken());
-			// min = Integer.parseInt(tok.nextToken());
-			// svc = Integer.parseInt(tok.nextToken());
-			// } catch (Exception ex) {
-			// System.err.println("Exception parsing AJDE version: " + ex);
-			// }
-
-			// first look for the version we really want...
-			// IPluginDescriptor ajdePluginDesc = reg.getPluginDescriptor(
-			// "org.aspectj.ajde", new PluginVersionIdentifier(maj, min,
-			// svc));
-			//
-			// if (ajdePluginDesc == null) {
-			// // then try *any* version
-			// ajdePluginDesc = reg.getPluginDescriptor("org.aspectj.ajde");
-			// }
-
-			// This returns the bundle with the highest version or null if none
-			// found
-			// - for Eclipse 3.0 compatibility
-			Bundle ajdeBundle = Platform
-					.getBundle(AspectJUIPlugin.RUNTIME_PLUGIN_ID);
-
-			String pluginLoc = null;
-			// 3.0 using bundles instead of plugin descriptors
-			// if (ajdePluginDesc != null) {
-			// URL installLoc = ajdePluginDesc.getInstallURL();
-			if (ajdeBundle != null) {
-				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
-				URL resolved = null;
-				try {
-					resolved = Platform.resolve(installLoc);
-					pluginLoc = resolved.toExternalForm();
-				} catch (IOException e) {
-				}
-			}
-			if (pluginLoc != null) {
-				if (pluginLoc.startsWith("file:")) { //$NON-NLS-1$
-					cpath.append(pluginLoc.substring("file:".length())); //$NON-NLS-1$
-					cpath.append("aspectjrt.jar"); //$NON-NLS-1$
-				}
-			}
-
-			// Verify that the file actually exists at the plugins location
-			// derived above. If not then it might be because we are inside
-			// a runtime workbench. Check under the workspace directory.
-			if (new File(cpath.toString()).exists()) {
-				// File does exist under the plugins directory
-				aspectjrtPath = cpath.toString();
-			} else {
-				// File does *not* exist under plugins. Try under workspace...
-				IPath rootPath = AspectJPlugin.getWorkspace().getRoot()
-						.getLocation();
-				IPath installPath = rootPath.removeLastSegments(1);
-				cpath = new StringBuffer().append(installPath.toOSString());
-				cpath.append(File.separator);
-				// TODO: what if the workspace isn't called workspace!!!
-				cpath.append("workspace"); //$NON-NLS-1$
-				cpath.append(File.separator);
-				cpath.append(AspectJUIPlugin.RUNTIME_PLUGIN_ID);
-				cpath.append(File.separator);
-				cpath.append("aspectjrt.jar"); //$NON-NLS-1$
-
-				// Only set the aspectjrtPath if the jar file exists here.
-				if (new File(cpath.toString()).exists())
-					aspectjrtPath = cpath.toString();
-			}
-		}
-		return aspectjrtPath;
+		return CoreUtils.getAspectjrtClasspath();
 	}
 
 	/**
