@@ -16,9 +16,11 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
+import org.eclipse.ajdt.test.AllTests;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -38,6 +40,7 @@ public class ContentAssistTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		AllTests.setupAJDTPlugin();
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
 		fProject = Utils.createPredefinedProject("CodeCompletionTestArea");
 	}
@@ -73,7 +76,7 @@ public class ContentAssistTest extends TestCase {
 	}
 	
 	public void testContentAssistC() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Class.java");
+		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java");
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos C*/");
 		if (contains(props, "ajc$"))
 			fail("AspectJ artefact members have not been filtered.");
@@ -84,7 +87,7 @@ public class ContentAssistTest extends TestCase {
 	}
 	
 	public void testContentAssistD() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Class.java");
+		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java");
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos D*/");
 		if (!contains(props, "decw"))
 			fail("AspectJ code template missing.");
@@ -107,6 +110,7 @@ public class ContentAssistTest extends TestCase {
 		AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		String content;
 		if (unit != null){
+			unit.reconcile(ICompilationUnit.NO_AST, false, null, null);
 			unit.requestOriginalContentMode();
 			content = unit.getSource();
 			unit.discardOriginalContentMode();

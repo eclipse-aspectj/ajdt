@@ -19,6 +19,7 @@ public aspect Aspect {
 	
 	public int meth(){
 		meth()/*completion test pos A*/
+		
 		return 7;
 	}
 	
