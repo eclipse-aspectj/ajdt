@@ -30,6 +30,8 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	protected List modifiers;
 	protected ExtraInformation extra;
 	
+	private char[] name;
+	
 	public Kind getAJKind() {
 		return kind;
 	}

@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.jdom.IDOMMethod;
@@ -26,6 +27,7 @@ import org.eclipse.jdt.core.jdom.IDOMNode;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.Member;
+import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -33,7 +35,7 @@ import org.eclipse.jdt.internal.core.util.Util;
  * 
  * @author Luzius Meisser
  */
-public class AspectJMemberElement extends Member implements IMethod, IAspectJElement{
+public class AspectJMemberElement extends NamedMember implements IMethod, IAspectJElement{
 
 
 	public AspectJMemberElement(JavaElement parent, String name, String[] parameterTypes) {
@@ -329,6 +331,20 @@ public List getAJModifiers() throws JavaModelException {
 public ExtraInformation getAJExtraInformation() throws JavaModelException {
 	IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 	return info.getAJExtraInfo();
+}
+/* (non-Javadoc)
+ * @see org.eclipse.jdt.core.IMethod#getTypeParameters()
+ */
+public ITypeParameter[] getTypeParameters() throws JavaModelException {
+	// TODO Auto-generated method stub
+	return null;
+}
+/* (non-Javadoc)
+ * @see org.eclipse.jdt.core.IMethod#getTypeParameter(java.lang.String)
+ */
+public ITypeParameter getTypeParameter(String name) {
+	// TODO Auto-generated method stub
+	return null;
 }
 
 }

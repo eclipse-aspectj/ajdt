@@ -62,9 +62,9 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	/**
 	 * Sets this member's name
 	 */
-	public void setName(char[] name) {
-		this.name= name;
-	}
+	//public void setName(char[] name) {
+	//	this.name= name;
+	//}
 	/**
 	 * Sets the last position of this member's name, relative
 	 * to its openable's source buffer.
