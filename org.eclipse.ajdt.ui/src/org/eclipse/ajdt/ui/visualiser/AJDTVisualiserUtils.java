@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
@@ -383,14 +385,25 @@ public class AJDTVisualiserUtils {
 
 
 	/**
-	 * Tests whether the array contains a CompilationUnit with the same name as the ProgramElement 
+	 * Tests whether the array contains a CompilationUnit with the same name as the ProgramElement
+	 * and the compilation unit is included in the active build configuration 
 	 * @param packageFragmentChildren - CompilationUnits
 	 * @param fileNode - ProgramElement
 	 * @return
 	 */
-	private static boolean containsFile(ICompilationUnit[] packageFragmentChildren, IProgramElement fileNode) {
+	private static boolean containsFile(
+			ICompilationUnit[] packageFragmentChildren, IProgramElement fileNode) {
 		for (int i = 0; i < packageFragmentChildren.length; i++) {
-			if (packageFragmentChildren[i].getElementName().equals(fileNode.getName())) {
+			BuildConfiguration bc = BuildConfigurator.getBuildConfigurator()
+					.getProjectBuildConfigurator(project)
+					.getActiveBuildConfiguration();
+			if (packageFragmentChildren[i].getElementName().equals(
+					fileNode.getName())
+					&& bc.isIncluded(packageFragmentChildren[i].getResource())) {
+				// Check that the compilation unit is being built to avoid
+				// duplicates in the case when a two source folders contain
+				// identical packages and classes and one is being built and the
+				// other is not.
 				return true;
 			}
 		}
