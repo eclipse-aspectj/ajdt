@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -37,6 +38,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.debug.core.DebugEvent;
@@ -297,7 +299,22 @@ public class JavadocWizard extends Wizard implements IExportWizard {
 			
 			String jreDir = JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath();
 			String aspectjrtDir = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectjrtClasspath();
-			String aspectjtoolsDir = aspectjrtDir.substring(0, aspectjrtDir.length() - 13).concat("aspectjtools.jar");
+			String aspectjtoolsDir = ""; //$NON-NLS-1$
+			URL ajdeURL = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID).getEntry("ajde.jar"); //$NON-NLS-1$
+			URL coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("runtime.jar"); //$NON-NLS-1$ //$NON-NLS-2$
+			try {
+				File ajdeFile = new File(Platform.asLocalURL(ajdeURL).getFile());
+				if (ajdeFile.exists()) {
+					aspectjtoolsDir += ajdeFile.getAbsolutePath();
+				}
+				File coreFile = new File(Platform.asLocalURL(coreURL).getFile());
+				if (coreFile.exists()) {
+					aspectjtoolsDir += File.pathSeparator + coreFile.getAbsolutePath();
+				}
+			} catch (IOException e) {
+				AspectJUIPlugin.logException(e);
+			}
+			
 			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar";
 			
 			List vmArgs = new ArrayList();

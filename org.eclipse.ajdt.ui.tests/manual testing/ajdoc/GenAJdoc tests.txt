@@ -1,0 +1,23 @@
+
+Generating ajdoc (bug 76903)
+----------------
+
+1. File > New > Other > AspectJ > AspectJ Examples > Spacewar > Next > Finish
+
+2. Open the Spacewar project, and active the "debug.ajproperties" configuration
+
+3. Select Spacewar project, then select menu Project > Generate ajdoc...
+
+4. Choose to create ajdoc for members with "Private" visibility
+
+5. Next > check "Open generated index file in browser" > Finish
+
+6. Say yes if prompted to update the javadoc location.
+
+7. Check that the ajdoc process executes, with output in the console view,
+   and that html documentation is opened in a browser window.
+
+8. Navigate to spacewar.Registry in the browser and check that the
+   "Constructor Summary" section contains a highlighted "Advised by:" line.
+
+
