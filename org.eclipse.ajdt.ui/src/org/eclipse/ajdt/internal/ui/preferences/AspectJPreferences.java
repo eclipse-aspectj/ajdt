@@ -160,7 +160,6 @@ public class AspectJPreferences {
 			}
 			writer.close();
 		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 

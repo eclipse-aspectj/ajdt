@@ -18,7 +18,6 @@ package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +132,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			//			
 			//			return ret;
 		} catch (CoreException ce) {
-			ce.printStackTrace();
 			Ajde.getDefault().getErrorHandler().handleError(
 					AspectJUIPlugin.getResourceString("noOutputDir"), ce);
 		}
@@ -240,7 +238,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				classpath.append(File.pathSeparator);
 			}
 		} catch (CoreException cEx) {
-			System.out.println(cEx);
 		}
 
 		//		StringBuffer classpath = new StringBuffer();
@@ -590,7 +587,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					resolved = Platform.resolve(installLoc);
 					pluginLoc = resolved.toExternalForm();
 				} catch (IOException e) {
-					e.printStackTrace();
 				}
 			}
 			if (pluginLoc != null) {
@@ -671,7 +667,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -695,7 +690,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 
 	}
@@ -911,7 +905,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					}
 				}
 			} catch (CoreException e) {
-				e.printStackTrace();
 			}
 		}
 		return resultList;

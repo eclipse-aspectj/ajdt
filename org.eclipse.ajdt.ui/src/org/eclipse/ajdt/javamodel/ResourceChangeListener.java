@@ -9,7 +9,6 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 package org.eclipse.ajdt.javamodel;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -36,7 +35,6 @@ public class ResourceChangeListener implements IResourceChangeListener {
 				try {
 					delta.accept(myDeltaVisitor);
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		}

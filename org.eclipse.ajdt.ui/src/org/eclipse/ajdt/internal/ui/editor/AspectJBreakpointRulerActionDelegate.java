@@ -67,7 +67,6 @@ public class AspectJBreakpointRulerActionDelegate extends AbstractRulerActionDel
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		//else: use jdts action
 		return new ManageBreakpointRulerAction(rulerInfo, editor);

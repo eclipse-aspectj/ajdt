@@ -671,7 +671,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				if (unit != null)
 					unit.discardWorkingCopy();
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 
 		}
@@ -720,8 +719,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 							}
 						}
 					}
-				} catch (Throwable t) {
-					t.printStackTrace();
+				} catch (Exception e) {
 				}
 			}
 		});

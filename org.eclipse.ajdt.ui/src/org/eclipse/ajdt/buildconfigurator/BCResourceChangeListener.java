@@ -9,7 +9,6 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -58,7 +57,6 @@ public class BCResourceChangeListener implements IResourceChangeListener {
 				try {
 					delta.accept(myDeltaVisitor);
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 		}
 	}

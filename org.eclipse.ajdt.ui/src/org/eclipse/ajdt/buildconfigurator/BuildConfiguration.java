@@ -120,7 +120,6 @@ public class BuildConfiguration implements Cloneable,
 					}
 				}
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.getDefault().getLog().log(e.getStatus());
 			}
 		}
 	}
@@ -236,7 +235,6 @@ public class BuildConfiguration implements Cloneable,
 							temp2.add(cont);
 						}
 					} catch (CoreException e1) {
-						AspectJUIPlugin.logException(e1);
 					}
 				} else {
 					temp1.remove(f);
@@ -262,7 +260,6 @@ public class BuildConfiguration implements Cloneable,
 			org.eclipse.ajdt.buildconfigurator.Util.getLstFileContents(lstFile
 					.getLocation(), files, options, links);
 		} catch (FileNotFoundException e) {
-			AspectJUIPlugin.logException(e);
 			return;
 		}
 
@@ -335,7 +332,6 @@ public class BuildConfiguration implements Cloneable,
 					try {
 						newFile.delete(true, null);
 					} catch (CoreException e1) {
-						AspectJUIPlugin.logException(e1);
 					}
 				}
 			}
@@ -346,7 +342,6 @@ public class BuildConfiguration implements Cloneable,
 				//could not copy file, try another way to create it
 				this.propertiesFile = new BuildProperties(
 						getFileFromName(name), new ArrayList(getFileList()));
-				AspectJUIPlugin.logException(e);
 			}
 			fileList = new HashSet(propertiesFile.getFiles(false));
 			pbc.addBuildConfiguration(this);

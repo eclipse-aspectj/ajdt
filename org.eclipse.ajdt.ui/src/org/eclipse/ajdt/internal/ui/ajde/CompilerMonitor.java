@@ -863,7 +863,6 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return ret;
     }
@@ -885,6 +884,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                 try {
                     m.delete();
                 } catch (CoreException ce) {
+                	// can be ignored
                 } // not the end of the world.
             }
             l.clear();

@@ -43,6 +43,7 @@ public class AddBuildConfigurationAction extends Action {
 			new BuildConfiguration(pbc, null);
 		} catch (BuildConfigurationCreationException e) {
 			// creation failed, maybe user has cancelled it, do nothing
+			// can be ignored
 		}
 		
 	}

@@ -539,7 +539,6 @@ public class AspectJUIPlugin
 		    }
 		  } catch (CoreException e) {
 			  AJDTEventTrace.generalEvent("Problem attempting to check aspectjrt.jar for");
-			  e.printStackTrace();
 		  }
 
 	}
@@ -581,7 +580,6 @@ public class AspectJUIPlugin
 			}
 		} catch (IOException fnf) {
 			AJDTEventTrace.generalEvent(AspectJUIPlugin.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
-			fnf.printStackTrace();			
 		}
 	}
 

@@ -117,7 +117,6 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					return true;
 				}
 			} catch (CoreException e) {
-				//JavaPlugin.log(e);
 			}
 		}
 		return false;
@@ -162,7 +161,6 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					return true;
 				}				
 			} catch (Exception e) {
-				JavaPlugin.log(e);
 			}
 		}
 		return false;
@@ -264,7 +262,6 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 				}
 			} catch (Exception e) {
 				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message"); //$NON-NLS-1$
-				JavaPlugin.log(e);
 			}
 		}
 	}
@@ -284,7 +281,6 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 				}				
 			} catch (Exception e) {
 				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message"); //$NON-NLS-1$
-				JavaPlugin.log(e);
 			}
 		}
 	}	

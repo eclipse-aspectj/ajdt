@@ -224,7 +224,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 									}
 								}
 							} catch (JavaModelException e) {
-								AspectJUIPlugin.logException(e);
 							}
 						}
 						monitor.worked(1);
@@ -234,7 +233,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 								monitor);
 					}
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		};
@@ -244,9 +242,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 		try {
 			new ProgressMonitorDialog(getShell()).run(true, true, op);
 		} catch (InvocationTargetException e) {
-			AspectJUIPlugin.logException(e);
 		} catch (InterruptedException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -271,7 +267,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 					}
 
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			} else {
 				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
@@ -285,7 +280,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 							}
 						}
 					} catch (JavaModelException e) {
-						AspectJUIPlugin.logException(e);
 					}
 				}
 			}
@@ -349,7 +343,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 									}
 								}
 							} catch (JavaModelException e) {
-								AspectJUIPlugin.logException(e);
 							}
 						}
 						monitor.worked(1);
@@ -359,7 +352,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 								monitor);
 					}
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		};
@@ -369,9 +361,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 		try {
 			new ProgressMonitorDialog(getShell()).run(true, true, op);
 		} catch (InvocationTargetException e) {
-			AspectJUIPlugin.logException(e);
 		} catch (InterruptedException e) {
-			AspectJUIPlugin.logException(e);
 		}
 
 	}
@@ -419,7 +409,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 				br = new BufferedReader(new InputStreamReader(buildConfigs[i]
 						.getContents()));
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 				continue;
 			}
 			StringBuffer sb = new StringBuffer();
@@ -440,15 +429,12 @@ public class RenameFileExtensionsDialog extends Dialog {
 				StringReader reader = new StringReader(sb.toString());
 				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
 			} catch (IOException ioe) {
-				AspectJUIPlugin.logException(ioe);
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			} finally {
 				monitor.worked(10);
 				try {
 					br.close();
 				} catch (IOException ioe) {
-					AspectJUIPlugin.logException(ioe);
 				}
 			}
 			Collection c = pbc.getBuildConfigurations();

@@ -94,9 +94,7 @@ public class RenameToJavaAction implements IActionDelegate {
 				new ProgressMonitorDialog(AspectJUIPlugin.getDefault()
 						.getDisplay().getActiveShell()).run(true, true, op);
 			} catch (InvocationTargetException e) {
-				AspectJUIPlugin.logException(e);
 			} catch (InterruptedException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			AspectJUIPlugin.getDefault().enableBuildConfiguratorResourceChangeListener();
 		}
@@ -119,7 +117,6 @@ public class RenameToJavaAction implements IActionDelegate {
 				br = new BufferedReader(new InputStreamReader(buildConfigs[i]
 						.getContents()));
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 				continue;
 			}
 			StringBuffer sb = new StringBuffer();
@@ -134,14 +131,11 @@ public class RenameToJavaAction implements IActionDelegate {
 				StringReader reader = new StringReader(sb.toString());
 				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
 			} catch (IOException ioe) {
-				AspectJUIPlugin.logException(ioe);
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			} finally {
 				try {
 					br.close();
 				} catch (IOException ioe) {
-					AspectJUIPlugin.logException(ioe);
 				}
 			}
 			Collection c = pbc.getBuildConfigurations();

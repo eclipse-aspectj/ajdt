@@ -493,7 +493,6 @@ public class BuildConfigEditor
 				}
 			}
 		} catch (JavaModelException jmEx) {
-			jmEx.printStackTrace();
 		}
 
 		return linkedSourceFolders;

@@ -61,13 +61,10 @@ public class JavadocProjectContentProvider implements ITreeContentProvider {
 						ajProjects.add(javaprojects[i]);
 					}
 				} catch (CoreException e1) {
-					//assume non-aj-project, log
-					AspectJUIPlugin.logException(e1);
 				}
 			}
 			return ajProjects.toArray();		
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return new Object[0];
 	}

@@ -13,11 +13,12 @@ package org.eclipse.ajdt.buildconfigurator.editor;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuild;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.pde.core.IModelChangedEvent;
-import org.eclipse.pde.internal.core.build.*;
-import org.eclipse.pde.internal.ui.editor.*;
+import org.eclipse.pde.internal.core.build.BuildObject;
+import org.eclipse.pde.internal.core.build.IBuildObject;
+import org.eclipse.pde.internal.ui.editor.ModelUndoManager;
+import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
 
 public class BuildUndoManager extends ModelUndoManager {
 
@@ -79,7 +80,6 @@ public class BuildUndoManager extends ModelUndoManager {
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -95,7 +95,6 @@ public class BuildUndoManager extends ModelUndoManager {
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -109,7 +108,6 @@ public class BuildUndoManager extends ModelUndoManager {
 			try {
 				bobj.restoreProperty(propertyName, oldValue, newValue);
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}

@@ -227,8 +227,6 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 						marker.setAttribute(IMarker.LINE_NUMBER, sLoc.getLine());
 						marker.setAttribute(IMarker.CHAR_START, sLoc.getColumn());
 					} catch (CoreException coreEx) {
-						System.err.println( coreEx );
-						AspectJUIPlugin.getDefault().getLog().log(coreEx.getStatus());
 					}
 				}
 			}		

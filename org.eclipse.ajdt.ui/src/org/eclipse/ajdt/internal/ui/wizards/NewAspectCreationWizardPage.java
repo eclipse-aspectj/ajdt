@@ -210,7 +210,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 							}
 						}
 					} catch (JavaModelException e) {
-						NewAspectUtils.LogException(e);
 					}
 				}
 			}
@@ -923,7 +922,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					try {
 						return (((IPackageFragmentRoot) element).getKind() == IPackageFragmentRoot.K_SOURCE);
 					} catch (JavaModelException e) {
-						NewAspectUtils.LogException(e);
 						return false;
 					}
 				}
@@ -970,7 +968,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				packages = froot.getChildren();
 			}
 		} catch (JavaModelException e) {
-			NewAspectUtils.LogException(e);
 		}
 		if (packages == null) {
 			packages = new IJavaElement[0];
@@ -1076,7 +1073,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				IDE.openEditor(page, newFile, true);
 			}
 		} catch (PartInitException e) {
-			NewAspectUtils.LogException(e);
 			return false;
 		}
 
@@ -1115,7 +1111,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						true, null);
 				pack = frag.getResource();
 			} catch (JavaModelException e) {
-				NewAspectUtils.LogException(e);
 			}
 		}
 
@@ -1197,7 +1192,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 			AJDTEventTrace.newAspectCreated(enclosingFile);
 		} catch (CoreException e) {
-			NewAspectUtils.LogException(e);
 		}
 
 	}
@@ -1214,7 +1208,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 											.getResourceString("NewAspectCreationWizardPage.CreatingAspect.message"), 2000); //$NON-NLS-1$
 					newFile.create(initialContents, false, monitor);
 				} catch (CoreException e) {
-					NewAspectUtils.LogException(e);
 				} finally {
 					monitor.done();
 				}
@@ -1224,10 +1217,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		try {
 			getContainer().run(true, true, op);
 		} catch (InterruptedException e) {
-			NewAspectUtils.LogException(e);
 			return true;
 		} catch (InvocationTargetException e) {
-			NewAspectUtils.LogException(e);
 			return true;
 		}
 		return true;
@@ -1246,7 +1237,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					typeComment, typeContent, lineDelimiter);
 			return content;
 		} catch (CoreException e) {
-			NewAspectUtils.LogException(e);
 		}
 		return ""; //$NON-NLS-1$
 	}
@@ -1277,10 +1267,9 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					return comment;
 				}
 			} catch (CoreException e) {
-				NewAspectUtils.LogException(e);
 			}
 		}
-		return "";
+		return ""; //$NON-NLS-1$
 	}
 
 	private boolean isValidComment(String template) {
@@ -1295,6 +1284,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 			}
 			return next == ITerminalSymbols.TokenNameEOF;
 		} catch (InvalidInputException e) {
+			// can be ignored
 		}
 		return false;
 	}
@@ -1475,16 +1465,9 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						jelem = projects[0];
 					}
 				} catch (JavaModelException e) {
-					NewAspectUtils.LogException(e);
 				}
 			}
 			return jelem;
-		}
-
-		private static void LogException(Exception e) {
-			Status s = new Status(IStatus.ERROR, AspectJUIPlugin.PLUGIN_ID, 0, e
-					.getMessage(), null);
-			AspectJUIPlugin.getDefault().getLog().log(s);
 		}
 
 		public static int getTabWidth() {

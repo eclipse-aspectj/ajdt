@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -132,7 +131,6 @@ public class UpdateJob extends Job {
 							.updateSourceFolders(sourcePathes);
 				}
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}

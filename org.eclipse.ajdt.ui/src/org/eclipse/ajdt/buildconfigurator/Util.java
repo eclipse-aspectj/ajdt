@@ -92,7 +92,6 @@ public class Util {
 				r = r.getParentFile();
 			}
 		} catch (IOException e) {
-			AspectJUIPlugin.logException(e);
 			l = null;
 		}
 		return l;
@@ -167,7 +166,6 @@ public class Util {
 					bw.close();
 					result = new Path(resultFile.getAbsolutePath());
 				} catch (IOException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}// end if a link found
 		}// end if input is usable
@@ -229,7 +227,6 @@ public class Util {
             }// end while more lines to read
         }
         catch (IOException e) {
-        	AspectJUIPlugin.logException(e);
         }
 	}
 
@@ -252,7 +249,6 @@ public class Util {
 				}// end if lst link reference found
 			}
 		} catch (IOException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return result;
 	}
@@ -313,7 +309,6 @@ public class Util {
                     }// end else a possible source file reference found
 				}// while more lines to read
 			} catch (IOException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}// end if valid inputs
 	}

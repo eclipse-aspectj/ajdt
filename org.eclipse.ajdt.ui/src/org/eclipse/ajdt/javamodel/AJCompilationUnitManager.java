@@ -20,7 +20,6 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -105,7 +104,6 @@ public class AJCompilationUnitManager {
 						unit);
 
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 
 			compilationUnitStore.remove(file);
@@ -127,7 +125,6 @@ public class AJCompilationUnitManager {
 
 			compilationUnitStore.put(file, unit);
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return unit;
 	}
@@ -199,7 +196,6 @@ public class AJCompilationUnitManager {
 					}
 				}
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}
@@ -223,7 +219,6 @@ public class AJCompilationUnitManager {
 					l.add(resource);
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 
 	}

@@ -335,8 +335,7 @@ public class Builder extends IncrementalProjectBuilder {
 				} else {
 					buildManager.build(getBuildFilePath(project));
 				}
-			} catch (Throwable t) {
-				t.printStackTrace();
+			} catch (Exception e) {
 			}
 
 			waitForBuildCompletion(compilerMonitor);
@@ -409,7 +408,6 @@ public class Builder extends IncrementalProjectBuilder {
 					continue;
 				}
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
 			String[] names = jp.getPreferences().propertyNames();
@@ -497,7 +495,6 @@ public class Builder extends IncrementalProjectBuilder {
 						.toArray(new IClasspathEntry[newEntries.size()]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}
@@ -536,7 +533,6 @@ public class Builder extends IncrementalProjectBuilder {
 						.toArray(new IClasspathEntry[newEntries.size()]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}
@@ -621,7 +617,6 @@ public class Builder extends IncrementalProjectBuilder {
 			referencedProjects = project.getReferencedProjects();
 		} catch (CoreException e) {
 			referencedProjects = new IProject[0];
-			e.printStackTrace();
 		}
 		IProject[] classFolderRequirements = AJDTUtils
 				.getRequiredClassFolderProjects(project);
@@ -762,8 +757,7 @@ public class Builder extends IncrementalProjectBuilder {
 									: ""));
 			AJDTEventTrace.generalEvent("build: Relationships in ASM: "
 					+ totalrels);
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (Exception e) {
 		}
 	}
 

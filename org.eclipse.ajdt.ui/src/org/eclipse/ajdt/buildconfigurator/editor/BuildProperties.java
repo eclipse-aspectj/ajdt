@@ -27,7 +27,6 @@ import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -221,7 +220,6 @@ public class BuildProperties {
 				}
 			});
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return contents;
 	}
@@ -323,10 +321,9 @@ public class BuildProperties {
 										false, true, null);
 							}
 						} catch (CoreException e) {
-							AspectJUIPlugin.logException(e);
 						}
 					} else {
-						AspectJUIPlugin.logException(new Exception("BuildProperties: resource tree locked"));
+						AJDTEventTrace.generalEvent("BuildProperties: resource tree locked");
 					}
 		//		}
 	//		});

@@ -11,7 +11,6 @@ Contributors:
 package org.eclipse.ajdt.internal.ui.editor.contentassist;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -75,7 +74,6 @@ public class WorkingCopyManagerForCompletionProcessor implements
 				return workingCopy;
 			}
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return unit;
 	}
@@ -88,7 +86,6 @@ public class WorkingCopyManagerForCompletionProcessor implements
 				workingCopy.discardWorkingCopy();
 				workingCopy = null;
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 	}
@@ -99,9 +96,7 @@ public class WorkingCopyManagerForCompletionProcessor implements
 		int offset = 0;
 		String whereCopy = where;
 		boolean cont=true;
-		
-		try {
-		
+
 		while (cont) {
 			int whatIndex = whereCopy.indexOf(what);
 			//int oneLineComment = whereCopy.indexOf("//");
@@ -117,10 +112,6 @@ public class WorkingCopyManagerForCompletionProcessor implements
 							whereCopy.substring(multiLineCommentEnd+2);
 				}
 			}
-		}
-		} catch (RuntimeException re) {
-			// Needs to be bullet proof!
-			re.printStackTrace();
 		}
 		return location;	
 	}

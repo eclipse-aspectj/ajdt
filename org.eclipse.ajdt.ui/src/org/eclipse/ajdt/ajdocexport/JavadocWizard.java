@@ -312,7 +312,6 @@ public class JavadocWizard extends Wizard implements IExportWizard {
 					aspectjtoolsDir += File.pathSeparator + coreFile.getAbsolutePath();
 				}
 			} catch (IOException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			
 			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar";

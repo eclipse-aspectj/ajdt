@@ -144,7 +144,6 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 				if (page != null) IDE.openEditor(page,newFile,true);
 			}
 		} catch (PartInitException e) {
-			e.printStackTrace();
 			return false;
 		}
 		nameCounter++;

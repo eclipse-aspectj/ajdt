@@ -62,6 +62,7 @@ public class FileFilter extends ViewerFilter {
 					return false;
 				} catch (JavaModelException e) {
 					//something has gone wrong, do better not filter IFile and return true
+					// can be ignored
 				}
 			}
 		}

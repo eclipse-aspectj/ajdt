@@ -20,7 +20,6 @@ import org.eclipse.ajdt.buildconfigurator.editor.model.IBuild;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -98,7 +97,6 @@ public abstract class BuildContentsSection extends TableSection
 				}
 				return children.toArray();
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			return new Object[0];
 		}
@@ -116,7 +114,6 @@ public abstract class BuildContentsSection extends TableSection
 							addElementsOnClasspath(list, jp, mems[i]);
 					}
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		}
@@ -160,7 +157,6 @@ public abstract class BuildContentsSection extends TableSection
 				}
 				return results.toArray();
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			return new Object[0];
 		}
@@ -292,7 +288,6 @@ public abstract class BuildContentsSection extends TableSection
 			}
 			return resource;
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 			return null;
 		}
 	}
@@ -361,7 +356,6 @@ public abstract class BuildContentsSection extends TableSection
 									fTreeViewer.setSubtreeChecked(members[i], isIncluded);
 								}
 							} catch (CoreException e) {
-								AspectJUIPlugin.logException(e);
 							}
 						} else {
 							IFolder folder = fProject.getFolder(resource);
@@ -403,7 +397,6 @@ public abstract class BuildContentsSection extends TableSection
 						}
 					}
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 				
 				if (fileExt.size() == 0)
@@ -420,7 +413,6 @@ public abstract class BuildContentsSection extends TableSection
 						}
 					}
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		});
@@ -449,7 +441,6 @@ public abstract class BuildContentsSection extends TableSection
 				excludes.removeToken(resourceName);
 
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -533,7 +524,6 @@ public abstract class BuildContentsSection extends TableSection
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -585,7 +575,6 @@ public abstract class BuildContentsSection extends TableSection
 					build.remove(entries[i]);
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -619,7 +608,6 @@ public abstract class BuildContentsSection extends TableSection
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -636,7 +624,6 @@ public abstract class BuildContentsSection extends TableSection
 				fDoRefresh = false;
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 

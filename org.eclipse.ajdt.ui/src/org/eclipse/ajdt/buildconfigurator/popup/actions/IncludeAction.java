@@ -70,6 +70,7 @@ public class IncludeAction extends BuildConfigurationChangeAction {
 			}
 		} catch (CoreException e) {
 			// assume non-aj-project, do nothing
+			// can be ignored
 		}
 		return false;
 	}

@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -271,12 +270,10 @@ public class LaunchConfigurationClasspathUtils {
 							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 							mementos);
 				} catch (CoreException e) {
-					AJDTEventTrace.generalEvent(e.getMessage());
 				}
 				wc.doSave();
 			}
 		} catch (CoreException e1) {
-			AJDTEventTrace.generalEvent(e1.getMessage());
 		}
 	}
 

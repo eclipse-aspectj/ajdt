@@ -261,7 +261,6 @@ public class BuildConfigurator implements ISelectionListener {
 				jp.setRawClasspath(cpes, null);
 			}
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 			fileList = null;
 		}
 		
@@ -314,7 +313,6 @@ public class BuildConfigurator implements ISelectionListener {
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 	

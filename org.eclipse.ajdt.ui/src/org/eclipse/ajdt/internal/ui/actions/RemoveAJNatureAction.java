@@ -51,11 +51,9 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 				// to update the build classpath by removing the aspectjrt.jar	
 				AJDTUtils.removeAspectJNature(project);
 			}
-			catch (CoreException e)
-			{
-				// Something went wrong
+			catch (CoreException e) {
 			}
-		}// end for
+		}
 	}
 
 	/**

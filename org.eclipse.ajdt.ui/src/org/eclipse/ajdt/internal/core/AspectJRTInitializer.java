@@ -39,8 +39,6 @@ public class AspectJRTInitializer extends ClasspathVariableInitializer {
 				JavaCore.setClasspathVariable("ASPECTJRT_LIB",
 						new Path(ajrtPath),null);
 			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 	}

@@ -71,7 +71,6 @@ public class AspectJWizardNewProjectCreationPage extends WizardNewProjectCreatio
 			try {
 				workspaceMembers = wRoot.members();
 			} catch(CoreException e) {
-				AspectJUIPlugin.logException(e);				
 			}
 			
 			for(int i= 0; i<workspaceMembers.length; i++) {

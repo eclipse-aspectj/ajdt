@@ -10,6 +10,8 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.ajdt.internal.builder.Builder;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -43,7 +45,6 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
 		try {
 			if (!buildFileProject.hasNature(AspectJUIPlugin.ID_NATURE)) return;
 		} catch(CoreException cEx) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError("Unable to verify project nature", cEx);
 		}
 		
 		AspectJUIPlugin.setBuildConfigurationFile(
@@ -57,8 +58,6 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
 	//do full build with progress monitor
 	//no effect if called by non-UI thread
 	public static void doFullBuild(final IProject project) {
-		// AMC addition
-		
 		//getActiveWorkbenchWindow returns null if called by a non-UI thread -> test necessary
 		IWorkbenchWindow wbwin = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
 		Shell activeShell;
@@ -82,19 +81,15 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
 				} catch ( CoreException cEx ) {
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
 						"Build on select error", cEx );	
-				} catch ( Exception e ) {
-					System.out.println( e );
-					e.printStackTrace();
+				} catch (Exception e) {
 				}
 			}
 		};
-		try {new ProgressMonitorDialog( activeShell).run( true, true, op ); }
-		catch ( Exception e  ) {
-			AspectJUIPlugin.getDefault( ).getErrorHandler().handleError(
-			 "Auto build on select failed", e );
+		try {
+			new ProgressMonitorDialog( activeShell).run( true, true, op );
+		} catch (InvocationTargetException e) {
+		} catch (InterruptedException e) {
 		}
-		// end AMC addition
-
 	}
 	
 	/**

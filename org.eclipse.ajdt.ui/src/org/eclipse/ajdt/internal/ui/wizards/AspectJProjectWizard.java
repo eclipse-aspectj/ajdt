@@ -174,9 +174,6 @@ public class AspectJProjectWizard
 									IncrementalProjectBuilder.FULL_BUILD,
 									new SubProgressMonitor(monitor, 2));
 						} catch (CoreException e) {
-							System.err.println("Failed initial Java build of new project "
-									+ thisProject.getName() + " : " + e);
-							AspectJUIPlugin.getDefault().getLog().log(e.getStatus());
 						} finally {
 							monitor.done();
 						}
@@ -193,7 +190,6 @@ public class AspectJProjectWizard
 				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.message");
 			ExceptionHandler.handle(e, getShell(), title, message);
 		} catch(CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		
 		project = thisProject;

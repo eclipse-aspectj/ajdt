@@ -55,16 +55,8 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 							shell,
 							AspectJUIPlugin.getResourceString("ajWarningDialogTitle"),
 							message_final );
-					} else {
-						AspectJUIPlugin.getDefault().getLog().log(
-							new Status(
-								Status.ERROR,
-								AspectJUIPlugin.PLUGIN_ID,
-								Status.OK,
-								"Unable to determine workbenchwindow instance for opening an error dialog",
-								null));
 					}
-				} catch (Throwable t) {
+				} catch (Exception t) {
 					//ErrorHandler.handleError("Document Outline update failed", t);	
 				}
 			}
@@ -87,13 +79,6 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	public void handleError(String message, Throwable t) {
 		final IStatus status;
 		final String message_final = message;
-
-//Err, wtf is happening here? t could be null if handleError was called with just a message
-// like the above method allows??!
-
-		System.err.println( t.getMessage() );
-		t.printStackTrace( System.err );
-
 
 		// If the throwable is a CoreException then retrieve its status, otherwise
 		// build a new status object
@@ -122,23 +107,12 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 							message_final,
 							status);
 
-					} else {
-						AspectJUIPlugin.getDefault().getLog().log(
-							new Status(
-								Status.ERROR,
-								AspectJUIPlugin.PLUGIN_ID,
-								Status.OK,
-								"Unable to determine workbenchwindow instance for opening an error dialog",
-								null));
 					}
-				} catch (Throwable t) {
+				} catch (Exception e) {
 					//ErrorHandler.handleError("Document Outline update failed", t);	
 				}
 			}
 		});
-
-		// Record the problem in the log
-		AspectJUIPlugin.getDefault().getLog().log(status);
 	}
 
 }

@@ -11,7 +11,6 @@ Ian McGrath - updated compiler option retrieving methods
 package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -119,7 +118,6 @@ public class BuildOptionsAdapter
 			project = (JavaProject)AspectJUIPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
 			optionsMap = project.getOptions(true);
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		
 		if (optionsMap == null) {

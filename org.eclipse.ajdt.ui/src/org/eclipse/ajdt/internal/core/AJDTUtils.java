@@ -37,7 +37,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -169,7 +168,6 @@ public class AJDTUtils {
 			newCP[originalCPLength] = ajrtLIB;
 			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		//		}
 	}
@@ -264,7 +262,6 @@ public class AJDTUtils {
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 	
@@ -301,7 +298,6 @@ public class AJDTUtils {
 				if (!referencingProject.hasNature(JavaCore.NATURE_ID))
 					continue;
 			} catch (CoreException e1) {
-				AspectJUIPlugin.logException(e1);
 			}
 
 			IJavaProject javaProject = JavaCore.create(referencingProject);
@@ -342,7 +338,6 @@ public class AJDTUtils {
 						.toArray(new IClasspathEntry[newEntries.size()]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 				continue;
 			}
 		}
@@ -386,7 +381,6 @@ public class AJDTUtils {
 						javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 						javaElements.add(javaProject);
 					} catch (JavaModelException e) {
-						AspectJUIPlugin.logException(e);
 					}
 				}
 				// Forcing a build here if there is an outjar - otherwise have to build the project
@@ -396,7 +390,6 @@ public class AJDTUtils {
 				AspectJUIPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE,null);
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}		
 	}
 	
@@ -422,7 +415,6 @@ public class AJDTUtils {
 				}
 			}
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return (IClasspathEntry[]) exportedEntries.toArray(new IClasspathEntry[exportedEntries.size()]);
 	}
@@ -445,7 +437,6 @@ public class AJDTUtils {
 			} 
 			if (!foundSrc) return true;
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return false;	
 	}
@@ -487,7 +478,6 @@ public class AJDTUtils {
 				outputLocations.add(javaProject.getOutputLocation());
 			}
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
 		}
 		return outputLocations;
 	}
@@ -523,7 +513,6 @@ public class AJDTUtils {
 				}
 			}
 		} catch (JavaModelException e1) {
-			AspectJUIPlugin.logException(e1);
 		}
 
 		if (cfDependingProjects.length == 0 && exportedEntries.size() > 0 
@@ -551,7 +540,6 @@ public class AJDTUtils {
 					IClasspathEntry[] origCP = (IClasspathEntry[]) originalEntries.toArray(new IClasspathEntry[originalEntries.size()]);
 					javaProject.setRawClasspath(origCP,new NullProgressMonitor());
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 					continue;
 				}
 			}
@@ -585,7 +573,6 @@ public class AJDTUtils {
 					javaProject.setRawClasspath(newCP,
 							new NullProgressMonitor());
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 					continue;
 				}
 			}
@@ -640,12 +627,10 @@ public class AJDTUtils {
 							}
 						}
 					} catch (JavaModelException e) {
-						AspectJUIPlugin.logException(e);
 						continue workThroughProjects;
 					}
 				}
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}
 		projects.add(0,(IProject[]) classFolderDependingProjects.toArray(new IProject[] {}));
@@ -700,7 +685,6 @@ public class AJDTUtils {
 						}
 					}
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 					continue iterateOverProjects;
 				}
 			}
@@ -752,7 +736,6 @@ public class AJDTUtils {
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 		}
 	}
 
@@ -806,21 +789,9 @@ public class AJDTUtils {
 						"org.eclipse.ajdt.ui.ajbuilder", null, null);
 
 			} catch (CoreException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		}// end if we got a reference to the manifest editor
 		else {
-			AspectJUIPlugin
-					.getDefault()
-					.getLog()
-					.log(
-							new Status(
-									Status.ERROR,
-									AspectJUIPlugin.PLUGIN_ID,
-									Status.OK,
-									AspectJUIPlugin
-											.getResourceString("AutoPluginImportDialog.noEditor.message"),
-									null));
 			MessageDialog
 					.openError(
 							AspectJUIPlugin.getDefault().getWorkbench()
@@ -1048,7 +1019,6 @@ public class AJDTUtils {
 						return true;
 				}
 			} catch(JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 			return false;	
 		}
@@ -1077,7 +1047,6 @@ public class AJDTUtils {
 				removeImportFromPDEModel(model, AspectJUIPlugin.RUNTIME_PLUGIN_ID);
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
-				AspectJUIPlugin.getDefault().getLog().log(e.getStatus());
 				ErrorDialog
 						.openError(
 								AspectJUIPlugin.getDefault()
@@ -1090,17 +1059,6 @@ public class AJDTUtils {
 			}
 		}// end if we got a reference to the manifest editor
 		else {
-			AspectJUIPlugin
-					.getDefault()
-					.getLog()
-					.log(
-							new Status(
-									Status.ERROR,
-									AspectJUIPlugin.PLUGIN_ID,
-									Status.OK,
-									AspectJUIPlugin
-											.getResourceString("AutoPluginRemoveDialog.noEditor.message"),
-									null));
 			MessageDialog
 					.openError(
 							AspectJUIPlugin.getDefault().getWorkbench()
@@ -1170,8 +1128,6 @@ public class AJDTUtils {
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 			}// end if at least one classpath element removed
 		} catch (JavaModelException e) {
-			// Thrown if attempted to add a duplicate classpath entry.
-			AJDTEventTrace.generalEvent(e.getMessage());
 		}
 	}
 
@@ -1221,7 +1177,6 @@ public class AJDTUtils {
 			}
 		} catch (JavaModelException e) {
 			// Thrown if attempted to add a duplicate classpath entry.
-			AspectJUIPlugin.logException(e);
 		}
 	}
 

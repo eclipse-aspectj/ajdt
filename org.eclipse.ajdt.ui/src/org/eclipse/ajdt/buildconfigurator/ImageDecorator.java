@@ -19,7 +19,6 @@ import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.internal.core.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.core.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
@@ -139,7 +138,6 @@ public class ImageDecorator implements ILabelDecorator {
 				}
 			
 			} catch (JavaModelException e) {
-				AspectJUIPlugin.logException(e);
 			}
 		} else if (element instanceof IFile){
 			IFile file= (IFile) element;
@@ -195,6 +193,7 @@ public class ImageDecorator implements ILabelDecorator {
 				}
 			} catch (JavaModelException e) {
 				// problems with package, better don't do anything
+				// can be ignored
 			}
 		} else {
 			return null;
@@ -236,6 +235,7 @@ public class ImageDecorator implements ILabelDecorator {
 //			}
 		} catch (JavaModelException e) {
 			//assume empty
+			// can be ignored
 		}
 		return false;
 	}
@@ -261,6 +261,7 @@ public class ImageDecorator implements ILabelDecorator {
 //			}
 		} catch (JavaModelException e) {
 			//assume empty
+			// can be ignored
 		}
 		return false;
 	}
@@ -312,9 +313,7 @@ public class ImageDecorator implements ILabelDecorator {
 						return text.substring(0, text.length() - 2);
 					}
 				} catch (JavaModelException e) {
-					AspectJUIPlugin.logException(e);
 				}
-
 			}
 		}
 		return null;
@@ -349,6 +348,7 @@ public class ImageDecorator implements ILabelDecorator {
 				}
 			} catch (JavaModelException e) {
 				// do nothing. Can't compute runnable adornment or get flags
+				// can be ignored
 			}
 		}
 		return flags;

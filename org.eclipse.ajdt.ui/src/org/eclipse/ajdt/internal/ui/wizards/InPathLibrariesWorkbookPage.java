@@ -541,8 +541,6 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
                     res.add(outputLocation);
                 }
             } catch (JavaModelException e) {
-                // ignore it here, just log
-                AspectJUIPlugin.getDefault().getLog().log(e.getStatus());
             }
         }   
             

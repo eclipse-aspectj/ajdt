@@ -48,7 +48,6 @@ public class AddAJNatureAction implements IObjectActionDelegate {
 				// build classpath with the aspectjrt.jar	
 				AJDTUtils.addAspectJNature(project);
 			} catch (CoreException e) {
-				// Something went wrong
 			}
 		}
 	}

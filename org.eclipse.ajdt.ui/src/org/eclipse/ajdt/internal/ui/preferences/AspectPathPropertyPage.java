@@ -107,7 +107,6 @@ public class AspectPathPropertyPage extends PropertyPage implements
         try {
             return proj.hasNature(AspectJUIPlugin.ID_NATURE);
         } catch (CoreException e) {
-            AspectJUIPlugin.getDefault().getLog().log(e.getStatus());
         }
         return false;
     }
@@ -159,7 +158,6 @@ public class AspectPathPropertyPage extends PropertyPage implements
         try {
             initialAspectpath = getInitialAspectpathValue(project);
         } catch (CoreException ce) {
-            AspectJUIPlugin.getDefault().getLog().log(ce.getStatus());
             ErrorDialog
                     .openError(
                             AspectJUIPlugin.getDefault()

@@ -93,7 +93,6 @@ public class ProjectBuildConfigurator{
 				}
 			}
 		} catch (CoreException e) {
-			AspectJUIPlugin.logException(e);
 			//Could not read project members, no BuildConfigurations read
 		}
 	}
@@ -112,7 +111,6 @@ public class ProjectBuildConfigurator{
 				try {
 					activeBuildConfiguration.touch(null);
 				} catch (CoreException e) {
-					AspectJUIPlugin.logException(e);
 				}
 			}
 		}

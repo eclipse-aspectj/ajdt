@@ -22,23 +22,17 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableContext;
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
-
-import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.jarpackager.JarPackagerUtil
@@ -166,7 +160,6 @@ public class AJJarPackagerUtil {
 			// Test if it has a main method
 			return JavaModelUtil.hasMainMethod(mainClass);
 		} catch (JavaModelException e) {
-			JavaPlugin.log(e.getStatus());
 		}
 		return false;
 	}
@@ -186,7 +179,7 @@ public class AJJarPackagerUtil {
 				try {
 					children= Arrays.asList(((IContainer)resource).members());
 				} catch (CoreException ex) {
-					// ignore this folder
+					// can be ignored
 					continue;
 				}
 				if (children != null && contains(children, file))
