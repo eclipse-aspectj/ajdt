@@ -12,12 +12,12 @@
 package org.eclipse.ajdt.internal.ui;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.AJLogger;
+import org.eclipse.ajdt.internal.core.IAJLogger;
 
 /**
  * This logger simply outputs to the event trace view
  */
-public class EventTraceLogger implements AJLogger {
+public class EventTraceLogger implements IAJLogger {
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.internal.core.AJLogger#log(java.lang.String)

@@ -23,7 +23,7 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
 import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.builder.AJBuildListener;
+import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
@@ -55,7 +55,7 @@ import org.eclipse.swt.widgets.Display;
 /**
  * 
  */
-public class UIBuildListener implements AJBuildListener {
+public class UIBuildListener implements IAJBuildListener {
 
 	/**
 	 * Code returned when a failure occurs creating a build config file

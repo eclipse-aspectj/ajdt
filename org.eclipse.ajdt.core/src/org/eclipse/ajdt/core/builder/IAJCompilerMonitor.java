@@ -9,11 +9,22 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.core;
+package org.eclipse.ajdt.core.builder;
+
+import java.util.List;
+
+import org.aspectj.ajde.BuildProgressMonitor;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * Minimal logging interface
+ * Define additional operations required by AJDT
  */
-public interface AJLogger {
-	public void log(String msg);
+public interface IAJCompilerMonitor extends BuildProgressMonitor {
+
+	public void prepare(IProject project, List buildList,
+			IProgressMonitor eclipseMonitor);
+
+	public boolean finished();
+
 }

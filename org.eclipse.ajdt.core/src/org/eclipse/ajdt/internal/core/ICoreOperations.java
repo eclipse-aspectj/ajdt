@@ -9,25 +9,19 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.core.builder;
+package org.eclipse.ajdt.internal.core;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceDelta;
 
 /**
- * A listener for receiving notifications relating to the building of AspectJ projects
+ * This interface is to capture those operations which logically belong in the
+ * ajdt.core plugin, but currently have some dependency on UI function. Future
+ * refactorings should eventually make this redundant.
  */
-public interface AJBuildListener {
+public interface ICoreOperations {
 
-	/**
-	 * The given project is about to be built
-	 * @param project
-	 */
-	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects);
-	
-	/**
-	 * The given project has just been built
-	 * @param project
-	 */
-	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges);
-	
+	public boolean isFullBuildRequested(IProject project);
+
+	public boolean sourceFilesChanged(IResourceDelta dta, IProject project);
 }

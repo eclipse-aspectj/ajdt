@@ -19,7 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * 
  */
-public class CompilerMonitor implements AJCompilerMonitor {
+public class CompilerMonitor implements IAJCompilerMonitor {
 
     private IProgressMonitor monitor = null;
 

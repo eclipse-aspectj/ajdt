@@ -16,7 +16,7 @@ import java.util.List;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.core.CoreOperations;
+import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
@@ -26,7 +26,7 @@ import org.eclipse.core.resources.IResourceDelta;
  * belong in the ajdt.core plugin, but currently have some dependency on UI
  * function. Future refactorings should eventually make this redundant.
  */
-public class UICoreOperations implements CoreOperations {
+public class UICoreOperations implements ICoreOperations {
 
 	/*
 	 * (non-Javadoc)

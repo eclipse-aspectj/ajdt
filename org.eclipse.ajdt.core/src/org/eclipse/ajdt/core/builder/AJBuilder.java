@@ -24,7 +24,7 @@ import org.aspectj.ajde.BuildManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.CoreOperations;
+import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -102,7 +102,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		preCallListeners(kind, project, requiredProjects);
 		
-		CoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
+		ICoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
 		if (coreOps.isFullBuildRequested(project)) {
 			kind = IncrementalProjectBuilder.FULL_BUILD;
 		}
@@ -152,7 +152,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
 		
-		AJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
+		IAJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
 		//TODO!!! For auto builds lets not pass the progress monitor
 		// through - something 'funny' happens and although there 
 		// is a monitor (it seems to be shown in the status bar on
@@ -198,7 +198,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	/**
 	 * Wait until compiler monitor indicates completion
 	 */
-	private void waitForBuildCompletion(AJCompilerMonitor monitor) {
+	private void waitForBuildCompletion(IAJCompilerMonitor monitor) {
 		//System.out.println("waiting for build");
 		while (!monitor.finished()) {
 			try {
@@ -673,26 +673,26 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}		
 	}
 	
-	public static void addAJBuildListener(AJBuildListener listener) {
+	public static void addAJBuildListener(IAJBuildListener listener) {
 		if (!buildListeners.contains(listener)) {
 			buildListeners.add(listener);
 		}
 	}
 
-	public static void removeAJBuildListener(AJBuildListener listener) {
+	public static void removeAJBuildListener(IAJBuildListener listener) {
 		buildListeners.remove(listener);
 	}
 
 	private void preCallListeners(int kind, IProject project, IProject[] requiredProjects) {
 		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			AJBuildListener listener = (AJBuildListener) iter.next();
+			IAJBuildListener listener = (IAJBuildListener) iter.next();
 			listener.preAJBuild(kind, project, requiredProjects);
 		}
 	}
 	
 	private void postCallListeners(boolean noSourceChanges) {
 		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
-			AJBuildListener listener = (AJBuildListener) iter.next();
+			IAJBuildListener listener = (IAJBuildListener) iter.next();
 			listener.postAJBuild(getProject(), buildCancelled, noSourceChanges);
 		}
 	}

@@ -16,7 +16,7 @@ package org.eclipse.ajdt.internal.core;
  */
 public class AJLog {
 
-	private static AJLogger logger;
+	private static IAJLogger logger;
 	
 	public static void log(String msg) {
 		if (logger != null) {
@@ -26,7 +26,7 @@ public class AJLog {
 		}
 	}
 	
-	public static void setLogger(AJLogger l) {
+	public static void setLogger(IAJLogger l) {
 		logger = l;
 	}
 }

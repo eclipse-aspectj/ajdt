@@ -19,7 +19,7 @@ import org.eclipse.core.resources.IResourceDelta;
  * Implementations of the required operations are required which don't use UI
  * functionality.
  */
-public class StandinCoreOperations implements CoreOperations {
+public class StandinCoreOperations implements ICoreOperations {
 
 	/*
 	 * (non-Javadoc)

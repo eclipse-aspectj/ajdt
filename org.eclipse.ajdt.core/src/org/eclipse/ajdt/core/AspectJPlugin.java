@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import org.eclipse.ajdt.core.builder.AJCompilerMonitor;
+import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
 import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.AJLogger;
-import org.eclipse.ajdt.internal.core.CoreOperations;
+import org.eclipse.ajdt.internal.core.IAJLogger;
+import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.StandinCoreOperations;
 import org.eclipse.core.resources.IProject;
@@ -50,9 +50,9 @@ public class AspectJPlugin extends Plugin {
 	 * Compiler monitor listens to AspectJ compilation events (build progress
 	 * and compilations errors/warnings)
 	 */
-	private AJCompilerMonitor ajdtCompilerMonitor;
+	private IAJCompilerMonitor ajdtCompilerMonitor;
 
-	private CoreOperations coreOperations;
+	private ICoreOperations coreOperations;
 	
 	/**
 	 * The constructor.
@@ -136,29 +136,29 @@ public class AspectJPlugin extends Plugin {
 	 * return the compiler monitor used for build progress monitoring and
 	 * compilation errors/warnings
 	 */
-	public AJCompilerMonitor getCompilerMonitor() {
+	public IAJCompilerMonitor getCompilerMonitor() {
 		if (ajdtCompilerMonitor==null) {
 			ajdtCompilerMonitor = new CompilerMonitor();
 		}
 		return ajdtCompilerMonitor;
 	}
 
-	public void setCompilerMonitor(AJCompilerMonitor monitor) {
+	public void setCompilerMonitor(IAJCompilerMonitor monitor) {
 		ajdtCompilerMonitor = monitor;
 	}
 
-	public CoreOperations getCoreOperations() {
+	public ICoreOperations getCoreOperations() {
 		if (coreOperations==null) {
 			coreOperations = new StandinCoreOperations();
 		}
 		return coreOperations;
 	}
 	
-	public void setCoreOperations(CoreOperations coreOps) {
+	public void setCoreOperations(ICoreOperations coreOps) {
 		coreOperations = coreOps;
 	}
 	
-	public void setAJLogger(AJLogger logger) {
+	public void setAJLogger(IAJLogger logger) {
 		AJLog.setLogger(logger);
 	}
 	

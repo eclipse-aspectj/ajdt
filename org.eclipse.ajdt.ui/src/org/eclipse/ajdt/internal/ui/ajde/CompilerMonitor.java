@@ -17,7 +17,7 @@ import org.aspectj.weaver.WeaverMetrics;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.builder.AJCompilerMonitor;
+import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -40,7 +40,7 @@ import org.eclipse.core.runtime.Path;
  * exit the build function. This syncrhonization appears to be necessary because
  * the compilation is done asynchronously once the AJC compiler is started.
  */
-public class CompilerMonitor implements AJCompilerMonitor {
+public class CompilerMonitor implements IAJCompilerMonitor {
 
     private long compileStartTime;
 
