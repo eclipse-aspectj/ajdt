@@ -59,7 +59,13 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
-		return AJModel.getInstance().getExtraChildren(je);
+	    List l = AJModel.getInstance().getExtraChildren(je);
+	    if (l == null) {
+			return null;
+		}
+	    // ensuring that the children are sorted 
+	    Collections.sort(l,new AJComparator());
+	    return (IJavaElement[]) (l.toArray(new IJavaElement[] {}));
 	}
 	
 	/*

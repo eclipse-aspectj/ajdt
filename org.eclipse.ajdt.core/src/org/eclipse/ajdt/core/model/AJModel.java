@@ -149,7 +149,7 @@ public class AJModel {
 		return pm.isAdvised(je);
 	}
 	
-	public IJavaElement[] getExtraChildren(IJavaElement je) {
+	public List getExtraChildren(IJavaElement je) {
 		if (je==null) {
 			return null;
 		}

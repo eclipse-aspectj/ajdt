@@ -97,16 +97,16 @@ public class AJProjectModel {
 				return true;
 			}
 			// check for advised code elements
-			IJavaElement[] extras = getExtraChildren(je);
+			List extras = getExtraChildren(je);
 			if (extras != null) {
-				for (int i = 0; i < extras.length; i++) {
-					advisedBy = getRelatedElements(
-							AJRelationshipManager.ADVISED_BY, extras[i]);
+                for (Iterator iter = extras.iterator(); iter.hasNext();) {
+                    IJavaElement element = (IJavaElement) iter.next();
+                    advisedBy = getRelatedElements(AJRelationshipManager.ADVISED_BY,element);
 					if ((advisedBy != null) && (advisedBy.size() > 0)) {
-						return true;
+					    return true;
 					}
-				}
-			}
+                }
+            }			
 		}
 		return false;
 	}
@@ -115,12 +115,8 @@ public class AJProjectModel {
 		return (String) jeLinkNames.get(je);
 	}
 
-	public IJavaElement[] getExtraChildren(IJavaElement je) {
-		List l = (List) extraChildren.get(je);
-		if (l == null) {
-			return null;
-		}
-		return (IJavaElement[]) (l.toArray(new IJavaElement[] {}));
+	public List getExtraChildren(IJavaElement je) {
+		return (List)extraChildren.get(je);
 	}
 
 	public void createProjectMap() {
