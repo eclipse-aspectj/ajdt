@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.Accessibility;
+import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
@@ -261,6 +263,30 @@ public aspect MarkerUpdating {
 				marker = ir
 					.createMarker(IAJModelMarker.SOURCE_ADVICE_MARKER);
 			}
+			// Store the accessibility and kind in an attribute, so we can use
+			// appropriate icons when we later populate the marker context menu
+			// TODO: query this information when needed instead
+			Kind kind = programElement.getKind();
+			Accessibility acc = programElement.getAccessibility();
+			char markerKind='?';
+			if (kind == Kind.CODE) {
+				markerKind='C';
+			} else if (kind == Kind.METHOD) {
+				markerKind='M';
+			} else if (kind == Kind.FIELD) {
+				markerKind='F';
+			}
+			char markerAcc='?';
+			if (acc == Accessibility.PUBLIC) {
+				markerAcc='G';
+			} else if (acc == Accessibility.PROTECTED) {
+				markerAcc='Y';
+			} else if (acc == Accessibility.PACKAGE) {
+				markerAcc='B';
+			} else if (acc == Accessibility.PRIVATE) {
+				markerAcc='R';
+			}
+			marker.setAttribute(AspectJUIPlugin.ACCKIND_ATTRIBUTE,""+markerKind+markerAcc);
 		} else {
 			// It's an Intertype Declaration
 			marker = ir.createMarker(IAJModelMarker.ITD_MARKER);

@@ -15,6 +15,10 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
 
+import org.aspectj.ajde.ui.AbstractIcon;
+import org.aspectj.asm.IProgramElement.Accessibility;
+import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
@@ -30,6 +34,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorActionDelegate;
@@ -366,53 +371,87 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	}
 	
 	class AJDTMenuAction extends BaseAJDTMenuAction {
+		private IMarker adviceMarker;
 
-        // Advice marker, the AspectJPlugin.SOURCE_LOCATION_ATTRIBUTE attribute is the only
-        // attribute used.
-        IMarker adviceMarker;
+		/**
+		 * Set the name, remember the marker and set the image !
+		 */
+		AJDTMenuAction(String s, IMarker marker) {
+			super(s);
+			adviceMarker = marker;
 
-        /**
-         * Set the name, remember the marker and set the image !
-         */
-        AJDTMenuAction(String s, IMarker marker) {
-            super(s);
-            String runtimeTest = AspectJUIPlugin
-                    .getResourceString("AspectJEditor.runtimetest");
-            boolean hasRuntimeTest = false;
-            if (s.endsWith(runtimeTest)) {
-                hasRuntimeTest = true;
-            }
-            if (s.indexOf(".before(") != -1) {
-                if (hasRuntimeTest) {
-                    setImageDescriptor(AspectJImages.DYNAMIC_BEFORE_ADVICE
-                            .getImageDescriptor());
-                } else {
-                    setImageDescriptor(AspectJImages.BEFORE_ADVICE
-                            .getImageDescriptor());
-                }
-            } else if (s.indexOf(".after(") != -1
-                    || s.indexOf(".afterReturning(") != -1
-                    || s.indexOf(".afterThrowing(") != -1) {
-                if (hasRuntimeTest) {
-                    setImageDescriptor(AspectJImages.DYNAMIC_AFTER_ADVICE
-                            .getImageDescriptor());
-                } else {
-                    setImageDescriptor(AspectJImages.AFTER_ADVICE
-                            .getImageDescriptor());
-                }
-            } else if (s.indexOf(".around(") != -1) {
-                if (hasRuntimeTest) {
-                    setImageDescriptor(AspectJImages.DYNAMIC_AROUND_ADVICE
-                            .getImageDescriptor());
-                } else {
-                    setImageDescriptor(AspectJImages.AROUND_ADVICE
-                            .getImageDescriptor());
-                }
-            } else {
-                setImageDescriptor(AspectJImages.ITD.getImageDescriptor());
-            }
-            adviceMarker = marker;
-        }
+			ImageDescriptor descriptor = null;
+
+			String acckind = marker.getAttribute(
+					AspectJUIPlugin.ACCKIND_ATTRIBUTE, "");
+			if (acckind.length() == 2) {
+				char markerKind = acckind.charAt(0);
+				char markerAcc = acckind.charAt(1);
+				Accessibility acc = null;
+				Kind kind = null;
+				if (markerKind == 'M') {
+					kind = Kind.METHOD;
+				} else if (markerKind == 'F') {
+					kind = Kind.FIELD;
+				} else if (markerKind == 'C') {
+					kind = Kind.CODE;
+				}
+				if (markerAcc == 'G') {
+					acc = Accessibility.PUBLIC;
+				} else if (markerAcc == 'Y') {
+					acc = Accessibility.PROTECTED;
+				} else if (markerAcc == 'B') {
+					acc = Accessibility.PACKAGE;
+				} else if (markerAcc == 'R') {
+					acc = Accessibility.PRIVATE;
+				}
+				if (kind != null) {
+					AbstractIcon icon = AspectJImages.registry()
+							.getStructureIcon(kind, acc);
+					descriptor = ((AJDTIcon) icon).getImageDescriptor();
+				}
+			}
+
+			if (descriptor == null) {
+				String runtimeTest = AspectJUIPlugin
+						.getResourceString("AspectJEditor.runtimetest");
+				boolean hasRuntimeTest = false;
+				if (s.endsWith(runtimeTest)) {
+					hasRuntimeTest = true;
+				}
+				if (s.indexOf(".before(") != -1) {
+					if (hasRuntimeTest) {
+						descriptor = AspectJImages.DYNAMIC_BEFORE_ADVICE
+								.getImageDescriptor();
+					} else {
+						descriptor = AspectJImages.BEFORE_ADVICE
+								.getImageDescriptor();
+					}
+				} else if (s.indexOf(".after(") != -1
+						|| s.indexOf(".afterReturning(") != -1
+						|| s.indexOf(".afterThrowing(") != -1) {
+					if (hasRuntimeTest) {
+						descriptor = AspectJImages.DYNAMIC_AFTER_ADVICE
+								.getImageDescriptor();
+					} else {
+						descriptor = AspectJImages.AFTER_ADVICE
+								.getImageDescriptor();
+					}
+				} else if (s.indexOf(".around(") != -1) {
+					if (hasRuntimeTest) {
+						descriptor = AspectJImages.DYNAMIC_AROUND_ADVICE
+								.getImageDescriptor();
+					} else {
+						descriptor = AspectJImages.AROUND_ADVICE
+								.getImageDescriptor();
+					}
+				}
+			}
+			if (descriptor == null) {
+				descriptor = AspectJImages.ITD.getImageDescriptor();
+			}
+			setImageDescriptor(descriptor);
+		}
 
         String getJumpLocation() {
             try {

@@ -193,6 +193,12 @@ public class AspectJImages extends AbstractIconRegistry {
 					"icons/structure/g_joinPoint.gif");
 	public static final AJDTIcon ADVISES        = new AJDTIcon(
 					"icons/structure/advises.gif");
+
+	public static final AJDTIcon ADVICE_OVERLAY = new AJDTIcon(
+		"icons/ovr/adviceoverlay.gif");
+
+	public static final AJDTIcon AJ_CODE = new AJDTIcon(
+		"icons/structure/code.gif");
 	
 	public static final AJDTIcon HIDE_ADVICE = new AJDTIcon("icons/actions/hide_advice.gif");
 	public static final AJDTIcon HIDE_ITDS = new AJDTIcon("icons/actions/hide_itds.gif");
@@ -433,7 +439,8 @@ public class AspectJImages extends AbstractIconRegistry {
 			} else if ( access == IProgramElement.Accessibility.PACKAGE ) {
 				return JDT_INNER_CLASS_DEFAULT;
 			} else return AJDTIcon.MISSING_ICON;
-			
+		} else if (kind == IProgramElement.Kind.CODE) {
+			   return AJ_CODE;
 		} else {
 			return getIcon( kind );
 		}
