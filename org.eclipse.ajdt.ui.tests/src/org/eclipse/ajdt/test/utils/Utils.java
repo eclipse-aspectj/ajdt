@@ -67,7 +67,7 @@ public class Utils{
 	 * @return The requested project if successfully imported, null otherwise
 	 * @throws CoreException
 	 */
-	public static IProject getPredefinedProject(String projectName) throws CoreException{
+	public static IProject createPredefinedProject(String projectName) throws CoreException{
 		Utils.waitForJobsToComplete();
 		
 		File sourceDir;

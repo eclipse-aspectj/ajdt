@@ -46,7 +46,7 @@ public class ClasspathOrderTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("ClasspathOrdering");
+		project = Utils.createPredefinedProject("ClasspathOrdering");
 	}
 
 	/*

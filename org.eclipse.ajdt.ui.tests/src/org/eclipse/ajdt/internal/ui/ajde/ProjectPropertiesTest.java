@@ -28,7 +28,7 @@ public class ProjectPropertiesTest extends TestCase {
 
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
-		IProject project = Utils.getPredefinedProject("Hello World Project");
+		IProject project = Utils.createPredefinedProject("Hello World Project");
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other

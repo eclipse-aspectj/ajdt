@@ -110,7 +110,7 @@ public class AdviceMarkersTest2 extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("MarkersTest");
+		project = Utils.createPredefinedProject("MarkersTest");
 	}
 
 	/*

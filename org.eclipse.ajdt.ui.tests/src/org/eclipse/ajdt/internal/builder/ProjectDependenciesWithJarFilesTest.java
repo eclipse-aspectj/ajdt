@@ -48,8 +48,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * Everything should work ok if A is converted to be an AJ project
 	 */
 	 public void testWithExportedJarFile() throws Exception {
-		IProject projectA = Utils.getPredefinedProject("another.project.AAA");
-		IProject projectB = Utils.getPredefinedProject("another.project.B");
+		IProject projectA = Utils.createPredefinedProject("another.project.AAA");
+		IProject projectB = Utils.createPredefinedProject("another.project.B");
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project A should
 		// export a jar file and project B should have a project dependency on
@@ -137,9 +137,9 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 */
 	public void testWithExportedJarFileAndBinaryProject() throws Exception {
 		
-		IProject projA = Utils.getPredefinedProject("non.plugin.project.A1");
-		IProject projB = Utils.getPredefinedProject("non.plugin.project.B");
-		IProject projC = Utils.getPredefinedProject("non.plugin.project.C");
+		IProject projA = Utils.createPredefinedProject("non.plugin.project.A1");
+		IProject projB = Utils.createPredefinedProject("non.plugin.project.B");
+		IProject projC = Utils.createPredefinedProject("non.plugin.project.C");
 
 		// sanity check: at this point there should be no error markers and both 
 		// projects B and C should build as they're both java projects.
@@ -236,8 +236,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * there should be no class folder dependency added onto project B.
 	 */
 	 public void testWithExportedJarFileAndNoSrcEntry() throws Exception {
-		IProject projectB = Utils.getPredefinedProject("pd.non.plugin.project.B");
-		IProject projectB1 = Utils.getPredefinedProject("pd.non.plugin.project.B1");
+		IProject projectB = Utils.createPredefinedProject("pd.non.plugin.project.B");
+		IProject projectB1 = Utils.createPredefinedProject("pd.non.plugin.project.B1");
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project A should
@@ -328,8 +328,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * @throws Exception
 	 */ 
 	public void testWithOutJarSwitch1() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y");
-		IProject projectX = Utils.getPredefinedProject("project.java.X");
+		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectX = Utils.createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -460,8 +460,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
      *   to an outjar. 
 	 */ 
 	public void testWithOutJarSwitch2() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y");
-		IProject projectX = Utils.getPredefinedProject("project.java.X");
+		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectX = Utils.createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -643,8 +643,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
      *   classpath (and not the old one)
 	 */ 
 	public void testWithOutJarSwitch3() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y");
-		IProject projectX = Utils.getPredefinedProject("project.java.X");
+		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectX = Utils.createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -789,8 +789,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * only contains one entry corresponding to this outjar 
 	 */
 	public void testBuildTwiceWithOutJar() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y");
-		IProject projectX = Utils.getPredefinedProject("project.java.X");
+		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectX = Utils.createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -887,8 +887,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 */
 	public void testDependingProjectBuiltWhenOutjarChanges() throws Exception {
 		// test setup
-		IProject jarCreatingProject = Utils.getPredefinedProject("jarCreatingProject");
-		IProject jarDependentProject = Utils.getPredefinedProject("jarDependentProject");
+		IProject jarCreatingProject = Utils.createPredefinedProject("jarCreatingProject");
+		IProject jarDependentProject = Utils.createPredefinedProject("jarDependentProject");
 
 		// sanity check on setup of projects....
 		String outjar = jarCreatingProject.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);

@@ -38,7 +38,7 @@ public abstract class AbstractTestCase extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.getPredefinedProject("javamodelEnhancementTesting");
+		myProject = Utils.createPredefinedProject("javamodelEnhancementTesting");
 		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
 		Utils.waitForJobsToComplete();

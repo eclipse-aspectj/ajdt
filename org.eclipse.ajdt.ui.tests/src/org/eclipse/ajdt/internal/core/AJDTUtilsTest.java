@@ -166,7 +166,7 @@ public class AJDTUtilsTest extends TestCase {
 	}
 
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		IProject projectY = Utils.getPredefinedProject("project.java.Y");
+		IProject projectY = Utils.createPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(projectY);
 		Utils.waitForJobsToComplete();
 

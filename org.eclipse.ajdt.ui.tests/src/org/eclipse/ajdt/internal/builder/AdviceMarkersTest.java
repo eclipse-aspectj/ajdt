@@ -25,7 +25,7 @@ public class AdviceMarkersTest extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.getPredefinedProject("Simple AJ Project");
+		myProject = Utils.createPredefinedProject("Simple AJ Project");
 	}
 	
 	public void testMarkersAreAdded() throws Exception {

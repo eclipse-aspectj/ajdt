@@ -55,7 +55,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.getPredefinedProject("Simple AJ Project");
+		project = Utils.createPredefinedProject("Simple AJ Project");
 		
 	}
 

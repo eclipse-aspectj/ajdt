@@ -29,7 +29,7 @@ import org.eclipse.jdt.core.JavaModelException;
 public class TestForPredefinedProjectsTool extends TestCase {
 	
 	public void testPredefinedProjectsTool() throws CoreException{
-		IProject p = Utils.getPredefinedProject("Hello World Project");
+		IProject p = Utils.createPredefinedProject("Hello World Project");
 		if (p == null)
 			fail("Project 'Hello World Project' could not be imported.");
 		IJavaProject jp = JavaCore.create(p);
@@ -42,7 +42,7 @@ public class TestForPredefinedProjectsTool extends TestCase {
 		}
 		Utils.deleteProject(p);
 		
-		p = Utils.getPredefinedProject("project name that (hopefully) does not exist");
+		p = Utils.createPredefinedProject("project name that (hopefully) does not exist");
 		if (p != null)
 			fail("Could import project that does not exist.");
 		
@@ -55,11 +55,11 @@ public class TestForPredefinedProjectsTool extends TestCase {
 	 * @throws Exception
 	 */
 	public void testProjectsToolWithClosedProjects() throws Exception {
-		IProject p = Utils.getPredefinedProject("Hello World Project");
+		IProject p = Utils.createPredefinedProject("Hello World Project");
 		p.close(null);
 		Utils.waitForJobsToComplete();
 		
-		IProject p2 = Utils.getPredefinedProject("Hello World Project");
+		IProject p2 = Utils.createPredefinedProject("Hello World Project");
 		assertTrue("project should now be open",p2.isOpen());
 
 		Utils.deleteProject(p2);
