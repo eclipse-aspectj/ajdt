@@ -21,7 +21,7 @@ import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.contribution.xref.core.IXReference;
@@ -41,7 +41,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	private static final Class[] myClasses = new Class[] { IJavaElement.class };
 
 	// array of relationships to show
-	private AJRelationship[] showRels = new AJRelationship[] {
+	private AJRelationshipType[] showRels = new AJRelationshipType[] {
 			AJRelationshipManager.ADVISES,
 			AJRelationshipManager.ADVISED_BY,
 			AJRelationshipManager.ASPECT_DECLARATIONS,
