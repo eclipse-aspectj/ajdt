@@ -10,17 +10,16 @@ Tests included in this file:
 Test to ensure not constantly rebuilding (bug 74174)
 ----------------------------------------------------
 
-(1) in a runtime workbench either use an existing AspectJ project, or check out 
+(1) Check out: 
     	
     	- org.eclipse.contribution.visualiser
-    	- org.aspectj.runtime
    
     from dev.eclipse.org
     
-(2) convert org.eclipse.contribution.visualiser to be an AJ project by right 
-    clicking and selecting "Convert to AspectJ Project"
+(2) If it's not already, convert org.eclipse.contribution.visualiser to be an AJ project by
+    right clicking and selecting "Convert to AspectJ Project"
     
-(3) create a new text file in org.eclipse.contribution.visualiser
+(3) createa new text file in org.eclipse.contribution.visualiser
 
 		- highlight org.eclipse.contribution.visualiser
 		- right click
@@ -63,8 +62,8 @@ Test for bug 48518 - if contents of jar file changes, then force a build for dep
 		- ensure the box next to "Outjar" contains "myJar.jar"
 		- click ok
 		
-(4)	Build both projects - both should build with no errors - and check that "build automatically"
-    is selected (Project > Build Automatically)
+(4)	Manually build both projects - both should build with no errors - and check that
+    "build automatically" is selected (Project > Build Automatically)
 
 (up until now has been setup.....)
 
