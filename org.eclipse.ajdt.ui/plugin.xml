@@ -1539,6 +1539,17 @@
          </factory>
     </extension>
 
+<!-- EXPERIMENTAL
+
+  <extension point="org.eclipse.ui.views">
+    <view name="Structure Model" 
+    	icon="icons/editor.gif" 
+    	category="org.eclipse.ajdt.ui.cat" 
+    	class="org.eclipse.ajdt.internal.ui.ajde.StructureModelView" 
+    	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
+  </extension>
+  
+-->
 
 <!-- EXPERIMENTAL
 
