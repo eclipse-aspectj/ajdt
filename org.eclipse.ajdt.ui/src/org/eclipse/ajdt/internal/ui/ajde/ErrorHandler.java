@@ -99,6 +99,10 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 				new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID, Status.OK, message, t);
 		}
 
+		// make sure we log the exception, as it may have come from AspectJ, and therefore
+		// it will not have been handled by our FFDC aspect
+		AspectJUIPlugin.getDefault().getLog().log(status);
+		
 		// See notes in handleWarning - could collapse these two code blocks
 		// that create threads into one.
 
