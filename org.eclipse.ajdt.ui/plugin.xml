@@ -463,7 +463,7 @@
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajbuildconfigwizard">
          <description>
-            Create a new AspectJ build configuration
+            %buildConfigDescription
          </description>
       </wizard>
    </extension>

@@ -24,12 +24,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -83,29 +79,22 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		//ASCFIXME: What happens to name counter after workbench restart???		
 		this.setFileName("buildConfig" + nameCounter + "." + BuildConfiguration.EXTENSION);
 
-		new Label(composite, SWT.NONE); // vertical spacer
-
-		// sample section generation group
-		Group group = new Group(composite, SWT.NONE);
-		group.setLayout(new GridLayout());
-		group.setText( AspectJUIPlugin.getResourceString( "BuildConfig.autoPopulate" ) );
-		group.setLayoutData(
-			new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+//		new Label(composite, SWT.NONE); // vertical spacer
 
 		// sample section generation checkboxes
-		includeProjectFilesCheckbox = new Button(group, SWT.CHECK);
-		includeProjectFilesCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.includeAllSource" ) );
-		includeProjectFilesCheckbox.setSelection(true);
-		includeProjectFilesCheckbox.addListener(SWT.Selection, this);
-
-		new Label(composite, SWT.NONE); // vertical spacer
+//		includeProjectFilesCheckbox = new Button(composite, SWT.CHECK);
+//		includeProjectFilesCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.includeAllSource" ) );
+//		includeProjectFilesCheckbox.setSelection(true);
+//		includeProjectFilesCheckbox.addListener(SWT.Selection, this);
+//
+//		new Label(composite, SWT.NONE); // vertical spacer
 
 		// open file for editing checkbox
 		openFileCheckbox = new Button(composite, SWT.CHECK);
 		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) );
 		openFileCheckbox.setSelection(true);
 		
-		new Label(composite, SWT.NONE);
+//		new Label(composite, SWT.NONE);
 		
 		makeActiveCheckbox = new Button(composite, SWT.CHECK);
 		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) );
@@ -137,7 +126,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		// if requested by the user
 		IProject project = newFile.getProject();
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection(), includeProjectFilesCheckbox.getSelection());
+		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection(), true);
 		try {
 			if (openFileCheckbox.getSelection()) {
 				IWorkbenchWindow dwindow = workbench.getActiveWorkbenchWindow();
