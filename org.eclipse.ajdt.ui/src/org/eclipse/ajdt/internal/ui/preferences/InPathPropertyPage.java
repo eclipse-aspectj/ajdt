@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -149,9 +148,9 @@ public class InPathPropertyPage extends PropertyPage implements
 					.getErrorHandler()
 					.handleError(
 							AspectJUIPlugin
-									.getResourceString("InPathProp.exceptionInitializingInpath.title"),
+									.getResourceString("InPathProp.exceptionInitializingInpath.title"), //$NON-NLS-1$
 							AspectJUIPlugin
-									.getResourceString("InPathProp.exceptionInitializingInpath.message"),
+									.getResourceString("InPathProp.exceptionInitializingInpath.message"), //$NON-NLS-1$
 							ce);
         }
 
@@ -162,7 +161,7 @@ public class InPathPropertyPage extends PropertyPage implements
     private IClasspathEntry[] getInitialInpathValue(IProject project)
             throws CoreException {
         List result = new ArrayList();
-        String[] v = BuildOptionsAdapter.getProjectInPath(project);
+        String[] v = AspectJPreferences.getProjectInPath(project);
         if (v==null) {
         	return null;
         }
@@ -236,7 +235,7 @@ public class InPathPropertyPage extends PropertyPage implements
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
             } catch (InvocationTargetException e) {
-                String title= PreferencesMessages.getString("BuildPathsPropertyPage.error.title");
+                String title= PreferencesMessages.getString("BuildPathsPropertyPage.error.title"); //$NON-NLS-1$
                 String message= PreferencesMessages.getString("BuildPathsPropertyPage.error.message"); //$NON-NLS-1$
                 // TODO : Handle exception 
                 return false;

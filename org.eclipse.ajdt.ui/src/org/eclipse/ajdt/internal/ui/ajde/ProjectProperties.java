@@ -1,5 +1,5 @@
 /**********************************************************************
- Copyright (c) 2002 IBM Corporation and others.
+ Copyright (c) 2002, 2005 IBM Corporation and others.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Common Public License v1.0
  which accompanies this distribution, and is available at
@@ -64,17 +64,6 @@ import org.osgi.framework.Bundle;
  * to AJ Tools.
  */
 public class ProjectProperties implements ProjectPropertiesAdapter {
-
-	private static final String AJDE_VERSION_KEY = "ajde.version";
-
-	private static final String AJDE_DEV = "@AJDEVERSION@";
-
-	private static final String AJDE_VERSION_DEV = "9.9.9";
-
-	/**
-	 * A map from java.io.File to the corresponding IResource in the project.
-	 */
-	private Hashtable fileToResourceHt = null;
 
 	/**
 	 * Computed classpath to aspectjrt.jar
@@ -616,9 +605,9 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				}
 			}
 			if (pluginLoc != null) {
-				if (pluginLoc.startsWith("file:")) {
-					cpath.append(pluginLoc.substring("file:".length()));
-					cpath.append("aspectjrt.jar");
+				if (pluginLoc.startsWith("file:")) { //$NON-NLS-1$
+					cpath.append(pluginLoc.substring("file:".length())); //$NON-NLS-1$
+					cpath.append("aspectjrt.jar"); //$NON-NLS-1$
 				}
 			}
 
@@ -636,11 +625,11 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				cpath = new StringBuffer().append(installPath.toOSString());
 				cpath.append(File.separator);
 				// TODO: what if the workspace isn't called workspace!!!
-				cpath.append("workspace");
+				cpath.append("workspace"); //$NON-NLS-1$
 				cpath.append(File.separator);
 				cpath.append(AspectJUIPlugin.RUNTIME_PLUGIN_ID);
 				cpath.append(File.separator);
-				cpath.append("aspectjrt.jar");
+				cpath.append("aspectjrt.jar"); //$NON-NLS-1$
 
 				// Only set the aspectjrtPath if the jar file exists here.
 				if (new File(cpath.toString()).exists())
@@ -707,7 +696,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 							allProjectFiles, filter, trimSegments);
 				} else if (filter.accept(ir.getName())) {
 					String[] segments = ir.getProjectRelativePath().segments();
-					String path = "";
+					String path = ""; //$NON-NLS-1$
 					for (int j = trimSegments; j < segments.length; j++) {
 						path += segments[j];
 						if (j < segments.length - 1)
@@ -825,10 +814,10 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 
 						// put file on list if not in output path
 						if (!fullPath.startsWith(realOutputLocation)
-								&& !relPath.endsWith(".classpath")
-								&& !relPath.endsWith(".project")
-								&& !relPath.endsWith(".ajsym")
-								&& !relPath.endsWith(".lst")) {
+								&& !relPath.endsWith(".classpath") //$NON-NLS-1$
+								&& !relPath.endsWith(".project") //$NON-NLS-1$
+								&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
+								&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
 							// AJDTEventTrace.generalEvent("Added to file list
 							// (full): " + fullPath);
 							File file = new File(fullPath);
@@ -839,8 +828,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			}
 		} catch (JavaModelException jmEx) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
-					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
+					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
+					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx); //$NON-NLS-1$
 		}
 
 		return map;
@@ -915,7 +904,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 			while (it.hasNext()) {
 				IFolder folder = (IFolder) it.next();
 				String linkedFolderName = folder.getName();
-				if (relPath.indexOf(linkedFolderName + "/") == 0) {
+				if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
 					// Do the replacement ensuring that the result uses
 					// operating system separator characters.
 					result = folder.getLocation().toString()

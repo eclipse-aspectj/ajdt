@@ -24,7 +24,6 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitUtils;
@@ -363,7 +362,7 @@ public class AJDTUtils {
 	public static void checkAndChangeDependencies(IProject project) {
 		changeProjectDependencies(project);
 		try {
-			String outJar = BuildOptionsAdapter.getProjectOutJar(project);
+			String outJar = AspectJPreferences.getProjectOutJar(project);
 			if ((outJar!=null) && !outJar.equals("")) {
 				String outJar2 = AspectJUIPlugin.getDefault()
 						.getAjdtProjectProperties().getOutJar();

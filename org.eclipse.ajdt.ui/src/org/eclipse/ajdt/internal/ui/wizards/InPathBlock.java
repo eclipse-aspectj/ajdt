@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -84,7 +84,6 @@ public class InPathBlock {
     private IStatusChangeListener fContext;
     private Control fSWTWidget;
     private int fPageIndex;
-    private SourceContainerWorkbookPage fSourceContainerPage;
     private InPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
     
@@ -92,14 +91,13 @@ public class InPathBlock {
         fWorkspaceRoot= AspectJPlugin.getWorkspace().getRoot();
         fContext= context;
         fPageIndex= pageToShow;
-        fSourceContainerPage= null;
         fLibrariesPage= null;
         fCurrPage= null;
         
         InPathAdapter adapter= new InPathAdapter();           
         String[] buttonLabels= new String[] {
                 /* 0 */ AspectJUIPlugin.getResourceString("InPathBlock.order.up.button"), //$NON-NLS-1$
-                /* 1 */ AspectJUIPlugin.getResourceString("InPathBlock.order.down.button")};
+                /* 1 */ AspectJUIPlugin.getResourceString("InPathBlock.order.down.button")}; //$NON-NLS-1$
         
         fInPathList= new ListDialogField(null, buttonLabels, new CPListLabelProvider());
         fInPathList.setDialogFieldListener(adapter);
@@ -219,13 +217,6 @@ public class InPathBlock {
         fContext.statusChanged(res);
     }
 
-    private Shell getShell() {
-        if (fSWTWidget != null) {
-            return fSWTWidget.getShell();
-        }
-        return AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-    }
-
     private IPath getDefaultBuildPath(IJavaProject jproj) {
         IPreferenceStore store = PreferenceConstants.getPreferenceStore();
         if (store.getBoolean(PreferenceConstants.SRCBIN_FOLDERS_IN_NEWPROJ)) {
@@ -314,7 +305,7 @@ public class InPathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
         
-        BuildOptionsAdapter.setProjectInPath(fCurrJProject.getProject(),inpathBuffer.toString(),
+        AspectJPreferences.setProjectInPath(fCurrJProject.getProject(),inpathBuffer.toString(),
         		contentKindBuffer.toString(), entryKindBuffer.toString());
     }
    
@@ -382,7 +373,7 @@ public class InPathBlock {
         ClasspathOrderingWorkbookPage ordpage =
             new ClasspathOrderingWorkbookPage(fInPathList);
         item = new TabItem(folder, SWT.NONE);
-        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.inpath.order"));
+        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.inpath.order")); //$NON-NLS-1$
         item.setImage(cpoImage);
         item.setData(ordpage);
         item.setControl(ordpage.getControl(folder));
