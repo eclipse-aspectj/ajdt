@@ -10,6 +10,7 @@ package org.eclipse.ajdt.parserbridge.wrapperclasses;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -21,10 +22,8 @@ import org.eclipse.jdt.internal.compiler.problem.AbortCompilationUnit;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 
 /**
- * @author Sian
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * Wrapper class that extends org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration 
+ * and wraps an org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration
  */
 public class AJCompilationUnitDeclarationWrapper extends
 		CompilationUnitDeclaration {
@@ -42,7 +41,6 @@ public class AJCompilationUnitDeclarationWrapper extends
 		super(null, null, 0);
 		this.delegate = delegate;
 		this.cUnit = cUnit;
-		// TODO Auto-generated constructor stub
 	}
 
 	/*
@@ -202,14 +200,16 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 				if (delegate.imports != null) {
 					int importLength = delegate.imports.length;
 					for (int i = 0; i < importLength; i++) {
-						System.err.println("Not traversing import: " + delegate.imports[i]);
+						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing import: " + delegate.imports[i]);
+//						System.err.println("Not traversing import: " + delegate.imports[i]);
 //						delegate.imports[i].traverse(visitor, unitScope);
 					}
 				}
 				if (delegate.types != null) {
 					int typesLength = delegate.types.length;
 					for (int i = 0; i < typesLength; i++) {
-						System.err.println("Not traversing type: " + delegate.types[i]);
+						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing type: " + delegate.types[i]);
+//						System.err.println("Not traversing type: " + delegate.types[i]);
 //						delegate.types[i].traverse(visitor, scope);
 					}
 				}

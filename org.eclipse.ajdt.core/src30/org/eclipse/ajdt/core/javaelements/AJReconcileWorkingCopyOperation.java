@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 /**
  * Mostly copied from ReconcileWorkingCopyOperation in order to use the
- * AJCompilationUnitProblemFinder
+ * AJCompilationUnitProblemFinder.  Changes marked with "// AspectJ Change".
  */
 public class AJReconcileWorkingCopyOperation extends
 		JavaModelOperation {
@@ -82,9 +82,11 @@ public class AJReconcileWorkingCopyOperation extends
 				if (progressMonitor != null) progressMonitor.worked(2);
 			
 				// register the deltas
+// AspectJ Change Begin - enclosing lines removed from original
 //				if (deltaBuilder.delta != null) {
 //					addReconcileDelta(workingCopy, deltaBuilder.delta);
 //				}
+// AspectJ Change End
 			} else {
 				// force problem detection? - if structure was consistent
 				if (forceProblemDetection) {
@@ -94,7 +96,9 @@ public class AJReconcileWorkingCopyOperation extends
 					    try {
 							problemRequestor.beginReporting();
 							char[] contents = workingCopy.getContents();
+							// AspectJ Change Begin
 							unit = AJCompilationUnitProblemFinder.process(workingCopy, contents, this.workingCopyOwner, problemRequestor, false/*don't cleanup cu*/, this.progressMonitor);
+							// AspectJ Change End
 							problemRequestor.endReporting();
 							if (progressMonitor != null) progressMonitor.worked(1);
 							if (this.createAST && unit != null) {

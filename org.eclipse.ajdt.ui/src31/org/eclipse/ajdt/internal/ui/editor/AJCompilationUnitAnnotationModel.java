@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionProcessor;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -27,7 +28,6 @@ import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitAnnotationModelEvent;
 import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaMarkerAnnotation;
-import org.eclipse.jdt.internal.ui.text.correction.JavaCorrectionProcessor;
 import org.eclipse.jdt.internal.ui.text.java.IProblemRequestorExtension;
 import org.eclipse.jdt.internal.ui.text.spelling.JavaSpellingReconcileStrategy;
 import org.eclipse.jdt.ui.PreferenceConstants;
@@ -58,12 +58,17 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.MarkerUtilities;
 import org.eclipse.ui.texteditor.ResourceMarkerAnnotationModel;
 
+/*
+ * Sian - copied CompilationUnitAnnotationModel, ReverseMap, ProblemAnnotation
+ * and GlobalAnnotationModelListener static inner classes from CompilationUnitDocumentProvider.
+ * 
+ * Changes marked with "// AspectJ Change" 
+ */
+
 /**
  * Annotation model dealing with java marker annotations and temporary problems.
  * Also acts as problem requester for its compilation unit. Initially inactive. Must explicitly be
  * activated.
- * 
- * Sian - Mostly copied from CompilationUnitDocumentProvider
  */
 public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationModel implements IProblemRequestor, IProblemRequestorExtension {
 		
@@ -550,7 +555,9 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 		private void initializeImages() {
 			// http://bugs.eclipse.org/bugs/show_bug.cgi?id=18936
 			if (!fQuickFixImagesInitialized) {
+				// AspectJ Change Begin - use AJDT's quick fix processor
 				if (isProblem() && indicateQuixFixableProblems() && JavaCorrectionProcessor.hasCorrections(this)) { // no light bulb for tasks
+				// AspectJ Change End
 					if (!fgQuickFixImagesInitialized) {
 						fgQuickFixImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_PROBLEM);
 						fgQuickFixErrorImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_ERROR);

@@ -1,11 +1,15 @@
-/*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
- * program and the accompanying materials are made available under the terms of
- * the Common Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/cpl-v10.html
+/**********************************************************************
+ * Copyright (c) 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
  * 
- * Contributors: Sian January - initial version
- ******************************************************************************/
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Sian January - copied for use in AJDT
+ *     ...
+ **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
 import java.util.ArrayList;
@@ -54,10 +58,17 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.MarkerUtilities;
 import org.eclipse.ui.texteditor.ResourceMarkerAnnotationModel;
 
+/*
+ * Sian - copied CompilationUnitAnnotationModel, ReverseMap, ProblemAnnotation
+ * and GlobalAnnotationModelListener static inner classes from CompilationUnitDocumentProvider.
+ * 
+ * Changes marked with "// AspectJ Change" 
+ */
+
 /**
  * Annotation model dealing with java marker annotations and temporary problems.
  * Also acts as problem requester for its compilation unit. Initially inactive. Must explicitly be
- * activated.
+ * activated. 
  */
 public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationModel implements IProblemRequestor, IProblemRequestorExtension {
 
@@ -569,7 +580,9 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 		private void initializeImages() {
 			// http://bugs.eclipse.org/bugs/show_bug.cgi?id=18936
 			if (!fQuickFixImagesInitialized) {
+				// AspectJ Change Begin - use AJDT's quick fix processor
 				if (isProblem() && indicateQuixFixableProblems() && JavaCorrectionProcessor.hasCorrections(this)) { // no light bulb for tasks
+				// AspectJ Change End
 					if (!fgQuickFixImagesInitialized) {
 						fgQuickFixImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_PROBLEM);
 						fgQuickFixErrorImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_FIXABLE_ERROR);

@@ -74,6 +74,9 @@ import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
  * Sian: 
  * Copied and edited AJSourceElementParser to use org.eclipse... JDT types
  * instead of org.aspectj.org.eclipse... JDT types
+ * NB. I used an older version or AJSourceElementParser prior to Andy's AspectJ 5 updates 
+ * because types such as Annotation do not exist in the JDT versions in Eclipse 3.0 
+ * 
  */
 
 /**

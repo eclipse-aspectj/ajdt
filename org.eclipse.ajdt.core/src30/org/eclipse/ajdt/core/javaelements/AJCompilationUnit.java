@@ -414,7 +414,6 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		return javaCompBuffer;
 	}	
 	
-//	reconciling is not (yet?) supported for .aj files - disable problem detection
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
 			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
 			IProgressMonitor monitor) throws JavaModelException {
@@ -437,7 +436,6 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, forceProblemDetection, workingCopyOwner);
 		op.runOperation(monitor);
 		return op.ast;
-//		return super.reconcile(astLevel, false, workingCopyOwner, monitor);
 	}
 	
 

@@ -1,10 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
- * program and the accompanying materials are made available under the terms of
- * the Common Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/cpl-v10.html
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
  * 
- * Contributors: Sian January - initial version
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Sian January - copied to AJDT and adapted to enable AspectJ problems
+ *                    to be found
  ******************************************************************************/
 package org.eclipse.ajdt.parserbridge;
 
@@ -42,6 +46,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 /**
  * Problem finder for AspectJ problems
  * Mostly copied from CompilationUnitProblemFinder
+ * Changes Marked "// AspectJ Change"
  */
 public class AJCompilationUnitProblemFinder extends
 		CompilationUnitProblemFinder {
@@ -59,8 +64,6 @@ public class AJCompilationUnitProblemFinder extends
 			IErrorHandlingPolicy policy, Map settings,
 			ICompilerRequestor requestor, IProblemFactory problemFactory, AJCompilationUnit unit) {
 		super(environment, policy, settings, requestor, problemFactory);
-//		this.unit = unit;
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
@@ -68,12 +71,14 @@ public class AJCompilationUnitProblemFinder extends
 	 * @see org.eclipse.jdt.internal.compiler.Compiler#initializeParser()
 	 */
 	public void initializeParser() {
+		// AspectJ Change Begin
 		 Map options = ajcu.getJavaProject().getOptions(true);
 		 CompilerOptions compilerOptions = new CompilerOptions(options);
          try {
 			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 		} catch (JavaModelException e) {
 		}
+		// AspectJ Change End
 	}
 
 
@@ -104,6 +109,7 @@ public class AJCompilationUnitProblemFinder extends
 			char[] fileName = unitElement.getElementName().toCharArray();
 			
 			JavaProject project = (JavaProject) unitElement.getJavaProject();
+			// AspectJ Change Begin
 			AJCompilationUnitProblemFinder.ajcu = (AJCompilationUnit)unitElement;
 			CompilationUnitProblemFinder problemFinder =
 				new AJCompilationUnitProblemFinder(
@@ -113,6 +119,7 @@ public class AJCompilationUnitProblemFinder extends
 					getRequestor(),
 					problemFactory,
 					(AJCompilationUnit)unitElement);
+			// AspectJ Change End
 			if (parser != null) {
 				problemFinder.parser = parser;
 			}
@@ -135,8 +142,10 @@ public class AJCompilationUnitProblemFinder extends
 						true, // analyze code
 						true); // generate code
 				} else {
+					// AspectJ Change Begin
 					((AJCompilationUnitDeclarationWrapper)unit).scope = new CompilationUnitScope(unit, problemFinder.lookupEnvironment);
 					((AJCompilationUnitDeclarationWrapper)unit).reconcileVars();
+					// AspectJ Change End
 					problemFinder.resolve(
 						unit,
 						null, // no need for source
@@ -144,7 +153,9 @@ public class AJCompilationUnitProblemFinder extends
 						true, // analyze code
 						true); // generate code
 				}
+				// AspectJ Change Begin
 				if(unit instanceof AJCompilationUnitDeclarationWrapper) {
+				// AspectJ Change End
 					reportProblems(unit, problemRequestor, monitor);
 				}
 				return unit;				
