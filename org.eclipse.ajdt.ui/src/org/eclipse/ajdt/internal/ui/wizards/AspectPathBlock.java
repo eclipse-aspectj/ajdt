@@ -86,6 +86,10 @@ public class AspectPathBlock {
     private BuildPathBasePage fCurrPage;
 	private List existingAspectPath;
     
+    public static boolean aspectPathChanged = false;
+    public static boolean updatedAspectPath = false;
+    private List origAspectPathElements;
+	
     public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
         fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
         fContext= context;
@@ -163,6 +167,9 @@ public class AspectPathBlock {
                 fLibrariesPage.init(fCurrJProject);
             }
 
+            aspectPathChanged = false;
+            updatedAspectPath = false;
+            
             doStatusLineUpdate();
         }
     
@@ -170,6 +177,22 @@ public class AspectPathBlock {
         fAspectPathStatus.setOK();
 
         List elements = fAspectPathList.getElements();
+
+        // checking to see whether settings have changed since last save
+        if (origAspectPathElements == null) {
+            origAspectPathElements = elements;
+        } else if (origAspectPathElements.size() != elements.size()) {
+            aspectPathChanged = true;
+        } else {
+            // resetting this flag because could have changed mind
+            aspectPathChanged = false;
+            for (int i = 0; i < origAspectPathElements.size(); i++) {
+                if (!(origAspectPathElements.get(i).equals(elements.get(i)))) {
+                    aspectPathChanged = true;
+                    break;
+                }
+            }
+        }
 
         CPListElement entryMissing = null;
         int nEntriesMissing = 0;

@@ -86,6 +86,10 @@ public class InPathBlock {
     private InPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
     
+    public static boolean inPathChanged = false;
+    public static boolean updatedInPath = false;
+    private List origInPathElements;
+    
     public InPathBlock(IStatusChangeListener context, int pageToShow) {
         fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
         fContext= context;
@@ -178,6 +182,9 @@ public class InPathBlock {
                 fLibrariesPage.init(fCurrJProject);
             }
 
+            inPathChanged = false;
+            updatedInPath = false;
+            
             doStatusLineUpdate();
         }
     
@@ -185,6 +192,22 @@ public class InPathBlock {
         fInPathStatus.setOK();
 
         List elements = fInPathList.getElements();
+
+        // checking to see whether settings have changed since last save
+        if (origInPathElements == null) {
+            origInPathElements = elements;
+        } else if (origInPathElements.size() != elements.size()) {
+            inPathChanged = true;
+        } else {
+            // resetting this flag because could have changed mind
+            inPathChanged = false;
+            for (int i = 0; i < origInPathElements.size(); i++) {
+                if (!(origInPathElements.get(i).equals(elements.get(i)))) {
+                    inPathChanged = true;
+                    break;
+                }
+            }
+        }
 
         CPListElement entryMissing = null;
         int nEntriesMissing = 0;

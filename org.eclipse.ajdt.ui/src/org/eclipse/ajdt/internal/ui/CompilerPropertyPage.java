@@ -51,6 +51,8 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
+import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
+import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 
 /**
 * Used to operate the AspectJ compiler properties page that appear when an aspectJ project is right
@@ -115,6 +117,10 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	private SelectionButtonDialogField fUseProjectSettings;
 	private TabFolder folder;
 
+	public static boolean compilerSettingsChanged = false;
+	public static boolean compilerSettingsUpdated = false;
+	private SelectionButtonDialogField origSelection;
+	
 	public CompilerPropertyPage() {
 		super();
 		fCheckBoxes = new ArrayList();
@@ -206,6 +212,8 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 	 * from IWorkbenchPreferencePage
 	 */
 	public void init(IWorkbench workbench) {
+	    compilerSettingsChanged = false;
+	    compilerSettingsUpdated = false;
 	}
 
 	/**
@@ -264,10 +272,13 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 		
 		Dialog.applyDialogFont(composite);
 		IPreferenceStore store = getPreferenceStore();
-		if(store.getBoolean(thisProject + "useProjectSettings"))
+		if(store.getBoolean(thisProject + "useProjectSettings")) {
 			fUseProjectSettings.setSelection(true);
-		else
+			origSelection = fUseProjectSettings;
+		} else {
 			fUseWorkspaceSettings.setSelection(true);
+			origSelection = fUseWorkspaceSettings;
+		}
 		updateEnableState();
 		return composite;
 	}
@@ -461,12 +472,29 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 								IDialogConstants.CANCEL_LABEL}, 2);
 				int res = dialog.open();
 				if ((res == 0)) {
+				    // by only setting compilerSettingsUpdated to be true here, means that
+				    // the user wont select "don't want to build" here and then get a build
+				    // from other pages.
+					compilerSettingsUpdated = true;
 					doBuild = true;
 				} else if (res != 1) {
 					return false; // cancel pressed
 				}
 			}
-			if (doBuild) {
+			// build here if 
+			// - have chosen to do build, and 
+			// - either inpath setting has changed and been updated, or hasn't changed, and
+			// - either outjar setting has changed and been updated, or hasn't chnaged, and
+			// - either aspect path setting has changed and been updated, or hasn't changed.
+			// if not, then one of the other preference pages will pick up the build
+			if (doBuild 
+			        &&( (InPathBlock.inPathChanged && InPathBlock.updatedInPath)
+                            || !InPathBlock.inPathChanged)
+                    && ( (AspectJProjectPropertiesPage.outjarSettingChanged 
+                            && AspectJProjectPropertiesPage.outjarSettingUpdated) 
+                            || !AspectJProjectPropertiesPage.outjarSettingChanged)
+                    && ( (AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath)
+                            || !AspectPathBlock.aspectPathChanged)) {
 				doProjectBuild();
 			}
 		}
@@ -685,6 +713,12 @@ public class CompilerPropertyPage extends PropertyPage implements SelectionListe
 			AJCompilerPreferencePage page= new AJCompilerPreferencePage();
 			PreferencePageSupport.showPreferencePage(getShell(), id, page);
 		} else {
+		    // only update this once, since current behaviour is to ask if want a build
+		    // whenever compiler settings have changed - even if change it back before
+		    // pressing "ok".
+		    if (!compilerSettingsChanged && field != origSelection) {
+                compilerSettingsChanged = true;
+            }
 			switches++;
 			updateEnableState();
 		}

@@ -16,16 +16,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
+import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -234,8 +239,6 @@ public class InPathPropertyPage extends PropertyPage implements
      */
     public boolean performOk() {
         if (fInPathBlock != null) {
-            getSettings().put(INDEX, fInPathBlock.getPageIndex());
-            
             Shell shell= getControl().getShell();
             IRunnableWithProgress runnable= new IRunnableWithProgress() {
                 public void run(IProgressMonitor monitor)   throws InvocationTargetException, InterruptedException {
@@ -258,6 +261,28 @@ public class InPathPropertyPage extends PropertyPage implements
                 // cancelled
                 return false;
             }
+            InPathBlock.updatedInPath = true;
+            // only build here if:
+            // - autobuilding is set and
+            // - the inpath settings have changed and 
+            // - either the aspect path has changed and the fields have been updated or the aspect path 
+            //   hasn't changed and
+            // - either the outjar setting has changed and fields updated or the outjar setting 
+            //   hasn't changed and
+			// - either the compiler settings have changed and been updated or the
+			//   compiler settings haven't changed.
+            if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding()
+                    && InPathBlock.inPathChanged
+                    && ( (AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath)
+                            || !AspectPathBlock.aspectPathChanged)
+                    && ( (AspectJProjectPropertiesPage.outjarSettingChanged 
+                            && AspectJProjectPropertiesPage.outjarSettingUpdated) 
+                            || !AspectJProjectPropertiesPage.outjarSettingChanged)
+                    && ((CompilerPropertyPage.compilerSettingsChanged 
+                            && CompilerPropertyPage.compilerSettingsUpdated) 
+                            || !CompilerPropertyPage.compilerSettingsChanged)) {
+                doProjectBuild();
+            }
         }
         return true;
     }
@@ -269,4 +294,35 @@ public class InPathPropertyPage extends PropertyPage implements
             IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE); // GCH change this.
     }
     
+	protected void doProjectBuild() { 
+		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
+		try {
+			dialog.run(true, true, new IRunnableWithProgress() {
+				public void run(IProgressMonitor monitor)
+						throws InvocationTargetException {
+					monitor.beginTask("", 2); //$NON-NLS-1$
+					try {
+						monitor
+								.setTaskName(AspectJUIPlugin
+										.getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
+						thisProject.build(IncrementalProjectBuilder.FULL_BUILD,
+						        "org.eclipse.ajdt.ui.ajbuilder", 
+						        null,
+						        new SubProgressMonitor(monitor, 2));
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
+					} finally {
+						monitor.done();
+					}
+				}
+			});
+		} catch (InterruptedException e) {
+			// cancelled by user
+		} catch (InvocationTargetException e) {
+			String message = AspectJUIPlugin
+					.getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
+			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
+		}
+	}
+
 }

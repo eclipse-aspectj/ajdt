@@ -11,18 +11,25 @@ Adrian Colyer, Andy Clement - initial version
 package org.eclipse.ajdt.internal.ui;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
+import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -99,6 +106,8 @@ public class AspectJProjectPropertiesPage
     private static int BROWSE_FOR_CLASSJARS = 0;
     private static int BROWSE_FOR_ASPECTJARS = 1;
 
+    public static boolean outjarSettingChanged = false;
+    public static boolean outjarSettingUpdated = false;
 
 	/**
 	 * Build the page of properties that can be set on a per project basis for the
@@ -271,6 +280,9 @@ public class AspectJProjectPropertiesPage
 
         updatePageContents();
 
+        outjarSettingChanged = false;
+        outjarSettingUpdated = false;
+        
 		return pageComposite;
 	}
 
@@ -566,10 +578,9 @@ public class AspectJProjectPropertiesPage
 	
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		try {
-		    boolean outjarChanged = false;
 		    if (AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding() && 
 		            !(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR).equals(outputJarEditor.getStringValue()))) {
-		        outjarChanged = true;
+		        outjarSettingChanged = true;
             }
 		    
 			preserveSetting(BuildOptionsAdapter.INCREMENTAL_COMPILATION, incremental_modeBtn.getSelection());
@@ -598,10 +609,25 @@ public class AspectJProjectPropertiesPage
 				nonStandardOptionsEditor.getStringValue());
 //			preserveSetting(BuildOptionsAdapter.JAVA_OR_AJ_EXT,fileExtBtn.getSelection());
 			
-			// build the project if the outjar setting has changed
-		    if (outjarChanged) {
-				thisProject.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null,null);  
-            }
+			// build the project now only if 
+			// - the oujar setting has changed, and
+			// - either the inpath setting has changed and been updated, or the inpath setting
+			//   hasn't changed, and
+			// - either the aspect path setting has changed and been updated
+			//   or the aspect path setting hasn't changed
+			// - either the compiler settings have changed and been updated or the
+			//   compiler settings haven't changed.
+			outjarSettingUpdated = true;
+		    if (outjarSettingChanged 
+		            && ((InPathBlock.inPathChanged && InPathBlock.updatedInPath) 
+		                    || !InPathBlock.inPathChanged)
+		            && ((AspectPathBlock.aspectPathChanged && AspectPathBlock.updatedAspectPath) 
+		                    || !AspectPathBlock.aspectPathChanged)
+		            && ((CompilerPropertyPage.compilerSettingsChanged 
+		                    && CompilerPropertyPage.compilerSettingsUpdated) 
+	                        || !CompilerPropertyPage.compilerSettingsChanged)) {
+		        doProjectBuild();
+		    }
 		    
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
@@ -651,9 +677,11 @@ public class AspectJProjectPropertiesPage
 			updatePageContents();
 
 			// build the project if the outjar setting has changed
+			// note the difference between what happens here and what happens when "OK" is 
+			// clicked - this is deliberate because clicking ok has different implications
 			if (outjarChanged) {
-				thisProject.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null,null);  
-            }
+			    doProjectBuild();
+			}
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 				AspectJUIPlugin.getResourceString(
@@ -769,7 +797,39 @@ public class AspectJProjectPropertiesPage
 //		fileExtBtn.setSelection(
 //			retrieveSettingBoolean(BuildOptionsAdapter.JAVA_OR_AJ_EXT));
 	}
-    
+ 
+	protected void doProjectBuild() { 
+		ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
+		try {
+			dialog.run(true, true, new IRunnableWithProgress() {
+				public void run(IProgressMonitor monitor)
+						throws InvocationTargetException {
+					monitor.beginTask("", 2); //$NON-NLS-1$
+					try {
+						monitor
+								.setTaskName(AspectJUIPlugin
+										.getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
+						thisProject.build(IncrementalProjectBuilder.FULL_BUILD,
+						        "org.eclipse.ajdt.ui.ajbuilder", 
+						        null,
+						        new SubProgressMonitor(monitor, 2));
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
+					} finally {
+						monitor.done();
+					}
+				}
+			});
+		} catch (InterruptedException e) {
+			// cancelled by user
+		} catch (InvocationTargetException e) {
+			String message = AspectJUIPlugin
+					.getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
+			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
+		}
+	}
+
+	
 //    class PathButtonFieldEditor extends FileFieldEditor
 //    {
 //        private int browseType;
