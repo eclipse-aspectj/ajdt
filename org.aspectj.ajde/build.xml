@@ -81,8 +81,20 @@ Creates a packaged plug-in jar for AJDE
 		</zip>
 		<delete dir="${ajde.build.dir}" />
 
-		<!-- pull out the src zip -->
-		<copy file="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip" tofile="ajde-src.zip" />
+		<!-- build a src zip -->
+		
+		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
+		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
+		<delete includeemptydirs="true">
+           <fileset dir="${ajde.build.dir}">
+			  <exclude name="org/aspectj/**/*.*"/>
+           	</fileset>
+        </delete>
+		<zip destfile="ajde-src.zip">
+		  <fileset dir="${ajde.build.dir}"/>
+		</zip>
+		<delete dir="${ajde.build.dir}" />
+
 	</target>
 
 </project>
