@@ -36,7 +36,7 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 
 <path id="project.class.path">
     <pathelement location="src/"/>
-    <pathelement location="../org.aspectj.ajde/aspectjrt.jar"/>
+    <pathelement location="../org.aspectj.runtime/aspectjrt.jar"/>
     <pathelement location="../org.aspectj.ajde/ajde.jar"/>
     <!-- <pathelement location="../org.eclipse.aosd.relationships/build/relations.jar"/> -->
     <!-- Below are dependencies that require a local install of Eclipse. -->

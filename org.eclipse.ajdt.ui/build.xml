@@ -37,7 +37,7 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
 <path id="project.class.path">
     <pathelement location="src/"/>
     <pathelement location="lib/draw2d.jar"/>
-    <pathelement location="../org.aspectj.ajde/aspectjrt.jar"/>
+    <pathelement location="../org.aspectj.runtime/aspectjrt.jar"/>
     <pathelement location="../org.aspectj.ajde/ajde.jar"/>
     <pathelement location="../org.eclipse.ajdt.core/build/ajdtcore.jar"/>
     <pathelement location="../org.eclipse.contribution.visualiser/build/Visualiser.jar"/>
