@@ -16,7 +16,8 @@
   <target name="init">
     <tstamp/>
     <delete>
-      <fileset dir="${eclipse-home}" includes="org*.xml"/>
+      <fileset dir="${eclipse-home}" includes="${plugin-name}.xml"/>
+      <fileset dir="${eclipse-home}" includes="${plugin-name}.*Test*.xml"/>
     </delete>
   </target>
 
