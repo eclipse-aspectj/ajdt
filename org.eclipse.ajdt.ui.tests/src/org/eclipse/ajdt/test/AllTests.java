@@ -16,6 +16,10 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.core.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.model.AJComparatorTest;
 import org.eclipse.ajdt.core.model.AJModelTest;
+import org.eclipse.ajdt.internal.builder.AdviceMarkersTest;
+import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
+import org.eclipse.ajdt.internal.builder.BuilderTest;
+import org.eclipse.ajdt.internal.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
@@ -24,6 +28,12 @@ import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
+import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardTest;
+import org.eclipse.ajdt.internal.ui.wizards.export.AJCTaskTest;
+import org.eclipse.ajdt.javamodel.AJCompilationUnitManagerTest;
+import org.eclipse.ajdt.javamodel.AspectsConvertingParserTest;
+import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest;
+import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.CodeTemplatesTest;
@@ -83,33 +93,33 @@ public class AllTests {
 		suite.addTest(new TestSuite(ContentAssistTest.class));
 //		
 //		// new aspectJ project wizard
-//		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
+		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
 //		
 //		// export wizard tests
-//		suite.addTest(new TestSuite(AJCTaskTest.class));
+		suite.addTest(new TestSuite(AJCTaskTest.class));
 //		
 //		// visualiser tests
-//		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
 //		
 //		// internal.builder tests
 //		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
 //		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
-//		suite.addTest(new TestSuite(AdviceMarkersTest.class));
-//		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
-//		suite.addTest(new TestSuite(ProblemMarkerTest.class));
-//		suite.addTest(new TestSuite(BuilderTest.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
+		suite.addTest(new TestSuite(ProblemMarkerTest.class));
+		suite.addTest(new TestSuite(BuilderTest.class));
 //		
 //		// javamodel tests
-//		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
-//		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
-//		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
+		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
+		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
+		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 //		
 //		// ras tests
-//		suite.addTest(new TestSuite(PluginFFDCTest.class));		
+		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 //
 //		// xref tests
-//		suite.addTest(org.eclipse.contribution.xref.core.AllTests.suite());
-//		suite.addTest(org.eclipse.contribution.xref.ui.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.xref.core.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.xref.ui.AllTests.suite());
 
 		// core.model tests
 		suite.addTest(new TestSuite(AJModelTest.class));

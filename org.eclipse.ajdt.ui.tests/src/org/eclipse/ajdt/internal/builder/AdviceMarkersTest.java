@@ -9,15 +9,12 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.NullProgressMonitor;
-
-import junit.framework.TestCase;
 
 /**
  * Test advice markers are added correctly
@@ -29,24 +26,18 @@ public class AdviceMarkersTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		myProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		Utils.waitForJobsToComplete(myProject);
 	}
 	
 	public void testMarkersAreAdded() throws Exception {
-		myProject.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		Utils.waitForJobsToComplete(myProject);
+		//myProject.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+		//Utils.waitForJobsToComplete();
 		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 4);
 	}
 	
 	
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		try {
-			myProject.delete(true, new NullProgressMonitor());
-		} catch (ResourceException e) {
-			// we don't mind if the delete fails, it shouldn't make the test itself fail
-			e.printStackTrace();
-		}
+		Utils.deleteProject(myProject);
 	}
 	
 }

@@ -23,10 +23,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.ui.IEditorPart;
@@ -72,6 +68,8 @@ public class Utils{
 	 * @throws CoreException
 	 */
 	public static IProject getPredefinedProject(String projectName, final boolean overwrite) throws CoreException{
+		Utils.waitForJobsToComplete();
+		
 		File sourceDir;
 		sourceDir = new File(AspectJTestPlugin.getPluginDir() + TEST_PROJECTS_FOLDER + "/" + projectName);
 		if ((sourceDir == null) || (!sourceDir.exists()) || (sourceDir.isFile()))
@@ -106,7 +104,7 @@ public class Utils{
 			//monitor.waitForCompletion();
 		}
 		
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		return project;
 	}
 

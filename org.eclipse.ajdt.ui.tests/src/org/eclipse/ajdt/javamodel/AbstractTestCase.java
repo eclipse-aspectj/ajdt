@@ -12,6 +12,8 @@ package org.eclipse.ajdt.javamodel;
 
 import java.io.File;
 
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.codeconversion.AspectsConvertingParser;
@@ -19,8 +21,6 @@ import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IBuffer;
-
-import junit.framework.TestCase;
 
 /**
  * 
@@ -39,9 +39,9 @@ public abstract class AbstractTestCase extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		myProject = Utils.getPredefinedProject("javamodelEnhancementTesting", true);
-		Utils.waitForJobsToComplete(myProject);
 		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
+		Utils.waitForJobsToComplete();
 	}
 
 	/*
@@ -49,6 +49,7 @@ public abstract class AbstractTestCase extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(myProject);
 	}
 
 }

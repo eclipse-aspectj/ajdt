@@ -23,20 +23,12 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.test.utils.BasicNewFileResourceWizardExtension;
-import org.eclipse.ajdt.test.utils.BasicNewFolderResourceWizardExtension;
-import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
-import org.eclipse.ajdt.test.utils.NewPackageCreationWizardExtension;
-import org.eclipse.ajdt.test.utils.NewPackageWizardPageForTesting;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.test.utils.WizardNewFileCreationPageForTesting;
-import org.eclipse.ajdt.test.utils.WizardNewFolderMainPageForTesting;
 import org.eclipse.ajdt.ui.refactoring.ReaderInputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -44,11 +36,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author hawkinsh
@@ -79,13 +68,13 @@ public class BuilderTest extends TestCase {
 	public void testCopyAndRemoveNewNonSrcFile() throws CoreException {
 		// test setup.....
 		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+		//monitor.reset();
+		//simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+		//monitor.waitForCompletion();
+		//ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		IJavaProject javaProject = JavaCore.create(simpleProject);		
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "p1" 
 							+ File.separator + "newFile.txt";
@@ -101,15 +90,13 @@ public class BuilderTest extends TestCase {
 		// start of test
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		IFolder p1 = src.getFolder("p1");
 		if (!p1.exists()){
-			monitor.reset();
-			p1.create(true, true, monitor);
-			monitor.waitForCompletion();
+			p1.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package p1 should not be null", p1);
@@ -121,7 +108,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		IFile newFile = null;
 //		try {
@@ -144,32 +131,29 @@ public class BuilderTest extends TestCase {
 //		}
 		
 //		if (newFile == null){
-		BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+		//BlockingProgressMonitor bpm = new BlockingProgressMonitor();
 			IFile f = p1.getFile("newFile.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				bpm.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, bpm);
-				bpm.waitForCompletion();
+//				bpm.reset();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+//				bpm.waitForCompletion();
 			}
 			newFile = p1.getFile("newFile.txt");
 //		}
-
+			
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			System.err.println("interrupted sleep - don't care");
 		}
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
+		
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -183,13 +167,11 @@ public class BuilderTest extends TestCase {
 		assertFalse("Main.java should not exist under bin tree! (path=" + binPathToMain + ")",new File(binPathToMain).exists());		
 		
 		// now delete the file
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
+
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		try {
 			Thread.sleep(2000);
@@ -200,10 +182,9 @@ public class BuilderTest extends TestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 		
 	}
@@ -217,14 +198,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCreateAndRemoveNewNonSrcFileFromDefaultPackage() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+//		monitor.reset();
+//		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+//		monitor.waitForCompletion();
+//		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newFile2.txt";
@@ -238,9 +219,8 @@ public class BuilderTest extends TestCase {
 		
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 
@@ -252,7 +232,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
 //		try {
@@ -275,35 +255,29 @@ public class BuilderTest extends TestCase {
 			IFile f = src.getFile("newFile2.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+				//monitor.waitForCompletion();
 			}
 			newFile = src.getFile("newFile2.txt");
 //		}
 
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
+		
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			System.err.println("interrupted sleep - don't care");
 		}
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertTrue("newFile2.txt should exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertTrue("newFile2.txt should exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
 		// check that the .java file hasn't been copied over...
@@ -314,10 +288,8 @@ public class BuilderTest extends TestCase {
 
 		
 		// now delete the file for cleanup
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
 		
 		try {
 			Thread.sleep(2000);
@@ -328,9 +300,8 @@ public class BuilderTest extends TestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile2.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertFalse("newFile2.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
 	}
 
 	/**
@@ -342,14 +313,14 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithMultipleSrcDirs() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("MultipleSourceFolders", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+//		monitor.reset();
+//		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+//		monitor.waitForCompletion();
+//		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src2" + File.separator + "pack" 
@@ -363,15 +334,13 @@ public class BuilderTest extends TestCase {
 
 		IFolder src2 = simpleProject.getFolder("src2");
 		if (!src2.exists()){
-			monitor.reset();
-			src2.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src2.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		IFolder pack = src2.getFolder("pack");
 		if (!pack.exists()){
-			monitor.reset();
-			pack.create(true, true, monitor);
-			monitor.waitForCompletion();
+			pack.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		assertNotNull("src2 folder should not be null", src2);
 		assertNotNull("package pack should not be null", pack);
@@ -383,7 +352,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
 //		try {
@@ -406,26 +375,21 @@ public class BuilderTest extends TestCase {
 			IFile f = pack.getFile("newFile.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+				//monitor.waitForCompletion();
 			}
 			newFile = pack.getFile("newFile.txt");
 //		}
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertTrue("newFile.txt should exist under src2 tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertTrue("newFile.txt should exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
 		// check that the .java file hasn't been copied over...
@@ -435,10 +399,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("Class3.java should not exist under bin tree! (path=" + binPathToMain + ")",new File(binPathToMain).exists());
 
 		// now delete the file for cleanup
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
 
 		try {
 			Thread.sleep(2000);
@@ -449,7 +411,7 @@ public class BuilderTest extends TestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 	}
 
@@ -462,14 +424,9 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithNonStandardOutputDir() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("NonStandardOutputLocation", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "pack" 
@@ -483,15 +440,13 @@ public class BuilderTest extends TestCase {
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		IFolder pack = src.getFolder("pack");
 		if (!pack.exists()){
-			monitor.reset();
-			pack.create(true, true, monitor);
-			monitor.waitForCompletion();
+			pack.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package pack should not be null", pack);
@@ -503,7 +458,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
 //		try {
@@ -525,26 +480,21 @@ public class BuilderTest extends TestCase {
 			IFile f = pack.getFile("newFile.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+				//monitor.waitForCompletion();
 			}
 			newFile = pack.getFile("newFile.txt");
 //		}
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 		
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertTrue("newFile.txt should exist under src2 tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertTrue("newFile.txt should exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
 		// check that the .java file hasn't been copied over...
@@ -554,10 +504,8 @@ public class BuilderTest extends TestCase {
 		assertFalse("Main.java should not exist under bin tree! (path=" + binPathToMain + ")",new File(binPathToMain).exists());
 
 		// now delete the file for cleanup
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
 
 		try {
 			Thread.sleep(2000);
@@ -568,7 +516,7 @@ public class BuilderTest extends TestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 	}
 
@@ -581,14 +529,9 @@ public class BuilderTest extends TestCase {
 	public void testUpdateNonSrcFile() throws CoreException, IOException {
 		// create the project and the new file
 		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "p1" 
@@ -602,20 +545,18 @@ public class BuilderTest extends TestCase {
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		IFolder p1 = src.getFolder("p1");
 		if (!p1.exists()){
-			monitor.reset();
-			p1.create(true, true, monitor);
-			monitor.waitForCompletion();
+			p1.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package p1 should not be null", p1);
 		IStructuredSelection selectedFolder = new StructuredSelection(p1);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -623,7 +564,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
 //		try {
@@ -647,25 +588,19 @@ public class BuilderTest extends TestCase {
 			IFile f = p1.getFile("newFile4.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+				//monitor.waitForCompletion();
 			}
 			newFile = p1.getFile("newFile4.txt");
 //		}
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertTrue("newFile4.txt should exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		assertTrue("newFile4.txt should exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 
@@ -693,7 +628,7 @@ public class BuilderTest extends TestCase {
 		reader.close();
 		fileContents.close();
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		// get the contents of the file under "bin" tree - should contain nothing
 		InputStream fileContents4 = binNewFile.getContents();	
@@ -703,7 +638,7 @@ public class BuilderTest extends TestCase {
 		reader4.close();
 		fileContents4.close();
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		// write "blah blah blah" to the file
 		StringBuffer sb = new StringBuffer("blah blah blah");		
@@ -711,7 +646,7 @@ public class BuilderTest extends TestCase {
 		newFile.setContents(new ReaderInputStream(sr),IResource.FORCE, null);		
 		sr.close();
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		// get the contents of the file under "src" tree - should contain "blah blah blah"
 		InputStream fileContents2 = newFile.getContents();	
@@ -721,7 +656,7 @@ public class BuilderTest extends TestCase {
 		reader2.close();
 		fileContents2.close();
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		// get the contents of the file under "bin" tree - should contain "blah blah blah"
 		InputStream fileContents3 = binNewFile.getContents();	
@@ -730,13 +665,11 @@ public class BuilderTest extends TestCase {
 		assertEquals("file under bin should contain 'blah blah blah'","blah blah blah",line3);		
 		reader3.close();
 		fileContents3.close();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		// now delete the file for cleanup
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
 
 		try {
 			Thread.sleep(2000);
@@ -747,7 +680,7 @@ public class BuilderTest extends TestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile4.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		assertFalse("newFile4.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
 	}
 
@@ -759,14 +692,9 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveResourceWithoutSrcFolder() throws CoreException {
 		IProject project = Utils.getPredefinedProject("WithoutSourceFolder", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
 
 		IJavaProject javaProject = JavaCore.create(project);
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		
 		String path = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "newFile.txt";
@@ -781,7 +709,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(project);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
 //		try {
@@ -804,28 +732,22 @@ public class BuilderTest extends TestCase {
 			IFile f = project.getFile("newFile.txt");
 			if (!f.exists()) {
 //				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+				//monitor.waitForCompletion();
 			}
 			newFile = project.getFile("newFile.txt");
 //		}
 
-		monitor.reset();
-		project.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
+		project.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If this fails, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertTrue("newFile.txt should exist in the top dir (path=" + path + ")",new File(path).exists());
 		
-		monitor.reset();
-		newFile.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(project);
+		newFile.delete(true,null);
+		Utils.waitForJobsToComplete();
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
@@ -848,14 +770,9 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCreateAndDeleteNewPackage() throws Exception {
 		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newPackage"; 
@@ -865,22 +782,18 @@ public class BuilderTest extends TestCase {
 
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
 		}
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		IFolder newPackage = src.getFolder("newPackage");
 		assertFalse("newPackage should not exist under src tree! (path=" + srcPath + ")",newPackage.exists());
 
 		IFolder bin = simpleProject.getFolder("bin");
 		if (!bin.exists()){
-			monitor.reset();
-			bin.create(true, true, monitor);
-			monitor.waitForCompletion();
+			bin.create(true, true, null);
 		}
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		IFolder newBinPackage = bin.getFolder("newPackage");
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage.exists());
 		
@@ -892,7 +805,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 //		try {
 //			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
@@ -915,9 +828,8 @@ public class BuilderTest extends TestCase {
 		IPath path= new Path(str); 
         IResource res= ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 		IPackageFragmentRoot root = javaProject.getPackageFragmentRoot(res);
-		monitor.reset();
-		root.createPackageFragment("newPackage", true, monitor);
-		monitor.waitForCompletion();
+		root.createPackageFragment("newPackage", true, null);
+		//monitor.waitForCompletion();
 //		IFolder p = src.getFolder("newPackage");
 //		if (!p.exists()) {
 //			monitor.reset();
@@ -925,33 +837,27 @@ public class BuilderTest extends TestCase {
 //			monitor.waitForCompletion();
 //		}
 
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		IFolder newPackage2 = src.getFolder("newPackage");
 		assertTrue("newPackage should exist under src tree! (path=" + srcPath + ")",newPackage2.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		BlockingProgressMonitor m2 = new BlockingProgressMonitor();
-		m2.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,m2);
-		m2.waitForCompletion();
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		//monitor.waitForCompletion();
+		//BlockingProgressMonitor m2 = new BlockingProgressMonitor();
+		//m2.reset();
+		//simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 		IFolder newBinPackage2 = bin.getFolder("newPackage");
 		assertTrue("newPackage should exist under bin tree! (path=" + binPath + ")",newBinPackage2.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
-		monitor.reset();
-		newPackage.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		newPackage.delete(true,null);
+		Utils.waitForJobsToComplete();
 
 		try {
 			Thread.sleep(2000);
@@ -963,27 +869,21 @@ public class BuilderTest extends TestCase {
 		// why there is a sleep above.
 		IFolder newPackage3 = src.getFolder("newPackage");
 		assertFalse("newPackage should not exist under src tree! (path=" + srcPath + ")",newPackage3.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 		IFolder newBinPackage3 = bin.getFolder("newPackage");
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage3.exists());
 
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 	}
 
 	
 	public void testCreateAndDeleteNewFolder() throws CoreException {
 		IProject simpleProject = Utils.getPredefinedProject("AnotherSimpleAJProject", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
 							+ File.separator + "src" + File.separator + "newFolder"; 
@@ -992,22 +892,18 @@ public class BuilderTest extends TestCase {
 							+ File.separator + "bin" + File.separator + "newFolder";
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
-			monitor.reset();
-			src.create(true, true, monitor);
-			monitor.waitForCompletion();
+			src.create(true, true, null);
 		}
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
 		IFolder newFolder = src.getFolder("newFolder");
 		assertFalse("newFolder should not exist under src tree! (path=" + srcPath + ")",newFolder.exists());
 
 		IFolder bin = simpleProject.getFolder("bin");
 		if (!bin.exists()){
-			monitor.reset();
-			bin.create(true, true, monitor);
-			monitor.waitForCompletion();
+			bin.create(true, true, null);
 		}
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		IFolder newBinFolder = bin.getFolder("newFolder");
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder.exists());
 		
@@ -1019,7 +915,7 @@ public class BuilderTest extends TestCase {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 		IFolder createdFolder = null;
 //		try {
@@ -1041,39 +937,31 @@ public class BuilderTest extends TestCase {
 
 		IFolder f = src.getFolder("newFolder");
 		if (!f.exists()) {
-			monitor.reset();
-			f.create(true, true, monitor);
-			monitor.waitForCompletion();
+			f.create(true, true, null);
+			//monitor.waitForCompletion();
 		}
 		createdFolder = src.getFolder("newFolder");
 		
 		
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		Utils.waitForJobsToComplete();
 
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		IFolder newFolder2 = src.getFolder("newFolder");
 		assertTrue("newFolder should exist under src tree! (path=" + srcPath + ")",newFolder2.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		//monitor.waitForCompletion();
 		IFolder newBinFolder2 = bin.getFolder("newFolder");
 		assertTrue("newFolder should exist under bin tree! (path=" + binPath + ")",newBinFolder2.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 		
-		monitor.reset();
-		newFolder.delete(true,monitor);
-		monitor.waitForCompletion();
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		newFolder.delete(true,null);
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		//monitor.waitForCompletion();
 
 		try {
 			Thread.sleep(2000);
@@ -1085,14 +973,12 @@ public class BuilderTest extends TestCase {
 		// why there is a sleep above.
 		IFolder newFolder3 = src.getFolder("newFolder");
 		assertFalse("newFolder should not exist under src tree! (path=" + srcPath + ")",newFolder3.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-		monitor.reset();
-		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-		monitor.waitForCompletion();
+		Utils.waitForJobsToComplete();
+		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
+		//monitor.waitForCompletion();
 		IFolder newBinFolder3 = bin.getFolder("newFolder");
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder3.exists());
-		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
+		Utils.waitForJobsToComplete();
 
 	}
 
@@ -1100,67 +986,67 @@ public class BuilderTest extends TestCase {
 	/**
 	 * Invokes the wizard to create a new file, with the user input simulated
 	 */
-	public IFile makeNewFile(String fileName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-		BasicNewFileResourceWizardExtension testWizard = new BasicNewFileResourceWizardExtension();
-		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-		testWizard.setNewFileName(fileName);
-		testWizard.setBlockingProgressMonitor(monitor);
-		WizardDialog dialog = new WizardDialog(shell, testWizard);
-
-		dialog.setBlockOnOpen(false);
-		dialog.create();
-		dialog.open();
-
-		WizardNewFileCreationPageForTesting curPage = (WizardNewFileCreationPageForTesting)dialog.getCurrentPage();
-		
-		curPage.getWizard().performFinish();
-		dialog.close();
-
-		return testWizard.getNewFile();
-	}
-
-	/**
-	 * Invokes the wizard to create a new package, with the user input simulated
-	 */
-	public void makeNewPackage(String packageName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-		NewPackageCreationWizardExtension testWizard = new NewPackageCreationWizardExtension();
-		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-		testWizard.setNewPackageName(packageName);
-		testWizard.setBlockingProgressMonitor(monitor);
-		WizardDialog dialog = new WizardDialog(shell, testWizard);
-
-		dialog.setBlockOnOpen(false);
-		dialog.create();
-		dialog.open();
-
-		NewPackageWizardPageForTesting curPage = (NewPackageWizardPageForTesting)dialog.getCurrentPage();
-		
-		curPage.getWizard().performFinish();
-		dialog.close();
-	}
+//	public IFile makeNewFile(String fileName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
+//		BasicNewFileResourceWizardExtension testWizard = new BasicNewFileResourceWizardExtension();
+//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
+//		testWizard.setNewFileName(fileName);
+//		testWizard.setBlockingProgressMonitor(monitor);
+//		WizardDialog dialog = new WizardDialog(shell, testWizard);
+//
+//		dialog.setBlockOnOpen(false);
+//		dialog.create();
+//		dialog.open();
+//
+//		WizardNewFileCreationPageForTesting curPage = (WizardNewFileCreationPageForTesting)dialog.getCurrentPage();
+//		
+//		curPage.getWizard().performFinish();
+//		dialog.close();
+//
+//		return testWizard.getNewFile();
+//	}
 
 	/**
 	 * Invokes the wizard to create a new package, with the user input simulated
 	 */
-	public IFolder makeNewFolder(String folderName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-		BasicNewFolderResourceWizardExtension testWizard = new BasicNewFolderResourceWizardExtension();
-		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-		testWizard.setNewFolderName(folderName);
-		testWizard.setBlockingProgressMonitor(monitor);
-		WizardDialog dialog = new WizardDialog(shell, testWizard);
+//	public void makeNewPackage(String packageName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
+//		NewPackageCreationWizardExtension testWizard = new NewPackageCreationWizardExtension();
+//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
+//		testWizard.setNewPackageName(packageName);
+//		testWizard.setBlockingProgressMonitor(monitor);
+//		WizardDialog dialog = new WizardDialog(shell, testWizard);
+//
+//		dialog.setBlockOnOpen(false);
+//		dialog.create();
+//		dialog.open();
+//
+//		NewPackageWizardPageForTesting curPage = (NewPackageWizardPageForTesting)dialog.getCurrentPage();
+//		
+//		curPage.getWizard().performFinish();
+//		dialog.close();
+//	}
 
-		dialog.setBlockOnOpen(false);
-		dialog.create();
-		dialog.open();
-
-		WizardNewFolderMainPageForTesting curPage = (WizardNewFolderMainPageForTesting)dialog.getCurrentPage();
-		
-		curPage.getWizard().performFinish();
-		dialog.close();
-		return testWizard.getNewFolder();
-	}
+	/**
+	 * Invokes the wizard to create a new package, with the user input simulated
+	 */
+//	public IFolder makeNewFolder(String folderName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
+//		BasicNewFolderResourceWizardExtension testWizard = new BasicNewFolderResourceWizardExtension();
+//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
+//		testWizard.setNewFolderName(folderName);
+//		testWizard.setBlockingProgressMonitor(monitor);
+//		WizardDialog dialog = new WizardDialog(shell, testWizard);
+//
+//		dialog.setBlockOnOpen(false);
+//		dialog.create();
+//		dialog.open();
+//
+//		WizardNewFolderMainPageForTesting curPage = (WizardNewFolderMainPageForTesting)dialog.getCurrentPage();
+//		
+//		curPage.getWizard().performFinish();
+//		dialog.close();
+//		return testWizard.getNewFolder();
+//	}
 
 }

@@ -45,7 +45,7 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 			fail("AJCompilationUnit has not been created for Aspect.aj");
 		
 		myProject.close(null);
-		Utils.waitForJobsToComplete(myProject);
+		Utils.waitForJobsToComplete();
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
 			fail("AJCompilationUnit for Aspect.aj has not been disposed when project got closed.");
@@ -104,12 +104,13 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 	
 	public void testIfProjectWithoutSourceFolderWorks() throws CoreException{
 		IProject project = Utils.getPredefinedProject("WithoutSourceFolder", true);
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		IFile f = project.getFile("A.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(f);
 		if (unit == null)
 			fail("Compilation Unit for A.aj has not been created and inserted into the model.");
 	
+		Utils.deleteProject(project);
 	}
 
 }

@@ -37,16 +37,23 @@ public class ProblemMarkerTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		myProject = Utils.getPredefinedProject("Simple AJ Project", true);
-		Utils.waitForJobsToComplete(myProject);
 	}
 
+	/*
+	 * @see TestCase#tearDown()
+	 */
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		Utils.deleteProject(myProject);
+	}
+	
 	public void testMarkerIsNotRemoved() throws CoreException {
 		IFile f = myProject.getFile("src/p1/Main.java");
 		IMarker marker = f.createMarker(IMarker.PROBLEM);
 		marker.setAttribute(IMarker.MESSAGE, "hello");
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,
 				new NullProgressMonitor());
-		Utils.waitForJobsToComplete(myProject);
+		Utils.waitForJobsToComplete();
 		assertTrue("Marker we created should still exist after a build", marker
 				.exists());
 	}
@@ -79,13 +86,13 @@ public class ProblemMarkerTest extends TestCase {
 		newFiles.add(newAspect);
 		
 		buildConfig.excludeFiles(newFiles);
-		Utils.waitForJobsToComplete(myProject);
+		Utils.waitForJobsToComplete();
 		
 		assertFalse("new aspect shouldn't be included in active build configuration",
 				buildConfig.isIncluded(newAspect));
 		
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
-		Utils.waitForJobsToComplete(myProject);
+		Utils.waitForJobsToComplete();
 		assertFalse("new aspect shouldn't be included in active build configuration",
 				buildConfig.isIncluded(newAspect));
 		
@@ -95,7 +102,7 @@ public class ProblemMarkerTest extends TestCase {
 		buildConfig.includeFiles(newFiles);
 
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
-		Utils.waitForJobsToComplete(myProject);
+		Utils.waitForJobsToComplete();
 		assertTrue("problem markers should be against the project since file is included in the build config", 
 				ProjectDependenciesUtils.projectIsMarkedWithError(myProject,null));
 

@@ -22,7 +22,6 @@ import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
  * Tests for advice markers
@@ -112,7 +111,6 @@ public class AdviceMarkersTest2 extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = Utils.getPredefinedProject("MarkersTest", true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	}
 
 	/*
@@ -120,6 +118,7 @@ public class AdviceMarkersTest2 extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 
 	public void testMarkers() throws Exception {

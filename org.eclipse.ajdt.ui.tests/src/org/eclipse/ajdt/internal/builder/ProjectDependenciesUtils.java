@@ -17,6 +17,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.AspectJTestPlugin;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -24,11 +25,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -47,21 +44,21 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
  */
 public class ProjectDependenciesUtils {
 
-	public static void waitForJobsToComplete(IProject pro) {
-		Job job = new Job("Dummy Job") {
-			public IStatus run(IProgressMonitor m) {
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
+//	public static void waitForJobsToComplete(IProject pro) {
+//		Job job = new Job("Dummy Job") {
+//			public IStatus run(IProgressMonitor m) {
+//				return Status.OK_STATUS;
+//			}
+//		};
+//		job.setPriority(Job.DECORATE);
+//		job.setRule(pro);
+//		job.schedule();
+//		try {
+//			job.join();
+//		} catch (InterruptedException e) {
+//			// Do nothing
+//		}
+//	}
 
 	public static boolean projectHasProjectDependency(IProject project,
 			IProject projectDependedOn) throws JavaModelException {
@@ -121,7 +118,7 @@ public class ProjectDependenciesUtils {
 
 	public static boolean projectIsMarkedWithError(IProject project,
 			String errorMessage) throws CoreException {
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		boolean projectIsMarked = false;
 
 		IMarker[] problemMarkers = project.findMarkers(IMarker.PROBLEM, false,
@@ -161,7 +158,7 @@ public class ProjectDependenciesUtils {
 			}
 		}
 
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		return projectIsMarked;
 	}
 
@@ -328,8 +325,7 @@ public class ProjectDependenciesUtils {
 	 */
 	public static boolean projectMarkedWithPrereqMessage(IProject project,
 			IProject prereqProject) {
-		waitForJobsToComplete(project);
-		waitForJobsToComplete(prereqProject);
+		Utils.waitForJobsToComplete();
 		try {
 			String errorMessage = "The project cannot be built until its prerequisite "
 					+ prereqProject.getName()
@@ -353,8 +349,7 @@ public class ProjectDependenciesUtils {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		} finally {
-			waitForJobsToComplete(project);
-			waitForJobsToComplete(prereqProject);
+			Utils.waitForJobsToComplete();
 		}
 		return false;
 	}

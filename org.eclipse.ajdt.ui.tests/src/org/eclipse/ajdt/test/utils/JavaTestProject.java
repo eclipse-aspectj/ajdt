@@ -26,12 +26,8 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -64,7 +60,6 @@ public class JavaTestProject {
 	private IJavaProject javaProject;
 	private IPackageFragmentRoot sourceFolder;
 	private IFolder binFolder;	
-	private BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 	
 	//private static final String RT_JAR = "/opt/jdk1.4.2_04/jre/lib/rt.jar";
 	//private static final String ASPECTJRT_JAR = "/home/colyer/aspectj1.2/lib/aspectjrt.jar";
@@ -89,24 +84,18 @@ public class JavaTestProject {
 		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
 		name = pname + UNIQUE_ID++;
 		project= root.getProject(name);
-		monitor.reset();
-		project.create(monitor);
-		monitor.waitForCompletion();
-		monitor.reset();
-		project.open(monitor);
-		monitor.waitForCompletion();
+		project.create(null);
+		project.open(null);
 		javaProject = JavaCore.create(project);
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		setJavaNature();
 		
 		binFolder = createOutputFolder(outputfoldername);
-		waitForJobsToComplete(project);		
+		Utils.waitForJobsToComplete();		
 		createOutputFolder(binFolder);
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		
-		monitor.reset();
-		javaProject.setRawClasspath(new IClasspathEntry[0], monitor);
-		monitor.waitForCompletion();
+		javaProject.setRawClasspath(new IClasspathEntry[0], null);
 			
 		if (createContent) {
 			addSystemLibraries();
@@ -142,9 +131,7 @@ public class JavaTestProject {
 	public IPackageFragment createPackage(String name) throws CoreException {
 		if (sourceFolder == null)
 			sourceFolder= createSourceFolder();
-		monitor.reset();
-		IPackageFragment ret = sourceFolder.createPackageFragment(name, false, monitor);
-		monitor.waitForCompletion();
+		IPackageFragment ret = sourceFolder.createPackageFragment(name, false, null);
 		return ret;
 	}
 
@@ -153,9 +140,8 @@ public class JavaTestProject {
 		buf.append("package " + pack.getElementName() + ";\n");
 		buf.append("\n");
 		buf.append(source);
-		monitor.reset();
-		ICompilationUnit cu= pack.createCompilationUnit(cuName, buf.toString(), false, monitor);
-		monitor.waitForCompletion();
+		ICompilationUnit cu= pack.createCompilationUnit(cuName, buf.toString(), false, null);
+		//monitor.waitForCompletion();
 		return cu.getTypes()[0];
 	}
 
@@ -169,9 +155,8 @@ public class JavaTestProject {
 		IFolder folder = (IFolder) root.getCorrespondingResource();
 		IFolder ret = folder.getFolder(name);
 		if (!folder.exists()) {
-			monitor.reset();
-			ret.create(true,true,monitor);
-			monitor.waitForCompletion();
+			ret.create(true,true,null);
+			//monitor.waitForCompletion();
 		}
 		return ret;
 	}
@@ -192,13 +177,12 @@ public class JavaTestProject {
 	
 	public synchronized void dispose() throws CoreException {
 		waitForIndexer();
-		monitor.reset();
 		try {
-			project.delete(IResource.ALWAYS_DELETE_PROJECT_CONTENT, monitor);
+			project.delete(IResource.ALWAYS_DELETE_PROJECT_CONTENT, null);
 		} catch (ResourceException re) {
 			// ignore this
 		}
-		monitor.waitForCompletion();
+		//monitor.waitForCompletion();
 	}
 	
 //	public String run(String className) {
@@ -224,30 +208,27 @@ public class JavaTestProject {
 	private synchronized IFolder createOutputFolder(String outputfoldername) throws CoreException {
 		IFolder folder= project.getFolder(outputfoldername);
 		if (!folder.exists()) {
-			monitor.reset();
 			try {
-				folder.create(true, true, monitor);
+				folder.create(true, true, null);
 			} catch (ResourceException e) {
 				// we don't care about this
 			}
-			monitor.waitForCompletion();
+			//monitor.waitForCompletion();
 		}
 		return folder;
 	}
 	
 	private void createOutputFolder(IFolder folder) throws JavaModelException {
 		IPath outputLocation= folder.getFullPath();
-		//monitor.reset(); doesn't always use monitor...
-		javaProject.setOutputLocation(outputLocation, monitor);
-		monitor.waitForCompletion();
+		javaProject.setOutputLocation(outputLocation, null);
+		//monitor.waitForCompletion();
 	}
 
 	private IPackageFragmentRoot createSourceFolder() throws CoreException {
 		IFolder folder= project.getFolder("src");
 		if (!folder.exists()) {
-			monitor.reset();
-			folder.create(false, true, monitor);
-			monitor.waitForCompletion();
+			folder.create(false, true, null);
+			//monitor.waitForCompletion();
 		}
 		IPackageFragmentRoot root= javaProject.getPackageFragmentRoot(folder);
 
@@ -255,9 +236,8 @@ public class JavaTestProject {
 		IClasspathEntry[] newEntries= new IClasspathEntry[oldEntries.length + 1];
 		System.arraycopy(oldEntries, 0, newEntries, 0, oldEntries.length);
 		newEntries[oldEntries.length]= JavaCore.newSourceEntry(root.getPath());
-		monitor.reset();
-		javaProject.setRawClasspath(newEntries, monitor);
-		monitor.waitForCompletion();
+		javaProject.setRawClasspath(newEntries, null);
+		//monitor.waitForCompletion();
 		return root;
 	}
 
@@ -268,9 +248,8 @@ public class JavaTestProject {
 		newEntries[oldEntries.length]= JavaRuntime.getDefaultJREContainerEntry();
 //		newEntries[oldEntries.length]= JavaCore.newLibraryEntry(new Path(RT_JAR),null,null);
 //		newEntries[oldEntries.length+1]= JavaCore.newLibraryEntry(new Path(ASPECTJRT_JAR),null,null);
-		monitor.reset();
-		javaProject.setRawClasspath(newEntries, monitor);
-		monitor.waitForCompletion();
+		javaProject.setRawClasspath(newEntries, null);
+		//monitor.waitForCompletion();
 
 //		IClasspathEntry[] oldEntries= javaProject.getRawClasspath();
 //		IClasspathEntry[] newEntries= new IClasspathEntry[oldEntries.length + 1];
@@ -305,82 +284,67 @@ public class JavaTestProject {
 	
 	}
 
-  public static class BlockingProgressMonitor implements IProgressMonitor {
+//  public static class BlockingProgressMonitor implements IProgressMonitor {
+//
+//	private Boolean isDone = Boolean.FALSE;
+//	
+//	public boolean isDone() {
+//		boolean ret = false;
+//		synchronized(isDone) {
+//		  ret = (isDone == Boolean.TRUE);
+//		}
+//		return ret;
+//	}
+//	
+//	public void reset() {
+//		synchronized(isDone) {
+//		  isDone = Boolean.FALSE;
+//		}
+//	}
+//	
+//	public void waitForCompletion() {
+//		while (!isDone()) {
+//			try {
+//				synchronized(this) { wait(500); }
+//			} catch (InterruptedException intEx) {
+//				// no-op
+//			}
+//		}
+//	}
+//	
+//	public void beginTask(String name, int totalWork) {
+//		if (name != null) System.out.println(name);
+//		reset();
+//	}
+//
+//	public void done() {
+//		synchronized(isDone) {
+//			isDone = Boolean.TRUE;
+//		}
+//		synchronized(this) {
+//			notify();			
+//		}
+//	}
+//
+//	public void internalWorked(double work) {
+//	}
+//
+//	public boolean isCanceled() {
+//		return false;
+//	}
+//
+//	public void setCanceled(boolean value) {
+//	}
+//
+//	public void setTaskName(String name) {
+//	}
+//
+//	public void subTask(String name) {
+//	}
+//
+//	public void worked(int work) {
+//	}
+//  }	
+//  
 
-	private Boolean isDone = Boolean.FALSE;
-	
-	public boolean isDone() {
-		boolean ret = false;
-		synchronized(isDone) {
-		  ret = (isDone == Boolean.TRUE);
-		}
-		return ret;
-	}
-	
-	public void reset() {
-		synchronized(isDone) {
-		  isDone = Boolean.FALSE;
-		}
-	}
-	
-	public void waitForCompletion() {
-		while (!isDone()) {
-			try {
-				synchronized(this) { wait(500); }
-			} catch (InterruptedException intEx) {
-				// no-op
-			}
-		}
-	}
-	
-	public void beginTask(String name, int totalWork) {
-		if (name != null) System.out.println(name);
-		reset();
-	}
-
-	public void done() {
-		synchronized(isDone) {
-			isDone = Boolean.TRUE;
-		}
-		synchronized(this) {
-			notify();			
-		}
-	}
-
-	public void internalWorked(double work) {
-	}
-
-	public boolean isCanceled() {
-		return false;
-	}
-
-	public void setCanceled(boolean value) {
-	}
-
-	public void setTaskName(String name) {
-	}
-
-	public void subTask(String name) {
-	}
-
-	public void worked(int work) {
-	}
-  }	
-  
-	private void waitForJobsToComplete(IProject pro){
-		Job job = new Job("Dummy Job"){
-			public IStatus run(IProgressMonitor m){
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-	    job.schedule();
-	    try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
-  
 }

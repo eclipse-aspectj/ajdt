@@ -20,16 +20,13 @@ import junit.framework.TestCase;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
@@ -272,42 +269,39 @@ public class AspectJProjectWizardTest extends TestCase {
 	/**
 	 * Generates an ajdt project in the workspace with some test files
 	 */
-	public JavaTestProject createTestProject(int ID) {
+	public JavaTestProject createTestProject(int ID) throws CoreException {
 
 		ID++;
 		JavaTestProject testSrcProject = null;
-		try { // sets up the aj test project
-			testSrcProject = new JavaTestProject("SourceProject" + ID);
-			waitForJobsToComplete(testSrcProject.getProject());
-			AJDTUtils.addAspectJNature(testSrcProject.getProject());
-			waitForJobsToComplete(testSrcProject.getProject());
-			IPackageFragment testPackage = testSrcProject
-					.createPackage("TestPackage");
 
-			IType helloType = testSrcProject.createType(testPackage,
-					"Hello.java", "public class Hello {\n"
-							+ "  public static void main(String[] args) {\n"
-							+ "    Hello.printMessage();\n" + "  }\n"
-							+ "	 private static void printMessage() {\n"
-							+ "    System.out.println(\"Hello\");\n" + "  }\n"
-							+ "}");
+		// sets up the aj test project
+		testSrcProject = new JavaTestProject("SourceProject" + ID);
+		Utils.waitForJobsToComplete();
+		AJDTUtils.addAspectJNature(testSrcProject.getProject());
+		Utils.waitForJobsToComplete();
+		IPackageFragment testPackage = testSrcProject
+				.createPackage("TestPackage");
 
-			testSrcProject
-					.createFile(
-							(IFolder) helloType.getPackageFragment()
-									.getUnderlyingResource(),
-							"Asp.aj",
-									"package TestPackage;"
-									+ "public aspect Asp {\n"
-									+ "  pointcut extendMessage() : call(* Hello.printMessage(..));\n"
-									+ "  before() : extendMessage() {\n"
-									+ "    System.out.println(\"Pre Message\");\n"
-									+ "  }\n" + "}");
+		IType helloType = testSrcProject.createType(testPackage, "Hello.java",
+				"public class Hello {\n"
+						+ "  public static void main(String[] args) {\n"
+						+ "    Hello.printMessage();\n" + "  }\n"
+						+ "	 private static void printMessage() {\n"
+						+ "    System.out.println(\"Hello\");\n" + "  }\n"
+						+ "}");
 
-		} catch (CoreException e) {
-			e.printStackTrace();
-			fail("Project creation failed");
-		}
+		testSrcProject
+				.createFile(
+						(IFolder) helloType.getPackageFragment()
+								.getUnderlyingResource(),
+						"Asp.aj",
+						"package TestPackage;"
+								+ "public aspect Asp {\n"
+								+ "  pointcut extendMessage() : call(* Hello.printMessage(..));\n"
+								+ "  before() : extendMessage() {\n"
+								+ "    System.out.println(\"Pre Message\");\n"
+								+ "  }\n" + "}");
+
 		return testSrcProject;
 	}
 
@@ -377,19 +371,4 @@ public class AspectJProjectWizardTest extends TestCase {
 		}
 	}
 
-	private void waitForJobsToComplete(IProject pro) {
-		Job job = new Job("Dummy Job") {
-			public IStatus run(IProgressMonitor m) {
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
 }
