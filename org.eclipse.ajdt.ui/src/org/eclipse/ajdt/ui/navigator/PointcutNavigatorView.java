@@ -57,7 +57,9 @@ public class PointcutNavigatorView extends ViewPart {
 				            viewer.expandAll();
 				        }
 				    } catch (Throwable t) {
-				        t.printStackTrace();
+			        	//MPC: I've commented this out, as our enforcement aspect complains about it
+			        	//     - any thrown exceptions will be logged by the FFDC aspect anyway
+				        //t.printStackTrace();
 				    }
 				}
 			});
@@ -245,7 +247,9 @@ public class PointcutNavigatorView extends ViewPart {
 	                }
 	            }
             } catch (Throwable t) {
-                t.printStackTrace();
+            	//MPC: I've commented this out, as our enforcement aspect complains about it
+            	//     - any thrown exceptions will be logged by the FFDC aspect anyway
+                //t.printStackTrace();
             }
         }
 
@@ -392,8 +396,9 @@ public class PointcutNavigatorView extends ViewPart {
 	                    		} 
 	                        }
 	                    } catch (PartInitException e) {
-	                        // TODO Auto-generated catch block
-	                        e.printStackTrace();
+	                    	//MPC: I've commented this out, as our enforcement aspect complains about it
+	                    	//     - any thrown exceptions will be logged by the FFDC aspect anyway
+	                        //e.printStackTrace();
 	                    }
 	                }
 	            }
@@ -405,7 +410,9 @@ public class PointcutNavigatorView extends ViewPart {
 			
 			AsmManager.getDefault().addListener(VIEW_LISTENER);
         } catch (Throwable t) {
-            t.printStackTrace();
+        	//MPC: I've commented this out, as our enforcement aspect complains about it
+        	//     - any thrown exceptions will be logged by the FFDC aspect anyway
+            //t.printStackTrace();
         }
 	}
 
