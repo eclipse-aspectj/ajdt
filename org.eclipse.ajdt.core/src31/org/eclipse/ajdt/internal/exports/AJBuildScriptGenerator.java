@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,10 +45,13 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	protected void generateModels(List models) throws CoreException {
 		for (Iterator iterator = models.iterator(); iterator.hasNext();) {
 			AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
+			generator.setReportResolutionErrors(reportResolutionErrors);
+			generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
 			//Filtering is not required here, since we are only generating the
 			// build for a plugin or a fragment
 			String model = (String) iterator.next();
 			generator.setModelId(model);
+			generator.setSignJars(signJars);
 			generator.generate();
 		}
 	}
@@ -114,6 +117,7 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		assembler.setArchivesFormat(archivesFormat);
 		assembler.generate();
 	}
+	
 	private String[] getNameAndVersion(String id) {
 		int versionPosition = id.indexOf(":"); //$NON-NLS-1$
 		String[] result = new String[2];

@@ -32,7 +32,7 @@ public class BuildPluginAction extends BaseBuildAction {
 		throws InvocationTargetException, CoreException {
 	
 		AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
-		AJModelBuildScriptGenerator.setOutputFormat(AbstractScriptGenerator.getDefaultOutputFormat());
+//		AJModelBuildScriptGenerator.setOutputFormat(AbstractScriptGenerator.getDefaultOutputFormat());
 		AJModelBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator.getDefaultEmbeddedSource());
 		AJModelBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator.getForceUpdateJarFormat());
 		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator.getDefaultConfigInfos());

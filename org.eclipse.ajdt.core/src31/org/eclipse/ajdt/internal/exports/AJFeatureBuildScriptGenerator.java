@@ -111,6 +111,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	 * Constructor FeatureBuildScriptGenerator.
 	 */
 	public AJFeatureBuildScriptGenerator(String featureId, String versionId, AssemblyInformation informationGathering) throws CoreException {
+		super(featureId, versionId, informationGathering);
 		if (featureId == null) {
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, Messages.error_missingFeatureId, null));
 		}
