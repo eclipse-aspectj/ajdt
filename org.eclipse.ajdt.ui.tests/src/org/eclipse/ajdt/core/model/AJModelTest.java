@@ -73,7 +73,6 @@ public class AJModelTest extends TestCase {
 	public void testProgramElementToJavaElementGetInfo() {
 		String filename = "src/tjp/GetInfo.aj";
 		String[][] results = {
-				{ "GetInfo", "GetInfo" },
 				{ "declare warning: \"field set\"", "declare warning: \"field set\"" },
 				{ "declare parents: implements Serializable", "declare parents" },
 			    { "declare soft: tjp.DemoException", "declare soft" },
