@@ -9,7 +9,7 @@
 
 package org.eclipse.ajdt.internal.ui.wizards;
 
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPage;
