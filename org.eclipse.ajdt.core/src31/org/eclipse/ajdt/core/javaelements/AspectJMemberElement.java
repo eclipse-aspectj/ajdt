@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.jdom.IDOMMethod;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
+import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -182,7 +183,8 @@ public String getReturnType() throws JavaModelException {
  */
 public String getSignature() throws JavaModelException {
 	AspectJMemberElementInfo info = (AspectJMemberElementInfo) getElementInfo();
-	return info.getSignature();
+	//return info.getSignature();
+    return Signature.createMethodSignature(fParameterTypes, Signature.createTypeSignature(info.getReturnTypeName(), false));
 }
 /**
  * @see org.eclipse.jdt.internal.core.JavaElement#hashCode()

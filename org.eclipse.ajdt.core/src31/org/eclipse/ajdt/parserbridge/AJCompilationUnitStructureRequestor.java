@@ -205,8 +205,8 @@ public class AJCompilationUnitStructureRequestor extends
 		info.setNameSourceEnd(nameSourceEnd);
 		info.setSuperclassName(superclass);
 		info.setSuperInterfaceNames(superinterfaces);
-		info.setSourceFileName(this.sourceFileName);
-		info.setPackageName(this.packageName);
+//		info.setSourceFileName(this.sourceFileName);
+//		info.setPackageName(this.packageName);
 		
 		if (parentInfo instanceof OpenableElementInfo)
 			((OpenableElementInfo)parentInfo).addChild(handle);
@@ -284,7 +284,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setNameSourceEnd(nameSourceEnd);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
-				info.setArgumentTypeNames(parameterTypes);
+				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
@@ -351,7 +351,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setTargetType(decl.onType.getTypeName()[0]);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
-				info.setArgumentTypeNames(parameterTypes);
+				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
@@ -447,7 +447,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setNameSourceEnd(nameSourceEnd);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
-				info.setArgumentTypeNames(parameterTypes);
+				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
@@ -504,7 +504,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setNameSourceEnd(nameSourceEnd);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
-				info.setArgumentTypeNames(parameterTypes);
+				//info.setArgumentTypeNames(parameterTypes);
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 

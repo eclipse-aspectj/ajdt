@@ -285,7 +285,7 @@ public class AJCompilationUnit extends CompilationUnit{
 				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
 					
 					int astLevel = ((ASTHolderAJCUInfo) info).astLevel;
-					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, perWorkingCopyInfo.getWorkingCopy().getOwner(), pm);
+					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), pm);
 					((ASTHolderAJCUInfo) info).ast = cu;
 				} 
 			} finally {

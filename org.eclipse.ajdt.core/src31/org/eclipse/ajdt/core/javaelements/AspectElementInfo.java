@@ -34,15 +34,15 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	/**
 	 * Sets the name of the package this type is declared in.
 	 */
-	public void setPackageName(char[] name) {
-		this.packageName= name;
-	}
+//	public void setPackageName(char[] name) {
+//		this.packageName= name;
+//	}
 	/**
 	 * Sets the name of the source file this type is declared in.
 	 */
-	public void setSourceFileName(char[] name) {
-		this.sourceFileName= name;
-	}
+//	public void setSourceFileName(char[] name) {
+//		this.sourceFileName= name;
+//	}
 	/**
 	 * Sets the (unqualified) name of this type's superclass
 	 */

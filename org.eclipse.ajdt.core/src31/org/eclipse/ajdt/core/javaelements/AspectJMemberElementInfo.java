@@ -83,9 +83,9 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 	public void setArgumentNames(char[][] names) {
 		this.argumentNames = names;
 	}
-	public void setArgumentTypeNames(char[][] types) {
-		this.argumentTypeNames = types;
-	}
+//	public void setArgumentTypeNames(char[][] types) {
+//		this.argumentTypeNames = types;
+//	}
 	public void setConstructor(boolean isConstructor) {
 		this.isConstructor = isConstructor;
 	}
@@ -131,14 +131,14 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 		this.nameStart= start;
 	}
 	
-	public String getSignature() {
-
-		String[] paramSignatures = new String[this.argumentTypeNames.length];
-		for (int i = 0; i < this.argumentTypeNames.length; ++i) {
-			paramSignatures[i] = Signature.createTypeSignature(this.argumentTypeNames[i], false);
-		}
-		return Signature.createMethodSignature(paramSignatures, Signature.createTypeSignature(this.returnType, false));
-	}
+//	public String getSignature() {
+//
+//		String[] paramSignatures = new String[this.argumentTypeNames.length];
+//		for (int i = 0; i < this.argumentTypeNames.length; ++i) {
+//			paramSignatures[i] = Signature.createTypeSignature(this.argumentTypeNames[i], false);
+//		}
+//		return Signature.createMethodSignature(paramSignatures, Signature.createTypeSignature(this.returnType, false));
+//	}
 	
 	public boolean isConstructor() {
 		return isConstructor;

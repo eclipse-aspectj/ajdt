@@ -106,7 +106,7 @@ public class AJReconcileWorkingCopyOperation extends
 							if (progressMonitor != null) progressMonitor.worked(1);
 							if (this.createAST && unit != null) {
 								Map options = workingCopy.getJavaProject().getOptions(true);
-								this.ast = AST.convertCompilationUnit(this.astLevel, unit, contents, options, true/*isResolved*/, workingCopyOwner, this.progressMonitor);
+								this.ast = AST.convertCompilationUnit(this.astLevel, unit, contents, options, true/*isResolved*/, workingCopy, this.progressMonitor);
 								if (progressMonitor != null) progressMonitor.worked(1);
 							}
 					    } finally {
