@@ -357,6 +357,7 @@ public class StructureModelUtil {
 		if (kind == IProgramElement.Kind.INTER_TYPE_FIELD) return true;
 		if (kind == IProgramElement.Kind.INTER_TYPE_PARENT) return true;
 		if (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) return true;
+		if (kind == IProgramElement.Kind.DECLARE_PARENTS) return true;
 		return false;
 	}
 
