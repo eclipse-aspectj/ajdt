@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.builder;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.AspectJTestPlugin;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
@@ -312,7 +313,7 @@ public class ProjectDependenciesUtils {
 			if (!outJar.startsWith(File.separator)) {
 				IJavaProject jp = JavaCore.create(projectToOutputToJarFile);
 				IPath projectPath = jp.getPath();
-				IPath full = AspectJUIPlugin.getWorkspace().getRoot()
+				IPath full = AspectJPlugin.getWorkspace().getRoot()
 				        .getLocation().append(projectPath);
 				outJar = full.toOSString() + File.separator + outJar;
 			}

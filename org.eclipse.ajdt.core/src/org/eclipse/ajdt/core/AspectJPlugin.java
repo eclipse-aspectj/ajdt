@@ -1,8 +1,13 @@
 package org.eclipse.ajdt.core;
 
+import java.io.File;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
@@ -20,6 +25,11 @@ public class AspectJPlugin extends Plugin {
 
 	// plugin containing aspectjtools.jar, or the contents thereof
     public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; //$NON-NLS-1$
+
+	/**
+	 * The name of the default build config file for an AspectJ project
+	 */
+	public static final String DEFAULT_CONFIG_FILE = ".generated.lst";
 
 	/**
 	 * The constructor.
@@ -74,4 +84,22 @@ public class AspectJPlugin extends Plugin {
 	public ResourceBundle getResourceBundle() {
 		return resourceBundle;
 	}
+	
+	/**
+	 * Returns the workspace instance.
+	 */
+	public static IWorkspace getWorkspace() {
+		return ResourcesPlugin.getWorkspace();
+	}
+
+	/**
+	 * Get the build configuration file to be used for building this project.
+	 * Use ".generated.lst" in the project directory
+	 */
+	public static String getBuildConfigurationFile(IProject project) {
+		return CoreUtils.getProjectRootDirectory( project ) + 
+						 File.separator +
+						 DEFAULT_CONFIG_FILE;
+	}
+
 }

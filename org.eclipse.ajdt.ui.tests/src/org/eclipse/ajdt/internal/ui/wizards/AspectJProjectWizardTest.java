@@ -17,6 +17,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -70,9 +71,9 @@ public class AspectJProjectWizardTest extends TestCase {
 		if((testSrcFile != null) && testSrcFile.exists())
 			deleteDirectory(testSrcFile);
 		if((testSrcFile != null) && 
-			AspectJUIPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile().exists()) {
+			AspectJPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile().exists()) {
 			
-			deleteDirectory(AspectJUIPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile());
+			deleteDirectory(AspectJPlugin.getWorkspace().getRoot().getLocation().append("TestWizardProject").toFile());
 		}
 		
 		try {
@@ -140,9 +141,9 @@ public class AspectJProjectWizardTest extends TestCase {
 		String pSrcName = testSrcProject.getName();
 		ID++;
 		
-		testDestinationFile = AspectJUIPlugin.getWorkspace().getRoot()
+		testDestinationFile = AspectJPlugin.getWorkspace().getRoot()
 				.getLocation().append(pDestinationName).toFile();
-		testSrcFile = AspectJUIPlugin.getWorkspace().getRoot().getLocation()
+		testSrcFile = AspectJPlugin.getWorkspace().getRoot().getLocation()
 				.append(pSrcName).toFile();
 
 		copyFileStructure(testSrcFile, testDestinationFile);
@@ -240,7 +241,7 @@ public class AspectJProjectWizardTest extends TestCase {
 
 		assertTrue("The wizard created project has not been created in the correct location",
 				project.getParent().getLocation().equals(
-								AspectJUIPlugin.getWorkspace().getRoot().getRawLocation()));
+								AspectJPlugin.getWorkspace().getRoot().getRawLocation()));
 	}
 
 	/**
@@ -262,7 +263,7 @@ public class AspectJProjectWizardTest extends TestCase {
 		curPage.getWizard().performFinish();
 		dialog.close();
 		testProjectWizard.getNewProject();
-		IProject wizardCreatedProject = AspectJUIPlugin.getWorkspace().getRoot()
+		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);
 		return wizardCreatedProject;
 	}

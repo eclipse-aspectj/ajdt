@@ -9,6 +9,7 @@
 
 package org.eclipse.ajdt.internal.ui.wizards;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -45,7 +46,7 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
 		fMainPage.setImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		fMainPage.setInitialProjectName(projectDefaultName);						// This line has been added
 		addPage(fMainPage);
-		IWorkspaceRoot root = AspectJUIPlugin.getWorkspace().getRoot();
+		IWorkspaceRoot root = AspectJPlugin.getWorkspace().getRoot();
 		fJavaPage = new NewJavaProjectWizardPage(root, fMainPage);
 		//fJavaPage.setDefaultOutputFolder(AspectJPlugin.getWorkspace().getRoot()			// This line has been added
 		//.getLocation().append("WizardTestProject" + IPath.SEPARATOR + "OutputFolder"));	// This line has been added
