@@ -25,6 +25,7 @@ to run the last two targets you need an account on dev.eclipse.org
 <!-- visualiser version is set separately by the visualiser plugin itself, must be copied into here when
      new update site is being constructed -->
 <property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
+<property name="ajdt.version.file" location="ajdtbuildversion.txt" /> <!-- set by CruiseControl -->
 <property name="aspectj.feature.version" value="1.2.0.${cctimestamp}" />
 <property name="ajdt.version" value="1.2.0.${cctimestamp}" />
 <property name="ajde.version" value="1.5.0.${cctimestamp}" />
@@ -43,6 +44,9 @@ Creates an update site structure for AspectJ
   <mkdir dir="dist"/>
   <mkdir dir="fpack_dist"/>
   <delete file="ajdt_${aspectj.feature.version}_archive.zip"/>
+	
+  <!-- write out build id for later use by performance tests -->
+  <echo message="${ajdt.version}" file="${ajdt.version.file}"/>
 </target>
 
 <target name="clean" depends="init" >
