@@ -92,7 +92,7 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
  <copy todir="${build.dir}/icons">
    <fileset dir="icons" />
  </copy>
- <ant antfile="javadoc.xml" />
+	<javadoc destdir="doc/javadoc" access="public" use="true" notree="false" nonavbar="false" noindex="false" splitindex="true" author="true" version="true" nodeprecatedlist="false" nodeprecated="false" packagenames="org.eclipse.contribution.visualiser.markerimpl,org.eclipse.contribution.visualiser.core.resources,org.eclipse.contribution.visualiser.core,org.eclipse.contribution.visualiser.jdtimpl,org.eclipse.contribution.visualiser.interfaces.simpleImpl,org.eclipse.contribution.visualiser.internal.preference,org.eclipse.contribution.visualiser.views,org.eclipse.contribution.visualiser.utils,org.eclipse.contribution.visualiser.interfaces,org.eclipse.contribution.visualiser" sourcepath="src" classpath="${aspectjrt};${classpath.org.eclipse.contribution.visualiser}"/>
  <copy todir="${build.dir}/doc">
    <fileset dir="doc" />
  </copy>
