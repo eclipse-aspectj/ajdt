@@ -120,6 +120,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 	private Button instPertargetButton;
 	private Button instPercflowButton;
 	private Button instPercflowbelowButton;
+	private Button instPertypewithinButton;
 	
 	private Label packageLabel;
 	private List interfaceList;
@@ -419,7 +420,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		GridLayout igl = new GridLayout();
 		igl.marginWidth = 0;
 		igl.marginHeight = 0;
-		igl.numColumns = 5;
+		igl.numColumns = 3;
 		instComposite.setLayout(igl);
 
 		instSingletonButton = new Button(instComposite, SWT.RADIO);
@@ -446,6 +447,11 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		instPercflowbelowButton.setEnabled(false);
 		instPercflowbelowButton.setSelection(false);
 		instPercflowbelowButton.setText("percflowbelow"); //$NON-NLS-1$
+
+		instPertypewithinButton = new Button(instComposite, SWT.RADIO);
+		instPertypewithinButton.setEnabled(false);
+		instPertypewithinButton.setSelection(false);
+		instPertypewithinButton.setText("pertypewithin"); //$NON-NLS-1$
 
 		NewAspectUtils.createBlank(composite);
 		
@@ -810,6 +816,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 			instPertargetButton.setEnabled(iset);
 			instPercflowButton.setEnabled(iset);
 			instPercflowbelowButton.setEnabled(iset);
+			instPertypewithinButton.setEnabled(iset);
 		} else if (event.widget == supertypeBrowseButton) {
 			chooseSuperType();
 		}
@@ -1232,7 +1239,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		try {
 			String imp = imports.getImports();
-			String typeComment = imp + lineDelimiter + getTypeComment(cu);
+			String typeComment = imp + getTypeComment(cu);
 			String content = CodeGeneration.getCompilationUnitContent(cu,
 					typeComment, typeContent, lineDelimiter);
 			return content;
@@ -1319,6 +1326,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				s = "percflow(pointcut_name()) "; //$NON-NLS-1$
 			} else if (instPercflowbelowButton.getSelection()) {
 				s = "percflowbelow(pointcut_name()) "; //$NON-NLS-1$
+			} else if (instPertypewithinButton.getSelection()) {
+				s = "pertypewithin(type_pattern) "; //$NON-NLS-1$
 			}
 		}
 		return s;
