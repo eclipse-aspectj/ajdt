@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -67,6 +68,10 @@ public class AJDTEventTrace {
 		StringBuffer eventData = new StringBuffer( );
 		eventData.append( "\tAJDT version: " );
 		eventData.append( AspectJUIPlugin.VERSION );
+		
+		eventData.append( "\n\tThis AJDT build is for Eclipse ");
+		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION);
+		
 		eventData.append( "\n\tAspectJ Compiler version: " );
 		eventData.append( Ajde.getDefault().getVersion() );
 		
