@@ -235,7 +235,7 @@ public class XReferenceInplaceDialog {
 		dialogShell.addShellListener(new ShellAdapter() {
 			public void shellClosed(ShellEvent event) {
 				event.doit = false; // don't close now
-				close();
+				dispose();
 			}
 		});
 
