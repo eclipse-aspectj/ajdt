@@ -18,6 +18,8 @@ import java.util.List;
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
+import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -42,9 +44,11 @@ import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -254,5 +258,69 @@ public class XRefUIUtils {
 			return window.getSelectionService().getSelection();
 		}
 		return null;
-	}	
+	}
+
+	public static TreeObject getTreeObjectForSelection(TreeViewer viewer, ISelection selection, IWorkbenchPart part) {
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			Object first = structuredSelection.getFirstElement();
+			if (first instanceof IJavaElement) {
+				return getTreeObjectForJavaElement(viewer.getTree().getItems(),(IJavaElement)first);
+			} else if (first instanceof TreeObject) {
+				Object data = ((TreeObject)first).getData();
+				if (data instanceof IJavaElement) {
+					return getTreeObjectForJavaElement(viewer.getTree().getItems(),(IJavaElement)data);
+				}
+			}
+		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
+ 		    if (part instanceof JavaEditor) {
+			    JavaEditor je = (JavaEditor)part;
+			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
+			    IJavaElement javaElement = (IJavaElement)sourceRef;
+			    return getTreeObjectForJavaElement(viewer.getTree().getItems(),javaElement);
+            }
+		}
+		return null;
+	}
+	
+	public static TreeObject getTreeObjectForJavaElement(TreeItem[] items, IJavaElement javaElement) {
+		for (int i = 0; i < items.length; i++) {
+			Object o = items[i].getData();
+			TreeParent treeParent = null;
+			TreeObject treeObject = null;
+			if (o instanceof TreeParent) {
+				treeParent = (TreeParent) o;
+			} else if (o instanceof TreeObject) {
+				treeObject = (TreeObject) o;
+			}
+			TreeObject element = null;
+			if (treeParent == null) {
+				element = treeObject;
+			} else {
+				element = treeParent;
+			}
+			
+			if (element != null && element.getData() != null) {
+				if (element.getData().equals(javaElement)) {
+					return element;
+				}
+			}
+			element = getTreeObjectForJavaElement(items[i].getItems(),javaElement);
+			if (element != null)
+				return element;
+		}
+		return null;
+	}
+	
+	public static void setSelection(IWorkbenchPart part, ISelection selection, TreeViewer viewer) {
+		TreeObject o = XRefUIUtils.getTreeObjectForSelection(viewer,selection, part);
+		if (o != null) {
+			viewer.setSelection(new StructuredSelection(o),true);
+			viewer.reveal(o);
+		} else if (selection != null) {
+			viewer.setSelection(selection,true);
+			viewer.reveal(selection);
+		}		
+	}
+	
 }

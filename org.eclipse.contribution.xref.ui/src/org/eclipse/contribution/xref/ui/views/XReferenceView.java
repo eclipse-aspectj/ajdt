@@ -160,6 +160,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 					}
 				}
 				if(sameXRefAdapter) {
+					XRefUIUtils.setSelection(part,selection,viewer);
 					return;
 				}
 			}
@@ -175,7 +176,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 					viewer.setInput((List)o);
 				}
 			}
-			viewer.setSelection(selection,true);
+			XRefUIUtils.setSelection(part,selection,viewer);		
 		}
 	}
 	
@@ -214,10 +215,12 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		showXRefsForFileEnabled = isOn;
 
 		List xraList = null;
+		IWorkbenchPart part = null;
 		if (!linkingEnabled) {
 			// if linking is not enabled then just want to show/hide the cross references
 			// for the file of the contents of the xref view
 			if (lastLinkedSelection != null && lastLinkedWorkbenchPart != null) {
+				part = lastLinkedWorkbenchPart;
 				if (showXRefsForFileEnabled) {
 					xraList = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,true);
 				} else {
@@ -228,6 +231,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			// if linking is enabled, then want to show/hide the cross references
 			// for the file which is open in the active editor
 			if (lastSelection != null && lastWorkbenchPart != null) {
+				part = lastWorkbenchPart;
 				if (showXRefsForFileEnabled) {
 					xraList = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,true);
 				} else {
@@ -238,7 +242,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		if (xraList != null) {
 			ISelection sel = viewer.getSelection();
 			viewer.setInput(xraList);
-			viewer.setSelection(sel,true);
+			XRefUIUtils.setSelection(part,sel,viewer);
 		}		
 	}
 

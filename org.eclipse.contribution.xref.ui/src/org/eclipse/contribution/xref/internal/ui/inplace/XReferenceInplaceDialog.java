@@ -608,7 +608,12 @@ public class XReferenceInplaceDialog {
 				xraList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
 			}
 			if (xraList != null) {
+				ISelection sel = viewer.getSelection();
+				if (sel == null) {
+					sel = lastSelection;
+				}
 				viewer.setInput(xraList);
+				XRefUIUtils.setSelection(workbenchPart, sel,viewer);
 			}
 		}
 		
@@ -1170,7 +1175,7 @@ public class XReferenceInplaceDialog {
 			
 			if (previousXRefAdapterList != null) {
 				viewer.setInput(previousXRefAdapterList);
-				viewer.setSelection(lastSelection,true);
+				XRefUIUtils.setSelection(workbenchPart, lastSelection,viewer);
 			}
 		}
 		filterText.setText(""); //$NON-NLS-1
