@@ -670,12 +670,15 @@ public class AspectsConvertingParser implements TerminalTokens {
 		replacements.add(last + 1, new Replacement(pos, length, text));
 	}
 
-	public static boolean conflictsWithAJEdit(int posAfter,
+	public static boolean conflictsWithAJEdit(int offset, int length,
 			ArrayList replacements) {
 		Replacement ins;
 		for (int i = 0; i < replacements.size(); i++) {
 			ins = (Replacement) replacements.get(i);
-			if ((posAfter > ins.posAfter) && (posAfter < ins.posAfter + ins.length)) {
+			if ((offset >= ins.posAfter) && (offset < ins.posAfter + ins.length)) {
+				return true;
+			}
+			if ((offset < ins.posAfter) && (offset + length > ins.posAfter)) {
 				return true;
 			}
 		}
