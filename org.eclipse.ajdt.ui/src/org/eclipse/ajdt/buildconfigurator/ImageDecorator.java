@@ -12,10 +12,14 @@
 package org.eclipse.ajdt.buildconfigurator;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
+import org.eclipse.ajdt.internal.builder.AJModel;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -36,10 +40,12 @@ import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.TreeHierarchyLayoutProblemsDecorator;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
+import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.internal.WorkbenchPlugin;
@@ -117,10 +123,13 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		}
 		
+		boolean showAdvisedBy = false;
 		Image img = null;
 		//hook for AspectJElements (unrelated to buidconfigurator)
 		//-> TODO: refactor
-		if (element instanceof IAspectJElement) {
+		if (element instanceof AJCodeElement) {
+			img = getImageLabel(iconRegistry.AJ_CODE.getImageDescriptor());
+		} else if (element instanceof IAspectJElement) {
 			try {
 				IAspectJElement ajElem = (IAspectJElement)element;
 				IProgramElement.Accessibility acceb = ajElem.getAJAccessibility();
@@ -195,7 +204,18 @@ public class ImageDecorator implements ILabelDecorator {
 				// problems with package, better don't do anything
 				// can be ignored
 			}
-		} else {
+		} else if (showAdvisedBy && (element instanceof IJavaElement)) {
+			IJavaElement el = (IJavaElement)element;
+			if (el.getElementType() == IJavaElement.METHOD) {
+				boolean isAdvised = AJModel.getInstance().isAdvisedBy(el);
+				//System.out.println(el.getElementName()+" isAdvised="+isAdvised);
+				if (isAdvised) {
+					MyCompositeImageDesc overlay = new MyCompositeImageDesc(image);
+					img = overlay.getImage();
+					return img;
+				}
+			}
+	    } else {
 			return null;
 		}
 		if (img != null){
@@ -212,6 +232,53 @@ public class ImageDecorator implements ILabelDecorator {
 			return img;
 		}
 		return null;
+	}
+	
+	class MyCompositeImageDesc extends CompositeImageDescriptor {
+		private Image baseImage;
+
+		private Point size;
+
+		public MyCompositeImageDesc(Image baseImage) {
+			this.baseImage = baseImage;
+
+			size = new Point(baseImage.getBounds().width,
+					baseImage.getBounds().height);
+			//System.out.println("size=" + size);
+		}
+
+		protected void drawCompositeImage(int width, int height) {
+			// To draw a composite image, the base image should be
+			// drawn first (first layer) and then the overlay image
+			// (second layer)
+
+			// Draw the base image using the base image's image data
+			drawImage(baseImage.getImageData(), 0, 0);
+
+			// Method to create the overlay image data
+			// Get the image data from the Image store or by other means
+			ImageData overlayImageData = AspectJImages.ADVICE_OVERLAY.getImageDescriptor().getImageData();
+				//adviceDescriptor.getImageData();
+
+			// Overlaying the icon in the top left corner i.e. x and y
+			// coordinates are both zero
+			int xValue = 0;
+			int yValue = 0;
+			drawImage(overlayImageData, xValue, yValue);
+		}
+
+		public Image getImage() {
+			return createImage();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.eclipse.jface.resource.CompositeImageDescriptor#getSize()
+		 */
+		protected Point getSize() {
+			return size;
+		}
 	}
 	
 	public static boolean containsIncludedFiles(BuildConfiguration bc, IPackageFragment pack){
