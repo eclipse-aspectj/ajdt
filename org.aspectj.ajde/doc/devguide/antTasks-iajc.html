@@ -43,7 +43,7 @@
 	    <tt>sourceroots</tt> may be specified.
 	    </p><p>Boolean parameters default to <tt>false</tt>
 	    unless otherwise stated.
-	    </p><div class="table"><p><a name="d0e1260"></a><b>Table 2.1. AjcTask (iajc) options for specifying sources</b></p><table summary="AjcTask (iajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
+	    </p><div class="table"><p><a name="d0e1266"></a><b>Table 2.1. AjcTask (iajc) options for specifying sources</b></p><table summary="AjcTask (iajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
 				(<a href="antTasks-iajc.html#antTasks-iajc-paths">Path</a>)
 				</p></td><td><p>
 				An argument file contains a list of arguments read by the compiler. 
@@ -97,7 +97,7 @@
 				but not included in the output.
 				<tt>aspectpath</tt> accepts jar/zip files
 				(but, unlike classpath, not directories).
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1360"></a><b>Table 2.2. AjcTask (iajc) options for specifying output</b></p><table summary="AjcTask (iajc) options for specifying output" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1366"></a><b>Table 2.2. AjcTask (iajc) options for specifying output</b></p><table summary="AjcTask (iajc) options for specifying output" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
 				</p></td><td><p>						
 				The directory in which to place the generated class files. 
 				Only one of <tt>destDir</tt> and 
@@ -122,7 +122,7 @@
 				when using this, most developers pass 
 				<tt>**/CVS/*,**/*.java</tt> to exclude any CVS directories 
 				or source files.
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1414"></a><b>Table 2.3. AjcTask (iajc) options for specifying compiler behavior</b></p><table summary="AjcTask (iajc) options for specifying compiler behavior" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1420"></a><b>Table 2.3. AjcTask (iajc) options for specifying compiler behavior</b></p><table summary="AjcTask (iajc) options for specifying compiler behavior" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
 				</p></td><td><p>						
 				Run process in another VM. 
 				This gets the forking classpath either explicitly
@@ -167,7 +167,7 @@
 				for the <tt>-injars</tt> or <tt>-inpath</tt> option.
 				Usually aspects are compiled normally and put on the
 				<tt>aspectpath</tt>.
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1500"></a><b>Table 2.4. AjcTask (iajc) options for specifying compiler side-effects and messages</b></p><table summary="AjcTask (iajc) options for specifying compiler side-effects and messages" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1506"></a><b>Table 2.4. AjcTask (iajc) options for specifying compiler side-effects and messages</b></p><table summary="AjcTask (iajc) options for specifying compiler side-effects and messages" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
 				</p></td><td><p>
 				If true, emit <tt>.ajesym</tt> symbol files for Emacs support.
 				</p></td></tr><tr><td><p>verbose
@@ -211,7 +211,11 @@
 				the task classpath complying with the 
 				<tt>org.aspectj.bridge.IMessageHolder</tt> interface 
 				and having a public no-argument constructor.	
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1602"></a><b>Table 2.5. AjcTask (iajc) options for specifying Eclipse compiler options</b></p><table summary="AjcTask (iajc) options for specifying Eclipse compiler options" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
+				</p></td></tr><tr><td><p>showWeaveInfo
+				</p></td><td><p>			
+				If true, emit weaver messages.
+				Defaults to <tt>false</tt>.
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e1618"></a><b>Table 2.5. AjcTask (iajc) options for specifying Eclipse compiler options</b></p><table summary="AjcTask (iajc) options for specifying Eclipse compiler options" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
 				</p></td><td><p>		
 				 	If true, same as <tt>warn:none</tt>.
 				</p></td></tr><tr><td><p>deprecation
@@ -349,12 +353,12 @@
 
 		</pre><p>
 		Below is script with most everything in it. The compile process...
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e1825"></a>Runs in incremental mode, recompiling when the user hits return;
-	        </p></li><li><p><a name="d0e1828"></a>Reads all the sources from two directories;
-	        </p></li><li><p><a name="d0e1831"></a>Reads extrinsic module bytecode as input jar for weaving;
-	        </p></li><li><p><a name="d0e1834"></a>Uses a binary aspect library for persistence;
-	        </p></li><li><p><a name="d0e1837"></a>Outputs to an application jar; and
-	        </p></li><li><p><a name="d0e1840"></a>Copies resources from the input jar and source directories into the application jar.
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e1841"></a>Runs in incremental mode, recompiling when the user hits return;
+	        </p></li><li><p><a name="d0e1844"></a>Reads all the sources from two directories;
+	        </p></li><li><p><a name="d0e1847"></a>Reads extrinsic module bytecode as input jar for weaving;
+	        </p></li><li><p><a name="d0e1850"></a>Uses a binary aspect library for persistence;
+	        </p></li><li><p><a name="d0e1853"></a>Outputs to an application jar; and
+	        </p></li><li><p><a name="d0e1856"></a>Copies resources from the input jar and source directories into the application jar.
 	        </p></li></ol></div><p>
 		When this target is built, the compiler will build once and then 
 		wait for input from the user. 
@@ -417,7 +421,7 @@
 		When using this technique, be careful to verify that binary
 		input jars are themselves up-to-date after they would have been
 		modified by any build commands.
-		</p></div><div class="sect2"><a name="d0e1862"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1862"></a>Programmatically handling compiler messages</h3></div></div><p>
+		</p></div><div class="sect2"><a name="d0e1878"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1878"></a>Programmatically handling compiler messages</h3></div></div><p>
 	Users may specify a message holder to which the compiler will pass 
 	all messages as they are generated. This will override all of the 
 	normal message printing, but does not prevent the task from failing 

@@ -155,26 +155,27 @@
             Specify custom encoding on a per file basis by suffixing
 			each input source file/folder name with '[encoding]'.
         </p></dd><dt><a name="d0e336"></a><span class="term">-verbose</span></dt><dd><p><a name="d0e339"></a>Emit messages about accessed/processed compilation units 
-        </p></dd><dt><a name="d0e342"></a><span class="term">-log <i><tt>file</tt></i></span></dt><dd><p><a name="d0e347"></a>Specify a log file for compiler messages.
-        </p></dd><dt><a name="d0e350"></a><span class="term">-progress</span></dt><dd><p><a name="d0e353"></a>Show progress (requires -log mode).
-        </p></dd><dt><a name="d0e356"></a><span class="term">-time</span></dt><dd><p><a name="d0e359"></a>Display speed information.
-        </p></dd><dt><a name="d0e362"></a><span class="term">-noExit</span></dt><dd><p><a name="d0e365"></a>Do not call System.exit(n) at end of compilation
+        </p></dd><dt><a name="d0e342"></a><span class="term">-showWeaveInfo</span></dt><dd><p><a name="d0e345"></a>Emit messages about weaving 
+        </p></dd><dt><a name="d0e348"></a><span class="term">-log <i><tt>file</tt></i></span></dt><dd><p><a name="d0e353"></a>Specify a log file for compiler messages.
+        </p></dd><dt><a name="d0e356"></a><span class="term">-progress</span></dt><dd><p><a name="d0e359"></a>Show progress (requires -log mode).
+        </p></dd><dt><a name="d0e362"></a><span class="term">-time</span></dt><dd><p><a name="d0e365"></a>Display speed information.
+        </p></dd><dt><a name="d0e368"></a><span class="term">-noExit</span></dt><dd><p><a name="d0e371"></a>Do not call System.exit(n) at end of compilation
 			(n=0 if no error)
-        </p></dd><dt><a name="d0e368"></a><span class="term">-repeat <i><tt>N</tt></i></span></dt><dd><p><a name="d0e373"></a>Repeat compilation process N times 
+        </p></dd><dt><a name="d0e374"></a><span class="term">-repeat <i><tt>N</tt></i></span></dt><dd><p><a name="d0e379"></a>Repeat compilation process N times 
         (typically to do performance analysis).
-        </p></dd><dt><a name="d0e376"></a><span class="term">-Xnoweave</span></dt><dd><p><a name="d0e379"></a>(Experimental) produce unwoven class files
+        </p></dd><dt><a name="d0e382"></a><span class="term">-Xnoweave</span></dt><dd><p><a name="d0e385"></a>(Experimental) produce unwoven class files
         for input using -injars.
-        </p></dd><dt><a name="d0e382"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e385"></a>(Experimental) runs weaver in reweavable mode which causes
+        </p></dd><dt><a name="d0e388"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e391"></a>(Experimental) runs weaver in reweavable mode which causes
         it to create woven classes that can be rewoven, subject to the restriction that
         on attempting a reweave all the types that advised the woven type must be accessible.
-        </p></dd><dt><a name="d0e388"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e391"></a>(Experimental) do not inline around advice
-        </p></dd><dt><a name="d0e394"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e399"></a>(Experimental) This works like incremental mode, 
+        </p></dd><dt><a name="d0e394"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e397"></a>(Experimental) do not inline around advice
+        </p></dd><dt><a name="d0e400"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e405"></a>(Experimental) This works like incremental mode, 
         but using a file rather than standard input to control the compiler.  
         It will recompile each time file is changed and
         and halt when file is deleted.
-        </p></dd><dt><a name="d0e402"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e405"></a>(Experimental) Normally it is an error to declare
+        </p></dd><dt><a name="d0e408"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e411"></a>(Experimental) Normally it is an error to declare
         aspects Serializable.  This option removes that restriction.
-        </p></dd></dl></div></div><div class="refsect2"><a name="d0e408"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
+        </p></dd></dl></div></div><div class="refsect2"><a name="d0e414"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
     extension or the <tt>.aj</tt> extension.  We normally use
     <tt>.java</tt> for all of our files in an AspectJ system -- files
     that contain aspects as well as files that contain classes.  However, if
@@ -184,21 +185,21 @@
     naming conventions or sub-packages in favor of the <tt>.aj</tt>
     extension.</p><p>
     
-    <div class="itemizedlist"><ul><li><a name="d0e433"></a>Filename conventions are hard to enforce and lead to awkward names
+    <div class="itemizedlist"><ul><li><a name="d0e439"></a>Filename conventions are hard to enforce and lead to awkward names
     for your aspects.  Instead of <tt>TracingAspect.java</tt> we
     recommend using <tt>Tracing.aj</tt> (or just
-    <tt>Tracing.java</tt>) instead.</li><li><a name="d0e444"></a>Sub-packages move aspects out of their natural place in a system
+    <tt>Tracing.java</tt>) instead.</li><li><a name="d0e450"></a>Sub-packages move aspects out of their natural place in a system
     and can create an artificial need for privileged aspects.  Instead of
     adding a sub-package like <tt>aspects</tt> we recommend using the
     <tt>.aj</tt> extension and including these files in your existing
     packages instead.</li></ul></div>
-    </p></div><div class="refsect2"><a name="d0e453"></a><h3>Compatibility</h3><p>
+    </p></div><div class="refsect2"><a name="d0e459"></a><h3>Compatibility</h3><p>
         AspectJ is a compatible extension to the Java programming language. The
         AspectJ compiler adheres to the <a href="http://java.sun.com/docs/books/jls/index.html" target="_top"> <i>The Java Language Specfication, Second
         Edition</i></a> and to the <a href="http://java.sun.com/docs/books/vmspec/index.html" target="_top"><i>The Java Virtual Machine Specification, Second
         Edition</i></a> and runs on any Java 2 compatible
         platform. The code it generates runs on any Java 1.1 or later
-        compatible platform.</p></div><div class="refsect2"><a name="d0e467"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
+        compatible platform.</p></div><div class="refsect2"><a name="d0e473"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
         ajc HelloWorld.java Trace.java
         </pre></div><div class="example"><p><a name="exampleusingargfile"></a><b>Example 2. An example using -argfile/@</b></p><p>
           To avoid specifying file names on the command line, 
@@ -225,8 +226,8 @@ ajc @sources.lst</pre></p>
         Argfiles are also supported by jikes and javac, so you 
         can use the files in hybrid builds.  However, the support varies:
         </p><p>
-	    <div class="itemizedlist"><ul><li><a name="d0e498"></a>Only ajc accepts command-line options</li><li><a name="d0e500"></a>Jikes and Javac do not accept internal @argfile references.
-              </li><li><a name="d0e502"></a>Jikes and Javac only accept the @file form on the command line.</li></ul></div>
+	    <div class="itemizedlist"><ul><li><a name="d0e504"></a>Only ajc accepts command-line options</li><li><a name="d0e506"></a>Jikes and Javac do not accept internal @argfile references.
+              </li><li><a name="d0e508"></a>Jikes and Javac only accept the @file form on the command line.</li></ul></div>
         </p></div><div class="example"><p><a name="examplebytecode"></a><b>Example 3. An example using -injars and -aspectpath</b></p><p>Bytecode weaving using -injars:
           AspectJ 1.1 supports weaving from input zip or jar files containing 
           class files.  Using input jars is like compiling the corresponding 
@@ -302,7 +303,7 @@ commands to your environment as needed.
         </pre></p>
 
 </p><p>Build the application with tracing from binaries in two steps: 
-    <li><p><a name="d0e547"></a>
+    <li><p><a name="d0e553"></a>
 (a) Build the application classes (using javac for demonstration's sake): 
         <p><pre class="programlisting">
     mkdir classes 
@@ -311,7 +312,7 @@ commands to your environment as needed.
         </pre></p>
 
     </p></li>
-    <li><p><a name="d0e555"></a>
+    <li><p><a name="d0e561"></a>
 (b) Build the application with tracing: 
         <p><pre class="programlisting">
     ajc -injars app.jar -aspectpath tracelib.jar -outjar tracedapp.jar 
@@ -329,16 +330,16 @@ commands to your environment as needed.
         <p><pre class="programlisting">
     java -classpath "app.jar" tracing.ExampleMain
         </pre></p>
-</p></div></div><div class="refsect2"><a name="d0e575"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
+</p></div></div><div class="refsect2"><a name="d0e581"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
         called as a Java class.  The only interface that should be considered
         public are the public methods in <tt>org.aspectj.tools.ajc.Main</tt>.
         E.g., <tt>main(String[] args)</tt> takes the
         the standard <b>ajc</b> command line arguments. 
         This means that an alternative way to run the
-        compiler is </p><div class="cmdsynopsis" id="d0e589"><a name="d0e589"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
+        compiler is </p><div class="cmdsynopsis" id="d0e595"><a name="d0e595"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
          <tt>setHolder(IMessageHolder holder)</tt> and/or
          <tt>run(String[] args, IMessageHolder holder)</tt>.
-      </p></div><div class="refsect2"><a name="d0e607"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
+      </p></div><div class="refsect2"><a name="d0e613"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
             certain cases generate classfiles from multiple source files.
             Unfortunately, the original Java class file format does not support 
             multiple

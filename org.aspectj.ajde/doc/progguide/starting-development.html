@@ -170,7 +170,7 @@ aspect PointBoundsChecking {
         elements. Enforcing this constraint ensures that no figure element
         is added to the registry more than once.
       </p><pre class="programlisting">
-static aspect RegistrationProtection {
+aspect RegistrationProtection {
 
     pointcut register(): call(void Registry.register(FigureElement));
 
@@ -196,7 +196,7 @@ static aspect RegistrationProtection {
         form, we can have the <span class="emphasis"><i>compiler</i></span> signal the
         error.
       </p><pre class="programlisting">
-static aspect RegistrationProtection {
+aspect RegistrationProtection {
 
     pointcut register(): call(void Registry.register(FigureElement));
     pointcut canRegister(): withincode(static * FigureElement.make*(..));

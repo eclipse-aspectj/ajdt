@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>Appendix C. Implementation Notes</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="index.html" title="The AspectJTM Programming Guide"><link rel="previous" href="semantics-aspects.html" title="Aspects"><link rel="next" href="apcs02.html" title="Bytecode Notes"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix C. Implementation Notes</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="semantics-aspects.html">Prev</a>&nbsp;</td><th width="60%" align="center">&nbsp;</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="apcs02.html">Next</a></td></tr></table><hr></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="implementation"></a>Appendix C. Implementation Notes</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="implementation.html#d0e6832">Compiler Notes</a></dt><dt><a href="apcs02.html">Bytecode Notes</a></dt><dd><dl><dt><a href="apcs02.html#d0e6901">The .class expression and String +</a></dt><dt><a href="apcs02.html#d0e6932">The Handler join point</a></dt><dt><a href="apcs02.html#d0e6977">Initializers and Inter-type Constructors</a></dt></dl></dd></dl></div><div class="sect1"><a name="d0e6832"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e6832"></a>Compiler Notes</h2></div></div><p> 
+   <title>Appendix C. Implementation Notes</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="index.html" title="The AspectJTM Programming Guide"><link rel="previous" href="semantics-aspects.html" title="Aspects"><link rel="next" href="apcs02.html" title="Bytecode Notes"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix C. Implementation Notes</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="semantics-aspects.html">Prev</a>&nbsp;</td><th width="60%" align="center">&nbsp;</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="apcs02.html">Next</a></td></tr></table><hr></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="implementation"></a>Appendix C. Implementation Notes</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="implementation.html#d0e7144">Compiler Notes</a></dt><dt><a href="apcs02.html">Bytecode Notes</a></dt><dd><dl><dt><a href="apcs02.html#d0e7215">The .class expression and String +</a></dt><dt><a href="apcs02.html#d0e7246">The Handler join point</a></dt><dt><a href="apcs02.html#d0e7291">Initializers and Inter-type Constructors</a></dt></dl></dd></dl></div><div class="sect1"><a name="d0e7144"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7144"></a>Compiler Notes</h2></div></div><p> 
     The initial implementations of AspectJ have all been
     compiler-based implementations.  Certain elements of AspectJ's
     semantics are difficult to implement without making modifications
@@ -83,9 +83,21 @@
   	do not have a superclass that implements the interface).
   	You may weave these separately, but be aware that you will get
   	runtime exceptions if you run the affected top-level classes
-  	without the interface as produced by the same ajc implementation.
+  	without the interface as produced by the same ajc implementation.  	
+  	Any intertype declaration of an abstract method on an interface 
+  	must be specified as public, you will get a compile time error 
+  	message indicating this is a compiler limitation if you do not 
+  	specify public.  A non-abstract method declared on an interface
+  	can use any access modifier except protected.  Note that this is
+  	different to normal Java rules where all members declared in 
+  	an interface are implicitly public.
   	Finally, note that one cannot define static fields or methods 
   	on interfaces.
+  </p><p>
+	When declaring methods on target types, only methods declared 
+	public are recognizable in the bytecode, so methods must be 
+	declared public to be overridden in any subtype or to be called 
+	from code in a later compile using the target type as a library.
   </p><p>
     Other AspectJ implementations, indeed, future versions of ajc, may
     define <span class="emphasis"><i>code the implementation controls</i></span> more
