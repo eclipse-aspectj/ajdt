@@ -53,10 +53,14 @@ public class ClasspathExtractor implements IPlatformRunnable {
 
 		ensureProjectsExist(root);
 		
-		// first make sure all resources are in sync
+		// first make sure all projects are open and in sync
 		IProject[] projects = root.getProjects();
 		for (int i = 0; i < projects.length; i++) {
 			System.out.println("project["+i+"]="+projects[i]);
+			if (!projects[i].isOpen()) {
+				System.out.println("not open, opening");
+				projects[i].open(null);
+			}
 			if (projects[i].isAccessible()
 				&& projects[i].hasNature(JavaCore.NATURE_ID)) {
 				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -85,6 +89,8 @@ public class ClasspathExtractor implements IPlatformRunnable {
 						writer.write("classpath."+name+"="+cp);
 						writer.newLine();
 					}
+				} else {
+					System.out.println("skipping project: "+name);
 				}
 			}
 		}
@@ -295,7 +301,7 @@ public class ClasspathExtractor implements IPlatformRunnable {
 				IProject project = root.getProject(contents[i].getName());
 				if (!project.exists()) {
 					System.out.println("project " + contents[i].getName()
-							+ "doesn't exist, creating");
+							+ " doesn't exist, creating");
 					try {
 						project.create(null);
 					} catch (CoreException e) {
