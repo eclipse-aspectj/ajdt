@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Luzius Meisser - initial implementation
+ * 	   Sian January - updated for new build configuration wizard
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
 
@@ -42,6 +43,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 
 /**
  * @author Luzius Meisser
@@ -184,13 +189,21 @@ public class BuildConfiguration implements Cloneable,
 
 			fileList = new HashSet();
 			addLStFileContentsToFileList(lstFile2);
-			this.propertiesFile = new BuildProperties(this
-					.getFileFromName(name), minimizeIncludes(fileList));
+			IFile newFile = getFileFromName(name);
+			this.propertiesFile = new BuildProperties(newFile, minimizeIncludes(fileList));
 			pbc.addBuildConfiguration(this);
-			if (md.isChecked()){
+			if (md.isActivateChecked()){
 				pbc.setActiveBuildConfiguration(this);
 			}
-
+			if (md.isOpenInEditorChecked()) {
+				IWorkbenchWindow dwindow = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
+				IWorkbenchPage page = dwindow.getActivePage();
+				if (page != null) 
+					try {
+						IDE.openEditor(page, newFile, true);
+					}
+					catch (PartInitException pie) {}
+			}
 		}
 	}
 
@@ -294,7 +307,7 @@ public class BuildConfiguration implements Cloneable,
 	}
 
 	//creates new BuildConfiguration and askes user for name
-	public BuildConfiguration(ProjectBuildConfigurator pbc, Shell parentShell)
+	public BuildConfiguration(final ProjectBuildConfigurator pbc, Shell parentShell)
 			throws BuildConfigurationCreationException {
 		this.pbc = pbc;
 
@@ -302,24 +315,29 @@ public class BuildConfiguration implements Cloneable,
 				.getResourceString("BCDialog.SaveBuildConfigurationAs.title"); //$NON-NLS-1$
 		String msg = AspectJUIPlugin
 				.getResourceString("BCDialog.SaveBuildConfigurationAs.message"); //$NON-NLS-1$
-		String def = AspectJUIPlugin
-				.getResourceString("BCDialog.SaveBuildConfigurationAs.default"); //$NON-NLS-1$
+		String fileName = BuildConfigurator.getFreeFileName(pbc.getJavaProject().getProject());
 
 		BuildConfiguration origBC = pbc.getActiveBuildConfiguration();
-
-		final String forbiddenName = origBC.getName();
+//
+//		final String forbiddenName = origBC.getName();
 		IInputValidator validator = new IInputValidator() {
 			public String isValid(String input) {
-				if (forbiddenName.equals(input)
-						|| (forbiddenName + "." + BuildConfiguration.EXTENSION) //$NON-NLS-1$
-								.equals(input))
-					return AspectJUIPlugin
-							.getResourceString("BCDialog.NameValidator.ExistsError"); //$NON-NLS-1$
-				return null;
+				IFile[] files = pbc.getConfigurationFiles();
+				for (int i = 0; i < files.length; i++) {
+					IFile file = files[i];
+					String name = files[i].getName();
+					if (file.getName().equals(input)
+							|| file.getName()  //$NON-NLS-1$
+									.equals(input + "." + BuildConfiguration.EXTENSION)) {
+						return AspectJUIPlugin
+								.getResourceString("BCDialog.NameValidator.ExistsError"); //$NON-NLS-1$
+					}
+				}
+				return null;				
 			}
 		};
 
-		InputDialogWithCheck md = new InputDialogWithCheck(parentShell, title, msg, def,
+		InputDialogWithCheck md = new InputDialogWithCheck(parentShell, title, msg, fileName,
 				validator);
 		md.setBlockOnOpen(true);
 		if (md.open() == Window.OK) {
@@ -350,9 +368,18 @@ public class BuildConfiguration implements Cloneable,
 				}
 				fileList = new HashSet(propertiesFile.getFiles(false));
 				pbc.addBuildConfiguration(this);
-				if (md.isChecked())
-					pbc.setActiveBuildConfiguration(this);	
-				
+				if (md.isActivateChecked()) {
+					pbc.setActiveBuildConfiguration(this);
+				}
+				if (md.isOpenInEditorChecked()) {
+					IWorkbenchWindow dwindow = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
+					IWorkbenchPage page = dwindow.getActivePage();
+					if (page != null) 
+						try {
+							IDE.openEditor(page,newFile,true);
+						}
+						catch (PartInitException pie) {}
+				}
 			} else {
 				throw new BuildConfigurationCreationException();
 			}
@@ -364,16 +391,12 @@ public class BuildConfiguration implements Cloneable,
 	 * @param name
 	 * @param pbc
 	 */
-	public BuildConfiguration (IFile fileToUse, ProjectBuildConfigurator pbc, boolean makeActive, boolean selectAll) {
+	public BuildConfiguration (IFile fileToUse, ProjectBuildConfigurator pbc, boolean makeActive) {
 		this.pbc = pbc;
 		name = getNameFromFile(fileToUse);
 		IProject project = fileToUse.getProject();
-		if(!selectAll) {
-			fileList = new HashSet();
-		} else {
-			fileList = BuildConfigurator.getBuildConfigurator()
+		fileList = BuildConfigurator.getBuildConfigurator()
 				.getInitialFileList();
-		}
 		if(fileList != null) {
 			propertiesFile = new BuildProperties(
 				fileToUse, new ArrayList(getFileList()));
@@ -639,8 +662,10 @@ public class BuildConfiguration implements Cloneable,
 	}
 	
 	private class InputDialogWithCheck extends InputDialog {
-		private Button check;
-		private boolean selected;
+		private Button activateCheckbox;
+		private Button openInEditorCheckbox;
+		private boolean activateSelected;
+		private boolean openInEditorSelected;
 		
 		/**
 		 * @param parentShell
@@ -655,23 +680,32 @@ public class BuildConfiguration implements Cloneable,
 		
 		protected Control createDialogArea(Composite parent) {
 			Composite composite = (Composite) super.createDialogArea(parent);
-			check = new Button(composite, SWT.CHECK);
-			check.setSelection(true);
-			check.setText(AspectJUIPlugin
-					.getResourceString("BCDialog.Activate.check")); //$NON-NLS-1$
+			openInEditorCheckbox = new Button(composite, SWT.CHECK);
+			openInEditorCheckbox.setSelection(true);
+			openInEditorCheckbox.setText(AspectJUIPlugin
+					.getResourceString("BuildConfig.openForEdit")); //$NON-NLS-1$	
+			activateCheckbox = new Button(composite, SWT.CHECK);
+			activateCheckbox.setSelection(true);
+			activateCheckbox.setText(AspectJUIPlugin
+					.getResourceString("BuildConfig.activate")); //$NON-NLS-1$
 			return composite;
 		}
 		
 		protected void okPressed() {
-			selected = check.getSelection();
+			activateSelected = activateCheckbox.getSelection();
+			openInEditorSelected = openInEditorCheckbox.getSelection();
 			super.okPressed();
 		}
 		/**
 		 * Is the checkbox selected?
 		 * @return
 		 */
-		public boolean isChecked() {
-			return selected;
+		public boolean isActivateChecked() {
+			return activateSelected;
+		}
+		
+		public boolean isOpenInEditorChecked() {
+			return openInEditorSelected;
 		}
 	}
 }

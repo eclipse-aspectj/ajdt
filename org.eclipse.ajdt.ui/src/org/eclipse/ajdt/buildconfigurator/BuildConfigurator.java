@@ -17,10 +17,12 @@ import java.util.Vector;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -312,8 +314,29 @@ public class BuildConfigurator implements ISelectionListener {
 		} catch (CoreException e) {
 		}
 	}
-	
 
+	/**
+	 * Get a new filename for the given project.  Returns the name without the file extension.
+	 * @param project
+	 * @return a string that is NOT the name of a current build configuration in the project
+	 */
+	public static String getFreeFileName(IProject project) {
+		String defaultFileName = AspectJUIPlugin.getResourceString("BCDialog.SaveBuildConfigurationAs.default"); //$NON-NLS-1$
 	
+		int counter = 0;
+		if(project != null) {
+			boolean foundFreeName = false;
+			while (!foundFreeName) {
+				String name = counter==0 ? defaultFileName : defaultFileName+counter;
+				IPath path = project.getFullPath().append(name + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$
+				if(!AspectJPlugin.getWorkspace().getRoot().getFile(path).exists()) {
+					foundFreeName = true;
+				} else {
+					counter++;
+				}
+			}
+		}
+		return counter==0 ? defaultFileName : defaultFileName+counter;
+	}	
 	
 }

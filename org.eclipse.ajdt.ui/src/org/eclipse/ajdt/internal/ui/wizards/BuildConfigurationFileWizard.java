@@ -11,7 +11,12 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 package org.eclipse.ajdt.internal.ui.wizards;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
@@ -41,12 +46,30 @@ public class BuildConfigurationFileWizard
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.workbench = workbench;
-		this.selection = selection;
+		if(selection instanceof StructuredSelection) {
+			if(((StructuredSelection)selection).size() > 0) {
+				Object firstObject = ((StructuredSelection)selection).getFirstElement();
+				if(firstObject instanceof IResource) {
+					IProject project = ((IResource)firstObject).getProject();
+					StructuredSelection newSelection = new StructuredSelection(project);
+					this.selection = newSelection;
+				} else if(firstObject instanceof IJavaElement) {
+					IJavaProject project = ((IJavaElement)firstObject).getJavaProject();
+					StructuredSelection newSelection = new StructuredSelection(project);
+					this.selection = newSelection;
+				}
+			}
+		}
+		if(this.selection == null) {
+			this.selection = selection;
+		}
 		setWindowTitle( AspectJUIPlugin.getResourceString( "newConfig" ) ); 
 		//setDefaultPageImageDescriptor( AspectJImages.getImageDescriptor( AspectJImages.FILE_LST ) );
 	}
+
+	
 	/** 
-	 * Complete generation of the .lst file.
+	 * Complete generation of the build configuration file.
 	 */
 	public boolean performFinish() {
 		return mainPage.finish();

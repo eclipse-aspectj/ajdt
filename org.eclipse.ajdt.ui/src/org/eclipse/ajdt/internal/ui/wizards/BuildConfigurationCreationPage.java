@@ -18,10 +18,16 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -47,8 +53,9 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	private Button makeActiveCheckbox;
 
 	// constants
-	private static int nameCounter = 1;
 	
+	private IStructuredSelection selection;
+		
 	
 	/**
 	 * Creates the page for the build configuration file creation wizard.
@@ -63,6 +70,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		this.setTitle( AspectJUIPlugin.getResourceString( "BuildConfig.createLstFile" ) ); 
 		this.setDescription( AspectJUIPlugin.getResourceString( "BuildConfig.createLstDesc" ) );
 		this.workbench = workbench;
+		this.selection = selection;
 	}
 	
 	/**
@@ -76,25 +84,12 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
         //ASCFIXME: Add help!
 		//WorkbenchHelp.setHelp(composite, new String[] {IReadmeConstants.CREATION_WIZARD_PAGE_CONTEXT});
 
-		//ASCFIXME: What happens to name counter after workbench restart???		
-		this.setFileName("buildConfig" + nameCounter + "." + BuildConfiguration.EXTENSION);
-
-//		new Label(composite, SWT.NONE); // vertical spacer
-
-		// sample section generation checkboxes
-//		includeProjectFilesCheckbox = new Button(composite, SWT.CHECK);
-//		includeProjectFilesCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.includeAllSource" ) );
-//		includeProjectFilesCheckbox.setSelection(true);
-//		includeProjectFilesCheckbox.addListener(SWT.Selection, this);
-//
-//		new Label(composite, SWT.NONE); // vertical spacer
+		this.setFileName(getFreeFileName() + "." + BuildConfiguration.EXTENSION);
 
 		// open file for editing checkbox
 		openFileCheckbox = new Button(composite, SWT.CHECK);
 		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) );
 		openFileCheckbox.setSelection(true);
-		
-//		new Label(composite, SWT.NONE);
 		
 		makeActiveCheckbox = new Button(composite, SWT.CHECK);
 		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) );
@@ -104,7 +99,41 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 
 	}
 	
+	/**
+	 * Get a suitable and unused filename (without file extension)
+	 * @return
+	 */
+	private String getFreeFileName() {
+		IProject project = null;
+		if(selection.size() > 0) {
+			Object element = selection.getFirstElement();
+			if(element instanceof IResource) {
+				project = ((IResource)element).getProject(); 
+			} else if (element instanceof IJavaElement) {
+				project = ((IJavaElement)element).getJavaProject().getProject();
+			}
+		}
+		return BuildConfigurator.getFreeFileName(project);
+	}
+
+	/*
+	 * Override because linking to a file in the file system doesn't make a lot
+	 * of sense in this case
+	 */
+	protected void createAdvancedControls(Composite parent){}
 	
+	/*
+	 * Override because we overrode createAdvancedControls(..) 
+	 */
+	protected IStatus validateLinkedResource() {
+		return new Status(IStatus.OK, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, "", null);
+	}
+	
+	/*
+	 * Override because we overrode createAdvancedControls(..) 
+	 */	
+	protected void createLinkTarget() {}
+
 	/**
 	 * Creates a new file resource as requested by the user. If everything
 	 * is OK then answer true. If not, false will cause the dialog
@@ -126,7 +155,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		// if requested by the user
 		IProject project = newFile.getProject();
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection(), true);
+		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection());
 		try {
 			if (openFileCheckbox.getSelection()) {
 				IWorkbenchWindow dwindow = workbench.getActiveWorkbenchWindow();
@@ -136,101 +165,44 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		} catch (PartInitException e) {
 			return false;
 		} 
-		nameCounter++;
 		AJDTEventTrace.newConfigFileCreated( newFile );
 		return true;
 	}
 	
-	
-	/** 
-	 * The <code>BuildConfigurationCreationPage</code> implementation of this
-	 * <code>WizardNewFileCreationPage</code> method 
-	 * generates includes for all project files if checked.
-	 */
-//	protected InputStream getInitialContents() {
-		
-//		// Check if they wanted to include all project source files in this config file
-//		if (!includeProjectFilesCheckbox.getSelection())
-//			return null;
-//			
-//			
-//		IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
-//		
-//		// Where in the project is the user creating the new configuration file?
-//		String containerFullPath =  this.getContainerFullPath().makeAbsolute().toOSString();
-//		// containerFullPath will be something like \TracingAspects\src\tracing\version3
-//		
-//		java.util.List projectFiles = AspectJUIPlugin.getDefault()
-//				.getAjdtProjectProperties().getProjectSourceFiles(proj,
-//						CoreUtils.ASPECTJ_SOURCE_FILTER);
-//		
-//		// Work out the full path in the file system to the workspace
-//		IPath workspacePath = proj.getLocation();
-//		workspacePath = workspacePath.removeLastSegments(1);
-//		// workspacePath will be something like C:\eclipse\workspace
-//		String fullPath = workspacePath.toOSString() + containerFullPath;
-//		// fullPath will be something like c:\eclipse\workspace\TracingAspects\src\tracing\version3
-//		
-//		StringBuffer sb = new StringBuffer();
-//		for (int i = 0; i < projectFiles.size(); i++) {
-//			
-//			    // Go through all the files in the project.  
-//				File file = (File)projectFiles.get(i);
-//				
-//				// Check the file is within the containerFullPath location or below.
-//				String filename = file.getAbsolutePath();
-//
-//				filename = getRelativePath(fullPath, filename);
-//				sb.append(filename);
-//				sb.append("\n");
-//		}	
-//		return new ByteArrayInputStream(sb.toString().getBytes());
-//	}
-	
-//	//helper function to obtain rel path from source folder to destination file using ../
-//	private String getRelativePath(String source, String dest){
-//		//AJDTEventTrace.generalEvent("\nCreating relative path for\n" + source + "\n" + dest);
-//		source = source.replace('/', '\\');
-//		dest = dest.replace('/', '\\');
-//		
-//		//if on different drive, return absolute path
-//		int isource = source.indexOf('\\');
-//		int idest = dest.indexOf('\\');
-//		if ((idest != isource) || (!source.startsWith(dest.substring(0,idest)))){
-//			return dest;
-//		}
-//		
-//		source = source.substring(isource + 1).concat("\\");
-//		dest = dest.substring(idest + 1);
-//		String relPath = "";
-//		String curfols, curfold;
-//		boolean different = false;
-//		isource = source.indexOf('\\');
-//		idest = dest.indexOf('\\');
-//		while(isource > 0 && idest > 0){
-//			curfols = source.substring(0, isource);
-//			curfold = dest.substring(0, idest);			
-//			if (different || !curfols.equals(curfold)){
-//				different = true;
-//				relPath = "..\\".concat(relPath.concat(curfold + "\\"));
-//			}
-//			source = source.substring(isource + 1);
-//			dest = dest.substring(idest + 1);
-//			isource = source.indexOf('\\');
-//			idest = dest.indexOf('\\');
-//		}
-//		if(idest <= 0){
-//			while (isource > 0){
-//				curfols = source.substring(0, isource);		
-//				relPath = "..\\".concat(relPath);
-//				source = source.substring(isource + 1);
-//				isource = source.indexOf('\\');
-//			}
-//		}
-//		//AJDTEventTrace.generalEvent("Result: " + relPath.concat(dest));
-//		return relPath.concat(dest);
-//	}
 
+	/**
+	 * Validate the page
+	 */
+	protected boolean validatePage() {
+		if(super.validatePage()) {
+			if(!isProjectSelected()) {
+				setErrorMessage(AspectJUIPlugin.getResourceString("BuildConfig.needToSelectProject"));
+				return false;
+			} else {
+				return true;
+			}			
+		} else {
+			return false;
+		}
+	}
+	
+
+	/**
+	 * Test to see whether the selected parent is a project
+	 * @return
+	 */
+	private boolean isProjectSelected() {
+		IPath containerPath = getContainerFullPath();
+		IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < projects.length; i++) {
+			IProject project = projects[i];
+			IPath path = project.getFullPath();
+			if(path.equals(containerPath)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/** (non-Javadoc)
 	 * Method declared on WizardNewFileCreationPage.
