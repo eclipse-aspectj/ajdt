@@ -41,6 +41,7 @@ import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -491,6 +492,7 @@ public class AJCompilationUnitStructureRequestor extends
 			int nameSourceStart, int nameSourceEnd, char[] superclass,
 			char[][] superinterfaces) {
 		TypeInfo ti = new TypeInfo();
+		ti.kind = IGenericType.CLASS_DECL;
 		ti.declarationStart = declarationStart;
 		ti.modifiers = modifiers;
 		ti.name = name;
@@ -498,7 +500,7 @@ public class AJCompilationUnitStructureRequestor extends
 		ti.nameSourceEnd = nameSourceEnd;
 		ti.superclass = superclass;
 		ti.superinterfaces = superinterfaces;
-		super.enterClass(ti);
+		super.enterType(ti);
 	}
 
 	public void enterConstructor(int declarationStart, int modifiers, char[] name,
@@ -532,13 +534,14 @@ public class AJCompilationUnitStructureRequestor extends
 	public void enterInterface(int declarationStart, int modifiers, char[] name,
 			int nameSourceStart, int nameSourceEnd, char[][] superinterfaces) {
 		TypeInfo ti = new TypeInfo();
+		ti.kind = IGenericType.INTERFACE_DECL;
 		ti.declarationStart = declarationStart;
 		ti.modifiers = modifiers;
 		ti.name = name;
 		ti.nameSourceStart = nameSourceStart;
 		ti.nameSourceEnd = nameSourceEnd;
 		ti.superinterfaces = superinterfaces;
-		enterInterface(ti);
+		enterType(ti);
 	}
 
 	public void enterMethod(int declarationStart, int modifiers, char[] returnType,
@@ -558,4 +561,18 @@ public class AJCompilationUnitStructureRequestor extends
 		mi.isConstructor = false;
 		super.enterMethod(mi);
 	}
+	
+	public void exitClass(int declarationEnd) {
+		super.exitMember(declarationEnd);
+	}
+
+	public void exitInterface(int declarationEnd) {
+		super.exitMember(declarationEnd);
+	}
+
+	public void exitMethod(int declarationEnd) {
+		super.exitMember(declarationEnd);
+	}
+
+
 }
