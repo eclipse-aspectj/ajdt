@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
 import org.eclipse.ui.internal.dialogs.RegistryPageContributor;
 
