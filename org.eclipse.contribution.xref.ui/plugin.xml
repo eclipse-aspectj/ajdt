@@ -32,12 +32,13 @@
       <view
             name="Cross References"
             icon="icons/XRefIcon.gif"
-            category="org.eclipse.jdt.ui.java"
+            category="org.eclipse.ajdt.ui.cat"
             class="org.eclipse.contribution.xref.ui.views.XReferenceView"
             id="org.eclipse.contribution.xref.ui.views.XReferenceView">
       </view>
    </extension>
  
+<!-- commenting this out for now.... not contributing a preference page 
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
@@ -46,6 +47,7 @@
             id="org.eclipse.contribution.xref.prefspage">
       </page>
    </extension> 
+   -->
    
 <!--   <extension point = "org.eclipse.ui.actionSets">
 	   <actionSet 

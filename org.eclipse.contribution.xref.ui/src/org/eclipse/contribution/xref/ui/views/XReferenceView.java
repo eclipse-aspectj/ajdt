@@ -130,8 +130,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 				a = (IAdaptable) first;
 			}
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
-		    JavaEditor je = (JavaEditor)part;
-		    a = (IAdaptable)(IJavaElement)computeHighlightRangeSourceReference(je);
+		    if (part instanceof JavaEditor) {
+			    JavaEditor je = (JavaEditor)part;
+			    a = (IAdaptable)(IJavaElement)computeHighlightRangeSourceReference(je);                
+            }
 		}
 		if (a != null) {
 			xra = (IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class);
