@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.core.builder;
 import java.io.File;
 import java.util.ArrayList;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -50,7 +49,6 @@ public class BuildClasspathResolver {
 			try {
 				computeClasspathLocations(root, (JavaProject)javaProject, new SimpleLookupTable());
 			} catch (CoreException e) {
-				AspectJPlugin.logException(e);
 			}
 		}
 		

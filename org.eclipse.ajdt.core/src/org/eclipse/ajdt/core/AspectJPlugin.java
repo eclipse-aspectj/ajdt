@@ -29,7 +29,7 @@ public class AspectJPlugin extends Plugin {
 		super();
 		plugin = this;
 		try {
-			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.AspectJPluginResources");
+			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.resources.AspectJPluginResources");
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}

@@ -26,16 +26,14 @@ public class AJCTask extends JavacTask {
 		if(script instanceof AJAntScript) {
 			AJAntScript ajScript = (AJAntScript)script;
 			Bundle bundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
-			URL url = bundle.getEntry("/");
+			URL url = bundle.getEntry("/"); //$NON-NLS-1$
 			URL resolved;
 			try {
 				resolved = Platform.resolve(url);
 				String AJDELocation = resolved.toExternalForm();
 				ajScript.printProperty("aspectj.plugin.home", AJDELocation);
 			} catch (IOException e) {
-				AspectJPlugin.logException(e);
 			}
-			
 						
 			ajScript.printTab();
 			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">");
