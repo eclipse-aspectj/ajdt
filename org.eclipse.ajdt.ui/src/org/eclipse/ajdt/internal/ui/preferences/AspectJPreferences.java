@@ -148,6 +148,12 @@ public class AspectJPreferences {
 
 	public static final String OPTION_annotationAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.annotationAsTargetForDecpIgnored"; //$NON-NLS-1$
 
+	public static final String OPTION_adviceDidNotMatch = "org.aspectj.ajdt.core.compiler.lint.adviceDidNotMatch"; //$NON-NLS-1$
+
+	public static final String OPTION_invalidTargetForAnnotation = "org.aspectj.ajdt.core.compiler.lint.invalidTargetForAnnotation"; //$NON-NLS-1$
+
+	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
+	
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
 
@@ -187,7 +193,11 @@ public class AspectJPreferences {
 			{ OPTION_cantMatchArrayTypeOnVarargs, "cantMatchArrayTypeOnVarargs" }, //$NON-NLS-1$
 			{ OPTION_enumAsTargetForDecpIgnored, "enumAsTargetForDecpIgnored" }, //$NON-NLS-1$
 			{ OPTION_annotationAsTargetForDecpIgnored,
-					"annotationAsTargetForDecpIgnored" } }; //$NON-NLS-1$
+					"annotationAsTargetForDecpIgnored" }, //$NON-NLS-1$
+			{ OPTION_adviceDidNotMatch, "adviceDidNotMatch" }, //$NON-NLS-1$
+			{ OPTION_invalidTargetForAnnotation, "invalidTargetForAnnotation" }, //$NON-NLS-1$
+			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" } //$NON-NLS-1$
+	};
 
 	// name of the file to write the Xlint options to
 	private static String XlintProperties = "Xlint.properties"; //$NON-NLS-1$
