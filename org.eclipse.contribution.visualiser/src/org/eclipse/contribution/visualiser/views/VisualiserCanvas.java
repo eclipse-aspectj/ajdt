@@ -927,6 +927,9 @@ public class VisualiserCanvas extends Canvas {
 							sg.kindList.add(kg);
 							kg.color = visualiser.getVisMarkupProvider()
 									.getColorFor(kind);
+							if(kg.color == null) {
+								throw new NullPointerException("getColorFor should not return null");
+							}
 							int nw = (((across + 1) * colWidth) / activeKinds)
 									- ((across * colWidth) / activeKinds);
 							Rectangle kindRect = new Rectangle(b.bounds.x + 1
@@ -1094,7 +1097,7 @@ public class VisualiserCanvas extends Canvas {
 		if ((data == null) || (data.size() == 0)) {
 			String empty = ""; //$NON-NLS-1$
 			if (ProviderManager.getCurrent() != null) {
-				empty = ProviderManager.getCurrent().getEmptyMessage();
+				empty = ProviderManager.getCurrent().getEmptyMessage() != null ? ProviderManager.getCurrent().getEmptyMessage() : "";
 			}
 			sgc.drawText(empty, renderer.getMarginSize(), renderer
 					.getMarginSize());

@@ -61,67 +61,69 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 		namesToKinds = new HashMap();
 		resetColours();
 		resetMarkupsAndKinds();
-		for (Iterator iter = groups.iterator(); iter.hasNext();) {
-			IGroup group = (IGroup) iter.next();
-			for (Iterator iter2 = group.getMembers().iterator(); iter2.hasNext();) {
-				IMember member = (IMember)iter2.next();
-				if (member instanceof ResourceMember) {
-					IResource res = ((ResourceMember)member).getResource();
-					try {
-						IMarker[] markers = res.findMarkers(null, true, IResource.DEPTH_INFINITE);
-						for (int i = 0; i < markers.length; i++) {
-							IMarker marker = markers[i];
-							Integer lineNum = (Integer)marker.getAttribute(IMarker.LINE_NUMBER);
-							if (lineNum != null) {
-								int lineNumber = lineNum.intValue();
-								String name = getLabel(marker);
-								if(name == null) {
-									name = marker.getType();
-								}
-//								if (marker.isSubtypeOf(IMarker.PROBLEM)) {
-//									Integer severity = (Integer)marker.getAttribute(IMarker.SEVERITY);
-//									if( severity != null) {
-//										if (severity.intValue() == IMarker.SEVERITY_ERROR) {
-//											name = name + ERROR_SUFFIX;
-//										} else if (severity.intValue() == IMarker.SEVERITY_WARNING) {
-//											name = name + WARNING_SUFFIX;
-//										}
-//									} 
-//								}
-								IMarkupKind kind;
-								if (namesToKinds.get(name) instanceof IMarkupKind) {
-									kind = (IMarkupKind)namesToKinds.get(name);
-								} else {
-									Image image = getImage(marker);
-									images.add(image);
-									kind = new SimpleMarkupKind(name, image);
-									namesToKinds.put(name, kind);
-									addMarkupKind(kind);
-									Color color = getColor(marker);
-									if(color != null) {
-										setColorFor(kind, color);
+		if (groups != null) {
+			for (Iterator iter = groups.iterator(); iter.hasNext();) {
+				IGroup group = (IGroup) iter.next();
+				for (Iterator iter2 = group.getMembers().iterator(); iter2.hasNext();) {
+					IMember member = (IMember)iter2.next();
+					if (member instanceof ResourceMember) {
+						IResource res = ((ResourceMember)member).getResource();
+						try {
+							IMarker[] markers = res.findMarkers(null, true, IResource.DEPTH_INFINITE);
+							for (int i = 0; i < markers.length; i++) {
+								IMarker marker = markers[i];
+								Integer lineNum = (Integer)marker.getAttribute(IMarker.LINE_NUMBER);
+								if (lineNum != null) {
+									int lineNumber = lineNum.intValue();
+									String name = getLabel(marker);
+									if(name == null) {
+										name = marker.getType();
 									}
-								}
-								boolean stripeOnLineAlready = false;
-								List stripes = getMemberMarkups(member);
-								if (stripes != null) {
-									for (Iterator iter3 = stripes.iterator(); iter3.hasNext();) {
-										Stripe stripe = (Stripe) iter3.next();
-										if(stripe.getOffset() == lineNumber) {
-											List kindList = Arrays.asList(new Object[] {kind});
-											stripe.addKinds(kindList);
-											stripeOnLineAlready = true;
+	//								if (marker.isSubtypeOf(IMarker.PROBLEM)) {
+	//									Integer severity = (Integer)marker.getAttribute(IMarker.SEVERITY);
+	//									if( severity != null) {
+	//										if (severity.intValue() == IMarker.SEVERITY_ERROR) {
+	//											name = name + ERROR_SUFFIX;
+	//										} else if (severity.intValue() == IMarker.SEVERITY_WARNING) {
+	//											name = name + WARNING_SUFFIX;
+	//										}
+	//									} 
+	//								}
+									IMarkupKind kind;
+									if (namesToKinds.get(name) instanceof IMarkupKind) {
+										kind = (IMarkupKind)namesToKinds.get(name);
+									} else {
+										Image image = getImage(marker);
+										images.add(image);
+										kind = new SimpleMarkupKind(name, image);
+										namesToKinds.put(name, kind);
+										addMarkupKind(kind);
+										Color color = getColor(marker);
+										if(color != null) {
+											setColorFor(kind, color);
 										}
 									}
-								}
-								if (!stripeOnLineAlready) {
-									Stripe stripe = new StripeWithMarker(kind, lineNumber, marker);
-									addMarkup(member.getFullname(), stripe);
+									boolean stripeOnLineAlready = false;
+									List stripes = getMemberMarkups(member);
+									if (stripes != null) {
+										for (Iterator iter3 = stripes.iterator(); iter3.hasNext();) {
+											Stripe stripe = (Stripe) iter3.next();
+											if(stripe.getOffset() == lineNumber) {
+												List kindList = Arrays.asList(new Object[] {kind});
+												stripe.addKinds(kindList);
+												stripeOnLineAlready = true;
+											}
+										}
+									}
+									if (!stripeOnLineAlready) {
+										Stripe stripe = new StripeWithMarker(kind, lineNumber, marker);
+										addMarkup(member.getFullname(), stripe);
+									}
 								}
 							}
+						} catch (CoreException e) {
+							e.printStackTrace();
 						}
-					} catch (CoreException e) {
-						e.printStackTrace();
 					}
 				}
 			}

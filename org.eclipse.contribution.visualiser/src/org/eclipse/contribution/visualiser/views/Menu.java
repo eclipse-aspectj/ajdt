@@ -353,6 +353,9 @@ public class Menu extends ViewPart {
 			if(element.showInMenu()) {
 				int imageSize = 12;
 				colors[i] = vmp.getColorFor(element);
+				if(colors[i] == null) {
+					throw new NullPointerException("getColorFor(..) should not return null");
+				}
 				buttons[i] = new Button(canvas, SWT.PUSH);
 				shells[i] = buttons[i].getShell();
 				colorDialogs[i] = new ColorDialog(shells[i]);
