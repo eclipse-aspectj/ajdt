@@ -489,7 +489,7 @@ public class AspectJUIPlugin
 		try {
 			resourceBundle =
 				ResourceBundle.getBundle(
-					"org.eclipse.ajdt.internal.core.resources.AspectJPluginResources");
+					"org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources");
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}		
