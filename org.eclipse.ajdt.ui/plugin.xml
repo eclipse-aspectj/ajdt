@@ -109,6 +109,51 @@
                menubarPath="additions"
                id="removeajnatureaction">
          </action>
+      </objectContribution>      
+ 
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.IJavaProject"
+            adaptable="true"
+            id="iprojectcontributions">
+
+          <visibility>
+         	 <objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
+          </visibility>
+
+          <action
+               label="%convertExt"
+               class="org.eclipse.ajdt.ui.refactoring.RenameFileExtensionsAction"
+               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
+               id="renameaction"
+               enablesFor="1">
+         </action>
+      </objectContribution>
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.ICompilationUnit"
+            adaptable="true"
+            id="ifilecontributions"
+            nameFilter="*.java">
+          <filter
+               name="projectNature"
+               value="org.eclipse.ajdt.ui.ajnature">
+          </filter>
+          <action
+               label="%convertExtToAJ"
+               class="org.eclipse.ajdt.ui.refactoring.RenameToAJAction"
+               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
+               id="renametoajaction">
+         </action>
+      </objectContribution>
+      <objectContribution
+            objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
+            adaptable="true"
+            id="ifilecontributions"> 
+          <action
+               label="%convertExtToJava"
+               class="org.eclipse.ajdt.ui.refactoring.RenameToJavaAction"
+               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
+               id="renametojavaaction">
+         </action>
       </objectContribution>
    </extension>
 

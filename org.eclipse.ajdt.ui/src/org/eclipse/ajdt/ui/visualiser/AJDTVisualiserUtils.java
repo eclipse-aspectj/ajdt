@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -43,10 +42,8 @@ import org.eclipse.jdt.core.JavaModelException;
  * Utility method used by the providers for the new Visualiser
  */
 public class AJDTVisualiserUtils {
-	
-	private static IProject project;
-	private static Object lastLoadedConfigFile;
 
+	private static IProject project;
 
 	/**
 	 * This method returns a list of Maps 
@@ -254,7 +251,7 @@ public class AJDTVisualiserUtils {
 	
 		project = JP.getProject();
 	
-		initialiseAJDE();
+		StructureModelUtil.initialiseAJDE(project);
 	
 		List packages = StructureModelUtil.getPackagesInModel();
 	
@@ -276,19 +273,7 @@ public class AJDTVisualiserUtils {
 	}
 
 
-	/**
-	 * This method sets the current project and initialises AJDE
-	 */
-	private static void initialiseAJDE() {
 	
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
-		if (!configFile.equals(lastLoadedConfigFile)) {
-			AJDTEventTrace.generalEvent("initialiseAJDE: switching configs - from:"+lastLoadedConfigFile+" to:"+configFile);
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-				configFile);
-			lastLoadedConfigFile = configFile;
-		}
-	}
 
 
 	/**
@@ -305,7 +290,7 @@ public class AJDTVisualiserUtils {
 		IJavaProject JP = pf.getJavaProject();
 		project = JP.getProject();
 		LinkedList returningClasses = new LinkedList();	
-		initialiseAJDE();
+		StructureModelUtil.initialiseAJDE(project);
 		
 		try {
 			ICompilationUnit[] packageFragmentChildren = pf.getCompilationUnits();
@@ -427,7 +412,7 @@ public class AJDTVisualiserUtils {
 	
 		project = CU.getJavaProject().getProject();
 	
-		initialiseAJDE();
+		StructureModelUtil.initialiseAJDE(project);
 	
 		LinkedList returningClasses = new LinkedList();
 		List packages = StructureModelUtil.getPackagesInModel();
@@ -514,9 +499,24 @@ public class AJDTVisualiserUtils {
 
 
 	/**
+	 * Helper function sorts a list of resources into alphabetical order
+	 */
+	private static List sortElements(List oldElements) {
+
+		Object[] temp = oldElements.toArray();
+		SortingComparator comparator = new SortingComparator();
+
+		Arrays.sort(temp, comparator);
+
+		List newResources = Arrays.asList(temp);
+
+		return newResources;
+	}
+	
+	/**
 		 * This method changes a set of ProgramElementNodes into a Set of IResources or Strings.
 		 * 
-		 * @param oldset the input set of program element nodes
+		 * @param oldset the input set of lists of program element nodes
 		 * @param stringRepresentation specifies if you want strings or IResources back
 		 * @return a Set of IResources or Strings
 		 */
@@ -551,7 +551,7 @@ public class AJDTVisualiserUtils {
 						.getAjdtProjectProperties()
 						.findResource(
 						path, project);
-
+	
 				  // Did we find it in this project?  If not then look across the workspace
 				  if (resource == null) {
 					resource = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(path);
@@ -563,22 +563,7 @@ public class AJDTVisualiserUtils {
 	
 		return newset;
 	}
-		
-	/**
-	 * Helper function sorts a list of resources into alphabetical order
-	 */
-	private static List sortElements(List oldElements) {
 
-		Object[] temp = oldElements.toArray();
-		SortingComparator comparator = new SortingComparator();
-
-		Arrays.sort(temp, comparator);
-
-		List newResources = Arrays.asList(temp);
-
-		return newResources;
-	}
-	
 	/**
 	 * Compares two ProgramElementNodes by their String names.
 	 */

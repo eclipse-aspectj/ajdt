@@ -46,12 +46,16 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.weaver.AsmRelationshipProvider;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 
 /**
  * Prototype functionality for package view clients.
  */  
 public class StructureModelUtil {
 
+	private static Object lastLoadedConfigFile;
 
 	private static String activeConfigFile = "";
 	 
@@ -74,6 +78,61 @@ public class StructureModelUtil {
 	 */
 	public static Map getLinesToAspectMap(String sourceFilePath) {
 		return getLinesToAspectMap(sourceFilePath,false);
+	}
+	
+	
+	/**
+	 * Get all the files conatining aspects that are included in the current build for a 
+	 * project, even those that do not advise any classes.
+	 * @param jp - the project
+	 * @param returnIResources - if true IResources are returned, otherwise IProgramElements are
+	 * @return Set of all aspects in the project
+	 */
+	public static Set getAllAspects(IProject project, boolean returnIResources) {
+		Set aspects = new HashSet();
+		initialiseAJDE(project);
+	
+		List packages = StructureModelUtil.getPackagesInModel();
+	
+		Iterator iterator = packages.iterator();
+		while (iterator.hasNext()) {
+			Object[] progNodes = (Object[]) iterator.next();
+			
+			IProgramElement packageNode = (IProgramElement) progNodes[0];
+			List files = StructureModelUtil.getFilesInPackage(packageNode);
+			for (Iterator it = files.iterator(); it.hasNext();) {
+				IProgramElement fileNode = (IProgramElement) it.next();
+				List children = fileNode.getChildren();
+				for (Iterator iter = children.iterator(); iter.hasNext();) {
+					IProgramElement child = (IProgramElement) iter.next();
+					if (child.getKind().equals(IProgramElement.Kind.ASPECT)) {
+						aspects.add(fileNode);
+						break;
+					}
+				}
+			}
+		}
+		if(returnIResources) {
+			Set resources = new HashSet();
+			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
+				IProgramElement element = (IProgramElement) iter.next();
+				String path = element.getSourceLocation().getSourceFile().getAbsolutePath();	
+				IResource resource =
+					AspectJUIPlugin
+						.getDefault()
+						.getAjdtProjectProperties()
+						.findResource(
+						path, project);
+	
+				  // Did we find it in this project?  If not then look across the workspace
+				  if (resource == null) {
+					resource = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(path);
+				  }
+				  resources.add(resource);
+			}
+			aspects = resources;
+		}
+		return aspects;
 	}
 	
     public static void wipeCache() {
@@ -343,6 +402,20 @@ public class StructureModelUtil {
 		return matches;
 	}
 
+	/**
+	 * This method sets the current project and initialises AJDE
+	 */
+	public static void initialiseAJDE(IProject withProject) {
+	
+		String configFile = AspectJUIPlugin.getBuildConfigurationFile(withProject);
+		if (!configFile.equals(lastLoadedConfigFile)) {
+			AJDTEventTrace.generalEvent("initialiseAJDE: switching configs - from:"+lastLoadedConfigFile+" to:"+configFile);
+			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
+				configFile);
+			lastLoadedConfigFile = configFile;
+		}
+	}
+	
 	/**
 	 * Helper function sorts a list of resources into alphabetical order
 	 */
