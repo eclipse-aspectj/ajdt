@@ -62,6 +62,10 @@
       it a second time will show the crosscutting information for the
       entire file.</p>
 
+      <p>Various other improvements and fixes have been made to the
+      Cross References view, including the addition of a toggle
+      button to show the crosscutting information for the
+      entire file, instead of only for the current element.</p>
     </td>
   </tr>
 
@@ -268,8 +272,15 @@
       <p align="right"><b>AspectPath directories</b></td>
     <td width="70%" valign="top">
     
-      <p>[TODO]</p>
+      <p>With AspectJ 5 M2 you can now specify directories on the aspect path, instead
+      of just jars or zips. To make use of this in AJDT, right-click on a project and select
+      Properties, then go to the <b>AspectJ Aspect Path</b> section. On the Libraries tab
+      there is now a <b>Add Class Folder...</b> button, which you can use to add the output
+      "bin" directory of another project, for example. This allows you to apply the aspects
+      from another project without requiring that other project to send its class files to
+      an output jar.</p>
     
+      <img src="aspectpath.png" width="392" height="273">
     </td>
   </tr>
 
