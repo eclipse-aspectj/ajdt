@@ -588,7 +588,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = getPreferenceStore().getDefaultString(
 					data.getKey());
-			curr.setSelection(data.getSelection(defaultValue) == 1);
+			curr.setSelection(defaultValue.equals("true"));
 		}
 	}
 
