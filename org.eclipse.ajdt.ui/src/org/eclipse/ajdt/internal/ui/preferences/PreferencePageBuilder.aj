@@ -171,6 +171,12 @@ aspect PreferencePageBuilder {
         setElements(dialogField,elements,basePage) && interestingPathBlockPages() {
         
         PropertyPage page = null;
+        // We need to associate the ListDialogField with the related PropertyPage object
+        // rather than the related AJDTPathBlockPage (so we can check if the contents
+        // of the ListDialogField more easily in settingsHaveChanged(PropertyPage)).
+        // We therefore iterate through the active pages and if basePage is an
+        // AspectPathBlock then we're looking for the AspectPathPropertyPage object, whereas
+        // if basePage is an InPathBlock then we're looking for the InPathPropertyPage object.       
         for (Iterator iter = activePages.iterator(); iter.hasNext();) {
             PropertyPage ajdtPage = (PropertyPage) iter.next();
             if ((basePage instanceof AspectPathBlock)
