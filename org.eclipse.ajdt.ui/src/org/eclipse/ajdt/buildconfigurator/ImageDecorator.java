@@ -12,15 +12,12 @@
 package org.eclipse.ajdt.buildconfigurator;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.internal.builder.AJModel;
-import org.eclipse.ajdt.internal.builder.AJRelationshipManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;

@@ -11,17 +11,11 @@
 package org.eclipse.ajdt.internal.ui.editor.actions;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
-
-import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
@@ -29,9 +23,7 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IWorkbenchPart;
 
 /**
  *  
