@@ -11,12 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IBuffer;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.LocalVariable;
@@ -43,7 +40,6 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 
 	public ISourceRange getNameRange() {
 		if (nameStart==0) {
-			System.out.println("getNameRange line="+line);
 			setStartAndEnd(line);
 		}
 		return new SourceRange(this.nameStart, this.nameEnd-this.nameStart+1);
@@ -63,15 +59,14 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 			for (int i = 0; i < source.length(); i++) {
 				if (source.charAt(i) == '\n') {
 					lines++;
-					//System.out.println("line="+(lines+1)+" offset="+i);
 					if (foundLine) {
 						nameEnd=i-1;
-						System.out.println("end="+nameEnd);
+						//System.out.println("end="+nameEnd);
 						return;
 					}
 					if ((lines+1)==targetLine) {
 						nameStart=i+1;
-						System.out.println("start="+nameStart);
+						//System.out.println("start="+nameStart);
 						foundLine=true;
 					}
 				}
