@@ -24,7 +24,6 @@ import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -102,7 +101,6 @@ public class AJModelTest extends TestCase {
 		if (file == null)
 			fail("Required file not found: " + filename);
 		
-		//StructureModelUtil.initialiseAJDE(project);
 		String path = file.getRawLocation().toOSString();
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
 				true, true);
@@ -137,8 +135,8 @@ public class AJModelTest extends TestCase {
 					continue;
 				}
 				String jaName = je.getElementName().intern();
-				System.out.println("node="+peName);
-				System.out.println("je="+jaName);
+				//System.out.println("node="+peName);
+				//System.out.println("je="+jaName);
 				int index = toFind.indexOf(peName);
 				if (index == -1) {
 					fail("Unexpected additional IProgramElement name found: "+peName);
