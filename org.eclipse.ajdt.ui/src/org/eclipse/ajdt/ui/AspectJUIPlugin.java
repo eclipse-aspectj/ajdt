@@ -22,6 +22,7 @@ import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
+import org.eclipse.ajdt.buildconfigurator.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
@@ -610,6 +611,9 @@ public class AspectJUIPlugin
 	// rather than startup.
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		
+		// Update project menu and listen for project selections
+		new BCWorkbenchWindowInitializer();
 		
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();		

@@ -1268,10 +1268,7 @@
          </action>
       </actionSet>
    </extension>
-   <extension
-         point="org.eclipse.ui.startup">
-      <startup class="org.eclipse.ajdt.buildconfigurator.BCWorkbenchWindowInitializer"/>
-   </extension>
+
    <extension
          id="dec1"
          name="dec1"
