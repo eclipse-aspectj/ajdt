@@ -15,7 +15,6 @@ import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -167,33 +166,18 @@ public class UpdateJob extends Job {
 	private void fileMoved() {
 		if ((myRes2 == null) || (myRes == null))
 			return;
-		if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes2
-				.getName())
+		if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes2.getName())
 				&& ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes
 						.getName())) {
-			ProjectBuildConfigurator pbc2 = myBCor
-					.getProjectBuildConfigurator(myRes2.getProject());
 			ProjectBuildConfigurator pbc = myBCor
 					.getProjectBuildConfigurator(myRes.getProject());
-			if ((pbc != null) && (pbc2 != null)) {
-				BuildConfiguration bc = pbc2.getActiveBuildConfiguration();
-				boolean wasIncluded = bc.isIncluded(myRes2);
-				bc = pbc.getActiveBuildConfiguration();
-				if (bc.isIncluded(myRes) != wasIncluded){
-					ArrayList l = new ArrayList(1);
-					l.add(myRes);
-					if (wasIncluded)
-						bc.includeFiles(l);
-					else {
-						try {
-							bc.excludeFiles(l);
-						} catch (CoreException e) {
-							AspectJUIPlugin.logException(e);
-						}
-					}
-				}
-
-			}
+			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			// reread build config file to update the include/exclude status
+			// we could also go through all build config files in the project
+			// and update any explicit references to the old file, but that
+			// would be time consuming because when using the conversion wizard
+			// this method gets called for every changed file
+			bc.update(true);
 		}
 	}
 }
