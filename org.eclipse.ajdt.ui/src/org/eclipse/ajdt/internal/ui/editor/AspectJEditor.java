@@ -33,7 +33,6 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
-import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jface.action.IContributionItem;
@@ -393,7 +392,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 					.getAspectJTextTools();
 
 			textTools.setupJavaDocumentPartitioner(document,
-					IJavaPartitions.JAVA_PARTITIONING);
+					EclipseEditorIsolation.JAVA_PARTITIONING);
 
 			// Fix to bug 61679 - update the input to the outline view
 			if (contentOutlinePage != null) {
@@ -530,7 +529,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IPreferenceStore store = this.getPreferenceStore();
 		AspectJTextTools textTools = new AspectJTextTools(store);
 		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
-				textTools, this, IJavaPartitions.JAVA_PARTITIONING);
+				textTools, this, EclipseEditorIsolation.JAVA_PARTITIONING);
 		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
 	}
 

@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Shell;
 
+import org.eclipse.ajdt.internal.ui.editor.EclipseEditorIsolation;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.text.BadLocationException;
@@ -43,7 +44,6 @@ import org.eclipse.jdt.ui.text.JavaTextTools;
 
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
-import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
 import org.eclipse.jdt.internal.ui.text.correction.QuickAssistLightBulbUpdater;
 
 /**
@@ -68,11 +68,11 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 		JavaCorrectionProcessor processor= new JavaCorrectionProcessor(this); 
 		
 		setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_STRING);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_CHARACTER);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_DOC);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+		setContentAssistProcessor(processor, EclipseEditorIsolation.JAVA_STRING);
+		setContentAssistProcessor(processor, EclipseEditorIsolation.JAVA_CHARACTER);
+		setContentAssistProcessor(processor, EclipseEditorIsolation.JAVA_DOC);
+		setContentAssistProcessor(processor, EclipseEditorIsolation.JAVA_MULTI_LINE_COMMENT);
+		setContentAssistProcessor(processor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
 	
 		enableAutoActivation(false);
 		enableAutoInsert(false);

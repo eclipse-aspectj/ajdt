@@ -33,11 +33,11 @@ public class AJPluginExportWizard extends PluginExportWizard {
 	protected void scheduleExportJob() {
 		PluginExportJob job =
 			new AJPluginExportJob(
-				page1.getExportType(),
-				page1.doExportSource(),
-				page1.getDestination(),
-				page1.getFileName(),
-				page1.getSelectedItems());
+					fPage1.getExportType(),
+					fPage1.doExportSource(),
+					fPage1.getDestination(),
+					fPage1.getFileName(),
+					fPage1.getSelectedItems());
 		job.setUser(true);
 		job.schedule();
 		job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_PLUGIN_OBJ);

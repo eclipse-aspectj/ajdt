@@ -50,7 +50,7 @@ public class AJPluginExportJob extends PluginExportJob {
 		monitor.beginTask("", 5); //$NON-NLS-1$
 		monitor.setTaskName(PDEPlugin.getResourceString("FeatureExportJob.taskName")); //$NON-NLS-1$
 		try {
-			HashMap properties = createBuildProperties(os, ws, arch);
+			HashMap properties = createAntBuildProperties(os, ws, arch);
 			makeScript(featureID, version, os, ws, arch, featureLocation);
 			monitor.worked(1);
 			runScript(getBuildScriptName(featureLocation), getBuildExecutionTargets(),

@@ -594,19 +594,19 @@ public class UnresolvedElementsSubProcessor {
 				// new top level type
 				if (enclosingPackage != null && !enclosingPackage.getCompilationUnit(typeName + ".java").exists()) { //$NON-NLS-1$
 					if ((kind & SimilarElementsRequestor.CLASSES) != 0) {
-			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, true, enclosingPackage, relevance));
+			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, NewCUCompletionUsingWizardProposal.K_CLASS, enclosingPackage, relevance));
 					}
 					if ((kind & SimilarElementsRequestor.INTERFACES) != 0) {			
-			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, false, enclosingPackage, relevance));
+			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, NewCUCompletionUsingWizardProposal.K_INTERFACE, enclosingPackage, relevance));
 					}				
 				}
 				// new member type
 				if (enclosingType != null && !enclosingType.isReadOnly() && !enclosingType.getType(typeName).exists()) {
 					if ((kind & SimilarElementsRequestor.CLASSES) != 0) {
-			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, true, enclosingType, relevance));
+			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, NewCUCompletionUsingWizardProposal.K_CLASS, enclosingType, relevance));
 					}
 					if ((kind & SimilarElementsRequestor.INTERFACES) != 0) {			
-			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, false, enclosingType, relevance));
+			            proposals.add(new NewCUCompletionUsingWizardProposal(cu, node, NewCUCompletionUsingWizardProposal.K_INTERFACE, enclosingType, relevance));
 					}				
 				}				
 			}
@@ -699,7 +699,7 @@ public class UnresolvedElementsSubProcessor {
 				}
 				proposals.add(new NewMethodCompletionProposal(label, targetCU, invocationNode, arguments, binding, 5, image));
 				
-				if (binding.isAnonymous() && cu.equals(targetCU) && sender == null && Bindings.findMethodInHierarchy(binding, methodName, null) == null) { // no covering method
+				if (binding.isAnonymous() && cu.equals(targetCU) && sender == null && Bindings.findMethodInHierarchy(binding, methodName, (ITypeBinding[])null) == null) { // no covering method
 					ASTNode anonymDecl= astRoot.findDeclaringNode(binding);
 					if (anonymDecl != null) {
 						binding= Bindings.getBindingOfParentType(anonymDecl.getParent());
