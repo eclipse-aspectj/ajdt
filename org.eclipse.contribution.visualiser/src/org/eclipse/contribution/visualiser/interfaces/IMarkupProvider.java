@@ -57,7 +57,7 @@ public interface IMarkupProvider {
 	/**
 	 * Return a list of all possible 'kinds' covered by all the stripes
 	 * in the visualisation.  This is used by the visualiser menu.
-	 * The return value is a set of Strings.
+	 * The return value is a set of IMarkupKinds.
 	 */
 	public SortedSet getAllMarkupKinds();
 

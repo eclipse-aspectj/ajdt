@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Andy Clement - initial version
+ *     Sian January - added Jobs support
  *******************************************************************************/
 package org.eclipse.contribution.visualiser;
 
@@ -20,9 +21,10 @@ import org.eclipse.contribution.visualiser.views.Visualiser;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -93,17 +95,13 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	 */
 	public static void refresh() {
 		if (visualiser != null) {
-			Display.getDefault().asyncExec( new Runnable() {
-				public void run() {
-					if (visualiser!=null) {
-						visualiser.updateDisplay(true);
-					}
-				}
-			});
+		 		 		 VisualiserUpdateJob.getInstance().schedule();
 		}
 	}
 
 
+
+		 
 	/**
 	 * Gets the active workbench window
 	 */
@@ -244,4 +242,32 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		super.stop(context);
 	}
+}
+
+// Job that updates the Visualiser
+class VisualiserUpdateJob extends Job {
+		 private static VisualiserUpdateJob theJob;
+		 
+		 private VisualiserUpdateJob(String name){
+		 		 super (name);
+		 }
+		 
+		 public static VisualiserUpdateJob getInstance() {
+		 		 if(theJob == null) {
+		 		 		 theJob = new VisualiserUpdateJob(VisualiserPlugin.getResourceString("Jobs.VisualiserUpdate"));
+		 		 		 theJob.setUser(true);
+		 		 		 theJob.setPriority(Job.SHORT);
+		 		 }
+		 		 return theJob;
+		 }
+		 
+		 public IStatus run(IProgressMonitor monitor) {
+		 		 monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 1);
+		 		 if (VisualiserPlugin.visualiser!=null) {
+		 		 		 VisualiserPlugin.visualiser.updateDisplay(true);
+		 		 }
+		 		 monitor.done();
+		 		 return Status.OK_STATUS;
+		 }
+		 
 }

@@ -126,6 +126,7 @@ public class VisualiserCanvas extends Canvas {
 
 	private Menu contextMenu;
 
+		 
 	/**
 	 * @param parent
 	 * @param style
@@ -219,6 +220,7 @@ public class VisualiserCanvas extends Canvas {
 		setupScrollbarListeners();
 		setupContextMenu();
 	}
+
 
 	private void setSelectedItem(ISelectable newItem) {
 		// Update the context menu
@@ -704,6 +706,7 @@ public class VisualiserCanvas extends Canvas {
 		dataChanged = true;
 		redraw();
 	}
+		 		 		 		 		 
 
 	/**
 	 * Return the given zoom factor after fitting it within the required zoom
@@ -928,7 +931,7 @@ public class VisualiserCanvas extends Canvas {
 							kg.color = visualiser.getVisMarkupProvider()
 									.getColorFor(kind);
 							if(kg.color == null) {
-								throw new NullPointerException("getColorFor should not return null");
+								throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError"));
 							}
 							int nw = (((across + 1) * colWidth) / activeKinds)
 									- ((across * colWidth) / activeKinds);

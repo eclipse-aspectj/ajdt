@@ -27,6 +27,10 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -37,6 +41,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.progress.UIJob;
 
 /**
  * This class represents the main view of the Visualiser.
@@ -86,6 +91,8 @@ public class Visualiser extends ViewPart {
 	
 	private String zoomString;
 	
+		 private static Job redrawJob;
+		 
 	public Visualiser() {
 		VisualiserPlugin.getDefault().setVisualiser(this);
 	}
@@ -443,9 +450,21 @@ public class Visualiser extends ViewPart {
 	 * menu has changed.
 	 */
 	public void draw() {
-		visCanvas.redraw(data);
+		 		 getVisualiserRedrawJob().schedule();
 	}
 
+		 private synchronized Job getVisualiserRedrawJob() {
+		 		 if (redrawJob == null) {
+		 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) {
+
+		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+		 		 		 		 		 visCanvas.redraw(data);
+		 		 		 		 		 return Status.OK_STATUS;
+		 		 		 		 }};
+		 		 }
+		 		 return redrawJob;
+		 }
+		 
 	/**
 	 * Update the display
 	 */
@@ -470,7 +489,7 @@ public class Visualiser extends ViewPart {
 			VisualiserPlugin.menu.reset();
 			VisualiserPlugin.menu.ensureUptodate();
 		}
-		visCanvas.redraw(data);
+		 		 draw();
 	}
 
 	/**

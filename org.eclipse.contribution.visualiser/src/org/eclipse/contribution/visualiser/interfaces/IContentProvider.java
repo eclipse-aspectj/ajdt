@@ -31,12 +31,14 @@ public interface IContentProvider {
 
 	/**
 	 * Return a list of all groups that the provider knows about.
+	 * @return List of IGroups
 	 */
 	public List getAllGroups();
 
 
 	/**
 	 * Return a list of all members in a group.
+	 * @return List of IMembers
 	 */	
 	public List getAllMembers(IGroup group);
 	
@@ -82,7 +84,7 @@ public interface IContentProvider {
 	/**
 	 * Called when switching to this content provider to get the icon used in the Visualiser
 	 * view for Group view.  If null is returned default icons are used. 
-	 * @return image to be used as group view icon
+	 * @return image to be used as group view icon, or null if default is required
 	 */
 	public ImageDescriptor getGroupViewIcon();
 	

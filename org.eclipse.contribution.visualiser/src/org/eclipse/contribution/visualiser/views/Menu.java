@@ -21,6 +21,10 @@ import java.util.Set;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -44,6 +48,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.progress.UIJob;
 
 
 /**
@@ -72,7 +77,8 @@ public class Menu extends ViewPart {
 	private static Hashtable kindActive = null;
 	private boolean uptodate = false;
 	private Map kinds;
-
+		 private static Job updateJob;
+		 
 	/**
 	 * The constructor.
 	 */
@@ -329,62 +335,76 @@ public class Menu extends ViewPart {
 	 */
 	public void ensureUptodate() {
 		if (uptodate) return;
-		clear();
-		Set markupKinds = vmp.getAllMarkupKinds();
-		int numKindsToShow = getNumberToShow(markupKinds);
-		if (markupKinds==null) return;
-		buttons = new Button[numKindsToShow];
-		checkboxes = new Button[numKindsToShow];
-		labels = new Label[numKindsToShow];
-		icons = new Label[numKindsToShow];
-		shells = new Shell[numKindsToShow];
-		colorSquares = new Image[numKindsToShow];
-		colorDialogs = new ColorDialog[numKindsToShow];
-		colors = new Color[numKindsToShow];
-		
-		
-		kindActive = new Hashtable();
-		kinds = new HashMap();
-		
-		int i = 0;
-		for (Iterator iter = markupKinds.iterator(); iter.hasNext();) {
-			IMarkupKind element = (IMarkupKind) iter.next();
-			kinds.put(element.getName(), element);
-			if(element.showInMenu()) {
-				int imageSize = 12;
-				colors[i] = vmp.getColorFor(element);
-				if(colors[i] == null) {
-					throw new NullPointerException("getColorFor(..) should not return null");
-				}
-				buttons[i] = new Button(canvas, SWT.PUSH);
-				shells[i] = buttons[i].getShell();
-				colorDialogs[i] = new ColorDialog(shells[i]);
-				Display display = shells[i].getDisplay();
-				colorSquares[i] = new Image(display, imageSize, imageSize);
-				buttons[i].setImage(colorSquares[i]);
-				buttons[i].addSelectionListener(selectionListener);
-				Image image = buttons[i].getImage();
-				drawImage(image, colors[i]);
-				buttons[i].setImage(image);
-	
-				checkboxes[i] = new Button(canvas, SWT.CHECK);
-				checkboxes[i].addSelectionListener(checkboxListener);
-				checkboxes[i].setSelection(true);
+			// ClassCastException is thrown if provider has not returned a set
+			// of IMarkupKinds from getAllMarkupKinds().
+		 		 getUpdateJob().schedule();
 
-				icons[i] = new Label(canvas, SWT.NONE);
-				icons[i].setImage(element.getIcon());
-				labels[i] = new Label(canvas, SWT.NONE);
-				labels[i].setText(element.getName());
-				labels[i].setData(element);
-				i++;
-			}
-			kindActive.put(element, new Boolean(true));
-		}
-		canvas.layout();
-		canvas.setSize(canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
-		uptodate = true;
 	}
 
+		 private synchronized Job getUpdateJob() {
+		 		 if (updateJob == null) {
+		 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){
+
+		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+		 		 		 		 		 clear();
+		 		 		 		 		 Set markupKinds = vmp.getAllMarkupKinds();
+		 		 		 		 		 int numKindsToShow = getNumberToShow(markupKinds);
+		 		 		 		 		 if (markupKinds==null) return Status.OK_STATUS;
+		 		 		 		 		 buttons = new Button[numKindsToShow];
+		 		 		 		 		 checkboxes = new Button[numKindsToShow];
+		 		 		 		 		 labels = new Label[numKindsToShow];
+		 		 		 		 		 icons = new Label[numKindsToShow];
+		 		 		 		 		 shells = new Shell[numKindsToShow];
+		 		 		 		 		 colorSquares = new Image[numKindsToShow];
+		 		 		 		 		 colorDialogs = new ColorDialog[numKindsToShow];
+		 		 		 		 		 colors = new Color[numKindsToShow];
+		 		 		 		 		 
+		 		 		 		 		 
+		 		 		 		 		 kindActive = new Hashtable();
+		 		 		 		 		 kinds = new HashMap();
+		 		 		 		 		 
+		 		 		 		 		 int i = 0;
+		 		 		 		 		 for (Iterator iter = markupKinds.iterator(); iter.hasNext();) {
+		 		 		 		 		 		 IMarkupKind element = (IMarkupKind) iter.next();
+		 		 		 		 		 		 kinds.put(element.getName(), element);
+		 		 		 		 		 		 if(element.showInMenu()) {
+		 		 		 		 		 		 		 int imageSize = 12;
+		 		 		 		 		 		 		 colors[i] = vmp.getColorFor(element);
+		 		 		 		 		 		 		 if(colors[i] == null) {
+		 		 		 		 		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError"));
+		 		 		 		 		 		 		 }
+		 		 		 		 		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+		 		 		 		 		 		 		 shells[i] = buttons[i].getShell();
+		 		 		 		 		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
+		 		 		 		 		 		 		 Display display = shells[i].getDisplay();
+		 		 		 		 		 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);
+		 		 		 		 		 		 		 buttons[i].setImage(colorSquares[i]);
+		 		 		 		 		 		 		 buttons[i].addSelectionListener(selectionListener);
+		 		 		 		 		 		 		 Image image = buttons[i].getImage();
+		 		 		 		 		 		 		 drawImage(image, colors[i]);
+		 		 		 		 		 		 		 buttons[i].setImage(image);
+		 		 		 		 
+		 		 		 		 		 		 		 checkboxes[i] = new Button(canvas, SWT.CHECK);
+		 		 		 		 		 		 		 checkboxes[i].addSelectionListener(checkboxListener);
+		 		 		 		 		 		 		 checkboxes[i].setSelection(true);
+
+		 		 		 		 		 		 		 icons[i] = new Label(canvas, SWT.NONE);
+		 		 		 		 		 		 		 icons[i].setImage(element.getIcon());
+		 		 		 		 		 		 		 labels[i] = new Label(canvas, SWT.NONE);
+		 		 		 		 		 		 		 labels[i].setText(element.getName());
+		 		 		 		 		 		 		 labels[i].setData(element);
+		 		 		 		 		 		 		 i++;
+		 		 		 		 		 		 }
+		 		 		 		 		 		 kindActive.put(element, new Boolean(true));
+		 		 		 		 		 }
+		 		 		 		 		 canvas.layout();
+		 		 		 		 		 canvas.setSize(canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
+		 		 		 		 		 uptodate = true;		 		 		 		 		 
+		 		 		 		 		 return Status.OK_STATUS;
+		 		 		 		 }};
+		 		 }
+		 		 return updateJob;
+		 }
 
 	/**
 	 * @param markupCategories
