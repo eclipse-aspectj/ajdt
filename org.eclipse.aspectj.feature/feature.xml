@@ -81,4 +81,16 @@
          install-size="0"
          version="@VISVERSION@"/>
 
+   <plugin
+         id="org.eclipse.contribution.xref.core"
+         download-size="0"
+         install-size="0"
+         version="@XREFVERSION@"/>
+         
+   <plugin
+         id="org.eclipse.contribution.xref.ui"
+         download-size="0"
+         install-size="0"
+         version="@XREFVERSION@"/>
+         
 </feature>
