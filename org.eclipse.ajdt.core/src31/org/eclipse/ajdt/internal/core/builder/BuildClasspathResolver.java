@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.eclipse.jdt.internal.compiler.util.SimpleLookupTable;
 import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaModel;
@@ -154,7 +154,7 @@ public class BuildClasspathResolver {
 									ClasspathLocation.forBinaryFolder(
 											binaryFolder, 
 											true, 
-											entry.getImportRestriction());
+											entry.getAccessRuleSet());
 								bLocations.add(bLocation);
 								if (binaryLocationsPerProject != null) { // normal builder mode
 									ClasspathLocation[] existingLocations = (ClasspathLocation[]) binaryLocationsPerProject.get(prereqProject);
@@ -179,15 +179,15 @@ public class BuildClasspathResolver {
 						if (resource instanceof IFile) {
 							if (!(org.eclipse.jdt.internal.compiler.util.Util.isArchiveFileName(path.lastSegment())))
 								continue nextEntry;
-							AccessRestriction restriction = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+                            AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 																				? null
-																				: entry.getImportRestriction();
-							bLocation = ClasspathLocation.forLibrary((IFile) resource, restriction);
+																				: entry.getAccessRuleSet();
+							bLocation = ClasspathLocation.forLibrary((IFile) resource, accessRuleSet);
 						} else if (resource instanceof IContainer) {
-							AccessRestriction restriction = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+                            AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 																				? null
-																				: entry.getImportRestriction();
-							bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, restriction);	 // is library folder not output folder
+																				: entry.getAccessRuleSet();
+							bLocation = ClasspathLocation.forBinaryFolder((IContainer) target, false, accessRuleSet);	 // is library folder not output folder
 						}
 						bLocations.add(bLocation);
 						if (binaryLocationsPerProject != null) { // normal builder mode
@@ -205,10 +205,10 @@ public class BuildClasspathResolver {
 					} else if (target instanceof File) {
 						if (!(org.eclipse.jdt.internal.compiler.util.Util.isArchiveFileName(path.lastSegment())))
 							continue nextEntry;
-						AccessRestriction restriction = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
+                        AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 																			? null
-																			: entry.getImportRestriction();
-						bLocations.add(ClasspathLocation.forLibrary(path.toString(), restriction));
+																			: entry.getAccessRuleSet();
+						bLocations.add(ClasspathLocation.forLibrary(path.toString(), accessRuleSet));
 					}
 					continue nextEntry;
 			}

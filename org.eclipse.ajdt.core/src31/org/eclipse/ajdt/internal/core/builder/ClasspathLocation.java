@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.core.builder;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+import org.eclipse.jdt.internal.compiler.env.AccessRuleSet;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 
 /**
@@ -26,16 +26,16 @@ public abstract class ClasspathLocation {
 		return new ClasspathMultiDirectory(sourceFolder, outputFolder, inclusionPatterns, exclusionPatterns);
 	}
 
-	public static ClasspathLocation forBinaryFolder(IContainer binaryFolder, boolean isOutputFolder, AccessRestriction accessRestriction) {
-		return new ClasspathDirectory(binaryFolder, isOutputFolder, accessRestriction);
+	public static ClasspathLocation forBinaryFolder(IContainer binaryFolder, boolean isOutputFolder, AccessRuleSet accessRuleSet) {
+		return new ClasspathDirectory(binaryFolder, isOutputFolder, accessRuleSet);
 	}
 
-	static ClasspathLocation forLibrary(String libraryPathname, AccessRestriction accessRestriction) {
-		return new ClasspathJar(libraryPathname, accessRestriction);
+	static ClasspathLocation forLibrary(String libraryPathname, AccessRuleSet accessRuleSet) {
+		return new ClasspathJar(libraryPathname, accessRuleSet);
 	}
 
-	static ClasspathLocation forLibrary(IFile library, AccessRestriction accessRestriction) {
-		return new ClasspathJar(library, accessRestriction);
+	static ClasspathLocation forLibrary(IFile library, AccessRuleSet accessRuleSet) {
+		return new ClasspathJar(library, accessRuleSet);
 	}
 
 	public abstract NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String qualifiedBinaryFileName);
