@@ -13,7 +13,7 @@ package org.eclipse.ajdt.buildconfigurator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
@@ -87,7 +87,7 @@ public class PropertyPageManager {
 		int count = 0;
 		Iterator iter = ppcm.getContributors().iterator();
 		while (iter.hasNext()) {
-			Vector v = (Vector) iter.next();
+			List v = (List) iter.next();
 			Iterator iter2 = v.iterator();
 			while (iter2.hasNext()) {
 				RegistryPageContributor rpc = (RegistryPageContributor) iter2
@@ -113,11 +113,11 @@ public class PropertyPageManager {
 	}
 	
 	private static void extractJDTRegistryPageContributors(){
-		ArrayList list = new ArrayList(3);
+		List list = new ArrayList(3);
 		PropertyPageContributorManager ppcm = PropertyPageContributorManager.getManager();
 		Iterator iter = ppcm.getContributors().iterator();
 		while (iter.hasNext()){
-			Vector v = (Vector)iter.next();
+			List v = (List)iter.next();
 			Iterator iter2 = v.iterator();
 			while(iter2.hasNext()){
 				RegistryPageContributor rpc = (RegistryPageContributor)iter2.next();
