@@ -1,5 +1,5 @@
 /**********************************************************************
- Copyright (c) 2002 IBM Corporation and others.
+ Copyright (c) 2002, 2004 IBM Corporation and others.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Common Public License v1.0
  which accompanies this distribution, and is available at
@@ -35,8 +35,12 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -62,6 +66,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.UIJob;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 
@@ -81,6 +86,10 @@ public class AJDTUtils {
 
 	private static Hashtable imageDescriptorCache = new Hashtable();
 
+	private static Job refreshJob;
+
+	private static int previousExecutionTime;
+	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
 	 * D:\eclipse\workspace
@@ -189,9 +198,11 @@ public class AJDTUtils {
 		newNatures[0] = AspectJUIPlugin.ID_NATURE;
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		store.setDefault(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
-		
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		store.setDefault(project.getName()
+				+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
+
 		// Bugzilla 62625
 		if (project.hasNature(PDE.PLUGIN_NATURE)) {
 			// Dealing with a plugin project. In that case the
@@ -199,23 +210,26 @@ public class AJDTUtils {
 			// that lists jars imported from dependent plugins. In order
 			// to do this, should add a dependency on the plugin
 			// org.aspectj.ajde to the current plugin project.
-			
+
 			// Bugzilla 72007
 			// Checks if the plugin already has the plugin dependency
 			// before adding it, this avoids duplication
-			if(!hasAJPluginDependency(project)) {
+			if (!hasAJPluginDependency(project)) {
 				getAndPrepareToChangePDEModel(project);
 				addAJPluginDependency(project);
-				store.setValue(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, true);
+				store.setValue(project.getName()
+						+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, true);
 			}
 		} else {
 			// A Java project that is not a plugin project. Just add
 			// the aspectjrt.jar to the build path.
 			addAjrtToBuildPath(project);
-			store.setValue(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
+			store.setValue(project.getName()
+					+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
 		}
 
-		// PD: current thinking is not to change project dependencies to class folder ones
+		// PD: current thinking is not to change project dependencies to class
+		// folder ones
 		// therefore, have commented out the following call.
 		// changeProjectDependencies(project);
 
@@ -227,15 +241,14 @@ public class AJDTUtils {
 
 		//Luzius: set up build configuration
 		BuildConfigurator.getBuildConfigurator().setup(project);
-		
+
 		//crete compilation units for .aj files
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
-		
+
 		checkMyEclipseNature(project);
-		
+
 		refreshPackageExplorer();
 	}
-	
 
 	/**
 	 * (Bug 71540) Detect if user is working with MyEclipse plugin and if yes,
@@ -245,28 +258,31 @@ public class AJDTUtils {
 	 * @param The
 	 *            project to be checked.
 	 */
-	public static void checkMyEclipseNature(IProject project){
+	public static void checkMyEclipseNature(IProject project) {
 		try {
 			// check project nature
 			if (project.hasNature("com.genuitec.eclipse.j2eedt.core.webnature") //$NON-NLS-1$
-					|| project.hasNature("com.genuitec.eclipse.j2eedt.core.ejbnature")){ //$NON-NLS-1$
+					|| project
+							.hasNature("com.genuitec.eclipse.j2eedt.core.ejbnature")) { //$NON-NLS-1$
 				//display message only once per eclipse startup
-				if (!myEclipseMessageDisplayed){
+				if (!myEclipseMessageDisplayed) {
 					myEclipseMessageDisplayed = true;
-					
-					IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
-					.getActiveWorkbenchWindow();
-					MessageDialog.openInformation(window.getShell(),
-							AspectJUIPlugin
-							.getResourceString("myEclipse.natureDetected.title"), //$NON-NLS-1$
-							AspectJUIPlugin
-							.getResourceString("myEclipse.natureDetected.message")); //$NON-NLS-1$
+
+					IWorkbenchWindow window = AspectJUIPlugin.getDefault()
+							.getWorkbench().getActiveWorkbenchWindow();
+					MessageDialog
+							.openInformation(
+									window.getShell(),
+									AspectJUIPlugin
+											.getResourceString("myEclipse.natureDetected.title"), //$NON-NLS-1$
+									AspectJUIPlugin
+											.getResourceString("myEclipse.natureDetected.message")); //$NON-NLS-1$
 				}
 			}
 		} catch (CoreException e) {
 		}
 	}
-	
+
 	//flag used by public static void checkMyEclipseNature(IProject project)
 	private static boolean myEclipseMessageDisplayed = false;
 
@@ -281,7 +297,8 @@ public class AJDTUtils {
 	 * all dependent projects saying that they can't be built until the AspectJ
 	 * project has been built. Rebuilding doesn't help.
 	 * 
-	 * @param IProject project
+	 * @param IProject
+	 *            project
 	 */
 	public static void changeProjectDependencies(IProject project) {
 		List outputLocationPaths = getOutputLocationPaths(project);
@@ -290,8 +307,9 @@ public class AJDTUtils {
 
 		IProject[] referencingProjects = project.getReferencingProjects();
 		// if there are noone depends on this project then we return
-		if (referencingProjects.length == 0) return;
-		
+		if (referencingProjects.length == 0)
+			return;
+
 		IClasspathEntry[] exportedEntries = getExportedEntries(project);
 
 		for (int i = 0; i < referencingProjects.length; i++) {
@@ -313,20 +331,21 @@ public class AJDTUtils {
 					IClasspathEntry entry = cpEntry[j];
 					int entryKind = entry.getEntryKind();
 					IPath entryPath = entry.getPath();
-					if (entryKind == IClasspathEntry.CPE_PROJECT 
+					if (entryKind == IClasspathEntry.CPE_PROJECT
 							&& entryPath.equals(project.getFullPath())) {
 						if (!projectHasNoSrc(project)) {
 							// the following loop has only been tested when
 							// outputLocationPaths has
 							// size = 1 (because of getOutputLocationPaths())
-							for (Iterator iter = outputLocationPaths.iterator(); iter.hasNext();) {
+							for (Iterator iter = outputLocationPaths.iterator(); iter
+									.hasNext();) {
 								IPath outputLocationPath = (IPath) iter.next();
 								IClasspathEntry classFolderEntry = JavaCore
-										.newLibraryEntry(outputLocationPath, null,
-												null);
+										.newLibraryEntry(outputLocationPath,
+												null, null);
 								newEntries.add(classFolderEntry);
 							}
-						}		
+						}
 					} else {
 						newEntries.add(entry);
 					}
@@ -348,28 +367,39 @@ public class AJDTUtils {
 	public static void checkAndChangeDependencies(IProject project) {
 		changeProjectDependencies(project);
 		try {
-			if (project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR) != null &&
-					!(project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR).equals(""))) { 
-				IPath pathToOutjar = new Path(project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR));
-				String outJar2 = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getOutJar();
+			if (project.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR) != null
+					&& !(project
+							.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR)
+							.equals(""))) {
+				IPath pathToOutjar = new Path(project
+						.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR));
+				String outJar2 = AspectJUIPlugin.getDefault()
+						.getAjdtProjectProperties().getOutJar();
 				IPath pathToOutjar2 = new Path(outJar2);
-				IProject[] classFolderReferences = (IProject[]) getDependingProjects(project).get(0);;
-				List javaElements= new ArrayList(5);
+				IProject[] classFolderReferences = (IProject[]) getDependingProjects(
+						project).get(0);
+				;
+				List javaElements = new ArrayList(5);
 				List outputLocationPaths = getOutputLocationPaths(project);
 				for (int i = 0; i < classFolderReferences.length; i++) {
-					IJavaProject javaProject = JavaCore.create(classFolderReferences[i]);
-					if (javaProject == null) continue;
+					IJavaProject javaProject = JavaCore
+							.create(classFolderReferences[i]);
+					if (javaProject == null)
+						continue;
 					try {
-						IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
+						IClasspathEntry[] cpEntry = javaProject
+								.getRawClasspath();
 						List cpEntries = new ArrayList();
 						for (int j = 0; j < cpEntry.length; j++) {
 							IClasspathEntry entry = cpEntry[j];
-							if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {							
-								for (Iterator iter = outputLocationPaths.iterator(); iter.hasNext();) {
+							if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+								for (Iterator iter = outputLocationPaths
+										.iterator(); iter.hasNext();) {
 									IPath path = (IPath) iter.next();
 									if (entry.getPath().equals(path)) {
 										IClasspathEntry outjarEntry = JavaCore
-											.newLibraryEntry(pathToOutjar2, null,null);	
+												.newLibraryEntry(pathToOutjar2,
+														null, null);
 										cpEntries.add(outjarEntry);
 									} else {
 										cpEntries.add(entry);
@@ -379,21 +409,26 @@ public class AJDTUtils {
 								cpEntries.add(entry);
 							}
 						}
-						IClasspathEntry[] newCP = (IClasspathEntry[]) cpEntries.toArray(new IClasspathEntry[cpEntries.size()]);
-						javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+						IClasspathEntry[] newCP = (IClasspathEntry[]) cpEntries
+								.toArray(new IClasspathEntry[cpEntries.size()]);
+						javaProject.setRawClasspath(newCP,
+								new NullProgressMonitor());
 						javaElements.add(javaProject);
 					} catch (JavaModelException e) {
 					}
 				}
-				// Forcing a build here if there is an outjar - otherwise have to build the project
+				// Forcing a build here if there is an outjar - otherwise have
+				// to build the project
 				// manually twice.
-				project.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-				AspectJUIPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE,null);
+				project.build(IncrementalProjectBuilder.FULL_BUILD,
+						"org.eclipse.ajdt.ui.ajbuilder", null, null);
+				AspectJUIPlugin.getWorkspace().getRoot().refreshLocal(
+						IResource.DEPTH_INFINITE, null);
 			}
 		} catch (CoreException e) {
-		}		
+		}
 	}
-	
+
 	private static IClasspathEntry[] getExportedEntries(IProject project) {
 		List exportedEntries = new ArrayList();
 
@@ -410,16 +445,17 @@ public class AJDTUtils {
 					// we don't want to export it in the new classpath.
 					if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
 						IClasspathEntry nonExportedEntry = JavaCore
-							.newLibraryEntry(entry.getPath(),null,null);
+								.newLibraryEntry(entry.getPath(), null, null);
 						exportedEntries.add(nonExportedEntry);
 					}
 				}
 			}
 		} catch (JavaModelException e) {
 		}
-		return (IClasspathEntry[]) exportedEntries.toArray(new IClasspathEntry[exportedEntries.size()]);
+		return (IClasspathEntry[]) exportedEntries
+				.toArray(new IClasspathEntry[exportedEntries.size()]);
 	}
-	
+
 	private static boolean projectHasNoSrc(IProject project) {
 		IJavaProject javaProject = JavaCore.create(project);
 		if (javaProject == null) {
@@ -435,13 +471,14 @@ public class AJDTUtils {
 					foundSrc = true;
 					break;
 				}
-			} 
-			if (!foundSrc) return true;
+			}
+			if (!foundSrc)
+				return true;
 		} catch (JavaModelException e) {
 		}
-		return false;	
+		return false;
 	}
-	
+
 	/**
 	 * Get the output locations for the project
 	 * 
@@ -455,7 +492,8 @@ public class AJDTUtils {
 			return outputLocations;
 
 		try {
-			// Have been unable to create a user scenario where the following for
+			// Have been unable to create a user scenario where the following
+			// for
 			// loop adds something to outputLocations, therefore always
 			// fall through to the following if loop. However, if a project has
 			// more than one output folder, then this for loop should pick them
@@ -485,24 +523,24 @@ public class AJDTUtils {
 
 	/**
 	 * Change any class folder dependencies on this project to project
-	 * dependencies. Also check whether the current project exports anything
-	 * and if so, check whether the entry is also on the depending project's
-	 * class path. Again, if this is the case, we remove it from
-	 * the depending project's classpath as it was added when AJ nature
-	 * was added to the project. This is used when AspectJ nature is removed 
-	 * from a project
+	 * dependencies. Also check whether the current project exports anything and
+	 * if so, check whether the entry is also on the depending project's class
+	 * path. Again, if this is the case, we remove it from the depending
+	 * project's classpath as it was added when AJ nature was added to the
+	 * project. This is used when AspectJ nature is removed from a project
 	 */
 	private static void changeClassFolderDependencies(IProject project) {
 		List outputLocationPaths = getOutputLocationPaths(project);
 		if (outputLocationPaths.size() == 0)
 			return;
-		
+
 		List dependingProjects = getDependingProjects(project);
 		IProject[] cfDependingProjects = (IProject[]) dependingProjects.get(0);
 		IProject[] elDependingProjects = (IProject[]) dependingProjects.get(1);
-		
-		if (cfDependingProjects.length == 0 && elDependingProjects.length == 0) return;
-		
+
+		if (cfDependingProjects.length == 0 && elDependingProjects.length == 0)
+			return;
+
 		JavaProject jp = (JavaProject) JavaCore.create(project);
 		List exportedEntries = new ArrayList();
 		try {
@@ -516,7 +554,7 @@ public class AJDTUtils {
 		} catch (JavaModelException e1) {
 		}
 
-		if (cfDependingProjects.length == 0 && exportedEntries.size() > 0 
+		if (cfDependingProjects.length == 0 && exportedEntries.size() > 0
 				&& elDependingProjects.length > 0) {
 			for (int i = 0; i < elDependingProjects.length; i++) {
 				IProject proj = elDependingProjects[i];
@@ -524,34 +562,43 @@ public class AJDTUtils {
 				if (javaProject == null)
 					continue;
 				try {
-					IClasspathEntry[] classpathEntries = javaProject.getRawClasspath();
+					IClasspathEntry[] classpathEntries = javaProject
+							.getRawClasspath();
 					List originalEntries = new ArrayList();
-					for (Iterator iter = exportedEntries.iterator(); iter.hasNext();) {
-						IClasspathEntry exportedCPEntry = (IClasspathEntry) iter.next();
+					for (Iterator iter = exportedEntries.iterator(); iter
+							.hasNext();) {
+						IClasspathEntry exportedCPEntry = (IClasspathEntry) iter
+								.next();
 						for (int j = 0; j < classpathEntries.length; j++) {
-							if (classpathEntries[j].getEntryKind() == IClasspathEntry.CPE_LIBRARY 
-									&& classpathEntries[j].getPath().equals(exportedCPEntry.getPath())) {
-								originalEntries.add(JavaCore.newProjectEntry(project.getFullPath()));								
+							if (classpathEntries[j].getEntryKind() == IClasspathEntry.CPE_LIBRARY
+									&& classpathEntries[j].getPath().equals(
+											exportedCPEntry.getPath())) {
+								originalEntries
+										.add(JavaCore.newProjectEntry(project
+												.getFullPath()));
 							} else {
 								originalEntries.add(classpathEntries[j]);
 							}
 						}
-						
+
 					}
-					IClasspathEntry[] origCP = (IClasspathEntry[]) originalEntries.toArray(new IClasspathEntry[originalEntries.size()]);
-					javaProject.setRawClasspath(origCP,new NullProgressMonitor());
+					IClasspathEntry[] origCP = (IClasspathEntry[]) originalEntries
+							.toArray(new IClasspathEntry[originalEntries.size()]);
+					javaProject.setRawClasspath(origCP,
+							new NullProgressMonitor());
 				} catch (JavaModelException e) {
 					continue;
 				}
 			}
 		}
-		
+
 		for (int i = 0; i < cfDependingProjects.length; i++) {
 			IProject proj = cfDependingProjects[i];
 			JavaProject javaProject = (JavaProject) JavaCore.create(proj);
 			if (javaProject == null)
 				continue;
-			for (Iterator iterator = outputLocationPaths.iterator(); iterator.hasNext();) {
+			for (Iterator iterator = outputLocationPaths.iterator(); iterator
+					.hasNext();) {
 				IPath path = (IPath) iterator.next();
 				try {
 					IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
@@ -562,8 +609,9 @@ public class AJDTUtils {
 						IPath entryPath = entry.getPath();
 						if (entryKind == IClasspathEntry.CPE_LIBRARY) {
 							if (entryPath.equals(path)) {
-								IClasspathEntry projectEntry = JavaCore.newProjectEntry(project.getFullPath());
-								newEntries.add(projectEntry);								
+								IClasspathEntry projectEntry = JavaCore
+										.newProjectEntry(project.getFullPath());
+								newEntries.add(projectEntry);
 							}
 						} else {
 							newEntries.add(entry);
@@ -581,48 +629,57 @@ public class AJDTUtils {
 	}
 
 	/**
-	 * Get all projects within the workspace who have a dependency
-	 * on the given project - this can either be a class folder dependency
-	 * or on a library which the project exports.
+	 * Get all projects within the workspace who have a dependency on the given
+	 * project - this can either be a class folder dependency or on a library
+	 * which the project exports.
 	 * 
-	 * @param IProject project
-	 * @return List of two IProject[] where the first is all the 
-	 *         class folder depending projects, and the second is all
-	 *         the exported library dependent projects 
+	 * @param IProject
+	 *            project
+	 * @return List of two IProject[] where the first is all the class folder
+	 *         depending projects, and the second is all the exported library
+	 *         dependent projects
 	 */
 	public static List getDependingProjects(IProject project) {
 		List projects = new ArrayList();
-		
-		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace().getRoot().getProjects();
+
+		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace()
+				.getRoot().getProjects();
 		List outputLocationPaths = getOutputLocationPaths(project);
 		IClasspathEntry[] exportedEntries = getExportedEntries(project);
 		List classFolderDependingProjects = new ArrayList();
 		List exportedLibraryDependingProjects = new ArrayList();
-		
+
 		workThroughProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {
-			if (projectsInWorkspace[i].equals(project) || !(projectsInWorkspace[i].isOpen()))
+			if (projectsInWorkspace[i].equals(project)
+					|| !(projectsInWorkspace[i].isOpen()))
 				continue workThroughProjects;
 			try {
 				if (projectsInWorkspace[i].hasNature(JavaCore.NATURE_ID)) {
-					JavaProject javaProject = (JavaProject) JavaCore.create(projectsInWorkspace[i]);
+					JavaProject javaProject = (JavaProject) JavaCore
+							.create(projectsInWorkspace[i]);
 					if (javaProject == null)
 						continue workThroughProjects;
 
 					try {
-						IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
+						IClasspathEntry[] cpEntry = javaProject
+								.getRawClasspath();
 						for (int j = 0; j < cpEntry.length; j++) {
 							IClasspathEntry entry = cpEntry[j];
 							if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-								for (Iterator iter = outputLocationPaths.iterator(); iter.hasNext();) {
+								for (Iterator iter = outputLocationPaths
+										.iterator(); iter.hasNext();) {
 									IPath path = (IPath) iter.next();
 									if (entry.getPath().equals(path)) {
-										classFolderDependingProjects.add(projectsInWorkspace[i]);
+										classFolderDependingProjects
+												.add(projectsInWorkspace[i]);
 										continue workThroughProjects;
 									}
 								}
 								for (int k = 0; k < exportedEntries.length; k++) {
-									if (entry.getPath().equals(exportedEntries[k].getPath())) {
-										exportedLibraryDependingProjects.add(projectsInWorkspace[i]);
+									if (entry.getPath().equals(
+											exportedEntries[k].getPath())) {
+										exportedLibraryDependingProjects
+												.add(projectsInWorkspace[i]);
 									}
 								}
 							}
@@ -634,12 +691,13 @@ public class AJDTUtils {
 			} catch (CoreException e) {
 			}
 		}
-		projects.add(0,(IProject[]) classFolderDependingProjects.toArray(new IProject[] {}));
-		projects.add(1,(IProject[]) exportedLibraryDependingProjects.toArray(new IProject[] {}));
+		projects.add(0, (IProject[]) classFolderDependingProjects
+				.toArray(new IProject[] {}));
+		projects.add(1, (IProject[]) exportedLibraryDependingProjects
+				.toArray(new IProject[] {}));
 		return projects;
 	}
 
-	
 	/**
 	 * Get all projects within the workspace on which the given project has a
 	 * class folder dependency
@@ -654,8 +712,8 @@ public class AJDTUtils {
 			return new IProject[0];
 
 		List requiredProjects = new ArrayList();
-		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace().getRoot()
-				.getProjects();
+		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace()
+				.getRoot().getProjects();
 
 		iterateOverProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {
 			try {
@@ -707,7 +765,8 @@ public class AJDTUtils {
 
 			IProject[] refProjects = project.getReferencingProjects();
 			// only get the class folder depending projects here
-			IProject[] classFolderReferences = (IProject[]) getDependingProjects(project).get(0);
+			IProject[] classFolderReferences = (IProject[]) getDependingProjects(
+					project).get(0);
 			IProject[] referencingProjects = new IProject[refProjects.length
 					+ classFolderReferences.length];
 			for (int i = 0; i < refProjects.length; i++) {
@@ -834,7 +893,7 @@ public class AJDTUtils {
 		// being developed in current project.
 		String pluginId = PDECore.getDefault().getWorkspaceModelManager()
 				.getWorkspacePluginModel(project).getPluginBase().getId();
-		
+
 		// Attempt to get hold of the open manifest editor
 		// for the current project.
 		ManifestEditor manEd = null;
@@ -854,24 +913,23 @@ public class AJDTUtils {
 
 		return manEd;
 	}
-	
-	
+
 	/**
 	 * It is necessary to call this method before updating the pde model
 	 * otherwise the changes may not be consistant across the pages.
-	 */	
+	 */
 	public static ManifestEditor getAndPrepareToChangePDEModel(IProject project) {
 		// Must have already been validated as a PDE project
 		// to get to this method. Now get the id of the plugin
 		// being developed in current project.
 
 		String pluginId = PDECore.getDefault().getWorkspaceModelManager()
-		.getWorkspacePluginModel(project).getPluginBase().getId();
+				.getWorkspacePluginModel(project).getPluginBase().getId();
 
 		// Open the manifest editor if it is not already open.
 		ManifestEditor.openPluginEditor(pluginId);
 		ManifestEditor manEd = getPDEManifestEditor(project);
-		
+
 		// IMPORTANT
 		// Necessary to force the active page to be the dependency management
 		// page. If this is not done then there is a chance that the model
@@ -893,7 +951,8 @@ public class AJDTUtils {
 		// First check to see whether we should popup the wizard
 		boolean showWizard = true;
 		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+		String version = (String) bundle.getHeaders().get(
+				Constants.BUNDLE_VERSION);
 		// 1. Has the wizard been popped up before for this install?
 		if (AspectJPreferences.isAJDTPrefConfigDone(version)) {
 			showWizard = false;
@@ -915,7 +974,7 @@ public class AJDTUtils {
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 							.getShell(), wizard);
 			// Open the wizard dialog
-			if(dialog.open() == Window.OK) {
+			if (dialog.open() == Window.OK) {
 				AspectJPreferences.setAJDTPrefConfigDone(true, version);
 			}
 		}
@@ -931,9 +990,10 @@ public class AJDTUtils {
 			throws CoreException {
 
 		//remove compilation units for .aj files
-		//(the way it is currently implemented, this must happen before nature gets removed)
+		//(the way it is currently implemented, this must happen before nature
+		// gets removed)
 		AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(project);
-		
+
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
 		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
 		ajPlugin.setCurrentProject(project);
@@ -968,27 +1028,38 @@ public class AJDTUtils {
 			// Bugzilla 72007
 			// Checks if it was ajdt that added the ajde dependancy and removes
 			// it if it was
-			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-			store.setDefault(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
-			boolean AJPluginDependancySetByAddAJNature = store.getBoolean(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY);
-			if(hasAJPluginDependency(project) && AJPluginDependancySetByAddAJNature) {
+			IPreferenceStore store = AspectJUIPlugin.getDefault()
+					.getPreferenceStore();
+			store.setDefault(project.getName()
+					+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
+			boolean AJPluginDependancySetByAddAJNature = store
+					.getBoolean(project.getName()
+							+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY);
+			if (hasAJPluginDependency(project)
+					&& AJPluginDependancySetByAddAJNature) {
 				getAndPrepareToChangePDEModel(project);
 				removeAJPluginDependency(project);
-				store.setValue(project.getName()+AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY, false);
+				store
+						.setValue(
+								project.getName()
+										+ AspectJPreferences.HAS_SET_AJPLUGIN_DEPENDENCY,
+								false);
 			}
 		} else {
 			// Update the build classpath to try and remove the aspectjrt.jar
 			removeAjrtFromBuildPath(project);
 		}
 
-		// PD: current thinking is not to change project dependencies to class folder ones
-		// therefore, no need to change classfolder dependencies back to project ones.
+		// PD: current thinking is not to change project dependencies to class
+		// folder ones
+		// therefore, no need to change classfolder dependencies back to project
+		// ones.
 		// changeClassFolderDependencies(project);
 		removeMarkerOnReferencingProjects(project);
-		
+
 		//Luzius: tell build configurator aj nature has been removed
 		BuildConfigurator.getBuildConfigurator().restoreJDTState(project);
-		
+
 		//Ensures the project icon refreshes
 		AJDTUtils.refreshPackageExplorer();
 	}
@@ -997,26 +1068,27 @@ public class AJDTUtils {
 	// This method checks wether the project already requires
 	// org.aspectj.ajde to be imported. Returns true if it does.
 	private static boolean hasAJPluginDependency(IProject project) {
-		
- 		ManifestEditor manEd = getPDEManifestEditor(project);
+
+		ManifestEditor manEd = getPDEManifestEditor(project);
 		IPluginModel model = null;
 		IPluginImport[] imports = null;
-		
+
 		if (manEd != null) {
 			model = (IPluginModel) manEd.getAggregateModel();
 			imports = model.getPluginBase().getImports();
-		}
-		else {
+		} else {
 			try {
 				//checks the classpath for plugin dependencies
-				IPackageFragmentRoot[] dependencies = JavaCore.create(project).getPackageFragmentRoots();
-				for(int i = 0; i< dependencies.length; i++) {
-					if(dependencies[i].getElementName().equals(AspectJPreferences.AJDE_JAR))
+				IPackageFragmentRoot[] dependencies = JavaCore.create(project)
+						.getPackageFragmentRoots();
+				for (int i = 0; i < dependencies.length; i++) {
+					if (dependencies[i].getElementName().equals(
+							AspectJPreferences.AJDE_JAR))
 						return true;
 				}
-			} catch(JavaModelException e) {
+			} catch (JavaModelException e) {
 			}
-			return false;	
+			return false;
 		}
 
 		IPluginImport doomed = null;
@@ -1028,7 +1100,7 @@ public class AJDTUtils {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @param project
 	 */
@@ -1040,10 +1112,11 @@ public class AJDTUtils {
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			try {
-				removeImportFromPDEModel(model, AspectJUIPlugin.RUNTIME_PLUGIN_ID);
+				removeImportFromPDEModel(model,
+						AspectJUIPlugin.RUNTIME_PLUGIN_ID);
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
-	        	AspectJUIPlugin
+				AspectJUIPlugin
 						.getDefault()
 						.getErrorHandler()
 						.handleError(
@@ -1132,8 +1205,8 @@ public class AJDTUtils {
 	 */
 	public static void verifyAjrtVersion(IProject current) {
 		IJavaProject javaProject = JavaCore.create(current);
-		String ajrtPath = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-				.getAspectjrtClasspath();
+		String ajrtPath = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().getAspectjrtClasspath();
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			ArrayList tempCP = new ArrayList();
@@ -1213,62 +1286,89 @@ public class AJDTUtils {
 	}
 
 	/**
-	 * Decorate icon based on modifiers, errors etc.
-	 * Possible decorations are: abstract, final, synchronized, static,
-	 * runnable, warning, error, overrides, implements
+	 * Decorate icon based on modifiers, errors etc. Possible decorations are:
+	 * abstract, final, synchronized, static, runnable, warning, error,
+	 * overrides, implements
 	 */
-	public static ImageDescriptor decorate( ImageDescriptor base, IProgramElement pNode ) {
+	public static ImageDescriptor decorate(ImageDescriptor base,
+			IProgramElement pNode) {
 		int flags = 0;
 		if (pNode != null) {
 			List modifiers = pNode.getModifiers();
-			if ( modifiers != null ) { 
+			if (modifiers != null) {
 				if (modifiers.contains(IProgramElement.Modifiers.ABSTRACT)) {
 					flags = flags | JavaElementImageDescriptor.ABSTRACT;
-				}  
+				}
 				if (modifiers.contains(IProgramElement.Modifiers.FINAL)) {
 					flags = flags | JavaElementImageDescriptor.FINAL;
-				} 
+				}
 				if (modifiers.contains(IProgramElement.Modifiers.SYNCHRONIZED)) {
 					flags = flags | JavaElementImageDescriptor.SYNCHRONIZED;
-				} 
+				}
 				if (modifiers.contains(IProgramElement.Modifiers.STATIC)) {
 					flags = flags | JavaElementImageDescriptor.STATIC;
-				}	
-			}	
-			if ( pNode.getKind() == IProgramElement.Kind.CONSTRUCTOR ||
-				 pNode.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
-				flags = flags | JavaElementImageDescriptor.CONSTRUCTOR;	
+				}
 			}
-			if ( pNode.isRunnable( ) ) {
+			if (pNode.getKind() == IProgramElement.Kind.CONSTRUCTOR
+					|| pNode.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+				flags = flags | JavaElementImageDescriptor.CONSTRUCTOR;
+			}
+			if (pNode.isRunnable()) {
 				flags = flags | JavaElementImageDescriptor.RUNNABLE;
 			}
-			if ( pNode.isOverrider( ) ) {
+			if (pNode.isOverrider()) {
 				flags = flags | JavaElementImageDescriptor.OVERRIDES;
 			}
-			if ( pNode.isImplementor( ) ) {
+			if (pNode.isImplementor()) {
 				flags = flags | JavaElementImageDescriptor.IMPLEMENTS;
 			}
 			IMessage sMessage = pNode.getMessage();
-			if ( sMessage != null ) {
-				if ( sMessage.getKind() == IMessage.ERROR ) {
+			if (sMessage != null) {
+				if (sMessage.getKind() == IMessage.ERROR) {
 					flags = flags | JavaElementImageDescriptor.ERROR;
-				} else if ( sMessage.getKind() == IMessage.WARNING ) {
+				} else if (sMessage.getKind() == IMessage.WARNING) {
 					flags = flags | JavaElementImageDescriptor.WARNING;
 				}
 			}
 		}
-		return decorate( base, flags );
+		return decorate(base, flags);
 	}
-	
-	public static void refreshPackageExplorer(){
-		//refresh package explorer (needs to be done by UI thread)
-		Runnable r = new Runnable(){
-			public void run(){
-				PackageExplorerPart pep = PackageExplorerPart.getFromActivePerspective();
-				if (pep != null)
-					pep.getTreeViewer().refresh();
+
+	public static void refreshPackageExplorer() {
+		int delay = 5*previousExecutionTime;
+		if (delay < 100) {
+			delay = 100;
+		} else if (delay > 5000) {
+			delay = 5000;
+		}
+		//System.out.println("refresh explorer: delay="+delay);
+		getRefreshPackageExplorerJob().schedule(delay);
+	}
+
+	// reuse the same Job to avoid excessive updates
+	private static Job getRefreshPackageExplorerJob() {
+		if (refreshJob == null) {
+			refreshJob = new RefreshPackageExplorerJob();
+		}
+		return refreshJob;
+	}
+
+	private static class RefreshPackageExplorerJob extends UIJob {
+		RefreshPackageExplorerJob() {
+			super(AspectJUIPlugin
+					.getResourceString("utils.refresh.explorer.job"));
+		}
+
+		public IStatus runInUIThread(IProgressMonitor monitor) {
+			long start = System.currentTimeMillis();
+			PackageExplorerPart pep = PackageExplorerPart
+					.getFromActivePerspective();
+			if (pep != null) {
+				pep.getTreeViewer().refresh();
 			}
-		};
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(r);
+			previousExecutionTime = (int)(System.currentTimeMillis() - start);
+			//System.out.println("refresh explorer: elapsed="+previousExecutionTime);
+			return Status.OK_STATUS;
+		}
 	}
 }

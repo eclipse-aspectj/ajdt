@@ -377,8 +377,11 @@ public class Builder extends IncrementalProjectBuilder {
 
 			MarkerUpdating.addNewMarkers(project);
 			
-			//System.out.println("build finished");
 			AJModel.getInstance().createMap(project);
+
+			if (AspectJPreferences.isAdviceDecoratorActive()) {
+				AJModelUtils.refreshOutlineViews();
+			}
 
 			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
 				AJDTEventTrace.generalEvent("Not updating vis, display is disposed!");
@@ -386,9 +389,6 @@ public class Builder extends IncrementalProjectBuilder {
 				AspectJUIPlugin.getDefault().getDisplay().syncExec(
 						new Runnable() {
 							public void run() {
-								if (AspectJPreferences.isAdviceDecoratorActive()) {
-									AJModelUtils.refreshOutlineViews();
-								}
 								if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 									AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
 											.getContentProvider();
