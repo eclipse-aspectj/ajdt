@@ -25,6 +25,7 @@ import org.aspectj.asm.internal.Relationship;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
@@ -140,6 +141,7 @@ public class AJProjectModel {
 		} catch (CoreException coreEx) {
 		}
 		processRelationships();
+		//dumpModel();
 	}
 
 	private void processRelationships() {
@@ -232,6 +234,17 @@ public class AJProjectModel {
 			return;
 		}
 
+		if (unit instanceof AJCompilationUnit) {
+			try {
+				// ensure structure of the AJCompilationUnit is fully
+				// known - otherwise there is a timing window where
+				// the model can be built before the reconciler has
+				// updated the structure
+				unit.reconcile(ICompilationUnit.NO_AST, false, null, null);
+			} catch (JavaModelException e) {
+			}
+		}
+		
 		Set keys = annotationsMap.keySet();
 		for (Iterator it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
@@ -287,6 +300,34 @@ public class AJProjectModel {
 				}
 			}
 		}
+	}
+
+	// for debugging...
+	private void dumpModel() {
+		System.out.println("AJDT model for project: "+project.getName());
+		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
+			String kind = (String) iter.next();
+			AJRelationship rel = (AJRelationship)kindMap.get(kind);
+			Map relMap = (Map) perRelMap.get(rel);
+			if (relMap != null) {
+				for (Iterator iter2 = relMap.keySet().iterator(); iter2
+						.hasNext();) {
+					IJavaElement je = (IJavaElement) iter2.next();
+					List related = (List)relMap.get(je);
+					for (Iterator iter3 = related.iterator(); iter3
+							.hasNext();) {
+						IJavaElement el = (IJavaElement) iter3.next();
+						System.out.println("    "+getJavaElementLinkName(je)+" --"+kind
+								+"-> "+getJavaElementLinkName(el));
+						System.out.println("    "+je.hashCode()+" --"+kind
+								+"-> "+el.hashCode());
+						System.out.println("    "+je.getHandleIdentifier()+" --"+kind
+								+"-> "+el.getHandleIdentifier());
+					}
+				}
+			}
+		}
+		System.out.println("End of model");
 	}
 
 }
