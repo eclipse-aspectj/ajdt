@@ -195,8 +195,8 @@ public class ImageDecorator implements ILabelDecorator {
 
 		// add the orange triangle to the icon if this method, 
 		// class or aspect is advised
-		if (AspectJPreferences.isAdviceDecoratorActive()
-				&& (element instanceof IMethod || element instanceof SourceType)) {
+		if ((element instanceof IMethod || element instanceof SourceType)
+                && AspectJPreferences.isAdviceDecoratorActive()) {
 			if (AJModel.getInstance().isAdvised((IJavaElement) element)) {
 				Image baseImage = img;
 				if (baseImage == null) {
