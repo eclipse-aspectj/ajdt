@@ -493,7 +493,13 @@ public class XReferenceInplaceDialog {
 			dialogShell.setBounds(oldBounds);
 			return;
 		}
-		Point size = dialogShell.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		GC gc = new GC(composite);
+		gc.setFont(composite.getFont());
+		int width = gc.getFontMetrics().getAverageCharWidth();
+		int height = gc.getFontMetrics().getHeight();
+		gc.dispose();
+		
+		Point size = new Point (60 * width, 10 * height);
 		Point location = getDefaultLocation(size);
 		dialogShell.setBounds(new Rectangle(location.x, location.y, size.x,
 				size.y));
