@@ -135,8 +135,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		super();
 		setDefaultPageImageDescriptor(AspectJImages.W_EXPORT_AJDOC.getImageDescriptor());
 //		 AspectJ Extension - message
-		setWindowTitle(AspectJUIPlugin
-				.getResourceString("ajdocWizard.javadocwizard.title")); //$NON-NLS-1$
+		setWindowTitle(AspectJUIPlugin.getResourceString("ajdocWizard.javadocwizard.title")); //$NON-NLS-1$
 		setDialogSettings(JavaPlugin.getDefault().getDialogSettings());
 
 		fRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -286,6 +285,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		}
 	}
 
+	// AspectJ Extension - this method has been changed to get the arguments
+	// required for generating ajdoc i.e. location of tools.jar, ajde.jar etc.
 	private boolean executeJavadocGeneration() {
 
 		Process process = null;
@@ -314,17 +315,31 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			} catch (IOException e) {
 			}
 			
-			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
-			
 			List vmArgs = new ArrayList();
-			vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$
+			String[] contentsOfJREDir = JavaRuntime.getDefaultVMInstall().getInstallLocation().list();
+			boolean foundJavaCmd = false;
+			for (int i = 0; i < contentsOfJREDir.length; i++) {
+				if (contentsOfJREDir[i].equals("bin")) { //$NON-NLS-1$
+					vmArgs.add(jreDir + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$
+					foundJavaCmd = true;
+					break;
+				}
+			}
+			if (!foundJavaCmd) {
+				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-1$				
+			}
+			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
 			boolean noXmx = true;
 			for (Iterator iter = userVmArgs.iterator(); iter.hasNext();) {
 				String element = (String) iter.next();
 				if (element.startsWith("-Xmx")) { //$NON-NLS-1$
 					noXmx = false;
+				} 
+				if (element.indexOf("tools.jar") != -1) { //$NON-NLS-1$
+					toolsDir = element;
+				} else {
+					vmArgs.add(element);
 				}
-				vmArgs.add(element);
 			}
 			if (noXmx) {
 				// user didn't specify max heap size, so provide our own setting (from ajdoc.bat)
@@ -342,7 +357,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			
 			String[] args = (String[]) vmArgs
 					.toArray(new String[vmArgs.size()]);
-						
+			
 			process = Runtime.getRuntime().exec(args);
 			if (process != null) {
 				// construct a formatted command line for the process properties
@@ -364,7 +379,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 							.getLaunchConfigurationType(
 									IJavaLaunchConfigurationConstants.ID_JAVA_APPLICATION);
 					String name = JavadocExportMessages
-							.getString("AJdocWizard.launchconfig.name"); //$NON-NLS-1$
+							.getString("JavadocWizard.launchconfig.name"); //$NON-NLS-1$
 					wc = lcType.newInstance(null, name);
 					wc.setAttribute(IDebugUIConstants.ATTR_PRIVATE, true);
 
@@ -375,8 +390,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 							.newProcess(
 									newLaunch,
 									process,
-									JavadocExportMessages
-											.getString("AJdocWizard.javadocprocess.label")); //$NON-NLS-1$
+									AspectJUIPlugin.getResourceString("ajdocWizard.ajdocprocess.label")); //$NON-NLS-1$
 					iprocess
 							.setAttribute(IProcess.ATTR_CMDLINE, buf.toString());
 					iprocess.setAttribute(IProcess.ATTR_PROCESS_TYPE,
@@ -387,10 +401,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 
 				} catch (CoreException e) {
 //					AspectJ Extension - message
-					String title = JavadocExportMessages
-							.getString("ajdocWizard.error.title"); //$NON-NLS-1$
-					String message = JavadocExportMessages
-							.getString("ajdocWizard.launch.error.message"); //$NON-NLS-1$
+					String title = AspectJUIPlugin.getResourceString("ajdocWizard.error.title"); //$NON-NLS-1$
+					String message = AspectJUIPlugin.getResourceString("ajdocWizard.launch.error.message"); //$NON-NLS-1$
 					ExceptionHandler.handle(e, getShell(), title, message);
 				}
 
@@ -399,10 +411,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 		} catch (IOException e) {
 //			 AspectJ Extension - message
-			String title = JavadocExportMessages
-					.getString("ajdocWizard.error.title"); //$NON-NLS-1$
-			String message = JavadocExportMessages
-					.getString("ajdocWizard.exec.error.message"); //$NON-NLS-1$
+			String title = AspectJUIPlugin.getResourceString("ajdocWizard.error.title"); //$NON-NLS-1$
+			String message = AspectJUIPlugin.getResourceString("ajdocWizard.exec.error.message"); //$NON-NLS-1$
 
 			IStatus status = new Status(IStatus.ERROR, JavaUI.ID_PLUGIN,
 					IStatus.ERROR, e.getMessage(), e);

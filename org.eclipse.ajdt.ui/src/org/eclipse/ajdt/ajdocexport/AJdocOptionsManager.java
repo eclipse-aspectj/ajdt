@@ -681,7 +681,7 @@ public class AJdocOptionsManager {
 	public void getArgumentArray(List vmArgs, List toolArgs) {
 
 		//bug 38692
-		//vmArgs.add(getJavadocCommandHistory()[0]);
+		vmArgs.add(getJavadocCommandHistory()[0]);
 		if (fFromStandard) {
 			toolArgs.add("-d"); //$NON-NLS-1$
 			toolArgs.add(fDestination);
