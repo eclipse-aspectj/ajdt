@@ -180,7 +180,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(PREF_ENABLE_REWEAVABLE, false);
 		store.setDefault(PREF_ENABLE_REWEAVABLE_COMPRESS, false);
 		
-		store.setDefault(PREF_ENABLE_INCREMENTAL, false);
+		store.setDefault(PREF_ENABLE_INCREMENTAL, true);
 		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
 		store.setDefault(PREF_ENABLE_WEAVE_MESSAGES, false);
 		

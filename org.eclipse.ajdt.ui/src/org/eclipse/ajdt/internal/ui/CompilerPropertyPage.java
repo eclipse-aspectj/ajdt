@@ -208,7 +208,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		store.setDefault(thisProject + PREF_ENABLE_REWEAVABLE, false);
 		store.setDefault(thisProject + PREF_ENABLE_REWEAVABLE_COMPRESS, false);
 
-		store.setDefault(thisProject + PREF_ENABLE_INCREMENTAL, false);
+		store.setDefault(thisProject + PREF_ENABLE_INCREMENTAL, true);
 		store.setDefault(thisProject + PREF_ENABLE_BUILD_ASM, true);
 		store.setDefault(thisProject + PREF_ENABLE_WEAVE_MESSAGES, false);
 
