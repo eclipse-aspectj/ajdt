@@ -1,7 +1,8 @@
 Tests included in this file:
 
 (1) Test to ensure not constantly rebuilding (bug 74174)
-(2) Test for bug 48518 - if contents of jar file changes, then want to force a 
+(2) Test to ensure don't rebuild if src file changes which isn't in active build config file
+(3) Test for bug 48518 - if contents of jar file changes, then want to force a 
     build for dependent projects
 
 
@@ -35,6 +36,32 @@ Test to ensure not constantly rebuilding (bug 74174)
 		  should be there - no builds
 		  
 If any builds are being triggered then this test fails.		    
+
+
+Test to ensure don't rebuild if src file changes which isn't in active build config file
+----------------------------------------------------------------------------------------
+
+(1) Import the AspectJ Bean Example into your workspace
+(2) Create a DummyClass in the bean package (File > New > Class)
+(3) Exclude DummyClass from the active build configuration (right click and choose
+    "exclude from build configuration"
+(4) Add the following method to DummyClass:
+
+		public dummyMethod() {
+		}
+		
+(5) Save DummyClass and no build should occur - so there should be no error
+    warnings about the syntax.
+		    
+(6) Create a DummyAspect in the bean package (File > New > Aspect)
+(7) Exclude DummyAspect from the active build configuration (right click and choose
+    "exclude from build configuration"
+(8) Add the following badly formed pointcut to DummyAspect:
+
+		pointcut.....
+		
+(9) Save DummyAspect and no build should occur - so there should be no error warnings
+    about the syntax.
 
 
 		  		   
