@@ -535,7 +535,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                         ir = (IResource) affectedResourceIterator.next();
                         try {
                             if (ir.exists()) {
-                                ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+                                ir.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
                                         IResource.DEPTH_INFINITE);
                                 ir.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
                                         IResource.DEPTH_INFINITE);

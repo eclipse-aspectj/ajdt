@@ -246,7 +246,7 @@ public class BuildConfigEditor
 		try {
 			((IResource) input.getFile()).deleteMarkers(
 				IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-				true,
+				false,
 				IResource.DEPTH_INFINITE);
 			((IResource) input.getFile()).deleteMarkers(
 					IAJModelMarker.AJDT_PROBLEM_MARKER,

@@ -443,7 +443,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		IProject currProject = AspectJUIPlugin.getDefault().getCurrentProject();
 		try {
 			currProject
-					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 							(recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
 			currProject
