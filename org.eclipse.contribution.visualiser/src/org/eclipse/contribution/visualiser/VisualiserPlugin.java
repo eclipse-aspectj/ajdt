@@ -176,8 +176,10 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public void setVisualiser(Visualiser visualiser) {
 		VisualiserPlugin.visualiser = visualiser;
 		// When the visualiser is known, tell it where to get its data from
+		// and activate the content provider
 		VisualiserPlugin.visualiser.setVisContentProvider(ProviderManager.getContentProvider());
 		VisualiserPlugin.visualiser.setVisMarkupProvider(ProviderManager.getMarkupProvider());
+		ProviderManager.getContentProvider().activate();
 	}
 
 
@@ -195,7 +197,9 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public void setMenu(Menu menu) {
 		VisualiserPlugin.menu = menu;
 		// When the menu is known, tell it where to get its data from
+		// and activate the markup provider
 		VisualiserPlugin.menu.setVisMarkupProvider(ProviderManager.getMarkupProvider());
+		ProviderManager.getMarkupProvider().activate();
 	}
 
 
