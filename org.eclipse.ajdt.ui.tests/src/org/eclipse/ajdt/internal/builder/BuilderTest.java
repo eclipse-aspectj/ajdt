@@ -37,14 +37,17 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 
 /**
@@ -118,35 +121,36 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception (copyAndRemoveNewNonSrcFile) - don't care");
-			monitor.reset();
-			simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-			monitor.waitForCompletion();
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e2) {
-				System.err.println("interrupted sleep - don't care");
-			}
-		}
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception (copyAndRemoveNewNonSrcFile) - don't care");
+//			monitor.reset();
+//			simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
+//			monitor.waitForCompletion();
+//			try {
+//				Thread.sleep(5000);
+//			} catch (InterruptedException e2) {
+//				System.err.println("interrupted sleep - don't care");
+//			}
+//		}
 		
-		if (newFile == null){
+//		if (newFile == null){
+		BlockingProgressMonitor bpm = new BlockingProgressMonitor();
 			IFile f = p1.getFile("newFile.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
-				monitor.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
-				monitor.waitForCompletion();
+//				System.err.println("trying again....");
+				bpm.reset();
+				f.create(new ByteArrayInputStream(new byte[0]), true, bpm);
+				bpm.waitForCompletion();
 			}
 			newFile = p1.getFile("newFile.txt");
-		}
+//		}
 
 		try {
 			Thread.sleep(5000);
@@ -245,32 +249,32 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile2.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
-
-		if (newFile == null){
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile2.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
+//
+//		if (newFile == null){
 			IFile f = src.getFile("newFile2.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
+//				System.err.println("trying again....");
 				monitor.reset();
 				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 				monitor.waitForCompletion();
 			}
 			newFile = src.getFile("newFile2.txt");
-		}
+//		}
 
 		monitor.reset();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
@@ -374,32 +378,32 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
-
-		if (newFile == null){
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
+//
+//		if (newFile == null){
 			IFile f = pack.getFile("newFile.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
+//				System.err.println("trying again....");
 				monitor.reset();
 				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 				monitor.waitForCompletion();
 			}
 			newFile = pack.getFile("newFile.txt");
-		}
+//		}
 
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
@@ -492,31 +496,31 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
-		if (newFile == null){
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
+//		if (newFile == null){
 			IFile f = pack.getFile("newFile.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
+//				System.err.println("trying again....");
 				monitor.reset();
 				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 				monitor.waitForCompletion();
 			}
 			newFile = pack.getFile("newFile.txt");
-		}
+//		}
 
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
@@ -610,33 +614,33 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile4.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
-		
-		if (newFile == null){
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile4.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
+//		
+//		if (newFile == null){
 			IFile f = p1.getFile("newFile4.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
+//				System.err.println("trying again....");
 				monitor.reset();
 				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 				monitor.waitForCompletion();
 			}
 			newFile = p1.getFile("newFile4.txt");
-		}
+//		}
 		monitor.reset();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
 		monitor.waitForCompletion();
@@ -764,33 +768,33 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(project);
 
 		IFile newFile = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		if (newFile == null){
+//		if (newFile == null){
 			IFile f = project.getFile("newFile.txt");
 			if (!f.exists()) {
-				System.err.println("trying again....");
+//				System.err.println("trying again....");
 				monitor.reset();
 				f.create(new ByteArrayInputStream(new byte[0]), true, monitor);
 				monitor.waitForCompletion();
 			}
 			newFile = project.getFile("newFile.txt");
-		}
+//		}
 
 		monitor.reset();
 		project.refreshLocal(IResource.DEPTH_INFINITE,monitor);
@@ -873,22 +877,37 @@ public class BuilderTest extends TestCase {
 		pbc.requestFullBuild(false);
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			makeNewPackage("newPackage",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-	
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			makeNewPackage("newPackage",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//	
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
+		
+		String str= "Simple AJ Project" + File.separator + "src";
+		IPath path= new Path(str); 
+        IResource res= ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+		IPackageFragmentRoot root = javaProject.getPackageFragmentRoot(res);
+		monitor.reset();
+		root.createPackageFragment("newPackage", true, monitor);
+		monitor.waitForCompletion();
+//		IFolder p = src.getFolder("newPackage");
+//		if (!p.exists()) {
+//			monitor.reset();
+//			p.create(true, true, monitor);
+//			monitor.waitForCompletion();
+//		}
+
 		monitor.reset();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
 		monitor.waitForCompletion();
@@ -985,23 +1004,32 @@ public class BuilderTest extends TestCase {
 		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IFolder createdFolder = null;
-		try {
-			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			bpm.reset();
-			createdFolder = makeNewFolder("newFolder",selectedFolder,bpm);
-			bpm.waitForCompletion();
-		} catch (SWTException e) {
-			// don't care about this exception because it's down
-			// in SWT and nothing to do with the test
-			System.err.println(">>> caught swt exception - don't care");
-		}
-		
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.err.println("interrupted sleep - don't care");
-		}
+//		try {
+//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
+//			bpm.reset();
+//			createdFolder = makeNewFolder("newFolder",selectedFolder,bpm);
+//			bpm.waitForCompletion();
+//		} catch (SWTException e) {
+//			// don't care about this exception because it's down
+//			// in SWT and nothing to do with the test
+//			System.err.println(">>> caught swt exception - don't care");
+//		}
+//		
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			System.err.println("interrupted sleep - don't care");
+//		}
 
+		IFolder f = src.getFolder("newFolder");
+		if (!f.exists()) {
+			monitor.reset();
+			f.create(true, true, monitor);
+			monitor.waitForCompletion();
+		}
+		createdFolder = src.getFolder("newFolder");
+		
+		
 		monitor.reset();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
 		monitor.waitForCompletion();
