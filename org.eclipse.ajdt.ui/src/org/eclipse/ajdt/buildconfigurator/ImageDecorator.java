@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.internal.builder.AJModel;
+import org.eclipse.ajdt.internal.builder.AJRelationshipManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -207,9 +208,8 @@ public class ImageDecorator implements ILabelDecorator {
 		} else if (showAdvisedBy && (element instanceof IJavaElement)) {
 			IJavaElement el = (IJavaElement)element;
 			if (el.getElementType() == IJavaElement.METHOD) {
-				boolean isAdvised = AJModel.getInstance().isAdvisedBy(el);
-				//System.out.println(el.getElementName()+" isAdvised="+isAdvised);
-				if (isAdvised) {
+				List advisedBy = AJModel.getInstance().getRelatedElements(AJRelationshipManager.ADVISED_BY,el);
+				if ((advisedBy!=null) && (advisedBy.size()>0)) {
 					MyCompositeImageDesc overlay = new MyCompositeImageDesc(image);
 					img = overlay.getImage();
 					return img;

@@ -53,7 +53,9 @@ public class AJProjectModel {
 	
 	// map asm kind strings to AJRelationships
 	private Map kindMap = new HashMap();
-		
+
+	private Map extraChildren = new HashMap();
+	
 	public AJProjectModel(IProject project) {
 		this.project = project;
 		
@@ -66,6 +68,9 @@ public class AJProjectModel {
 		kindMap.put("matches declare",AJRelationshipManager.MATCHES_DECLARE);
 	}
 
+	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
+		return (IJavaElement)ipeToije.get(ipe);
+	}
 	/*
 	public List getAdvisesElements(IJavaElement je) {
 		Map relMap = (Map)perRelMap.get(AJRelationshipManager.ADVISES);
@@ -87,6 +92,14 @@ public class AJProjectModel {
 
 	public String getJavaElementLinkName(IJavaElement je) {
 		return (String)jeLinkNames.get(je);
+	}
+	
+	public IJavaElement[] getExtraChildren(IJavaElement je) {
+		List l = (List)extraChildren.get(je);
+		if (l==null) {
+			return null;
+		}
+		return (IJavaElement[])(l.toArray(new IJavaElement[]{}));
 	}
 	
 	public void createProjectMap() {
@@ -113,10 +126,10 @@ public class AJProjectModel {
 		}
 		long cp1 = System.currentTimeMillis();
 		long elapsed = cp1 - start;
-		System.out.println("processed files in " + elapsed);
+		//System.out.println("processed files in " + elapsed);
 		processRelationships();
 		elapsed = System.currentTimeMillis() - cp1;
-		System.out.println("processed rels in " + elapsed);
+		//System.out.println("processed rels in " + elapsed);
 	}
 	
 	private void processRelationships() {
@@ -150,7 +163,7 @@ public class AJProjectModel {
 						//							+ rel.getName() + ", target: "
 						//							+ targetEl.getElementName());
 						AJRelationship ajRel = (AJRelationship) kindMap.get(rel.getName());
-						System.out.println("rel name="+rel.getName()+" ajRel=" + ajRel);
+						//System.out.println("rel name="+rel.getName()+" ajRel=" + ajRel);
 						if (ajRel != null) {
 							Map relMap = (Map) perRelMap.get(ajRel);
 							if (relMap == null) {
@@ -200,7 +213,7 @@ public class AJProjectModel {
 		// Copes with linked src folders.
 		String path = file.getRawLocation().toOSString();
 
-		System.out.println("createMapForFile: " + path);
+		//System.out.println("createMapForFile: " + path);
 
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
 				true, true);
@@ -221,13 +234,22 @@ public class AJProjectModel {
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				System.out.println("node="+node.toLinkLabelString()+" ("+node.hashCode()+")");
+				//System.out.println("node="+node.toLinkLabelString()+" ("+node.hashCode()+")");
 				ISourceLocation sl = node.getSourceLocation();
 //				Integer os = (Integer) lineToOffset.get(new Integer(sl
 //						.getLine()));
 				//System.out.println("os="+os);
 //				int offset = os.intValue() + sl.getColumn() + 12;
 				//System.out.println("guessed offset="+offset);
+				int fff = 0;
+				if (node.toLinkLabelString().indexOf("declare parents")>=0) {
+					//System.out.println("declare parents");
+					fff = 10;
+				}
+				if (node.toLinkLabelString().indexOf("declare warning")>=0) {
+					//System.out.println("declare warning");
+					fff = 10;
+				}
 				boolean subElement = false;
 				int offset = sl.getOffset();
 				if (offset==0) {
@@ -238,16 +260,23 @@ public class AJProjectModel {
 				//System.out.println("queried offset="+offset);
 				if (unit != null) {
 					try {
-						IJavaElement el = unit.getElementAt(offset);
+						IJavaElement el = unit.getElementAt(offset+fff);
 						if (subElement) {
 							int start = offset;
 							int end = offset+1;
-							el = new AJCodeElement((JavaElement)el,sl.getLine(),node.toLabelString());
+							IJavaElement parent = el;
+							el = new AJCodeElement((JavaElement)parent,sl.getLine(),node.toLabelString());
+							//System.out.println("extra child for "+parent+" is "+el);
+							List l = (List)extraChildren.get(parent);
+							if (l==null) {
+								l = new ArrayList();
+								extraChildren.put(parent,l);
+							}
+							l.add(el);
 						}
 						if (el != null) {
-							System.out.println("el=" + el + " (" +
-							 el.getClass() + ") "+el.hashCode()+")");
-							System.out.println("ipeToije="+ipeToije.hashCode());
+							//System.out.println("el=" + el + " (" +
+							// el.getClass() + ") "+el.hashCode()+")");
 							ipeToije.put(node, el);
 							jeLinkNames.put(el,node.toLinkLabelString());
 						}
