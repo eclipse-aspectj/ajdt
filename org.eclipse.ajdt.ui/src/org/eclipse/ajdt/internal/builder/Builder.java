@@ -87,16 +87,6 @@ public class Builder extends IncrementalProjectBuilder {
 	private static final int CONFIG_FILE_WRITE_ERROR = -10;
 
 	/**
-	 * Default timeout value for an AspectJ compile
-	 */
-	private static final int DEFAULT_TIMEOUT = 120;
-
-	/**
-	 * Preference setting for compile timeout
-	 */
-	private static final String COMPILE_TIMEOUT = "org.aspectj.ajdt.ui.compile-timeout";  //$NON-NLS-1$
-
-	/**
 	 * The last project we did a build for, needed by content outline view to
 	 * decide which updates to accept.
 	 */
@@ -858,74 +848,15 @@ public class Builder extends IncrementalProjectBuilder {
 	}
 
 	/**
-	 * Wait up to COMPILE_WAIT_TIME seconds for a build to finish
+	 * Wait until compiler monitor indicates completion
 	 */
 	private void waitForBuildCompletion(CompilerMonitor monitor) {
-		int timesTried = 0;
-		// we learn the appropriate timeout over time...
-		int timeout = DEFAULT_TIMEOUT;
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		if (store.contains(COMPILE_TIMEOUT)) {
-			timeout = store.getInt(COMPILE_TIMEOUT);
-		} else {
-			store.setValue(COMPILE_TIMEOUT, timeout);
-		}
-
-		while (!monitor.finished() && timesTried < timeout) {
-			timesTried++;
+		while (!monitor.finished()) {
 			try {
 				checkAndHandleCancelation();
-				Thread.sleep(1000);
-			} catch (Exception e) {
-			}
-
+				Thread.sleep(100);
+			} catch (Exception e) { }
 		}
-		if (timesTried == timeout) {
-			// commenting out continueCompilation(monitor) if statement since
-			// dont want popup to appear
-			// anymore, now checking whether the user has cancelled the build
-			//if (continueCompilation( monitor )) {
-			waitForBuildCompletion(monitor);
-			//}
-		}
-	}
-
-	/**
-	 * The timeout's fired waiting for a compile to finish... Could be a BIG
-	 * project, could be a compiler bug. Let's see what the user wants to do.
-	 */
-	private boolean continueCompilation(final CompilerMonitor monitor) {
-
-		final String title = AspectJUIPlugin
-				.getResourceString("suspiciouslyLongCompileDialog"); //$NON-NLS-1$
-		final String message = AspectJUIPlugin
-				.getResourceString("isYourProjectReallyBig"); //$NON-NLS-1$
-
-		AspectJUIPlugin.getDefault().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				boolean keepWaiting = false;
-				Shell[] s = AspectJUIPlugin.getDefault().getDisplay().getShells();
-				if (s != null && s.length > 0) {
-					Shell shell = s[0];
-					keepWaiting = MessageDialog.openQuestion(shell, title,
-							message);
-				}
-
-				if (keepWaiting) {
-					//exponential growth to avoid bugging user!
-					IPreferenceStore store = AspectJUIPlugin.getDefault()
-							.getPreferenceStore();
-					int timeout = store.getInt(COMPILE_TIMEOUT);
-					timeout *= 2;
-					store.setValue(COMPILE_TIMEOUT, timeout);
-				} else {
-					monitor.finish();
-				}
-			}
-		});
-
-		return !monitor.finished();
 	}
 
 	/**
