@@ -15,6 +15,7 @@ import java.io.File;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -364,7 +365,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		try {
 			preserveSetting(BuildOptionsAdapter.OUTPUTJAR,outputJarEditor.getStringValue());
 			preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
-			preserveSetting(BuildOptionsAdapter.NON_STANDARD_OPTS,nonStandardOptionsEditor.getStringValue());
+			AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		} catch (CoreException ce) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringStore"),
@@ -404,7 +405,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 */
 	public void updatePageContents() {
 		outputJarEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.OUTPUTJAR));
-		nonStandardOptionsEditor.setStringValue(retrieveSettingString(BuildOptionsAdapter.NON_STANDARD_OPTS));
+		nonStandardOptionsEditor.setStringValue(AspectJPreferences.getCompilerOptions(thisProject));
 	}
  	
     /**

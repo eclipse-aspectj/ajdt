@@ -17,7 +17,6 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextViewer;
@@ -91,12 +90,6 @@ public class AspectJPreferencePage
 				AspectJUIPlugin.getResourceString("aspectjPreferences.description"));
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
-
-		//addField(createCompilerOptionsField(compilerOptionsComposite));
-
-		//addField(createAutobuildSuppressedField(compilerOptionsComposite));
-
-		//createLabel(compilerOptionsComposite, ""); // Spacer
 
 		createLabel(
 			compilerOptionsComposite,
@@ -193,20 +186,6 @@ public class AspectJPreferencePage
 		data.horizontalAlignment = GridData.FILL;
 		label.setLayoutData(data);
 		return label;
-	}
-
-	/**
-	 * Create a string field editor for the AspectJ compiler options
-	 */
-	private FieldEditor createCompilerOptionsField(Composite parent) {
-		StringFieldEditor editor =
-			new StringFieldEditor(
-				AspectJPreferences.COMPILER_OPTIONS,
-				AspectJUIPlugin.getResourceString("compilerOptions"),
-				32,
-				parent);
-		editor.setStringValue(AspectJPreferences.getCompilerOptions());
-		return editor;
 	}
 
 	/**

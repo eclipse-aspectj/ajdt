@@ -427,8 +427,8 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * @see ProjectPropertiesAdapter#getExecutionArgs()
 	 */
 	public String getExecutionArgs() {
-		String options = AspectJPreferences.getCompilerOptions();
-		return options;
+		IProject project = AspectJUIPlugin.getDefault().getCurrentProject();
+		return AspectJPreferences.getCompilerOptions(project);
 	}
 
 	/*

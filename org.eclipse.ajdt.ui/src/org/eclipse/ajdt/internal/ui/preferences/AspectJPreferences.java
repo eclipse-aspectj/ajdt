@@ -10,7 +10,7 @@ Julie Waterhouse - added methods to get/set ajdtPrefConfigDone - August 3, 2003
 Matt Chapman - added support for Xlint and advanced options
 Ian McGrath - added support for the properties page
 Sian January - moved in other options and added 1.5 options
-Matt Chapman - added project scoped preferences
+Matt Chapman - added project scoped preferences (40446)
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -32,12 +34,12 @@ import org.osgi.service.prefs.BackingStoreException;
  * pages and the property pages accessible by right clicking a project.
  */
 public class AspectJPreferences {
-		
+
 
 	/**
 	 * Identifier for compiler options preference
 	 */   
-    public static final String COMPILER_OPTIONS= "aspectj.compiler.options.flags";
+    public static final String COMPILER_OPTIONS= "org.eclipse.ajdt.core.compiler.nonStandardOptions";
 
     
 	/**
@@ -79,7 +81,14 @@ public class AspectJPreferences {
 
     public static final String DO_PDE_AUTO_IMPORT = "org.eclipse.ajdt.ui.preferences.doPdeAutoImport";
     
-	private static final String WARNING = JavaCore.WARNING;
+	public static final String VALUE_ERROR = JavaCore.ERROR;
+	public static final String VALUE_WARNING = JavaCore.WARNING;
+	public static final String VALUE_IGNORE = JavaCore.IGNORE;
+	public static final String VALUE_ENABLED = JavaCore.ENABLED;
+	public static final String VALUE_DISABLED = JavaCore.DISABLED;
+	
+	// project-scope preference to indicate if project-specific settings are in force
+	public static final String OPTION_UseProjectSettings = "org.eclipse.ajdt.core.compiler.useProjectSettings";
 	
 	// AspectJ Lint options
 	public static final String OPTION_ReportInvalidAbsoluteTypeName = "org.aspectj.ajdt.core.compiler.lint.InvalidAbsoluteTypeName"; 
@@ -115,7 +124,7 @@ public class AspectJPreferences {
 	public static final String OPTION_Incremental 			  = "org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode";
 	public static final String OPTION_BuildASM				  = "org.aspectj.ajdt.core.compiler.BuildOptions.buildAsm";
 	public static final String OPTION_WeaveMessages 		  = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages";
-		
+	
 	// map preference keys to corresponding options for the properties file
 	private static String[][] lintKeysName = {
 			{ OPTION_ReportInvalidAbsoluteTypeName, "invalidAbsoluteTypeName" },
@@ -145,15 +154,7 @@ public class AspectJPreferences {
 	 * </p>
 	 */ 
 	public static final String AJDOC_COMMAND= "ajdocCommand"; //$NON-NLS-1$
-    
-	/**
-	 * Helper get method used by AspectJPreference page
-	 */
-	static public String getCompilerOptions() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		return store.getString(COMPILER_OPTIONS);
-	}
-	
+		
 	public static String getFileExt() {
 		boolean javaOrAjExt = getJavaOrAjExt();
 		return javaOrAjExt ? ".java" : ".aj";
@@ -164,68 +165,59 @@ public class AspectJPreferences {
 		return store.getBoolean(JAVA_OR_AJ_EXT);
 	}
 	
-	/**
-	 * Helper set method used by AspectJPreference page
-	 */
-	static public void setCompilerOptions(String value) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		store.setValue(COMPILER_OPTIONS, value);
-	}	
-
-	static public String getLintOptions(IProject thisProject) {
+	public static String getLintOptions(IProject thisProject) {
 		File optsFile = AspectJUIPlugin.getDefault().getStateLocation().append(XlintProperties).toFile();
-		writeLintOptionsFile(thisProject);
-		String opts=" -Xlintfile \""+optsFile+"\" ";	
-		return opts;
+		writeLintOptionsFile(thisProject, optsFile);
+		return " -Xlintfile \""+optsFile+"\" ";	
 	}
 
 	public static boolean getShowWeaveMessagesOption(IProject thisProject) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		String opts=" ";
-		String prefix;
-		if(store.getBoolean(thisProject + "useProjectSettings"))
-			prefix = thisProject.toString();
-		else
-			prefix = "";	
-		return store.getBoolean(prefix + OPTION_WeaveMessages);
+		return getBooleanPrefValue(thisProject, OPTION_WeaveMessages);
 	}
 	
 	public static boolean getBuildASMOption(IProject thisProject) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		String prefix;
-		if(store.getBoolean(thisProject + "useProjectSettings"))
-			prefix = thisProject.toString();
-		else
-			prefix = "";	
-		return store.getBoolean(prefix + OPTION_BuildASM);
+		return getBooleanPrefValue(thisProject, OPTION_BuildASM);
 	}
 	
 	public static boolean getIncrementalOption(IProject thisProject) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		String prefix;
-		if(store.getBoolean(thisProject + "useProjectSettings"))
-			prefix = thisProject.toString();
-		else
-			prefix = "";	
-		return store.getBoolean(prefix + OPTION_Incremental);
+		return getBooleanPrefValue(thisProject, OPTION_Incremental);
 	} 	
 	
-	static private void writeLintOptionsFile(IProject thisProject) {
-		File optsFile = AspectJUIPlugin.getDefault().getStateLocation().append(XlintProperties).toFile();
-		String prefix; // is initialised to the the project name if it needs to use project specific options
+	public static boolean isUsingProjectSettings(IProject project) {
+		IScopeContext projectScope = new ProjectScope(project);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    	if (projectNode==null) {
+     		return false;
+    	}
+    	return projectNode.getBoolean(OPTION_UseProjectSettings,false);		
+	}
+	
+	public static void setUsingProjectSettings(IProject project, boolean isUsingProjectSettings) {
+		IScopeContext projectScope = new ProjectScope(project);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    	if (isUsingProjectSettings) {
+    		projectNode.putBoolean(OPTION_UseProjectSettings,true);
+    		CompilerPropertyPage.setDefaults(projectNode);
+    	} else {
+    		projectNode.remove(OPTION_UseProjectSettings);
+    		CompilerPropertyPage.removeValues(projectNode);
+    	}
+       	try {
+			projectNode.flush();
+		} catch (BackingStoreException e) {
+		}
+ 	}
+	
+	private static void writeLintOptionsFile(IProject thisProject, File optsFile) {
 		try {
 			FileWriter writer = new FileWriter(optsFile);
-			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-			
-			if(store.getBoolean(thisProject + "useProjectSettings"))
-				prefix = thisProject.toString();
-			else
-				prefix="";
+
 			for (int i=0; i<lintKeysName.length; i++) {
-				String value = store.getString(prefix+lintKeysName[i][0]);
+				String value = getStringPrefValue(thisProject,lintKeysName[i][0]);
 				if(value.equals("")) { //catches and initializes uninitialized variables
-					store.setDefault(prefix+lintKeysName[i][0],WARNING);
-					value = store.getString(prefix+lintKeysName[i][0]);
+//					store.setDefault(prefix+lintKeysName[i][0],VALUE_WARNING);
+//					value = store.getString(prefix+lintKeysName[i][0]);
+					value = VALUE_WARNING;
 				}
 				writer.write(lintKeysName[i][1]+" = "+value);
 				writer.write(System.getProperty("line.separator"));				
@@ -235,33 +227,27 @@ public class AspectJPreferences {
 		}
 	}
 
-	static public String getAdvancedOptions(IProject thisProject) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+	public static String getAdvancedOptions(IProject project) {
 		String opts=" ";
-		String prefix;
-		if(store.getBoolean(thisProject + "useProjectSettings"))
-			prefix = thisProject.toString();
-		else
-			prefix = "";
-		if (store.getBoolean(prefix+OPTION_NoWeave)) {
+		if (getBooleanPrefValue(project, OPTION_NoWeave)) {
 			opts+="-XnoWeave ";
 		}
-		if (store.getBoolean(prefix+OPTION_XSerializableAspects)) {
+		if (getBooleanPrefValue(project, OPTION_XSerializableAspects)) {
 			opts+="-XserializableAspects ";
 		}
-		if (store.getBoolean(prefix+OPTION_XLazyThisJoinPoint)) {
+		if (getBooleanPrefValue(project, OPTION_XLazyThisJoinPoint)) {
 			opts+="-XlazyTjp ";
 		}
-		if (store.getBoolean(prefix+OPTION_XNoInline)) {
+		if (getBooleanPrefValue(project, OPTION_XNoInline)) {
 			opts+="-XnoInline ";
 		}
-		if (store.getBoolean(prefix+OPTION_XReweavable)) {
+		if (getBooleanPrefValue(project, OPTION_XReweavable)) {
 			opts+="-Xreweavable ";
 		}
-		if (store.getBoolean(prefix+OPTION_XReweavableCompress)) {
+		if (getBooleanPrefValue(project, OPTION_XReweavableCompress)) {
 			opts+="-Xreweavable:compress ";
 		}
-		if (store.getBoolean(prefix+OPTION_1_5)) {
+		if (getBooleanPrefValue(project, OPTION_1_5)) {
 			opts+="-1.5 ";
 		}
 		return opts;
@@ -387,17 +373,61 @@ public class AspectJPreferences {
     
     public static String getActiveBuildConfigurationName(IProject project) {
      	IScopeContext projectScope = new ProjectScope(project);
-    	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
     	return projectNode.get(ACTIVE_CONFIG,"");
     }
     
     public static void setActiveBuildConfigurationName(IProject project, String configName) {
      	IScopeContext projectScope = new ProjectScope(project);
-       	IEclipsePreferences projectNode = projectScope.getNode(AspectJUIPlugin.PLUGIN_ID);
+       	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
       	projectNode.put(ACTIVE_CONFIG,configName);
        	try {
 			projectNode.flush();
 		} catch (BackingStoreException e) {
 		}
     }
+    
+	public static void setCompilerOptions(IProject project, String value) {
+		IScopeContext projectScope = new ProjectScope(project);
+       	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+      	projectNode.put(COMPILER_OPTIONS,value);
+      	if (value.equals("")) {
+      		projectNode.remove(COMPILER_OPTIONS);
+      	}
+       	try {
+			projectNode.flush();
+		} catch (BackingStoreException e) {
+		}
+	}	
+
+	public static String getCompilerOptions(IProject project) {
+    	IScopeContext projectScope = new ProjectScope(project);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    	return projectNode.get(COMPILER_OPTIONS,"");
+	}
+
+	public static String getStringPrefValue(IProject project, String key) {
+		if (isUsingProjectSettings(project)) {			
+			IScopeContext projectScope = new ProjectScope(project);
+    		IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    		String v = projectNode.get(key,"");
+    		return v;
+		} else {
+			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+			return store.getString(key);
+		}
+	}
+
+	private static boolean getBooleanPrefValue(IProject project, String key) {
+		if (isUsingProjectSettings(project)) {			
+			IScopeContext projectScope = new ProjectScope(project);
+    		IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    		boolean v = projectNode.getBoolean(key,false);
+     		return v;
+		} else {
+			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+			return store.getBoolean(key);
+		}
+	}
+
 }

@@ -68,11 +68,9 @@ public class BuildOptionsAdapter
 	    new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.aspectJars");
 	
 		// Temporarily removing this option, will return nothing to the caller.
-	public final static QualifiedName CHAR_ENC =
-	
+	public final static QualifiedName CHAR_ENC =	
 		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.characterEncoding");
-	public final static QualifiedName NON_STANDARD_OPTS =
-		new QualifiedName(AspectJUIPlugin.PLUGIN_ID, "BuildOptions.nonStandardOptions");
+
 	public final static QualifiedName COMPILATION_STRICTNESS =
 		new QualifiedName(
 			AspectJUIPlugin.PLUGIN_ID,
@@ -206,7 +204,7 @@ public class BuildOptionsAdapter
 	public String getNonStandardOptions() {
 		ensurePropertiesInitialized();
 		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();
-		String nonStandardOptions = retrieveSettingString(NON_STANDARD_OPTS);
+		String nonStandardOptions = AspectJPreferences.getCompilerOptions(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println(
 				"BuildOptionsAdapter.getNonStandardOptions called, returning :"
