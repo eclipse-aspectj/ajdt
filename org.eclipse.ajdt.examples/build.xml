@@ -73,7 +73,8 @@ Create a packaged org.eclipse.ajdt.examples_version feature plugin distribution 
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="src" destdir="bin" classpath="${classpath.org.eclipse.ajdt.examples}"/>
+	<javac srcdir="src" destdir="bin"
+		classpath="${classpath.org.eclipse.ajdt.examples};../org.eclipse.ajdt.core/build/ajdtcore.jar"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >
