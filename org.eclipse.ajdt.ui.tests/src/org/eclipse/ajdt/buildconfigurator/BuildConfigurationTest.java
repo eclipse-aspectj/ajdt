@@ -42,8 +42,6 @@ public class BuildConfigurationTest extends TestCase {
 	IProject ajProject = null;
 	JavaTestProject tp,tp2;
 
-	static int testNum = 100;
-
 	IFile fileA;
 	IFile fileB;
 	IFile fileDef;
@@ -55,10 +53,10 @@ public class BuildConfigurationTest extends TestCase {
 		super.setUp();
 		
 		//create JavaProject
-		tp = new JavaTestProject("Java Project created by BuildConfigurationTest" + testNum);
+		tp = new JavaTestProject("Java Project created by BuildConfigurationTest");
 		javaProject = tp.getProject();
 		
-		tp2 = new JavaTestProject("AJ Project created by BuildConfigurationTest" + testNum++);
+		tp2 = new JavaTestProject("AJ Project created by BuildConfigurationTest");
 		ajProject = tp2.getProject();
 		AspectJPreferences.setAJDTPrefConfigDone(true);
 		AJDTUtils.addAspectJNature(ajProject);		
