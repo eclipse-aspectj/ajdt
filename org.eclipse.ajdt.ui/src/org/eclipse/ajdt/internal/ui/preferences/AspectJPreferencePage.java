@@ -129,10 +129,9 @@ public class AspectJPreferencePage
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
 
-		// no more custom outline!
-//		addField(createAJOutlineField(compilerOptionsComposite));
-//		createLabel(compilerOptionsComposite, 
-//				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
+		addField(createAJOutlineField(compilerOptionsComposite));
+		createLabel(compilerOptionsComposite, 
+				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
 		
 		addField(createJavaOrAJField(compilerOptionsComposite));
 		createLabel(compilerOptionsComposite, 
