@@ -19,6 +19,7 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.visualiser.NodeHolder;
@@ -75,7 +76,9 @@ public class MarkerUpdating {
 								if(resource instanceof IFolder) {
 									return true;
 								} else if (resource instanceof IFile) {
-									addMarkersToFile((IFile)resource);
+									if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resource.getName())) {
+										addMarkersToFile((IFile)resource);
+									}
 									return false;
 								} else {
 									return true;
