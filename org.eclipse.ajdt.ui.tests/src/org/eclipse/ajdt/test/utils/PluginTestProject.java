@@ -13,30 +13,17 @@ package org.eclipse.ajdt.test.utils;
 
 import java.util.ArrayList;
 
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.ITypeNameRequestor;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.pde.core.build.IBuildEntry;
@@ -76,21 +63,25 @@ import org.eclipse.ui.part.ISetSelectionTarget;
  * there. The edits have been taken from the execute method in
  * NewProjectCreationOperation which creates a new plugin project.
  * 
- * This creates a plugin project exactly as it would be created by
- * following New --> Project --> plugin project
+ * This creates a plugin project exactly as it would be created by following New
+ * --> Project --> plugin project
  *  
  */
 public class PluginTestProject {
 
 	private IProject project;
+
 	private IFieldData fData;
+
 	private PluginClassCodeGenerator fGenerator;
+
 	private PluginFieldData pluginFieldData;
+
 	private WorkspacePluginModelBase fModel;
+
 	private IProjectProvider fProjectProvider;
+
 	private String pluginID;
-	
-	private BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 
 	public PluginTestProject() throws CoreException {
 		this("PluginTestProject", "test.plugin", "TestPlugin",
@@ -125,17 +116,15 @@ public class PluginTestProject {
 	public PluginTestProject(String pname, String pluginID, String className,
 			String runtimeLibName, String outputfoldername,
 			boolean createContent) throws CoreException {
-		
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		monitor.reset();
+
 		this.pluginID = pluginID;
-		setUpPluginData(pluginID,className,runtimeLibName,outputfoldername);
+		setUpPluginData(pluginID, className, runtimeLibName, outputfoldername);
 		fData = pluginFieldData;
 		fProjectProvider = new TestProjectProvider(pname);
 
 		project = createProject();
 
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		if (project.hasNature(JavaCore.NATURE_ID)) {
 			setClasspath(project, fData);
 		}
@@ -146,17 +135,16 @@ public class PluginTestProject {
 		}
 
 		createManifest(project);
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		createBuildPropertiesFile(project);
-		waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 
 		fModel.save();
 
-		monitor.reset();
 		if (fData.hasBundleStructure()) {
 			String filename = (fData instanceof IFragmentFieldData) ? "fragment.xml" : "plugin.xml"; //$NON-NLS-1$ //$NON-NLS-2$
-			PDEPluginConverter.convertToOSGIFormat(project,filename,new SubProgressMonitor(monitor,1));
-			monitor.waitForCompletion();
+			PDEPluginConverter.convertToOSGIFormat(project, filename, null);
+			Utils.waitForJobsToComplete();
 			trimModel(fModel.getPluginBase());
 			fModel.save();
 			openFile(project.getFile("META-INF/MANIFEST.MF")); //$NON-NLS-1$
@@ -169,7 +157,8 @@ public class PluginTestProject {
 
 	// ----------- FROM HERE ----------------
 
-	private void setUpPluginData(String pluginID, String className, String libName, String outputfoldername) {
+	private void setUpPluginData(String pluginID, String className,
+			String libName, String outputfoldername) {
 		pluginFieldData = new PluginFieldData();
 		pluginFieldData.setSourceFolderName("src");
 		pluginFieldData.setOutputFolderName(outputfoldername);
@@ -181,31 +170,26 @@ public class PluginTestProject {
 	private IProject createProject() throws CoreException {
 		IProject project = fProjectProvider.getProject();
 		if (!project.exists()) {
-			monitor.reset();
 			CoreUtility.createProject(project, fProjectProvider
-					.getLocationPath(), monitor);
-			monitor.waitForCompletion();
-			monitor.reset();
-			project.open(monitor);
-			monitor.waitForCompletion();
+					.getLocationPath(), null);
+			project.open(null);
+			Utils.waitForJobsToComplete();
 		}
-		if (!project.hasNature(PDE.PLUGIN_NATURE))
+		//if (!project.hasNature(PDE.PLUGIN_NATURE))
 			//CoreUtility.addNatureToProject(project, PDE.PLUGIN_NATURE, null);
-			monitor.reset();
-			CoreUtility.addNatureToProject(project, PDE.PLUGIN_NATURE, monitor);
-			monitor.waitForCompletion();
-		if (!fData.isSimple() && !project.hasNature(JavaCore.NATURE_ID))
-			//CoreUtility.addNatureToProject(project, JavaCore.NATURE_ID, null);
-			monitor.reset();
-			CoreUtility.addNatureToProject(project, JavaCore.NATURE_ID, monitor);
-			monitor.waitForCompletion();
+		CoreUtility.addNatureToProject(project, PDE.PLUGIN_NATURE, null);
+		Utils.waitForJobsToComplete();
+		if (!fData.isSimple() && !project.hasNature(JavaCore.NATURE_ID)) {
+			CoreUtility.addNatureToProject(project, JavaCore.NATURE_ID, null);
+			Utils.waitForJobsToComplete();
+		}
 		if (!fData.isSimple()
 				&& fData.getSourceFolderName().trim().length() > 0) {
 			IFolder folder = project.getFolder(fData.getSourceFolderName());
-			if (!folder.exists())
-				monitor.reset();
-				CoreUtility.createFolder(folder, true, true, monitor);
-				monitor.waitForCompletion();
+			if (!folder.exists()) {
+				CoreUtility.createFolder(folder, true, true, null);
+				Utils.waitForJobsToComplete();
+			}
 		}
 		return project;
 	}
@@ -215,18 +199,17 @@ public class PluginTestProject {
 		// Set output folder
 		IJavaProject javaProject = JavaCore.create(project);
 		IPath path = project.getFullPath().append(data.getOutputFolderName());
-		//monitor.reset(); - doesn't always use monitor
-		javaProject.setOutputLocation(path, monitor);
-		monitor.waitForCompletion();
+		javaProject.setOutputLocation(path, null);
+		Utils.waitForJobsToComplete();
+		
 		// Set classpath
 		IClasspathEntry[] entries = new IClasspathEntry[3];
 		path = project.getFullPath().append(data.getSourceFolderName());
 		entries[0] = JavaCore.newSourceEntry(path);
 		entries[1] = ClasspathUtilCore.createContainerEntry();
 		entries[2] = ClasspathUtilCore.createJREEntry();
-		monitor.reset();
-		javaProject.setRawClasspath(entries, monitor);
-		monitor.waitForCompletion();
+		javaProject.setRawClasspath(entries, null);
+		Utils.waitForJobsToComplete();
 	}
 
 	private void generateTopLevelPluginClass(IProject project)
@@ -234,9 +217,8 @@ public class PluginTestProject {
 		IPluginFieldData data = (IPluginFieldData) fData;
 		fGenerator = new PluginClassCodeGenerator(project, data.getClassname(),
 				data);
-		monitor.reset();
-		fGenerator.generate(monitor);
-		monitor.waitForCompletion();
+		fGenerator.generate(null);
+		Utils.waitForJobsToComplete();
 	}
 
 	private void createManifest(IProject project) throws CoreException {
@@ -404,7 +386,6 @@ public class PluginTestProject {
 		}
 	}
 
-	
 	// ----------- TO HERE ----------------
 
 	public IProject getProject() {
@@ -412,32 +393,7 @@ public class PluginTestProject {
 	}
 
 	public synchronized void dispose() throws CoreException {
-		waitForIndexer();
-		monitor.reset();
-		try {
-			project.delete(IResource.ALWAYS_DELETE_PROJECT_CONTENT, monitor);
-		} catch (ResourceException re) {
-			// ignore this
-		}
-		monitor.waitForCompletion();
-	}	
-
-	private void waitForIndexer() throws JavaModelException {
-		new SearchEngine().searchAllTypeNames(null, null,
-				SearchPattern.R_EXACT_MATCH, IJavaSearchConstants.CLASS,
-				SearchEngine.createJavaSearchScope(new IJavaElement[0]),
-				new ITypeNameRequestor() {
-					public void acceptClass(char[] packageName,
-							char[] simpleTypeName, char[][] enclosingTypeNames,
-							String path) {
-					}
-
-					public void acceptInterface(char[] packageName,
-							char[] simpleTypeName, char[][] enclosingTypeNames,
-							String path) {
-					}
-				}, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, null);
-
+		Utils.deleteProject(project);
 	}
 
 	/**
@@ -446,91 +402,13 @@ public class PluginTestProject {
 	public String getPluginID() {
 		return pluginID;
 	}
-	
-	  public static class BlockingProgressMonitor implements IProgressMonitor {
 
-		private Boolean isDone = Boolean.FALSE;
-		
-		public boolean isDone() {
-			boolean ret = false;
-			synchronized(isDone) {
-			  ret = (isDone == Boolean.TRUE);
-			}
-			return ret;
-		}
-		
-		public void reset() {
-			synchronized(isDone) {
-			  isDone = Boolean.FALSE;
-			}
-		}
-		
-		public void waitForCompletion() {
-			while (!isDone()) {
-				try {
-					synchronized(this) { wait(500); }
-				} catch (InterruptedException intEx) {
-					// no-op
-				}
-			}
-		}
-		
-		public void beginTask(String name, int totalWork) {
-			if (name != null) System.out.println(name);
-			reset();
-		}
-
-		public void done() {
-			synchronized(isDone) {
-				isDone = Boolean.TRUE;
-			}
-			synchronized(this) {
-				notify();			
-			}
-		}
-
-		public void internalWorked(double work) {
-		}
-
-		public boolean isCanceled() {
-			return false;
-		}
-
-		public void setCanceled(boolean value) {
-		}
-
-		public void setTaskName(String name) {
-		}
-
-		public void subTask(String name) {
-		}
-
-		public void worked(int work) {
-			
-		}
-	  }	
-	
 	/**
 	 * @return Returns the fModel.
 	 */
 	public WorkspacePluginModelBase getWorkspacePluginModelBase() {
 		return fModel;
 	}
-	
-	private void waitForJobsToComplete(IProject pro){
-		Job job = new Job("Dummy Job"){
-			public IStatus run(IProgressMonitor m){
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-	    job.schedule();
-	    try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
+
 }
 

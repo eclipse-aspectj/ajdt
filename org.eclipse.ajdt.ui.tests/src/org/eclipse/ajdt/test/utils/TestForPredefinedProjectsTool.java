@@ -29,7 +29,7 @@ import org.eclipse.jdt.core.JavaModelException;
 public class TestForPredefinedProjectsTool extends TestCase {
 	
 	public void testPredefinedProjectsTool() throws CoreException{
-		IProject p = Utils.getPredefinedProject("Hello World Project", false);
+		IProject p = Utils.getPredefinedProject("Hello World Project", true);
 		if (p == null)
 			fail("Project 'Hello World Project' could not be imported.");
 		IJavaProject jp = JavaCore.create(p);

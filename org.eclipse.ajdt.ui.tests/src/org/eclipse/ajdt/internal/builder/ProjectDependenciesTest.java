@@ -21,7 +21,6 @@ import org.eclipse.ajdt.test.utils.PluginTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -56,11 +55,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 */
 	public void testHowDealingWithProjectDependencies() throws Exception {
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
 		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
@@ -130,13 +126,15 @@ public class ProjectDependenciesTest extends TestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(
 						projectX, projectY));
 
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		projectX.close(monitor);
-		monitor.waitForCompletion();
-		monitor.reset();
-		projectY.close(monitor);
-		monitor.waitForCompletion();
+		Utils.deleteProject(projectX);
+		Utils.deleteProject(projectY);
+//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+//		monitor.reset();
+//		projectX.close(monitor);
+//		monitor.waitForCompletion();
+//		monitor.reset();
+//		projectY.close(monitor);
+//		monitor.waitForCompletion();
 	}
 
 	/**
@@ -183,11 +181,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 */
 	public void testProjectDependencies1() throws Exception {
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
 		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
@@ -285,13 +280,15 @@ public class ProjectDependenciesTest extends TestCase {
 				"project X should NOT have a class folder dependency on project Y",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 		
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		projectX.close(monitor);
-		monitor.waitForCompletion();
-		monitor.reset();
-		projectY.close(monitor);
-		monitor.waitForCompletion();
+		Utils.deleteProject(projectX);
+		Utils.deleteProject(projectY);
+//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
+//		monitor.reset();
+//		projectX.close(monitor);
+//		monitor.waitForCompletion();
+//		monitor.reset();
+//		projectY.close(monitor);
+//		monitor.waitForCompletion();
 	}
 
 	private void setUpPluginEnvironment() throws CoreException {

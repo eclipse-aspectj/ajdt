@@ -110,7 +110,7 @@ public class Utils{
 
 	public static void deleteProject(IProject project) {
 		// make sure nothing is still using the project
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		
 		try {
 			// perform the delete
@@ -122,7 +122,7 @@ public class Utils{
 		}
 		
 		// make sure delete has finished
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 	}
 	
 	/**
@@ -162,11 +162,7 @@ public class Utils{
 		}
 	}
 	
-	public static void waitForJobsToComplete() {
-		waitForJobsToComplete(null);
-	}
-	
-	public static void waitForJobsToComplete(IProject pro){
+	public static void waitForJobsToComplete(){
 		try {
 			SynchronizationUtils.joinBackgroudActivities();
 //		Job job = new Job("Dummy Job"){

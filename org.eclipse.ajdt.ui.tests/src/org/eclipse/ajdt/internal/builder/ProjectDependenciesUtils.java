@@ -355,8 +355,7 @@ public class ProjectDependenciesUtils {
 	}
 
 	public static void addProjectDependency(
-			IJavaProject projectToHaveDependency, IProject projectDependedOn,
-			BlockingProgressMonitor monitor) {
+			IJavaProject projectToHaveDependency, IProject projectDependedOn) {
 		try {
 			IClasspathEntry[] cpEntry = projectToHaveDependency
 					.getRawClasspath();
@@ -368,9 +367,8 @@ public class ProjectDependenciesUtils {
 				newEntries[i] = cpEntry[i];
 			}
 			newEntries[cpEntry.length] = newProjectEntry;
-			monitor.reset();
-			projectToHaveDependency.setRawClasspath(newEntries, monitor);
-			monitor.waitForCompletion();
+			projectToHaveDependency.setRawClasspath(newEntries, null);
+			Utils.waitForJobsToComplete();
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}

@@ -20,14 +20,11 @@ import junit.framework.TestCase;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.PluginTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -49,14 +46,11 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
  */
 public class AJDTUtilsTest extends TestCase {
 
-	BlockingProgressMonitor monitor;
-
 	/*
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		monitor = new BlockingProgressMonitor();
 	}
 
 	/*
@@ -155,7 +149,7 @@ public class AJDTUtilsTest extends TestCase {
 		// this ensures a src folder is created.
 		jtp2.getSourceFolder();
 		Utils.waitForJobsToComplete();	
-		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),jtp2.getProject(),monitor);
+		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),jtp2.getProject());
 		Utils.waitForJobsToComplete();
 		assertTrue("test project 1 has a project dependency on test project 2",
 				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("project"));
@@ -233,19 +227,18 @@ public class AJDTUtilsTest extends TestCase {
 
 
 
-	private void addImportToPDEModel(IPluginModel model, String importId)
-			throws CoreException {
-
-		IPluginImport importNode = model.getPluginFactory().createImport();
-		importNode.setId(importId);
-		model.getPluginBase().getImports();
-		model.getPluginBase().add(importNode);
-
-		IFile manifestFile = (IFile) model.getUnderlyingResource();
-		//monitor.reset();
-		manifestFile.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-		//monitor.waitForCompletion();
-	}
+//	private void addImportToPDEModel(IPluginModel model, String importId)
+//			throws CoreException {
+//
+//		IPluginImport importNode = model.getPluginFactory().createImport();
+//		importNode.setId(importId);
+//		model.getPluginBase().getImports();
+//		model.getPluginBase().add(importNode);
+//
+//		IFile manifestFile = (IFile) model.getUnderlyingResource();
+//		manifestFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+//		Utils.waitForJobsToComplete();
+//	}
 
 	private boolean hasDependencyOnAJDE(PluginTestProject testPluginProject) {
 		ManifestEditor manEd = AJDTUtils.getAndPrepareToChangePDEModel(testPluginProject.getProject());

@@ -64,8 +64,12 @@ public class SynchronizationUtils {
 			IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
 			null);
 		// Join all types cache
+		try {
 		AllTypesCache.getTypes(SearchEngine.createJavaSearchScope(new IJavaElement[0]), 
 			IJavaSearchConstants.CLASS, new NullProgressMonitor(), new ArrayList());
+		} catch (NullPointerException e) {
+			// somethings this NPEs, don't know why. let's ignore it
+		}
 		// Join jobs
 		joinJobs(0, 0, 500);
 		//System.out.println("joined jobs");

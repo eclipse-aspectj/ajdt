@@ -18,7 +18,6 @@ import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
  * 
@@ -31,8 +30,6 @@ public class ProjectPropertiesTest extends TestCase {
 	public void testCaseInsensitiveDriveLetters() throws Exception {
 		IProject project = Utils.getPredefinedProject("Hello World Project",
 				true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete(project);
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other

@@ -16,14 +16,9 @@ import junit.framework.TestCase;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.core.resources.IFile;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.action.Action;
@@ -39,10 +34,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 
 	//private AJTestProject testProject = null;
 	//private IAspectJProject ajp = null;
-	private IType helloType;
-
-	private IFile goodbyeAJFile;
-
+	
 	protected void setUp() throws Exception {
 		super.setUp();
 
@@ -51,19 +43,19 @@ public class RemoveAJNatureActionTest extends TestCase {
 		// create a project
 		testProject = new JavaTestProject("Test AJ Project");
 
-		waitForJobsToComplete(testProject.getProject());
+		Utils.waitForJobsToComplete();
 		// create a package
 		IPackageFragment testPackage = testProject.createPackage("mypackage");
 
-		waitForJobsToComplete(testProject.getProject());
+		Utils.waitForJobsToComplete();
 		// add a couple of Java files in the package
-		helloType = testProject.createType(testPackage, "Hello.java",
+		IType helloType = testProject.createType(testPackage, "Hello.java",
 				"public class Hello {\n"
 						+ "  public static void main(String[] args) {\n"
 						+ "    System.out.println(\"Hello\");\n" + "  }\n"
 						+ "}");
 
-		goodbyeAJFile = testProject.createFile((IFolder) helloType
+		testProject.createFile((IFolder) helloType
 				.getPackageFragment().getUnderlyingResource(), "Goodbye.aj",
 				"public class Goodbye {\n" + "  public Goodbye() {};\n"
 						+ "  public static void main(String[] args) {\n"
@@ -74,7 +66,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 		//        ajp = AspectJCore.create(testProject.getProject());
 		//        ajp.addAspectJNature();
 		AJDTUtils.addAspectJNature(testProject.getProject());
-		waitForJobsToComplete(testProject.getProject());
+		Utils.waitForJobsToComplete();
 	}
 
 	/*
@@ -109,19 +101,4 @@ public class RemoveAJNatureActionTest extends TestCase {
 		assertFalse(AspectJPlugin.isAJProject(testProject.getProject()));
 	}
 
-	private void waitForJobsToComplete(IProject pro) {
-		Job job = new Job("Dummy Job") {
-			public IStatus run(IProgressMonitor m) {
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
 }

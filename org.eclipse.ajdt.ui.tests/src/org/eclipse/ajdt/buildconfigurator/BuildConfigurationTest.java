@@ -19,14 +19,11 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -59,10 +56,9 @@ public class BuildConfigurationTest extends TestCase {
 		ajProject = tp2.getProject();
 		AJDTUtils.addAspectJNature(ajProject);		
 		
-		this.waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 		setupSandboxSourceFolder();
-		waitForJobsToComplete(ajProject);
-
+		Utils.waitForJobsToComplete();
 	}
 
 	/*
@@ -78,22 +74,6 @@ public class BuildConfigurationTest extends TestCase {
 		}
 	}
 
-	private void waitForJobsToComplete(IProject pro){
-		Job job = new Job("Dummy Job"){
-			public IStatus run(IProgressMonitor m){
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-	    job.schedule();
-	    try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
-	}
-	
 	private void setupSandboxSourceFolder() throws Exception{
 		IFolder src = ajProject.getFolder("testSrcPath");
 		if (!src.exists()){
@@ -151,7 +131,7 @@ public class BuildConfigurationTest extends TestCase {
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		
 		//test: are all new files included?
-		waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 		if (!bc.isIncluded(fileA))
 			fail("A.java was not included.");
 		if (!bc.isIncluded(fileB))
@@ -171,11 +151,11 @@ public class BuildConfigurationTest extends TestCase {
 		//prerequisite
 		testBuildConfigurationIsincluded();
 			
-			waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 			List l = new ArrayList(3);
 			l.add(fileA);
 			bc.excludeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (bc.isIncluded(fileA)){
 				fail("Exclude failed. A.java still included.");
 			}
@@ -187,7 +167,7 @@ public class BuildConfigurationTest extends TestCase {
 			l.clear();
 			l.add(fileA.getParent());
 			bc.excludeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
 				fail("Exclude failed. A.java still included.");
 			if (bc.isIncluded(fileB))
@@ -197,7 +177,7 @@ public class BuildConfigurationTest extends TestCase {
 			
 			
 			bc.includeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (!bc.isIncluded(fileA))
 				fail("Reinclude failed. A.java should be included.");
 			if (!bc.isIncluded(fileB))
@@ -209,7 +189,7 @@ public class BuildConfigurationTest extends TestCase {
 			l.add(fileA);
 			l.add(fileB);
 			bc.excludeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
 				fail("Exclude failed. A.java still included.");
 			if (bc.isIncluded(fileB))
@@ -226,12 +206,12 @@ public class BuildConfigurationTest extends TestCase {
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			
-			waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 			List l = new ArrayList(3);
 			l.add(fileA.getParent());
 			l.add(fileDef);
 			bc.excludeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
 				fail("Exclude failed. A.java should be excluded.");
 			if (bc.isIncluded(fileB))
@@ -242,7 +222,7 @@ public class BuildConfigurationTest extends TestCase {
 			l.clear();
 			l.add(fileDef);
 			bc.includeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
 				fail("Include failed. A.java should be excluded.");
 			if (bc.isIncluded(fileB))
@@ -254,7 +234,7 @@ public class BuildConfigurationTest extends TestCase {
 			l.clear();
 			l.add(fileA.getParent());
 			bc.includeFiles(l);
-			waitForJobsToComplete(ajProject);
+			Utils.waitForJobsToComplete();
 			if (!bc.isIncluded(fileA))
 				fail("Include failed. A.java is not included.");
 			if (!bc.isIncluded(fileB))

@@ -15,7 +15,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -37,8 +36,6 @@ public class AddAJNatureActionTest extends TestCase {
     // reveal it to be AspectJ.
 
     private JavaTestProject testProject = null;
-    private IType helloType;
-    private IFile goodbyeAJFile;
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -50,7 +47,7 @@ public class AddAJNatureActionTest extends TestCase {
         IPackageFragment testPackage = testProject.createPackage("mypackage");
 
         // add a couple of Java files in the package
-        helloType =
+        IType helloType =
             testProject.createType(
                 testPackage,
                 "Hello.java",
@@ -60,8 +57,7 @@ public class AddAJNatureActionTest extends TestCase {
                     + "  }\n"
                     + "}");
 
-        goodbyeAJFile =
-            testProject.createFile(
+        testProject.createFile(
                 (IFolder) helloType
                     .getPackageFragment()
                     .getUnderlyingResource(),

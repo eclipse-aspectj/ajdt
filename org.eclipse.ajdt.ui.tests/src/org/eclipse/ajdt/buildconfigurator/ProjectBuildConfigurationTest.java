@@ -20,16 +20,13 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -70,9 +67,9 @@ public class ProjectBuildConfigurationTest extends TestCase {
 		ajProject = tp2.getProject();
 		AJDTUtils.addAspectJNature(ajProject);
 
-		this.waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 		setupSandboxSourceFolder();
-		waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 	}
 
 	/*
@@ -86,22 +83,6 @@ public class ProjectBuildConfigurationTest extends TestCase {
 		} catch (CoreException e) {
 			// do nothing - don't care if problems occur here....
 		}	
-	}
-
-	private void waitForJobsToComplete(IProject pro) {
-		Job job = new Job("Dummy Job") {
-			public IStatus run(IProgressMonitor m) {
-				return Status.OK_STATUS;
-			}
-		};
-		job.setPriority(Job.DECORATE);
-		job.setRule(pro);
-		job.schedule();
-		try {
-			job.join();
-		} catch (InterruptedException e) {
-			// Do nothing
-		}
 	}
 
 	private void setupSandboxSourceFolder() throws Exception {
@@ -210,7 +191,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		ProjectBuildConfigurator pbc;
 		AJDTUtils.removeAspectJNature(ajProject);
-		this.waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc != null) {
@@ -239,7 +220,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 
 		AJDTUtils.addAspectJNature(ajProject);
 
-		this.waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc == null) {
@@ -251,7 +232,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 			fail("No active build configuration was created when added aj nature to project.");
 		}
 
-		this.waitForJobsToComplete(ajProject);
+		Utils.waitForJobsToComplete();
 		//this cannot be tested because the file writing thread may still not
 		// have written its file
 		if (bc.isIncluded(fileA)) {
