@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<welcomePage 
+	title="Eclipse AspectJ Development Tools (AJDT)">
+	<intro>This page will help familiarize you with the Eclipse AspectJ development tooling.
+To get started, read the sections below and click on the related links. </intro>
+
+	<item><b>The Java Perspectives </b>
+To do development using AspectJ open to the Java Perspective <action pluginId="org.eclipse.jdt.ui"  class="org.eclipse.jdt.ui.actions.OpenJavaPerspectiveAction">Window > Open Perspective > Java</action>. 
+
+Alternatively, if you prefer a more browser-like user interface then open to the Java Browsing 
+Perspective <action pluginId="org.eclipse.jdt.ui" class="org.eclipse.jdt.ui.actions.OpenJavaBrowsingPerspectiveAction">Window > Open Perspective > Java Browsing</action>.</item>
+	
+	<item><b>Create AspectJ components </b>
+To start, first create an <action pluginId="org.eclipse.ajdt.ui" class="org.eclipse.ajdt.internal.ui.actions.AspectJProjectWizardAction">AspectJ Project</action>.  Next create a Package within that Project using
+<action pluginId="org.eclipse.jdt.ui" class="org.eclipse.jdt.internal.ui.wizards.OpenPackageWizardAction">File > New > Package</action> (use the Browse... button to select your project if it is not already
+listed in Source Folder field). 
+
+To create a Java class, use the Java Class wizard <action pluginId="org.eclipse.jdt.ui" class="org.eclipse.jdt.internal.ui.wizards.OpenClassWizardAction">File > New > Class</action> (again use the Browse...
+buttons within the wizard to select the appropriate Project and Package for your class).
+
+To create an aspect, use the New Aspect wizard <action pluginId="org.eclipse.ajdt.ui" class="org.eclipse.ajdt.internal.ui.actions.OpenAspectWizardAction">File > New > Aspect</action> (again use the Browse...
+buttons within the wizard to select the appropriate Project and Package for your class).</item>
+
+<item><b>Running an AspectJ Program</b>
+To run an AspectJ program, click on <action pluginId="org.eclipse.debug.ui" class="org.eclipse.debug.internal.ui.actions.OpenRunConfigurations">Run > Run...</action>. Select Java Application as the launch
+configuration and click New. Identify the program in the Project and Class fields and then click 
+Run.</item>
+
+<item><b>Exploring AspectJ examples</b>
+To add AspectJ examples to your workspace, use the <action pluginId="org.eclipse.ui.workbench" class="org.eclipse.ui.actions.NewExampleAction">New Example</action> wizard.</item>
+
+<item><b>Learn More </b>
+To learn more you can read the <topic id="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-doc.htm">AspectJ Development User Guide</topic>..</item>
+
+</welcomePage>

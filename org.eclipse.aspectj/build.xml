@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.aspectj" default="feature-plugin">
+
+<description>
+Create a packaged org.eclipse.aspect_version feature plugin distribution file
+</description>
+
+<!-- VERSION-STRING -->
+<!-- these property values will be overridden when called from the master build script -->
+<property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
+<property name="aspectj.feature.version" value="9.9.9" />
+<property name="aspectj.release.name" value="DEVELOPMENT" />
+<property name="build.dir" value="build" />
+
+<target name="init">
+  <mkdir dir="${build.dir}" />
+  <mkdir dir="dist"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="${build.dir}"/>
+  <delete dir="dist"/>
+</target>
+
+
+<target name="feature-plugin" depends="init"
+ description="Create the plugin jar file from the assembled components in the build dir">
+ <copy todir="${build.dir}" includeemptydirs="false" >
+   <fileset dir="." >
+     <exclude name="build.*"/>
+     <exclude name=".*" /> 
+     <exclude name="*/*" />
+     <exclude name="plugin.*xml" />
+     <exclude name="about.mappings" />
+     <depth max="0" />   
+   </fileset>
+ </copy>
+ <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ 	<filterset begintoken="9" endtoken="9">
+ 		<filter token="2.2.2" value="${aspectj.feature.version}"/>
+ 	</filterset>
+ </copy>
+ <copy file="about.mappings" todir="${build.dir}">
+ 	<filterset>
+ 		<filter token="AJRELNAME" value="${aspectj.release.name}"/>
+ 		<filter token="AJDTBUILDID" value="${cctimestamp}"/>
+ 	</filterset>
+ </copy> 
+ <zip destfile= "dist/org.eclipse.aspectj_${aspectj.feature.version}.jar" >
+   <fileset dir= "build" />
+ </zip>
+</target>
+
+</project>

@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.aspectj" default="feature-archive">
+
+<description>
+Creates the feature archive for AspectJ
+</description>
+
+<!-- VERSION-STRING -->
+<!-- these property values will be overridden when called from the master build script -->
+<property name="aspectj.feature.version" value="9.9.9" />
+<property name="ajdt.version" value="9.9.9" />
+<property name="ajde.version" value="9.9.9" />
+<property name="visualiser.version" value="9.9.9"/>
+<property name="update.url" value="http://download.eclipse.org/technology/ajdt/30/update/"/>
+<property name="build.dir" value="build/org.eclipse.aspectj_${aspectj.feature.version}" />
+
+<target name="init">
+  <mkdir dir="${build.dir}" />
+  <mkdir dir="dist"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="${build.dir}"/>
+  <delete dir="dist"/>
+  <delete dir="build"/>
+</target>
+
+
+<target name="feature-archive" depends="init"
+ description="Create the archive jar file from the assembled components in the build dir">
+ <copy todir="${build.dir}" includeemptydirs="false" >
+   <fileset dir="." >
+     <exclude name="build.*"/>
+     <exclude name="feature.xml" />
+     <exclude name=".*" /> 
+     <exclude name="*/*" />
+     <depth max="0" />   
+   </fileset>
+ </copy>
+ <copy file="feature.xml" todir="${build.dir}">
+ 	<filterset>
+ 		<filter token="AJFVERSION" value="${aspectj.feature.version}"/>
+ 		<filter token="AJDEVERSION" value="${ajde.version}"/>
+ 		<filter token="AJDTVERSION" value="${ajdt.version}"/>
+ 		<filter token="VISVERSION" value="${visualiser.version}"/>
+ 		<filter token="UPDATEURL" value="${update.url}"/>
+ 	</filterset>
+ </copy>
+ <zip destfile= "dist/org.eclipse.aspectj_${aspectj.feature.version}.jar" >
+   <fileset dir= "${build.dir}" />
+ </zip>
+</target>
+
+</project>
