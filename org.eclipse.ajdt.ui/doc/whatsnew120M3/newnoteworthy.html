@@ -114,16 +114,15 @@
       <p align="right"><b>Visible Project options</b></td>
     <td width="70%" valign="top">
 
-      <p>In Eclipse 3.1, when project-specific changes are made to the
-      Java compiler settings, these are saved in preference files
-      under a ".settings" folder in the project. This enables the
-      settings to be shared between workspaces and other developers,
-      by checking the preference files into CVS. This same mechanism
-      is now used for AspectJ compiler and project
-      settings. Furthermore, the same functionality is available with
-      both Eclipse 3.0 and 3.1.</p>
+      <p>Project-specific AspectJ compiler options and other project
+      settings are now saved in preference files under a ".settings"
+      folder in the project. This enables the settings to be shared
+      between workspaces and other developers, by committing the preference
+      files to CVS. The mechanism used is the same as for Java compiler
+      settings in Eclipse 3.1, although the AJDT behaviour is the same
+      across Eclipse 3.0 and 3.1.</p>
 
-      <p>The ".settings" folder is only created when created. If you
+      <p>The ".settings" folder is only created when required. If you
       define project-specific AspectJ compiler settings, they will be
       stored in a file called "org.eclipse.ajdt.core.prefs". Other
       project settings, such as aspect-path and in-path will be stored
