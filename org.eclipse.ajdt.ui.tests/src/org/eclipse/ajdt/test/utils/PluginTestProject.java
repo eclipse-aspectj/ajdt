@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.test.utils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.IFile;
@@ -19,6 +21,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -37,7 +40,6 @@ import org.eclipse.pde.core.plugin.IPluginReference;
 import org.eclipse.pde.internal.PDE;
 import org.eclipse.pde.internal.core.ClasspathUtilCore;
 import org.eclipse.pde.internal.core.CoreUtility;
-import org.eclipse.pde.internal.core.PDEPluginConverter;
 import org.eclipse.pde.internal.core.build.WorkspaceBuildModel;
 import org.eclipse.pde.internal.core.plugin.WorkspaceFragmentModel;
 import org.eclipse.pde.internal.core.plugin.WorkspacePluginModel;
@@ -143,7 +145,7 @@ public class PluginTestProject {
 
 		if (fData.hasBundleStructure()) {
 			String filename = (fData instanceof IFragmentFieldData) ? "fragment.xml" : "plugin.xml"; //$NON-NLS-1$ //$NON-NLS-2$
-			PDEPluginConverter.convertToOSGIFormat(project, filename, null);
+			convertToOSGIFormat(project, filename);
 			Utils.waitForJobsToComplete();
 			trimModel(fModel.getPluginBase());
 			fModel.save();
@@ -153,6 +155,37 @@ public class PluginTestProject {
 		}
 	}
 
+	
+	// call internal pde function by reflection so it works across eclipse 3.0 and 3.1
+	private void convertToOSGIFormat(IProject project, String filename) {
+		try {
+			Class pluginConverter = Class
+					.forName("org.eclipse.pde.internal.core.PDEPluginConverter");
+			try {
+				// try three argument version: eclipse 3.0
+				Method convert = pluginConverter.getMethod(
+						"convertToOSGIFormat", new Class[] { IProject.class,
+								String.class, IProgressMonitor.class });
+				convert.invoke(null, new Object[] { project, filename, null });
+			} catch (NoSuchMethodException e) {
+				try {
+					// try four argument version: eclipse 3.1M5 and later
+					Method convert = pluginConverter.getMethod(
+							"convertToOSGIFormat", new Class[] {
+									IProject.class, String.class, String.class,
+									IProgressMonitor.class });
+					convert.invoke(null, new Object[] { project, filename,
+							(String) null, null });
+				} catch (NoSuchMethodException e2) {
+				}
+			}
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		} catch (ClassNotFoundException e) {
+		}
+	}
+	
 	// Stuff for plugin projects that I've added..................
 
 	// ----------- FROM HERE ----------------
