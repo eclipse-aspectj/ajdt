@@ -203,9 +203,9 @@ public class Builder extends IncrementalProjectBuilder {
 		// end of workaround
 		
 		// The message to feature in the problems view of depending projects
-		String buildPrereqsMessage = "The project cannot be built until its prerequisite "
-				+ project.getName()
-				+ " is built. Cleaning and rebuilding all projects is recommended";
+		String buildPrereqsMessage = AspectJUIPlugin.getFormattedResourceString("buildPrereqsMessage",
+				project.getName());
+		
 		try {
 			String kindS = null;
 			if (kind == AUTO_BUILD)
@@ -217,7 +217,7 @@ public class Builder extends IncrementalProjectBuilder {
 
 			String mode = "";  //$NON-NLS-1$
 			if (AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-					.getIncrementalMode())
+					.getIncrementalMode() && kind!=FULL_BUILD)
 				mode = "Incremental AspectJ compilation";
 			else
 				mode = "Full AspectJ compilation";
