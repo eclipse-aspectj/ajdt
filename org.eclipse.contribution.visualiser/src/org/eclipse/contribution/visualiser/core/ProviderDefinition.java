@@ -25,7 +25,7 @@ public class ProviderDefinition {
 	private String name;
 	private String id;
 	private boolean enabled = false;
-	private String description = "";
+	private String description = ""; //$NON-NLS-1$
 	private String title;
 	private IContentProvider contentInstance;
 	private IMarkupProvider markupInstance;

@@ -15,6 +15,7 @@ package org.eclipse.contribution.visualiser.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 
 /**
@@ -172,8 +173,8 @@ public class Stripe implements Comparable {
 	 * Get a String representation of this Stripe
 	 */
 	public String toString() {
-		return "Stripe: [" + offset + ":" + depth + ":" + (offset + depth)
-				+ ":" + stringifyKinds() + "]";
+		return VisualiserPlugin.getResourceString("Stripe") + ": [" + offset + ":" + depth + ":" + (offset + depth) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				+ ":" + stringifyKinds() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -184,7 +185,7 @@ public class Stripe implements Comparable {
 	public String stringifyKinds() {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < kinds.size(); i++) {
-			sb.append(" " + kinds.get(i) + " ");
+			sb.append(" " + kinds.get(i) + " "); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return sb.toString();
 	}

@@ -119,7 +119,7 @@ public class ProviderManager {
 						if (paletteID != null) {
 							cpdef.setPaletteID(paletteID);
 						}
-						String emptyMessage = ces[j].getAttribute("emptyMessage");
+						String emptyMessage = ces[j].getAttribute("emptyMessage"); //$NON-NLS-1$
 						if (emptyMessage != null) {
 							cpdef.setEmptyMessage(emptyMessage);
 						}

@@ -51,9 +51,9 @@ public class FileContentProvider extends SimpleContentProvider {
 		if (numberOfGroupsDefined() == 0) {
 			try {
 				URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
-						"/");
+						"/"); //$NON-NLS-1$
 				URL resolved = Platform.resolve(url);
-				URL fileURL = new URL(resolved, "Content.vis");
+				URL fileURL = new URL(resolved, "Content.vis"); //$NON-NLS-1$
 				InputStream in = fileURL.openStream();
 				loadVisContents(in);
 				in.close();
@@ -72,7 +72,7 @@ public class FileContentProvider extends SimpleContentProvider {
 	 */
     public static void log(int msgType,String msg,Exception e) {
     	// An example of how to send log data to the .metadata/.log file.
-    	VisualiserPlugin.getDefault().getLog().log(new Status(msgType,"org.eclipse.contribution.visualiser",0,msg,e));
+    	VisualiserPlugin.getDefault().getLog().log(new Status(msgType,"org.eclipse.contribution.visualiser",0,msg,e)); //$NON-NLS-1$
     }
 
 
@@ -97,22 +97,22 @@ public class FileContentProvider extends SimpleContentProvider {
 			while (line!=null && line.length()!=0) {
 				//log(IStatus.INFO,"VisLine:"+line,null);
 				
-				if (line.startsWith("Group:")) {
+				if (line.startsWith("Group:")) { //$NON-NLS-1$
 					// Once a group tag is found, all following members are considered to be in that group
-					String grpname = retrieveKeyValue("Group:",line);
+					String grpname = retrieveKeyValue("Group:",line); //$NON-NLS-1$
 					grp = new SimpleGroup(grpname);
 					addGroup(grp);
 
-				} else if (line.startsWith("Member:")) {
-					String memname = retrieveKeyValue("Member:",line);
+				} else if (line.startsWith("Member:")) { //$NON-NLS-1$
+					String memname = retrieveKeyValue("Member:",line); //$NON-NLS-1$
 					IMember mem = new SimpleMember(memname);
 
 					// Size might not be specified, so don't try parsing a null into an int !
-					String sizeStr = retrieveKeyValue("Size:",line);					
+					String sizeStr = retrieveKeyValue("Size:",line);		 //$NON-NLS-1$			
 					if (sizeStr!=null) mem.setSize(Integer.parseInt(sizeStr));
 					
 					
-					String tipStr = retrieveKeyValue("Tip:",line);
+					String tipStr = retrieveKeyValue("Tip:",line); //$NON-NLS-1$
 					if (tipStr!=null) mem.setTooltip(tipStr);
 					
 					grp.add(mem);

@@ -166,8 +166,8 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	 */
 	public Color getColorFor(IMarkupKind id){
 		Color stripeColour = null;
-		String p = "not unique";
-		String key = p + ":" + id.getName();
+		String p = "not unique"; //Note: String not displayed externally //$NON-NLS-1$ 
+		String key = p + ":" + id.getName(); //$NON-NLS-1$
 		if (colourMemory.containsKey(key)) {
 			stripeColour = (Color) colourMemory.get(key);
 		} else {
@@ -184,7 +184,7 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	 * @param color - the Color
 	 */
 	public void setColorFor(IMarkupKind kind, Color color) {
-		colourMemory.put("not unique:" + kind.getName(), color);
+		colourMemory.put("not unique:" + kind.getName(), color); //Note: String not displayed externally //$NON-NLS-1$
 	}
 
 

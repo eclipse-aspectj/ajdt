@@ -49,36 +49,16 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	
 	
 	/**
-	 * Plugin ctor - load the resource bundle, process any defined extensions and add
-	 * the resource change listener.
-	 */
-//	public VisualiserPlugin(IPluginDescriptor descriptor) {
-//		super(descriptor);
-//		plugin = this;
-//		try {
-//			resourceBundle= ResourceBundle.getBundle("org.eclipse.contribution.visualiser.VisualiserPluginResources");
-//		} catch (MissingResourceException x) {
-//			resourceBundle = null;
-//		}				
-//		ProviderManager.initialise();
-//		VisualiserPreferencePage.initDefaults();
-//	}
-
-
-	/**
 	 * 3.0 compatible Plugin constructor - load the resource bundle 
 	 */
 	public VisualiserPlugin() {
 		super();
 		plugin = this;
 		try {
-			resourceBundle= ResourceBundle.getBundle("org.eclipse.contribution.visualiser.VisualiserPluginResources");
+			resourceBundle= ResourceBundle.getBundle("org.eclipse.contribution.visualiser.VisualiserPluginResources"); //$NON-NLS-1$
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}				
-		// moved these two lines to the start method as otherwise get NPE
-//		ProviderManager.initialise();
-//		VisualiserPreferencePage.initDefaults();
 	}
 
 	/**
@@ -210,8 +190,8 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	 * @param message
 	 */
 	public static void log(int logLevel, String message) {
-//		if (logLevel<=LOGLEVEL) System.err.println(message);		
-//		VisualiserPlugin.getDefault().getLog().log(new Status(Status.INFO,"org.eclipse.contribution.visualiser",0,string,(Exception)null)); 
+		if (logLevel<=LOGLEVEL) System.err.println(message);		
+		VisualiserPlugin.getDefault().getLog().log(new Status(Status.INFO, "org.eclipse.contribution.visualiser", 0, message, null)); //$NON-NLS-1$
 	}
 
 	/**
@@ -260,7 +240,7 @@ class VisualiserUpdateJob extends Job {
 		 
 		 public static VisualiserUpdateJob getInstance() {
 		 		 if(theJob == null) {
-		 		 		 theJob = new VisualiserUpdateJob(VisualiserPlugin.getResourceString("Jobs.VisualiserUpdate"));
+		 		 		 theJob = new VisualiserUpdateJob(VisualiserPlugin.getResourceString("Jobs.VisualiserUpdate")); //$NON-NLS-1$
 		 		 		 theJob.setUser(true);
 		 		 		 theJob.setPriority(Job.SHORT);
 		 		 }
@@ -268,7 +248,7 @@ class VisualiserUpdateJob extends Job {
 		 }
 		 
 		 public IStatus run(IProgressMonitor monitor) {
-		 		 monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 1);
+		 		 monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
 		 		 if (VisualiserPlugin.visualiser!=null) {
 		 		 		 VisualiserPlugin.visualiser.updateDisplay(true);
 		 		 }

@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.jdtImpl;
 
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.jdt.core.IJavaElement;
 
@@ -41,7 +42,7 @@ public class JDTMember extends SimpleMember {
 	}
 
 	public String toString() {
-		return "JDTMember:["+fullname+"] Size:["+size.toString()+"]";
+		return  VisualiserPlugin.getResourceString("JDTMember") +  ":["+fullname+"] " + VisualiserPlugin.getResourceString("Size") + ":[" + size.toString() + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 	}
 
 }

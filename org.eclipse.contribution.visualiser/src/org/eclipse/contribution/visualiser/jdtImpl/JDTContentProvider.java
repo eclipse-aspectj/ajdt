@@ -65,9 +65,9 @@ public class JDTContentProvider
 		try {
 			srccode = element.getSource();
 
-			while (srccode.indexOf("\n") != -1) {
+			while (srccode.indexOf(System.getProperty("line.separator", "\n")) != -1) { //$NON-NLS-1$ //$NON-NLS-2$
 				lines++;
-				srccode = srccode.substring(srccode.indexOf("\n") + 1);
+				srccode = srccode.substring(srccode.indexOf(System.getProperty("line.separator", "\n")) + 1); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		} catch (JavaModelException e) {
 			e.printStackTrace();
@@ -125,8 +125,7 @@ public class JDTContentProvider
 				VisualiserPlugin.refresh();
 			}
 		} catch (JavaModelException jme) {
-			System.err.println(
-				"Exception in JDTContentProvider.selectionChanged processing" + jme);
+		    VisualiserPlugin.logException(jme);
 		}
 	}
 	
@@ -170,7 +169,7 @@ public class JDTContentProvider
 				retval.addAll(group.getMembers());
 			}
 			
-		} else if (currentlySelectedJE instanceof IJavaElement) {
+		} else {
 			retval = new ArrayList();
 			List pkgfrags = getAllJDTGroups(getCurrentProject());
 			for (Iterator pkgfragiter = pkgfrags.iterator();
@@ -295,7 +294,7 @@ public class JDTContentProvider
 			JDTGroup oneGroup =
 				getGroupForFragment((IPackageFragment) currentlySelectedJE);
 			retval.add(oneGroup);
-		} else if (currentlySelectedJE instanceof IJavaElement) {
+		} else {
 		    retval = new ArrayList();
 		    List pkgfrags = getAllJDTGroups(getCurrentProject());
 		    for (Iterator pkgfragiter = pkgfrags.iterator(); pkgfragiter.hasNext();) {
@@ -325,7 +324,7 @@ public class JDTContentProvider
 			if (ipf.getKind() != IPackageFragmentRoot.K_BINARY) {
 				if (ipf.isDefaultPackage()) {
 					if (ipf.containsJavaResources()) {
-						jdtg = new JDTGroup("[default]");
+						jdtg = new JDTGroup("[" + VisualiserPlugin.getResourceString("default") + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					}
 				} else {
 					jdtg = new JDTGroup(ipf.getElementName()/*resource.getName()*/);
@@ -382,7 +381,7 @@ public class JDTContentProvider
 					if (ijes[j].getElementType()
 						== IJavaElement.COMPILATION_UNIT) {
 						String memberName = ijes[j].getElementName();
-						if(memberName.endsWith(".java")){
+						if(memberName.endsWith(".java")){ //$NON-NLS-1$
 							memberName = memberName.substring(0, memberName.length() - 5); 					
 						}
 						JDTMember member = new JDTMember(memberName, ijes[j]);

@@ -47,8 +47,6 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
  */
 public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	
-	private static final String WARNING_SUFFIX = " (warning)";
-	private static final String ERROR_SUFFIX = " (error)";
 	Map namesToKinds = new HashMap();
 	List images = new ArrayList();
 	
@@ -152,7 +150,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 				ImageDescriptor id = preference.getImageDescriptor();
 				if (id != null) {
 					return id.createImage();
-				} else if (preference.getSymbolicImageName().equals("bookmark")) {
+				} else if (preference.getSymbolicImageName().equals("bookmark")) { //$NON-NLS-1$
 					return PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(IDE.SharedImages.IMG_OBJS_BKMRK_TSK).createImage();
 				}
 			}
@@ -181,7 +179,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 			AnnotationPreference preference = lookup.getAnnotationPreference(annotation);
 			if(preference != null) {
 				String id = preference.getPreferenceLabel();
-				if (id != null && !(id.trim().equals(""))) {
+				if (id != null && !(id.trim().equals(""))) { //$NON-NLS-1$
 					return id;
 				}
 			}

@@ -49,9 +49,9 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 		kinds = new HashMap();
 		try {
 			URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
-					"/");
+					"/"); //$NON-NLS-1$
 			URL resolved = Platform.resolve(url);
-			URL fileURL = new URL(resolved, "Markup.mvis");
+			URL fileURL = new URL(resolved, "Markup.mvis"); //$NON-NLS-1$
 			InputStream in = fileURL.openStream();
 			loadMarkups(in);
 			in.close();
@@ -80,17 +80,17 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 			while (line != null && line.length() != 0) {
 
 				// Process lines starting Stripe:
-				if (line.startsWith("Stripe:")) {
+				if (line.startsWith("Stripe:")) { //$NON-NLS-1$
 					String membername = null;
 					String kindStr = null;
 					int offset = 0;
 					int depth = 1;
 					
 					// Retrieve the fully qualified membername, e.g. ABC.A
-					membername = retrieveKeyValue("Stripe:",line);
+					membername = retrieveKeyValue("Stripe:",line); //$NON-NLS-1$
 					
 					// Retrieve the Kind:, e.g. S1
-					kindStr    = retrieveKeyValue("Kind:",line);
+					kindStr    = retrieveKeyValue("Kind:",line); //$NON-NLS-1$
 					IMarkupKind kind;
 					if(kinds.get(kindStr) instanceof IMarkupKind) {
 						kind = (IMarkupKind)kinds.get(kindStr);
@@ -100,10 +100,10 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 					}
 					
 					// Retrieve the Offset:, e.g. 42	
-					offset     = Integer.parseInt(retrieveKeyValue("Offset:",line));
+					offset     = Integer.parseInt(retrieveKeyValue("Offset:",line)); //$NON-NLS-1$
 					
 					// Retrieve the Depth:, e.g. 30					
-					depth      = Integer.parseInt(retrieveKeyValue("Depth:",line));
+					depth      = Integer.parseInt(retrieveKeyValue("Depth:",line)); //$NON-NLS-1$
 						
 					// Create a new stripe and add it as a markup
 					Stripe newstripe = new Stripe(kind,offset,depth);

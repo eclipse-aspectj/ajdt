@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.*;
 
 /**
@@ -140,7 +141,7 @@ public class SimpleGroup implements IGroup {
 	 * the size and the number of members.
 	 */
 	public String toString() {
-		return "SimpleGroup:[" + name + "] Size:[" + getSize() + "]  Kids:["
+		return VisualiserPlugin.getResourceString("SimpleGroup") + ":[" + name + "] " + VisualiserPlugin.getResourceString("Size") + ":[" + getSize() + "]  Kids:["
 				+ kids.size() + "]";
 	}
 
