@@ -16,7 +16,7 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 <property name="aspectj" value="c:/aspectj1.2" />
 <property name="aspectjrt" value="${aspectj}/lib/aspectjrt.jar" />
 <property name="aspectjtools" value="${aspectj}/lib/aspectjtools.jar" />
-
+	
 <taskdef 
     resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
 	<classpath>
@@ -33,8 +33,8 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
      * eclipse.build.version (override the value default value set above)
      * aspectj (set to AspectJ install dir)
 -->
-
-<path id="project.class.path">
+	
+<path id="old.project.class.path">
     <pathelement location="src/"/>
     <pathelement location="../org.aspectj.runtime/aspectjrt.jar"/>
     <pathelement location="../org.aspectj.ajde/ajde.jar"/>
@@ -78,8 +78,9 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 <target name="externalbuild" if="external.build" >
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
+	<property file="${eclipse.home}/ajdtworkspace.properties"/>
 	<property file="build.ajproperties"/>
-	<iajc srcdir="." destdir="bin" classpathRef="project.class.path"
+	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.ajdt.core}"
 	    debug="false" verbose="true" fork="true" maxmem="256m"
 	    includes="${src.includes}" excludes="${src.excludes}" />
 	<!--
