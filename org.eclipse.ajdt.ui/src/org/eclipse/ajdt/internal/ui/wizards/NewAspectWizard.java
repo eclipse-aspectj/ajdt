@@ -12,7 +12,7 @@ Matt Chapman - initial version
 package org.eclipse.ajdt.internal.ui.wizards;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;

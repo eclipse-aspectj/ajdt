@@ -14,7 +14,7 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
 
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

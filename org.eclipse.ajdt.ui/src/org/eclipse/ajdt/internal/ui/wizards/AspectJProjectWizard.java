@@ -17,7 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;

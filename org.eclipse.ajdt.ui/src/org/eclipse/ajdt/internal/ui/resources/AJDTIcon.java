@@ -8,7 +8,7 @@ Contributors:
 Adrian Colyer - initial version
 ...
 **********************************************************************/
-package org.eclipse.ajdt.internal.core.resources;
+package org.eclipse.ajdt.internal.ui.resources;
 
 import java.net.MalformedURLException;
 import java.net.URL;

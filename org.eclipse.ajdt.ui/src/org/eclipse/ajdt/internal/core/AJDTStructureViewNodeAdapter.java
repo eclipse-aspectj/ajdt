@@ -11,7 +11,7 @@ Adrian Colyer - initial version
 package org.eclipse.ajdt.internal.core;
 
 
-import org.eclipse.ajdt.internal.core.resources.AJDTIcon;
+import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 

@@ -9,7 +9,7 @@ Adrian Colyer - initial version
 Sian Whiting - added new images for 1.1.11 release
 ...
 **********************************************************************/
-package org.eclipse.ajdt.internal.core.resources;
+package org.eclipse.ajdt.internal.ui.resources;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -19,8 +19,8 @@ import org.aspectj.ajde.ui.IStructureViewNode;
 import org.aspectj.ajde.ui.StructureViewNodeFactory;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
-import org.eclipse.ajdt.internal.core.resources.AJDTIcon;
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 
 public class AJDTStructureViewNodeFactory extends StructureViewNodeFactory {
 	

@@ -15,7 +15,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.core.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
