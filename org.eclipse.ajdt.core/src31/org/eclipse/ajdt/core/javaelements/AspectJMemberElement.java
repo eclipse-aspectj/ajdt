@@ -26,7 +26,6 @@ import org.eclipse.jdt.core.jdom.IDOMMethod;
 import org.eclipse.jdt.core.jdom.IDOMNode;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.Member;
 import org.eclipse.jdt.internal.core.NamedMember;
 import org.eclipse.jdt.internal.core.util.Util;
 
@@ -336,8 +335,7 @@ public ExtraInformation getAJExtraInformation() throws JavaModelException {
  * @see org.eclipse.jdt.core.IMethod#getTypeParameters()
  */
 public ITypeParameter[] getTypeParameters() throws JavaModelException {
-	// TODO Auto-generated method stub
-	return null;
+	return new ITypeParameter[0];
 }
 /* (non-Javadoc)
  * @see org.eclipse.jdt.core.IMethod#getTypeParameter(java.lang.String)
