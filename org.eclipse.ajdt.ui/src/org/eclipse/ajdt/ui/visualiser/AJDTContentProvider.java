@@ -1,21 +1,20 @@
-/*********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved.   This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html 
- * Contributors: 
+/*******************************************************************************
+ * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Common Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/cpl-v10.html
  * 
- * 	Sian Whiting -  initial version.
- * 
- **********************************************************************/
+ * Contributors: Sian January - initial version
+ ******************************************************************************/
 package org.eclipse.ajdt.ui.visualiser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -26,13 +25,10 @@ import org.eclipse.contribution.visualiser.jdtImpl.JDTGroup;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -129,102 +125,78 @@ public class AJDTContentProvider extends JDTContentProvider {
 				IPackageFragment[] packageFragments = ((IJavaProject)currentlySelectedJE).getPackageFragments();
 				for (int i = 0; i < packageFragments.length; i++) {
 					if (!(packageFragments[i].isReadOnly())) {
-						boolean defaultPackage = packageFragments[i].isDefaultPackage();
-						IGroup group = new JDTGroup(packageFragments[i].getElementName());
-						if(defaultPackage) {
-							group.setName("(default package)");
-							group.setTooltip("(default package)");
-						}
-						List classes = AJDTVisualiserUtils.getAllClasses(packageFragments[i]);
-						for (Iterator iter = classes.iterator(); iter.hasNext();) {
-							Object[] info = (Object[]) iter.next();
-							IResource res = (IResource)info[0];
-							IJavaElement jEl = JavaCore.create(res);
-							if(res != null) {
-								String name = res.getName();
-								name = name.substring(0, name.lastIndexOf("."));
-								IMember member;
-								if (jEl != null) {
-									member = new JDTMember(name, jEl);
-								} else {
-									member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
-								}
-								member.setSize(((Integer)info[1]).intValue());
+						IPackageFragment packageFragment = packageFragments[i];
+						List classes = getMembersForPackage(packageFragment);
+						if(classes.size() > 0) {
+							boolean defaultPackage = packageFragment.isDefaultPackage();
+							IGroup group = new JDTGroup(packageFragment.getElementName());
+							if(defaultPackage) {
+								group.setName("(default package)"); // $NON-NLS-1$
+								group.setTooltip("(default package)"); // $NON-NLS-1$
+							}
+							for (Iterator iter = classes.iterator(); iter.hasNext();) {
+								IMember member = (IMember) iter.next();
 								group.add(member);
 								currentMembers.add(member);
 								if(defaultPackage) {
 									((SimpleMember)member).setFullName(member.getName());
-								}							
+								}
 							}
-						}
-						if(group.getSize().intValue() > 0) {
-							currentGroups.add(group);
+							currentGroups.add(group);	
 						}
 					}
 				}
 			} else if (currentlySelectedJE instanceof IPackageFragment) {
 				IPackageFragment packageFragment = (IPackageFragment)currentlySelectedJE;
-				boolean defaultPackage = packageFragment.isDefaultPackage();
-				IGroup group = new JDTGroup(packageFragment.getElementName());
-				if(defaultPackage) {
-					group.setName("(default package)");
-					group.setTooltip("(default package)");
-				}
-				List classes = AJDTVisualiserUtils.getAllClasses(packageFragment);
-				for (Iterator iter = classes.iterator(); iter.hasNext();) {
-					Object[] info = (Object[]) iter.next();
-					IResource res = (IResource)info[0];
-					if(res != null) {
-						IJavaElement jEl = JavaCore.create(res);
-						String name = res.getName();
-						name = name.substring(0, name.lastIndexOf("."));
-						IMember member;
-						if (jEl != null) {
-							member = new JDTMember(name, jEl);
-						} else {
-							member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
-						}
-						member.setSize(((Integer)info[1]).intValue());
+				List classes = getMembersForPackage(packageFragment);
+				if(classes.size() > 0) {
+					boolean defaultPackage = packageFragment.isDefaultPackage();
+					IGroup group = new JDTGroup(packageFragment.getElementName());
+					if(defaultPackage) {
+						group.setName("(default package)"); // $NON-NLS-1$
+						group.setTooltip("(default package)"); // $NON-NLS-1$
+					}
+					for (Iterator iter = classes.iterator(); iter.hasNext();) {
+						IMember member = (IMember) iter.next();
 						group.add(member);
 						currentMembers.add(member);
 						if(defaultPackage) {
 							((SimpleMember)member).setFullName(member.getName());
-						}
+						}						
 					}
-				}
-				if(group.getSize().intValue() > 0) {
-					currentGroups.add(group);
+					currentGroups.add(group);					
 				}
 			} else if (currentlySelectedJE instanceof ICompilationUnit) {
-				List classes = AJDTVisualiserUtils.getAllClasses((ICompilationUnit)currentlySelectedJE);
-				IPackageFragment packageFrag = (IPackageFragment)((ICompilationUnit)currentlySelectedJE).getParent();
-				boolean defaultPackage = packageFrag.isDefaultPackage();
-				// ?!? Need to confirm a group for the pkg frag is OK in the case of a selection like thiss
-				IGroup group = new JDTGroup(packageFrag.getElementName());
-				if(defaultPackage) {
-					group.setName("(default package)");
-					group.setTooltip("(default package)");
+				ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
+				BuildConfiguration bc = null;
+				if(pbc != null) {
+					bc = pbc.getActiveBuildConfiguration();
 				}
-				for (Iterator iter = classes.iterator(); iter.hasNext();) {
-					Object[] info = (Object[]) iter.next();
-					IResource res = (IResource)info[0];
-					IJavaElement jEl = JavaCore.create(res);
-					String name = res.getName();
-					name = name.substring(0, name.lastIndexOf("."));
-					IMember member;
-					if (jEl != null) {
-						member = new JDTMember(name, jEl);
-					} else {
-						member = new JDTMember(name, AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)res));
-					}
-					member.setSize(((Integer)info[1]).intValue());
-					group.add(member);
+				JDTMember member = null;
+				if((bc != null && bc.isIncluded(currentlySelectedJE.getResource())) || bc == null) { 
+					String memberName = currentlySelectedJE.getElementName();
+					if(memberName.endsWith(".java")){ //$NON-NLS-1$
+						memberName = memberName.substring(0, memberName.length() - 5); 					
+					} else if(memberName.endsWith(".aj")){ //$NON-NLS-1$
+						memberName = memberName.substring(0, memberName.length() - 3); 					
+					}							
+					member = new JDTMember(memberName, currentlySelectedJE);
+					member.setSize(getLength((ICompilationUnit)currentlySelectedJE));
 					currentMembers.add(member);
-					if(defaultPackage) {
-						((SimpleMember)member).setFullName(member.getName());
-					}
 				}
-				if(group.getSize().intValue() > 0) {
+				if(member != null) {
+					IPackageFragment packageFrag = (IPackageFragment)((ICompilationUnit)currentlySelectedJE).getParent();
+					boolean defaultPackage = packageFrag.isDefaultPackage();
+					// ?!? Need to confirm a group for the pkg frag is OK in the case of a selection like thiss
+					IGroup group = new JDTGroup(packageFrag.getElementName());
+					if(defaultPackage) {
+						group.setName("(default package)"); // $NON-NLS-1$
+						group.setTooltip("(default package)"); // $NON-NLS-1$
+					}
+					if(defaultPackage) {
+						member.setFullName(member.getName());						
+					} 
+					group.add(member);
 					currentGroups.add(group);
 				}
 			}
@@ -284,5 +256,44 @@ public class AJDTContentProvider extends JDTContentProvider {
 		
 		return false;
 	}
-	
+
+
+	/**
+	 * Get all JDT members for the given IPackageFragment (Java package)
+	 * @param PF
+	 * @return List of JDTMembers
+	 */
+	public List getMembersForPackage(IPackageFragment PF) {
+		List returningClasses = new ArrayList();
+		try {
+			if (containsUsefulStuff(PF)) {
+				ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
+				BuildConfiguration bc = null;
+				if(pbc != null) {
+					bc = pbc.getActiveBuildConfiguration();
+				}
+				IJavaElement[] ijes = PF.getChildren();
+				for (int j = 0; j < ijes.length; j++) {
+					if (ijes[j].getElementType()
+							== IJavaElement.COMPILATION_UNIT) {
+						if((bc != null && bc.isIncluded(ijes[j].getResource())) || bc == null) {  
+							String memberName = ijes[j].getElementName();
+							if(memberName.endsWith(".java")){ //$NON-NLS-1$
+								memberName = memberName.substring(0, memberName.length() - 5); 					
+							} else if(memberName.endsWith(".aj")){ //$NON-NLS-1$
+								memberName = memberName.substring(0, memberName.length() - 3); 					
+							}							
+							JDTMember member = new JDTMember(memberName, ijes[j]);
+							member.setSize(getLength((ICompilationUnit)ijes[j]));
+							returningClasses.add(member);
+						}
+					}
+				}
+			}
+		} catch (JavaModelException jme) {
+		}
+		return returningClasses;
+	}
+
+
 }

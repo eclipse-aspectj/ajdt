@@ -271,7 +271,7 @@ public class VisualiserCanvas extends Canvas {
 						if (o instanceof StripeGeom) {
 							label = ((StripeGeom) o).stripe.getToolTip();
 						} else {
-							label = ((ISelectable) o).getMember().getName();
+							label = ((ISelectable) o).getMember().getToolTip();
 						}
 						IFigure tip = new Label(label);
 						// remove any previous tooltips

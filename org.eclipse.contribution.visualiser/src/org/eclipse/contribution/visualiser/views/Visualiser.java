@@ -443,6 +443,7 @@ public class Visualiser extends ViewPart {
 		super.dispose();
 		VisualiserPlugin.visualiser=null;
 		visCanvas.dispose();
+		visCanvas = null;
 	}
 
 	/**

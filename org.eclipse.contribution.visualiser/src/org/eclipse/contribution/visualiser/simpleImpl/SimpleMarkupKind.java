@@ -22,6 +22,7 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	
 	private final String name;
 	private final Image icon;
+	private final String fullName;
 
 	/**
 	 * Constructor
@@ -30,6 +31,7 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	public SimpleMarkupKind(String name) {
 		this.name = name;
 		this.icon = null;
+		this.fullName = name;
 	}
 	
 	
@@ -41,8 +43,30 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	public SimpleMarkupKind(String name, Image icon) {
 		this.icon = icon;
 		this.name = name;
+		this.fullName = name; 
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param name - name of the kind
+	 * @param fullName - fullName
+	 */
+	public SimpleMarkupKind(String name, String tooltip) {
+		this.icon = null;
+		this.name = name;
+		this.fullName = tooltip;
+	}
+
+	/**
+	 * Constructor
+	 * @param name - name of the kind
+	 * @param icon - image
+	 */
+	public SimpleMarkupKind(String name, String tooltip, Image icon) {
+		this.icon = icon;
+		this.name = name;
+		this.fullName = tooltip; 
+	}
 	
 	/**
 	 * Get the name of this kind.
@@ -73,8 +97,13 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	public int compareTo(Object object) {
-		if(object instanceof IMarkupKind && name != null) {
-			return name.compareTo(((IMarkupKind)object).getName());
+		if(object instanceof SimpleMarkupKind && name != null) {
+			int nameC = name.compareTo(((SimpleMarkupKind)object).name);
+			if(nameC == 0) {
+				return fullName.compareTo(((SimpleMarkupKind)object).fullName);
+			} else {
+				return nameC;
+			}
 		} else {
 			return 0;
 		}
@@ -88,12 +117,14 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 		if(object instanceof SimpleMarkupKind) {
 			SimpleMarkupKind smk = (SimpleMarkupKind)object;
 			if(smk.name.equals(name)) {
-				if(icon == null) {
-					if (smk.icon == null) {
+				if(smk.fullName.equals(fullName)) {
+					if(icon == null) {
+						if (smk.icon == null) {
+							return true;
+						}
+					} else if(icon.equals(smk.icon)) {
 						return true;
 					}
-				} else if(icon.equals(smk.icon)) {
-					return true;
 				}
 			}
 		}
@@ -106,9 +137,9 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	 */
 	public int hashCode() {
 		if(icon == null) {
-			return name.hashCode(); 
+			return name.hashCode() + (37 * fullName.hashCode()); // multiply by arbitrary value of 37 to increase variation 
 		} else {
-			return name.hashCode() + icon.hashCode();
+			return name.hashCode() + (37 * fullName.hashCode()) + icon.hashCode();
 		}
 	}
 	
@@ -118,6 +149,14 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	 */
 	public String toString(){
 		return name;
+	}
+
+
+	/** 
+	 * Get the fullName
+	 */
+	public String getFullName() {
+		return fullName;
 	}
 
 }

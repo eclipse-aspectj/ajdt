@@ -290,6 +290,16 @@ public class StructureModelUtil {
 				   	    List toStoreIntertypeDecls = processTargets(intertypeDecls,needIndividualNodes,node);
 					    toStore.addAll(toStoreIntertypeDecls);
 				      }
+				      
+				      if(needIndividualNodes) {
+					      IRelationship declares = irm.get(node,
+					   		  IRelationship.Kind.DECLARE_INTER_TYPE,
+					   		  AsmRelationshipProvider.INTER_TYPE_DECLARES,false,false);
+					      if (declares!=null) {
+					   	    List toStoreDecls = processTargets(declares,needIndividualNodes,node);
+						    toStore.addAll(toStoreDecls);
+					      }
+				      }
 		//		   }
 
 					if (toStore != null && toStore.size()!=0) aspectMap.put(key,toStore);
@@ -329,7 +339,7 @@ public class StructureModelUtil {
 										|| (pNode.getKind() == IProgramElement.Kind.FIELD))) {
 							// source of advice rather than target
 							String adviceType = "advises";
-							if(advises.getName().equals("annotates")) {
+							if(advises.getName().equals("annotates") || advises.getName().equals("declared on")) {
 								adviceType = advises.getName();
 							}
 							// we need to determine the advice type from the source node

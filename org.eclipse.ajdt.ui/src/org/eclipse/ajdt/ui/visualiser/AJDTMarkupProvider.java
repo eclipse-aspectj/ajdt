@@ -1,13 +1,11 @@
-/*********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
- * All rights reserved.   This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html 
- * Contributors: 
+/*******************************************************************************
+ * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Common Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/cpl-v10.html
  * 
- * Sian Whiting -  initial version.
- **********************************************************************/
+ * Contributors: Sian January - initial version
+ ******************************************************************************/
 package org.eclipse.ajdt.ui.visualiser;
 
 import java.util.ArrayList;
@@ -15,10 +13,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
@@ -37,6 +38,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -48,87 +50,107 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.IActionBars;
 
 /**
- * @author Sian
+ * Markup provider for AJDT
  */
 public class AJDTMarkupProvider extends SimpleMarkupProvider {
-	
+
 	private IAction hideErrorsAction;
 	private Action hideWarningsAction;
 	private boolean hideErrors;
 	private boolean hideWarnings;
 	private Map kindMap;
-	protected static final String aspectJErrorKind = "AspectJ Error";
-	protected static final String aspectJWarningKind = "AspectJ Warning";
+	protected static final String aspectJErrorKind = "declare error"; // $NON-NLS-1$
+	protected static final String aspectJWarningKind = "declare warning"; // $NON-NLS-1$
 	protected Map savedColours;
 	
 	private static Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
 	private static Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
 	private Action resetColorMemoryAction;
-	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239"; 
+	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239";  // $NON-NLS-1$
 	private IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
-	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys";
+	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys"; // $NON-NLS-1$
 
 	/**
 	 * Get a List of Stripes for the given member, which are its markups.
 	 */
 	public List getMemberMarkups(IMember member) {
+		if(kindMap == null) {
+			updateModel();
+		}
 		List markupList = super.getMemberMarkups(member);
 		if(markupList != null) {
 			return checkErrorsAndWarnings(markupList); 
-		}
+		} 
+		return null;
+	}
+	
+	
+	private void updateModel() {
 		long stime = System.currentTimeMillis();
 		List stripeList = new ArrayList();
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
-				List list = AJDTVisualiserUtils.getMarkupInfo(member, jp.getProject(), !hideErrors, !hideWarnings);
-				for (Iterator iter = list.iterator(); iter.hasNext();) {
-					Map map = (Map)iter.next();
-					for (Iterator iterator = map.keySet().iterator(); iterator.hasNext();) {
-						Integer lineNum = (Integer) iterator.next();
-						List aspects = (List)map.get(lineNum);
-						List kinds = new ArrayList();
-						for (Iterator it = aspects.iterator(); it
-								.hasNext();) {
-							String name = (String) it.next();
-							IMarkupKind markupKind = null;
-							if(kindMap == null) {
-								kindMap = new HashMap();
-							}
-							boolean errorKind = name.startsWith(aspectJErrorKind);
-							if(errorKind || name.startsWith(aspectJWarningKind)) {
-								if(kindMap.get(name) instanceof IMarkupKind) {
-									markupKind = (IMarkupKind)kindMap.get(name);
-								} else {
-									markupKind = new ErrorOrWarningMarkupKind(name, errorKind);
-									kindMap.put(name, markupKind);
-								}
-							} else {
-								if(kindMap.get(name) instanceof IMarkupKind) {
-									markupKind = (IMarkupKind)kindMap.get(name);
-								} else {
-									markupKind = new SimpleMarkupKind(name);
-									kindMap.put(name, markupKind);
-								}
-							} 
-							kinds.add(markupKind);
-						}
-						Stripe stripe = new Stripe(kinds, lineNum.intValue(), 1);
-						stripeList.add(stripe);
-						addMarkup(member.getFullname(), stripe);
+				List allRelationships = AJModel.getInstance().getAllRelationships(jp.getProject(), new AJRelationshipType[] {AJRelationshipManager.ADVISES, AJRelationshipManager.ANNOTATES, AJRelationshipManager.DECLARED_ON, AJRelationshipManager.MATCHED_BY});
+				
+				for (Iterator iter = allRelationships.iterator(); iter
+						.hasNext();) {
+					List kinds = new ArrayList();
+					AJRelationship element = (AJRelationship) iter.next();
+					IJavaElement enclosingAspect = element.getSource().getAncestor(IJavaElement.TYPE);
+					
+					// Get fully qualified name if aspect is an inner aspect
+					String aspectName = enclosingAspect.getElementName();
+					IJavaElement loopElement = enclosingAspect;
+					while(loopElement.getParent() instanceof IType) {
+						loopElement = loopElement.getParent();
+						aspectName = loopElement.getElementName() + "." + aspectName; // $NON-NLS-1$
 					}
+					String aspectFullName = aspectName;
+					String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+					if(!(aspectPackageName.equals(""))) { // $NON-NLS-1$
+						aspectFullName = aspectPackageName + "." + aspectFullName; // $NON-NLS-1$
+					}
+					
+					int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getTarget());
+					String memberName = element.getTarget().getAncestor(IJavaElement.COMPILATION_UNIT).getElementName();
+					memberName = memberName.substring(0, memberName.lastIndexOf(".")); // $NON-NLS-1$
+					String packageName = element.getTarget().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+					if(!(packageName.equals(""))) { // $NON-NLS-1$
+						memberName = packageName + "." + memberName; // $NON-NLS-1$
+					}
+					IMarkupKind markupKind = null;
+					if(kindMap == null) {
+						kindMap = new HashMap();
+					}
+					if(element.getRelationship().equals(AJRelationshipManager.MATCHED_BY)) {
+						String sourceName = element.getSource().getElementName();					
+						boolean errorKind = sourceName.startsWith(aspectJErrorKind);
+						if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) {
+							markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); // $NON-NLS-1$
+						} else {
+							markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); // $NON-NLS-1$
+							kindMap.put(sourceName + ":::" + aspectFullName, markupKind); // $NON-NLS-1$
+						}
+					} else {
+						if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
+							markupKind = (IMarkupKind)kindMap.get(aspectFullName);
+						} else {
+							markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
+							kindMap.put(aspectFullName, markupKind);
+						}
+					} 
+					kinds.add(markupKind);
+					Stripe stripe = new Stripe(kinds, lineNum, 1);
+					stripeList.add(stripe);
+					addMarkup(memberName, stripe);
 				}
 			}
 		}
 		long mtime = System.currentTimeMillis();
 		MarkupUtils.processStripes(stripeList);
 		long etime = System.currentTimeMillis();
-//		AJDTEventTrace.generalEvent(
-//				"AJDTMarkupProvider.getMemberMarkups() executed (didn't hit cache) - took "+(etime-stime)+"ms "+
-//				"("+(etime-mtime)+"ms stripe processing)");
-		return checkErrorsAndWarnings(stripeList);
 	}
-	
 
 
 	/**
@@ -144,8 +166,17 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				IMarkupKind kind = (IMarkupKind) iterator.next();
 				if(kind instanceof StealthMarkupKind) {
 					String name = kind.getName();
-					String[] parts = name.split(":::");
+					String[] parts = name.split(":::"); // $NON-NLS-1$
 					if(parts.length > 1) {
+						String eOrWKind = parts[0];
+						if(eOrWKind.startsWith(aspectJErrorKind) && hideErrors) {
+							iterator.remove();
+							continue;
+						}
+						if(eOrWKind.startsWith(aspectJWarningKind) && hideWarnings) {
+							iterator.remove();
+							continue;
+						}
 						String aspectName = parts[1];
 						if(VisualiserPlugin.menu != null) {
 							if(!VisualiserPlugin.menu.getActive(aspectName)) {
@@ -155,8 +186,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 					}
 				}
 			}
-			Stripe newStripe = new Stripe(kinds, stripe.getOffset(), stripe.getDepth());
-			returningStripes.add(newStripe);
+			if(kinds.size() > 0) {
+				Stripe newStripe = new Stripe(kinds, stripe.getOffset(), stripe.getDepth());
+				returningStripes.add(newStripe);
+			}
 		}
 		return returningStripes;
 	}
@@ -164,18 +197,18 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 	/**
 	 * Get the colour for a given kind
-	 * @param id - the kind
+	 * @param kind - the kind
 	 * @return the Color for that kind
 	 */
-	public Color getColorFor(IMarkupKind id){
-		if(id.getName().startsWith(aspectJErrorKind)) {
+	public Color getColorFor(IMarkupKind kind){
+		if(kind.getName().startsWith(aspectJErrorKind)) {
 			return aspectJErrorColor;
-		} else if (id.getName().startsWith(aspectJWarningKind)) {
+		} else if (kind.getName().startsWith(aspectJWarningKind)) {
 			return aspectJWarningColor;
 		} else {
-			Color savedColor = getSavedColour(id.getName());
+			Color savedColor = getSavedColour(kind.getFullName());
 			if(savedColor == null) {
-				return super.getColorFor(id);
+				return super.getColorFor(kind);
 			} else {
 				return savedColor;
 			}
@@ -190,63 +223,22 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	public void setColorFor(IMarkupKind kind, Color color) {
 		super.setColorFor(kind, color);
-		saveColourForAspect(kind.getName(), color.getRed(), color.getGreen(), color.getBlue());
+		saveColourForAspect(kind.getFullName(), color.getRed(), color.getGreen(), color.getBlue());
 	}
 	
 	/**
 	 * Get all the markup kinds.
-	 * @return a Set of Strings
+	 * @return a Set of IMarkupKinds
 	 */
 	public SortedSet getAllMarkupKinds() {
-		TreeSet kinds = new TreeSet(); 
-		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
-			if( jp != null) {
-				if(kindMap == null) {
-					kindMap = new HashMap();
-				}
-				Set aspects = AJDTVisualiserUtils.getAllAspects(jp,true); 
-				for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-					String name = (String)iter.next();
-					int lastSlash = name.lastIndexOf("/");
-					if (lastSlash == -1) lastSlash = name.lastIndexOf("\\");
-					name = name.substring(lastSlash+1);
-					name = name.substring(0, name.lastIndexOf("."));
-					IMarkupKind markupKind;
-					if(kindMap.get(name) instanceof IMarkupKind) {
-						markupKind = (IMarkupKind)kindMap.get(name);
-					} else {
-						markupKind = new SimpleMarkupKind(name);
-						kindMap.put(name, markupKind);
-					}
-					kinds.add(markupKind);					
-				}
-
-				if(!hideErrors) {
-					if(kindMap.get(aspectJErrorKind) instanceof IMarkupKind) {
-						kinds.add((IMarkupKind)kindMap.get(aspectJErrorKind));
-					} else {
-						IMarkupKind errorKind = new StealthMarkupKind(aspectJErrorKind);
-						kinds.add(errorKind);
-						kindMap.put(aspectJErrorKind, errorKind);
-					}
-				}
-				if(!hideWarnings) {
-					if(kindMap.get(aspectJWarningKind) instanceof IMarkupKind) {
-						kinds.add((IMarkupKind)kindMap.get(aspectJWarningKind));
-					} else {
-						IMarkupKind warningKind = new StealthMarkupKind(aspectJWarningKind);
-						kinds.add(warningKind);
-						kindMap.put(aspectJWarningKind, warningKind);
-					}
-				}
-			}
+		if(kindMap == null) {
+			updateModel();
 		}
-		if (kinds.size() > 0) {
-			return kinds;
-		} else {
-			return null;
+		TreeSet kinds = new TreeSet();
+		if(kindMap != null) { 
+			kinds.addAll(kindMap.values());
 		}
+		return kinds;
 	}
 
 	
@@ -277,22 +269,22 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	protected void saveColourForAspect(String aspectName, int r, int g, int b) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
-			String key = currentProject + ":::" + aspectName;
+			String key = currentProject + ":::" + aspectName; // $NON-NLS-1$
 			if(prefs.getString(key) == null) {
-				prefs.setDefault(key, "");
+				prefs.setDefault(key, ""); // $NON-NLS-1$
 			}
 			
 			// Save all keys we add in order that they can be reset.
 			String allColourKeys = prefs.getString(allPrefereceKeys);
 			if(allColourKeys == null) {
 				prefs.putValue(allPrefereceKeys, key);
-				prefs.setDefault(allPrefereceKeys, "");
+				prefs.setDefault(allPrefereceKeys, ""); // $NON-NLS-1$
 			} else {
-				allColourKeys += "," + key;
+				allColourKeys += "," + key; // $NON-NLS-1$
 				prefs.putValue(allPrefereceKeys, allColourKeys);
 			}
 			
-			String value = r + "," + g + "," + b;
+			String value = r + "," + g + "," + b; // $NON-NLS-1$ // $NON-NLS-2$
 			prefs.setValue(key, value);
 			if(savedColours == null) {
 				savedColours = new HashMap();
@@ -301,12 +293,19 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			savedColours.put(key, value);
 		}
 	}
-	
+
+	/**
+	 * Empty the data structures that contain the stripe and kind information
+	 */
+	public void resetMarkupsAndKinds() {
+		super.resetMarkupsAndKinds();
+		kindMap = null;
+	}
 	
 	protected Color getSavedColour(String aspectName) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
-			String key = currentProject + ":::" + aspectName;
+			String key = currentProject + ":::" + aspectName; // $NON-NLS-1$
 			if(savedColours == null) {
 				savedColours = new HashMap();
 			}
@@ -316,8 +315,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				value = prefs.getString(key); 
 				savedColours.put(key, value);
 			}
-			if(value != null && value != "") {
-				String[] rgb = value.split(",");
+			if(value != null && value != "") { // $NON-NLS-1$
+				String[] rgb = value.split(","); // $NON-NLS-1$
 				if(rgb.length != 3) {
 					return null;
 				} else {
@@ -345,7 +344,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 			};
 			resetColorMemoryAction.setImageDescriptor(AspectJImages.RESET_COLOURS.getImageDescriptor());
-			resetColorMemoryAction.setText(AspectJUIPlugin.getResourceString("ResetColorMemory"));
+			resetColorMemoryAction.setText(AspectJUIPlugin.getResourceString("ResetColorMemory")); // $NON-NLS-1$
 			resetColorMemoryAction.setId(resetColorMemoryID);
 			hideErrorsAction = new Action() {
 				public int getStyle() {
@@ -353,24 +352,22 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 				public void run() {
 					hideErrors = hideErrorsAction.isChecked();
-					resetMarkupsAndKinds();
 					VisualiserPlugin.refresh();
 				}
 			};
 			hideErrorsAction.setImageDescriptor(AspectJImages.HIDE_ERRORS.getImageDescriptor());
-			hideErrorsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideErrors"));
+			hideErrorsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideErrors")); // $NON-NLS-1$
 			hideWarningsAction = new Action() {
 				public int getStyle() {
 					return IAction.AS_CHECK_BOX;
 				}
 				public void run() {
 					hideWarnings = hideWarningsAction.isChecked();
-					resetMarkupsAndKinds();
 					VisualiserPlugin.refresh();
 				}
 			};
 			hideWarningsAction.setImageDescriptor(AspectJImages.HIDE_WARNINGS.getImageDescriptor());
-			hideWarningsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideWarnings"));
+			hideWarningsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideWarnings")); // $NON-NLS-1$
 			IActionBars menuActionBars = VisualiserPlugin.menu.getViewSite().getActionBars();
 			IToolBarManager toolBarManager = menuActionBars.getToolBarManager();
 			toolBarManager.add(hideErrorsAction);
@@ -387,8 +384,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	protected void resetSavedColours() {
 		String colourKeys = prefs.getString(allPrefereceKeys);
-		if(colourKeys != null && colourKeys != "") {
-			String[] keys = colourKeys.split(",");
+		if(colourKeys != null && colourKeys != "") { // $NON-NLS-1$
+			String[] keys = colourKeys.split(","); // $NON-NLS-1$
 			for (int i = 0; i < keys.length; i++) {
 				prefs.setToDefault(keys[i]);
 			}
@@ -408,7 +405,6 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		if(VisualiserPlugin.menu != null) {
 			IActionBars menuActionBars = VisualiserPlugin.menu.getViewSite().getActionBars();
 			IToolBarManager toolBarManager = menuActionBars.getToolBarManager();
-//			IContributionItem[] contributions = toolBarManager.getItems();
 			toolBarManager.removeAll();
 			toolBarManager.update(true);
 			IMenuManager menuManager = menuActionBars.getMenuManager();
@@ -428,7 +424,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		public ErrorOrWarningMarkupKind(String name, boolean errorKind) {
 			super(name);
 			this.errorKind = errorKind;
-			String[] nameParts = name.split(":::");
+			String[] nameParts = name.split(":::"); // $NON-NLS-1$
 			if(nameParts.length > 1) {
 				declaringAspect = nameParts[1];
 			}
@@ -436,9 +432,9 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 		public String toString() {
 			if (errorKind) {
-				return AspectJUIPlugin.getResourceString("AspectJError") + ": " + declaringAspect;
+				return AspectJUIPlugin.getResourceString("AspectJError") + ": " + declaringAspect; // $NON-NLS-1$ // $NON-NLS-2$
 			} else {
-				return AspectJUIPlugin.getResourceString("AspectJWarning") + ": " + declaringAspect;
+				return AspectJUIPlugin.getResourceString("AspectJWarning") + ": " + declaringAspect; // $NON-NLS-1$ // $NON-NLS-2$
 			}
 		}
 	}

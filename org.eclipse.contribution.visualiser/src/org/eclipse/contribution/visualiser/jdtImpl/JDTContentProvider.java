@@ -61,13 +61,13 @@ public class JDTContentProvider
 	protected int getLength(ICompilationUnit element) {
 		String srccode;
 
-		int lines = 0;
+		int lines = 1;
 		try {
 			srccode = element.getSource();
 
-			while (srccode.indexOf(System.getProperty("line.separator", "\n")) != -1) { //$NON-NLS-1$ //$NON-NLS-2$
+			while (srccode.indexOf("\n") != -1) { //$NON-NLS-1$ 
 				lines++;
-				srccode = srccode.substring(srccode.indexOf(System.getProperty("line.separator", "\n")) + 1); //$NON-NLS-1$ //$NON-NLS-2$
+				srccode = srccode.substring(srccode.indexOf("\n") + 1); //$NON-NLS-1$ 
 			}
 		} catch (JavaModelException e) {
 			e.printStackTrace();
@@ -331,7 +331,7 @@ public class JDTContentProvider
 				}
 				if (jdtg!=null) {
 					
-					List members = getAllJDTMembers(ipf);
+					List members = getMembersForPackage(ipf);
 					if(members.size() == 0){
 						return null;
 					}
@@ -352,17 +352,18 @@ public class JDTContentProvider
 	 */
 	public List getAllJDTGroups(IJavaProject JP) {
 		List returningPackages = new LinkedList();
-		try {
-			IPackageFragment fragments[] = JP.getPackageFragments();
-			for (int i = 0; i < fragments.length; i++) {
-				JDTGroup group = getGroupForFragment(fragments[i]);
-				if (group != null)
-					returningPackages.add(group);
+		if(JP != null) {
+			try {
+				IPackageFragment fragments[] = JP.getPackageFragments();
+				for (int i = 0; i < fragments.length; i++) {
+					JDTGroup group = getGroupForFragment(fragments[i]);
+					if (group != null)
+						returningPackages.add(group);
+				}
+			} catch (JavaModelException e) {
+				e.printStackTrace();
 			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
 		}
-
 		return returningPackages;
 	}
 
@@ -372,7 +373,7 @@ public class JDTContentProvider
 	 * @param PF
 	 * @return List of JDTMembers
 	 */
-	public List getAllJDTMembers(IPackageFragment PF) {
+	public List getMembersForPackage(IPackageFragment PF) {
 		List returningClasses = new LinkedList();
 		try {
 			if (containsUsefulStuff(PF)) {

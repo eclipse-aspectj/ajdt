@@ -396,6 +396,7 @@ public class Menu extends ViewPart {
 		 		 		 		 		 		 		 labels[i] = new Label(canvas, SWT.NONE);
 		 		 		 		 		 		 		 labels[i].setText(element.getName());
 		 		 		 		 		 		 		 labels[i].setData(element);
+		 		 		 		 		 		 		 labels[i].setToolTipText(element.getFullName());
 		 		 		 		 		 		 		 i++;
 		 		 		 		 		 		 }
 		 		 		 		 		 		 kindActive.put(element, new Boolean(true));
