@@ -6,10 +6,11 @@
 		<link toc="toc_aspectj.xml" />
 	</topic>-->
 	
+	<topic label="What's new" href="doc/whatsnew120M1/newnoteworthy.html"/>
 	<topic label="AJDT User Guide">
 		<link toc="toc_ajdtuguide.xml" />		
 	</topic>
 	<topic label="FAQ" href="faq.html"/>
 	<topic label="AJDT Home" href="http://www.eclipse.org/ajdt"/>
-    <topic label="What's new" href="doc/whatsnew120M1/newnoteworthy.html"/>
+	<topic label="Latest release notes" href="http://dev.eclipse.org/viewcvs/indextech.cgi/~checkout~/ajdt-home/releasenotes120M1.html"/>
 </toc>
