@@ -28,6 +28,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
 import org.aspectj.weaver.patterns.DeclarePrecedence;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElementInfo;
@@ -157,7 +158,7 @@ public class AJCompilationUnitStructureRequestor extends
 		String nameString= new String(name);
 		IType handle = new AspectElement(parentHandle, nameString);
 		
-		resolveDuplicates(handle);
+		resolveDuplicateElements(handle);
 		
 		AspectElementInfo info = new AspectElementInfo();
 		
@@ -237,7 +238,7 @@ public class AJCompilationUnitStructureRequestor extends
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 				handle = new AdviceElement(parentHandle, new String(nameString), parameterTypeSigs);
 			
-				resolveDuplicates(handle);
+				resolveDuplicateElements(handle);
 				
 				AdviceElementInfo info = new AdviceElementInfo();
 				info.setAJKind(IProgramElement.Kind.ADVICE);
@@ -295,7 +296,7 @@ public class AJCompilationUnitStructureRequestor extends
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 				handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
 				
-				resolveDuplicates(handle);
+				resolveDuplicateElements(handle);
 				
 				IntertypeElementInfo info = new IntertypeElementInfo();
 				
@@ -390,7 +391,7 @@ public class AJCompilationUnitStructureRequestor extends
 				handle = new DeclareElement(parentHandle, nameString, parameterTypeSigs);
 				
 				
-				resolveDuplicates(handle);
+				resolveDuplicateElements(handle);
 				
 
 				
@@ -443,7 +444,7 @@ public class AJCompilationUnitStructureRequestor extends
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 				handle = new PointcutElement(parentHandle, new String(name), parameterTypeSigs);
 
-				resolveDuplicates(handle);
+				resolveDuplicateElements(handle);
 				
 				PointcutElementInfo info = new PointcutElementInfo();
 				
@@ -479,30 +480,41 @@ public class AJCompilationUnitStructureRequestor extends
 	 * Resolves duplicate handles by incrementing the occurrence count of the
 	 * handle being created until there is no conflict.
 	 */
-	protected void resolveDuplicates(IJavaElement handle) {
-		Class clazz = CompilationUnitStructureRequestor.class;
+	protected void resolveDuplicateElements(IJavaElement handle) {
+		// Get the superclass for this type and reflectively
+		// call its resolveDuplicates method because the signature
+		// of resolveDuplicates has changed in Eclipse 3.1M2.
+		Class superclass = CompilationUnitStructureRequestor.class;
 		Method m;
 		try {
 			try {
-				// version in eclipse 3.0.0, 3.0.1, and 3.1M1
-				m = clazz.getDeclaredMethod("resolveDuplicates", //$NON-NLS-1$
+				// First, attempt to find and invoke the "old" version
+				// of resolveDuplicates in Eclipse 3.0.0, 3.0.1, and 3.1M1
+				m = superclass.getDeclaredMethod("resolveDuplicates", //$NON-NLS-1$
 						new Class[] { IJavaElement.class });
 				m.invoke(this, new Object[] { handle });
 			} catch (NoSuchMethodException e) {
-				// version in eclipse 3.1M2, and possibly later
-				m = clazz
-						.getDeclaredMethod(
-								"resolveDuplicates", new Class[] { //$NON-NLS-1$
-								Class
-										.forName("org.eclipse.jdt.internal.core.SourceRefElement") }); //$NON-NLS-1$
+				// A NoSuchMethodException from the above try block
+				// suggests we are in post Eclipse 3.1M2 territory. Try
+				// to find and invoke the newer method. 
+				m = superclass.getDeclaredMethod(
+						"resolveDuplicates", new Class[] { //$NON-NLS-1$
+								Class.forName(
+										"org.eclipse.jdt.internal.core.SourceRefElement") }); //$NON-NLS-1$
 				m.invoke(this, new Object[] { handle });
 			}
 		} catch (SecurityException e) {
+			AspectJPlugin.logException(e);
 		} catch (NoSuchMethodException e) {
+			AspectJPlugin.logException(e);
 		} catch (IllegalArgumentException e) {
+			AspectJPlugin.logException(e);
 		} catch (IllegalAccessException e) {
+			AspectJPlugin.logException(e);
 		} catch (InvocationTargetException e) {
+			AspectJPlugin.logException(e);
 		} catch (ClassNotFoundException e) {
+			AspectJPlugin.logException(e);
 		}
 	}
 }
