@@ -96,11 +96,13 @@ public class AdviceMarkersTest2 extends TestCase {
 			},
 			{ // IAJModelMarker.DECLARATION_MARKER
 				{ "Demo.itd(int)", new Integer(17) },
-				{ "Demo.f", new Integer(17) }
+				{ "Demo.f", new Integer(17) },
+				{ "declare parents: implements Serializable", new Integer(17) } // bug 79979
 			},
 			{ // IAJModelMarker.ITD_MARKER
 				{ "Demo.itd(int)", new Integer(17) },
-				{ "Demo.f", new Integer(17) }
+				{ "Demo.f", new Integer(17) },
+				{ "declare parents: implements Serializable", new Integer(17) } // bug 79979
 			}
 		};
 
