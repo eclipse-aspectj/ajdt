@@ -8,10 +8,12 @@
  * Contributors:
  *     	IBM Corporation - initial API and implementation
  * 		Matthew Webster - initial version
+ *      Matt Chapman    - 80939: exclude OperationCanceledExceptions
  *******************************************************************************/
 package org.eclipse.ajdt.ras;
 
 import org.aspectj.lang.*;
+import org.eclipse.core.runtime.OperationCanceledException;
 
 public abstract aspect FFDC {
 	
@@ -27,9 +29,9 @@ public abstract aspect FFDC {
 
     /** 
      * Exclude FFDC aspects from exception reporting to avoid unwanted
-     * recursion
+     * recursion. Also exclude exceptions for cancelled operations
      */
-    private pointcut excluded () : within(FFDC+);
+    private pointcut excluded () : within(FFDC+) || handler(OperationCanceledException);
 
     /** 
      * Advice for catch blocks in static context
