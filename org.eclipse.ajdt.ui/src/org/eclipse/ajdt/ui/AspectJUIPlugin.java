@@ -56,6 +56,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
+import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
+import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -70,7 +73,6 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -353,7 +355,9 @@ public class AspectJUIPlugin
 
     public static final int PROGRESS_MONITOR_MAX = 100;
 
-	private AJCompilationUnitDocumentProvider ajCompilationUnitDocumentProvider;
+	private ICompilationUnitDocumentProvider ajCompilationUnitDocumentProvider;
+
+	private IWorkingCopyManager workingCopyManager;
 
 
 	/**
@@ -996,11 +1000,23 @@ public class AspectJUIPlugin
 	 * Get the AJCompilationUnitDocumentProvider
 	 * @return
 	 */
-	public IDocumentProvider getAJCompilationUnitDocumentProvider() {
+	public ICompilationUnitDocumentProvider getAJCompilationUnitDocumentProvider() {
 		// bug 77917 - contribute our own document provider so that we still get an
 		// annotation model for .aj files.		
 		if (ajCompilationUnitDocumentProvider == null)
 			ajCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
 		return ajCompilationUnitDocumentProvider;
+	}
+
+	/**
+	 * Get the working copy manager
+	 * @return
+	 */
+	public IWorkingCopyManager getWorkingCopyManager() {
+		if (workingCopyManager == null) {
+			ICompilationUnitDocumentProvider provider= getAJCompilationUnitDocumentProvider();
+			workingCopyManager= new WorkingCopyManager(provider);
+		}
+		return workingCopyManager;
 	}
 }

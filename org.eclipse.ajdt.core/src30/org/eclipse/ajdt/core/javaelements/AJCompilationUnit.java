@@ -450,6 +450,10 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, ICompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 		ConversionOptions myConversionOptions; int pos;
+		
+		if(javaCompBuffer == null) {
+			convertBuffer(super.getBuffer());
+		}
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
 		ProposalRequestorWrapper wrappedRequestor;
 		
@@ -533,6 +537,13 @@ public class AJCompilationUnit extends CompilationUnit{
 			return JAVA_PROJECT;
 		return super.getElementType();
 	}
+	
+	public boolean exists() {
+		boolean e = super.exists();
+		System.out.println("AJcu.exists: "+e);
+		return e;
+	}
+
 	
 //	private static final String classToTrick = "org.eclipse.jdt.internal.corext.refactoring.reorg.OverwriteHelper";
 //	private static final int lenOfClassToTrick = classToTrick.length();

@@ -14,6 +14,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
@@ -40,6 +41,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 	
 	public AJCompletionProcessor(IEditorPart editor) {
 		super(editor);
+		fManager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
 		IDocumentProvider provider = null;
 		if (editor instanceof ITextEditor){
 			provider = ((ITextEditor)editor).getDocumentProvider();

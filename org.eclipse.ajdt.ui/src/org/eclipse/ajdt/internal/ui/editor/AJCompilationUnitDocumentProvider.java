@@ -18,13 +18,9 @@ import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
 /**
  * Document Provider for CompilationUnits and AJCompilationUnits
  */
-public class AJCompilationUnitDocumentProvider extends
-		CompilationUnitDocumentProvider implements
+public class AJCompilationUnitDocumentProvider extends CompilationUnitDocumentProvider implements
 		ICompilationUnitDocumentProvider {
 
-	public AJCompilationUnitDocumentProvider() {
-		super();
-	}
 
 	/**
 	 * Creates a compilation unit from the given file.
@@ -37,10 +33,11 @@ public class AJCompilationUnitDocumentProvider extends
 		// file ends with .aj. This ensures that we still get the annotation
 		// model for .aj files.
 		if (file.getFileExtension().equals("aj")) { //$NON-NLS-1$
-			return AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
+			return AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file);
 		} else {
 			return super.createCompilationUnit(file);
 		}
 	}
+
 
 }

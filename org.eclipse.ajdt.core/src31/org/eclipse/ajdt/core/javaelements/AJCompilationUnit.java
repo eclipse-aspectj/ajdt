@@ -454,6 +454,10 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
 		ConversionOptions myConversionOptions; int pos;
+		
+		if(javaCompBuffer == null) {
+			convertBuffer(super.getBuffer());
+		}
 		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
 		ProposalRequestorWrapper wrappedRequestor;
 		

@@ -37,9 +37,12 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
@@ -94,7 +97,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 		// bug 77917 - use our own document provider so that we still get an
 		// annotation model for .aj files.
-		//setDocumentProvider(AspectJUIPlugin.getDefault().getAJCompilationUnitDocumentProvider());
+		setDocumentProvider(AspectJUIPlugin.getDefault().getAJCompilationUnitDocumentProvider());
 		
 		//		activeEditorList.add(this);
 		//		//this.setSourceViewerConfiguration()
@@ -296,7 +299,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 			//getStatusLineManager().setErrorMessage(""); //$NON-NLS-1$
 
-			IWorkingCopyManager manager = JavaPlugin.getDefault()
+			IWorkingCopyManager manager = AspectJUIPlugin.getDefault()
 					.getWorkingCopyManager();
 			ICompilationUnit unit = manager.getWorkingCopy(getEditorInput());
 
@@ -392,7 +395,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 				//model.setIsActive(true);
 				//IAnnotationModel model =
 				// this.getDocumentProvider().getAnnotationModel(unit);
-				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
+				((IWorkingCopyManagerExtension) AspectJUIPlugin.getDefault()
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 				}
 			}
@@ -421,7 +424,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 
 			if ("aj".equals(fInput.getFile().getFileExtension())) {
-				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
+				AspectJUIPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
 		}
 	}
@@ -807,6 +810,54 @@ public class AspectJEditor extends CompilationUnitEditor {
 		super.gotoMarker(marker);
 	}
 
+	protected IJavaElement getInputJavaElement() {
+		return AspectJUIPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput());
+	}
+
+	/*
+	 * @see JavaEditor#setOutlinePageInput(JavaOutlinePage, IEditorInput)
+	 */
+	protected void setOutlinePageInput(JavaOutlinePage page, IEditorInput input) {
+		if (page != null) {
+			IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+			page.setInput(manager.getWorkingCopy(input));
+		}
+	}
+	
+	/**
+	 * Returns the most narrow element including the given offset.  If <code>reconcile</code>
+	 * is <code>true</code> the editor's input element is reconciled in advance. If it is 
+	 * <code>false</code> this method only returns a result if the editor's input element
+	 * does not need to be reconciled.
+	 * 
+	 * @param offset the offset included by the retrieved element
+	 * @param reconcile <code>true</code> if working copy should be reconciled
+	 * @return the most narrow element which includes the given offset
+	 */
+	protected IJavaElement getElementAt(int offset, boolean reconcile) {
+		IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+		ICompilationUnit unit= manager.getWorkingCopy(getEditorInput());
+		
+		if (unit != null) {
+			try {
+				if (reconcile) {
+					synchronized (unit) {
+						unit.reconcile(ICompilationUnit.NO_AST, false, null, null);
+					}
+					return unit.getElementAt(offset);
+				} else if (unit.isConsistent())
+					return unit.getElementAt(offset);
+					
+			} catch (JavaModelException x) {
+				if (!x.isDoesNotExist())
+				JavaPlugin.log(x.getStatus());
+				// nothing found, be tolerant and go on
+			}
+		}
+		
+		return null;
+	}
+	
 	protected void initializeEditor() {
 		super.initializeEditor();
 		IPreferenceStore store = this.getPreferenceStore();
