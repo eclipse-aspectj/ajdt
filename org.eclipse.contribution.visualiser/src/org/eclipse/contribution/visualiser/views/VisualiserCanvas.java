@@ -820,7 +820,6 @@ public class VisualiserCanvas extends Canvas {
 		IMarkupProvider vmp = visualiser.getVisMarkupProvider();
 		List markups = vmp.getMemberMarkups(m);
 		if ((markups != null) && (markups.size() > 0)) {
-
 			// Sort Stripes by offset so we get a logical traversal order
 			Set sortedSet = new TreeSet();
 			for (int i = 0; i < markups.size(); i++) {
@@ -829,10 +828,8 @@ public class VisualiserCanvas extends Canvas {
 					sortedSet.add(s);
 				}
 			}
-
 			for (Iterator iter = sortedSet.iterator(); iter.hasNext();) {
 				Stripe s = (Stripe) iter.next();
-
 				int activeKinds = 0;
 				for (int i = 0; i < s.getKinds().size(); i++) {
 					IMarkupKind kind = (IMarkupKind) s.getKinds().get(i);
@@ -841,7 +838,6 @@ public class VisualiserCanvas extends Canvas {
 						activeKinds++;
 					}
 				}
-
 				if (activeKinds > 0) {
 					int across = 0;
 					// we want to leave a single pixel gap between kinds, but
@@ -856,13 +852,12 @@ public class VisualiserCanvas extends Canvas {
 					if (offsetY < 0) {
 						offsetY = 0;
 					}
-
 					int stripeH = VisualiserPreferences.getStripeHeight();
 					if (stripeH < s.getDepth()) {
 						stripeH = s.getDepth();
 					}
 					ypos = offsetY + soffset;
-					soffset += stripeH - 1;
+					//soffset += stripeH - 1;
 					StripeGeom sg = new StripeGeom(b.index);
 					sg.parent = b;
 					sg.member = m;
@@ -870,7 +865,6 @@ public class VisualiserCanvas extends Canvas {
 					b.stripeList.add(sg);
 					sg.bounds = new Rectangle(b.bounds.x + 1,
 							b.bounds.y + ypos, colWidth - 2, stripeH);
-
 					//					if (visualiser.isFitToView()) {
 					//						ypos = (int) (ypos / vScale);
 					//					}
@@ -884,7 +878,6 @@ public class VisualiserCanvas extends Canvas {
 									.getColorFor(kind);
 							int nw = (((across + 1) * colWidth) / activeKinds)
 									- ((across * colWidth) / activeKinds);
-							//System.out.println("nw="+nw);
 							Rectangle kindRect = new Rectangle(b.bounds.x + 1
 									+ (across * colWidth) / activeKinds,
 									b.bounds.y + ypos, nw - 1, stripeH);
@@ -893,25 +886,49 @@ public class VisualiserCanvas extends Canvas {
 						}
 					}
 				}
-
 			}
+			spaceOutStripes(b.stripeList); spaceOutStripes(b.stripeList);
 		}
 	}
 
+	/**
+	 * Performs a single pass through the list of stripes, attempting to space
+	 * out overlapping stripes.
+	 * @param stripeList
+	 */
+	private void spaceOutStripes(List /* StripeGeom */stripeList) {
+		StripeGeom sg2;
+		for (int i = 0; i < stripeList.size(); i++) {
+			StripeGeom sg1 = (StripeGeom)stripeList.get(i);
+			if (i>0) {
+				sg2 = (StripeGeom)stripeList.get(i-1);
+				if (sg1.overlaps(sg2)) {
+					sg1.moveVertically(1);
+				}
+			}
+			if (i+1 < stripeList.size()) {
+				sg2 = (StripeGeom)stripeList.get(i+1);
+				if (sg1.overlaps(sg2)) {
+					sg1.moveVertically(-1);
+				}
+			}
+		}
+	}
+	
 	private int heightOfMember(IMember m) {
 		IMarkupProvider vmp = visualiser.getVisMarkupProvider();
 		int size = m.getSize().intValue();
-		List markups = vmp.getMemberMarkups(m);
-		if ((markups != null) && (markups.size() > 0)) {
-			for (Iterator iter = markups.iterator(); iter.hasNext();) {
-				Stripe s = (Stripe) iter.next();
-				int dp = s.getDepth();
-				if (dp < VisualiserPreferences.getStripeHeight()) {
-					dp = VisualiserPreferences.getStripeHeight();
-				}
-				size += dp - 1;
-			}
-		}
+//		List markups = vmp.getMemberMarkups(m);
+//		if ((markups != null) && (markups.size() > 0)) {
+//			for (Iterator iter = markups.iterator(); iter.hasNext();) {
+//				Stripe s = (Stripe) iter.next();
+//				int dp = s.getDepth();
+//				if (dp < VisualiserPreferences.getStripeHeight()) {
+//					dp = VisualiserPreferences.getStripeHeight();
+//				}
+//				size += dp - 1;
+//			}
+//		}
 		return size;
 	}
 
@@ -1242,9 +1259,7 @@ public class VisualiserCanvas extends Canvas {
 			}
 		}
 	
-		if ((visualiser.isFitToView() || (zoomFactor < zoomSc))
-				&& (selectedItem != null)
-				&& (selectedItem instanceof StripeGeom)) {
+		if ((selectedItem != null) && (selectedItem instanceof StripeGeom)) {
 			// paint stripe to make sure it is visible, not overlapped by
 			// another stripe
 			StripeGeom sg = (StripeGeom) selectedItem;
@@ -1254,7 +1269,7 @@ public class VisualiserCanvas extends Canvas {
 				//				gc.fillRectangle(kg.bounds.x + x - 1, kg.bounds.y,
 				//						kg.bounds.width, kg.bounds.height);
 				gc.fillRectangle(scale(kg.bounds.x) + x - 1,
-						scaleExH(kg.bounds.y), scale(kg.bounds.width),
+						y, scale(kg.bounds.width),
 						scaleStripeHeight(kg.bounds.height));
 			}
 		}
@@ -1400,6 +1415,28 @@ public class VisualiserCanvas extends Canvas {
 		public IMember getMember() {
 			return member;
 		}
+		
+		/**
+		 * Returns true if this stripe overlaps the given stripe
+		 * @param sg
+		 * @return
+		 */
+		public boolean overlaps(StripeGeom sg) {
+			return this.bounds.intersects(sg.bounds);
+		}
+
+		/**
+		 * Moves this stripe, and all of its kinds, vertically by the given amount
+		 * @param ypos
+		 */
+		public void moveVertically(int ypos) {
+			bounds.y += ypos;
+			for (Iterator iter = kindList.iterator(); iter.hasNext();) {
+				KindGeom kg = (KindGeom) iter.next();
+				kg.bounds.y += ypos;
+			}
+		}
+
 	}
 
 	class KindGeom {
