@@ -1,11 +1,4 @@
 <toc label="AJDT Guide">
-	<!--<topic label="AJDT">
-		<link toc="toc_ajdt.xml" />		
-	</topic>
-	<topic label="AspectJ">
-		<link toc="toc_aspectj.xml" />
-	</topic>-->
-	
 	<topic label="What's new" href="doc/whatsnew120M1/newnoteworthy.html"/>
 	<topic label="AJDT User Guide">
 		<link toc="toc_ajdtuguide.xml" />		
