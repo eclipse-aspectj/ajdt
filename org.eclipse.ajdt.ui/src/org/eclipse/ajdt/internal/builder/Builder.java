@@ -33,6 +33,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
@@ -66,6 +67,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * This Builder selects the appropriate .lst (build config file) for the project
@@ -148,7 +150,7 @@ public class Builder extends IncrementalProjectBuilder {
 	public static IProject getLastBuildTarget() {
 		return lastBuiltProject;
 	}
-
+	
 	/**
 	 * @see IncrementalProjectBuilder#build(int, Map, IProgressMonitor) kind is
 	 *      one of: FULL_BUILD, INCREMENTAL_BUILD or AUTO_BUILD If doing a full
@@ -173,6 +175,7 @@ public class Builder extends IncrementalProjectBuilder {
 		buildCancelled = false;
 
 		IProject project = getProject();
+		AJModel.getInstance().aboutToBuild(project);
 		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
 		ajPlugin.setCurrentProject(project);
 		long buildstarttime = System.currentTimeMillis();	
@@ -364,20 +367,27 @@ public class Builder extends IncrementalProjectBuilder {
 
 			// refresh the eclipse project to pickup generated artifacts
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
+			
 			AJDTEventTrace.generalEvent("build: build time = "
 					+ (System.currentTimeMillis() - buildstarttime) + "ms");
 
 			// before returning, check to see if the project sent it's output
 			// to an outjar and if so, then update any depending projects
 			checkOutJarEntry(project);
+
+			MarkerUpdating.addNewMarkers(project);
 			
+			//System.out.println("build finished");
+			AJModel.getInstance().clearAJModel(project);
+
 			if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
 				AJDTEventTrace.generalEvent("Not updating vis, display is disposed!");
 			else
 				AspectJUIPlugin.getDefault().getDisplay().syncExec(
 						new Runnable() {
 							public void run() {
+								AJModel.refreshOutlineViews();
+
 								if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 									AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
 											.getContentProvider();
@@ -390,10 +400,11 @@ public class Builder extends IncrementalProjectBuilder {
 		} catch (Exception e) {
 			Ajde.getDefault().getErrorHandler().handleError("Compile failed.",
 					e);
-		}	
+		}
+		
 		return requiredProjects;
 	}
-	
+		
 	/**
 	 * This is the workaround discussed in bug 73435 for the case when projects are
 	 * checked out from CVS, the AJ projects have no valid build state and projects

@@ -47,10 +47,10 @@ public aspect MarkerUpdating {
 		deleteAllMarkers(project);		
 	}
 	
-	after(Builder builder) returning: buildPerformed(builder) {
-		IProject project = builder.getProject();
-		addNewMarkers(project);
-	}
+//	after(Builder builder) returning: buildPerformed(builder) {
+//		IProject project = builder.getProject();
+//		addNewMarkers(project);
+//	}
 
 	/**
 	 * Delete the advice markers for a project
@@ -77,7 +77,7 @@ public aspect MarkerUpdating {
 	/**
 	 * Add new advice markers to a project
 	 */
-	private void addNewMarkers(final IProject project) {	
+	public static void addNewMarkers(final IProject project) {	
 		try {
 			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
@@ -104,7 +104,7 @@ public aspect MarkerUpdating {
 	/**
 	 * Add markers to a file
 	 */
-	private void addMarkersToFile(final IFile file) {	
+	private static void addMarkersToFile(final IFile file) {	
 
 		IProject project = file.getProject();
 
@@ -206,7 +206,7 @@ public aspect MarkerUpdating {
 	 * @return the IMarker created
 	 * @throws CoreException
 	 */
-	private IMarker createMarker(int linenumberInt,
+	private static IMarker createMarker(int linenumberInt,
 			final boolean runtimeTest, final IResource ir,
 			IProgramElement programElement, boolean useDefaultAdviceMarker,
 			boolean nodeRuntimeTest, String adviceType) throws CoreException {
