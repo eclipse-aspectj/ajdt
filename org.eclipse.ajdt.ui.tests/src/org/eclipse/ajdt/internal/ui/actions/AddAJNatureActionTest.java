@@ -14,7 +14,6 @@ package org.eclipse.ajdt.internal.ui.actions;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -43,7 +42,6 @@ public class AddAJNatureActionTest extends TestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-    	Utils.blockPreferencesConfigWizard();	
         // create a Java project that contains all the various Java elements...
         // create a project
         testProject = new JavaTestProject("Test Java Project");
@@ -87,7 +85,6 @@ public class AddAJNatureActionTest extends TestCase {
         } catch (CoreException e) {
         	// don't care about the exception here.....
         }
-        Utils.restoreBlockedSettings();
     }
 
     public void testAddsAJNature() throws CoreException {

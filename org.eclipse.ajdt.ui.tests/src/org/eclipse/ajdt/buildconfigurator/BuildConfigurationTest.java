@@ -19,7 +19,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -58,7 +57,6 @@ public class BuildConfigurationTest extends TestCase {
 		
 		tp2 = new JavaTestProject("AJ Project created by BuildConfigurationTest");
 		ajProject = tp2.getProject();
-		Utils.blockPreferencesConfigWizard();
 		AJDTUtils.addAspectJNature(ajProject);		
 		
 		this.waitForJobsToComplete(ajProject);
@@ -75,7 +73,6 @@ public class BuildConfigurationTest extends TestCase {
 		try {
 			tp.dispose();
 			tp2.dispose();
-			Utils.restoreBlockedSettings();
 		} catch (CoreException e) {
 			// do nothing - don't care if problems occur here....
 		}

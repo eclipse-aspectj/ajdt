@@ -58,7 +58,6 @@ public class BuildConfiguratorTest extends TestCase {
 		
 		tp2 = new JavaTestProject("AJ Project created by BuildConfiguratorTest" + testNum++);
 		ajProject = tp2.getProject();
-		Utils.blockPreferencesConfigWizard();
 		AJDTUtils.addAspectJNature(ajProject);		
 		
 		this.waitForJobsToComplete(ajProject);
@@ -75,7 +74,6 @@ public class BuildConfiguratorTest extends TestCase {
 		try {
 			tp.dispose();
 			tp2.dispose();
-			Utils.restoreBlockedSettings();
 		} catch (CoreException e) {
 			// do nothing - don't care if problems occur here....
 		}	

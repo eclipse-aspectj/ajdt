@@ -19,7 +19,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
-import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -58,7 +57,6 @@ public class AspectJProjectWizardTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		Utils.blockPreferencesConfigWizard();			
 	}
 
 	/*
@@ -87,7 +85,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
-		Utils.restoreBlockedSettings();		
 	}
 
 	public void testProjectWizardPageAddition() {

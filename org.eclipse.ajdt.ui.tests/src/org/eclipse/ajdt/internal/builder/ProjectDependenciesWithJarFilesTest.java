@@ -38,22 +38,6 @@ import org.eclipse.jdt.internal.core.ClasspathEntry;
  *
  */
 public class ProjectDependenciesWithJarFilesTest extends TestCase {
-	
-	/*
-	 * @see TestCase#setUp()
-	 */
-	protected void setUp() throws Exception {
-		super.setUp();
-		Utils.blockPreferencesConfigWizard();		
-	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.restoreBlockedSettings();		
-	}
 		
 	/**
 	 * This tests part of the fix for 71371 with dependencies between projects with

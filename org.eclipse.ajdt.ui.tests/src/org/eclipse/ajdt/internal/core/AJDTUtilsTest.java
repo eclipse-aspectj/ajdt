@@ -56,7 +56,6 @@ public class AJDTUtilsTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		monitor = new BlockingProgressMonitor();
-		Utils.blockPreferencesConfigWizard();		
 	}
 
 	/*
@@ -64,7 +63,6 @@ public class AJDTUtilsTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.restoreBlockedSettings();
 	}
 
 	public void testAddAndRemoveAspectJNatureWithPluginProject() throws Exception {

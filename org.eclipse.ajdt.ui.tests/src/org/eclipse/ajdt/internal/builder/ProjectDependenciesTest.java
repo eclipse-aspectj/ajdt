@@ -36,12 +36,10 @@ public class ProjectDependenciesTest extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		Utils.blockPreferencesConfigWizard();
 	}
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.restoreBlockedSettings();
 	}
 
 	/**
@@ -312,7 +310,6 @@ public class ProjectDependenciesTest extends TestCase {
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
-		ps.setToDefault(AspectJPreferences.AJDT_PREF_CONFIG_DONE);
 	}
 
 

@@ -42,7 +42,6 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		Utils.blockPreferencesConfigWizard();			
 		project = Utils.getPredefinedProject("QuickFix", true);
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	}
@@ -51,7 +50,6 @@ public class AspectJQuickFixTest extends TestCase {
 	 * @see TestCase#tearDown()
 	 */
 	protected void tearDown() throws Exception {
-		Utils.restoreBlockedSettings();		
 		super.tearDown();
 	}
 
