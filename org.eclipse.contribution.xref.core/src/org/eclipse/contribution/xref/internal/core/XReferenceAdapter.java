@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * Convenience implementation of IXReferenceAdapter
@@ -36,6 +37,17 @@ public class XReferenceAdapter implements IXReferenceAdapter {
 		referenceSource = source;
 	}
 
+	public IJavaElement[] getExtraChildren(IJavaElement je) {
+		XReferenceProviderManager manager =
+			XReferenceProviderManager.getManager();
+		List providers = manager.getProvidersFor(referenceSource);
+		for (Iterator iter = providers.iterator(); iter.hasNext();) {
+			IXReferenceProvider element = (IXReferenceProvider) iter.next();
+			return element.getExtraChildren(je);
+		}
+		return null;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

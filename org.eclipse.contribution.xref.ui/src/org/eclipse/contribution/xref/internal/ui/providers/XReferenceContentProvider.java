@@ -11,8 +11,10 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.providers;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReference;
@@ -104,10 +106,21 @@ public class XReferenceContentProvider
 			if (o instanceof IJavaElement) {
 				je = (JavaElement) o;
 			}
+			IJavaElement[] extra = xreferenceAdapter.getExtraChildren(je);
 			IJavaElement[] children = null;
 			if (je != null) {
 				try {
+					List l = new ArrayList();
 					children = je.getChildren();
+					for (int i = 0; i < children.length; i++) {
+						l.add(children[i]);
+					}
+					if (extra!=null) {
+						for (int i = 0; i < extra.length; i++) {
+							l.add(extra[i]);
+						}
+					}
+					children = (IJavaElement[])l.toArray(new IJavaElement[]{});
 					for (int i = 0; i < children.length; i++) {
 						IJavaElement child = children[i];
 						IAdaptable a = (IAdaptable) child;

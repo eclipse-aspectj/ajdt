@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.contribution.xref.core.XReference;
+import org.eclipse.jdt.core.IJavaElement;
 
 /**
  * @author hawkinsh
@@ -48,6 +49,10 @@ public class TestXRefProviderWithEntities implements IXReferenceProvider {
 		l.add(e);
 		l.add(i);
 		return l;
+	}
+
+	public IJavaElement[] getExtraChildren(IJavaElement je) {
+		return null;
 	}
 
  	public String getProviderDescription() {

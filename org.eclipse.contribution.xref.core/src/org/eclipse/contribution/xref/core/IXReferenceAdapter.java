@@ -13,6 +13,8 @@ package org.eclipse.contribution.xref.core;
 
 import java.util.Collection;
 
+import org.eclipse.jdt.core.IJavaElement;
+
 /**
  * Adapter returned by a call to 
  * <code>IAdaptable.getAdapter(IXReferenceAdapter.class)</code>.
@@ -34,6 +36,8 @@ public interface IXReferenceAdapter {
 	 * @return the source of all cross references represented by this adapter
 	 */
 	Object getReferenceSource();
+	
+	public IJavaElement[] getExtraChildren(IJavaElement je);
 	
 	/**
 	 * The set of IXReferences the source participates in. 

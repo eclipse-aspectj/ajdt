@@ -15,6 +15,8 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.core.IJavaElement;
+
 /**
  * <p>
  * IXReferenceProvider is used to contribute cross references.
@@ -66,6 +68,8 @@ public interface IXReferenceProvider {
 	 * null is an acceptable return value.
 	 */
 	public Collection getXReferences(Object o);
+
+	public IJavaElement[] getExtraChildren(IJavaElement je);
 
 	/**
 	 * Returns a description of the provider suitable for display 
