@@ -167,6 +167,9 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 		VisualiserPlugin.visualiser.setVisContentProvider(ProviderManager.getContentProvider());
 		VisualiserPlugin.visualiser.setVisMarkupProvider(ProviderManager.getMarkupProvider());
 		ProviderManager.getContentProvider().activate();
+		if(VisualiserPlugin.menu != null) {
+			VisualiserPlugin.refresh();
+		}
 	}
 
 
@@ -187,6 +190,9 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 		// and activate the markup provider
 		VisualiserPlugin.menu.setVisMarkupProvider(ProviderManager.getMarkupProvider());
 		ProviderManager.getMarkupProvider().activate();
+		if(VisualiserPlugin.visualiser != null) {
+			VisualiserPlugin.refresh();
+		}
 	}
 
 
