@@ -48,7 +48,7 @@ Create a packaged org.eclipse.contribution.xref.core_version plugin distribution
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
 	<property file="build.ajproperties"/>
 	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.contribution.xref.core}"
-		debug="false" verbose="true"
+		debug="false" verbose="true" fork="true" maxmem="256m"
 		includes="${src.includes}" excludes="${src.excludes}" />
     <!--
     <javac srcdir="src" destdir="bin">
