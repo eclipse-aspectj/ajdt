@@ -17,6 +17,7 @@ import org.eclipse.contribution.xref.internal.ui.actions.CollapseAllAction;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
 import org.eclipse.contribution.xref.internal.ui.actions.NavigationHistoryActionGroup;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
+import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileAction;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
@@ -48,12 +49,17 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		"org.eclipse.contribution.xref.ui.views.XReferenceView"; //$NON-NLS-1$
 	private static final String LINK_ID = ID + ".link"; //$NON-NLS-1$
 	private static final String SELECTION_ID = ID + ".selection"; //$NON-NLS-1$
+	private static final String XREFS_FOR_FILE_ID = ID + ".xrefsForFile"; //$NON-NLS-1$
 
 	private Action doubleClickAction;
 	private Action collapseAllAction;
 	private Action toggleLinkingAction;
+	private Action toggleShowXRefsForFileAction;
 	private boolean linkingEnabled = true; // following selection?
-	private IXReferenceAdapter lastSelection;
+	private boolean showXRefsForFileEnabled = false;
+	private IXReferenceAdapter lastXRefAdapter;
+	private ISelection lastSelection, lastLinkedSelection;
+	private IWorkbenchPart lastWorkbenchPart, lastLinkedWorkbenchPart;
 	private NavigationHistoryActionGroup navigationHistoryGroup;
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
@@ -109,14 +115,27 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			// in editors
 			return;
 		}
-		IXReferenceAdapter xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);		
+		lastWorkbenchPart = part;
+		lastSelection = selection;	
+		
+		if (linkingEnabled) {
+			lastLinkedWorkbenchPart = part;
+			lastLinkedSelection = selection;
+		}
+
+		IXReferenceAdapter xra = null;
+		if (showXRefsForFileEnabled) {
+			xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,true);	
+		} else {
+			xra = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);	
+		}
 		if (xra != null) {
-			if (lastSelection != null 
-					&& xra.getReferenceSource().equals(lastSelection.getReferenceSource())
+			if (lastXRefAdapter != null 
+					&& xra.getReferenceSource().equals(lastXRefAdapter.getReferenceSource())
 					&& !changeDrivenByBuild) {
 				return;
 			}
-			lastSelection = xra;
+			lastXRefAdapter = xra;
 			if (linkingEnabled && !changeDrivenByBuild) {
 				viewer.setInput(xra);
 			} else if (changeDrivenByBuild){
@@ -151,9 +170,43 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 
 	public void setLinkingEnabled(boolean isOn) {
 		linkingEnabled = isOn;
-		if (linkingEnabled && lastSelection != null) {
-			viewer.setInput(lastSelection);
+		if (linkingEnabled && lastXRefAdapter != null) {
+			viewer.setInput(lastXRefAdapter);
 		}
+	}
+
+	public boolean isShowXRefsForFileEnabled() {
+		return showXRefsForFileEnabled;
+	}
+
+	public void setShowXRefsForFileEnabled(boolean isOn) {
+		showXRefsForFileEnabled = isOn;
+
+		IXReferenceAdapter xra = null;
+		if (!linkingEnabled) {
+			// if linking is not enabled then just want to show/hide the cross references
+			// for the file of the contents of the xref view
+			if (lastLinkedSelection != null && lastLinkedWorkbenchPart != null) {
+				if (showXRefsForFileEnabled) {
+					xra = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,true);
+				} else {
+					xra = XRefUIUtils.getXRefAdapterForSelection(lastLinkedWorkbenchPart,lastLinkedSelection,false);
+				}
+			}			
+		} else {
+			// if linking is enabled, then want to show/hide the cross references
+			// for the file which is open in the active editor
+			if (lastSelection != null && lastWorkbenchPart != null) {
+				if (showXRefsForFileEnabled) {
+					xra = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,true);
+				} else {
+					xra = XRefUIUtils.getXRefAdapterForSelection(lastWorkbenchPart,lastSelection,false);
+				}
+			}
+		}
+		if (xra != null) {
+			viewer.setInput(xra);
+		}		
 	}
 
 	public NavigationHistoryActionGroup getNavigationHistoryActionGroup() {
@@ -171,6 +224,11 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			pstore.setDefault(LINK_ID, true);
 		}
 		pstore.setValue(LINK_ID, linkingEnabled);
+		
+		if (!pstore.contains(XREFS_FOR_FILE_ID)) {
+			pstore.setDefault(XREFS_FOR_FILE_ID, false);
+		}
+		pstore.setValue(XREFS_FOR_FILE_ID, showXRefsForFileEnabled);
 		// MPC: do we need this? doesn't work for some IJavaElements
 //		IXReferenceAdapter xra = (IXReferenceAdapter) viewer.getInput();
 //		if (xra != null) {
@@ -193,6 +251,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 			XReferenceUIPlugin.getDefault().getPreferenceStore();
 		if (pstore.contains(LINK_ID)) {
 			linkingEnabled = pstore.getBoolean(LINK_ID);
+		}
+		
+		if (pstore.contains(XREFS_FOR_FILE_ID)) {
+			showXRefsForFileEnabled = pstore.getBoolean(XREFS_FOR_FILE_ID);
 		}
 //		if (pstore.contains(SELECTION_ID)) {
 //			String sel = pstore.getString(SELECTION_ID);
@@ -236,6 +298,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(new Separator());
 		manager.add(toggleLinkingAction);
+		manager.add(toggleShowXRefsForFileAction);
 	}
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
@@ -243,6 +306,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		manager.add(new Separator());
 		manager.add(collapseAllAction);
 		manager.add(toggleLinkingAction);
+		manager.add(toggleShowXRefsForFileAction);
 	}
 	
 	private void hookDoubleClickAction() {
@@ -257,6 +321,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		toggleLinkingAction = new ToggleLinkingAction(this);
 		collapseAllAction = new CollapseAllAction(this);
 		doubleClickAction = new DoubleClickAction(getViewSite().getShell(),viewer);
+		toggleShowXRefsForFileAction = new ToggleShowXRefsForFileAction(this);
 	}
 	
 	/**
