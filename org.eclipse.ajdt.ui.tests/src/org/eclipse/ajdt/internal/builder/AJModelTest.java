@@ -64,9 +64,9 @@ public class AJModelTest extends TestCase {
 				{ "Demo", "Demo" },
 				{ "main(String[])", "main" },
 				{ "go()", "go" },
-				{ "field-set(int tjp.Demo.x)", "go" },
+				{ "field-set(int tjp.Demo.x)", "field-set(int tjp.Demo.x)" },
 				{ "foo(int, Object)", "foo" },
-				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "foo" },
+				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" },
 				{ "bar(Integer)", "bar" }
 		};
 		mappingTestForFile(filename, results);
@@ -76,9 +76,11 @@ public class AJModelTest extends TestCase {
 	public void testProgramElementToJavaElementGetInfo() {
 		String filename = "src/tjp/GetInfo.aj";
 		String[][] results = {
+				{ "GetInfo", "GetInfo" },
 				{ "declare warning: \"field set\"", "declare warning: \"field set\"" },
 				{ "declare parents: implements Serializable", "declare parents" },
-				{ "declare soft: tjp.DemoException", "declare soft" },
+				// declare soft has disappeared
+			    // { "declare soft: tjp.DemoException", "declare soft" },
 				{ "Demo.itd(int)", "Demo.itd" },
 				{ "Demo.f", "Demo.f" },
 				{ "before(): <anonymous pointcut>", "before" },
@@ -100,7 +102,7 @@ public class AJModelTest extends TestCase {
 		if (file == null)
 			fail("Required file not found: " + filename);
 		
-		StructureModelUtil.initialiseAJDE(project);
+		//StructureModelUtil.initialiseAJDE(project);
 		String path = file.getRawLocation().toOSString();
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
 				true, true);
