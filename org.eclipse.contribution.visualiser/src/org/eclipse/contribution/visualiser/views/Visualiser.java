@@ -654,7 +654,6 @@ public class Visualiser extends ViewPart {
 	 * Handle a click that has occurred on the bar chart.
 	 * 
 	 * @param member
-	 * @param kind
 	 * @param stripe
 	 * @param buttonClicked
 	 */

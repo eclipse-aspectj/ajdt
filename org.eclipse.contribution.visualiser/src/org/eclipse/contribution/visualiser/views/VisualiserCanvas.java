@@ -129,7 +129,7 @@ public class VisualiserCanvas extends Canvas {
 		 
 	/**
 	 * @param parent
-	 * @param style
+	 * @param vis
 	 */
 	public VisualiserCanvas(Composite parent, Visualiser vis) {
 		super(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.NO_BACKGROUND
@@ -609,7 +609,6 @@ public class VisualiserCanvas extends Canvas {
 	 * 
 	 * @param ex
 	 * @param ey
-	 * @return
 	 */
 	private Object locationToObject(int ex, int ey) {
 		if ((data == null) || (data.size() == 0)) {
@@ -713,7 +712,6 @@ public class VisualiserCanvas extends Canvas {
 	 * range.
 	 * 
 	 * @param f
-	 * @return
 	 */
 	private int zoomValidRange(int f) {
 		if (f > zoomMax) {
@@ -1207,7 +1205,7 @@ public class VisualiserCanvas extends Canvas {
 	 * data
 	 * 
 	 * @param index
-	 * @return
+	 * @return rendered ImageData
 	 */
 	private ImageData paintColumn(int index) {
 		//System.out.println("rendering column index="+index);
@@ -1367,7 +1365,7 @@ public class VisualiserCanvas extends Canvas {
 	 * larger, as we don't want stripes to be too thin.
 	 * 
 	 * @param v
-	 * @return
+	 * @return scaled height
 	 */
 	private int scaleStripeHeight(int v) {
 		if (visualiser.isFitToView()) {
@@ -1380,7 +1378,7 @@ public class VisualiserCanvas extends Canvas {
 	 * Return the gap between columns scaled to zoom factor, but only if that
 	 * makes it larger, as we don't want the columns to be too close together.
 	 * 
-	 * @return
+	 * @return scaled spacing
 	 */
 	private int getScaledSpacing() {
 		if (visualiser.isFitToView()) {
@@ -1482,7 +1480,6 @@ public class VisualiserCanvas extends Canvas {
 		 * Returns true if this stripe overlaps the given stripe
 		 * 
 		 * @param sg
-		 * @return
 		 */
 		public boolean overlaps(StripeGeom sg) {
 			return this.bounds.intersects(sg.bounds);

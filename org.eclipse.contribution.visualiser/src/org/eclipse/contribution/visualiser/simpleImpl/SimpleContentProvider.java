@@ -90,7 +90,7 @@ public class SimpleContentProvider implements IContentProvider {
 	
 	/**
 	 * Get the total number of groups registered
-	 * @return
+	 * @return the number of groups
 	 */
 	public int numberOfGroupsDefined() {
 		return (groups==null?0:groups.size());

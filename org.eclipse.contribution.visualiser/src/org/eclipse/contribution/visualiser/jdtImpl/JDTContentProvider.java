@@ -317,7 +317,7 @@ public class JDTContentProvider
 	/**
 	 * Get a JDTGroup to represent the give IPackageFragment (Java package)
 	 * @param ipf
-	 * @return
+	 * @return the JDTGroup created
 	 */
 	public JDTGroup getGroupForFragment(IPackageFragment ipf) {
 		JDTGroup jdtg = null;
@@ -401,7 +401,7 @@ public class JDTContentProvider
 	/**
 	 * Returns true if this package fragment has Java classes in it.
 	 * @param fragment
-	 * @return
+	 * @return true if the package fragment contains Java classes
 	 */
 	protected boolean containsUsefulStuff(IPackageFragment fragment) {
 		try {

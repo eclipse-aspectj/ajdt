@@ -169,7 +169,7 @@ public class ProviderDefinition {
 	
 	/**
 	 * Get the default palette for this provider, if one has been specified
-	 * @return
+	 * @return the default palette id String
 	 */
 	public String getPaletteID() {
 		return paletteID;

@@ -60,7 +60,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the name of the current provider
 	 * 
-	 * @return
+	 * @return the name of the current provider
 	 */
 	static public String getProvider() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -71,7 +71,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the minimum bar width for bars in the visualiser
 	 * 
-	 * @return
+	 * @return the minimum bar width
 	 */
 	static public int getMinBarSize() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -82,7 +82,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the maximum bar width for bars in the visualsier
 	 * 
-	 * @return
+	 * @return the maximum bar width
 	 */
 	static public int getMaxBarSize() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -93,7 +93,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the bar width for the visualiser
 	 * 
-	 * @return
+	 * @return the current bar width
 	 */
 	public static int getBarWidth() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -104,7 +104,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the default bar width for the visualiser
 	 * 
-	 * @return
+	 * @return the default bar width
 	 */
 	public static int getDefaultBarWidth() {
 		return BAR_WIDTH_DEFAULT;
@@ -125,7 +125,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the stripe height for the visualiser
 	 * 
-	 * @return
+	 * @return the current stripe height
 	 */
 	public static int getStripeHeight() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -136,7 +136,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the default stripe height for the visualiser
 	 * 
-	 * @return
+	 * @return the default stripe height
 	 */
 	public static int getDefaultStripeHeight() {
 		return STRIPE_SIZE_DEFAULT;
@@ -157,7 +157,7 @@ public class VisualiserPreferences {
 	/**
 	 * Get the name of the chosen renderer
 	 * 
-	 * @return
+	 * @return the current renderer's name
 	 */
 	public static String getRendererName() {
 		IPreferenceStore store = VisualiserPlugin.getDefault()
@@ -183,7 +183,7 @@ public class VisualiserPreferences {
 	 * specified
 	 * 
 	 * @param providerID
-	 * @return
+	 * @return the id of the palette chosen by the given provider
 	 */
 	public static String getPaletteIDForProvider(String providerID) {
 		IPreferenceStore store = VisualiserPlugin.getDefault()

@@ -291,7 +291,7 @@ public class Menu extends ViewPart {
 	
 
 	/**
-	 * Get the active state of a kind (i.e. is the checkbox checked).
+	 * Get the active state of a kind (IE is the checkbox checked).
 	 * @param kind - the kind
 	 * @return true if the kind is active
 	 */	
@@ -303,7 +303,7 @@ public class Menu extends ViewPart {
 	
 	
 	/**
-	 * Get the active state of a kind by name(i.e. is the checkbox checked).
+	 * Get the active state of a kind by name(IE is the checkbox checked).
 	 * @param kindName - the kind name
 	 * @return true if the kind with the given name is active
 	 */

@@ -63,7 +63,7 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 	
 	/**
 	 * Load the markup information from given input stream
-	 * @param filename
+	 * @param in
 	 */
 	public void loadMarkups(InputStream in) {
 		int scount = 0 ; // How many stripes added altogether

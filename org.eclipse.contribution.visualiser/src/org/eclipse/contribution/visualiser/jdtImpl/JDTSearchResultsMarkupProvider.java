@@ -169,11 +169,10 @@ public class JDTSearchResultsMarkupProvider extends SimpleMarkupProvider {
 	 * Process a mouse click on a stripe. This method opens the editor at the
 	 * line of the stripe clicked.
 	 * 
-	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(java.lang.String,
+	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(org.eclipse.contribution.visualiser.interfaces.IMember,
 	 *      org.eclipse.contribution.visualiser.core.Stripe, int)
 	 */
-	public boolean processMouseclick(IMember member, Stripe stripe,
-			String exactKind, int buttonClicked) {
+	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked) {
 		if (buttonClicked == 1) {
 			if (member instanceof JDTMember) {
 				IJavaElement jEl = ((JDTMember) member).getResource();

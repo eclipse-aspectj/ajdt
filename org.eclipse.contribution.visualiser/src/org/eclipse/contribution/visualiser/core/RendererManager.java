@@ -85,7 +85,7 @@ public class RendererManager {
 	 * Return the renderer definition with the given name, or null if not found
 	 * 
 	 * @param name
-	 * @return
+	 * @return the RendererDefinition with the given name
 	 */
 	public static RendererDefinition getRendererByName(String name) {
 		for (Iterator iter = getAllRendererDefinitions().iterator(); iter
@@ -116,7 +116,7 @@ public class RendererManager {
 	 * Get the defined default renderer (should only be used when the user
 	 * hasn't specified a renderer)
 	 * 
-	 * @return
+	 * @return the default RendererDefinition
 	 */
 	public static RendererDefinition getDefaultRenderer() {
 		if (renderers == null) {

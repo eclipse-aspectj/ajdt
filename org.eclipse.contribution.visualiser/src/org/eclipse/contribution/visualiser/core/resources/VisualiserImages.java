@@ -56,7 +56,7 @@ public class VisualiserImages {
 	/**
 	 * Create an image with the given name in the icons/cme directory.
 	 * @param name
-	 * @return
+	 * @return the ImageDescriptor created
 	 */
 	private static ImageDescriptor create(String name) {
 		try {

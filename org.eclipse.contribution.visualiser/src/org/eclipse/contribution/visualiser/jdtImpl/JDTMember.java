@@ -34,7 +34,7 @@ public class JDTMember extends SimpleMember {
 	
 	/**
 	 * Gets the Java element represented by this member
-	 * @return
+	 * @return the IJavaElement represented
 	 */
 	public IJavaElement getResource() {
 		return javaElement;

@@ -74,7 +74,7 @@ public class NullMarkupProvider implements IMarkupProvider {
 	/**
 	 * Processs a mouse click on a stripe.  Does nothing.  Returns true - default behavior
 	 * should be performed.
-	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, String, int)
+	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, int)
 	 */
 	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked) {
 		return true;

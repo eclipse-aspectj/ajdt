@@ -85,7 +85,7 @@ public class PaletteManager {
 	 * Return the palette definition with the given name, or null if not found
 	 * 
 	 * @param name
-	 * @return
+	 * @return the PaletteDefinition found, or null
 	 */
 	public static PaletteDefinition getPaletteByName(String name) {
 		for (Iterator iter = getAllPaletteDefinitions().iterator(); iter
@@ -101,8 +101,8 @@ public class PaletteManager {
 	/**
 	 * Return the palette definition with the given id, or null if not found
 	 * 
-	 * @param name
-	 * @return
+	 * @param id
+	 * @return the PaletteDefinition with the given id, or null
 	 */
 	public static PaletteDefinition getPaletteByID(String id) {
 		for (Iterator iter = getAllPaletteDefinitions().iterator(); iter
@@ -143,7 +143,7 @@ public class PaletteManager {
 	/**
 	 * Get the defined default palette
 	 * 
-	 * @return
+	 * @return the default PaletteDefinition
 	 */
 	public static PaletteDefinition getDefaultPalette() {
 		if (palettes == null) {

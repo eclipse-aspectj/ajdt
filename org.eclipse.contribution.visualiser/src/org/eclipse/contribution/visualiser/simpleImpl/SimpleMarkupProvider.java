@@ -253,7 +253,7 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	/**
 	 * Process a mouse click on a stripe.  This implementation does nothing and returns
 	 * true to allow the visualiser to perform the default operations.
-	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, String, int)
+	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, int)
 	 */
 	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked) {
 		return true;

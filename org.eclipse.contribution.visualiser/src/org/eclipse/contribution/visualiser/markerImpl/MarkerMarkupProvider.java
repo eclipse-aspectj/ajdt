@@ -134,7 +134,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	/**
 	 * Get the Image for a marker, or null if none is defined
 	 * @param marker
-	 * @return
+	 * @return the Image found
 	 */
 	private Image getImage(IMarker marker) {
 		IWorkbenchAdapter adapter= (IWorkbenchAdapter)marker.getAdapter(IWorkbenchAdapter.class);
@@ -165,7 +165,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	 * Get the label for a marker, or null if a label can not be found
 	 * 
 	 * @param marker
-	 * @return
+	 * @return the String found, or null if none is found
 	 */
 	private String getLabel(IMarker marker) {
 //		IWorkbenchAdapter adapter= (IWorkbenchAdapter)marker.getAdapter(IWorkbenchAdapter.class);
@@ -193,7 +193,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	/**
 	 * Get the Color for a marker, or null if none is defined
 	 * @param marker
-	 * @return
+	 * @return the Color found, or null
 	 */
 	private Color getColor(IMarker marker) {
 		Annotation annotation = new MarkerAnnotation(marker);
@@ -214,7 +214,7 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	/**
 	 * Process a mouse click on a stripe.  This implementation opens the editor at the 
 	 * location of the marker
-	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, String, int)
+	 * @see org.eclipse.contribution.visualiser.interfaces.IMarkupProvider#processMouseclick(IMember, Stripe, int)
 	 */
 	public boolean processMouseclick(IMember member, Stripe stripe, int buttonClicked) {
 		if(stripe instanceof StripeWithMarker) {

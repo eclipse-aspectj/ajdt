@@ -64,7 +64,7 @@ public class JDTUtils {
 	 * Get the line number for the class declaration in the given IJavaElement,
 	 * which should be an ICompilationUnit.  If not found returns 0.
 	 * @param jElem
-	 * @return
+	 * @return line number
 	 */
 	public static int getClassDeclLineNum(IJavaElement jElem){
 		if (jElem instanceof ICompilationUnit) {
@@ -86,7 +86,7 @@ public class JDTUtils {
 	 * Get the line number for the given offset in the given ICompilationUnit
 	 * 
 	 * @param ICompilationUnit
-	 * @param int offSet
+	 * @param offSet
 	 * 
 	 * @return int lineNumber
 	 */
