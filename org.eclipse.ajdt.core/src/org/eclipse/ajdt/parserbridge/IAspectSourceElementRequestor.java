@@ -16,6 +16,8 @@ import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 
 /*
@@ -68,6 +70,10 @@ void enterMethod(
 	char[][] parameterNames,
 	char[][] exceptionTypes,
 	AbstractMethodDeclaration decl);
+
+void enterMethod(MethodInfo methodInfo,AbstractMethodDeclaration decl);
+
+void enterType(TypeInfo typeInfo,boolean isAspect);
 
 void enterAdvice(
 		int declarationStart,

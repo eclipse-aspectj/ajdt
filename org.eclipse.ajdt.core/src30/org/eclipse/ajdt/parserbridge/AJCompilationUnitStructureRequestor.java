@@ -21,6 +21,9 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeMethodDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.FieldInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.MethodInfo;
+import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
@@ -94,6 +97,14 @@ public class AJCompilationUnitStructureRequestor extends
 				enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
 					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false, methodDeclaration);
 		}
+	
+	public void enterMethod(MethodInfo mi) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,null);
+	}
+	
+	public void enterMethod(MethodInfo mi,AbstractMethodDeclaration mdecl) {
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,mdecl);
+	}
 	
 	protected void enterMethod(
 			int declarationStart,
@@ -470,6 +481,30 @@ public class AJCompilationUnitStructureRequestor extends
 		if ((problem.getID() & IProblem.Syntax) != 0){
 			this.hasSyntaxErrors = true;
 		}		
+	}
+
+	public void enterType(TypeInfo typeInfo, boolean isAspect) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,isAspect);
+	}
+
+	public void enterConstructor(MethodInfo methodInfo) {
+		enterConstructor(methodInfo.declarationStart,methodInfo.modifiers,methodInfo.name,methodInfo.nameSourceStart,methodInfo.nameSourceEnd,methodInfo.parameterTypes,methodInfo.parameterNames,methodInfo.exceptionTypes);
+	}
+
+	public void enterField(FieldInfo fieldInfo) {
+		enterField(fieldInfo.declarationStart,fieldInfo.modifiers,fieldInfo.type,fieldInfo.name,fieldInfo.nameSourceStart,fieldInfo.nameSourceEnd);
+	}
+
+	public void enterType(TypeInfo typeInfo) {
+		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces);
+	}
+
+	public void exitMethod(int declarationEnd, int defaultValueStart, int defaultValueEnd) {
+		super.exitMethod(declarationEnd);
+	}
+
+	public void exitType(int declarationEnd) {
+		super.exitClass(declarationEnd);
 	}
 	
 }
