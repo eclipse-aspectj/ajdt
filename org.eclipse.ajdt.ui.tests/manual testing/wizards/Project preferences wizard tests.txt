@@ -1,0 +1,34 @@
+Tests for 73859 - changes in aspectpath etc. should cause a build if "build automatically" is selected
+---------------
+
+(1) Check out "Simple AJ Project" from org.eclipse.ajdt.test/test projects
+(2) Check that "build automatically" is set (Project > build automatically)
+(3) Change the settings in various orders:
+
+		- AspectJ - outjar setting
+		- AspectJ Inpath
+		- AspectJ Aspect Path    
+		- AspectJ Compiler 
+
+	and press "Apply" and "OK" in various orders.
+	
+The following behaviour should be seen:
+
+	(1) If a build occurs it should only happen once (per click of Apply or Ok) no matter
+	    how many of the different settings you change
+	(2) if the compiler settings have changed and you choose not to build now then
+        no build takes place
+	(3) If, after several clicks, you revert all the settings to what they were 
+        before you started, then no build takes place (this does not include the case
+        when the compiler settings have been changed - even if they are reverted - this
+        behaviour was there before)
+	(4) Pressing cancel means none of the changes are set       	
+ 
+(4) Now choose not to build automatically and repeat the above tests. The following behaviour 
+    should now be seen:
+    
+    (1) unless compiler settings are changed, no build happens
+    (2) if the compiler settings are changed then there is a build depending on whether you
+        choose to do one or not in the resulting question box. 
+ 
+    		
