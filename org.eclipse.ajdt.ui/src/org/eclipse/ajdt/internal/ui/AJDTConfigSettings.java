@@ -18,6 +18,9 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorDescriptor;
@@ -96,12 +99,24 @@ public class AJDTConfigSettings {
 	 * Set the workbench file associations preference to make the AspectJ editor 
 	 * the default for .java files
 	 */
-	static public void setAspectJEditorDefault() {
+	static public void setDefaultEditorForJavaFiles(boolean aspectJ) {
+		
 		EditorRegistry editorRegistry = (EditorRegistry)WorkbenchPlugin.getDefault().getEditorRegistry(); // HACK: cast to allow save to be called
 		IFileEditorMapping[] array = WorkbenchPlugin.getDefault().getEditorRegistry().getFileEditorMappings();
 		editorRegistry.setFileEditorMappings((FileEditorMapping[])array); // HACK: cast to allow set to be called
-		editorRegistry.setDefaultEditor("*.java", AspectJEditor.ASPECTJ_EDITOR_ID);
-		editorRegistry.saveAssociations();	
+		String defaultEditor = editorRegistry.getDefaultEditor("*.java").getId();
+		if(aspectJ) {
+			if(!(defaultEditor.equals(AspectJEditor.ASPECTJ_EDITOR_ID))) {
+				editorRegistry.setDefaultEditor("*.java", AspectJEditor.ASPECTJ_EDITOR_ID);
+				editorRegistry.saveAssociations();
+			}
+		} else {
+			if(!(defaultEditor.equals(JavaUI.ID_CU_EDITOR))) {
+				editorRegistry.setDefaultEditor("*.java", JavaUI.ID_CU_EDITOR);
+				editorRegistry.saveAssociations();
+			}
+		}	
 	}
+	
 
 }

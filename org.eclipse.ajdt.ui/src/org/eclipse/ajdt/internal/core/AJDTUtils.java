@@ -49,6 +49,7 @@ import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.window.Window;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.internal.PDE;
@@ -61,6 +62,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 
 /**
  * A utility class to capture all those little functions that keep cropping up.
@@ -889,28 +892,21 @@ public class AJDTUtils {
 		 */
 		// First check to see whether we should popup the wizard
 		boolean showWizard = true;
-		// 1. Has the wizard been popped up before, and the user said
-		// "don't ask me again"?
-		if (AspectJPreferences.isAJDTPrefConfigDone()) {
+		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+		// 1. Has the wizard been popped up before for this install?
+		if (AspectJPreferences.isAJDTPrefConfigDone(version)) {
 			showWizard = false;
 		}
 		// 2. Have all of the settings already been set appropriately?
 		if (AJDTConfigSettings.isAnalyzeAnnotationsDisabled()
-				&& AJDTConfigSettings.isAspectJEditorDefault()
+				&& !AJDTConfigSettings.isAspectJEditorDefault()
 		/* && AJDTConfigSettings.isUnusedImportsDisabled() */) {
 			showWizard = false;
 		}
 
-		// override: always show wizard if this is the first time running
-		// on AJDT 1.2.0 (because the editor has changed id)
-		if (!AspectJPreferences.isRunAJDT120()) {
-			showWizard = true;
-		}
-		
 		if (showWizard && !AspectJPreferences.isAJDTPrefConfigShowing()) {
 			AspectJPreferences.setAJDTPrefConfigShowing(true);
-			// make sure we don't run the wizard twice
-			AspectJPreferences.setRunAJDT120(true);
 			// Create and initialize the AJDT Preferences Configuration Wizard
 			org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard wizard = new org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard();
 			wizard.init();
@@ -919,7 +915,9 @@ public class AJDTUtils {
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 							.getShell(), wizard);
 			// Open the wizard dialog
-			dialog.open();
+			if(dialog.open() == Window.OK) {
+				AspectJPreferences.setAJDTPrefConfigDone(true, version);
+			}
 		}
 	}
 

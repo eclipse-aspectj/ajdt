@@ -17,8 +17,6 @@ package org.eclipse.ajdt.internal.ui.wizards;
  * All Rights Reserved.
  */
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-//import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -79,7 +77,12 @@ public class AJDTPrefConfigPage extends WizardPage {
 			//if (!AJDTConfigSettings.isAspectJEditorDefault()) {			
 				aspectJEditorDefaultCheckbox = new Button(workbench, SWT.CHECK);		
 				aspectJEditorDefaultCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.ajeditordefault"));
-				aspectJEditorDefaultCheckbox.setSelection(true);
+				aspectJEditorDefaultCheckbox.setSelection(false);
+				
+				Label label = new Label(workbench, SWT.NONE);
+				label.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.editorMessage"));
+				label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));							
+
 			//}
 //			if (!AJDTConfigSettings.isUnusedImportsDisabled()) {	
 //				unusedImportsCheckbox = new Button(workbench, SWT.CHECK);	
@@ -92,7 +95,6 @@ public class AJDTPrefConfigPage extends WizardPage {
 				analyzeAnnotationsCheckbox.setSelection(true);
 			//}
 		//}	
-							
 		new Label(composite, SWT.NONE); // vertical spacer
 		
 		// create "don't ask again" checkbox
@@ -137,15 +139,9 @@ public class AJDTPrefConfigPage extends WizardPage {
 //			AJDTConfigSettings.disableUnusedImports();
 //		}
 		
-		// set the AspectJ editor to be the default editor for .java files
-		if (makeAspectJEditorDefault) {
-			AJDTConfigSettings.setAspectJEditorDefault();
-		}
-		
-//		if (dontAskAgain) {
-			AspectJPreferences.setAJDTPrefConfigDone(true);
-//		}
-		
+		// set the default editor for .java files
+		AJDTConfigSettings.setDefaultEditorForJavaFiles(makeAspectJEditorDefault);
+			
 		return true;
 	}
 }
