@@ -412,7 +412,7 @@ public class AJDTUtils {
 				// to build the project
 				// manually twice.
 				project.build(IncrementalProjectBuilder.FULL_BUILD,
-						"org.eclipse.ajdt.ui.ajbuilder", null, null);
+						AspectJUIPlugin.ID_BUILDER, null, null);
 				AspectJPlugin.getWorkspace().getRoot().refreshLocal(
 						IResource.DEPTH_INFINITE, null);
 			}
