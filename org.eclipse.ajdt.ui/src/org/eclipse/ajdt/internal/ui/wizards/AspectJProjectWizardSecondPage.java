@@ -171,7 +171,6 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 				if (monitor.isCanceled()) {
 					throw new OperationCanceledException();
 				}
-				
 				init(JavaCore.create(fCurrProject), outputLocation, entries, false);
 			}
 			monitor.worked(1);
@@ -179,7 +178,8 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 			monitor.done();
 		}
 	}
-	
+
+
 	/**
 	 * Called from the wizard on finish.
 	 */
@@ -192,7 +192,7 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 			configureJavaProject(new SubProgressMonitor(monitor, 2));
 		} finally {
 			monitor.done();
-			fCurrProject= null;
+//			fCurrProject= null;
 		}
 	}
 

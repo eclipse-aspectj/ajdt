@@ -94,30 +94,8 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         String message= NewWizardMessages.getString("JavaProjectWizard.op_error_create.message");			 //$NON-NLS-1$
         ExceptionHandler.handle(e, getShell(), title, message);
     }	
-    
-    /*
-     * Stores the configuration element for the wizard.  The config element will be used
-     * in <code>performFinish</code> to set the result perspective.
-     */
-    public void setInitializationData(IConfigurationElement cfig, String propertyName, Object data) {
-        fConfigElement= cfig;
-    }
-    
-    /* (non-Javadoc)
-     * @see IWizard#performCancel()
-     */
-    public boolean performCancel() {
-        fSecondPage.performCancel();
-        return super.performCancel();
-    }
-    
-    /* (non-Javadoc)
-     * @see org.eclipse.jface.wizard.IWizard#canFinish()
-     */
-    public boolean canFinish() {
-        return super.canFinish();
-    }
 
+    
 	/**
 	 * Builds and adds the necessary properties to the new project and updates the workspace view
 	 */
@@ -181,4 +159,30 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		AJDTEventTrace.newProjectCreated( project );
 		return true;
 	}
+
+
+   
+    /*
+     * Stores the configuration element for the wizard.  The config element will be used
+     * in <code>performFinish</code> to set the result perspective.
+     */
+    public void setInitializationData(IConfigurationElement cfig, String propertyName, Object data) {
+        fConfigElement= cfig;
+    }
+    
+    /* (non-Javadoc)
+     * @see IWizard#performCancel()
+     */
+    public boolean performCancel() {
+        fSecondPage.performCancel();
+        return super.performCancel();
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.wizard.IWizard#canFinish()
+     */
+    public boolean canFinish() {
+        return super.canFinish();
+    }
+
 }
