@@ -134,7 +134,14 @@ public class AJModel {
 		if (jp==null) {
 			return false;
 		}
-		AJProjectModel pm = getModelForProject(jp.getProject());
+		IProject project = jp.getProject();
+		if (project==null) {
+			return false;
+		}
+		if (!project.isAccessible()) {
+			return false;
+		}
+		AJProjectModel pm = getModelForProject(project);
 		if (pm==null) {
 			return false;
 		}
