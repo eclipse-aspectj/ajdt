@@ -37,6 +37,7 @@ import org.eclipse.ajdt.internal.ui.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest;
+import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.CodeTemplatesTest;
 
@@ -100,6 +101,9 @@ public class AllTests {
 		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
+		
+		// ras tests
+		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 		
 		//$JUnit-END$
 		return suite;

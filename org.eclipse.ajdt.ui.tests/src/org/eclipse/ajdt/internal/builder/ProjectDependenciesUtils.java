@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.builder;
 import java.io.File;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.test.AspectJTestPlugin;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -185,7 +186,7 @@ public class ProjectDependenciesUtils {
 			if (!foundSrc)
 				return true;
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
+			AspectJTestPlugin.log(e);
 		}
 		return false;
 	}
@@ -208,7 +209,7 @@ public class ProjectDependenciesUtils {
 				}
 			}
 		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
+			AspectJTestPlugin.log(e);
 		}
 		return false;
 	}

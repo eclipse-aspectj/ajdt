@@ -12,9 +12,13 @@ package org.eclipse.ajdt.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 /**
@@ -60,4 +64,24 @@ public class AspectJTestPlugin extends AbstractUIPlugin {
 		}
 		return pluginDir;
 	}
+
+	public static String getPluginId() {
+		return getDefault().getBundle().getSymbolicName();
+	}
+
+	/**
+	 * Report exception to Error Log
+	 */
+	public static void log (Throwable e) {
+		if (e instanceof InvocationTargetException)
+			e = ((InvocationTargetException) e).getTargetException();
+		IStatus status = null;
+		if (e instanceof CoreException)
+			status = ((CoreException) e).getStatus();
+		else
+			status =
+				new Status(IStatus.ERROR, getPluginId(), IStatus.OK, e.getMessage(), e);
+		getDefault().getLog().log(status);
+	}
+
 }
