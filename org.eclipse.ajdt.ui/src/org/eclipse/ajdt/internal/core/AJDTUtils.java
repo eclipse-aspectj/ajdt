@@ -792,7 +792,7 @@ public class AJDTUtils {
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
 		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
-		ajPlugin.setCurrentProject(project);
+		AspectJPlugin.getDefault().setCurrentProject(project);
 		ajPlugin.getAjdtProjectProperties().clearMarkers(true);
 
 		// remove the AspectJ Nature

@@ -301,7 +301,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		// For relative paths (they don't start with a File.separator
 		// or a drive letter on windows) - we prepend the projectBaseDirectory
 		String projectBaseDirectory = 
-		  AspectJUIPlugin.getDefault().getCurrentProject().
+		  AspectJPlugin.getDefault().getCurrentProject().
 		  getLocation().toOSString();
 		
 		while (inputCopy.indexOf(java.io.File.pathSeparator)!=-1) {

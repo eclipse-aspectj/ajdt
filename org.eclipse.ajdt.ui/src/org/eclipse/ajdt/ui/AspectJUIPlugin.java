@@ -250,11 +250,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private AspectJTextTools aspectJTextTools;
 
 	/**
-	 * The currently selected project
-	 */
-	private IProject currentProject;
-
-	/**
 	 * The currently selected resource
 	 */
 	private IResource currentResource;
@@ -728,26 +723,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return aspectJTextTools;
 	}
 
-	/**
-	 * get the current project, if nobody has set a project yet, use the first
-	 * open project in the workspace
-	 */
-	public IProject getCurrentProject() {
-		IProject current = null;
-		if (currentProject != null) {
-			current = currentProject;
-		} else {
-			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-					.getProjects();
-			for (int i = 0; i < projects.length; i++) {
-				if (projects[i].isOpen()) {
-					current = projects[i];
-					break;
-				}
-			}
-		}
-		return current;
-	}
 
 	/**
 	 * get the current resource. This method can return null if a resource has
@@ -761,33 +736,25 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return currentResource;
 	}
 
-	/**
-	 * set the current project - called by the builder when we're about to do a
-	 * build.
-	 */
-	public void setCurrentProject(IProject project) {
-		currentProject = project;
-	}
-
-	/**
-	 * set the current project by name
-	 */
-	public void setCurrentProject(String projectName) {
-		boolean matched = false;
-		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-				.getProjects();
-		for (int i = 0; i < projects.length; i++) {
-			if (projects[i].getName().equals(projectName)) {
-				currentProject = projects[i];
-				matched = true;
-				break;
-			}
-		}
-		if (!matched) {
-			getErrorHandler().handleWarning(
-					getResourceString("bad.project") + " " + projectName);
-		}
-	}
+//	/**
+//	 * set the current project by name
+//	 */
+//	public void setCurrentProject(String projectName) {
+//		boolean matched = false;
+//		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+//				.getProjects();
+//		for (int i = 0; i < projects.length; i++) {
+//			if (projects[i].getName().equals(projectName)) {
+//				currentProject = projects[i];
+//				matched = true;
+//				break;
+//			}
+//		}
+//		if (!matched) {
+//			getErrorHandler().handleWarning(
+//					getResourceString("bad.project") + " " + projectName);
+//		}
+//	}
 
 	/**
 	 * initialize the default preferences for this plugin
@@ -869,7 +836,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				if (o != null) {
 					if (o instanceof IResource) {
 						currentResource = (IResource) o;
-						currentProject = currentResource.getProject();
+						AspectJPlugin.getDefault().setCurrentProject(currentResource.getProject());
 
 					} else if (o instanceof IJavaElement) {
 						IJavaElement je = (IJavaElement) o;
@@ -877,7 +844,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 							currentResource = je.getUnderlyingResource(); // Might
 							// be
 							// null!
-							currentProject = je.getJavaProject().getProject();
+							AspectJPlugin.getDefault().setCurrentProject(je.getJavaProject().getProject());
 						}
 
 						// } else {
@@ -907,11 +874,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 *         current project
 	 */
 	public List getListOfConfigFilesForCurrentProject() {
-		if (currentProject == null)
-			return null;
 		List allLstFiles = new ArrayList();
 		try {
-			IResource[] files = currentProject.members();
+			IResource[] files = AspectJPlugin.getDefault().getCurrentProject().members();
 			getLstFiles(files, allLstFiles);
 		} catch (CoreException ce) {
 			AspectJUIPlugin

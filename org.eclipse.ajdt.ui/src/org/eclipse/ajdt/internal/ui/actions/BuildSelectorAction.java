@@ -50,7 +50,7 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
 		AspectJUIPlugin.setBuildConfigurationFile(
 			buildFileProject,
 			currentlySelectedBuildFile);
-		AspectJUIPlugin.getDefault().setCurrentProject( buildFileProject );
+		AspectJPlugin.getDefault().setCurrentProject( buildFileProject );
 
 		doFullBuild(buildFileProject);
 	}

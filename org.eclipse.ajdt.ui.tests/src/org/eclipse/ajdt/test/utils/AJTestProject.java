@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.internal.resources.ResourceException;
@@ -150,7 +151,7 @@ public class AJTestProject {
 			System.out.println("> Error creating new project: " + e);
 			e.printStackTrace();
 		}
-		AspectJUIPlugin.getDefault().setCurrentProject(project);
+		AspectJPlugin.getDefault().setCurrentProject(project);
 	}
 
 	public String getName() {

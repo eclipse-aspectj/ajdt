@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -83,7 +84,7 @@ public class ResourceAddedPage
 			newResources = new ArrayList();
 
 		project = ((IResource) newResourcesList.get(0)).getProject();
-		AspectJUIPlugin.getDefault().setCurrentProject(project);
+		AspectJPlugin.getDefault().setCurrentProject(project);
 
 		setDescription(
 			AspectJUIPlugin.getResourceString("newResourcesWizard.pageDescription"));
@@ -137,7 +138,7 @@ public class ResourceAddedPage
 
 		// Calculate the appropriate path to trim off the full resource paths, so that
 		// they present nicely in the lists.
-		IPath trimPath = AspectJUIPlugin.getDefault().getCurrentProject().getLocation();
+		IPath trimPath = AspectJPlugin.getDefault().getCurrentProject().getLocation();
 		trimPath = trimPath.removeLastSegments(1);
 		String trimPathString = new String(trimPath.toOSString() + File.separator);
 

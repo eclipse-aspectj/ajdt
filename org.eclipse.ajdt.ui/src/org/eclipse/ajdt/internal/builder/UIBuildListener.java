@@ -79,8 +79,6 @@ public class UIBuildListener implements IAJBuildListener {
     			}
     		});            
         }
-
-		AspectJUIPlugin.getDefault().setCurrentProject(project);
 		
 		String kindS = null;
 		if (kind == IncrementalProjectBuilder.AUTO_BUILD)

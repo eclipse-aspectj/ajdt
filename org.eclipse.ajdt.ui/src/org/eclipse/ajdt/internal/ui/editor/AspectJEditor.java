@@ -509,7 +509,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IEditorInput input = getEditorInput();
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
-			AspectJUIPlugin.getDefault().setCurrentProject(
+			AspectJPlugin.getDefault().setCurrentProject(
 					fInput.getFile().getProject());
 			// Ensure any advice markers are created since they are not
 			// persisted - but

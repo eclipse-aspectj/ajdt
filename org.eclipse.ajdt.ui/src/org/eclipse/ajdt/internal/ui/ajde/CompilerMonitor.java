@@ -396,7 +396,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     private String removePrefix(String msg) {
         String ret = msg;
-        IProject p = AspectJUIPlugin.getDefault().getCurrentProject();
+        IProject p = AspectJPlugin.getDefault().getCurrentProject();
         String projectLocation = p.getLocation().toOSString() + "\\";
         if (msg.indexOf(projectLocation) != -1) {
             ret = msg.substring(0, msg.indexOf(projectLocation))

@@ -16,6 +16,7 @@ package org.eclipse.ajdt.ui.navigator;
 import java.util.*;
 
 import org.aspectj.asm.*;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -374,7 +375,7 @@ public class PointcutNavigatorView extends ViewPart {
 	                    if (parent.getElement() == null) return;
 	                    IResource resource = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(
 	                            parent.getElement().getSourceLocation().getSourceFile().getAbsolutePath(), 
-	                            AspectJUIPlugin.getDefault().getCurrentProject());
+	                            AspectJPlugin.getDefault().getCurrentProject());
 	                    
 	                    IEditorPart part;
 	                    try {

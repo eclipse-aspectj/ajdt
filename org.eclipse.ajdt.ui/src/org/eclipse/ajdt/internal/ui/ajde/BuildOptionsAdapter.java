@@ -39,7 +39,7 @@ public class BuildOptionsAdapter
 			
 		JavaProject project;
 		try {
-			project = (JavaProject)AspectJUIPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
+			project = (JavaProject)AspectJPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
 			optionsMap = project.getOptions(true);
 		} catch (CoreException e) {
 		}
@@ -73,7 +73,7 @@ public class BuildOptionsAdapter
 	 * @see BuildOptionsAdapter#getNonStandardOptions()
 	 */
 	public String getNonStandardOptions() {
-		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();
 		String nonStandardOptions = AspectJPreferences.getCompilerOptions(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println(
@@ -121,7 +121,7 @@ public class BuildOptionsAdapter
 	 * @see BuildOptionsAdapter#getUseJavacMode()
 	 */
 	public boolean getIncrementalMode() {
-		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();			
+		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();			
 		boolean incrementalMode = AspectJPreferences.getIncrementalOption(currentProject);
 		
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
@@ -134,7 +134,7 @@ public class BuildOptionsAdapter
 	}
 	
 	public boolean getBuildAsm() {
-		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();		
+		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();		
 		boolean buildAsm = AspectJPreferences.getBuildASMOption(currentProject);
 
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
@@ -145,7 +145,7 @@ public class BuildOptionsAdapter
 	}
 	
 	public boolean getShowWeaveMessages() {
-		IProject currentProject = AspectJUIPlugin.getDefault().getCurrentProject();	
+		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();	
 		boolean showweavemessages =  AspectJPreferences.getShowWeaveMessagesOption(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println("BuildOptionsAdapter.getShowWeaveMessages called, returning :"
@@ -201,7 +201,7 @@ public class BuildOptionsAdapter
 	 * @return String
 	 */
 	public String getOutJar() {
-		IProject thisProject = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject thisProject = AspectJPlugin.getDefault().getCurrentProject();
 		String outputJar = AspectJPreferences.getProjectOutJar(thisProject);
 		
 		// If outputJar does not start with a slash, we might need to prepend the project
@@ -242,7 +242,7 @@ public class BuildOptionsAdapter
 	}
     
     public Set getInPath() {
-    	IProject thisProject = AspectJUIPlugin.getDefault().getCurrentProject();
+    	IProject thisProject = AspectJPlugin.getDefault().getCurrentProject();
 		String[] v = AspectJPreferences.getProjectInPath(thisProject);
 
 		// need to expand any variables on the path
@@ -367,7 +367,7 @@ public class BuildOptionsAdapter
 	}
 
 	public Set getAspectPath() {
-		IProject thisProject = AspectJUIPlugin.getDefault().getCurrentProject();
+		IProject thisProject = AspectJPlugin.getDefault().getCurrentProject();
         String[] v = AspectJPreferences.getProjectAspectPath(thisProject);
 
 		// need to expand any variables on the path
@@ -401,7 +401,7 @@ public class BuildOptionsAdapter
 		// For relative paths (they don't start with a File.separator
 		// or a drive letter on windows) - we prepend the projectBaseDirectory
 		String projectBaseDirectory = 
-		  AspectJUIPlugin.getDefault().getCurrentProject().
+		  AspectJPlugin.getDefault().getCurrentProject().
 		  getLocation().toOSString();
 		  
 		if (AspectJUIPlugin.DEBUG_BUILDER)

@@ -95,6 +95,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		this.progressMonitor = progressMonitor;
 		long buildstarttime = System.currentTimeMillis();
 		IProject project = getProject();
+		AspectJPlugin.getDefault().setCurrentProject(project);
 		AJModel.getInstance().aboutToBuild(project);
 		buildCancelled = false;
 		

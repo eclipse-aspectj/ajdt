@@ -22,6 +22,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -78,7 +79,7 @@ public class PulldownBuildselectorMenu implements
 	 * Return the location of the workspace, for example c:\eclipse\workspace
 	 */
 	public String getWorkspaceDirectory() {
-		IProject currentProject = AspectJUIPlugin.getDefault()
+		IProject currentProject = AspectJPlugin.getDefault()
 				.getCurrentProject();
 		// If there are no AspectJ projects in the workspace, return null
 		if (currentProject == null)

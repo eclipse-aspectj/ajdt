@@ -18,6 +18,7 @@ import java.io.File;
 import org.aspectj.ajde.ui.AbstractIcon;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -301,7 +302,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                 IResource r = AspectJUIPlugin.getDefault()
                         .getAjdtProjectProperties().findResource(filepath);
                 if(r == null) {
-                	r = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(filepath, AspectJUIPlugin.getDefault().getCurrentProject());
+                	r = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(filepath, AspectJPlugin.getDefault().getCurrentProject());
                 }
                 final IResource ir = r;
                 

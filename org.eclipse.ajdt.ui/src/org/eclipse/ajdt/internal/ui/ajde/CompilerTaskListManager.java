@@ -478,7 +478,7 @@ public class CompilerTaskListManager implements TaskListManager {
     private IResource tryToFindResource(String fileName) {
         IResource ret = null;
         String toFind = fileName.replace('\\', '/');
-        IProject project = AspectJUIPlugin.getDefault().getCurrentProject();
+        IProject project = AspectJPlugin.getDefault().getCurrentProject();
         IJavaProject jProject = JavaCore.create(project);
         try {
             IClasspathEntry[] classpathEntries = jProject
