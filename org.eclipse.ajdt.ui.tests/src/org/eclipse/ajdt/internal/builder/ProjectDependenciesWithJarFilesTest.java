@@ -11,7 +11,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -24,6 +28,9 @@ import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.refactoring.ReaderInputStream;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -916,6 +923,123 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		monitor.waitForCompletion();
 		
 	}	
+
+	/**
+	 * Test for bug 48518 - if contents of a jar file changes, then force a
+	 * build for dependent projects.
+	 * 
+	 * @throws Exception
+	 */
+	public void testDependingProjectBuiltWhenOutjarChanges() throws Exception {
+		// test setup
+		IProject jarCreatingProject = Utils.getPredefinedProject("jarCreatingProject", true);
+		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarCreatingProject);
+		IProject jarDependentProject = Utils.getPredefinedProject("jarDependentProject", true);
+		jarDependentProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarDependentProject);
+		// sanity check on setup of projects....
+		String outjar = jarCreatingProject.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);
+		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
+		if(outjar == null || !outjar.equals("myJar.jar")) {			
+			jarCreatingProject.setPersistentProperty(BuildOptionsAdapter.OUTPUTJAR,jar);
+		}
+		outjar = jarCreatingProject.getPersistentProperty(BuildOptionsAdapter.OUTPUTJAR);
+		assertEquals("the outjar should be called myjar.jar",jar,outjar);
+		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
+		assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath",
+				ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, outjar));
+		
+		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarCreatingProject);
+		jarDependentProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarDependentProject);
+		
+		assertFalse("jarCreatingProject should build with no errors",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
+		assertFalse("jarDependentProject should build with no errors",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,null));
+		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
+		assertTrue("jarCreatingProject should be an AJ project", 
+				AspectJPlugin.isAJProject(jarCreatingProject));
+		assertTrue("jarDependentProject should be an AJ project", 
+				AspectJPlugin.isAJProject(jarDependentProject));
+		
+		// add new abstract pointcut to A.aj in jarCreatingProject
+		IFolder src = jarCreatingProject.getFolder("src");
+		if (!src.exists()){
+			src.create(true, true, null);
+		}
+		IFolder p1 = src.getFolder("p1");
+		if (!p1.exists()){
+			p1.create(true, true, null);
+		}
+				
+		IFile A = p1.getFile("A.aj");
+		assertNotNull("There should be an aspect called A",A);
+		
+		InputStream contentsOfA = A.getContents();	
+		StringBuffer sb = new StringBuffer();		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(contentsOfA));		
+		String line = reader.readLine();
+		while (line != null) {
+			sb.append(line);
+			if (line.indexOf("public abstract pointcut myPC();") != -1) {
+				sb.append("public abstract pointcut anotherPC();");
+			}
+			line = reader.readLine();
+		}
+		StringReader sr = new StringReader(sb.toString());
+		A.setContents(new ReaderInputStream(sr),IResource.FORCE, null);
+		
+		sr.close();
+		reader.close();
+		contentsOfA.close();
+
+		// build jarCreatingProject which should trigger rebuild of 
+		// jarDependingProject which should then have an error marker against
+		// it saying "inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"
+		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarCreatingProject);
+
+		assertFalse("jarCreatingProject should build with no errors",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
+		assertTrue("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+
+		InputStream contentsOfA2 = A.getContents();	
+		StringBuffer sb2 = new StringBuffer();		
+		BufferedReader reader2 = new BufferedReader(new InputStreamReader(contentsOfA2));		
+		String line2 = reader2.readLine();
+		while (line2 != null) {
+			// comment out offending line
+			if (line2.indexOf("public abstract pointcut anotherPC();") != -1) {
+				sb2.append("// public abstract pointcut anotherPC();");
+			} else {
+				sb2.append(line2);
+			}
+			line2 = reader2.readLine();
+		}
+		StringReader sr2 = new StringReader(sb2.toString());
+		A.setContents(new ReaderInputStream(sr2),IResource.FORCE, null);
+		
+		sr2.close();
+		reader2.close();
+		contentsOfA2.close();
+		
+		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		ProjectDependenciesUtils.waitForJobsToComplete(jarCreatingProject);
+
+		assertFalse("jarCreatingProject should build with no errors",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
+		assertFalse("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+		
+		
+	}
+	
 
 	private int numberOfTimesOutJarOnAspectPath(IProject projectWhichHasDependency,
 			IProject projectDependedOn,
