@@ -89,6 +89,7 @@
   <delete dir="${your-performance-folder}" quiet="true"/>
   <ant target="ui-test" antfile="${library-file}" dir="${eclipse-home}">
      <property name="data-dir" value="${your-performance-folder}"/>
+     <property name="vmargs" value="-Xms250M -Xmx250M"/>
      <property name="plugin-name" value="${plugin-name}"/>
      <property name="classname" value="org.eclipse.ajdt.tests.performance.OpenEditorTest"/>
   </ant>
