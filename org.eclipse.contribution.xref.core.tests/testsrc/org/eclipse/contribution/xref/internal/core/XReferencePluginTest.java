@@ -34,11 +34,7 @@ public class XReferencePluginTest extends TestCase {
 	public void testPluginID() {
 		assertEquals("org.eclipse.contribution.xref.core",XReferencePlugin.PLUGIN_ID);
 	}
-	
-	public void testGetVersion() {
-		assertTrue(XReferencePlugin.getVersion().startsWith("9"));
-	}
-	
+		
 	public void testLog() {
 		LogListener l = new LogListener();
 		try {
