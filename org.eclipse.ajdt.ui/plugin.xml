@@ -1306,21 +1306,41 @@
          point="org.eclipse.ui.intro.configExtension">
       <configExtension
             configId="org.eclipse.platform.introConfig"
-            content="intro/ajdtOverviewExtensionContent.xml"/>
+            content="intro/eclipse/ajdtOverviewExtensionContent.xml"/>
 
       <configExtension
             configId="org.eclipse.platform.introConfig"
-            content="intro/ajdtTutorialsExtensionContent.xml"/>  
+            content="intro/eclipse/ajdtTutorialsExtensionContent.xml"/>  
       
       <configExtension
             configId="org.eclipse.platform.introConfig"
-            content="intro/ajdtSamplesExtensionContent.xml"/>
+            content="intro/eclipse/ajdtSamplesExtensionContent.xml"/>
             
       <configExtension
             configId="org.eclipse.platform.introConfig"
-            content="intro/ajdtNewsExtensionContent.xml"/>
+            content="intro/eclipse/ajdtNewsExtensionContent.xml"/>
+
+	  <!--
+	      Below four welcome page extensions for IBM Rational 6.x tooling.
+	  --> 
+      <configExtension
+            configId="com.ibm.rational.welcome.core.introConfig"
+            content="intro/rad/radAjdtOverviewExtensionContent.xml"/>
+
+      <configExtension
+            configId="com.ibm.rational.welcome.core.introConfig"
+            content="intro/rad/radAjdtTutorialsExtensionContent.xml"/>  
+      
+      <configExtension
+            configId="com.ibm.rational.welcome.core.introConfig"
+            content="intro/rad/radAjdtSamplesExtensionContent.xml"/>
+            
+      <configExtension
+            configId="com.ibm.rational.welcome.core.introConfig"
+            content="intro/rad/radAjdtNewsExtensionContent.xml"/>
 
    </extension>
+   
    <extension
          point="org.eclipse.jdt.launching.runtimeClasspathEntryResolvers">
       <runtimeClasspathEntryResolver

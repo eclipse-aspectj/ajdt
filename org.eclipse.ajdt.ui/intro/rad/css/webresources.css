@@ -1,0 +1,24 @@
+/*
+ * webresources.css is a template for the group specific css settings
+ */
+
+/*
+ * Import the generic page settings... All page specific formatting should live in the content.css file
+ */
+ 
+@import url("content.css");
+@import url("ad-images.css");
+
+/*
+ * background watermark - group specific
+ */
+
+body {
+	background-image : url(graphics/contentpage/webrsrc_wtr.jpg);
+}
+
+/*
+ * show the "selected" image for this page - This is group specific
+ */
+
+#navigation-links a#webresources img, #navigation-links a#webresources:hover img { background-image : url(new_graphics/icons/ctool/webrsrc48sel.gif); }

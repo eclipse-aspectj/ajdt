@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<introContent>
+	<extensionContent 
+		alt-style="intro/rad/css/content-swt.properties" 
+		style="intro/rad/css/overview.css" 
+		path="overview/page-content/overview-links/radAnchor">
+		<!-- OVERVIEW CONTENT GOES HERE -->
+		
+		<group id="t-links">
+
+			<link 
+				label="Develop AspectJ applications" 
+				url="http://org.eclipse.ui.intro/showPage?id=develop-aspectj-applications"
+				id="develop-aj-apps-main-link">
+      
+				<text>
+					Get an overview on developing AspectJ programs using Rational Application Developer
+				</text>
+    		</link>
+				
+		</group>
+	</extensionContent>
+	    
+	<page
+		style="intro/rad/css/overview.css" 
+		alt-style="intro/rad/css/content-swt.properties" 
+		id="develop-aspectj-applications" 
+		style-id="page">
+		<title style-id="intro-header">Rational Software Development Platform</title>
+		<group id="background-image" filteredFrom="swt"/>
+			<group id="navigation-links" filteredFrom="swt">
+				<include path="root/links-background/page-links"/>
+				<include path="root/action-links"/>
+			</group>
+			<!-- -->
+			<group id="page-content">
+	            <text style-id="page-title" id="page-title">DEVELOP ASPECTJ APPLICATIONS</text>
+	            <text style-id="page-description" id="page-description">AspectJ development tools allow you to:</text>
+	            <group id="t-links">
+	            
+				<link 
+					label="AspectJ Development" 
+					url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-doc.htm" 
+					id="link-to-ajdoc">
+      
+					<text>
+						Become familiar with developing AspectJ programs using Rational Application Developer
+					</text>
+    			</link>
+			
+	        </group>
+        </group>
+            
+	</page>
+	
+</introContent>
