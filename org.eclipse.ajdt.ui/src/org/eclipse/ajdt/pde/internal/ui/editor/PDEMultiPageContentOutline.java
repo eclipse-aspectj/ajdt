@@ -160,10 +160,10 @@ public class PDEMultiPageContentOutline extends Page
 		
 		public SortingAction() {
 			super();
-			WorkbenchHelp.setHelp(this, IHelpContextIds.OUTLINE_SORT_ACTION);
-			setText(PDEPlugin.getResourceString("PDEMultiPageContentOutline.SortingAction.label")); //$NON-NLS-1$
-			setImageDescriptor(PDEPluginImages.DESC_ALPHAB_SORT_CO);
-			setDisabledImageDescriptor(PDEPluginImages.DESC_ALPHAB_SORT_CO_DISABLED);
+//			WorkbenchHelp.setHelp(this, IHelpContextIds.OUTLINE_SORT_ACTION);
+//			setText(PDEPlugin.getResourceString("PDEMultiPageContentOutline.SortingAction.label")); //$NON-NLS-1$
+//			setImageDescriptor(PDEPluginImages.DESC_ALPHAB_SORT_CO);
+//			setDisabledImageDescriptor(PDEPluginImages.DESC_ALPHAB_SORT_CO_DISABLED);
 			setToolTipText(PDEPlugin.getResourceString("PDEMultiPageContentOutline.SortingAction.tooltip")); //$NON-NLS-1$
 			setDescription(PDEPlugin.getResourceString("PDEMultiPageContentOutline.SortingAction.description")); //$NON-NLS-1$
 			setChecked(sortingOn);

@@ -35,8 +35,8 @@ public class ToggleLinkWithEditorAction extends Action {
 				.getResourceString("ToggleLinkWithEditorAction.toolTip")); //$NON-NLS-1$
 		setDescription(PDEPlugin
 				.getResourceString("ToggleLinkWithEditorAction.description")); //$NON-NLS-1$
-		setImageDescriptor(PDEPluginImages.DESC_LINK_WITH_EDITOR);
-		setDisabledImageDescriptor(PDEPluginImages.DESC_LINK_WITH_EDITOR_DISABLED);
+		//setImageDescriptor(PDEPluginImages.DESC_LINK_WITH_EDITOR);
+		//setDisabledImageDescriptor(PDEPluginImages.DESC_LINK_WITH_EDITOR_DISABLED);
 	}
 
 	public void run() {

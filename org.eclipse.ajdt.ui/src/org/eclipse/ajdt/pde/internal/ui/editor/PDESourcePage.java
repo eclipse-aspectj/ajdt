@@ -69,26 +69,27 @@ public abstract class PDESourcePage extends TextEditor implements IFormPage, IGo
 		public void selectionChanged(SelectionChangedEvent event) {
 			ISelection selection = event.getSelection();
 			if (!selection.isEmpty() && selection instanceof ITextSelection) {
-				IDocumentRange rangeElement = getRangeElement((ITextSelection) selection);
-				if (rangeElement != null) {
-					setHighlightRange(rangeElement, false);
-				} else {
-					resetHighlightRange();
-				}
-				// notify outline page
-				if (PDEPlugin.getDefault().getPreferenceStore().getBoolean(
-						"ToggleLinkWithEditorAction.isChecked")) { //$NON-NLS-1$
-					outlinePage
-							.removeSelectionChangedListener(outlineSelectionChangedListener);
-					if (rangeElement != null) {
-						outlinePage.setSelection(new StructuredSelection(
-								rangeElement));
-					} else {
-						outlinePage.setSelection(StructuredSelection.EMPTY);
-					}
-					outlinePage
-							.addSelectionChangedListener(outlineSelectionChangedListener);
-				}
+				System.out.println("***");
+//				IDocumentRange rangeElement = getRangeElement((ITextSelection) selection);
+//				if (rangeElement != null) {
+//					setHighlightRange(rangeElement, false);
+//				} else {
+//					resetHighlightRange();
+//				}
+//				// notify outline page
+//				if (PDEPlugin.getDefault().getPreferenceStore().getBoolean(
+//						"ToggleLinkWithEditorAction.isChecked")) { //$NON-NLS-1$
+//					outlinePage
+//							.removeSelectionChangedListener(outlineSelectionChangedListener);
+//					if (rangeElement != null) {
+//						outlinePage.setSelection(new StructuredSelection(
+//								rangeElement));
+//					} else {
+//						outlinePage.setSelection(StructuredSelection.EMPTY);
+//					}
+//					outlinePage
+//							.addSelectionChangedListener(outlineSelectionChangedListener);
+//				}
 			}
 		}
 
@@ -288,21 +289,21 @@ public abstract class PDESourcePage extends TextEditor implements IFormPage, IGo
 		return false;
 	}
 	
-	protected IDocumentRange getRangeElement(ITextSelection selection) {
-		return null;
-	}
-
-	public void setHighlightRange(IDocumentRange node, boolean moveCursor) {
-		ISourceViewer sourceViewer = getSourceViewer();
-		if (sourceViewer == null)
-			return;
-
-		IDocument document = sourceViewer.getDocument();
-		if (document == null)
-			return;
-
-		int offset = node.getOffset();
-		int length = node.getLength();
-		setHighlightRange(offset, length == -1 ? 1 : length, moveCursor);
-	}
+//	protected IDocumentRange getRangeElement(ITextSelection selection) {
+//		return null;
+//	}
+//
+//	public void setHighlightRange(IDocumentRange node, boolean moveCursor) {
+//		ISourceViewer sourceViewer = getSourceViewer();
+//		if (sourceViewer == null)
+//			return;
+//
+//		IDocument document = sourceViewer.getDocument();
+//		if (document == null)
+//			return;
+//
+//		int offset = node.getOffset();
+//		int length = node.getLength();
+//		setHighlightRange(offset, length == -1 ? 1 : length, moveCursor);
+//	}
 }
