@@ -31,18 +31,18 @@ public class AJCTask extends JavacTask {
 			try {
 				resolved = Platform.resolve(url);
 				String AJDELocation = resolved.toExternalForm();
-				ajScript.printProperty("aspectj.plugin.home", AJDELocation);
+				ajScript.printProperty("aspectj.plugin.home", AJDELocation); //$NON-NLS-1$
 			} catch (IOException e) {
 			}
 						
 			ajScript.printTab();
-			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">");
-			ajScript.printStartTag("classpath");
-			ajScript.print("<pathelement");
-			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true);
-			ajScript.println("/>");
-			ajScript.printEndTag("classpath");
-			ajScript.printEndTag("taskdef");
+			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">"); //$NON-NLS-1$
+			ajScript.printStartTag("classpath"); //$NON-NLS-1$
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$
+			ajScript.println("/>"); //$NON-NLS-1$
+			ajScript.printEndTag("classpath"); //$NON-NLS-1$
+			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
 			
 			ajScript.printTab();
 			ajScript.print("<iajc"); //$NON-NLS-1$
@@ -73,6 +73,11 @@ public class AJCTask extends JavacTask {
 				ajScript.print("/>"); //$NON-NLS-1$
 				ajScript.println();
 			}
+			// Add ajde.jar to this classpath too because we have forked
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$
+			ajScript.println("/>"); //$NON-NLS-1$
+			
 			ajScript.indent--;
 			ajScript.printEndTag("forkclasspath"); //$NON-NLS-1$
 	
