@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
@@ -301,12 +302,15 @@ public class CompilerPropertyPage extends PropertyPage {
 						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
 		item.setControl(aspectjComposite);
 
-		aspectjComposite = createAJ5TabContent(folder);
-		item = new TabItem(folder, SWT.NONE);
-		item
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
-		item.setControl(aspectjComposite);
+		// AJ5 options do not apply to Eclipse 3.0
+		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
+			aspectjComposite = createAJ5TabContent(folder);
+			item = new TabItem(folder, SWT.NONE);
+			item
+					.setText(AspectJUIPlugin
+							.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
+			item.setControl(aspectjComposite);
+		}
 		
 		Dialog.applyDialogFont(composite);
 		if(AspectJPreferences.isUsingProjectSettings(thisProject)) {

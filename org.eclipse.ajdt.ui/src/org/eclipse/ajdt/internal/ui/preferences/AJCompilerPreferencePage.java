@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -215,12 +216,15 @@ public class AJCompilerPreferencePage extends PreferencePage
 						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
 		item.setControl(aspectjComposite);
 
-		aspectjComposite = createAJ5TabContent(folder);
-		item = new TabItem(folder, SWT.NONE);
-		item
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
-		item.setControl(aspectjComposite);
+		// AJ5 options do not apply to Eclipse 3.0
+		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
+			aspectjComposite = createAJ5TabContent(folder);
+			item = new TabItem(folder, SWT.NONE);
+			item
+					.setText(AspectJUIPlugin
+							.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
+			item.setControl(aspectjComposite);
+		}
 		
 		return folder;
 	}
