@@ -17,24 +17,24 @@
 		</p><pre class="programlisting">
 		A A.whoAreYou()
 		B B.whoAreYou()
-		</pre><p>Following the join point matching rules given in <a href="jpsigs.html">Join Point Signatures</a>,</p><div class="variablelist"><dl><dt><a name="d0e1769"></a><span class="term">call(* whoAreYou())</span></dt><dd><p><a name="d0e1772"></a>Matches both calls, (since each call join point has at least
+		</pre><p>Following the join point matching rules given in <a href="jpsigs.html">Join Point Signatures</a>,</p><div class="variablelist"><dl><dt><a name="d0e1800"></a><span class="term">call(* whoAreYou())</span></dt><dd><p><a name="d0e1803"></a>Matches both calls, (since each call join point has at least
             one matching signature).
-            </p></dd><dt><a name="d0e1775"></a><span class="term">call(* A.whoAreYou())</span></dt><dd><p><a name="d0e1778"></a>Matches both calls, (since each call join point has at least
+            </p></dd><dt><a name="d0e1806"></a><span class="term">call(* A.whoAreYou())</span></dt><dd><p><a name="d0e1809"></a>Matches both calls, (since each call join point has at least
             one matching signature).
-            </p></dd><dt><a name="d0e1781"></a><span class="term">call(A whoAreYou())</span></dt><dd><p><a name="d0e1784"></a>Matches both calls, (since each call join point has at least
+            </p></dd><dt><a name="d0e1812"></a><span class="term">call(A whoAreYou())</span></dt><dd><p><a name="d0e1815"></a>Matches both calls, (since each call join point has at least
             one matching signature).
-            </p></dd><dt><a name="d0e1787"></a><span class="term">call(A B.whoAreYou())</span></dt><dd><p><a name="d0e1790"></a>Does not match anything - neither of the call join points
+            </p></dd><dt><a name="d0e1818"></a><span class="term">call(A B.whoAreYou())</span></dt><dd><p><a name="d0e1821"></a>Does not match anything - neither of the call join points
             has a signature matched by this pattern.  A lint warning is
             given for the call <tt>a.whoAreYou()</tt> ("does not match
             because declaring type is A, if match required use target(B)").
-            </p></dd><dt><a name="d0e1796"></a><span class="term">call(A+ B.whoAreYou())</span></dt><dd><p><a name="d0e1799"></a>Matches the call to <tt>b.whoAreYou()</tt> since
+            </p></dd><dt><a name="d0e1827"></a><span class="term">call(A+ B.whoAreYou())</span></dt><dd><p><a name="d0e1830"></a>Matches the call to <tt>b.whoAreYou()</tt> since
             the signature pattern matches the signature <tt>B B.whoAreYou()</tt>. 
             A lint warning is given for the call <tt>a.whoAreYou()</tt> ("does not match
             because declaring type is A, if match required use target(B)").
-            </p></dd><dt><a name="d0e1811"></a><span class="term">call(B A.whoAreYou())</span></dt><dd><p><a name="d0e1814"></a>Does not match anything since neither join point has a 
+            </p></dd><dt><a name="d0e1842"></a><span class="term">call(B A.whoAreYou())</span></dt><dd><p><a name="d0e1845"></a>Does not match anything since neither join point has a 
             signature matched by this pattern.
-            </p></dd><dt><a name="d0e1817"></a><span class="term">call(B whoAreYou())</span></dt><dd><p><a name="d0e1820"></a>Matches the call to <tt>b.whoAreYou()</tt> only.
-            </p></dd><dt><a name="d0e1826"></a><span class="term">call(B B.whoAreYou())</span></dt><dd><p><a name="d0e1829"></a>Matches the call to <tt>b.whoAreYou()</tt> only.
+            </p></dd><dt><a name="d0e1848"></a><span class="term">call(B whoAreYou())</span></dt><dd><p><a name="d0e1851"></a>Matches the call to <tt>b.whoAreYou()</tt> only.
+            </p></dd><dt><a name="d0e1857"></a><span class="term">call(B B.whoAreYou())</span></dt><dd><p><a name="d0e1860"></a>Matches the call to <tt>b.whoAreYou()</tt> only.
             </p></dd></dl></div><p>The rule for signature matching at call and execution join points
 		is unchanged from AspectJ 1.2: a call or execution pointcut matches if
 		the signature pattern matches at least one of the signatures of the

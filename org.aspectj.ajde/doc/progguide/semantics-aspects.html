@@ -76,7 +76,7 @@
           one object of type A is created for every object that is the
           executing object (i.e., "this") at any of the join points picked out
           by <i><tt>Pointcut</tt></i>.
-          The advice defined in A may then run at any join point where the
+          The advice defined in A will run only at a join point where the
           currently executing object has been associated with an instance of
           A.
         </p><p> Similarly, if an aspect A is defined
@@ -84,9 +84,9 @@
           then one object of type A is created for every object that is the
           target object of the join points picked out by
           <i><tt>Pointcut</tt></i>.
-          The advice defined in A may then run at any join point where the
-          target object has been associated with an instance of
-          A.
+          The advice defined in A will run only at a join point where the
+          target object has been associated with an instance of 
+		  A.
         </p><p>
           In either case, the static method call
           <tt>A.aspectOf(Object)</tt> can be used to get the aspect
