@@ -31,6 +31,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
@@ -42,6 +43,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
@@ -57,6 +59,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+
 
 /**
  * AspectJ Editor extends internal JDT editor in order to use our TextTools.
@@ -125,6 +128,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 		private JavaCorrectionAssistant fCorrectionAssistant;
 
+		private IInformationPresenter fOutlinePresenter;
+		
 		public AJTextOperationTarget(ITextOperationTarget parent) {
 			this.parent = parent;
 		}
@@ -153,6 +158,14 @@ public class AspectJEditor extends CompilationUnitEditor {
 				}
 				String msg = fCorrectionAssistant.showPossibleCompletions();
 				setStatusLineErrorMessage(msg);
+			} else if (operation == JavaSourceViewer.SHOW_OUTLINE) {
+				// use our own outline presenter
+				// not needed if/when eclipse bug 79489 is fixed
+				if (fOutlinePresenter == null) {
+					fOutlinePresenter = fAJSourceViewerConfiguration.getOutlinePresenter(getSourceViewer(),false);
+					fOutlinePresenter.install(getSourceViewer());
+				}
+				fOutlinePresenter.showInformation();
 			} else {
 				parent.doOperation(operation);
 			}
