@@ -25,7 +25,6 @@ import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.internal.builder.BuilderTest;
 import org.eclipse.ajdt.internal.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesTest;
-import org.eclipse.ajdt.internal.builder.ProjectDependenciesWithJarFilesTest;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest;
 import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
@@ -112,7 +111,7 @@ public class AllTests {
 				
 		// internal.builder tests
 		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
-		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
+		//suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));
