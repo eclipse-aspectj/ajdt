@@ -93,6 +93,20 @@
      <property name="plugin-name" value="${plugin-name}"/>
      <property name="classname" value="org.eclipse.ajdt.tests.performance.PerformanceTestSuite"/>
   </ant>
+  
+  <ant target="ui-test" antfile="${library-file}" dir="${eclipse-home}">
+     <property name="data-dir" value="${your-performance-folder}"/>
+     <property name="extraVMargs" value="-Declipse.perf.dbloc=${derby.home} -Declipse.perf.config=${derby.config}"/>
+     <property name="plugin-name" value="${plugin-name}"/>
+     <property name="classname" value="org.eclipse.ajdt.tests.performance.PerformanceTestSuite2"/>
+  </ant>
+  
+  <ant target="ui-test" antfile="${library-file}" dir="${eclipse-home}">
+     <property name="data-dir" value="${your-performance-folder}"/>
+     <property name="extraVMargs" value="-Declipse.perf.dbloc=${derby.home} -Declipse.perf.config=${derby.config}"/>
+     <property name="plugin-name" value="${plugin-name}"/>
+     <property name="classname" value="org.eclipse.ajdt.tests.performance.PerformanceTestSuite3"/>
+  </ant>
 </target>
                     
 <!-- This target runs the performance test suite. Any actions that need to happen -->
