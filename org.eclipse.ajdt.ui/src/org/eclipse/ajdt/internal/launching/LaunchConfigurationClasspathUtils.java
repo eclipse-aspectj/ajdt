@@ -113,7 +113,7 @@ public class LaunchConfigurationClasspathUtils {
 				IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
 				(String) null);
 		IRuntimeClasspathEntry[] aspectEntries = null;
-		if (projectName != null) {
+		if (projectName != null && !projectName.trim().equals("")) {
 			IProject project = AspectJUIPlugin.getWorkspace().getRoot()
 					.getProject(projectName);
 			aspectEntries = LaunchConfigurationClasspathUtils
