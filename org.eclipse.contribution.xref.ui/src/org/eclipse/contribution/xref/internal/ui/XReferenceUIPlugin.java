@@ -35,7 +35,7 @@ import org.osgi.framework.BundleContext;
 public class XReferenceUIPlugin extends AbstractUIPlugin {
 
     //  the plugin id
-	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.ui";
+	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.ui"; //$NON-NLS-1$
 	//The shared instance.
 	private static XReferenceUIPlugin plugin;
 	//Resource bundle.
@@ -53,7 +53,7 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 		try {
 			resourceBundle =
 				ResourceBundle.getBundle(
-					"org.eclipse.contribution.xref.internal.ui.XReferenceUIPluginResources");
+					"org.eclipse.contribution.xref.internal.ui.XReferenceUIPluginResources"); //$NON-NLS-1$
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}
@@ -132,13 +132,13 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	public Image getEvaluateImage() {
 		if (evaluateImage == null) {
 			try {
-				URL pluginInstallURL = Platform.getBundle(PLUGIN_ID).getEntry("/");
+				URL pluginInstallURL = Platform.getBundle(PLUGIN_ID).getEntry("/"); //$NON-NLS-1$
 				ImageDescriptor d =
 					ImageDescriptor.createFromURL(
-						new URL(pluginInstallURL, "icons/update.gif"));
+						new URL(pluginInstallURL, "icons/update.gif")); //$NON-NLS-1$
 				evaluateImage = d.createImage();
 			} catch (MalformedURLException mex) {
-				System.err.println("Couldn't create evaluateImage");
+				System.err.println("Couldn't create evaluateImage"); //$NON-NLS-1$
 			}
 		}
 		return evaluateImage;
@@ -147,13 +147,13 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	public Image getXReferenceImage() {
 		if (relImage == null) {
 			try {
-				URL pluginInstallURL = Platform.getBundle(PLUGIN_ID).getEntry("/");
+				URL pluginInstallURL = Platform.getBundle(PLUGIN_ID).getEntry("/"); //$NON-NLS-1$
 				ImageDescriptor d =
 					ImageDescriptor.createFromURL(
-						new URL(pluginInstallURL, "icons/arrow.gif"));
+						new URL(pluginInstallURL, "icons/arrow.gif")); //$NON-NLS-1$
 				relImage = d.createImage();
 			} catch (MalformedURLException mex) {
-				System.err.println("Couldn't create relImage");
+				System.err.println("Couldn't create relImage"); //$NON-NLS-1$
 			}
 		}
 		return relImage;

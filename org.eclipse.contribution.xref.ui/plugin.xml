@@ -49,59 +49,30 @@
    </extension> 
    -->
    
-<!--   <extension point = "org.eclipse.ui.actionSets">
-	   <actionSet 
-	       id="org.eclipse.contribution.xref.ActionSet"
-		   label="XReference Actions"
-		   visible="false">
-		   <action 
-		       id="openXRefDialog"
-			   menubarPath="navigate/open.ext2"
-			   label="Open XReference View"
-			   class="org.eclipse.contribution.xref.internal.ui.actions.OpenXReferenceDialogAction"
-			   definitionId="org.eclipse.contribution.ui.show.xrefdialog">
-		   </action>
-	   </actionSet>
-   </extension>
--->
-<!-- =========================================================================== -->
-<!-- command definitions                                                         -->
-<!-- =========================================================================== -->
-<!--   <extension
-         point="org.eclipse.ui.commands">
-      <category
-            name="Category Name"
-            description="Category Description"
-            id="org.eclipse.contribution.xref.ui.category">
-      </category>
-      <command
-            name="Name of command"
-            description="Description of command"
-            category="org.eclipse.contribution.xref.ui.category"
-            id="org.eclipse.contribution.ui.show.xrefdialog">
-      </command>
-      <keyBinding
-            string="Ctrl+Alt+X"
-            scope="org.eclipse.ui.globalScope"
-            command="org.eclipse.contribution.ui.show.xrefdialog"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-   </extension>-->
-
-<!--   <extension
-         point="org.eclipse.jdt.ui.javaEditorInplaceContribution">
-      <inplaceContribution
-            name="SHOW_XREF"
-            class="org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInformationControl"
-            prefix="ShowXRef."
-            commandID="org.eclipse.contribution.xref.show.xref">
-      </inplaceContribution>
-   </extension>-->
+   <!-- Adding action set for inplace XReferenceView -->   
+   <extension
+       	 point="org.eclipse.ui.actionSets">
+   	  <actionSet
+            label="%XRefActionSet.label"
+            description="%XRefActionSet.description"
+            visible="true"
+            id="org.eclipse.contribution.xref.ui.XRefActionSet">
+         <action
+               definitionId="org.eclipse.contribution.xref.show.xref"
+               label="Open Cross References"
+               class="org.eclipse.contribution.xref.internal.ui.inplace.OpenInplaceXReferenceAction"
+               menubarPath="navigate/open.ext2"
+               id="openXRef">
+         </action>
+      </actionSet>
+   </extension> 
+        
+   <!-- Adding key binding for inplace XReferenceView -->             
    <extension
          point="org.eclipse.ui.commands">
       <command
-            name="%ActionDefinition.show.xrefView"
-            description="%ActionDefinition.show.xrefView.description"
+            name="%ShowXRef.label"
+            description="%ShowXRef.description"
             category="org.eclipse.ui.category.navigate"
             id="org.eclipse.contribution.xref.show.xref">
       </command>
