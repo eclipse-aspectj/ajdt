@@ -599,6 +599,63 @@ public class Visualiser extends ViewPart {
 	}
 
 	/**
+	 * Only show kinds affecting the member or group with the given name
+	 * @param name
+	 */
+	protected void onlyShowColorsAffecting(String name) {
+		List names = new ArrayList();
+		List members = contentP.getAllMembers();
+		boolean found = false;
+		for (Iterator it = members.iterator(); it.hasNext();) {
+			IMember member = (IMember) it.next();
+			if(member.getToolTip().equals(name)){
+				found = true;
+				List markups = markupP.getMemberMarkups(member);
+				if(markups == null){
+					VisualiserPlugin.menu.onlyShow(null);
+					return;
+				}
+				for (Iterator it2 = markups.iterator(); it2.hasNext();) {
+					Stripe stripe = (Stripe) it2.next();
+					List kinds = stripe.getKinds();
+					for (Iterator it3 = kinds.iterator(); it3.hasNext();) {
+						IMarkupKind kind = (IMarkupKind) it3.next();
+						if(!names.contains(kind.getName())){
+							names.add(kind.getName());
+						}
+					}
+				}
+			}
+		
+		}
+		if(!found){   // name is name of a group, not a member.
+			List groups = contentP.getAllGroups();
+			for (Iterator it = groups.iterator(); it.hasNext();) {
+				IGroup group = (IGroup) it.next();
+				if(group.getToolTip().equals(name)){
+					List markups = markupP.getGroupMarkups(group);
+					if(markups == null){
+						VisualiserPlugin.menu.onlyShow(null);
+						return;
+					}
+					for (Iterator it2 = markups.iterator(); it2.hasNext();) {
+						Stripe stripe = (Stripe) it2.next();
+						List kinds = stripe.getKinds();
+						for (Iterator it3 = kinds.iterator(); it3.hasNext();) {
+							IMarkupKind kind = (IMarkupKind) it3.next();
+							if(!names.contains(kind.getName())){
+								names.add(kind.getName());
+							}
+						}
+					}
+				}
+			}
+		}
+		VisualiserPlugin.menu.onlyShow(names);
+	}
+
+	
+	/**
 	 * Handle a click that has occurred on the bar chart.
 	 * 
 	 * @param member

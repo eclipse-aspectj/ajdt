@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Matt Chapman - initial version
+ *     Sian January - added context menu
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.views;
 
@@ -33,6 +34,8 @@ import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.ToolTipHelper;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -56,6 +59,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
 
 /**
@@ -106,6 +110,7 @@ public class VisualiserCanvas extends Canvas {
 
 	private Visualiser visualiser;
 
+	// Currently selected item. MUST be set through setSelectedItem method.
 	private ISelectable selectedItem;
 
 	private ISelectable lastSelected;
@@ -117,6 +122,8 @@ public class VisualiserCanvas extends Canvas {
 	private ToolTipHelper toolTipHelper;
 
 	private IVisualiserRenderer renderer;
+
+	private Menu contextMenu;
 
 	/**
 	 * @param parent
@@ -158,13 +165,13 @@ public class VisualiserCanvas extends Canvas {
 				cancelToolTip();
 				Object o = locationToObject(e.x, e.y);
 				if ((o != null) && (o instanceof ISelectable)) {
-					selectedItem = (ISelectable) o;
+					setSelectedItem((ISelectable) o);
 					scrollToSelection = true;
 					redraw();
 				} else if (selectedItem != null) {
 					// only need to clear selection if something was
 					// previously selected
-					selectedItem = null;
+					setSelectedItem(null);
 					redraw();
 				}
 			}
@@ -187,7 +194,7 @@ public class VisualiserCanvas extends Canvas {
 			public void focusGained(FocusEvent e) {
 				// restore previous selection
 				if (lastSelected != null) {
-					selectedItem = lastSelected;
+					setSelectedItem(lastSelected);
 					redraw();
 				}
 			}
@@ -198,7 +205,7 @@ public class VisualiserCanvas extends Canvas {
 
 				// cancel any selection
 				if (selectedItem != null) {
-					selectedItem = null;
+					setSelectedItem(null);
 					redraw();
 				}
 			}
@@ -209,6 +216,35 @@ public class VisualiserCanvas extends Canvas {
 			}
 		});
 		setupScrollbarListeners();
+		setupContextMenu();
+	}
+
+	private void setSelectedItem(ISelectable newItem) {
+		// Update the context menu
+		if (selectedItem == null && newItem != null) {
+			setMenu(contextMenu);
+		} else if (selectedItem != null && newItem == null) {
+			setMenu(null);
+		}
+		selectedItem = newItem;
+	}
+
+	private void setupContextMenu() {
+		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
+
+		final Action onlyShowAction = new Action() {
+			public void run() {
+				if (selectedItem != null) {
+					VisualiserPlugin.visualiser
+							.onlyShowColorsAffecting(selectedItem.getMember()
+									.getFullname());
+				}
+			}
+		};
+		onlyShowAction.setText(VisualiserPlugin.getResourceString("OnlyShow"));
+		// add the actions to the menu
+		menuMgr.add(onlyShowAction);
+		contextMenu = menuMgr.createContextMenu(this);
 	}
 
 	class ToolTipTimerTask extends TimerTask {
@@ -290,7 +326,7 @@ public class VisualiserCanvas extends Canvas {
 			scrollToSelection = true;
 			cancelToolTip();
 			if (selectedItem == null) {
-				selectedItem = columns[0];
+				setSelectedItem(columns[0]);
 			} else {
 				if ((ke.stateMask & SWT.SHIFT) == 0) {
 					moveSelectionForward();
@@ -354,7 +390,7 @@ public class VisualiserCanvas extends Canvas {
 			// couldn't move down, so move to next column
 			int ni = selectedItem.getIndex() + 1;
 			if (ni < columns.length) {
-				selectedItem = columns[ni];
+				setSelectedItem(columns[ni]);
 			}
 		}
 	}
@@ -367,10 +403,10 @@ public class VisualiserCanvas extends Canvas {
 				BarGeom bg = (BarGeom) columns[ni].barList
 						.get(columns[ni].barList.size() - 1);
 				if (bg.stripeList.size() > 0) {
-					selectedItem = (StripeGeom) bg.stripeList.get(bg.stripeList
-							.size() - 1);
+					setSelectedItem((StripeGeom) bg.stripeList
+							.get(bg.stripeList.size() - 1));
 				} else {
-					selectedItem = bg;
+					setSelectedItem(bg);
 				}
 			}
 		} else if (selectedItem instanceof BarGeom) {
@@ -379,13 +415,13 @@ public class VisualiserCanvas extends Canvas {
 			if (ni >= 0) {
 				BarGeom bg = (BarGeom) columns[ind].barList.get(ni);
 				if (bg.stripeList.size() > 0) {
-					selectedItem = (StripeGeom) bg.stripeList.get(bg.stripeList
-							.size() - 1);
+					setSelectedItem((StripeGeom) bg.stripeList
+							.get(bg.stripeList.size() - 1));
 				} else {
-					selectedItem = bg;
+					setSelectedItem(bg);
 				}
 			} else {
-				selectedItem = columns[ind];
+				setSelectedItem(columns[ind]);
 			}
 		} else {
 			moveSelectionUp();
@@ -394,55 +430,56 @@ public class VisualiserCanvas extends Canvas {
 
 	private void moveSelectionUp() {
 		if (selectedItem == null) {
-			selectedItem = columns[0];
+			setSelectedItem(columns[0]);
 		} else if (selectedItem instanceof BarGeom) {
 			int ind = ((BarGeom) selectedItem).index;
 			int ni = columns[ind].barList.indexOf(selectedItem) - 1;
 			if (ni >= 0) {
-				selectedItem = (BarGeom) columns[ind].barList.get(ni);
+				setSelectedItem((BarGeom) columns[ind].barList.get(ni));
 			} else {
-				selectedItem = columns[ind];
+				setSelectedItem(columns[ind]);
 			}
 		} else if (selectedItem instanceof StripeGeom) {
 			StripeGeom sg = (StripeGeom) selectedItem;
 			int ni = sg.parent.stripeList.indexOf(sg) - 1;
 			if (ni >= 0) {
-				selectedItem = (StripeGeom) sg.parent.stripeList.get(ni);
+				setSelectedItem((StripeGeom) sg.parent.stripeList.get(ni));
 			} else {
 				// select parent bar
-				selectedItem = sg.parent;
+				setSelectedItem(sg.parent);
 			}
 		}
 	}
 
 	private void moveSelectionDown() {
 		if (selectedItem == null) {
-			selectedItem = columns[0];
+			setSelectedItem(columns[0]);
 		} else if (selectedItem instanceof ColumnGeom) {
-			selectedItem = (BarGeom) ((ColumnGeom) selectedItem).barList.get(0);
+			setSelectedItem((BarGeom) ((ColumnGeom) selectedItem).barList
+					.get(0));
 		} else if (selectedItem instanceof BarGeom) {
 			BarGeom bg = (BarGeom) selectedItem;
 			if (bg.stripeList.size() > 0) {
 				// select first stripe
-				selectedItem = (StripeGeom) bg.stripeList.get(0);
+				setSelectedItem((StripeGeom) bg.stripeList.get(0));
 			} else {
 				// select next bar if there is one
 				int ind = ((BarGeom) selectedItem).index;
 				int ni = columns[ind].barList.indexOf(selectedItem) + 1;
 				if (ni < columns[ind].barList.size()) {
-					selectedItem = (BarGeom) columns[ind].barList.get(ni);
+					setSelectedItem((BarGeom) columns[ind].barList.get(ni));
 				}
 			}
 		} else if (selectedItem instanceof StripeGeom) {
 			StripeGeom sg = (StripeGeom) selectedItem;
 			int ni = sg.parent.stripeList.indexOf(sg) + 1;
 			if (ni < sg.parent.stripeList.size()) {
-				selectedItem = (StripeGeom) sg.parent.stripeList.get(ni);
+				setSelectedItem((StripeGeom) sg.parent.stripeList.get(ni));
 			} else {
 				// select next bar if there is one
 				ni = columns[sg.index].barList.indexOf(sg.parent) + 1;
 				if (ni < columns[sg.index].barList.size()) {
-					selectedItem = (BarGeom) columns[sg.index].barList.get(ni);
+					setSelectedItem((BarGeom) columns[sg.index].barList.get(ni));
 				}
 			}
 		}
@@ -450,22 +487,22 @@ public class VisualiserCanvas extends Canvas {
 
 	private void moveSelectionLeft() {
 		if (selectedItem == null) {
-			selectedItem = columns[0];
+			setSelectedItem(columns[0]);
 		}
 		if (selectedItem instanceof ColumnGeom) {
 			int ni = ((ColumnGeom) selectedItem).index - 1;
 			if (ni >= 0) {
-				selectedItem = columns[ni];
+				setSelectedItem(columns[ni]);
 			}
 		} else if (selectedItem instanceof BarGeom) {
 			int ni = ((BarGeom) selectedItem).index - 1;
 			if (ni >= 0) {
 				if (columns[ni].barList.size() > 1) {
 					// choose closest bar vertically
-					selectedItem = closestVertically(selectedItem,
-							columns[ni].barList);
+					setSelectedItem(closestVertically(selectedItem,
+							columns[ni].barList));
 				} else {
-					selectedItem = (BarGeom) columns[ni].barList.get(0);
+					setSelectedItem((BarGeom) columns[ni].barList.get(0));
 				}
 			}
 		} else if (selectedItem instanceof StripeGeom) {
@@ -479,15 +516,15 @@ public class VisualiserCanvas extends Canvas {
 					allStripes.addAll(bg.stripeList);
 				}
 				if (allStripes.size() > 0) {
-					selectedItem = closestVertically(selectedItem, allStripes);
+					setSelectedItem(closestVertically(selectedItem, allStripes));
 				} else {
 					// no stripes, select nearest (or only) bar
 					if (columns[ni].barList.size() > 1) {
 						// choose closest bar vertically
-						selectedItem = closestVertically(selectedItem,
-								columns[ni].barList);
+						setSelectedItem(closestVertically(selectedItem,
+								columns[ni].barList));
 					} else {
-						selectedItem = (BarGeom) columns[ni].barList.get(0);
+						setSelectedItem((BarGeom) columns[ni].barList.get(0));
 					}
 				}
 			}
@@ -496,22 +533,22 @@ public class VisualiserCanvas extends Canvas {
 
 	private void moveSelectionRight() {
 		if (selectedItem == null) {
-			selectedItem = columns[0];
+			setSelectedItem(columns[0]);
 		}
 		if (selectedItem instanceof ColumnGeom) {
 			int ni = ((ColumnGeom) selectedItem).index + 1;
 			if (ni < columns.length) {
-				selectedItem = columns[ni];
+				setSelectedItem(columns[ni]);
 			}
 		} else if (selectedItem instanceof BarGeom) {
 			int ni = ((BarGeom) selectedItem).index + 1;
 			if (ni < columns.length) {
 				if (columns[ni].barList.size() > 1) {
 					// choose closest bar vertically
-					selectedItem = closestVertically(selectedItem,
-							columns[ni].barList);
+					setSelectedItem(closestVertically(selectedItem,
+							columns[ni].barList));
 				} else {
-					selectedItem = (BarGeom) columns[ni].barList.get(0);
+					setSelectedItem((BarGeom) columns[ni].barList.get(0));
 				}
 			}
 		} else if (selectedItem instanceof StripeGeom) {
@@ -525,15 +562,15 @@ public class VisualiserCanvas extends Canvas {
 					allStripes.addAll(bg.stripeList);
 				}
 				if (allStripes.size() > 0) {
-					selectedItem = closestVertically(selectedItem, allStripes);
+					setSelectedItem(closestVertically(selectedItem, allStripes));
 				} else {
 					// no stripes, select nearest (or only) bar
 					if (columns[ni].barList.size() > 1) {
 						// choose closest bar vertically
-						selectedItem = closestVertically(selectedItem,
-								columns[ni].barList);
+						setSelectedItem(closestVertically(selectedItem,
+								columns[ni].barList));
 					} else {
-						selectedItem = (BarGeom) columns[ni].barList.get(0);
+						setSelectedItem((BarGeom) columns[ni].barList.get(0));
 					}
 				}
 			}
@@ -682,10 +719,10 @@ public class VisualiserCanvas extends Canvas {
 		}
 		return f;
 	}
-	
+
 	/**
 	 * Zoom in and repaint, if not at maximum zoom already
-	 *
+	 *  
 	 */
 	public void zoomIn() {
 		int newZoom = zoomValidRange(zoomFactor + 1);
@@ -705,7 +742,7 @@ public class VisualiserCanvas extends Canvas {
 
 	/**
 	 * Zoom out and repaint, if not at minumum zoom already
-	 *
+	 *  
 	 */
 	public void zoomOut() {
 		int newZoom = zoomValidRange(zoomFactor - 1);
@@ -804,8 +841,10 @@ public class VisualiserCanvas extends Canvas {
 						sg.bounds.y = (int) ((sg.bounds.y - oldy) / vScale)
 								+ bg.bounds.y;
 						// make sure stripe is contained within bar
-						if (sg.bounds.y + sg.bounds.height > bg.bounds.y + bg.bounds.height) {
-							sg.bounds.height = bg.bounds.y + bg.bounds.height - sg.bounds.y;
+						if (sg.bounds.y + sg.bounds.height > bg.bounds.y
+								+ bg.bounds.height) {
+							sg.bounds.height = bg.bounds.y + bg.bounds.height
+									- sg.bounds.y;
 						}
 						List kinds = sg.kindList;
 						for (int l = 0; l < kinds.size(); l++) {
@@ -871,8 +910,10 @@ public class VisualiserCanvas extends Canvas {
 					sg.bounds = new Rectangle(b.bounds.x + 1,
 							b.bounds.y + ypos, colWidth - 2, stripeH);
 					// make sure stripe is contained within bar
-					if (sg.bounds.y + sg.bounds.height > b.bounds.y + b.bounds.height) {
-						sg.bounds.height = b.bounds.y + b.bounds.height - sg.bounds.y;
+					if (sg.bounds.y + sg.bounds.height > b.bounds.y
+							+ b.bounds.height) {
+						sg.bounds.height = b.bounds.y + b.bounds.height
+								- sg.bounds.y;
 					}
 					//					if (visualiser.isFitToView()) {
 					//						ypos = (int) (ypos / vScale);
@@ -896,48 +937,50 @@ public class VisualiserCanvas extends Canvas {
 					}
 				}
 			}
-			spaceOutStripes(b.stripeList); spaceOutStripes(b.stripeList);
+			spaceOutStripes(b.stripeList);
+			spaceOutStripes(b.stripeList);
 		}
 	}
 
 	/**
 	 * Performs a single pass through the list of stripes, attempting to space
 	 * out overlapping stripes.
+	 * 
 	 * @param stripeList
 	 */
 	private void spaceOutStripes(List /* StripeGeom */stripeList) {
 		StripeGeom sg2;
 		for (int i = 0; i < stripeList.size(); i++) {
-			StripeGeom sg1 = (StripeGeom)stripeList.get(i);
-			if (i>0) {
-				sg2 = (StripeGeom)stripeList.get(i-1);
+			StripeGeom sg1 = (StripeGeom) stripeList.get(i);
+			if (i > 0) {
+				sg2 = (StripeGeom) stripeList.get(i - 1);
 				if (sg1.overlaps(sg2)) {
 					sg1.moveVertically(1);
 				}
 			}
-			if (i+1 < stripeList.size()) {
-				sg2 = (StripeGeom)stripeList.get(i+1);
+			if (i + 1 < stripeList.size()) {
+				sg2 = (StripeGeom) stripeList.get(i + 1);
 				if (sg1.overlaps(sg2)) {
 					sg1.moveVertically(-1);
 				}
 			}
 		}
 	}
-	
+
 	private int heightOfMember(IMember m) {
 		IMarkupProvider vmp = visualiser.getVisMarkupProvider();
 		int size = m.getSize().intValue();
-//		List markups = vmp.getMemberMarkups(m);
-//		if ((markups != null) && (markups.size() > 0)) {
-//			for (Iterator iter = markups.iterator(); iter.hasNext();) {
-//				Stripe s = (Stripe) iter.next();
-//				int dp = s.getDepth();
-//				if (dp < VisualiserPreferences.getStripeHeight()) {
-//					dp = VisualiserPreferences.getStripeHeight();
-//				}
-//				size += dp - 1;
-//			}
-//		}
+		//		List markups = vmp.getMemberMarkups(m);
+		//		if ((markups != null) && (markups.size() > 0)) {
+		//			for (Iterator iter = markups.iterator(); iter.hasNext();) {
+		//				Stripe s = (Stripe) iter.next();
+		//				int dp = s.getDepth();
+		//				if (dp < VisualiserPreferences.getStripeHeight()) {
+		//					dp = VisualiserPreferences.getStripeHeight();
+		//				}
+		//				size += dp - 1;
+		//			}
+		//		}
 		return size;
 	}
 
@@ -951,7 +994,7 @@ public class VisualiserCanvas extends Canvas {
 		if ((data == null) || (data.size() <= 0)) {
 			return;
 		}
-	
+
 		if (visualiser.isFitToView()) {
 			Rectangle clientRect = getClientArea();
 			int space = clientRect.width - 2 * renderer.getMarginSize();
@@ -995,6 +1038,7 @@ public class VisualiserCanvas extends Canvas {
 		Rectangle clientRect = getClientArea();
 		ScrollBar horiz = getHorizontalBar();
 		if (reqWidth > clientRect.width) {
+//			horiz.setVisible(true);
 			horiz.setEnabled(true);
 			horiz.setMaximum(reqWidth);
 			horiz.setThumb(clientRect.width);
@@ -1003,9 +1047,11 @@ public class VisualiserCanvas extends Canvas {
 			horiz.setMaximum(clientRect.width);
 			horiz.setThumb(clientRect.width);
 			horiz.setEnabled(false);
+//			horiz.setVisible(false);
 		}
 		ScrollBar vert = getVerticalBar();
 		if (reqHeight > clientRect.height) {
+//			vert.setVisible(true);
 			vert.setEnabled(true);
 			vert.setMaximum(reqHeight);
 			vert.setThumb(clientRect.height);
@@ -1014,6 +1060,7 @@ public class VisualiserCanvas extends Canvas {
 			vert.setMaximum(clientRect.width);
 			vert.setThumb(clientRect.width);
 			vert.setEnabled(false);
+//			vert.setVisible(false);
 		}
 	}
 
@@ -1081,11 +1128,10 @@ public class VisualiserCanvas extends Canvas {
 			if (dataChanged || zoomChanged) {
 				dataChanged = false;
 				zoomChanged = false;
-				selectedItem = null;
+				setSelectedItem(null);
 				reqWidth = data.size() * eachWidth + 2
 						* renderer.getMarginSize();
-				reqHeight = scale(maxSize) + 2
-						* renderer.getMarginSize()
+				reqHeight = scale(maxSize) + 2 * renderer.getMarginSize()
 						+ renderer.getColumnHeaderHeight();
 
 				// we MUST dispose any previous Image
@@ -1209,7 +1255,7 @@ public class VisualiserCanvas extends Canvas {
 				* (scale(colWidth) + getScaledSpacing()) + r.x
 				- getHorizontalBar().getSelection();
 		int y = scaleExH(r.y) - getVerticalBar().getSelection();
-	
+
 		Rectangle clip = gc.getClipping();
 		int height = scale(r.height) + 1;
 		int width = scale(r.width);
@@ -1225,7 +1271,7 @@ public class VisualiserCanvas extends Canvas {
 		} else if (selectedItem instanceof StripeGeom) {
 			height = scaleStripeHeight(r.height) + 1;
 		}
-	
+
 		Rectangle outer = new Rectangle(x - 3 - n, y - 3, width + 6 + n,
 				height + 4);
 		if (scrollToSelection) {
@@ -1267,7 +1313,7 @@ public class VisualiserCanvas extends Canvas {
 				return;
 			}
 		}
-	
+
 		if ((selectedItem != null) && (selectedItem instanceof StripeGeom)) {
 			// paint stripe to make sure it is visible, not overlapped by
 			// another stripe
@@ -1277,12 +1323,12 @@ public class VisualiserCanvas extends Canvas {
 				gc.setBackground(kg.color);
 				//				gc.fillRectangle(kg.bounds.x + x - 1, kg.bounds.y,
 				//						kg.bounds.width, kg.bounds.height);
-				gc.fillRectangle(scale(kg.bounds.x) + x - 1,
-						y, scale(kg.bounds.width),
+				gc.fillRectangle(scale(kg.bounds.x) + x - 1, y,
+						scale(kg.bounds.width),
 						scaleStripeHeight(kg.bounds.height));
 			}
 		}
-	
+
 		gc.setForeground(VIS_BG_COLOUR);
 		gc.drawRectangle(x - 1 - n, y - 1, width + 2 + 2 * n, height);
 		gc.drawRectangle(outer);
@@ -1424,9 +1470,10 @@ public class VisualiserCanvas extends Canvas {
 		public IMember getMember() {
 			return member;
 		}
-		
+
 		/**
 		 * Returns true if this stripe overlaps the given stripe
+		 * 
 		 * @param sg
 		 * @return
 		 */
@@ -1435,7 +1482,9 @@ public class VisualiserCanvas extends Canvas {
 		}
 
 		/**
-		 * Moves this stripe, and all of its kinds, vertically by the given amount
+		 * Moves this stripe, and all of its kinds, vertically by the given
+		 * amount
+		 * 
 		 * @param ypos
 		 */
 		public void moveVertically(int ypos) {

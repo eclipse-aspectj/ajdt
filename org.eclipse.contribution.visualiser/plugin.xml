@@ -30,7 +30,7 @@
       <import plugin="org.aspectj.ajde"/>
    </requires>
 
-   <extension-point id="providers" name="Visualiser Providers" schema="schema/org.eclipse.aosd.visualiser.providers.exsd"/>
+   <extension-point id="providers" name="Visualiser Providers" schema="schema/providers.exsd"/>
    <extension-point id="renderers" name="Visualiser Renderers" schema="schema/renderers.exsd"/>
    <extension-point id="palettes" name="Visualiser Palettes" schema="schema/palettes.exsd"/>
 
