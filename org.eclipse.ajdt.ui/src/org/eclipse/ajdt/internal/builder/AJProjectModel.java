@@ -79,6 +79,35 @@ public class AJProjectModel {
 		return (List)relMap.get(je);
 	}
 
+	/**
+	 * Returns true if this element is advised, or if this element contains a sub-method
+	 * element that is advised.
+	 * @param je
+	 * @return
+	 */
+	public boolean isAdvised(IJavaElement je) {
+		if (je.getElementType() == IJavaElement.METHOD) {
+			List advisedBy = getRelatedElements(
+					AJRelationshipManager.ADVISED_BY, je);
+			if ((advisedBy != null) && (advisedBy.size() > 0)) {
+				return true;
+			} else {
+				// check for advised code elements
+				IJavaElement[] extras = getExtraChildren(je);
+				if (extras != null) {
+					for (int i = 0; i < extras.length; i++) {
+						advisedBy = getRelatedElements(
+								AJRelationshipManager.ADVISED_BY, extras[i]);
+						if ((advisedBy != null) && (advisedBy.size() > 0)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	public String getJavaElementLinkName(IJavaElement je) {
 		return (String)jeLinkNames.get(je);
 	}

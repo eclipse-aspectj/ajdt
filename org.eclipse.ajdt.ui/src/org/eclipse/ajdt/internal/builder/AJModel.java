@@ -119,7 +119,16 @@ public class AJModel {
 		return pm;
 	}
 	
+	/**
+	 * Query the AJ model for elements that have a certain relationship to the given element
+	 * @param rel the relationship of interest
+	 * @param je the IJavaElement to query as the source of the relationship
+	 * @return a possibly null list of related elements
+	 */
 	public List getRelatedElements(AJRelationship rel, IJavaElement je) {
+		if (je==null) {
+			return null;
+		}
 		IJavaProject jp= je.getJavaProject();
 		if (jp==null) {
 			return null;
@@ -129,6 +138,27 @@ public class AJModel {
 			return null;
 		}
 		return pm.getRelatedElements(rel, je);
+	}
+	
+	/**
+	 * Returns true if this element is advised, or if this element contains a sub-method
+	 * element that is advised.
+	 * @param je
+	 * @return
+	 */
+	public boolean isAdvised(IJavaElement je) {
+		if (je==null) {
+			return false;
+		}
+		IJavaProject jp= je.getJavaProject();
+		if (jp==null) {
+			return false;
+		}
+		AJProjectModel pm = getModelForProject(jp.getProject());
+		if (pm==null) {
+			return false;
+		}
+		return pm.isAdvised(je);
 	}
 	
 	public IJavaElement[] getExtraChildren(IJavaElement je) {

@@ -129,7 +129,7 @@ public class ImageDecorator implements ILabelDecorator {
 		//hook for AspectJElements (unrelated to buidconfigurator)
 		//-> TODO: refactor
 		if (element instanceof AJCodeElement) {
-			img = getImageLabel(iconRegistry.AJ_CODE.getImageDescriptor());
+			img = getImageLabel(AspectJImages.AJ_CODE.getImageDescriptor());
 		} else if (element instanceof IAspectJElement) {
 			try {
 				IAspectJElement ajElem = (IAspectJElement)element;
@@ -205,17 +205,14 @@ public class ImageDecorator implements ILabelDecorator {
 				// problems with package, better don't do anything
 				// can be ignored
 			}
-		} else if (AspectJPreferences.isAdviceDecoratorActive() && (element instanceof IJavaElement)) {
-			IJavaElement el = (IJavaElement)element;
-			if (el.getElementType() == IJavaElement.METHOD) {
-				List advisedBy = AJModel.getInstance().getRelatedElements(AJRelationshipManager.ADVISED_BY,el);
-				if ((advisedBy!=null) && (advisedBy.size()>0)) {
-					MyCompositeImageDesc overlay = new MyCompositeImageDesc(image);
-					img = overlay.getImage();
-					return img;
-				}
+		} else if (AspectJPreferences.isAdviceDecoratorActive()
+				&& (element instanceof IJavaElement)) {
+			if (AJModel.getInstance().isAdvised((IJavaElement) element)) {
+				MyCompositeImageDesc overlay = new MyCompositeImageDesc(image);
+				img = overlay.getImage();
+				return img;
 			}
-	    } else {
+		} else {
 			return null;
 		}
 		if (img != null){
