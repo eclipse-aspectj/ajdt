@@ -256,8 +256,13 @@ public class UIBuildListener implements AJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(IProject project, boolean buildCancelled) {
+	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
 		AspectJUIPlugin.getDefault().getAjdtProjectProperties().flushClasspathCache();
+		
+		if (noSourceChanges) {
+			MarkerUpdating.addNewMarkers(project);
+			return;
+		}
 		
 		// The message to feature in the problems view of depending projects
 		String buildPrereqsMessage = AspectJUIPlugin.getFormattedResourceString("buildPrereqsMessage",

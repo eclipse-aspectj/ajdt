@@ -28,6 +28,6 @@ public interface AJBuildListener {
 	 * The given project has just been built
 	 * @param project
 	 */
-	public void postAJBuild(IProject project, boolean buildCancelled);
+	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges);
 	
 }

@@ -143,6 +143,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					}
 				}
 				if (!continueToBuild) {
+					postCallListeners(true);
 					return requiredProjects;						
 				}
 			}
@@ -180,16 +181,17 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			buildManager.build(configFile);
 		}
 		waitForBuildCompletion(compilerMonitor);
-		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall));
+		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall)+"ms");
 		
 		// refresh the eclipse project to pickup generated artifacts
 		project.refreshLocal(IResource.DEPTH_INFINITE, null);
 		
 		AJModel.getInstance().createMap(project);
+		postCallListeners(false);
 		
-		postCallListeners();
 		AJLog.log("Time spent in build() = "
 				+ (System.currentTimeMillis() - buildstarttime) + "ms");
+	
 		return requiredProjects;
 	}
 
@@ -688,10 +690,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 	}
 	
-	private void postCallListeners() {
+	private void postCallListeners(boolean noSourceChanges) {
 		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
 			AJBuildListener listener = (AJBuildListener) iter.next();
-			listener.postAJBuild(getProject(), buildCancelled);
+			listener.postAJBuild(getProject(), buildCancelled, noSourceChanges);
 		}
 	}
 	
