@@ -13,9 +13,9 @@ import org.eclipse.ajdt.buildconfigurator.editor.model.IBuild;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.pde.internal.ui.editor.FormOutlinePage;
-import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
-import org.eclipse.pde.internal.ui.editor.PDEFormPage;
+import org.eclipse.ajdt.pde.internal.ui.editor.FormOutlinePage;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
 /**
  * @author dejan
  * 

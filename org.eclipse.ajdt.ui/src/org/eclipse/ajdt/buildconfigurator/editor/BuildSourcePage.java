@@ -11,8 +11,8 @@
 package org.eclipse.ajdt.buildconfigurator.editor;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.pde.internal.ui.editor.KeyValueSourcePage;
-import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.KeyValueSourcePage;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 /**
  * @author melhem
  *  

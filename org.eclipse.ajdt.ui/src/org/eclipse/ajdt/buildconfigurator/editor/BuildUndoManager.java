@@ -17,8 +17,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.pde.core.IModelChangedEvent;
 import org.eclipse.pde.internal.core.build.BuildObject;
 import org.eclipse.pde.internal.core.build.IBuildObject;
-import org.eclipse.pde.internal.ui.editor.ModelUndoManager;
-import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.ModelUndoManager;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 
 public class BuildUndoManager extends ModelUndoManager {
 

@@ -11,8 +11,8 @@
 package org.eclipse.ajdt.buildconfigurator.editor;
 
 import org.eclipse.pde.core.IBaseModel;
-import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
-import org.eclipse.pde.internal.ui.editor.context.*;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.context.*;
 
 /**
  * @author dejan

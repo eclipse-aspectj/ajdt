@@ -15,14 +15,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.eclipse.ajdt.buildconfigurator.editor.model.BuildModel;
+import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContext;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.pde.core.IBaseModel;
 import org.eclipse.pde.core.IModelChangedEvent;
-import org.eclipse.pde.internal.ui.editor.PDEFormEditor;
-import org.eclipse.pde.internal.ui.editor.SystemFileEditorInput;
-import org.eclipse.pde.internal.ui.editor.context.InputContext;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileEditorInput;
 import org.eclipse.pde.internal.ui.model.AbstractEditingModel;
 import org.eclipse.pde.internal.ui.model.IDocumentKey;
 import org.eclipse.text.edits.DeleteEdit;

@@ -11,7 +11,7 @@
 package org.eclipse.ajdt.buildconfigurator.editor;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.pde.internal.ui.editor.PDEFormPage;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.ui.forms.IManagedForm;
