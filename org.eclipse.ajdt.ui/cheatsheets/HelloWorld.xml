@@ -373,11 +373,11 @@
 			Since you've already tested your application when it just contained a single class,
 			you should already have a run configuration for your Hello World application.
 			<br/>
-			<br/>			
-			Return to the Java Perspective 
-			(<b>Window-&gt;Open Perspective-&gt;Java</b>) and press the down arrow beside the green 
-			circle containing a white arrow icon in the toolbar and select HelloWorld. Hello World! 
-			should be printed in your &quot;Console&quot; view.
+			<br/>
+			Return to the Java Perspective (<b>Window-&gt;Open Perspective-&gt;Java</b>) and 
+			press the down arrow beside the green circle containing a white arrow icon in 
+			the toolbar and select HelloWorld. Hello World! should be printed in your 
+			&quot;Console&quot; view.
 			<br/>
 			<br/>
 			Congratulations!  You have successfully built and run the AspectJ Hello World application.

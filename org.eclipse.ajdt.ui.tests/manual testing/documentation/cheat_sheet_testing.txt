@@ -1,0 +1,12 @@
+The links in the cheat sheet need to be tested, as do the actions
+-----------------------------------------------------------------
+
+(1) Open up the cheat sheet (Help > Cheat Sheets > AspectJ > Hello World AspectJ Application)
+
+(2) Click on all the "?" down the right hand side and check they link somewhere sensible
+
+(3) Walk through the cheat sheat, choosing "Perform Action" rather than "skip" if at all
+    possible.
+    
+    
+PASS: All links should work, and all the action buttons should work.    
