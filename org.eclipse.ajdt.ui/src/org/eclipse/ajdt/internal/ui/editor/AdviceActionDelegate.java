@@ -288,9 +288,13 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                 // System.err.println("FilePath=" + filepath);
                 // System.err.println("linenum=" + linenumber);
 
-                final IResource ir = AspectJUIPlugin.getDefault()
+                IResource r = AspectJUIPlugin.getDefault()
                         .getAjdtProjectProperties().findResource(filepath);
-
+                if(r == null) {
+                	r = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(filepath, AspectJUIPlugin.getDefault().getCurrentProject());
+                }
+                final IResource ir = r;
+                
                 IMarker jumpMarker = null;
 
                 if ((ir != null) && (ir.exists())) {
