@@ -157,7 +157,7 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private boolean projectAlreadyMarked(IProject project, String errorMessage) {
 		try {
-			IMarker[] problemMarkers = project.findMarkers(IMarker.PROBLEM,
+			IMarker[] problemMarkers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
 					false, IResource.DEPTH_INFINITE);
 			if (problemMarkers.length > 0) {
 				for (int j = 0; j < problemMarkers.length; j++) {
@@ -341,7 +341,8 @@ public class UIBuildListener implements IAJBuildListener {
 			for (int i = 0; i < referencingProjects.length; i++) {
 				IProject referencingProject = referencingProjects[i];
 				IMarker[] problemMarkers = referencingProject.findMarkers(
-						IMarker.PROBLEM, false, IResource.DEPTH_INFINITE);
+						IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+						false, IResource.DEPTH_INFINITE);
 				if (problemMarkers.length > 0) {
 					for (int j = 0; j < problemMarkers.length; j++) {
 						IMarker marker = problemMarkers[j];
