@@ -145,7 +145,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		// Pointcut designators: control flow
 		"cflow", "cflowbelow",
 		// Pointcut Designators for annotations
-		"@annotation", "@within", "@withincode", "@this", "@target", "@args",
+		"annotation",
 		// Advice
 		"before", "after", "around", "proceed", "throwing" , "returning" ,
 		"adviceexecution" ,
@@ -154,7 +154,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		// variables
 		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" ,
 		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow" };
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" };
 
 	private static String[] fgNewKeywords = { "assert" }; //$NON-NLS-1$
 
