@@ -20,7 +20,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.preferences.PreferencePageSupport;
-import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.util.TabFolderLayout;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
@@ -125,26 +124,32 @@ public class CompilerPropertyPage extends PropertyPage {
 		super();
 		fCheckBoxes = new ArrayList();
 		fComboBoxes = new ArrayList();
-		
-		IDialogFieldListener listener= new IDialogFieldListener() {
+
+		IDialogFieldListener listener = new IDialogFieldListener() {
 			public void dialogFieldChanged(DialogField field) {
 				doDialogFieldChanged(field);
 			}
 		};
-		
+
 		fUseWorkspaceSettings = new SelectionButtonDialogField(SWT.RADIO);
 		fUseWorkspaceSettings.setDialogFieldListener(listener);
-		fUseWorkspaceSettings.setLabelText(PreferencesMessages.getString("CompilerPropertyPage.useworkspacesettings.label")); //$NON-NLS-1$
+		fUseWorkspaceSettings
+				.setLabelText(AspectJUIPlugin
+						.getResourceString("CompilerPropertyPage.useworkspacesettings.label")); //$NON-NLS-1$
 
-		fChangeWorkspaceSettings= new SelectionButtonDialogField(SWT.PUSH);
-		fChangeWorkspaceSettings.setLabelText(PreferencesMessages.getString("CompilerPropertyPage.useworkspacesettings.change")); //$NON-NLS-1$
+		fChangeWorkspaceSettings = new SelectionButtonDialogField(SWT.PUSH);
+		fChangeWorkspaceSettings
+				.setLabelText(AspectJUIPlugin
+						.getResourceString("CompilerPropertyPage.useworkspacesettings.change")); //$NON-NLS-1$
 		fChangeWorkspaceSettings.setDialogFieldListener(listener);
-	
+
 		fUseWorkspaceSettings.attachDialogField(fChangeWorkspaceSettings);
 
-		fUseProjectSettings= new SelectionButtonDialogField(SWT.RADIO);
+		fUseProjectSettings = new SelectionButtonDialogField(SWT.RADIO);
 		fUseProjectSettings.setDialogFieldListener(listener);
-		fUseProjectSettings.setLabelText(PreferencesMessages.getString("CompilerPropertyPage.useprojectsettings.label")); //$NON-NLS-1$
+		fUseProjectSettings
+				.setLabelText(AspectJUIPlugin
+						.getResourceString("CompilerPropertyPage.useprojectsettings.label")); //$NON-NLS-1$
 	}
 	
 	protected static class ControlData {
