@@ -434,6 +434,7 @@ public class Visualiser extends ViewPart {
 
 	public void dispose() {
 		super.dispose();
+		VisualiserPlugin.visualiser=null;
 		visCanvas.dispose();
 	}
 

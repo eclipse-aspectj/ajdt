@@ -23,8 +23,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -91,23 +89,14 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 
 
 	/**
-	 * Refresh the Visualiser views.  Checks if the visualiser viewpart is on screen before doing the refresh.
+	 * Refresh the Visualiser views.
 	 */
 	public static void refresh() {
 		if (visualiser != null) {
 			Display.getDefault().asyncExec( new Runnable() {
 				public void run() {
 					if (visualiser!=null) {
-						IWorkbenchWindow iww = VisualiserPlugin.getActiveWorkbenchWindow();
-						if (iww!=null) {
-							IWorkbenchPage iwp = iww.getActivePage();
-							if (iwp!=null) {
-								IViewPart ivp = iwp.findView("org.eclipse.contribution.visualiser.views.Visualiser");
-								if (ivp!=null) { // viewpart is showing
-									visualiser.updateDisplay(true);
-								}
-							}
-						}
+						visualiser.updateDisplay(true);
 					}
 				}
 			});
