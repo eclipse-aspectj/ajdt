@@ -130,7 +130,14 @@ public class AspectJPreferences {
 	// name of the file to write the Xlint options to
 	private static String XlintProperties = "Xlint.properties";
 
-
+	/**
+	 * A named preference that holds the path of the AJdoc command (tools.jar) 
+	 * used by the AJdoc creation wizard.
+	 * <p>
+	 * Value is of type <code>String</code>.
+	 * </p>
+	 */ 
+	public static final String AJDOC_COMMAND= "ajdocCommand"; //$NON-NLS-1$
     
 	/**
 	 * Helper get method used by AspectJPreference page

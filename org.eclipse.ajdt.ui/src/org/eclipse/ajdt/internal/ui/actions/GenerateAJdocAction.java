@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import org.eclipse.swt.widgets.Shell;
 
-import org.eclipse.ajdt.ajdocexport.JavadocWizard;
+import org.eclipse.ajdt.ajdocexport.AJdocWizard;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -36,14 +36,14 @@ public class GenerateAJdocAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		JavadocWizard wizard= new JavadocWizard();
+		AJdocWizard wizard= new AJdocWizard();
 		IStructuredSelection selection= null;
 		if (fSelection instanceof IStructuredSelection) {
 			selection= (IStructuredSelection)fSelection;
 		} else {
 			selection= new StructuredSelection();
 		}
-		JavadocWizard.openJavadocWizard(wizard, fCurrentShell, selection);
+		AJdocWizard.openJavadocWizard(wizard, fCurrentShell, selection);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {

@@ -44,7 +44,11 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 
-public class JavadocWriter {
+/**
+ * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocWriter
+ * Changes marked with // AspectJ Extension
+ */
+public class AJdocWriter {
 	
 	private static final char PATH_SEPARATOR= '/'; // use forward slash for all platforms
 	
@@ -53,19 +57,19 @@ public class JavadocWriter {
 	private IPath fBasePath;
 
 	/**
-	 * Create a JavadocWriter on the given output stream.
+	 * Create a AJdocWriter on the given output stream.
 	 * It is the client's responsibility to close the output stream.
 	 * @param basePath The base path to which all path will be made relative (if
 	 * possible). If <code>null</code>, paths are not made relative.
 	 */
-	public JavadocWriter(OutputStream outputStream, IPath basePath, IJavaProject[] projects) {
+	public AJdocWriter(OutputStream outputStream, IPath basePath, IJavaProject[] projects) {
 		Assert.isNotNull(outputStream);
 		fOutputStream= new BufferedOutputStream(outputStream);
 		fBasePath= basePath;
 		fJavaProjects= projects;
 	}
 
-	public void writeXML(JavadocOptionsManager store) throws ParserConfigurationException, TransformerException {
+	public void writeXML(AJdocOptionsManager store) throws ParserConfigurationException, TransformerException {
 
 		DocumentBuilder docBuilder= null;
 		DocumentBuilderFactory factory= DocumentBuilderFactory.newInstance();
@@ -105,7 +109,7 @@ public class JavadocWriter {
 	}
 
 	//writes ant file, for now only worry about one project
-	private void xmlWriteJavadocStandardParams(JavadocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
+	private void xmlWriteJavadocStandardParams(AJdocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
 
 		String destination= getPathString(new Path(store.getDestination()));
 
@@ -247,7 +251,7 @@ public class JavadocWriter {
 		return res.toString();
 	}
 
-	private void xmlWriteDoclet(JavadocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
+	private void xmlWriteDoclet(AJdocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
 
 		//set the packages and source files
 		List packages= new ArrayList();

@@ -26,12 +26,17 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-public class JavadocProjectContentProvider implements ITreeContentProvider {
+/**
+ * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocProjectContentProvider
+ * Changes marked with // AspectJ Extension
+ */
+public class AJdocProjectContentProvider implements ITreeContentProvider {
 
 	/*
 	 * @see ITreeContentProvider#getChildren(Object)
 	 */
 	public Object[] getChildren(Object parentElement) {
+		// AspectJ Extension
 		/*try {
 			if (parentElement instanceof IJavaProject) {
 				IJavaProject project= (IJavaProject) parentElement;

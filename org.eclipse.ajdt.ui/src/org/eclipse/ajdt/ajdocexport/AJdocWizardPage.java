@@ -28,10 +28,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-public abstract class JavadocWizardPage extends NewElementWizardPage {
+/**
+ * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocWizardPage
+ * Changes marked with // AspectJ Extension
+ */
+public abstract class AJdocWizardPage extends NewElementWizardPage {
 
-	protected JavadocWizardPage(String pageName) {
+	protected AJdocWizardPage(String pageName) {
 		super(pageName);
+//		 AspectJ Extension - message
 		setTitle(AspectJUIPlugin.getResourceString("ajdocWizardPage.javadocwizardpage.description")); //$NON-NLS-1$
 	}
 

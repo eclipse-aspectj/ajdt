@@ -20,4 +20,5 @@ Generating ajdoc (bug 76903)
 8. Navigate to spacewar.Registry in the browser and check that the
    "Constructor Summary" section contains a highlighted "Advised by:" line.
 
+9. Repeat the above with an IBM JVM - bug 80923
 

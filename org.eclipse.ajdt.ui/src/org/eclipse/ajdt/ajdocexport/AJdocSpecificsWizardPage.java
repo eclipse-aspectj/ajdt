@@ -24,8 +24,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.help.WorkbenchHelp;
 
-public class JavadocSpecificsWizardPage extends JavadocWizardPage {
+/**
+ * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocSpecificWizardPage
+ * Changes marked with // AspectJ Extension
+ */
+public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 
+	// AspectJ Extension - commenting out unused code
 	//private Button fAntBrowseButton;
 	private Button fCheckbrowser;
 	//private Text fAntText;
@@ -42,18 +47,19 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 	//private StatusInfo fOverviewStatus;
 	//private StatusInfo fAntStatus;
 	
-	private JavadocTreeWizardPage fFirstPage;
+	private AJdocTreeWizardPage fFirstPage;
 
-	private JavadocOptionsManager fStore;
+	private AJdocOptionsManager fStore;
 
 	//private final int OVERVIEWSTATUS= 1;
 	//private final int ANTSTATUS= 2;
 
-	protected JavadocSpecificsWizardPage(String pageName, JavadocTreeWizardPage firstPage, JavadocOptionsManager store) {
+	protected AJdocSpecificsWizardPage(String pageName, AJdocTreeWizardPage firstPage, AJdocOptionsManager store) {
 		super(pageName);
 		setDescription(AspectJUIPlugin.getResourceString("ajdocSpecificsWizardPage.description")); //$NON-NLS-1$
 		fStore= store;
 
+//		 AspectJ Extension - commenting out unused code
 		//fOverviewStatus= new StatusInfo();
 		//fAntStatus= new StatusInfo();
 		fFirstPage= firstPage;
@@ -87,6 +93,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		c.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 3, 0));
 		((GridLayout) c.getLayout()).marginWidth= 0;
 
+//		 AspectJ Extension - commenting out unused code
 //		fOverViewButton= createButton(c, SWT.CHECK, JavadocExportMessages.getString("JavadocSpecificsWizardPage.overviewbutton.label"), createGridData(1)); //$NON-NLS-1$
 //		fOverViewText= createText(c, SWT.SINGLE | SWT.BORDER, null, createGridData(GridData.FILL_HORIZONTAL, 1, 0));
 //		fOverViewButton.setEnabled(false);
@@ -119,7 +126,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		fJDK14Button= createButton(composite, SWT.CHECK, JavadocExportMessages.getString("JavadocSpecificsWizardPage.jdk14mode.label"), createGridData(3)); //$NON-NLS-1$
 		fJDK14Button.setSelection(fStore.isJDK14Mode());
 		
-
+//		 AspectJ Extension - commenting out unused code
 		//Listeners
 //		fOverViewButton.addSelectionListener(new ToggleSelectionAdapter(new Control[] { fOverViewBrowseButton, fOverViewText }) {
 //			public void validate() {
@@ -148,6 +155,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		c.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 3, 0));
 		((GridLayout) c.getLayout()).marginWidth= 0;
 
+//		 AspectJ Extension - commenting out unused code
 //		fAntButton= createButton(c, SWT.CHECK, JavadocExportMessages.getString("JavadocSpecificsWizardPage.antscriptbutton.label"), createGridData(3)); //$NON-NLS-1$
 //		fAntButton.setEnabled(false);
 //		createLabel(c, SWT.NONE, JavadocExportMessages.getString("JavadocSpecificsWizardPage.antscripttext.label"), createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 1, 0)); //$NON-NLS-1$
@@ -165,6 +173,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		fCheckbrowser= createButton(c, SWT.CHECK, JavadocExportMessages.getString("JavadocSpecificsWizardPage.openbrowserbutton.label"), createGridData(3)); //$NON-NLS-1$
 		fCheckbrowser.setSelection(fStore.doOpenInBrowser());
 
+//		 AspectJ Extension - commenting out unused code
 //		fAntButton.addSelectionListener(new ToggleSelectionAdapter(new Control[] { fAntText, fAntBrowseButton }) {
 //			public void validate() {
 //				doValidation(ANTSTATUS);
@@ -197,7 +206,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 //		});
 	} //end method createExtraOptionsGroup
 	
-	
+//	 AspectJ Extension - commenting out unused code	
 	/*
 	private void doValidation(int val) {
 		File file= null;
@@ -240,7 +249,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 	*/
 	
 	/*
-	 * @see JavadocWizardPage#onFinish()
+	 * @see AJdocWizardPage#onFinish()
 	 */
 
 	protected void updateStore() {
@@ -248,6 +257,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		fStore.setVMParams(fVMOptionsText.getText());
 		fStore.setAdditionalParams(fExtraOptionsText.getText());
 
+//		 AspectJ Extension - commenting out unused code
 //		if (fOverViewText.getEnabled())
 //			fStore.setOverview(fOverViewText.getText());
 //		else
@@ -264,6 +274,7 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
+//		 AspectJ Extension - commenting out unused code
 		//if (visible) {
 			//doValidation(OVERVIEWSTATUS);
 			//doValidation(ANTSTATUS);
@@ -275,11 +286,13 @@ public class JavadocSpecificsWizardPage extends JavadocWizardPage {
 		updateStatus(new StatusInfo());
 	}
 
+//	 AspectJ Extension - commenting out unused code
 	/*private IStatus findMostSevereStatus() {
 		return StatusUtil.getMostSevere(new IStatus[] { fAntStatus, fOverviewStatus });
 	}
 	*/
 	
+//	 AspectJ Extension - commenting out unused code
 	/*public boolean generateAnt() {
 		return fAntButton.getSelection();
 	}
