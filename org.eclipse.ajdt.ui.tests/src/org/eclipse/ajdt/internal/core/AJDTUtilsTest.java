@@ -141,29 +141,30 @@ public class AJDTUtilsTest extends TestCase {
 		resetPluginEnvironment();
 	}
 
-	public void testChangeProjectToClassDependencies() throws Exception {
-		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
-		Utils.waitForJobsToComplete();
-		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
-		Utils.waitForJobsToComplete();
-		// this ensures a src folder is created.
-		jtp2.getSourceFolder();
-		Utils.waitForJobsToComplete();
-		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),
-				jtp2.getProject());
-		Utils.waitForJobsToComplete();
-		assertTrue("test project 1 has a project dependency on test project 2",
-				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
-						.equals("project"));
-		AJDTUtils.changeProjectDependencies(jtp2.getProject());
-		Utils.waitForJobsToComplete();
-		assertTrue(
-				"test project 1 has a class folder dependency on test project 2",
-				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
-						.equals("classfolder"));
-		jtp1.dispose();
-		jtp2.dispose();
-	}
+	// We now longer change project dependencies in this way, so test removed
+//	public void testChangeProjectToClassDependencies() throws Exception {
+//		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
+//		Utils.waitForJobsToComplete();
+//		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
+//		Utils.waitForJobsToComplete();
+//		// this ensures a src folder is created.
+//		jtp2.getSourceFolder();
+//		Utils.waitForJobsToComplete();
+//		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),
+//				jtp2.getProject());
+//		Utils.waitForJobsToComplete();
+//		assertTrue("test project 1 has a project dependency on test project 2",
+//				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
+//						.equals("project"));
+//		AJDTUtils.changeProjectDependencies(jtp2.getProject());
+//		Utils.waitForJobsToComplete();
+//		assertTrue(
+//				"test project 1 has a class folder dependency on test project 2",
+//				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
+//						.equals("classfolder"));
+//		jtp1.dispose();
+//		jtp2.dispose();
+//	}
 
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
 		IProject projectY = Utils.createPredefinedProject("project.java.Y");
@@ -198,7 +199,7 @@ public class AJDTUtilsTest extends TestCase {
 								projectDependedOn.getFullPath())) {
 					return "project";
 				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					List outputLocationPaths = AJDTUtils
+					List outputLocationPaths = CoreUtils
 							.getOutputLocationPaths(projectDependedOn);
 					for (Iterator iterator = outputLocationPaths.iterator(); iterator
 							.hasNext();) {
