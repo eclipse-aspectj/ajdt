@@ -58,3 +58,9 @@ b. Click somewhere in the advice body and press Ctrl+B on the keyboard.  A break
 should appear in the margin.  Press Ctrl+B again and the breakpoint should disappear.
 c. Double click in the margin and a breakpoint should appear.  Double click again and
 the breakpoint should disappear.
+
+5. Eager parsing
+
+a. Open an aspect
+b. Cause an error in the source and check that red squiggles are shown.
+c. Turn off eager parsing and check that the squiggles go away
