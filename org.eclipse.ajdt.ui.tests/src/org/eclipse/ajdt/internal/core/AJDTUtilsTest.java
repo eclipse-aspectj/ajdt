@@ -69,19 +69,19 @@ public class AJDTUtilsTest extends TestCase {
 	public void testAddAndRemoveAspectJNatureWithPluginProject() throws Exception {
 		setUpPluginEnvironment();
 		PluginTestProject testPluginProject = new PluginTestProject();
-		ProjectDependenciesUtils.waitForJobsToComplete(testPluginProject.getProject());
+		Utils.waitForJobsToComplete();
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.addAspectJNature(testPluginProject.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(testPluginProject.getProject());
+		Utils.waitForJobsToComplete();
 		assertTrue("Plugin project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertTrue("Plugin should now import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.removeAspectJNature(testPluginProject.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(testPluginProject.getProject());
+		Utils.waitForJobsToComplete();
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
@@ -149,19 +149,18 @@ public class AJDTUtilsTest extends TestCase {
 
 	public void testChangeProjectToClassDependencies() throws Exception{
 		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp1.getProject());
+		Utils.waitForJobsToComplete();
 		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp2.getProject());
+		Utils.waitForJobsToComplete();
 		// this ensures a src folder is created.
 		jtp2.getSourceFolder();
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp2.getProject());			
+		Utils.waitForJobsToComplete();	
 		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),jtp2.getProject(),monitor);
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp1.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp2.getProject());
+		Utils.waitForJobsToComplete();
 		assertTrue("test project 1 has a project dependency on test project 2",
 				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("project"));
 		AJDTUtils.changeProjectDependencies(jtp2.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(jtp2.getProject());
+		Utils.waitForJobsToComplete();
 		assertTrue("test project 1 has a class folder dependency on test project 2",
 				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("classfolder"));			
 		jtp1.dispose();
@@ -171,20 +170,20 @@ public class AJDTUtilsTest extends TestCase {
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		IJavaProject jY = JavaCore.create(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.addAjrtToBuildPath(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		
 		assertTrue("project.java.Y should have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
 		AJDTUtils.removeAjrtFromBuildPath(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 

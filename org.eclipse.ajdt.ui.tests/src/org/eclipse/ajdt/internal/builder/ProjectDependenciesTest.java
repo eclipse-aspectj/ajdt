@@ -57,10 +57,10 @@ public class ProjectDependenciesTest extends TestCase {
 	public void testHowDealingWithProjectDependencies() throws Exception {
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectX);
+		Utils.waitForJobsToComplete();
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
@@ -76,7 +76,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
@@ -114,7 +114,7 @@ public class ProjectDependenciesTest extends TestCase {
 		// remove AJ nature from Y and the following asserts should always be
 		// true
 		AJDTUtils.removeAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
@@ -167,8 +167,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project B to be an AJ project ==> still no build errors
 		AJDTUtils.addAspectJNature(projectB.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(projectB.getProject());
-		ProjectDependenciesUtils.waitForJobsToComplete(projectA.getProject());
+		Utils.waitForJobsToComplete();
 		assertFalse("project A should still not have any IJavaModelMarkers",
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
 						projectA.getProject(), projectB.getProject()));
@@ -185,10 +184,10 @@ public class ProjectDependenciesTest extends TestCase {
 	public void testProjectDependencies1() throws Exception {
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		IProject projectX = Utils.getPredefinedProject("project.java.X", true);
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectX);
+		Utils.waitForJobsToComplete();
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
@@ -204,7 +203,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -218,7 +217,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project X to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectX);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectX);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -232,7 +231,7 @@ public class ProjectDependenciesTest extends TestCase {
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -246,7 +245,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -260,7 +259,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// remove AJ nature from project X		
 		AJDTUtils.removeAspectJNature(projectX);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectX);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -274,7 +273,7 @@ public class ProjectDependenciesTest extends TestCase {
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
-		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
+		Utils.waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
