@@ -16,14 +16,18 @@ import java.util.Map;
 
 import org.aspectj.ajde.ui.AbstractIcon;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
+import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
+import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -74,11 +78,17 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 	private static class AJElementLabelProvider extends
 			JavaElementLabelProvider {
 
+		 private ILabelProvider labelProvider =
+				new DecoratingJavaLabelProvider(new AppearanceAwareLabelProvider());
+		
 		public AJElementLabelProvider(int i) {
 			super(i);
 		}
 
 		public Image getImage(Object element) {
+			if(element instanceof AspectElement) {
+				return labelProvider.getImage(element);
+			}
 			Image result = super.getImage(element);
 			if (result == null && element instanceof Object[]) {
 				Object[] elements = (Object[]) element;

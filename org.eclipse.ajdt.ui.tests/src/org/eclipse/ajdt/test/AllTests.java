@@ -39,6 +39,7 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditorTest;
 import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
+import org.eclipse.ajdt.internal.ui.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardTest;
@@ -70,8 +71,8 @@ public class AllTests {
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-		
-		// buildconfigurator tests
+//		
+//		// buildconfigurator tests
 		suite.addTest(new TestSuite(UtilTests.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
 		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
@@ -103,6 +104,8 @@ public class AllTests {
 
 		// internal.ui.editor.quickfix tests
 		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
+		
+		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
 		
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));

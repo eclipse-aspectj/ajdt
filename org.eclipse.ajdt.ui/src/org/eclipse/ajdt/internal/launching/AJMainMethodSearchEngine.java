@@ -19,17 +19,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -72,23 +73,28 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 			ticksPerProject = 1;
 		}
 		for (int i = 0; i < projects.length; i++) {
+			try {
+				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { 
 
-			IJavaProject jp = JavaCore.create(projects[i]);
-			if (jp != null) {
-				if (scope.encloses(jp)) {
-					Set aspects = getAllAspects(jp);
-					mainList.addAll(aspects);
-				} else {
-					IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
-					for (int j = 0; j < enclosingPaths.length; j++) {
-						IPath path = enclosingPaths[j];
-						if (path.equals(jp.getPath())) {
-							IJavaElement[] children = jp.getChildren();
-							mainList
-									.addAll(searchJavaElements(scope, children));
+					IJavaProject jp = JavaCore.create(projects[i]);
+					if (jp != null) {
+						if (scope.encloses(jp)) {
+							Set aspects = getAllAspects(jp);
+							mainList.addAll(aspects);
+						} else {
+							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
+							for (int j = 0; j < enclosingPaths.length; j++) {
+								IPath path = enclosingPaths[j];
+								if (path.equals(jp.getPath())) {
+									IJavaElement[] children = jp.getChildren();
+									mainList
+											.addAll(searchJavaElements(scope, children));
+								}
+							}
 						}
 					}
 				}
+			} catch (Exception e) {
 			}
 			ajSearchMonitor.internalWorked(ticksPerProject);
 		}
@@ -96,6 +102,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		pm.done();
 		return mainList.toArray();
 	}
+
 
 	/**
 	 * Searches for all main methods in the given scope. Also searches the AJDE
@@ -188,38 +195,40 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 */
 	private List searchUnitsInPackage(IJavaSearchScope scope,
 			IPackageFragment packageFragment) throws JavaModelException {
-		List aspectsFound = new ArrayList();
-		ICompilationUnit[] units = packageFragment.getCompilationUnits();
-		for (int i = 0; i < units.length; i++) {
-			if (scope.encloses(units[i])) {
-				Set aspects = getAllAspects(units[i], packageFragment);
-				aspectsFound.addAll(aspects);
-			}
-		}
-		return aspectsFound;
+//		List aspectsFound = new ArrayList();
+//		ICompilationUnit[] units = packageFragment.getCompilationUnits();
+//		for (int i = 0; i < units.length; i++) {
+//			if (scope.encloses(units[i])) {
+//				Set aspects = getAllAspects(units[i], packageFragment);
+//				aspectsFound.addAll(aspects);
+//			}
+//		}
+//		aspectsFound.addAll(getAllAspects(packageFragment));
+//		return aspectsFound;
+		return new ArrayList(getAllAspects(packageFragment));
 	}
 
-	/**
-	 * Get any aspect IProgramElements for a CompilationUnit
-	 * 
-	 * @param unit
-	 * @return Set of Object[] containing IProgramElements in location 0 and
-	 *         IProjects in location 1
-	 */
-	private Set getAllAspects(ICompilationUnit unit,
-			IPackageFragment parentPackageFragment) {
-		String unitName = unit.getElementName().substring(0,
-				unit.getElementName().indexOf(".")); //$NON-NLS-1$
-		Set aspects = getAllAspects(parentPackageFragment);
-		for (Iterator iter = aspects.iterator(); iter.hasNext();) {
-			Object[] element = (Object[]) iter.next();
-			IProgramElement aspectElement = (IProgramElement) element[0];
-			if (!(aspectElement.getName().equals(unitName))) {
-				iter.remove();
-			}
-		}
-		return aspects;
-	}
+//	/**
+//	 * Get any aspect IProgramElements for a CompilationUnit
+//	 * 
+//	 * @param unit
+//	 * @return Set of Object[] containing IProgramElements in location 0 and
+//	 *         IProjects in location 1
+//	 */
+//	private Set getAllAspects(ICompilationUnit unit,
+//			IPackageFragment parentPackageFragment) {
+//		String unitName = unit.getElementName().substring(0,
+//				unit.getElementName().indexOf(".")); //$NON-NLS-1$
+//		Set aspects = getAllAspects(parentPackageFragment);
+//		for (Iterator iter = aspects.iterator(); iter.hasNext();) {
+//			Object[] element = (Object[]) iter.next();
+//			IProgramElement aspectElement = (IProgramElement) element[0];
+//			if (!(aspectElement.getName().equals(unitName))) {
+//				iter.remove();
+//			}
+//		}
+//		return aspects;
+//	}
 
 	/**
 	 * Iterates through all the packages in a project and returns a Set
@@ -232,28 +241,33 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 *         IProject, being the project that contains the aspect.
 	 */
 	private Set getAllAspects(IJavaProject jp) {
-		IProject project = jp.getProject();
-		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
-				.getActiveConfigFile()))) {
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-					configFile);
+//		IProject project = jp.getProject();
+//		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
+//		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
+//				.getActiveConfigFile()))) {
+//			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
+//					configFile);
+//		}
+//
+//		List structureModelPackages = StructureModelUtil.getPackagesInModel();
+//		Set aspects = new HashSet();
+//
+//		Iterator it = structureModelPackages.iterator();
+//		while (it.hasNext()) {
+//			Object[] progNodes = (Object[]) it.next();
+//
+//			IProgramElement packageNode = (IProgramElement) progNodes[0];//it.next();
+//
+//			Set temp = getAspectsInPackage(packageNode, project);
+//
+//			aspects.addAll(temp);
+//		}
+//		return aspects;
+		try {
+			return new HashSet(getActiveMainTypesFromAJCompilationUnits(AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp)));
+		} catch (CoreException e) {
+			return new HashSet();
 		}
-
-		List structureModelPackages = StructureModelUtil.getPackagesInModel();
-		Set aspects = new HashSet();
-
-		Iterator it = structureModelPackages.iterator();
-		while (it.hasNext()) {
-			Object[] progNodes = (Object[]) it.next();
-
-			IProgramElement packageNode = (IProgramElement) progNodes[0];//it.next();
-
-			Set temp = getAspectsInPackage(packageNode, project);
-
-			aspects.addAll(temp);
-		}
-		return aspects;
 	}
 
 	/**
@@ -266,65 +280,97 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 *         IProject, being the project that contains the aspect.
 	 */
 	private Set getAllAspects(IPackageFragment packageElement) {
-		IProject project = packageElement.getJavaProject().getProject();
-		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
-				.getActiveConfigFile()))) {
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-					configFile);
-		}
-
-		List packages = StructureModelUtil.getPackagesInModel();
-		Set aspects = new HashSet();
-
-		Iterator it = packages.iterator();
-		while (it.hasNext()) {
-			Object[] progNodes = (Object[]) it.next();
-
-			IProgramElement packageNode = (IProgramElement) progNodes[0];
-			if (packageNode.getName().equals(packageElement.getElementName())) {
-
-				Set temp = getAspectsInPackage(packageNode, project);
-				aspects.addAll(temp);
-				break;
-			}
-		}
-		return aspects;
+//		IProject project = packageElement.getJavaProject().getProject();
+//		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
+//		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
+//				.getActiveConfigFile()))) {
+//			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
+//					configFile);
+//		}
+//
+//		List packages = StructureModelUtil.getPackagesInModel();
+//		Set aspects = new HashSet();
+//
+//		Iterator it = packages.iterator();
+//		while (it.hasNext()) {
+//			Object[] progNodes = (Object[]) it.next();
+//
+//			IProgramElement packageNode = (IProgramElement) progNodes[0];
+//			if (packageNode.getName().equals(packageElement.getElementName())) {
+//
+//				Set temp = getAspectsInPackage(packageNode, project);
+//				aspects.addAll(temp);
+//				break;
+//			}
+//		}
+//		return aspects;
+		List aspects = new ArrayList();
+		try {
+			aspects = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitsForPackage(packageElement);
+		} catch (Exception e) { 
+		}				
+		
+		return new HashSet(getActiveMainTypesFromAJCompilationUnits(aspects));
+		
 	}
 
-	/**
-	 * Get all the Aspects in a given package node of the structure model
-	 * 
-	 * @param packageNode -
-	 *            structure model package
-	 * @param project -
-	 *            associated IProject
-	 * @return Set of Object[] where element 0 in the array is an
-	 *         IProgramElement representing the Aspect and element 1 is an
-	 *         IProject, being the project that contains the aspect.
-	 */
-	private Set getAspectsInPackage(IProgramElement packageNode,
-			IProject project) {
-		List files = StructureModelUtil.getFilesInPackage(packageNode);
-		Set aspects = new HashSet();
-		for (Iterator it = files.iterator(); it.hasNext();) {
-			IProgramElement fileNode = (IProgramElement) it.next();
-			if (fileNode.getKind().equals(IProgramElement.Kind.FILE_JAVA)
-					|| fileNode.getKind().equals(
-							IProgramElement.Kind.FILE_ASPECTJ)) {
-				List children = fileNode.getChildren();
-				for (Iterator iter = children.iterator(); iter.hasNext();) {
-					IProgramElement child = (IProgramElement) iter.next();
-					if (child != null
-							&& child.getKind().equals(
-									IProgramElement.Kind.ASPECT)) {
-						if (child.isRunnable()) {
-							aspects.add(new Object[] { child, project });
+	private List getActiveMainTypesFromAJCompilationUnits(List aspects) {
+		List mainTypes = new ArrayList();
+		try {
+			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
+				AJCompilationUnit element = (AJCompilationUnit) iter.next();
+				if (BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(element.getJavaProject()).getActiveBuildConfiguration().isIncluded(element.getCorrespondingResource())) {
+					IType[] types = element.getAllTypes();
+					for (int i = 0; i < types.length; i++) {
+						IType type = types[i];
+						IMethod[] methods = type.getMethods();
+						for (int j = 0; j < methods.length; j++) {
+							if(methods[j].isMainMethod()) {
+								mainTypes.add(type);
+								break;
+							}
 						}
 					}
 				}
 			}
+		} catch (Exception e) {
 		}
-		return aspects;
+		return mainTypes;
 	}
+
+//	/**
+//	 * Get all the Aspects in a given package node of the structure model
+//	 * 
+//	 * @param packageNode -
+//	 *            structure model package
+//	 * @param project -
+//	 *            associated IProject
+//	 * @return Set of Object[] where element 0 in the array is an
+//	 *         IProgramElement representing the Aspect and element 1 is an
+//	 *         IProject, being the project that contains the aspect.
+//	 */
+//	private Set getAspectsInPackage(IProgramElement packageNode,
+//			IProject project) {
+//		List files = StructureModelUtil.getFilesInPackage(packageNode);
+//		Set aspects = new HashSet();
+//		for (Iterator it = files.iterator(); it.hasNext();) {
+//			IProgramElement fileNode = (IProgramElement) it.next();
+//			if (fileNode.getKind().equals(IProgramElement.Kind.FILE_JAVA)
+//					|| fileNode.getKind().equals(
+//							IProgramElement.Kind.FILE_ASPECTJ)) {
+//				List children = fileNode.getChildren();
+//				for (Iterator iter = children.iterator(); iter.hasNext();) {
+//					IProgramElement child = (IProgramElement) iter.next();
+//					if (child != null
+//							&& child.getKind().equals(
+//									IProgramElement.Kind.ASPECT)) {
+//						if (child.isRunnable()) {
+//							aspects.add(new Object[] { child, project });
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return aspects;
+//	}
 }

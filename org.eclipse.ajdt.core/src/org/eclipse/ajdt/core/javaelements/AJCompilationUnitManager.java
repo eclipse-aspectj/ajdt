@@ -24,12 +24,14 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -73,6 +75,35 @@ public class AJCompilationUnitManager {
 		}
 		info.addChild(unit);
 		return false;
+	}
+	
+	public List getAJCompilationUnitsForPackage(IPackageFragment pFragment) throws CoreException, JavaModelException {
+		final List ajcus = new ArrayList();
+		final IResource folder = pFragment.getCorrespondingResource();
+		folder.accept(new IResourceVisitor(){
+
+			public boolean visit(IResource resource) throws CoreException {
+				if(resource instanceof IFile) {
+					if (((IFile)resource).getFileExtension().equals("aj")) {
+						ajcus.add(getAJCompilationUnit((IFile)resource));
+					}
+				}
+				return resource.equals(folder);
+			}});
+		return ajcus;
+	}
+	
+	public List getAJCompilationUnits(IJavaProject jp) throws CoreException {
+		final List ajcus = new ArrayList();
+		jp.getProject().accept(new IResourceVisitor(){
+
+			public boolean visit(IResource resource) throws CoreException {
+				if(resource instanceof IFile && resource.getFileExtension().equals("aj")) {
+					ajcus.add(getAJCompilationUnit((IFile)resource));
+				}				
+				return resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT;
+			}});
+		return ajcus;
 	}
 
 	public void removeFileFromModel(IFile file) {
