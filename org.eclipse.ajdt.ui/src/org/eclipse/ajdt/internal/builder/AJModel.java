@@ -410,7 +410,7 @@ public class AJModel {
 				Integer os = (Integer) lineToOffset.get(new Integer(sl
 						.getLine()));
 				//System.out.println("os="+os);
-				int offset = os.intValue() + sl.getColumn() + 5;
+				int offset = os.intValue() + sl.getColumn() + 12;
 				//System.out.println("offset="+offset);
 				if (unit != null) {
 					try {
