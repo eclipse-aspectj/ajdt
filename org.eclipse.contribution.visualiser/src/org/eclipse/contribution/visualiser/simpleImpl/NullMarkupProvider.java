@@ -8,7 +8,7 @@
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
+package org.eclipse.contribution.visualiser.simpleImpl;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -69,22 +69,7 @@ public class NullMarkupProvider implements IMarkupProvider {
 	 */
 	public void setColorFor(IMarkupKind kind, Color color) {
 	}
-	
-	
-	/**
-	 * Change the mode - returns false (mode has not been changed)
-	 */
-	public boolean changeMode(){
-		return false;
-	}
-	
-	
-	/**
-	 * Ask if the provider has multiple modes - returns false
-	 */
-	public boolean hasMultipleModes(){
-		return false;
-	}
+
 	
 	/**
 	 * Processs a mouse click on a stripe.  Does nothing.  Returns true - default behavior

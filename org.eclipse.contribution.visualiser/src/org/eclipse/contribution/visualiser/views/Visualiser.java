@@ -58,7 +58,7 @@ public class Visualiser extends ViewPart {
 	// actions
 	private Action limitAction;
 
-	private Action lockAction;
+//	private Action lockAction;
 
 	private Action preferencesAction;
 
@@ -72,13 +72,11 @@ public class Visualiser extends ViewPart {
 	
 	private Action zoomOutAction;
 
-	private Action changeStripeModeAction;
-
 	private static boolean inGroupView = false;
 
 	private static boolean inLimitMode = false;
 
-	private static boolean locked = false;
+//	private static boolean locked = false;
 
 	private static boolean fitToView = false;
 
@@ -117,12 +115,7 @@ public class Visualiser extends ViewPart {
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
 		fillLocalPullDown(bars.getMenuManager());
-		boolean includeChangeStripeModeAction = false;
-		if (markupP != null) {
-			includeChangeStripeModeAction = markupP.hasMultipleModes();
-		}
-		fillLocalToolBar(bars.getToolBarManager(),
-				includeChangeStripeModeAction);
+		fillLocalToolBar(bars.getToolBarManager());
 	}
 
 	/**
@@ -140,15 +133,11 @@ public class Visualiser extends ViewPart {
 	/**
 	 * Called by contributeToActionBars to add actions to local tool bar.
 	 */
-	private void fillLocalToolBar(IToolBarManager manager,
-			boolean includeChangeStripeMode) {
+	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(zoomInAction);
 		manager.add(zoomOutAction);
 		manager.add(fitToViewAction);
-		manager.add(lockAction);
-		if (includeChangeStripeMode) {
-			manager.add(changeStripeModeAction);
-		}
+//		manager.add(lockAction);
 		manager.add(limitAction);
 		manager.add(new Separator());
 		manager.add(groupViewAction);
@@ -161,14 +150,13 @@ public class Visualiser extends ViewPart {
 	 */
 	private void makeActions() {
 		makeActionPreferences();
-		makeActionChangeStripeMode();
 		makeActionZoomin();
 		makeActionZoomout();
 		makeActionLimitvis();
 		makeActionGroupView();
 		makeActionMemberView();
 		makeActionFitToView();
-		makeActionLock();
+//		makeActionLock();
 	}
 
 	/**
@@ -218,30 +206,30 @@ public class Visualiser extends ViewPart {
 		limitAction.setImageDescriptor(VisualiserImages.LIMIT_MODE);
 	}
 
-	/**
-	 * Make the lock action
-	 */
-	private void makeActionLock() {
-		lockAction = new Action() {
-			public void run() {
-				locked = !locked;
-				//groupViewAction.setEnabled(!locked);
-				//memberViewAction.setEnabled(!locked);
-				if (!locked) {
-					updateDisplay(true);
-				}
-			}
-
-			public int getStyle() {
-				return IAction.AS_CHECK_BOX;
-			}
-		};
-		lockAction.setText(VisualiserPlugin.getResourceString("Lock")); //$NON-NLS-1$
-		lockAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Lock_Tooltip")); //$NON-NLS-1$
-		lockAction.setImageDescriptor(VisualiserImages.LOCK);
-
-	}
+//	/**
+//	 * Make the lock action
+//	 */
+//	private void makeActionLock() {
+//		lockAction = new Action() {
+//			public void run() {
+//				locked = !locked;
+//				//groupViewAction.setEnabled(!locked);
+//				//memberViewAction.setEnabled(!locked);
+//				if (!locked) {
+//					updateDisplay(true);
+//				}
+//			}
+//
+//			public int getStyle() {
+//				return IAction.AS_CHECK_BOX;
+//			}
+//		};
+//		lockAction.setText(VisualiserPlugin.getResourceString("Lock")); //$NON-NLS-1$
+//		lockAction.setToolTipText(VisualiserPlugin
+//				.getResourceString("Lock_Tooltip")); //$NON-NLS-1$
+//		lockAction.setImageDescriptor(VisualiserImages.LOCK);
+//
+//	}
 
 	/**
 	 * Creates the actions that specifies whether or not the drawing should use
@@ -275,25 +263,6 @@ public class Visualiser extends ViewPart {
 				.getResourceString("Absolute_Proportions"));
 		fitToViewAction
 				.setImageDescriptor(VisualiserImages.FIT_TO_VIEW);
-	}
-
-	/**
-	 * Create the action which changes the markup provider's mode
-	 */
-	private void makeActionChangeStripeMode() {
-		changeStripeModeAction = new Action() {
-			public void run() {
-				if (markupP.changeMode()) {
-					updateDisplay(true);
-				}
-			}
-		};
-		changeStripeModeAction.setText(VisualiserPlugin
-				.getResourceString("Change_Mode_22")); //$NON-NLS-1$
-		changeStripeModeAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Change_Mode_23")); //$NON-NLS-1$
-		ImageDescriptor changeID = VisualiserImages.CHANGE_STRIPE_MODE;
-		changeStripeModeAction.setImageDescriptor(changeID);
 	}
 
 	/**
@@ -480,7 +449,7 @@ public class Visualiser extends ViewPart {
 	 * Update the display
 	 */
 	public void updateDisplay(boolean updateMenu) {
-		if (!locked) {
+//		if (!locked) {
 			if (inGroupView) {
 				if (inLimitMode) {
 					data = limitData(contentP.getAllGroups());
@@ -494,7 +463,7 @@ public class Visualiser extends ViewPart {
 					data = contentP.getAllMembers();
 				}
 			}
-		}
+//		}
 
 		if (VisualiserPlugin.menu != null && updateMenu) {
 			VisualiserPlugin.menu.reset();

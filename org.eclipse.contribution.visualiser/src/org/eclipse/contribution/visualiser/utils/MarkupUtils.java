@@ -8,11 +8,12 @@
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.core;
+package org.eclipse.contribution.visualiser.utils;
 
 import java.util.List;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
+import org.eclipse.contribution.visualiser.core.Stripe;
 
 /**
  * Utility class containing methods for processing Stripes

@@ -8,7 +8,7 @@
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.views;
+package org.eclipse.contribution.visualiser.renderers;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;

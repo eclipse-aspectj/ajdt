@@ -8,9 +8,10 @@
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.views;
+package org.eclipse.contribution.visualiser.renderers;
 
 import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.contribution.visualiser.views.VisualiserCanvas;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;

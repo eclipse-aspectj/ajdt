@@ -817,20 +817,21 @@
 		</specification>
 	</extension>
   
-<!-- Aspect Visualiser Providers -->
+<!-- AJDT Visualiser Provider Definition -->
    <extension
          id="ajdt_provider"
          name="AJDT Provider"
          point="org.eclipse.contribution.visualiser.providers">
-      <contentProvider
-            markupclass="org.eclipse.ajdt.ui.visualiser.AJDTMarkupProvider"
+      <provider
+            markupProviderClass="org.eclipse.ajdt.ui.visualiser.AJDTMarkupProvider"
             name="AspectJ Provider"
             priority="10"
             description="Provider that shows where AspectJ advice applies on Java packages and classes."
-            class="org.eclipse.ajdt.ui.visualiser.AJDTContentProvider"
+            emptyMessage="Nothing to display. Select a project, package, or class from the Package Explorer."
+            contentProviderClass="org.eclipse.ajdt.ui.visualiser.AJDTContentProvider"
             id="ajdtprovider"
             paletteid="ajdtpalette">
-      </contentProvider>
+      </provider>
       
    </extension>
    <extension

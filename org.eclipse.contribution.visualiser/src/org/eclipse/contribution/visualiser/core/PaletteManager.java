@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
+import org.eclipse.contribution.visualiser.palettes.DefaultVisualiserPalette;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -33,7 +34,7 @@ public class PaletteManager {
 	public static final String PALETTE_EXTENSION = "org.eclipse.contribution.visualiser.palettes"; //$NON-NLS-1$
 
 	// the class name of the palette which is the default one
-	private static final String DEFAULT_PALETTE_CLASS = "org.eclipse.contribution.visualiser.core.DefaultVisualiserPalette"; //$NON-NLS-1$
+	private static final String DEFAULT_PALETTE_CLASS = "org.eclipse.contribution.visualiser.palettes.DefaultVisualiserPalette"; //$NON-NLS-1$
 
 	private static List /* PaletteDefinition */palettes;
 

@@ -8,7 +8,7 @@
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
+package org.eclipse.contribution.visualiser.simpleImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.eclipse.contribution.visualiser.core.MarkupUtils;
 import org.eclipse.contribution.visualiser.core.PaletteManager;
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.contribution.visualiser.utils.MarkupUtils;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
@@ -54,23 +54,6 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	 * Initialise the markup provider.  This simple implementation does nothing here.
 	 */
 	public void initialise() { 
-	}
-
-
-	/**
-	 * Change the markup provider mode.  This implementaion does nothing and returns false
-	 * as there has not been a mode change.
-	 */
-	public boolean changeMode(){
-		return false;
-	}
-	
-	
-	/**
-	 * Ask if the markup provider has multiple modes.  Returns false.
-	 */
-	public boolean hasMultipleModes(){
-		return false;
 	}
 	
 	

@@ -19,8 +19,8 @@ import java.util.List;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IContentProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.NullMarkupProvider;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
+import org.eclipse.contribution.visualiser.simpleImpl.NullMarkupProvider;
 import org.eclipse.contribution.visualiser.views.Visualiser;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -88,14 +88,12 @@ public class ProviderManager {
 			IConfigurationElement[] ces = exs[i].getConfigurationElements();
 			for (int j = 0; j < ces.length; j++) {
 				try {
-					Object ext = ces[j].createExecutableExtension("class"); //$NON-NLS-1$
+					Object ext = ces[j].createExecutableExtension("contentProviderClass"); //$NON-NLS-1$
 
 					if (ext instanceof IContentProvider) {
-						if (ces[j].getAttribute("markupclass") != null) { //$NON-NLS-1$
-							markupP = (IMarkupProvider) ces[j]
-									.createExecutableExtension("markupclass"); //$NON-NLS-1$
-							markupP.initialise();
-						}
+						markupP = (IMarkupProvider) ces[j]
+								.createExecutableExtension("markupProviderClass"); //$NON-NLS-1$
+						markupP.initialise();
 						contentP = (IContentProvider) ext;
 						contentP.initialise();
 						ProviderDefinition cpdef = new ProviderDefinition(
@@ -120,6 +118,10 @@ public class ProviderManager {
 						String paletteID = ces[j].getAttribute("paletteid"); //$NON-NLS-1$
 						if (paletteID != null) {
 							cpdef.setPaletteID(paletteID);
+						}
+						String emptyMessage = ces[j].getAttribute("emptyMessage");
+						if (emptyMessage != null) {
+							cpdef.setEmptyMessage(emptyMessage);
 						}
 
 					}
@@ -210,10 +212,18 @@ public class ProviderManager {
 			needToUpdateVisualiser = true;
 
 		PaletteManager.resetCurrent();
-
+		
+		// De-activate the previous provider
+		markupP.deactivate();
+		contentP.deactivate();
+		
 		contentP = definition.getContentProvider();
 		markupP = definition.getMarkupInstance();
-
+		
+		// Activate the new provider
+		markupP.activate();
+		contentP.activate();
+		
 		if (needToUpdateVisualiser) {
 			if (VisualiserPlugin.visualiser != null) {
 				VisualiserPlugin.visualiser.setVisContentProvider(contentP);

@@ -9,7 +9,7 @@
  *     Sian Whiting - initial version
  *     Matt Chapman - switch to IVisualiserPalette, and RGB instead of Color 
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.core;
+package org.eclipse.contribution.visualiser.palettes;
 
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.swt.graphics.RGB;

@@ -31,6 +31,7 @@ public class ProviderDefinition {
 	private IMarkupProvider markupInstance;
 	private int priority = 0;
 	private String paletteID;
+	private String emptyMessage;
 	
 	/**
 	 * The constructor - requires a content provider and a markup provider
@@ -172,5 +173,21 @@ public class ProviderDefinition {
 	 */
 	public String getPaletteID() {
 		return paletteID;
+	}
+
+	/**
+	 * Set the empty message for this provider, which is displayed
+	 * when there is no data available.
+	 * @param emptyMessage
+	 */
+	public void setEmptyMessage(String emptyMessage) {
+		this.emptyMessage = emptyMessage;		
+	}
+	
+	/**
+	 * @return Returns the empty message.
+	 */
+	public String getEmptyMessage() {
+		return emptyMessage;
 	}
 }

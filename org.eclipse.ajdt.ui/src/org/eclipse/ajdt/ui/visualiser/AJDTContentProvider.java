@@ -20,10 +20,10 @@ import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMember;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTContentProvider;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTGroup;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTMember;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTGroup;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -222,7 +222,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	/**
 	 * Override super to reset the colour list when the project changes.
-	 * @see org.eclipse.contribution.visualiser.jdtimpl.JDTContentProvider#setCurrentProject(org.eclipse.jdt.core.IJavaProject)
+	 * @see org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider#setCurrentProject(org.eclipse.jdt.core.IJavaProject)
 	 */
 	protected void setCurrentProject(IJavaProject newProject) {
 		if(currentProject == null || !currentProject.equals(newProject)) {

@@ -13,7 +13,7 @@
    <element name="extension">
       <complexType>
          <sequence>
-            <element ref="contentProvider"/>
+            <element ref="provider"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -39,14 +39,14 @@
       </complexType>
    </element>
 
-   <element name="contentProvider">
+   <element name="provider">
       <annotation>
          <documentation>
-            Content Provider definition.
+            Provider definition.
          </documentation>
       </annotation>
       <complexType>
-         <attribute name="class" type="string" use="required">
+         <attribute name="contentProviderClass" type="string" use="required">
             <annotation>
                <documentation>
                   Content Provider class (must implement org.eclipse.contribution.visualiser.interface.IContentProvider).
@@ -74,7 +74,7 @@
                </documentation>
             </annotation>
          </attribute>
-         <attribute name="markupclass" type="string">
+         <attribute name="markupProviderClass" type="string" use="required">
             <annotation>
                <documentation>
                   Markup provider class (must implement org.eclipse.contribution.visualiser.interfaces.IMarkupProvider).
@@ -99,6 +99,13 @@
             <annotation>
                <documentation>
                   If present, this defines the default palette to be used by this provider
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="emptyMessage" type="string">
+            <annotation>
+               <documentation>
+                  Empty Message - to be displayed in the Visualiser view when no data is available from the content provider.  Should ideally direct the user to how to get some data into the view (e.g. &quot;Click on something in the navigator view&quot;).
                </documentation>
             </annotation>
          </attribute>

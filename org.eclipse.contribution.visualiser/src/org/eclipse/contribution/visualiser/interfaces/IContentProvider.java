@@ -72,16 +72,6 @@ public interface IContentProvider {
 
 	
 	/**
-	 * The String returned here is displayed by the Visualiser when the content
-	 * provider has nothing to display. It should inform the user of the nature of
-	 * the content provider, and the means by which the user gives input to the
-	 * provider.
-	 * @return the message to display to the user when the Visualiser is empty
-	 */
-	public String getEmptyMessage();
-	
-	
-	/**
 	 * Called when switching to this content provider to get the icon used in the Visualiser
 	 * view for Member view.  If null is returned default icons are used. 
 	 * @return image to be used as member view icon
@@ -95,5 +85,17 @@ public interface IContentProvider {
 	 * @return image to be used as group view icon
 	 */
 	public ImageDescriptor getGroupViewIcon();
+	
+	/**
+	 * Called when this provider is selected.
+	 */
+	public void activate();
+	
+	
+	/**
+	 * Called when this provider is currently active and another provider
+	 * is selected.
+	 */
+	public void deactivate();
 	
 }

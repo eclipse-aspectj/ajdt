@@ -82,40 +82,33 @@
          id="inbuilt_providers"
          name="Inbuilt Providers"
          point="org.eclipse.contribution.visualiser.providers">
-    <!-- Sian - Removed as this does not currently show any stripes.
-      <contentProvider
-            markupclass="org.eclipse.contribution.visualiser.jdtimpl.JDTMarkupProvider"
-            name="JDT Content Provider"
-            priority="5"
-            description="Provider that shows Java packages and classes in the visualiser, marks are the Eclipse resource markers"
-            class="org.eclipse.contribution.visualiser.jdtimpl.JDTContentProvider"
-            id="jdtcontentprovider">
-      </contentProvider>
-      -->
-      <contentProvider
-            markupclass="org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileMarkupProvider"
-            name="File content provider"
+     <provider
+            markupProviderClass="org.eclipse.contribution.visualiser.simpleImpl.FileMarkupProvider"
+            name="File-based provider"
             priority="0"
-            description="Simple test provider that reads flat file to determine groups and members and marks"
-            class="org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileContentProvider"
+            emptyMessage="Nothing to display from file-based provider."
+            description="Simple test provider that reads a file to determine groups, members and stripes"
+            contentProviderClass="org.eclipse.contribution.visualiser.simpleImpl.FileContentProvider"
             id="filecontentprovider">
-      </contentProvider>
-      <contentProvider
-            markupclass="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsMarkupProvider"
+      </provider>
+      <provider
+            markupProviderClass="org.eclipse.contribution.visualiser.jdtImpl.JDTSearchResultsMarkupProvider"
             name="JDT Search Results Provider"
             priority="5"
             description="Provider that shows Java search results in the visualiser"
-            class="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsContentProvider"
+            emptyMessage="%JDTSearch.emptyMessage"
+            contentProviderClass="org.eclipse.contribution.visualiser.jdtImpl.JDTSearchResultsContentProvider"
             id="jdtsearchresultscontentprovider">
-      </contentProvider>
-      <contentProvider
-            markupclass="org.eclipse.contribution.visualiser.markerimpl.MarkerMarkupProvider"
+      </provider>
+      <provider
+            markupProviderClass="org.eclipse.contribution.visualiser.markerImpl.MarkerMarkupProvider"
             name="Resources and Markers"
             priority="6"
+            emptyMessage="Nothing to display.  Select a folder or file in the Navigator or the Package Explorer."
             description="Provider that shows markers in the visualiser"
-            class="org.eclipse.contribution.visualiser.markerimpl.ResourceContentProvider"
+            contentProviderClass="org.eclipse.contribution.visualiser.markerImpl.ResourceContentProvider"
             id="markercontentprovider">
-      </contentProvider>
+      </provider>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -149,19 +142,19 @@
 
    <extension
          point="org.eclipse.contribution.visualiser.renderers">
-         <renderer class="org.eclipse.contribution.visualiser.views.ClassicVisualiserRenderer"
+         <renderer class="org.eclipse.contribution.visualiser.renderers.ClassicVisualiserRenderer"
              name="%Renderer.classic.name"
              id="classic">
          </renderer>
-         <renderer class="org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer"
+         <renderer class="org.eclipse.contribution.visualiser.renderers.DefaultVisualiserRenderer"
              name="%Renderer.default.name"
              id="default">
          </renderer>
-         <renderer class="org.eclipse.contribution.visualiser.views.GradientVisualiserRenderer"
+         <renderer class="org.eclipse.contribution.visualiser.renderers.GradientVisualiserRenderer"
              name="%Renderer.gradient.name"
              id="gradientbars">
          </renderer>
-         <renderer class="org.eclipse.contribution.visualiser.views.CylinderRenderer"
+         <renderer class="org.eclipse.contribution.visualiser.renderers.CylinderRenderer"
              name="%Renderer.cylinders.name"
              id="cylinderbars">
          </renderer>
@@ -169,11 +162,11 @@
    
    <extension
          point="org.eclipse.contribution.visualiser.palettes">
-         <palette class="org.eclipse.contribution.visualiser.core.DefaultVisualiserPalette"
+         <palette class="org.eclipse.contribution.visualiser.palettes.DefaultVisualiserPalette"
              name="%Palette.default.name"
              id="defaultpalette">
          </palette>
-         <palette class="org.eclipse.contribution.visualiser.core.BrightVisualiserPalette"
+         <palette class="org.eclipse.contribution.visualiser.palettes.BrightVisualiserPalette"
              name="%Palette.bright.name"
              id="brightpalette">
          </palette>

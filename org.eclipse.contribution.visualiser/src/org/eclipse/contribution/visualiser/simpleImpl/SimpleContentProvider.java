@@ -9,7 +9,7 @@
  *     Andy Clement - initial version
  * 	   Sian January - added additional methods and refactored
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
+package org.eclipse.contribution.visualiser.simpleImpl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -69,7 +69,7 @@ public class SimpleContentProvider implements IContentProvider {
 
 
 	/**
-	 * Initialise the content provider.  This is a default implementation and
+	 * Initialise the content provider.  This is a default imploementation and
 	 * so does nothing.
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#initialise()
 	 */
@@ -106,10 +106,6 @@ public class SimpleContentProvider implements IContentProvider {
 	public boolean processMouseclick(IMember member, boolean markupWasClicked,int buttonClicked) {
 		return true;
 	}
-	
-	public String getEmptyMessage() {
-		return "";
-	}
 
 
 	/**
@@ -132,5 +128,18 @@ public class SimpleContentProvider implements IContentProvider {
 	 */
 	protected void resetModel() {
 		groups = null;
+	}
+	
+	/** 
+	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#activate()
+	 */
+	public void activate() {
+	}
+
+
+	/**
+	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#deactivate()
+	 */
+	public void deactivate() {
 	}
 }

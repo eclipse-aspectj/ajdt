@@ -26,7 +26,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTMember;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

@@ -13,7 +13,7 @@ package org.eclipse.contribution.visualiser.tests;
 
 import org.eclipse.contribution.visualiser.core.resources.VisualiserImages;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMarkupKind;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
 import org.eclipse.swt.graphics.Image;
 
 import junit.framework.TestCase;

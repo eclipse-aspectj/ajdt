@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.contribution.visualiser.core.MarkupUtils;
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMarkupKind;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
+import org.eclipse.contribution.visualiser.utils.MarkupUtils;
 
 import junit.framework.TestCase;
 

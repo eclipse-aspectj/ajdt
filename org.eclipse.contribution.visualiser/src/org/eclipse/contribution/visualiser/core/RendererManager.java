@@ -17,7 +17,7 @@ import java.util.List;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
-import org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer;
+import org.eclipse.contribution.visualiser.renderers.DefaultVisualiserRenderer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -36,7 +36,7 @@ public class RendererManager {
 	public static final String RENDERER_EXTENSION = "org.eclipse.contribution.visualiser.renderers"; //$NON-NLS-1$
 
 	// the class name of the renderer which is the default one
-	private static final String DEFAULT_RENDERER_CLASS = "org.eclipse.contribution.visualiser.views.DefaultVisualiserRenderer"; //$NON-NLS-1$
+	private static final String DEFAULT_RENDERER_CLASS = "org.eclipse.contribution.visualiser.renderers.DefaultVisualiserRenderer"; //$NON-NLS-1$
 
 	private static List /* RendererDefinition */renderers;
 

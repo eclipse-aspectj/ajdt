@@ -14,10 +14,10 @@ import junit.framework.TestCase;
 
 import org.eclipse.contribution.visualiser.core.ProviderDefinition;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileContentProvider;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.FileMarkupProvider;
-import org.eclipse.contribution.visualiser.markerimpl.MarkerMarkupProvider;
-import org.eclipse.contribution.visualiser.markerimpl.ResourceContentProvider;
+import org.eclipse.contribution.visualiser.markerImpl.MarkerMarkupProvider;
+import org.eclipse.contribution.visualiser.markerImpl.ResourceContentProvider;
+import org.eclipse.contribution.visualiser.simpleImpl.FileContentProvider;
+import org.eclipse.contribution.visualiser.simpleImpl.FileMarkupProvider;
 import org.eclipse.contribution.visualiser.views.Menu;
 import org.eclipse.contribution.visualiser.views.Visualiser;
 import org.eclipse.ui.IWorkbench;

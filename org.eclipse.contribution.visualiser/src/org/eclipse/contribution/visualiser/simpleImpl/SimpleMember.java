@@ -8,7 +8,7 @@
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
+package org.eclipse.contribution.visualiser.simpleImpl;
 
 import org.eclipse.contribution.visualiser.interfaces.*;
 

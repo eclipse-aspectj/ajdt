@@ -78,23 +78,6 @@ public interface IMarkupProvider {
 
 	
 	/**
-	 * Markup providers can choose to have multiple stripe modes.
-	 * Return true if the provider requires the visualiser to update,
-	 * false if it doesn't.
-	 * @return true iff the provider requires the visualiser to update,
-	 */
-	public boolean changeMode();
-	
-	
-	/**
-	 * If markup provider has multiple modes the visualiser enables its switch mode 
-	 * icon, otherwise it disables it.
-	 * @return true if this markup provider has multiple modes
-	 */
-	public boolean hasMultipleModes();
-
-	
-	/**
 	 * Called when the user clicks on a stripe on a member in the visualiser - the information passed is
 	 * - The full name of the member, e.g. "ABC.B"
 	 * - The stripe that was clicked (which might contain multiple 'kinds')
@@ -113,15 +96,14 @@ public interface IMarkupProvider {
 	
 	
 	/**
-	 * 
-	 *
+	 * Called when this provider is selected.
 	 */
 	public void activate();
 	
 	
 	/**
-	 * 
-	 *
+	 * Called when this provider is currently active and another provider
+	 * is selected.
 	 */
 	public void deactivate();
 	

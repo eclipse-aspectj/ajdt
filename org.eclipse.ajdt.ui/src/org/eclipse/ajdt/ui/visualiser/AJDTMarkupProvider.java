@@ -22,16 +22,16 @@ import java.util.TreeSet;
 import org.eclipse.ajdt.internal.core.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
-import org.eclipse.contribution.visualiser.core.MarkupUtils;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMarkupKind;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMarkupProvider;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.StealthMarkupKind;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTMember;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTMember;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
+import org.eclipse.contribution.visualiser.simpleImpl.StealthMarkupKind;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
+import org.eclipse.contribution.visualiser.utils.MarkupUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -70,11 +70,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 * Get a List of Stripes for the given member, which are its markups.
 	 */
 	public List getMemberMarkups(IMember member) {
-		List markupList = getMemberMarkups(member);
+		List markupList = super.getMemberMarkups(member);
 		if(markupList != null) {
 			return checkErrorsAndWarnings(markupList); 
-		}		
-
+		}
 		long stime = System.currentTimeMillis();
 		List stripeList = new ArrayList();
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
@@ -220,24 +219,25 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 					}
 					kinds.add(markupKind);					
 				}
-			}
-		}
-		if(!hideErrors) {
-			if(kindMap.get(aspectJErrorKind) instanceof IMarkupKind) {
-				kinds.add((IMarkupKind)kindMap.get(aspectJErrorKind));
-			} else {
-				IMarkupKind errorKind = new StealthMarkupKind(aspectJErrorKind);
-				kinds.add(errorKind);
-				kindMap.put(aspectJErrorKind, errorKind);
-			}
-		}
-		if(!hideWarnings) {
-			if(kindMap.get(aspectJWarningKind) instanceof IMarkupKind) {
-				kinds.add((IMarkupKind)kindMap.get(aspectJWarningKind));
-			} else {
-				IMarkupKind warningKind = new StealthMarkupKind(aspectJWarningKind);
-				kinds.add(warningKind);
-				kindMap.put(aspectJWarningKind, warningKind);
+
+				if(!hideErrors) {
+					if(kindMap.get(aspectJErrorKind) instanceof IMarkupKind) {
+						kinds.add((IMarkupKind)kindMap.get(aspectJErrorKind));
+					} else {
+						IMarkupKind errorKind = new StealthMarkupKind(aspectJErrorKind);
+						kinds.add(errorKind);
+						kindMap.put(aspectJErrorKind, errorKind);
+					}
+				}
+				if(!hideWarnings) {
+					if(kindMap.get(aspectJWarningKind) instanceof IMarkupKind) {
+						kinds.add((IMarkupKind)kindMap.get(aspectJWarningKind));
+					} else {
+						IMarkupKind warningKind = new StealthMarkupKind(aspectJWarningKind);
+						kinds.add(warningKind);
+						kindMap.put(aspectJWarningKind, warningKind);
+					}
+				}
 			}
 		}
 		if (kinds.size() > 0) {

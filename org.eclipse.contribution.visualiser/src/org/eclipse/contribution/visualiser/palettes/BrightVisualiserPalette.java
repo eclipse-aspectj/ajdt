@@ -8,7 +8,7 @@
  * Contributors:
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.core;
+package org.eclipse.contribution.visualiser.palettes;
 
 import org.eclipse.swt.graphics.RGB;
 

@@ -21,6 +21,7 @@ import java.util.TimerTask;
 import java.util.TreeSet;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
+import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.core.RendererManager;
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
@@ -29,7 +30,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
-import org.eclipse.contribution.visualiser.jdtimpl.JDTContentProvider;
+import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
@@ -1092,8 +1093,8 @@ public class VisualiserCanvas extends Canvas {
 
 		if ((data == null) || (data.size() == 0)) {
 			String empty = ""; //$NON-NLS-1$
-			if (Visualiser.contentP != null) {
-				empty = Visualiser.contentP.getEmptyMessage();
+			if (ProviderManager.getCurrent() != null) {
+				empty = ProviderManager.getCurrent().getEmptyMessage();
 			}
 			sgc.drawText(empty, renderer.getMarginSize(), renderer
 					.getMarginSize());

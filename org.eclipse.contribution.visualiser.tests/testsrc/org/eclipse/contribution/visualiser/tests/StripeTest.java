@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
-import org.eclipse.contribution.visualiser.interfaces.simpleImpl.SimpleMarkupKind;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
 
 import junit.framework.TestCase;
 

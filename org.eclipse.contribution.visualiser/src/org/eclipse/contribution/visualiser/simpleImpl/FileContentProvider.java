@@ -8,7 +8,7 @@
  * Contributors:
  *     Andy Clement - initial version
  *******************************************************************************/
-package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
+package org.eclipse.contribution.visualiser.simpleImpl;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -148,14 +148,6 @@ public class FileContentProvider extends SimpleContentProvider {
 		result = result.replace('_', ' ');
 		if (debugLoading) System.err.println("Returning '"+result+"'");
 		return result;
-	}
-	
-	/**
-	 * Return message to display when visualiser is empty
-	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#getEmptyMessage()
-	 */
-	public String getEmptyMessage() {
-		return VisualiserPlugin.getResourceString("FileContentProvider_EmptyMessage"); //$NON-NLS-1$
 	}
 
 }

@@ -94,10 +94,8 @@ public class Menu extends ViewPart {
 	public void setVisMarkupProvider(IMarkupProvider vmp) {
 		if(Menu.vmp != null) {
 			kinds = new HashMap();
-			Menu.vmp.deactivate();
-		}
+			}
 		Menu.vmp = vmp;
-		vmp.activate();
 	}
 	
 	
