@@ -253,11 +253,12 @@ public class Builder extends IncrementalProjectBuilder {
 			}
 
 			monitor = progressMonitor;
-			
-			AJDTEventTrace.build(project, AspectJPlugin
-					.getBuildConfigurationFile(project), ajPlugin
-					.getAjdtProjectProperties().getClasspath());
-			
+
+			// too expensive...
+//			AJDTEventTrace.build(project, AspectJPlugin
+//					.getBuildConfigurationFile(project), ajPlugin
+//					.getAjdtProjectProperties().getClasspath());
+
 			ProjectProperties props = ajPlugin.getAjdtProjectProperties();
 			List projectFiles = props.getProjectSourceFiles(project,
 					CoreUtils.ASPECTJ_SOURCE_FILTER);
