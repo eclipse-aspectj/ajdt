@@ -11,15 +11,12 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.ui.views;
 
-import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
-import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.actions.CollapseAllAction;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
 import org.eclipse.contribution.xref.internal.ui.actions.NavigationHistoryActionGroup;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
-import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
@@ -36,14 +33,9 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -88,43 +80,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		viewer.setContentProvider(contentProvider);
 		viewer.setLabelProvider(new XReferenceLabelProvider());
 		viewer.setAutoExpandLevel(4);
-
-		viewer.getTree().addMouseListener(new MouseAdapter() {
-			public void mouseUp(MouseEvent e) {
-
-				if (viewer.getTree().getSelectionCount() < 1)
-					return;
-
-				if (e.button != 1)
-					return;
-
-				if (viewer.getTree().equals(e.getSource())) {
-					Object o = viewer.getTree().getItem(new Point(e.x, e.y));
-					TreeItem selection = viewer.getTree().getSelection()[0];
-					if (selection.equals(o)) {
-						ISelection viewerSelection = viewer.getSelection();
-						if (viewerSelection instanceof IStructuredSelection) {
-							Object sel =
-								((IStructuredSelection) viewerSelection).getFirstElement();
-							Object data = ((TreeObject) sel).getData();
-							if (data != null) {
-							    if (data instanceof IXReferenceNode) {
-							        XRefUIUtils.revealInEditor(((IXReferenceNode)data).getJavaElement());  
-							    } else if (data instanceof IJavaElement) {
-							    	XRefUIUtils.revealInEditor((IJavaElement) data);
-								} else if (data instanceof IDeferredXReference) {
-									XRefUIUtils.evaluateXReferences((IDeferredXReference) data, viewer, getViewSite().getShell());
-								} else if (data instanceof IResource) {
-									XRefUIUtils.revealInEditor((IResource) data);
-								}
-							}
-						}
-						
-					}
-				}
-				
-			}
-		});
 		
 		restorePersistedSettings();
 		makeActions();
