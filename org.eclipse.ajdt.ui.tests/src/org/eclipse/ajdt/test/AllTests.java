@@ -110,5 +110,6 @@ public class AllTests {
 		AJDTConfigSettings.disableAnalyzeAnnotations();
 		AJDTConfigSettings.setAspectJEditorDefault();
 		AspectJPreferences.setAJDTPrefConfigDone(true);
+		AspectJPreferences.setRunAJDT120(true);
 	}
 }

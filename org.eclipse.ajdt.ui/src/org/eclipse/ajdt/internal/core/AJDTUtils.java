@@ -935,11 +935,13 @@ public class AJDTUtils {
 		// override: always show wizard if this is the first time running
 		// on AJDT 1.2.0 (because the editor has changed id)
 		if (!AspectJPreferences.isRunAJDT120()) {
-			AspectJPreferences.setRunAJDT120(true);
 			showWizard = true;
 		}
 		
-		if (showWizard) {
+		if (showWizard && !AspectJPreferences.isAJDTPrefConfigShowing()) {
+			AspectJPreferences.setAJDTPrefConfigShowing(true);
+			// make sure we don't run the wizard twice
+			AspectJPreferences.setRunAJDT120(true);
 			// Create and initialize the AJDT Preferences Configuration Wizard
 			org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard wizard = new org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard();
 			wizard.init();

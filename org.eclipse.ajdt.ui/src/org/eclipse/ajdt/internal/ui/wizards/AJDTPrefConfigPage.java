@@ -17,7 +17,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
  * All Rights Reserved.
  */
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+//import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -62,11 +62,12 @@ public class AJDTPrefConfigPage extends WizardPage {
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		setControl(composite);
 	
+		// override: always create checkboxes
 		// create workbench preferences group
-		if (!AJDTConfigSettings.isAspectJEditorDefault()
-				/*||
-			!AJDTConfigSettings.isUnusedImportsDisabled()*/ ||
-			!AJDTConfigSettings.isAnalyzeAnnotationsDisabled()) {
+		//if (!AJDTConfigSettings.isAspectJEditorDefault()
+		//		/*||
+		//	!AJDTConfigSettings.isUnusedImportsDisabled()*/ ||
+		//	!AJDTConfigSettings.isAnalyzeAnnotationsDisabled()) {
 			Group workbench = new Group(composite, SWT.NONE);
 			workbench.setLayout(new GridLayout());
 			workbench.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.group"));
@@ -74,29 +75,29 @@ public class AJDTPrefConfigPage extends WizardPage {
 	
 			// create workbench preferences checkboxes; only create checkboxes
 			// for those settings that are not already configured for AJDT
-			if (!AJDTConfigSettings.isAspectJEditorDefault()) {			
+			//if (!AJDTConfigSettings.isAspectJEditorDefault()) {			
 				aspectJEditorDefaultCheckbox = new Button(workbench, SWT.CHECK);		
 				aspectJEditorDefaultCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.ajeditordefault"));
 				aspectJEditorDefaultCheckbox.setSelection(true);
-			}
+			//}
 //			if (!AJDTConfigSettings.isUnusedImportsDisabled()) {	
 //				unusedImportsCheckbox = new Button(workbench, SWT.CHECK);	
 //				unusedImportsCheckbox.setText(AspectJPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.unusedimports"));
 //				unusedImportsCheckbox.setSelection(true);
 //			}
-			if (!AJDTConfigSettings.isAnalyzeAnnotationsDisabled()) {	
+			//if (!AJDTConfigSettings.isAnalyzeAnnotationsDisabled()) {	
 				analyzeAnnotationsCheckbox = new Button(workbench, SWT.CHECK);		
 				analyzeAnnotationsCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.analyzeannotations"));
 				analyzeAnnotationsCheckbox.setSelection(true);
-			}
-		}	
+			//}
+		//}	
 							
 		new Label(composite, SWT.NONE); // vertical spacer
 		
 		// create "don't ask again" checkbox
-		dontAskAgainCheckbox = new Button(composite, SWT.CHECK);
-		dontAskAgainCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.askagain"));
-		dontAskAgainCheckbox.setSelection(true);
+//		dontAskAgainCheckbox = new Button(composite, SWT.CHECK);
+//		dontAskAgainCheckbox.setText(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.askagain"));
+//		dontAskAgainCheckbox.setSelection(true);
 	}
 	
 	
@@ -123,7 +124,7 @@ public class AJDTPrefConfigPage extends WizardPage {
 			disableAnalyzeAnnotations = analyzeAnnotationsCheckbox.getSelection();
 		} 
 			
-		boolean dontAskAgain = dontAskAgainCheckbox.getSelection();
+		//boolean dontAskAgain = dontAskAgainCheckbox.getSelection();
 		
 		// turn the "analyse annotations" off
 		if (disableAnalyzeAnnotations) {
@@ -140,9 +141,9 @@ public class AJDTPrefConfigPage extends WizardPage {
 			AJDTConfigSettings.setAspectJEditorDefault();
 		}
 		
-		if (dontAskAgain) {
-			AspectJPreferences.setAJDTPrefConfigDone(true);
-		}
+//		if (dontAskAgain) {
+//			AspectJPreferences.setAJDTPrefConfigDone(true);
+//		}
 		
 		return true;
 	}

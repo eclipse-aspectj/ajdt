@@ -162,7 +162,6 @@ public class Builder extends IncrementalProjectBuilder {
 					.println("Building at " + new java.util.Date().toString());
 
 		if (!AspectJPreferences.isAJDTPrefConfigShowing()) {
-            AspectJPreferences.setAJDTPrefConfigShowing(true);
     		Display.getDefault().asyncExec(new Runnable() {
     			public void run() {
     				AJDTUtils.verifyWorkbenchConfiguration();
