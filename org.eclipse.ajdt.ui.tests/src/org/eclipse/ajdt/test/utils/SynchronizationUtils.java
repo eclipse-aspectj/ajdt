@@ -45,7 +45,7 @@ public class SynchronizationUtils {
 	}
 		
 	public static void joinBackgroudActivities() throws CoreException {
-		System.out.println("joinBackgroundActivities");
+		//System.out.println("joinBackgroundActivities");
 		// Join Building
 		boolean interrupted= true;
 		while (interrupted) {
@@ -56,7 +56,7 @@ public class SynchronizationUtils {
 				interrupted= true;
 			}
 		}
-		System.out.println("joined building");
+		//System.out.println("joined building");
 		// Join indexing
 		new SearchEngine().searchAllTypeNames(
 			null,
@@ -72,7 +72,7 @@ public class SynchronizationUtils {
 			IJavaSearchConstants.CLASS, new NullProgressMonitor(), new ArrayList());
 		// Join jobs
 		joinJobs(0, 0, 500);
-		System.out.println("joined jobs");
+		//System.out.println("joined jobs");
 	}
 
 	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {

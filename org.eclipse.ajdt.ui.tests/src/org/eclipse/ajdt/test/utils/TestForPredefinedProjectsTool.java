@@ -40,10 +40,13 @@ public class TestForPredefinedProjectsTool extends TestCase {
 		} catch (JavaModelException e) {
 			fail("Project 'Hello World Project' was not imported correctly.");
 		}
+		Utils.deleteProject(p);
 		
 		p = Utils.getPredefinedProject("project name that (hopefully) does not exist", false);
 		if (p != null)
 			fail("Could import project that does not exist.");
+		
+		
 	}
 	
 	/**
@@ -53,17 +56,13 @@ public class TestForPredefinedProjectsTool extends TestCase {
 	 */
 	public void testProjectsToolWithClosedProjects() throws Exception {
 		IProject p = Utils.getPredefinedProject("Hello World Project", true);
-		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		monitor.reset();
-		p.close(monitor);
-		monitor.waitForCompletion();
+		p.close(null);
+		Utils.waitForJobsToComplete();
 		
 		IProject p2 = Utils.getPredefinedProject("Hello World Project", true);
 		assertTrue("project should now be open",p2.isOpen());
 
-		monitor.reset();
-		p2.close(monitor);
-		monitor.waitForCompletion();		
+		Utils.deleteProject(p2);
 	}
 	
 }

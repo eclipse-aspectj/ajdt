@@ -47,10 +47,16 @@ public class ClasspathOrderTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = Utils.getPredefinedProject("ClasspathOrdering", true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete(project);
 	}
 
+	/*
+	 * @see TestCase#tearDown()
+	 */
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		Utils.deleteProject(project);
+	}
+	
 	public void testClasspathOrder() throws Exception {
 		assertFalse(
 				"ClasspathOrdering project shouldn't yet have AspectJ nature",
@@ -63,7 +69,7 @@ public class ClasspathOrderTest extends TestCase {
 		}
 		ITextEditor editorPart = (ITextEditor) Utils.openFileInEditor(
 				(IFile) res, false);
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 
 		boolean foundError = false;
 		IMarker[] markers = getMarkers(res, editorPart);
@@ -77,11 +83,11 @@ public class ClasspathOrderTest extends TestCase {
 		assertFalse("Java project has errors", foundError);
 
 		AJDTUtils.addAspectJNature(project);
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 		assertTrue("ClasspathOrdering project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(project));
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete(project);
+		Utils.waitForJobsToComplete();
 
 		foundError = false;
 		markers = getMarkers(res, editorPart);

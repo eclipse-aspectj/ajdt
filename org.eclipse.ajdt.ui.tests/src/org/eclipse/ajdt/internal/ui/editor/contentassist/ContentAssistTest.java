@@ -47,6 +47,7 @@ public class ContentAssistTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(fProject);
 	}
 	
 	public void testContentAssistA() throws JavaModelException{

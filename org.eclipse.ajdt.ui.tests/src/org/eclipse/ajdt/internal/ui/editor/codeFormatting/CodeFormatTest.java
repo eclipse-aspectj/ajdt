@@ -40,6 +40,14 @@ public class CodeFormatTest extends TestCase {
 		
 	}
 	
+	/*
+	 * @see TestCase#tearDown()
+	 */
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		Utils.deleteProject(project);
+	}
+	
 	public void testCodeFormat() {
 		String filename = "src/bean/BoundPoint.aj";
 		IFile sourceFile = (IFile)project.findMember(filename);
@@ -47,16 +55,16 @@ public class CodeFormatTest extends TestCase {
 
 		ITextEditor editorPart = (ITextEditor)Utils.openFileInEditor(
 				(IFile)sourceFile, true);
-		Utils.waitForJobsToComplete(sourceFile.getProject());
+		Utils.waitForJobsToComplete();
 		
 		IDocument document = editorPart.getDocumentProvider().getDocument(
 				editorPart.getEditorInput());
 		formatEditor(editorPart);
-		Utils.waitForJobsToComplete(sourceFile.getProject());
+		Utils.waitForJobsToComplete();
 		
 		// save the buffer		
 		editorPart.doSave(null);
-		Utils.waitForJobsToComplete(sourceFile.getProject());
+		Utils.waitForJobsToComplete();
 
 		verifyDoc1(document);
 		verifyDoc2(document);
@@ -70,7 +78,7 @@ public class CodeFormatTest extends TestCase {
 		} catch (CoreException e) {
 			fail("building failed.");
 		}
-		Utils.waitForJobsToComplete(sourceFile.getProject());
+		Utils.waitForJobsToComplete();
 	}
 
 

@@ -20,7 +20,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -43,7 +42,6 @@ public class AspectJQuickFixTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = Utils.getPredefinedProject("QuickFix", true);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	}
 
 	/*
@@ -51,6 +49,7 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.deleteProject(project);
 	}
 
 	public void testJavaQuickFix() throws Exception {
@@ -67,7 +66,7 @@ public class AspectJQuickFixTest extends TestCase {
 				sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete(sourcefile.getProject());
+		Utils.waitForJobsToComplete();
 
 		IMarker[] markers = getMarkers(sourcefile, editorPart);
 

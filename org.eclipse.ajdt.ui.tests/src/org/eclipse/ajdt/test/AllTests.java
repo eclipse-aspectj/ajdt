@@ -16,8 +16,17 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.core.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.model.AJComparatorTest;
 import org.eclipse.ajdt.core.model.AJModelTest;
+import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
+import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
+import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
+import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
+import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
+import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.test.utils.Utils;
+import org.eclipse.ajdt.ui.CodeTemplatesTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -35,7 +44,7 @@ public class AllTests {
 		setupAJDTPlugin();
 		
 		// test the predefined project tool
-//		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
+		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
 //		
 //		// buildconfigurator tests
 //		suite.addTest(new TestSuite(UtilTests.class));
@@ -44,7 +53,7 @@ public class AllTests {
 //		suite.addTest(new TestSuite(BuildConfiguratorTest.class));
 //		
 //		// internal.core tests
-//		suite.addTest(new TestSuite(NewAspectUtilsTest.class));
+		suite.addTest(new TestSuite(NewAspectUtilsTest.class));
 //		suite.addTest(new TestSuite(AJDTUtilsTest.class));
 //
 //		// internal.ui.actions tests
@@ -52,26 +61,26 @@ public class AllTests {
 //		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
 //
 //		// internal.ui.preferences tests
-//		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
-//		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
+		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
+		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
 //
 //		// internal.ui.editor tests
 //		suite.addTest(new TestSuite(AspectJEditorTest.class));
 //		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
 //
 //		// code format tests
-//		suite.addTest(new TestSuite(CodeFormatTest.class));
+		suite.addTest(new TestSuite(CodeFormatTest.class));
 //		
 //		// internal.ui.ajde tests
-//		suite.addTest(new TestSuite(ClasspathOrderTest.class));
+		suite.addTest(new TestSuite(ClasspathOrderTest.class));
 //		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
 //
 //		// internal.ui.editor.quickfix tests
-//		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
+		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
 //		
 //		// ui tests
-//		suite.addTest(new TestSuite(CodeTemplatesTest.class));
-//		suite.addTest(new TestSuite(ContentAssistTest.class));
+		suite.addTest(new TestSuite(CodeTemplatesTest.class));
+		suite.addTest(new TestSuite(ContentAssistTest.class));
 //		
 //		// new aspectJ project wizard
 //		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
