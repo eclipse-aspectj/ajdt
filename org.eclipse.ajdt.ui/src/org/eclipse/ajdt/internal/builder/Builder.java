@@ -31,9 +31,10 @@ import org.aspectj.asm.IRelationshipMap;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
@@ -67,7 +68,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * This Builder selects the appropriate .lst (build config file) for the project
@@ -76,11 +76,6 @@ import org.eclipse.ui.PlatformUI;
  * option off under workbench->preferences.
  */
 public class Builder extends IncrementalProjectBuilder {
-
-	/**
-	 * The name of the default build config file for an AspectJ project
-	 */
-	public static final String DEFAULT_CONFIG_FILE = ".generated.lst";
 
 	/**
 	 * Code returned when a failure occurs creating a build config file
@@ -260,13 +255,13 @@ public class Builder extends IncrementalProjectBuilder {
 
 			monitor = progressMonitor;
 			
-			AJDTEventTrace.build(project, AspectJUIPlugin
+			AJDTEventTrace.build(project, AspectJPlugin
 					.getBuildConfigurationFile(project), ajPlugin
 					.getAjdtProjectProperties().getClasspath());
 			
 			ProjectProperties props = ajPlugin.getAjdtProjectProperties();
 			List projectFiles = props.getProjectSourceFiles(project,
-					ProjectProperties.ASPECTJ_SOURCE_FILTER);
+					CoreUtils.ASPECTJ_SOURCE_FILTER);
 			updateBuildConfigIfNecessary(project, projectFiles);
 
 			// checking to see if the current project has been marked as needing
@@ -789,34 +784,29 @@ public class Builder extends IncrementalProjectBuilder {
 
 	int totalrels = 0;
 
-	private void dumpModelHelper(int depth, IProgramElement node,
+	private void dumpModelHelper(int depth, IProgramElement ipe,
 			IRelationshipMap irm) {
 		totalnodes++;
-		if (node instanceof IProgramElement) {
-			IProgramElement ipe = (IProgramElement) node;
-			List rels = irm.get(ipe);
-			if (AspectJUIPlugin.DEBUG_BUILDER) {
-				StringBuffer line = new StringBuffer();
-				for (int i = 0; i < depth; i++)
-					line.append("-");
-				line.append(">");
-				line.append(node.toString());
-				if (ipe.getSourceLocation() != null)
-					line.append("    ").append(
-							ipe.getSourceLocation().getSourceFile());
-				AJDTEventTrace.generalEvent(line.toString());
+		List rels = irm.get(ipe);
+		if (AspectJUIPlugin.DEBUG_BUILDER) {
+			StringBuffer line = new StringBuffer();
+			for (int i = 0; i < depth; i++)
+				line.append("-");
+			line.append(">");
+			line.append(ipe.toString());
+			if (ipe.getSourceLocation() != null)
+				line.append("    ").append(
+						ipe.getSourceLocation().getSourceFile());
+			AJDTEventTrace.generalEvent(line.toString());
+		}
+		if (rels != null)
+			totalrels += rels.size();
+		if (ipe.getChildren() != null) {
+			Iterator iter = ipe.getChildren().iterator();
+			while (iter.hasNext()) {
+				IProgramElement h = (IProgramElement) iter.next();
+				dumpModelHelper(depth + 2, h, irm);
 			}
-			if (rels != null)
-				totalrels += rels.size();
-			if (ipe.getChildren() != null) {
-				Iterator iter = ipe.getChildren().iterator();
-				while (iter.hasNext()) {
-					IProgramElement h = (IProgramElement) iter.next();
-					dumpModelHelper(depth + 2, h, irm);
-				}
-			}
-		} else {
-			AJDTEventTrace.generalEvent("What the hell is this?" + node);
 		}
 	}
 
@@ -829,7 +819,7 @@ public class Builder extends IncrementalProjectBuilder {
 			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			List includedFileNames = bc.getIncludedJavaFileNames(ProjectProperties.ASPECTJ_SOURCE_FILTER);
+			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
 		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
                 return true;
             } else {
@@ -926,7 +916,7 @@ public class Builder extends IncrementalProjectBuilder {
 	 * this project.
 	 */
 	private String getBuildFilePath(IProject project) {
-		String buildfile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		String buildfile = AspectJPlugin.getBuildConfigurationFile(project);
 		return buildfile;
 	}
 
@@ -936,7 +926,7 @@ public class Builder extends IncrementalProjectBuilder {
 	 */
 	private void updateBuildConfigIfNecessary(IProject project,
 			List projectFiles) throws CoreException {
-		if (getBuildFilePath(project).endsWith(DEFAULT_CONFIG_FILE)) {
+		if (getBuildFilePath(project).endsWith(AspectJPlugin.DEFAULT_CONFIG_FILE)) {
 			writeBuildConfigFile(projectFiles, project);
 		}
 	}
@@ -963,7 +953,7 @@ public class Builder extends IncrementalProjectBuilder {
 			fw.flush();
 			bw.close();
 			// now tell eclipse the file has been updated
-			IResource res = project.findMember(DEFAULT_CONFIG_FILE);
+			IResource res = project.findMember(AspectJPlugin.DEFAULT_CONFIG_FILE);
 			if (res != null) {
 				// Fix for 40556.
 				// No progress reporting required on this

@@ -15,6 +15,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -70,7 +71,7 @@ public class AspectJProjectWizard
 		fMainPage.setImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		
 		addPage(fMainPage);
-		IWorkspaceRoot root = AspectJUIPlugin.getWorkspace().getRoot();
+		IWorkspaceRoot root = AspectJPlugin.getWorkspace().getRoot();
 		fJavaPage = new NewJavaProjectWizardPage(root, fMainPage);
 		addPage(fJavaPage);
 	}
@@ -106,7 +107,7 @@ public class AspectJProjectWizard
 			if(!fMainPage.hasCorrectCapitalisation()) { //auto correct the users capitalization
 				//To correct the name of the project a separate wizard is required so the text field
 				//can be set
-				IWorkspaceRoot root = AspectJUIPlugin.getWorkspace().getRoot();
+				IWorkspaceRoot root = AspectJPlugin.getWorkspace().getRoot();
 				AspectJWizardNewProjectCreationPage TempMainPage =
 					new AspectJWizardNewProjectCreationPage("NewAspectjProjectCreationWizard");
 				TempMainPage.setInitialProjectName(fMainPage.getCorrectCapitalization());

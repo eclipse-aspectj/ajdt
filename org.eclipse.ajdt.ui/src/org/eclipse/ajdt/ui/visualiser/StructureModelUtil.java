@@ -31,9 +31,12 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.weaver.AsmRelationshipProvider;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+
 import org.eclipse.core.resources.IResource;
 
 /**
@@ -443,8 +446,7 @@ public class StructureModelUtil {
 	 * This method sets the current project and initialises AJDE
 	 */
 	public static void initialiseAJDE(IProject withProject) {
-	
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(withProject);
+		String configFile = AspectJPlugin.getBuildConfigurationFile(withProject);
 		if (!configFile.equals(lastLoadedConfigFile)) {
 			AJDTEventTrace.generalEvent("initialiseAJDE: switching configs - from:"+lastLoadedConfigFile+" to:"+configFile);
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(

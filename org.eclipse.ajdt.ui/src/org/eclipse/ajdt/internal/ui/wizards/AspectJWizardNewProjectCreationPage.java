@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -42,7 +43,7 @@ public class AspectJWizardNewProjectCreationPage extends WizardNewProjectCreatio
 	protected boolean validatePage() {
 
 		IPath projectSource = getLocationPath();
-		IWorkspaceRoot wRoot = AspectJUIPlugin.getWorkspace().getRoot();
+		IWorkspaceRoot wRoot = AspectJPlugin.getWorkspace().getRoot();
 		IPath x = wRoot.getLocation();
 		exactProjectMatch = false;
 		reconstructProject = false;
@@ -137,8 +138,8 @@ public class AspectJWizardNewProjectCreationPage extends WizardNewProjectCreatio
 	}
 	
 	private boolean OpSystemIsCaseSensitive() {
-		File testFile1 = AspectJUIPlugin.getWorkspace().getRoot().getLocation().append("testlocation").toFile();
-		File testFile2 = AspectJUIPlugin.getWorkspace().getRoot().getLocation().append("TESTLOCATION").toFile();		
+		File testFile1 = AspectJPlugin.getWorkspace().getRoot().getLocation().append("testlocation").toFile();
+		File testFile2 = AspectJPlugin.getWorkspace().getRoot().getLocation().append("TESTLOCATION").toFile();		
 		if(testFile1.equals(testFile2))
 			return false;
 		else

@@ -15,9 +15,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
@@ -345,7 +346,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 			//in case it is a .aj file, we need to register it in the
 			// WorkingCopyManager
-			if (ProjectProperties.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
+			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
 
 				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
@@ -398,7 +399,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 */
 	private void updateActiveConfig(IFileEditorInput fInput ) {
 		IProject project = fInput.getFile().getProject();
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
 			AJDTEventTrace.buildConfigSelected( configFile, project );
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
@@ -458,7 +459,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 									.generalEvent("Forcing update of outline page for editor: "
 											+ ajed.getEditorInput().getName());
 							try {
-								ajed.contentOutlinePage.update();
+								if (ajed.contentOutlinePage != null) {
+									ajed.contentOutlinePage.update();
+								}
 							} catch (Exception e) {
 								AJDTEventTrace
 										.generalEvent("Unexpected exception updating editor outline "

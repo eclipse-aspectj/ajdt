@@ -26,6 +26,7 @@ import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.weaver.WeaverMetrics;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.builder.Builder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -221,7 +222,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
             // not exist, it cannot have outstanding markers.
 
             IPath resourcePath = new Path(text.substring(10));
-            IWorkspaceRoot workspaceRoot = AspectJUIPlugin.getWorkspace()
+            IWorkspaceRoot workspaceRoot = AspectJPlugin.getWorkspace()
                     .getRoot();
 
             if (linked) {
@@ -647,7 +648,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
         };
 
         try {
-            AspectJUIPlugin.getWorkspace().run(r, null);
+            AspectJPlugin.getWorkspace().run(r, null);
         } catch (CoreException cEx) {
             AspectJUIPlugin.getDefault().getErrorHandler().handleError(
                     "AJDT Error adding problem markers", cEx);
@@ -829,7 +830,7 @@ public class CompilerMonitor implements TaskListManager, BuildProgressMonitor {
                         break;
                 } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                     IPath projPath = cpEntry.getPath();
-                    IResource projResource = AspectJUIPlugin.getWorkspace()
+                    IResource projResource = AspectJPlugin.getWorkspace()
                             .getRoot().findMember(projPath);
                     ret = findFile(new IResource[] { projResource }, toFind);
                 }

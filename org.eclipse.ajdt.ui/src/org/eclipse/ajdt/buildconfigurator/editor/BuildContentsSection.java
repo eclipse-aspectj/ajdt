@@ -19,7 +19,7 @@ import java.util.Vector;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuild;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -90,7 +90,7 @@ public abstract class BuildContentsSection extends TableSection
 							addElementsOnClasspath(children, jp, res[i]);
 						}
 					} else {
-						if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(res[i].getName()))
+						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(res[i].getName()))
 							children.add(res[i]);
 					}
 

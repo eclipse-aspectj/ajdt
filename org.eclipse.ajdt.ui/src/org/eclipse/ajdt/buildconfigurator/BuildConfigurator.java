@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -306,7 +306,7 @@ public class BuildConfigurator implements ISelectionListener {
 				if (reses[i] instanceof IContainer){
 					addAllIncludedMembers(l, (IContainer)reses[i], jp);
 				} else {
-					if (jp.isOnClasspath(reses[i]) && ProjectProperties.ASPECTJ_SOURCE_FILTER
+					if (jp.isOnClasspath(reses[i]) && CoreUtils.ASPECTJ_SOURCE_FILTER
 							.accept(reses[i].getName())){
 						l.add(reses[i]);
 					}

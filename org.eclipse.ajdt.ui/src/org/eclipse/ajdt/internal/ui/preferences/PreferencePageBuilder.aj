@@ -17,6 +17,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
 import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
@@ -388,7 +389,7 @@ aspect PreferencePageBuilder {
                 return compilerPageDoBuild;
             }
         }
-        return AspectJUIPlugin.getWorkspace().getDescription().isAutoBuilding();
+        return AspectJPlugin.getWorkspace().getDescription().isAutoBuilding();
     }
     
     /**

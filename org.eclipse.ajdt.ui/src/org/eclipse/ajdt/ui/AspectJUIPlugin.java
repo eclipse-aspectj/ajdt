@@ -23,9 +23,11 @@ import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
@@ -300,13 +302,6 @@ public class AspectJUIPlugin
 	}
 
 	/**
-	 * Returns the workspace instance.
-	 */
-	public static IWorkspace getWorkspace() {
-		return ResourcesPlugin.getWorkspace();
-	}
-
-	/**
 	 * Returns the string from the plugin's resource bundle,
 	 * or 'key' if not found.
 	 */
@@ -363,7 +358,7 @@ public class AspectJUIPlugin
 	      store.setValue(propertyName,buildfile.getLocation().toOSString());
 	      
 	
-		String cfg = getBuildConfigurationFile( project );      
+		String cfg = AspectJPlugin.getBuildConfigurationFile( project );      
 		Ajde.getDefault().getConfigurationManager().
 		  setActiveConfigFile( cfg );
 		AJDTEventTrace.buildConfigSelected( cfg, project);
@@ -380,31 +375,6 @@ public class AspectJUIPlugin
 		}	
 	}
 	
-
-	/**
-	 * Get the build configuration file to be used for building this project.
-	 * If the user hasn't selected one, use ".generated.lst" in the project directory
-	 */
-	public static String getBuildConfigurationFile(IProject project) {
-		
-//		IPreferenceStore store = AspectJPlugin.getDefault().getPreferenceStore();
-//	 
-//	    String propertyName = "org.eclipse.ajdt.ui."+project.getName()+".lst";
-//	    
-		String configFile; //= store.getString(propertyName);
-//		
-//		//if (configFile == null || configFile.length()==0 || configFile.equals(defaultLstShouldBeUsed)) {
-			configFile = AJDTUtils.getProjectRootDirectory( project ) + 
-						 File.separator +
-						 org.eclipse.ajdt.internal.builder.Builder.DEFAULT_CONFIG_FILE;
-//			store.setValue( propertyName, configFile );
-//		//} 
-//		if (isDebugging) {
-//			System.out.println("using: " + configFile);
-//		}
-		return configFile;
-	}
-
 
 	/**
 	 * Creates an AspectJPlugin instance and initializes the 
@@ -508,7 +478,7 @@ public class AspectJUIPlugin
 		  	  AJDTEventTrace.generalEvent("New version of AJDE detected (now:"+
 		  	    currentAjdeVersion+") - checking aspectjrt.jar for each project.");
 
- 		      IProject[] projects = getWorkspace().getRoot().getProjects();
+ 		      IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
 		      for(int i=0; i<projects.length;i++) { 
 			    if (projects[i].isOpen()) {
 				  IProject current = projects[i];
@@ -662,7 +632,7 @@ public class AspectJUIPlugin
 			// listener for build configurator
 			enableBuildConfiguratorResourceChangeListener();
 			// listener for aspectj model
-			getWorkspace().addResourceChangeListener(new ResourceChangeListener(), IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE | IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_BUILD);
+			AspectJPlugin.getWorkspace().addResourceChangeListener(new ResourceChangeListener(), IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE | IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_BUILD);
 		}
 		
 	    // the following came from the 2.x constructor - needs to be put here
@@ -699,7 +669,7 @@ public class AspectJUIPlugin
 		AJDTEventTrace.startup();    
 	    checkAspectJVersion();
 	    
-	    AJCompilationUnitManager.INSTANCE.initCompilationUnits(getWorkspace());
+	    AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin.getWorkspace());
 		AJDTUtils.refreshPackageExplorer();
 	}
 
@@ -742,7 +712,7 @@ public class AspectJUIPlugin
 		if (currentProject != null) {
 			current = currentProject;
 		} else {
-			IProject[] projects = getWorkspace().getRoot().getProjects();
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
 			for(int i=0; i<projects.length;i++) { 
 				if (projects[i].isOpen()) {
 					current = projects[i];
@@ -778,7 +748,7 @@ public class AspectJUIPlugin
 	 */
 	public void setCurrentProject(String projectName) {
 		boolean matched = false;
-		IProject[] projects = getWorkspace().getRoot().getProjects();
+		IProject[] projects = AspectJPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < projects.length; i++) {
 			if (projects[i].getName().equals(projectName)) {
 				currentProject = projects[i];
@@ -945,7 +915,7 @@ public class AspectJUIPlugin
 	 *  
 	 */
 	public void disableBuildConfiguratorResourceChangeListener() {
-		getWorkspace().removeResourceChangeListener(resourceChangeListener);
+		AspectJPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
 	}
 
 	/**
@@ -953,7 +923,7 @@ public class AspectJUIPlugin
 	 *  
 	 */
 	public void enableBuildConfiguratorResourceChangeListener() {
-		getWorkspace().addResourceChangeListener(
+		AspectJPlugin.getWorkspace().addResourceChangeListener(
 				resourceChangeListener,
 				IResourceChangeEvent.PRE_CLOSE
 						| IResourceChangeEvent.PRE_DELETE

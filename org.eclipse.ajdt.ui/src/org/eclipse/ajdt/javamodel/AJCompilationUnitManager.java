@@ -19,7 +19,7 @@ import java.util.List;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -130,7 +130,7 @@ public class AJCompilationUnitManager {
 	}
 
 	private boolean creatingCUisAllowedFor(IFile file) {
-		return (ProjectProperties.ASPECTJ_SOURCE_ONLY_FILTER.accept(file
+		return (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file
 				.getName())
 				&& (BuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(file.getProject()) != null) && (JavaCore
@@ -214,7 +214,7 @@ public class AJCompilationUnitManager {
 				if (resource.getType() == IResource.FOLDER)
 					addAllAJFilesInFolder((IFolder) resource, l);
 				else if ((resource.getType() == IResource.FILE)
-						&& ProjectProperties.ASPECTJ_SOURCE_ONLY_FILTER
+						&& CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER
 								.accept(resource.getName()))
 					l.add(resource);
 			}

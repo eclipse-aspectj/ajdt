@@ -18,7 +18,7 @@ import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.internal.builder.AJModel;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -148,7 +148,7 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		} else if (element instanceof IFile){
 			IFile file= (IFile) element;
-			if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
+			if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
 				ProjectBuildConfigurator pbc = buildConfor.getProjectBuildConfigurator(file.getProject());
 				
 				if (pbc == null)

@@ -11,7 +11,7 @@ package org.eclipse.ajdt.buildconfigurator;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -164,8 +164,8 @@ public class UpdateJob extends Job {
 	private void fileMoved() {
 		if ((myRes2 == null) || (myRes == null))
 			return;
-		if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes2.getName())
-				&& ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes
+		if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(myRes2.getName())
+				&& CoreUtils.ASPECTJ_SOURCE_FILTER.accept(myRes
 						.getName())) {
 			ProjectBuildConfigurator pbc = myBCor
 					.getProjectBuildConfigurator(myRes.getProject());

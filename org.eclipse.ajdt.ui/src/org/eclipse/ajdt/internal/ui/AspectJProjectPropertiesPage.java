@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -351,7 +352,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 				if (!outJar.startsWith(File.separator)) {
 					IJavaProject jp = JavaCore.create(thisProject);
 					IPath workspaceRelativeOutpath = jp.getOutputLocation();
-					IPath full = AspectJUIPlugin.getWorkspace().getRoot().getLocation().append(workspaceRelativeOutpath);
+					IPath full = AspectJPlugin.getWorkspace().getRoot().getLocation().append(workspaceRelativeOutpath);
 					outJar = full.toOSString();					
 				}
 			} catch (JavaModelException jme) {

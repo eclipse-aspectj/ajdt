@@ -21,6 +21,7 @@ import java.util.List;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
@@ -95,15 +96,8 @@ public class AJDTUtils {
 	 * D:\eclipse\workspace
 	 */
 	public static String getWorkspacePath() {
-		return AspectJUIPlugin.getWorkspace().getRoot().getLocation()
+		return AspectJPlugin.getWorkspace().getRoot().getLocation()
 				.toOSString();
-	}
-
-	/**
-	 * Return the fully-qualified name of the root directory for a project.
-	 */
-	public static String getProjectRootDirectory(IProject project) {
-		return project.getLocation().toOSString();
 	}
 
 	/**
@@ -422,7 +416,7 @@ public class AJDTUtils {
 				// manually twice.
 				project.build(IncrementalProjectBuilder.FULL_BUILD,
 						"org.eclipse.ajdt.ui.ajbuilder", null, null);
-				AspectJUIPlugin.getWorkspace().getRoot().refreshLocal(
+				AspectJPlugin.getWorkspace().getRoot().refreshLocal(
 						IResource.DEPTH_INFINITE, null);
 			}
 		} catch (CoreException e) {
@@ -642,7 +636,7 @@ public class AJDTUtils {
 	public static List getDependingProjects(IProject project) {
 		List projects = new ArrayList();
 
-		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace()
+		IProject[] projectsInWorkspace = AspectJPlugin.getWorkspace()
 				.getRoot().getProjects();
 		List outputLocationPaths = getOutputLocationPaths(project);
 		IClasspathEntry[] exportedEntries = getExportedEntries(project);
@@ -712,7 +706,7 @@ public class AJDTUtils {
 			return new IProject[0];
 
 		List requiredProjects = new ArrayList();
-		IProject[] projectsInWorkspace = AspectJUIPlugin.getWorkspace()
+		IProject[] projectsInWorkspace = AspectJPlugin.getWorkspace()
 				.getRoot().getProjects();
 
 		iterateOverProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {

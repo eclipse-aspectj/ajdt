@@ -20,8 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.buildconfigurator.editor.BuildProperties;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties.FilenameFilter;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -212,7 +211,7 @@ public class BuildConfiguration implements Cloneable,
 						boolean containsAll = true;
 						for (int i = 0; i < mems.length; i++) {
 							if (!temp1.contains(mems[i])
-									&& ProjectProperties.ASPECTJ_SOURCE_FILTER
+									&& CoreUtils.ASPECTJ_SOURCE_FILTER
 											.accept(mems[i].getName())) {
 								containsAll = false;
 								break;
@@ -480,7 +479,7 @@ public class BuildConfiguration implements Cloneable,
 	}
 
 	//	returns a list of java.io.Files containing the selected files
-	public List getIncludedJavaFiles(FilenameFilter filter) {
+	public List getIncludedJavaFiles(CoreUtils.FilenameFilter filter) {
 		Iterator iter = getFileList().iterator();
 		ArrayList list = new ArrayList(getFileList().size());
 		while (iter.hasNext()) {
@@ -492,7 +491,7 @@ public class BuildConfiguration implements Cloneable,
 	}
 
 	//returns a list of strings containing the file names
-	public List getIncludedJavaFileNames(FilenameFilter filter) {
+	public List getIncludedJavaFileNames(CoreUtils.FilenameFilter filter) {
 		Iterator iter = getFileList().iterator();
 		ArrayList list = new ArrayList(getFileList().size());
 		while (iter.hasNext()) {

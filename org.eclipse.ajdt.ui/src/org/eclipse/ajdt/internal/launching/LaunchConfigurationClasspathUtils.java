@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -113,7 +114,7 @@ public class LaunchConfigurationClasspathUtils {
 				(String) null);
 		IRuntimeClasspathEntry[] aspectEntries = null;
 		if (projectName != null && !projectName.trim().equals("")) {
-			IProject project = AspectJUIPlugin.getWorkspace().getRoot()
+			IProject project = AspectJPlugin.getWorkspace().getRoot()
 					.getProject(projectName);
 			aspectEntries = LaunchConfigurationClasspathUtils
 					.getAspectpath(project);

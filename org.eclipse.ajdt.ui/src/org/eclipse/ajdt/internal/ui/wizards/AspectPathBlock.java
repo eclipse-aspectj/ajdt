@@ -14,6 +14,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -88,7 +89,7 @@ public class AspectPathBlock {
 	private List existingAspectPath;
     
     public AspectPathBlock(IStatusChangeListener context, int pageToShow) {
-        fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
+        fWorkspaceRoot= AspectJPlugin.getWorkspace().getRoot();
         fContext= context;
         fPageIndex= pageToShow;
         fSourceContainerPage= null;

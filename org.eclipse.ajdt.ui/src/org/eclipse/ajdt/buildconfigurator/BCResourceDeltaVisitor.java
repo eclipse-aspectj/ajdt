@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
 
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -72,7 +72,7 @@ public class BCResourceDeltaVisitor implements IResourceDeltaVisitor {
 			case IResourceDelta.ADDED:
 				//System.out.println("added");
 				if ((delta.getFlags() & IResourceDelta.MOVED_FROM) == 0){
-					if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(myRes
+					if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(myRes
 							.getName())) {
 						new UpdateJob(myBCor, UpdateJob.SOURCE_ADDED, myRes)
 								.schedule();

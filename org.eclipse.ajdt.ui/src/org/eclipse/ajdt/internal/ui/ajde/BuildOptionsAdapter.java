@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -626,7 +627,7 @@ public class BuildOptionsAdapter
 					projectName = current.substring(1);
 				}
 
-				IProject project = AspectJUIPlugin.getWorkspace().getRoot()
+				IProject project = AspectJPlugin.getWorkspace().getRoot()
 						.getProject(projectName);
 
 				if (project != null && project.getLocation() != null) {

@@ -35,6 +35,7 @@ import org.xml.sax.SAXException;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
@@ -778,7 +779,7 @@ public class JavadocOptionsManager {
 				if (pbc != null){
 					BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 					if (bc != null){
-						toolArgs.addAll(bc.getIncludedJavaFileNames(ProjectProperties.ASPECTJ_SOURCE_FILTER));
+						toolArgs.addAll(bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER));
 					}
 				}
 			}

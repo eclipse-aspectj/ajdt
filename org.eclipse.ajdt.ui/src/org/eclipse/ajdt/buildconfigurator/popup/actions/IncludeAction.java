@@ -15,7 +15,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -62,7 +62,7 @@ public class IncludeAction extends BuildConfigurationChangeAction {
 			}
 			if (o instanceof IFile) {
 				IFile file = (IFile) o;
-				if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(file
+				if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file
 						.getName())) {
 					ProjectBuildConfigurator pbc = buildConfigurator
 						.getProjectBuildConfigurator(file.getProject());

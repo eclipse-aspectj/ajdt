@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -60,7 +60,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
 		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope,
 				style, includeSubtypes);
-		IProject[] projects = AspectJUIPlugin.getWorkspace().getRoot()
+		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 				.getProjects();
 		List mainList = new ArrayList(Arrays.asList(mainTypes));
 
@@ -233,7 +233,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 */
 	private Set getAllAspects(IJavaProject jp) {
 		IProject project = jp.getProject();
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
 				.getActiveConfigFile()))) {
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
@@ -267,7 +267,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 */
 	private Set getAllAspects(IPackageFragment packageElement) {
 		IProject project = packageElement.getJavaProject().getProject();
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
 				.getActiveConfigFile()))) {
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(

@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
@@ -177,7 +179,7 @@ public class AJModel {
 		projectModelMap.put(project,projectModel);
 		//clearAJModel(project);
 		try {
-			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
 					projectModel.createProjectMap();
 					long elapsed = System.currentTimeMillis() - start;
@@ -289,13 +291,13 @@ public class AJModel {
 			String fileString = ipe.getSourceLocation().getSourceFile()
 					.getCanonicalPath();
 			//System.out.println("f=" + fileString);
-			IProject[] projects = AspectJUIPlugin.getWorkspace().getRoot()
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 					.getProjects();
 			for (int i = 0; i < projects.length; i++) {
 				try {
 					if (projects[i].isOpen()
 							&& projects[i].hasNature(AspectJUIPlugin.ID_NATURE)) {
-						String root = AJDTUtils
+						String root = CoreUtils
 								.getProjectRootDirectory(projects[i]);
 						//System.out.println("project="+projects[i]);
 						//System.out.println("root="+root);

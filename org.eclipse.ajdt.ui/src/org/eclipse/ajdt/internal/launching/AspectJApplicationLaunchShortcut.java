@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -374,7 +374,7 @@ public class AspectJApplicationLaunchShortcut extends
 	 */
 	private IProgramElement getAspectForFile(IFile file) {
 		IProject project = file.getProject();
-		String configFile = AspectJUIPlugin.getBuildConfigurationFile(project);
+		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
 				.getActiveConfigFile()))) {
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(

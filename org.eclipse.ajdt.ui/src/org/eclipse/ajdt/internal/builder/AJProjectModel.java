@@ -24,6 +24,7 @@ import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -131,7 +132,7 @@ public class AJProjectModel {
 						return true;
 					} else if (resource instanceof IFile) {
 						IFile f = (IFile) resource;
-						if (ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(f
+						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(f
 								.getName())) {
 							createMapForFile(f);
 						}

@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -49,7 +49,6 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 
 	// widgets
 	private Button includeProjectFilesCheckbox;
-	private Button subsectionCheckbox;
 	private Button openFileCheckbox;
 
 	// constants
@@ -82,8 +81,6 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
         //ASCFIXME: Add help!
 		//WorkbenchHelp.setHelp(composite, new String[] {IReadmeConstants.CREATION_WIZARD_PAGE_CONTEXT});
 
-		GridData data = (GridData) composite.getLayoutData();
-
 		//ASCFIXME: What happens to name counter after workbench restart???		
 		this.setFileName("buildConfig" + nameCounter + ".lst");
 
@@ -101,11 +98,6 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		includeProjectFilesCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.includeAllSource" ) );
 		includeProjectFilesCheckbox.setSelection(true);
 		includeProjectFilesCheckbox.addListener(SWT.Selection, this);
-
-//		subsectionCheckbox = new Button(group, SWT.CHECK);
-//		subsectionCheckbox.setText("Do something really useful");
-//		subsectionCheckbox.setSelection(true);
-//		subsectionCheckbox.addListener(SWT.Selection, this);
 
 		new Label(composite, SWT.NONE); // vertical spacer
 
@@ -170,10 +162,11 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		String containerFullPath =  this.getContainerFullPath().makeAbsolute().toOSString();
 		// containerFullPath will be something like \TracingAspects\src\tracing\version3
 		
-		java.util.List projectFiles = AspectJUIPlugin.getDefault( ).getAjdtProjectProperties( ).getProjectSourceFiles( proj, ProjectProperties.ASPECTJ_SOURCE_FILTER );
+		java.util.List projectFiles = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().getProjectSourceFiles(proj,
+						CoreUtils.ASPECTJ_SOURCE_FILTER);
 		
 		// Work out the full path in the file system to the workspace
-		String projectPath = proj.getFullPath().toOSString();
 		IPath workspacePath = proj.getLocation();
 		workspacePath = workspacePath.removeLastSegments(1);
 		// workspacePath will be something like C:\eclipse\workspace
@@ -187,7 +180,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 				File file = (File)projectFiles.get(i);
 				
 				// Check the file is within the containerFullPath location or below.
-				String filename = (String) (file.getAbsolutePath());
+				String filename = file.getAbsolutePath();
 
 				filename = getRelativePath(fullPath, filename);
 				sb.append(filename);

@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties.FilenameFilter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -636,12 +635,6 @@ public class JavadocTreeWizardPage extends JavadocWizardPage {
 		
 	}
 	
-	public FilenameFilter ajFileFilter = new FilenameFilter() {
-		public boolean accept (String name) {
-			return (name.endsWith(".aj"));
-		}
-	};
-
 	/*
 	protected void browseForJavadocCommand() {
 		FileDialog dialog= new FileDialog(getShell());

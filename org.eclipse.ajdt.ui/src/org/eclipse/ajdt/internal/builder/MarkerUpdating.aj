@@ -18,6 +18,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.visualiser.NodeHolder;
@@ -57,7 +58,7 @@ public aspect MarkerUpdating {
 	 */
 	private void deleteAllMarkers(final IProject project) {	
 		try {
-			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
 					// Delete all the existing markers
 					try {
@@ -79,7 +80,7 @@ public aspect MarkerUpdating {
 	 */
 	public static void addNewMarkers(final IProject project) {	
 		try {
-			AspectJUIPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
 					try {
 						project.accept(new IResourceVisitor(){

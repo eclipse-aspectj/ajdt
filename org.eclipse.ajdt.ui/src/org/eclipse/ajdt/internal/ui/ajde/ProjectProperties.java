@@ -33,6 +33,8 @@ import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -83,7 +85,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * @see ProjectPropertiesAdapter#getAjcWorkingDir()
 	 */
 	public String getAjcWorkingDir() {
-		return AspectJUIPlugin.getWorkspace().getRoot().getLocation()
+		return AspectJPlugin.getWorkspace().getRoot().getLocation()
 				.toOSString();
 	}
 
@@ -167,13 +169,13 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	public List getProjectSourceFiles() {
 		IProject activeProject = AspectJUIPlugin.getDefault().getCurrentProject();
 		return getProjectSourceFiles(activeProject,
-				ProjectProperties.ASPECTJ_SOURCE_FILTER);
+				CoreUtils.ASPECTJ_SOURCE_FILTER);
 	}
 
 	/**
 	 * version to use when you know the project
 	 */
-	public List getProjectSourceFiles(IProject project, FilenameFilter filter) {
+	public List getProjectSourceFiles(IProject project, CoreUtils.FilenameFilter filter) {
 
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
@@ -204,7 +206,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		// bug 73035: use this build classpath resolver which is a direct
 		// copy from JDT, so the classpath environment is much closer between
 		// AspectJ and Java projects.
-		return new BuildClasspathResolver().getClasspath(AspectJUIPlugin.getWorkspace().getRoot(),jp);
+		return new BuildClasspathResolver().getClasspath(AspectJPlugin.getWorkspace().getRoot(),jp);
 	}
 	
 	/**
@@ -369,7 +371,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				case IClasspathEntry.CPE_PROJECT:
 
 					String name = classpathEntries[i].getPath().lastSegment();
-					IProject projectDependancy = AspectJUIPlugin.getWorkspace()
+					IProject projectDependancy = AspectJPlugin.getWorkspace()
 							.getRoot().getProject(name);
 
 					//					if classpathEntries[i].isExported())
@@ -607,7 +609,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 				aspectjrtPath = cpath.toString();
 			} else {
 				// File does *not* exist under plugins. Try under workspace...
-				IPath rootPath = AspectJUIPlugin.getWorkspace().getRoot()
+				IPath rootPath = AspectJPlugin.getWorkspace().getRoot()
 						.getLocation();
 				IPath installPath = rootPath.removeLastSegments(1);
 				cpath = new StringBuffer().append(installPath.toOSString());
@@ -636,7 +638,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	// Hashtable fileToResourceHt, FilenameFilter filter){
 	//Luzius' version:
 	private void getAllFiles(IResource[] resource_list, List allProjectFiles,
-			Hashtable fileToResourceHt, FilenameFilter filter,
+			Hashtable fileToResourceHt, CoreUtils.FilenameFilter filter,
 			BuildConfiguration bc) {
 		//change Luzius end
 		//		System.err.println(JavaCore.getOptions().keySet());
@@ -674,7 +676,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	}
 
 	private void getProjectRelativePaths(IResource[] resource_list,
-			List allProjectFiles, FilenameFilter filter, int trimSegments) {
+			List allProjectFiles, CoreUtils.FilenameFilter filter, int trimSegments) {
 		try {
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
@@ -722,21 +724,15 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	}
 
 	public String getDefaultBuildConfigFile() {
-
 		String defaultLstFile = (AspectJUIPlugin.getDefault().getCurrentProject()
 				.getLocation().toOSString()
-				+ File.separator + org.eclipse.ajdt.internal.builder.Builder.DEFAULT_CONFIG_FILE);
-		//System.err.println("AC_temp_debug:
-		// ProjectProperties.getDefaultBuildConfigFile(): Returning
-		// "+defaultLstFile);
-
+				+ File.separator + AspectJPlugin.DEFAULT_CONFIG_FILE);
 		return defaultLstFile;
-		//return defaultLstFile + "TMP FIX DUE TO BUG IN AJDE";
 	}
 
 	public String getLastActiveBuildConfigFile() {
 
-		String currentLstFile = AspectJUIPlugin
+		String currentLstFile = AspectJPlugin
 				.getBuildConfigurationFile(AspectJUIPlugin.getDefault()
 						.getCurrentProject());
 		//System.err.println("AC_temp_debug:
@@ -795,7 +791,7 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 					IResource[] srcContainer = new IResource[] { project
 							.findMember(sourcePath) };
 					getProjectRelativePaths(srcContainer, files,
-							RESOURCE_FILTER, srcContainer[0].getFullPath()
+							CoreUtils.RESOURCE_FILTER, srcContainer[0].getFullPath()
 									.segmentCount() - 1);
 
 					ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
@@ -868,29 +864,6 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getAspectPath();
 	}
-
-	public static interface FilenameFilter {
-		public boolean accept(String name);
-	}
-
-	public static final FilenameFilter ASPECTJ_SOURCE_ONLY_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return (name.endsWith(".aj"));
-		}
-	};
-	
-	public static final FilenameFilter ASPECTJ_SOURCE_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return (name.endsWith(".java") || name.endsWith(".aj"));
-		}
-	};
-
-	public static final FilenameFilter RESOURCE_FILTER = new FilenameFilter() {
-		public boolean accept(String name) {
-			return !(name.endsWith(".java") || name.endsWith(".aj") || name
-					.endsWith(".class"));
-		}
-	};
 
 	private ArrayList getLinkedChildFolders(IResource resource) {
 		ArrayList resultList = new ArrayList();

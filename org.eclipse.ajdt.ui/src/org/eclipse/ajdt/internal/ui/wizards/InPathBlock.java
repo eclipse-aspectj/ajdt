@@ -14,6 +14,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -88,7 +89,7 @@ public class InPathBlock {
     private BuildPathBasePage fCurrPage;
     
     public InPathBlock(IStatusChangeListener context, int pageToShow) {
-        fWorkspaceRoot= AspectJUIPlugin.getWorkspace().getRoot();
+        fWorkspaceRoot= AspectJPlugin.getWorkspace().getRoot();
         fContext= context;
         fPageIndex= pageToShow;
         fSourceContainerPage= null;

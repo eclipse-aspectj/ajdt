@@ -26,7 +26,7 @@ import org.eclipse.ajdt.buildconfigurator.editor.model.IBuild;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildEntry;
 import org.eclipse.ajdt.buildconfigurator.editor.model.IBuildModel;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -212,7 +212,7 @@ public class BuildProperties {
 			folder.accept(new IResourceVisitor() {
 				public boolean visit(IResource res) {
 					if (res.getType() == IResource.FILE
-							&& ProjectProperties.ASPECTJ_SOURCE_FILTER
+							&& CoreUtils.ASPECTJ_SOURCE_FILTER
 									.accept(res.getName())) {
 						contents.add(res);
 					}
@@ -268,7 +268,7 @@ public class BuildProperties {
 			} else {
 				IFile file = fProject.getFile(resource);
 				if (isIncluded
-						&& ProjectProperties.ASPECTJ_SOURCE_FILTER.accept(file
+						&& CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file
 								.getName())) {
 					includedFiles.add(file);
 				} else {
