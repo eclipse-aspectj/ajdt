@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
 import org.eclipse.pde.internal.ui.PDEPluginImages;
+import org.eclipse.pde.internal.ui.wizards.exports.ExportWizardPageWithTable;
 import org.eclipse.pde.internal.ui.wizards.exports.PluginExportJob;
 import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizard;
 import org.eclipse.ui.progress.IProgressConstants;
@@ -29,15 +30,18 @@ public class AJPluginExportWizard extends PluginExportWizard {
 		setWindowTitle("Export Plugins and Fragments with AspectJ Support");
 	}
 	
-
+		
 	protected void scheduleExportJob() {
+		String[] signingInfo = fPage1.useJARFormat() ? fPage2.getSigningInfo() : null;
 		PluginExportJob job =
 			new AJPluginExportJob(
-					fPage1.getExportType(),
-					fPage1.doExportSource(),
-					fPage1.getDestination(),
-					fPage1.getFileName(),
-					fPage1.getSelectedItems());
+				fPage1.doExportToDirectory(),
+				fPage1.useJARFormat(),
+				fPage1.doExportSource(),
+				fPage1.getDestination(),
+				fPage1.getFileName(),
+				((ExportWizardPageWithTable)fPage1).getSelectedItems(),
+				signingInfo);
 		job.setUser(true);
 		job.schedule();
 		job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_PLUGIN_OBJ);

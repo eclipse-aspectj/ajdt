@@ -18,6 +18,7 @@ import org.eclipse.pde.internal.build.AssemblyInformation;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
 import org.eclipse.pde.internal.build.SourceFeatureInformation;
 import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
+import org.eclipse.pde.internal.build.packager.PackageScriptGenerator;
 
 /**
  * Mostly copied from BuildScriptGenerator.
@@ -26,6 +27,14 @@ import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
 public class AJBuildScriptGenerator extends BuildScriptGenerator {
 
 	private boolean generateAssembleScript = true;
+	/**
+	 * flag indicating if the errors detected when the state is resolved must be reported or not.
+	 * For example in releng mode we are interested in reporting the errors. It is the default. 
+	 */
+	private boolean reportResolutionErrors = true;
+
+	/** flag indicating if missing properties file should be logged */
+	private boolean ignoreMissingPropertiesFile = false;
 
 	
 	/**
@@ -44,24 +53,15 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		}
 	}
 
-	/**
-	 * 
-	 * @param features
-	 * @throws CoreException
-	 */
 	protected void generateFeatures(List features) throws CoreException {
-		for (Iterator i = features.iterator(); i.hasNext();) {
-			AssemblyInformation assemblageInformation = null;
-			assemblageInformation = new AssemblyInformation();
+		AssemblyInformation assemblageInformation = null;
+		assemblageInformation = new AssemblyInformation();
 
-			String featureId = (String) i.next();
-			String versionId = null;
-			int versionPosition = featureId.indexOf(":"); //$NON-NLS-1$
-			if (versionPosition != -1) {
-				versionId = featureId.substring(versionPosition + 1);
-				featureId = featureId.substring(0, versionPosition);
-			}
-			FeatureBuildScriptGenerator generator = new AJFeatureBuildScriptGenerator(featureId, versionId, assemblageInformation);
+		for (Iterator i = features.iterator(); i.hasNext();) {
+			String[] featureInfo = getNameAndVersion((String) i.next());
+			// AspectJ Change Begin
+			FeatureBuildScriptGenerator generator = new AJFeatureBuildScriptGenerator(featureInfo[0], featureInfo[1], assemblageInformation);
+			// AspectJ Change End
 			generator.setGenerateIncludedFeatures(this.recursiveGeneration);
 			generator.setAnalyseChildren(this.children);
 			generator.setSourceFeatureGeneration(false);
@@ -73,14 +73,58 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 			generator.setSourceToGather(new SourceFeatureInformation());
 			generator.setCompiledElements(generator.getCompiledElements());
 			generator.setBuildingOSGi(isBuildingOSGi());
+			generator.includePlatformIndependent(true);
+			generator.setReportResolutionErrors(reportResolutionErrors);
+			generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
+			generator.setSignJars(signJars);
+			generator.setGenerateJnlp(generateJnlp);
 			generator.generate();
+		}
 
-			if (generateAssembleScript == true) {
-				AssembleScriptGenerator assembler = new AssembleScriptGenerator(workingDirectory, assemblageInformation, featureId);
-				assembler.generate();
-			}
+		if (generateAssembleScript == true) {
+			String[] featureInfo = null;
+			if (features.size() == 1)
+				featureInfo = getNameAndVersion((String) features.get(0));
+			else
+				featureInfo = new String[] {"all"};
+
+			generateAssembleScripts(assemblageInformation, featureInfo);
+
+			if (features.size() == 1)
+				featureInfo = getNameAndVersion((String) features.get(0));
+			else
+				featureInfo = new String[] {""};
+
+			generatePackageScripts(assemblageInformation, featureInfo);
 		}
 	}
+
+	private void generatePackageScripts(AssemblyInformation assemblageInformation, String[] featureInfo) throws CoreException {
+		PackageScriptGenerator assembler = new PackageScriptGenerator(workingDirectory, assemblageInformation, featureInfo[0]);
+		assembler.setSignJars(signJars);
+		assembler.setGenerateJnlp(generateJnlp);
+		assembler.setArchivesFormat(archivesFormat); //TODO Check 
+		assembler.generate();
+	}
+
+	private void generateAssembleScripts(AssemblyInformation assemblageInformation, String[] featureInfo) throws CoreException {
+		AssembleScriptGenerator assembler = new AssembleScriptGenerator(workingDirectory, assemblageInformation, featureInfo[0]);
+		assembler.setSignJars(signJars);
+		assembler.setGenerateJnlp(generateJnlp);
+		assembler.setArchivesFormat(archivesFormat);
+		assembler.generate();
+	}
+	private String[] getNameAndVersion(String id) {
+		int versionPosition = id.indexOf(":"); //$NON-NLS-1$
+		String[] result = new String[2];
+		if (versionPosition != -1) {
+			result[1] = id.substring(versionPosition + 1);
+			result[0] = id.substring(0, versionPosition);
+		} else
+			result[0] = id;
+		return result;
+	}
+	
 	
 	/**
 	 * @param generateAssembleScript
@@ -88,5 +132,25 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setGenerateAssembleScript(boolean generateAssembleScript) {
 		this.generateAssembleScript = generateAssembleScript;
+	}
+	
+	/**
+	 * @param value The reportResolutionErrors to set.
+	 */
+	public void setReportResolutionErrors(boolean value) {
+		this.reportResolutionErrors = value;
+		// AspectJ Change Begin - duplicated private variable so update both
+		super.setReportResolutionErrors(value);
+		// AspectJ Change End
+	}
+
+	/**
+	 * @param value The ignoreMissingPropertiesFile to set.
+	 */
+	public void setIgnoreMissingPropertiesFile(boolean value) {
+		ignoreMissingPropertiesFile = value;
+		// AspectJ Change Begin - duplicated private variable so update both
+		super.setIgnoreMissingPropertiesFile(value);
+		// AspectJ Change End
 	}
 }
