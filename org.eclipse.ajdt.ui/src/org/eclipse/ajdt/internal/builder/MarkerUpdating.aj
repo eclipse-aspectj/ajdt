@@ -271,10 +271,12 @@ public aspect MarkerUpdating {
 			char markerKind='?';
 			if (kind == Kind.CODE) {
 				markerKind='C';
-			} else if (kind == Kind.METHOD) {
+			} else if ((kind == Kind.METHOD) || (kind == Kind.CONSTRUCTOR)) {
 				markerKind='M';
 			} else if (kind == Kind.FIELD) {
 				markerKind='F';
+			} else if (kind == Kind.ASPECT) {
+				markerKind='A';
 			}
 			char markerAcc='?';
 			if (acc == Accessibility.PUBLIC) {

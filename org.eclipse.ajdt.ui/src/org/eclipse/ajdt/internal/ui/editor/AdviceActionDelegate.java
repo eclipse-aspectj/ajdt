@@ -395,6 +395,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 					kind = Kind.FIELD;
 				} else if (markerKind == 'C') {
 					kind = Kind.CODE;
+				} else if (markerKind == 'A') {
+					kind = Kind.ASPECT;
 				}
 				if (markerAcc == 'G') {
 					acc = Accessibility.PUBLIC;
