@@ -11,7 +11,7 @@ Documentation Testing
 AJDT DOCUMENTATION
 ------------------
 
-(1) follow all the links and check they work
+(1) follow all the links and check they work (DOC_1)
 
 AspectJ DOCUMENTATION
 ---------------------
@@ -20,7 +20,7 @@ AspectJ DOCUMENTATION
 (2) Click on all the entries to check that the links are followed in the documentaion.
     For example, Click Programming Guide > B. Language Semantics > Pointcuts and then 
     all the links under this: Pointcut definition etc. Ensure that the correct page
-    (or section of the page) is opened in the help.    
+    (or section of the page) is opened in the help.    (DOC_2)
 
 If they don't work then follow the following steps to fix the broken links:
 

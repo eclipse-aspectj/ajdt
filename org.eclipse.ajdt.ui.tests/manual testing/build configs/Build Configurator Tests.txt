@@ -6,36 +6,36 @@ Start with an new, empty workspace
 
 Test 1:	
 File > New > Project > AspectJ Project > Next
-Enter "test1" > Finish	A build.ajproperties file has been created in the new project.
+Enter "test1" > Finish	A build.ajproperties file has been created in the new project. (BC_1)
 
 
-Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = /"
+Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = /" (BC_2)
 Right-click on project > New > Source folder
-Enter "src" > Finish	Editor view should update to show "src.include = src/"
+Enter "src" > Finish	Editor view should update to show "src.include = src/" (BC_3)
 Right-click on "src" > New > Package
 Enter "test" > Finish
 Right-click on "test" package > New > Class
-Enter "Hello" > Click to create "main" method > Finish	test package and Hello.java file should be included in the build, and therefore have filled in icons
-Add "System.out.println("hello");" to main method of Hello.java, then Run As > Java application	"hello" is output to the console (the class has been compiled)
+Enter "Hello" > Click to create "main" method > Finish	test package and Hello.java file should be included in the build, and therefore have filled in icons (BC_4)
+Add "System.out.println("hello");" to main method of Hello.java, then Run As > Java application	"hello" is output to the console (the class has been compiled) (BC_5)
 	
 Test 2:	
 File > New > Project > AspectJ Project > Next
 Enter "test2" > Next > Add Folder...
 Enter "src" > OK > Yes > Finish
-	A build.ajproperties file has been created in the new project.
+	A build.ajproperties file has been created in the new project. (BC_6)
 
-Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = src/"
+Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = src/" (BC_7)
 Right-click on "test2" project > New > Folder
-Enter "src2" > Finish	A non-source folder "src2" should be created, but the properties editor should not update
+Enter "src2" > Finish	A non-source folder "src2" should be created, but the properties editor should not update (BC_8)
 Right-click on "test2" project > Properties
 Select "Java Build Path" > Source tab > Add Folder...
 Select "src2" > OK > OK	The source view should now contain the following:
         src.include = src/,\
                                   src2/
-(whitespace and ordering of src and src2 does not matter)
+(whitespace and ordering of src and src2 does not matter) (BC_9)
 Right-click on "test2" project > Properties
 Select "Java Build Path" > Source tab
-Select "src2" > Remove > OK	The source view should update to contain just "src.include = src/"
+Select "src2" > Remove > OK	The source view should update to contain just "src.include = src/" (BC_10)
 	
 
 
@@ -48,15 +48,15 @@ File > New > Other
 AspectJ > AspectJ Examples > Bean Example
 Next > Finish	AJDT config dialog appears if this is the first time.
 "Bean Example" project is created in workspace, and a build.ajproperties file is created in this project.
-Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = src/"
+Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" tab to go to source view	The source view should contain the following: "src.include = src/" (BC_11)
 	
-Test 2:	
+Test 2:	 (BC_12)
 Repeat test 1 for examples:
 Introduction
 Observer
 TJP	As test 1
 	
-Test 3:	
+Test 3:	 (BC_13)
 Repeat test 1 for examples:
 Telecom
 Tracing
@@ -68,32 +68,32 @@ Spacewar	These examples have their own .ajproperties files, so check that these 
 
 Tests for activation and including/excluding	
 Start with tracing example, let package explorer show all packages and source-files	
-Right-click tracev2.ajproperties > activate this configuration	The packages "tracing" and "tracing.version2" are activated (filled icon), the others not (empty icon)
-Double-click tracev2.ajproperties to open editor, open version2 in resource tree and untick Trace.java, save file	Project gets rebuilt. In package explorer view, package "tracing.version2" gets half-filled and the "J" in the icon next to "Trace.java" gets empty
-Try to including and excluding source files and packages in the package explorer view and in the editor.	Changes in package explorer view should immediately be reflected in editor. Changes in editor get reflected in package explorer view as soon as file gets saved. (unsaved changes in editor get lost when build configuration gets changed in package explorer)
-Use pulldown menu to select "tracelib"	Before clicking on "traclib": is there a tick next to "tracev2"? After having clicked on it the project should get rebuilt and the package explorer view updated (tracing and tracing.lib are now included)
-Project > Active build configuration -> tracev1	Same as before, but now the packages "tracing" and "tracing.version1" should be included.
+Right-click tracev2.ajproperties > activate this configuration	The packages "tracing" and "tracing.version2" are activated (filled icon), the others not (empty icon) (BC_14)
+Double-click tracev2.ajproperties to open editor, open version2 in resource tree and untick Trace.java, save file	Project gets rebuilt. In package explorer view, package "tracing.version2" gets half-filled and the "J" in the icon next to "Trace.java" gets empty (BC_15)
+Try including and excluding source files and packages in the package explorer view and in the editor.	Changes in package explorer view should immediately be reflected in editor. Changes in editor get reflected in package explorer view as soon as file gets saved. (unsaved changes in editor get lost when build configuration gets changed in package explorer) (BC_16)
+Use pulldown menu to select "tracelib"	Before clicking on "traclib": is there a tick next to "tracev2"? After having clicked on it the project should get rebuilt and the package explorer view updated (tracing and tracing.lib are now included) (BC_17)
+Project > Active build configuration -> tracev1	Same as before, but now the packages "tracing" and "tracing.version1" should be included. (BC_18)
 	
 (bug 77261) Create a new top level folder (NOT a source folder)_called “nonsrc”, and copy a source file into it.	The copied file should be shown to be excluded from the build configuration
 Right-click the new file to display the context menu	It should NOT be possible to include this file – the include option must be disabled, or absent.
-Now make “nonsrc” into a source file (via project properties)	It should now be possible to include and exclude this file
+Now make “nonsrc” into a source file (via project properties)	It should now be possible to include and exclude this file  (BC_19)
 	
 (bug 77179) Remove AspectJ nature from the project	
-Refactor > Rename the tracing.version1 package to tracing.version10	The rename operation should complete successfully without error
+Refactor > Rename the tracing.version1 package to tracing.version10	The rename operation should complete successfully without error  (BC_20)
 
 
 
 
-Test working with different project natures	
+Test working with different project natures	  
 Start with tracing example and an empty java project in workspace	
 Click on the java project	Pulldown menu gets deactivated, no selection available in Project > Active build configuration
 Right-Click the java project and select "Properties"	Between "Builders" and "Java Compiler", there is exactly one entry named "Java Build Path"
-Select "Java Build Path" > "Source"	When expanding the tree, you are able to define exclusion patterns
+Select "Java Build Path" > "Source"	When expanding the tree, you are able to define exclusion patterns (BC_21)
 Close the properties page	
 	
 Click on the tracing example project	Pulldown menu gets activated and the menu "Project" > "Active build configuration" gets populated
 Right-Click the java project and select "Properties"	Between "Builders" and "Java Compiler", there is exactly one entry named "Java Build Path"
-Select "Java Build Path" > "Source"	You cannot expand the tree and therefore not define any exclusion patterns
+Select "Java Build Path" > "Source"	You cannot expand the tree and therefore not define any exclusion patterns (BC_22)
 Close the properties page	
 	
 Add a package "p1"  to the java project and create two classes "ClassA" and "ClassB" inside the package	
@@ -103,7 +103,7 @@ Delete the file build.ajproperties
 Right-Click the java project and select "Properties" > "Java Build Path" > "Source"	
 Add an exclusion filter “**/ClassB.java” to exclude ClassB.java, close Properties window	
 Right-click the java project, select "Convert to AspectJ Project"	A file "build.ajproperties" appears in the project folder, the source files should be included except for ClassB which should still be excluded
-Right-click the java project, select "Remove AspectJ nature"	Exclusion pattern got lost, everything is included now
+Right-click the java project, select "Remove AspectJ nature"	Exclusion pattern got lost, everything is included now (BC_23)
 	
 
 
@@ -113,21 +113,21 @@ Start with tracing example, notrace is active configuration
 Right-Click on notrace.ajproperties > Save as .lst file > Ok	A file "notrace.lst" appears
 Double-click "notrace.lst"	Texteditor opens, there are 4 entries
 Remove "src\tracing\Square.java", save notrace.lst	
-Right-click notrace.lst > Save as .ajproperties file > Ok > Yes	notrace.ajproperties gets overwritten, check if the Square class in package tracing is excluded
+Right-click notrace.lst > Save as .ajproperties file > Ok > Yes	notrace.ajproperties gets overwritten, check if the Square class in package tracing is excluded (BC_24)
 	
 
 
 
 Test delete/save build configurations	
 Start with tracing example with notrace as active build configuration	Check if all 5 build configurations are available in the pull-down menu on the build button
-Delete tracev1.ajproperties	Now, only 4 build configurations should be left in the pull-down menu
+Delete tracev1.ajproperties	Now, only 4 build configurations should be left in the pull-down menu (BC_25)
 Delete the active build configuration (notrace.ajproperties)	Another build configuration gets selected (randomly) and project rebuilt. notrace is not available anymore in the pull-down menu
-Delete all remaining .ajproperties files	A new build configuration "build" and its file "build.ajproperties" should get created. Check in pull-down-menu if it is available and if it is the only one.
+Delete all remaining .ajproperties files	A new build configuration "build" and its file "build.ajproperties" should get created. Check in pull-down-menu if it is available and if it is the only one. (BC_26)
 	
 Project > Active build configuration > Save as.., followed by "ok"	A new file "My Build Config.ajproperties" gets created, this is now the active build configuration, check if both are available in the pull-down-menu
-Exclude package "tracing" by right-clicking on it and choosing the appropriate option	Everything should now be excluded
+Exclude package "tracing" by right-clicking on it and choosing the appropriate option	Everything should now be excluded (BC_27)
 Project > Active build configuration > Save as..	The ok button is deactivated
-Change name to "build", click "ok" and then "Yes" when asked whether to overwrite or not	"build" is the active configuration again, all source files are excluded
+Change name to "build", click "ok" and then "Yes" when asked whether to overwrite or not	"build" is the active configuration again, all source files are excluded (BC_28)
 	
 	
 

@@ -28,7 +28,7 @@ Test to ensure not constantly rebuilding (bug 74174)
 		- enter "test.txt" in the name
 		- click Finish
 		
-(4) The org.eclipse.contribution.visualiser project should NOT rebuild.
+(4) The org.eclipse.contribution.visualiser project should NOT rebuild. (BUILD_1)
 
 		- check the progress monitor in the bottom right hand corner of
 		  your workbench - nothing should be there
@@ -51,7 +51,7 @@ Test to ensure don't rebuild if src file changes which isn't in active build con
 		}
 		
 (5) Save DummyClass and no build should occur - so there should be no error
-    warnings about the syntax.
+    warnings about the syntax. (BUILD_2)
 		    
 (6) Create a DummyAspect in the bean package (File > New > Aspect)
 (7) Exclude DummyAspect from the active build configuration (right click and choose
@@ -61,7 +61,7 @@ Test to ensure don't rebuild if src file changes which isn't in active build con
 		pointcut.....
 		
 (9) Save DummyAspect and no build should occur - so there should be no error warnings
-    about the syntax.
+    about the syntax. (BUILD_3)
 
 
 		  		   
@@ -74,13 +74,13 @@ Test for bug 74401 - External jars on inpath not found
 
 (3) Set hello.jar as a (workspace) JAR
 
-(4) Rebuild project and check it builds okay
+(4) Rebuild project and check it builds okay (BUILD_4)
 
 (5) Right click > Project projects > AspectJ Inpath
 
 (6) Remove jar file and add it again this time as an external JAR file
 
-(7) Rebuild project and check it builds okay
+(7) Rebuild project and check it builds okay (BUILD_5)
 
 (8) Right click > Project projects > AspectJ Inpath
 
@@ -89,7 +89,7 @@ Test for bug 74401 - External jars on inpath not found
     folder. Press OK > OK then select MY_JAR from list and press
     Extend... and select hello.jar
 
-(10) Rebuild project and check it builds okay
+(10) Rebuild project and check it builds okay (BUILD_6)
 
 
 				

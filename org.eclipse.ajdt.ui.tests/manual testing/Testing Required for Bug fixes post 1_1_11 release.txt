@@ -9,7 +9,7 @@ changing the build script to create jar files rather than zip files.
 	-	Testing required = Setting off runtime workbench from workbench with 
 AJDT installed and checking it works. Also, check that in workbench where 
 AJDT is installed, that the AJDT related plugins can be imported as extenal 
-plugins and fragments (this was caused by the same problem)
+plugins and fragments (this was caused by the same problem) (FIXES_1)
 	
 71540 (Luzius)
 	-	When using AJDT with MyEclipse, the user will get an error when running his 
@@ -19,7 +19,7 @@ box that appears whenever AspectJ nature gets added to a MyEclipse project
 and informs the user about that.
 	-	Test: Install MyEclipse, install AJDT, create Web Module Project, add 
 AspectJ nature. Does the message box appear? It should also appear only 
-once per eclipse-startup.
+once per eclipse-startup.  (FIXES_2)
 
 71780 (Luzius)
 	- In 1.1.11, there was no gutter annotation for advice from injars.
@@ -27,6 +27,6 @@ once per eclipse-startup.
 	  properties of to myJar.jar and build.
 	  Import the project "jarDependentProject" and add "myJar.jar" to the "AspectJ 
 	  Aspect Path", do a build. Then open "C.java" in editor. If the main
-	  method has got an "advised by" icon in the gutter, everything is ok. 
+	  method has got an "advised by" icon in the gutter, everything is ok.   (FIXES_3)
 
 

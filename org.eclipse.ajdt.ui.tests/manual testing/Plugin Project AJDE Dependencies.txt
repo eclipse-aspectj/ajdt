@@ -5,26 +5,26 @@ Bug 72007
 1. Install new copies of eclipse and ajdt and check out "Hello World Java Plugin" 
 from "org.eclipse.ajdt.tests/test projects" on the Eclipse CVS repository. 
 Launch a runtime workbench and click ‘Sample Menu’ > ‘Sample Action’ to verify the 
-plugin is working. You should see a dialog box containing the text “Hello Eclipse”.
+plugin is working. You should see a dialog box containing the text “Hello Eclipse”. (PLUG_1)
 
 2. Switch to the java perspective and open "Hello World Java Plugin" and then open its 
 plugin.xml file. Click the dependencies tab which is found at the bottom of the new
 window. And in the "Required Plugin-ins" section should be the plugins:
-org.eclipse.ui, org.eclipse.core.runtime and org.aspectj.runtime.
+org.eclipse.ui, org.eclipse.core.runtime and org.aspectj.runtime. (PLUG_2)
 
 3. Right click the project and select "Convert to AspectJ project". You should be
 prompted to import the org.aspectj.runtime plugin. Say Yes and check that the 
-required plugin is added to the plugin.xml
+required plugin is added to the plugin.xml (PLUG_3)
 
 4. Right click the project and select "Remove AspectJ Nature" and check that the 
-added plugin org.aspectj.runtime has been removed from the plugin.xml
+added plugin org.aspectj.runtime has been removed from the plugin.xml (PLUG_4)
 
 5. Now click "Add..." to the right of the "Required Plug-ins" box and add 
 "org.aspectj.runtime" then save the file. Now right click the "Hello World Java Plugin" 
 project and select "Convert to AspectJ Project". You should not be prompted. Check that
 the "Required plug-ins"  section still only contains a single entry for
-"org.aspectj.runtime".
+"org.aspectj.runtime". (PLUG_5)
 
 6. Right click the "Hello World Java Plugin" project and then select "Remove AspectJ
 Nature". There should still be a single entry in the "Required plug-ins" section for 
-"org.aspectj.runtime"
+"org.aspectj.runtime" (PLUG_6)

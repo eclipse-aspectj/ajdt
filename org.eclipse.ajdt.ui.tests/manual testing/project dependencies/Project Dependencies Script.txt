@@ -19,9 +19,9 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
     checkout - both projects should not have any build errors. In particular, 
     org.eclipse.contribution.visualiser.tests should NOT have the message:
     "The project cannot be built until its prerequisites org.eclipse.contribution.visualiser
-    is built. Cleaning and building all projects is recommended." 
+    is built. Cleaning and building all projects is recommended." (DEPS_1)
     
-(4) Check that org.eclipse.contribution.visualiser has AJ nature 
+(4) Check that org.eclipse.contribution.visualiser has AJ nature  (DEPS_2)
 
 (5) Check that org.eclipse.contribution.visualiser.tests is using the workspace compiler
     settings
@@ -29,12 +29,12 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
     	- right click on org.eclipse.contribution.visualiser.tests
     	- select properties
     	- navigate to Java Compiler
-    	- check that "use workspace settings" is checked   
+    	- check that "use workspace settings" is checked    (DEPS_3)
     
 (6) Check that the workbench settings have switched to not aborting due to classpath errors:
 
 		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked.
+		- "Abort build when classpath errors occur" option is unchecked. (DEPS_4)
 
 (7) Switch org.eclipse.contribution.visualiser.tests to use project settings:
 
@@ -45,7 +45,7 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
     	- click "OK"
     	- choose to build project NOW
     	
-(8) org.eclipse.contribution.visualiser.tests should still build with no build errors
+(8) org.eclipse.contribution.visualiser.tests should still build with no build errors (DEPS_5)
 
 (9) Switch the workbench settings to abort if there are classpath errors
 
@@ -55,7 +55,7 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 		- choose to rebuild workspace NOW
 		
 (10) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests
-     should build with no errors
+     should build with no errors (DEPS_6)
      
 (11) Choose to let org.eclipse.contribution.visualiser.tests now use the workspace settings
 
@@ -68,18 +68,18 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 
 (12) org.eclipse.contribution.visualiser should now not build due to error in problems
      view saying that prerequisite project org.eclipse.contribution.visualiser needs to be
-     built first
+     built first (DEPS_7)
      
 (13) rebuild org.eclipse.contribution.visualiser by selecting it and pressing the AJ
      build button
      
 (14) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests
-     should now have no build errors on them.
+     should now have no build errors on them. (DEPS_8)
      
 (15) Check that the workbench settings have switched to not aborting due to classpath errors:
 
 		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked.
+		- "Abort build when classpath errors occur" option is unchecked.  (DEPS_9)
 
 (16) Convert org.eclipse.contribution.visualiser.tests to be an AJ project
 
@@ -91,9 +91,9 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 		- choose to rebuild workspace NOW
 
 (18) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests 
-     should build with no errors
+     should build with no errors  (DEPS_10)
          	  
-(19) Check that the workbench settings have NOT switched to not aborting due to classpath errors:
+(19) Check that the workbench settings have NOT switched to not aborting due to classpath errors:  (DEPS_11)
 
 		- Window > Preferences > Java > Compiler > Build Path  
 		- "Abort build when classpath errors occur" option is still checked.
@@ -102,18 +102,18 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 
 (21) org.eclipse.contribution.visualiser should now not build due to error in problems
      view saying that prerequisite project org.eclipse.contribution.visualiser needs to be
-     built first
+     built first (DEPS_12)
      
 (22) rebuild org.eclipse.contribution.visualiser by selecting it and pressing the AJ
      build button
      
 (23) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests
-     should now have no build errors on them.
+     should now have no build errors on them. (DEPS_13)
      
 (24) Check that the workbench settings have switched to not aborting due to classpath errors:
 
 		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked.
+		- "Abort build when classpath errors occur" option is unchecked.  (DEPS_14)
 
 
 Testing project dependencies with empty projects (Bug 46271)
@@ -135,7 +135,7 @@ Testing project dependencies with empty projects (Bug 46271)
 	- press "Finish"
 
 (3) Both projects should build with no build errors - in particular, there should be no 
-    prerequisite message	
+    prerequisite message	 (DEPS_15)
 
 	 	
 Testing build cancelling with project dependencies
@@ -159,10 +159,10 @@ Testing build cancelling with project dependencies
 		- for org.eclipse.contribution.visualiser.tests: there should be an 
 		  error message saying you need to rebuild prerequiste project
 		  org.eclipse.contribution.visualiser (there may also be other error
-		  markers)
+		  markers)  (DEPS_16)
 		  
 (5) rebuild org.eclipse.contribution.visualiser by pressing the build button
-(6) there should be no error markers on both projects		        		
+(6) there should be no error markers on both projects	 (DEPS_17)	        		
 
 
 Testing output jar switch with "external" jars (part of 43674)
@@ -190,7 +190,7 @@ Testing output jar switch with "external" jars (part of 43674)
 		- right click on project.java.Y
 		- select "Convert to AspectJ project"
 		
-(4) Both projects should still not report any build errors
+(4) Both projects should still not report any build errors (DEPS_18)
 
 (5) Choose to send project.java.Y's output to an external jar file
     (external to the workspace):
@@ -203,7 +203,7 @@ Testing output jar switch with "external" jars (part of 43674)
     	
 (6) Build project.java.Y by pressing the build button
 
-(7) project.java.X should now have jar file "C:\temp\firstjar.jar" on it's classpath
+(7) project.java.X should now have jar file "C:\temp\firstjar.jar" on it's classpath  (DEPS_19)
 
 		- a new node entitled "firstjar.jar - C:\temp" should appear in the
 		  package explorer under project.java.X
@@ -224,7 +224,7 @@ Testing output jar switch with "external" jars (part of 43674)
 (9) Build project.java.Y by pressing the build button
 
 (10) project.java.X should now have jar file "C:\temp\secondjar.jar" on it's classpath
-     (note the case)
+     (note the case)  (DEPS_20)
 
 		- a new node entitled "secondjar.jar - C:\temp" should appear in the
 		  package explorer under project.java.X
@@ -232,7 +232,7 @@ Testing output jar switch with "external" jars (part of 43674)
 		  "C:/temp/secondjar.jar"
 
 (11) project.java.X should NOT have jar file "firstjar.jar - C:\temp" on it's classpath
-     (note the case)
+     (note the case) (DEPS_21)
 
 		- there is no node entitled "C:\temp\firstjar.jar" in the package explorer under
 		  project.java.X
@@ -250,7 +250,7 @@ Testing output jar switch with "external" jars (part of 43674)
 (13) Build project.java.Y by pressing the build button
 
 (14) project.java.X should NOT have jar file "C:\temp\secondjar.jar" on it's classpath
-     (note the case)
+     (note the case) (DEPS_22)
 
 		- there is no node entitled "secondjar.jar - C:\temp" in the package explorer under
 		  project.java.X

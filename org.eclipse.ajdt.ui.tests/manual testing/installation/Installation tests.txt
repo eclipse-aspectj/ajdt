@@ -3,18 +3,18 @@ Installation Testing
 
 The scenarios which need to be tested are:
 
-(1) Install into a clean eclipse via update site
-(2) Install into a clean eclipse using a zip file
-(3) Upgrade from 1.1.11 via update site
-(4) Upgrade from 1.1.11 via zip file
-(5) Upgrade from 1.1.11 via Automatic Updates (under preferences > install/update)
-(6) Upgrade from 1.1.10
+(1) Install into a clean eclipse via update site (INSTALL_1)
+(2) Install into a clean eclipse using a zip file (INSTALL_2)
+(3) Upgrade from 1.1.12 via update site (INSTALL_3)
+(4) Upgrade from 1.1.12 via zip file (INSTALL_4)
+(5) Upgrade from 1.1.12 via Automatic Updates (under preferences > install/update) (INSTALL_5)
+(6) Upgrade from the latest 1.2.0 Milestone
 (7) Try to install on eclipse 2.1 via update site --> expect this to not let you install AJDT
-    and gives an error saying require a 3.0.0 version of one of the eclipse plugins)
+    and gives an error saying require a 3.0.0 version of one of the eclipse plugins) (INSTALL_6)
 (8) Install on latest eclipse 3.0.1 build via update site --> this should install, just don't know
-    how it will behave once installed (!)
+    how it will behave once installed (!) (INSTALL_7)
 (9) Install on latest eclipse 3.1 build via update site --> this should install, just don't know
-    how it will behave once installed (!)  
+    how it will behave once installed (!)   (INSTALL_8)
 
 
 Things to check in each installation:

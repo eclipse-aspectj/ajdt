@@ -33,10 +33,10 @@ the pointcut body - this was causing problems.
 	    appear with the title "Organize Imports" and the message:
 
 			Compilation unit has parse errors: 'Syntax error on token "$", 
-			delete this token'. No changes applied.   
+			delete this token'. No changes applied.   (IMPORTS_1)
 	(d) there should be a message in the bottom left hand corner of Eclipse 
 	    saying "0 import(s) added"
-   	(e) Save the file and there should be no build errors  
+   	(e) Save the file and there should be no build errors  (IMPORTS_2)
 
 (2) Removing an unused import
 
@@ -49,8 +49,8 @@ the pointcut body - this was causing problems.
 	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Alt + O".
 	(d) "import java.io.File;" should no longer be in the import list and there
 	    should be a message in the bottom left hand corner of Eclipse, that one
-	    import was removed.      
-	(e) Save the file and there should be no build errors  
+	    import was removed. (IMPORTS_3)     
+	(e) Save the file and there should be no build errors  (IMPORTS_4)
 		    
 (3) Adding a required import
 
@@ -65,8 +65,8 @@ the pointcut body - this was causing problems.
 	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Alt + O".
 	(d) "import java.io.File;" should now be in the import list and there
 	    should be a message in the bottom left hand corner of Eclipse, that one
-	    import was added.      
-	(e) Save the file and there should be no build errors  	 
+	    import was added.  (IMPORTS_5)    
+	(e) Save the file and there should be no build errors  	 (IMPORTS_6)
 	 
 Using the Spacewar example:
 
@@ -84,8 +84,8 @@ Using the Spacewar example:
 	    appear with the title "Organize Imports" and the message:
 
 			Compilation unit has parse errors: 'Syntax error on token "$", 
-			delete this token'. No changes applied.   
+			delete this token'. No changes applied.   (IMPORTS_7)
 	(d) there should be a message in the bottom left hand corner of Eclipse 
 	    saying "0 import(s) added"	
-	(e) Save the file and there should be no build errors     	   
+	(e) Save the file and there should be no build errors     (IMPORTS_8)	   
 	  	    

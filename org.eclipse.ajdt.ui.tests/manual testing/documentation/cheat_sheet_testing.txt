@@ -9,4 +9,4 @@ The links in the cheat sheet need to be tested, as do the actions
     possible.
     
     
-PASS: All links should work, and all the action buttons should work.    
+PASS: All links should work, and all the action buttons should work.    (CHEAT_1)

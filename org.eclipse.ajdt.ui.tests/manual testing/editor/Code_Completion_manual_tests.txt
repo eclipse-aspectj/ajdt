@@ -5,13 +5,13 @@ and its limitations see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=74419
 
 Areas to cover:
 
-- from within a method
-- outside any methods
-- from within advice - before, after, around
-- from within an intertype declaration          <------ is likely to be the most problematic
+- from within a method (CC_1)
+- outside any methods (CC_2)
+- from within advice - before, after, around (CC_3)
+- from within an intertype declaration  (CC_4)        <------ is likely to be the most problematic
 
 different situations:
 
-- in a .java 
-- in a .aj file
-- in an aspect which extends an abstract aspect
+- in a .java (CC_5)
+- in a .aj file (1-4 assumed to be done in a .aj file)
+- in an aspect which extends an abstract aspect (CC_6)

@@ -24,4 +24,4 @@ Test that preference wizard occurs if have empty workspace and check out from CV
 
 This test fails if you have to click "Finish" on the AJDT Configuration Preference Wizard twice,
 as this means that one wizard has been created for each AJ project checked out, rather than
-one wizard per checkout (if the preferences haven't already been set).       	
+one wizard per checkout (if the preferences haven't already been set).  (CVS_1)     	
