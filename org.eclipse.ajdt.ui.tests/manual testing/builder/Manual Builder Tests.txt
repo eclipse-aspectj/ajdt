@@ -92,4 +92,21 @@ Test for bug 74401 - External jars on inpath not found
 (10) Rebuild project and check it builds okay (BUILD_6)
 
 
+Test for bug 86941 - "clean" build doesn't work
+-----------------------------------------------
+
+setup....
+(1) Check out "Simple AJ Project"
+(2) Turn off "build automatically" (Project > Build automatically)
+(3) add the following to p1/Main.java:
+
+	twtretwer
+	
+(4) Save the file and Build the project by pressing the build button
+(5) There should be a compiler error in the problem view
+test...
+(6) remove the error you inserted in step (3)
+(7) Save the file
+(8) Clean the project Project > Clean > Clean selected project
+(9) There should be no compiler errors in the problems view	
 				
