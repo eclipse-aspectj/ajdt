@@ -32,7 +32,6 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.weaver.AsmRelationshipProvider;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -140,7 +139,6 @@ public class StructureModelUtil {
     public static void wipeCache() {
     	// Bit crude... if you compile one project, you lose the
     	// annotations for all of them... 
-    	AJDTEventTrace.generalEvent("Wiping StructureModelUtil caches");
     	annotationsCache.clear();
     	processedAnnotationsCache.clear();
 		activeConfigFile = Ajde.getDefault().getConfigurationManager().getActiveConfigFile();
