@@ -55,6 +55,7 @@ public class ClasspathExtractor implements IPlatformRunnable {
 				outDir = arg[0]; 
 			}
 		}
+		outDir=".";
 		System.out.println("output dir="+outDir);
 		IWorkspace workspace = BuildPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
@@ -86,7 +87,8 @@ public class ClasspathExtractor implements IPlatformRunnable {
 			if (projects[i].isAccessible()
 					&& projects[i].hasNature(JavaCore.NATURE_ID)) {
 				if ((name.indexOf("aspectj") > 0) || (name.indexOf("ajdt") > 0)
-						|| (name.indexOf("visualiser") > 0)) {
+						|| (name.indexOf("visualiser") > 0)
+						|| (name.indexOf("xref") > 0)) {
 					System.out.println("project[" + i + "]=" + name);
 					IJavaProject jp = JavaCore.create(projects[i]);
 					String cp = new BuildClasspathResolver().getClasspath(root, jp);
