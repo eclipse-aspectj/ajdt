@@ -1,7 +1,5 @@
 src.includes = src/,\
                src31/
-src.excludes = src/org/eclipse/ajdt/utils/,\
-               src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj,\
+src.excludes = src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj,\
                src/org/eclipse/ajdt/internal/launching/AJApplicationLaunchConfigurationDelegate.java,\
-               src/org/eclipse/ajdt/internal/ui/editor/AspectJBreakpointRulerActionDelegate.java,\
-               src31/org/eclipse/ajdt/internal/ui/actions/BuildPluginAction.java,\
+               src31/org/eclipse/ajdt/internal/ui/actions/BuildPluginAction.java
