@@ -411,33 +411,44 @@ public class Builder extends IncrementalProjectBuilder {
 		for (int i = 0; i < dependingProjects.length; i++) {
 			IProject dependingProject = dependingProjects[i];
 			try {
-				if (dependingProject.hasNature(AspectJUIPlugin.ID_NATURE)) {
+				// Skip over any dependents that are themselves
+				// AspectJ projects
+				if (dependingProject.hasNature(AspectJUIPlugin.ID_NATURE)){
 					continue;
 				}
-			} catch (CoreException e) {
-			}
-			JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
-			String[] names = jp.getPreferences().propertyNames();
-			if (names.length == 0 && !setWorkbenchPref) {
-				Hashtable options = JavaCore.getOptions();
-				String workbenchSetting = (String)options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
-				if (lastWorkbenchPreference.equals(JavaCore.ABORT) && workbenchSetting.equals(JavaCore.IGNORE)) {
-					lastWorkbenchPreference = JavaCore.IGNORE;
-				} else if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
-						&& workbenchSetting.equals(JavaCore.ABORT)){
-					if (!setWorkbenchPref) {
-						options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
-						JavaCore.setOptions(options);	
-						setWorkbenchPref = true;	
-						lastWorkbenchPreference = JavaCore.IGNORE;
+				
+				// Only update dependent projects that have Java natures.
+				// These could be ordinary Java projects or if we running inside
+				// other Eclipse-based tools, they could be J2EE projects like dynamic
+				// web projects.
+				// Note that if the project does not have a Java nature then
+				// the JavaCore.create() call appears to return a null. 
+				if (dependingProject.hasNature(JavaCore.NATURE_ID)) {
+					JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
+					String[] names = jp.getPreferences().propertyNames();
+					if (names.length == 0 && !setWorkbenchPref) {
+						Hashtable options = JavaCore.getOptions();
+						String workbenchSetting = (String)options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+						if (lastWorkbenchPreference.equals(JavaCore.ABORT) && workbenchSetting.equals(JavaCore.IGNORE)) {
+							lastWorkbenchPreference = JavaCore.IGNORE;
+						} else if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
+								&& workbenchSetting.equals(JavaCore.ABORT)){
+							if (!setWorkbenchPref) {
+								options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+								JavaCore.setOptions(options);	
+								setWorkbenchPref = true;	
+								lastWorkbenchPreference = JavaCore.IGNORE;
+							}
+						} else if (lastWorkbenchPreference.equals(JavaCore.IGNORE) 
+								&& workbenchSetting.equals(JavaCore.ABORT)){
+							lastWorkbenchPreference = JavaCore.ABORT;
+						}
+					} else if (names.length > 0) {
+						jp.setOption(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+						lastWorkbenchPreference = (String)JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
 					}
-				} else if (lastWorkbenchPreference.equals(JavaCore.IGNORE) 
-						&& workbenchSetting.equals(JavaCore.ABORT)){
-					lastWorkbenchPreference = JavaCore.ABORT;
-				}
-			} else if (names.length > 0) {
-				jp.setOption(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
-				lastWorkbenchPreference = (String)JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
+				}// end if dependent has a Java nature
+			} catch (CoreException e) {
 			}
 		}		
 	}
