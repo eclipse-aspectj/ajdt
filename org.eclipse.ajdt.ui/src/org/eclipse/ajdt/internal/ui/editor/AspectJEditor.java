@@ -362,7 +362,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				//TODO: if we want to get errors/warnings markers from the
 				//parser, pass the appropriate ProblemRequestor instead of null
 				annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
-				annotationModel.setIsActive(true);
 				annotationModel.setCompilationUnit(unit);
 				unit.becomeWorkingCopy(annotationModel, null);
 				if(fGlobalAnnotationModelListener == null) {

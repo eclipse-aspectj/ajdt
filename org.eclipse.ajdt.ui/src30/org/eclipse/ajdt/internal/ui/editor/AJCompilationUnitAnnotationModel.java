@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitAnnotationModelEvent;
 import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
@@ -26,6 +27,7 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaMarkerAnnotation;
 import org.eclipse.jdt.internal.ui.text.java.IProblemRequestorExtension;
 import org.eclipse.jdt.internal.ui.text.spelling.SpellReconcileStrategy.SpellProblem;
 import org.eclipse.jdt.ui.PreferenceConstants;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
@@ -36,7 +38,9 @@ import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
 import org.eclipse.jface.text.source.IAnnotationPresentation;
 import org.eclipse.jface.text.source.ImageUtilities;
+import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.ListenerList;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -78,6 +82,18 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 		
 		public AJCompilationUnitAnnotationModel(IResource resource) {
 			super(resource);
+			// AspectJ Change Begin
+			final IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
+			boolean analyzeAnnotations = store.getBoolean(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS);				
+			setIsActive(analyzeAnnotations);
+			IPropertyChangeListener propertyListener= new IPropertyChangeListener() {
+				public void propertyChange(PropertyChangeEvent event) {
+					if (PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS.equals(event.getProperty()))
+						setIsActive(store.getBoolean(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS));
+				}
+			};
+			JavaPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(propertyListener);
+			// AspectJ Change End
 		}
 		
 		public void setCompilationUnit(ICompilationUnit unit)  {
@@ -320,7 +336,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 		public void setIsActive(boolean isActive) {
 			if (fIsActive != isActive) {
 				fIsActive= isActive;
-				if (fIsActive)
+				if (fIsActive) 
 					startCollectingProblems();
 				else
 					stopCollectingProblems();
