@@ -105,6 +105,7 @@ public class ProjectBuildConfigurator{
 			bc.update(false);
 			if (!activeBuildConfiguration.equals(oldActive)){
 				try {
+					requestFullBuild(true);
 					activeBuildConfiguration.touch(null);
 				} catch (CoreException e) {
 				}
