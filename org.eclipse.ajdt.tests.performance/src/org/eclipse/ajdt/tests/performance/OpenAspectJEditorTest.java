@@ -50,7 +50,7 @@ public class OpenAspectJEditorTest extends OpenEditorTest {
 		}
 
 		protected void setUp() throws Exception {
-			ResourceTestHelper.copy(PREFIX + ORIG_FILE_SUFFIX, PREFIX + FILE_SUFFIX);
+			ResourceTestHelper.copy(PREFIX + ORIG_FILE_SUFFIX, PREFIX + FILE_SUFFIX, ResourceTestHelper.SKIP_IF_EXISTS);
 			ResourceTestHelper.replicate(PREFIX + FILE_SUFFIX, PREFIX, FILE_SUFFIX, WARM_UP_RUNS + MEASURED_RUNS, FILE_PREFIX, FILE_PREFIX, ResourceTestHelper.SKIP_IF_EXISTS);
 		}
 
