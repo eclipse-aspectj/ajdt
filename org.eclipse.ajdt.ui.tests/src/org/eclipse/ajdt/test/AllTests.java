@@ -34,7 +34,6 @@ import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePageTest;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.internal.ui.wizards.export.AJCTaskTest;
@@ -43,6 +42,7 @@ import org.eclipse.ajdt.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.CodeTemplatesTest;
 
 public class AllTests {
@@ -127,8 +127,6 @@ public class AllTests {
 	//prevents AJDTPrefWizard from popping up during tests
 	private static void setupAJDTPlugin(){
 		AJDTConfigSettings.disableAnalyzeAnnotations();
-		AJDTConfigSettings.setAspectJEditorDefault();
-		AspectJPreferences.setAJDTPrefConfigDone(true);
-		AspectJPreferences.setRunAJDT120(true);
+		Utils.blockPreferencesConfigWizard();				
 	}
 }

@@ -9,36 +9,36 @@
 
 package org.eclipse.ajdt.internal.ui.wizards;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jface.wizard.IWizardPage;
-import org.eclipse.jface.wizard.WizardDialog;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.core.runtime.IPath;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileFilter;
-import java.io.IOException;
-
-import junit.framework.TestCase;
 
 public class AspectJProjectWizardTest extends TestCase {
 
@@ -58,6 +58,7 @@ public class AspectJProjectWizardTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		Utils.blockPreferencesConfigWizard();			
 	}
 
 	/*
@@ -66,7 +67,6 @@ public class AspectJProjectWizardTest extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 		if((testDestinationFile != null) && testDestinationFile.exists())
 			deleteDirectory(testDestinationFile);
 		if((testSrcFile != null) && testSrcFile.exists())
@@ -87,6 +87,7 @@ public class AspectJProjectWizardTest extends TestCase {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
+		Utils.restoreBlockedSettings();		
 	}
 
 	public void testProjectWizardPageAddition() {
@@ -277,7 +278,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		ID++;
 		JavaTestProject testSrcProject = null;
 		try { // sets up the aj test project
-			AspectJPreferences.setAJDTPrefConfigDone(true);
 			testSrcProject = new JavaTestProject("SourceProject" + ID);
 			waitForJobsToComplete(testSrcProject.getProject());
 			AJDTUtils.addAspectJNature(testSrcProject.getProject());

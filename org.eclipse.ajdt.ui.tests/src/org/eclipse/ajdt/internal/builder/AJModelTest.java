@@ -130,9 +130,13 @@ public class AJModelTest extends TestCase {
 				IProgramElement node = (IProgramElement) it2.next();
 				String peName = node.toLabelString().intern();;
 				IJavaElement je = AJModel.getInstance().getCorrespondingJavaElement(node);
+				if (je==null) {
+					System.out.println("je is null");
+					continue;
+				}
 				String jaName = je.getElementName().intern();
-				//System.out.println("node="+peName);
-				//System.out.println("je="+jaName);
+				System.out.println("node="+peName);
+				System.out.println("je="+jaName);
 				int index = toFind.indexOf(peName);
 				if (index == -1) {
 					fail("Unexpected additional IProgramElement name found: "+peName);

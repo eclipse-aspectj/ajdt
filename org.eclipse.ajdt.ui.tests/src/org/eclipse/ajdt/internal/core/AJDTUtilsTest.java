@@ -56,6 +56,7 @@ public class AJDTUtilsTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		monitor = new BlockingProgressMonitor();
+		Utils.blockPreferencesConfigWizard();		
 	}
 
 	/*
@@ -63,6 +64,7 @@ public class AJDTUtilsTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.restoreBlockedSettings();
 	}
 
 	public void testAddAndRemoveAspectJNatureWithPluginProject() throws Exception {
@@ -93,7 +95,6 @@ public class AJDTUtilsTest extends TestCase {
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		JavaTestProject testProject = new JavaTestProject("MyTestProject1");
 		assertFalse("Java project should not have AspectJ Nature",
 				testProject.getProject().hasNature(AspectJUIPlugin.ID_NATURE));
@@ -110,8 +111,7 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Build path shouldn't contain aspectjrt.jar",
 				hasAjrtOnBuildPath(testProject.getJavaProject()));
 		testProject.dispose();
-		AspectJPreferences.setAJDTPrefConfigDone(false);
-	}
+		}
 
 	/**
 	 * This tests whether you get back the manifest editor for the project you
@@ -152,7 +152,6 @@ public class AJDTUtilsTest extends TestCase {
 	}
 
 	public void testChangeProjectToClassDependencies() throws Exception{
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
 		ProjectDependenciesUtils.waitForJobsToComplete(jtp1.getProject());
 		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
@@ -171,11 +170,9 @@ public class AJDTUtilsTest extends TestCase {
 				checkDependencyType(jtp1.getJavaProject(),jtp2.getProject()).equals("classfolder"));			
 		jtp1.dispose();
 		jtp2.dispose();
-		AspectJPreferences.setAJDTPrefConfigDone(false);
-	}
+		}
 	
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -195,8 +192,7 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
-		AspectJPreferences.setAJDTPrefConfigDone(false);
-		
+			
 	}
 	
 	private String checkDependencyType(IJavaProject projectToHaveDependency, 
@@ -278,7 +274,6 @@ public class AJDTUtilsTest extends TestCase {
 		// is added automatically and the preference configurations
 		// have all been set up (therefore don't need user
 		// interaction.
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		AspectJPreferences.setAskPDEAutoImport(false);
 		AspectJPreferences.setDoPDEAutoImport(true);
 		AspectJPreferences.setPDEAutoImportConfigDone(true);
@@ -289,7 +284,6 @@ public class AJDTUtilsTest extends TestCase {
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
-		ps.setToDefault(AspectJPreferences.AJDT_PREF_CONFIG_DONE);
 	}
 	
 

@@ -111,6 +111,7 @@ public class AdviceMarkersTest2 extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		Utils.blockPreferencesConfigWizard();
 		project = Utils.getPredefinedProject("MarkersTest", true);
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	}
@@ -120,6 +121,7 @@ public class AdviceMarkersTest2 extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.restoreBlockedSettings();
 	}
 
 	public void testMarkers() throws Exception {

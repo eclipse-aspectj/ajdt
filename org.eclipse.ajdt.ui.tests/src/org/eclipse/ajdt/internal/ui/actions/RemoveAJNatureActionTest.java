@@ -14,8 +14,8 @@ package org.eclipse.ajdt.internal.ui.actions;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -46,8 +46,9 @@ public class RemoveAJNatureActionTest extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 
+    	Utils.blockPreferencesConfigWizard();			
+	
 		// create a Java project that contains all the various Java elements...
 		// create a project
 		testProject = new JavaTestProject("Test AJ Project");
@@ -83,7 +84,7 @@ public class RemoveAJNatureActionTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		AspectJPreferences.setAJDTPrefConfigDone(false);
+		Utils.restoreBlockedSettings();	
 		try {
 			testProject.dispose();
 		} catch (CoreException e) {

@@ -20,7 +20,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -45,6 +44,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
+		Utils.blockPreferencesConfigWizard();		
 	}
 
 	/*
@@ -52,6 +52,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.restoreBlockedSettings();		
 	}
 		
 	/**
@@ -63,7 +64,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * Everything should work ok if A is converted to be an AJ project
 	 */
 	 public void testWithExportedJarFile() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectA = Utils.getPredefinedProject("another.project.AAA", true);
 		projectA.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectA);
@@ -140,7 +140,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectB.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 	
 	/**
@@ -155,7 +154,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * Everything should build ok if B is converted to be an AJ project! 
 	 */
 	public void testWithExportedJarFileAndBinaryProject() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		
 		IProject projA = Utils.getPredefinedProject("non.plugin.project.A1",true);
 		ProjectDependenciesUtils.waitForJobsToComplete(projA);
@@ -246,7 +244,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projC.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 
 	/**
@@ -258,7 +255,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * there should be no class folder dependency added onto project B.
 	 */
 	 public void testWithExportedJarFileAndNoSrcEntry() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectB = Utils.getPredefinedProject("pd.non.plugin.project.B", true);
 		projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectB);
@@ -334,7 +330,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectB1.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 	
 	/**
@@ -353,7 +348,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * @throws Exception
 	 */ 
 	public void testWithOutJarSwitch1() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -482,7 +476,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectY.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 
 	/**
@@ -499,7 +492,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
      *   to an outjar. 
 	 */ 
 	public void testWithOutJarSwitch2() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -677,7 +669,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectY.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 
 	/**
@@ -695,7 +686,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
      *   classpath (and not the old one)
 	 */ 
 	public void testWithOutJarSwitch3() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -841,7 +831,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectY.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 	
 	/**
@@ -850,7 +839,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	 * only contains one entry corresponding to this outjar 
 	 */
 	public void testBuildTwiceWithOutJar() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
@@ -942,7 +930,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		projectY.close(monitor);
 		monitor.waitForCompletion();
 		
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}	
 
 	private int numberOfTimesOutJarOnAspectPath(IProject projectWhichHasDependency,

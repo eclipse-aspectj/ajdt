@@ -15,7 +15,9 @@ package org.eclipse.ajdt.test.utils;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.AspectJTestPlugin;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -37,6 +39,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 
 /**
  * Provides useful utils when writing test cases.
@@ -44,6 +48,18 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
  * @author Luzius Meisser
  */
 public class Utils{
+	
+	public static void blockPreferencesConfigWizard() {
+		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+		AspectJPreferences.setAJDTPrefConfigDone(true, version);	
+	}
+	
+	public static void restoreBlockedSettings() {
+		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+		AspectJPreferences.setAJDTPrefConfigDone(false, version);		
+	}
 	
 	public static final String TEST_PROJECTS_FOLDER = "/test projects";
 

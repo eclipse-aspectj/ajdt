@@ -13,8 +13,8 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
+import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -43,7 +43,7 @@ public class AddAJNatureActionTest extends TestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-
+    	Utils.blockPreferencesConfigWizard();	
         // create a Java project that contains all the various Java elements...
         // create a project
         testProject = new JavaTestProject("Test Java Project");
@@ -87,12 +87,12 @@ public class AddAJNatureActionTest extends TestCase {
         } catch (CoreException e) {
         	// don't care about the exception here.....
         }
+        Utils.restoreBlockedSettings();
     }
 
     public void testAddsAJNature() throws CoreException {
-        // Ensure that we are starting with a Java project.
-		AspectJPreferences.setAJDTPrefConfigDone(true);
-        IProject proj = testProject.getProject();
+        // Ensure that we are starting with a Java project.	
+	    IProject proj = testProject.getProject();
         assertTrue(proj.hasNature("org.eclipse.jdt.core.javanature"));
         
         // GCH Put us into the Java perspective and arrange for the pop up 
@@ -120,8 +120,6 @@ public class AddAJNatureActionTest extends TestCase {
         // Attempt to add the nature
         aja.run(action);
         assertTrue(proj.hasNature(AspectJUIPlugin.ID_NATURE));
-		AspectJPreferences.setAJDTPrefConfigDone(false);
-
         // Restore altered preference value.
         //AspectJPreferences.setAskAspectJPerspectiveSwitch(originalAskVal);
     }

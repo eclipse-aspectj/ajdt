@@ -36,10 +36,12 @@ public class ProjectDependenciesTest extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
+		Utils.blockPreferencesConfigWizard();
 	}
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.restoreBlockedSettings();
 	}
 
 	/**
@@ -55,7 +57,6 @@ public class ProjectDependenciesTest extends TestCase {
 	 * marked with a PD in the comment).
 	 */
 	public void testHowDealingWithProjectDependencies() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -138,7 +139,6 @@ public class ProjectDependenciesTest extends TestCase {
 		monitor.reset();
 		projectY.close(monitor);
 		monitor.waitForCompletion();
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 
 	/**
@@ -185,7 +185,6 @@ public class ProjectDependenciesTest extends TestCase {
 	 * various sequences - ensuring that the dependencies remain as they should
 	 */
 	public void testProjectDependencies1() throws Exception {
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		IProject projectY = Utils.getPredefinedProject("project.java.Y", true);
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
@@ -296,7 +295,6 @@ public class ProjectDependenciesTest extends TestCase {
 		monitor.reset();
 		projectY.close(monitor);
 		monitor.waitForCompletion();
-		AspectJPreferences.setAJDTPrefConfigDone(false);
 	}
 
 	private void setUpPluginEnvironment() throws CoreException {
@@ -304,7 +302,6 @@ public class ProjectDependenciesTest extends TestCase {
 		// is added automatically and the preference configurations
 		// have all been set up (therefore don't need user
 		// interaction.
-		AspectJPreferences.setAJDTPrefConfigDone(true);
 		AspectJPreferences.setAskPDEAutoImport(false);
 		AspectJPreferences.setDoPDEAutoImport(true);
 		AspectJPreferences.setPDEAutoImportConfigDone(true);

@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.JavaTestProject;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
@@ -59,7 +58,7 @@ public class BuildConfiguratorTest extends TestCase {
 		
 		tp2 = new JavaTestProject("AJ Project created by BuildConfiguratorTest" + testNum++);
 		ajProject = tp2.getProject();
-		AspectJPreferences.setAJDTPrefConfigDone(true);
+		Utils.blockPreferencesConfigWizard();
 		AJDTUtils.addAspectJNature(ajProject);		
 		
 		this.waitForJobsToComplete(ajProject);
@@ -76,7 +75,7 @@ public class BuildConfiguratorTest extends TestCase {
 		try {
 			tp.dispose();
 			tp2.dispose();
-			AspectJPreferences.setAJDTPrefConfigDone(false);
+			Utils.restoreBlockedSettings();
 		} catch (CoreException e) {
 			// do nothing - don't care if problems occur here....
 		}	

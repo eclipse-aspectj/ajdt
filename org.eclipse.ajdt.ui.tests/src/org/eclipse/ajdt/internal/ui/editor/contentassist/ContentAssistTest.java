@@ -38,7 +38,8 @@ public class ContentAssistTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		AJDTConfigSettings.setAspectJEditorDefault();
+    	Utils.blockPreferencesConfigWizard();			
+		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
 		fProject = Utils.getPredefinedProject("CodeCompletionTestArea", true);
 	}
 
@@ -47,6 +48,7 @@ public class ContentAssistTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		Utils.restoreBlockedSettings();		
 	}
 	
 	public void testContentAssistA() throws JavaModelException{
