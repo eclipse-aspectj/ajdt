@@ -5,12 +5,12 @@
 <topic label="1. AspectJ Browser" href="doc/devguide/ajbrowser.html">
 
 	<topic label="Building Programs" href="doc/devguide/ch01s02.html">
-		<topic label="Build Configurations" href="doc/devguide/ch01s02.html#d0e889"/>
-		<topic label="Compiling a Program Build Configuration" href="doc/devguide/ch01s02.html#d0e920"/>
+		<topic label="Build Configurations" href="doc/devguide/ch01s02.html#d0e875"/>
+		<topic label="Compiling a Program Build Configuration" href="doc/devguide/ch01s02.html#d0e906"/>
 	</topic>
 	
 	<topic label="Navigating Program Structure" href="doc/devguide/ch01s03.html">
-		<topic label="Example: Exploring the &quot;Spacewar&quot; sample code" href="doc/devguide/ch01s03.html#d0e951"/>
+		<topic label="Example: Exploring the &quot;Spacewar&quot; sample code" href="doc/devguide/ch01s03.html#d0e94"/>
 	</topic>
 
 	<topic label="Running Programs" href="doc/devguide/ch01s04.html"/>
