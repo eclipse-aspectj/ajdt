@@ -200,6 +200,8 @@ public class AspectsConvertingParser implements TerminalTokens {
 			case TokenNameDOT:
 				if (!insideAspect)
 					break;
+				if (insidePointcutDesignator)
+					break;
 				processPotentialIntertypeDeclaration();
 				break;
 
@@ -651,6 +653,18 @@ public class AspectsConvertingParser implements TerminalTokens {
 		replacements.add(last + 1, new Replacement(pos, length, text));
 	}
 
+	public static boolean conflictsWithAJEdit(int posAfter,
+			ArrayList replacements) {
+		Replacement ins;
+		for (int i = 0; i < replacements.size(); i++) {
+			ins = (Replacement) replacements.get(i);
+			if ((posAfter > ins.posAfter) && (posAfter < ins.posAfter + ins.length)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	//translates a position from after to before changes
 	//if the char at that position did not exist before, it returns the
 	// position before the inserted area

@@ -83,17 +83,28 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 					TextEdit[] edits = edit.getChildren();
 					for (int i = 0; i < edits.length; i++) {
 						TextEdit edit2 = edits[i];
-						int pos = AspectsConvertingParser
-								.translatePositionToBeforeChanges(edit2.getOffset(),
-										changes);
-						if (pos == -1) {
+						boolean conflict = AspectsConvertingParser.conflictsWithAJEdit(
+								edit2.getOffset(), changes);
+						if (conflict) {
 							edit.removeChild(edit2);
 							continue;
 						}
-						pos = AspectsConvertingParser.translatePositionToBeforeChanges(
+						conflict = AspectsConvertingParser.conflictsWithAJEdit(
 								edit2.getInclusiveEnd(), changes);
-						if (pos == -1)
+						if (conflict) {
 							edit.removeChild(edit2);
+						}
+//						int pos = AspectsConvertingParser
+//								.translatePositionToBeforeChanges(edit2.getOffset(),
+//										changes);
+//						if (pos == -1) {
+//							edit.removeChild(edit2);
+//							continue;
+//						}
+//						pos = AspectsConvertingParser.translatePositionToBeforeChanges(
+//								edit2.getInclusiveEnd(), changes);
+//						if (pos == -1)
+//							edit.removeChild(edit2);
 					}
 					}
 					//apply remaining edits
