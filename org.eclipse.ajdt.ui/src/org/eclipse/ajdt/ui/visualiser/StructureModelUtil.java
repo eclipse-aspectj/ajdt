@@ -82,22 +82,27 @@ public class StructureModelUtil {
 	
 	
 	/**
-	 * Get all the files conatining aspects that are included in the current build for a 
-	 * project, even those that do not advise any classes.
-	 * @param jp - the project
-	 * @param returnIResources - if true IResources are returned, otherwise IProgramElements are
+	 * Get all the files containing aspects that are included in the current
+	 * build for a project, even those that do not advise any classes. Include
+	 * inner aspects.
+	 * 
+	 * @param jp -
+	 *            the project
+	 * @param returnIResources -
+	 *            if true IResources are returned, otherwise IProgramElements
+	 *            are
 	 * @return Set of all aspects in the project
 	 */
 	public static Set getAllAspects(IProject project, boolean returnIResources) {
 		Set aspects = new HashSet();
 		initialiseAJDE(project);
-	
+
 		List packages = StructureModelUtil.getPackagesInModel();
-	
+
 		Iterator iterator = packages.iterator();
 		while (iterator.hasNext()) {
 			Object[] progNodes = (Object[]) iterator.next();
-			
+
 			IProgramElement packageNode = (IProgramElement) progNodes[0];
 			List files = StructureModelUtil.getFilesInPackage(packageNode);
 			for (Iterator it = files.iterator(); it.hasNext();) {
@@ -108,27 +113,39 @@ public class StructureModelUtil {
 					if (child.getKind().equals(IProgramElement.Kind.ASPECT)) {
 						aspects.add(fileNode);
 						break;
+					} else {
+						// look for inner aspects
+						List innerChildren = child.getChildren();
+						for (Iterator innerIterator = innerChildren.iterator(); innerIterator
+								.hasNext();) {
+							IProgramElement element = (IProgramElement) innerIterator
+									.next();
+							if (element.getKind().equals(
+									IProgramElement.Kind.ASPECT)) {
+								aspects.add(fileNode);
+								break;
+							}
+						}
 					}
 				}
 			}
 		}
-		if(returnIResources) {
+		if (returnIResources) {
 			Set resources = new HashSet();
 			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
 				IProgramElement element = (IProgramElement) iter.next();
-				String path = element.getSourceLocation().getSourceFile().getAbsolutePath();	
-				IResource resource =
-					AspectJUIPlugin
-						.getDefault()
-						.getAjdtProjectProperties()
-						.findResource(
-						path, project);
-	
-				  // Did we find it in this project?  If not then look across the workspace
-				  if (resource == null) {
-					resource = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(path);
-				  }
-				  resources.add(resource);
+				String path = element.getSourceLocation().getSourceFile()
+						.getAbsolutePath();
+				IResource resource = AspectJUIPlugin.getDefault()
+						.getAjdtProjectProperties().findResource(path, project);
+
+				// Did we find it in this project? If not then look across the
+				// workspace
+				if (resource == null) {
+					resource = AspectJUIPlugin.getDefault()
+							.getAjdtProjectProperties().findResource(path);
+				}
+				resources.add(resource);
 			}
 			aspects = resources;
 		}

@@ -128,11 +128,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 		} else if (convertAspectsToAJButton.getSelection()) {
 			convertAspectsToAJAndOthersToJava(includeFilesNotInBuildButton
 					.getSelection());
-		}
-		
-		
-
-		
+		}		
 		super.okPressed();
 	}
 

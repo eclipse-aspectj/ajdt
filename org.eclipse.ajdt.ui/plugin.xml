@@ -111,7 +111,7 @@
          </action>
       </objectContribution>      
  
-      <objectContribution
+     <objectContribution
             objectClass="org.eclipse.jdt.core.IJavaProject"
             adaptable="true"
             id="iprojectcontributions">
@@ -123,8 +123,8 @@
           <action
                label="%convertExt"
                class="org.eclipse.ajdt.ui.refactoring.RenameFileExtensionsAction"
-               menubarPath="org.eclipse.jdt.ui.refactoring.menu/reorgGroup"
-               id="renameaction"
+               menubarPath="additions"
+               id="renamefileextensionsaction"
                enablesFor="1">
          </action>
       </objectContribution>
