@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+<link rel="STYLESHEET" href="book.css" charset="ISO-8859-1" type="text/css">
+    <title>AJDT 1.2.0 M1 - New and Noteworthy</title>
+  </head>
+
+  <body>
+    <h1>AJDT 1.2.0 M1 - New and Noteworthy</h1>
+
+<p>
+Part 1: Aspect structure<br>
+<a href="newnoteworthy2.html">Part 2: Visualiser enhancements</a><br>
+<a href="newnoteworthy3.html">Part 3: Other changes</a>
+</p>
+
+<table border="0" cellpadding="10" cellspacing="0" width="80%">
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New wizard for changing file extensions</b></td>
+    <td width="70%" valign="top">
+
+      <p>Most of the new functionality in this section requires
+      aspects to be contained in .aj files. The best arrangement is
+      usually to keep pure Java code in .java files, and to use .aj
+      files for aspects. We've made it easier to change the extension
+      of your files by adding actions to convert from .java to .aj,
+      and vice versa. Multiple files can be selected for these
+      operations, plus we've added a wizard to convert all of the
+      source files in a project. This is available by right-clicking
+      on a project and selecting <b>Convert file extensions...</b></p>
+
+      <img src="fileconvert.png" width="402" height="227">
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Aspect structure in package explorer</b></td>
+
+    <td width="70%" valign="top">
+      <p>You can now expand aspects in the package explorer, just like
+      Java classes. Furthermore, the structure is updated as the
+      source code is parsed, without having to wait for a build.</p>
+
+    <img src="structure.png" width="261" height="327">
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Code completion</b></td>
+    <td width="70%" valign="top">
+
+      <p>This is now available inside aspects for a larger number of
+      cases. Here are some examples:</p>
+
+      <p>Code assist for members of <code>thisJoinPoint</code> and
+      <code>thisJoinPointStaticPart</code>:</p>
+
+      <img src="codeassist1.png" width="437" height="256">
+
+      <p>Within inter-type declared methods, the completions occur
+      against the target class (and members from the aspect are not
+      included):</p>
+
+      <img src="codeassist2.png" width="395" height="255">
+
+  </tr>
+
+
+  <tr>
+    <td colspan="2">
+      <hr>
+
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Folding editor</b></td>
+    <td width="70%" valign="top">
+
+      <p>The AspectJ editor now supports folding, just like the Java
+      editor. Normal methods, inter-type methods, advice blocks, and
+      multi-line pointcuts can all be folded.</p>
+
+      <img src="folding.png" width="425" height="213">
+
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Organize imports</b></td>
+    <td width="70%" valign="top">
+
+      <p>The <b>Source &gt; Organize Imports</b> action (or
+      Ctrl+Shift+O) operation is now possible inside aspects. (Note:
+      there is a current limitation here which means imports of
+      aspects are not recognised.)</p>
+
+    </td>
+  </tr>
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Add import</b></td>
+    <td width="70%" valign="top">
+
+      <p>As with the Java editor, if you have an unknown type
+      you can position the cursor over it, right click and select
+      <b>Source &gt; Add Import</b>, or press Ctrl+Shift+M, and the
+      appropriate statement will be added to the import section.</p>
+
+    </td>
+  </tr>
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Code formatting</b></td>
+    <td width="70%" valign="top">
+
+      <p>Formatting is greatly improved; the following constructs
+      should format correctly:</p>
+      <ul>
+         <li>Comments</li>
+         <li>Methods, and inter-type declared methods</li>
+         <li>Fields, and inter-type declared fields</li>
+         <li>Advice bodies, which are formatted like methods</li>
+      </ul>
+      <p>Pointcuts are indented appropriately, but any whitespace
+      within the pointcut is left unchanged.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+</table>
+
+<p align="center">
+Next section:<br>
+<a href="newnoteworthy2.html">Part 2: Visualiser enhancements</a><br>
+</p>
+
+  </body>
+</html>

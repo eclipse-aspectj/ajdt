@@ -1,0 +1,248 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+<link rel="STYLESHEET" href="book.css" charset="ISO-8859-1" type="text/css">
+    <title>AJDT 1.2.0 M1 - New and Noteworthy</title>
+  </head>
+
+  <body>
+    <h1>AJDT 1.2.0 M1 - New and Noteworthy</h1>
+
+
+<p>
+<a href="newnoteworthy.html">Part 1: Aspect structure</a><br>
+Part 2: Visualiser enhancements<br>
+<a href="newnoteworthy3.html">Part 3: Other changes</a>
+</p>
+
+<table border="0" cellpadding="10" cellspacing="0" width="80%">
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Visualiser rendering improvements</b></td>
+    <td width="70%" valign="top">
+
+      <p>The graphical rendering of the visualiser has been
+      overhauled, to be faster, more flexible, and make more efficient
+      use of image resources so that larger projects can be
+      visualized. Further details of this are available in the
+      following five sections.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New default look</b></td>
+    <td width="70%" valign="top">
+
+       <p>The bars in the visualiser have a new look, with colours and
+       titles more in keeping with the Eclipse 3 style.</p>
+
+       <img src="visdefault.png" width="387" height="194">
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Extensible drawing styles and palettes</b></td>
+    <td width="70%" valign="top">
+
+      <p>In addition to the default visualiser appearance, there are
+      several drawing styles to chose from:</p>
+
+      <ul>
+        <li>Classic: Preserving the appearance from earlier versions</li>
+        <li>Default: Rounded corners and shaded titles</li>
+        <li>Gradient bars: As default plus shaded bars</li>
+        <li>Cylinder shading: Like gradient bars, but with vertical shading</li>
+      </ul>
+
+      <p>There are also several different colour palettes available,
+      such as one with bold colours which is good for displaying on
+      projectors. The palette can be chosen separately from the
+      drawing style, and visualiser providers can specify a default
+      palette.</p>
+
+      <img src="gradientbars.png" width="196" height="122">
+
+      <p>You can even write your own drawing styles and palettes. The
+      extension points ids are <code>renderers</code> and
+      <code>palettes</code> respectively, in the
+      <code>org.eclipse.contribution.visualiser</code> plugin.  See
+      the plugin.xml file for more details, and ask on the developers
+      mailing list if you have any questions about doing this. Let us
+      know if you create any good extensions that you'd like to
+      contribute to a future release!</p>
+
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved preferences page</b></td>
+    <td width="70%" valign="top">
+
+      <p>The various drawing options of the visualiser, including the
+      above drawing style and palette options, can be set from the
+      visualiser preferences page, which also previews the selected
+      choices.</p>
+
+      <img src="visprefs.png" width="356" height="362">
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved selection and keyboard traversal</b></td>
+    <td width="70%" valign="top">
+
+      <p>Support for keyboard navigation within the visualiser has
+      been improved. The tab and shift-tab keys can be used to
+      traverse all of the selectable components, which are complete
+      columns, bars within columns (in group mode there is typically
+      more than one bar in a column), and the individual stripes. The
+      arrow keys can also be used to select the nearest selectable
+      component. The view scrolls to show the current selection. The
+      same components can also be selected with the mouse.</p>
+
+      <img src="visselection.png" width="304" height="170">
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Improved scaling</b></td>
+    <td width="70%" valign="top">
+
+      <p>The first two buttons on the visualiser toolbar allow you to
+      zoom in and out (both horizontally and vertically), and the next
+      button scales the bars to fit everything within the view,
+      subject to certain minimum dimensions. </p>
+
+      <img src="visscaling.png" width="393" height="255">
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Errors and warnings shown in visualiser</b></td>
+    <td width="70%" valign="top">
+
+      <p>The results of any AspectJ declare error and declare warning
+      statements are now shown as stripes in the visualiser, in
+      colours matching the usual Eclipse colours for errors and
+      warnings. There are toggles on the visualiser menu toolbar to
+      hide these stripes.</p>
+
+      <img src="visdeow.png" width="349" height="250">
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>Colour memory for AJDT provider</b></td>
+    <td width="70%" valign="top">
+
+      <p>If you change the colour of a stripe in the visualiser, then
+      that setting will be preserved, such that an aspect of that
+      name, in the same project, will continue to use that colour,
+      even across workbench sessions. There is a menu option to reset
+      this colour memory back to the default of the current
+      palette.</p>
+
+     </td>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+  <tr>
+    <td width="30%" valign="top" align="left">
+      <p align="right"><b>New provider for Eclipse markers</b></td>
+    <td width="70%" valign="top">
+
+      <p>A new provider has been added to the visualiser to show the
+      location of Eclipse markers.</p>
+
+      <img src="visresources.png" width="400" height="222">
+
+     </td>
+  </tr>
+
+  <tr>
+
+    <td colspan="2">
+      <hr>
+    </td>
+  </tr>
+
+</table>
+
+<p align="center">
+Next section:<br>
+<a href="newnoteworthy3.html">Part 3: Other changes</a>
+</p>
+
+  </body>
+</html>
