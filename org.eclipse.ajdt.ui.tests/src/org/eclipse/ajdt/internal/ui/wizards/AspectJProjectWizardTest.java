@@ -259,10 +259,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		JavaProjectWizardFirstPage curPage = (JavaProjectWizardFirstPage) dialog
 				.getCurrentPage();
 		dialog.finishPressed();
-//				((AspectJProjectWizardExtension)curPage.getWizard()).finish();
-		
-//		dialog.close();
-//		testProjectWizard.getNewProject();
 		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);
 		return wizardCreatedProject;
