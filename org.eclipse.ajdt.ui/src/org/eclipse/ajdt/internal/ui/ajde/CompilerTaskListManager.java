@@ -79,6 +79,8 @@ public class CompilerTaskListManager implements TaskListManager {
      * should be cleared next time the compiled project is rebuilt
      */
     private static Map otherProjectMarkers = new HashMap();
+    
+    private static List problemChangedListeners = new ArrayList();
 
     /**
      * Add a problem to the tasks list for the given file and line number
@@ -306,6 +308,7 @@ public class CompilerTaskListManager implements TaskListManager {
                             throw re;
                         }
                     }
+                    notifyListeners(affectedResources);
                     clearTasks();
                 } catch (Exception e) {
                     AspectJUIPlugin.getDefault().getErrorHandler().handleError(
@@ -577,5 +580,27 @@ public class CompilerTaskListManager implements TaskListManager {
             this.start = start;
             this.end = end;
         }
+    }
+
+    
+    /*
+     * Sian - Added listener capabilities as part of the fix for bug 78182
+     */
+    
+    public void addListener(IProblemChangedListener listener) {
+    	if(!problemChangedListeners.contains(listener)) {
+    		problemChangedListeners.add(listener);
+    	}
+    }
+    
+    public void removeListener(IProblemChangedListener listener) {
+    	problemChangedListeners.remove(listener);
+    }
+    
+    private void notifyListeners(Set changedResources) {
+    	for (Iterator iter = problemChangedListeners.iterator(); iter.hasNext();) {
+			IProblemChangedListener listener = (IProblemChangedListener) iter.next();
+			listener.problemsChanged(changedResources);
+		}
     }
 }

@@ -75,6 +75,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private static Set activeEditorList = new HashSet();
 
+	private AspectJEditorErrorTickUpdater aspectJEditorErrorTickUpdater;
+
 	/**
 	 * Constructor for AspectJEditor
 	 */
@@ -89,6 +91,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 		//		setSourceViewerConfiguration(
 		//			new JavaSourceViewerConfiguration(textTools, this));
 		//((PartSite)getSite()).getConfigurationElement()
+		
+		// Bug 78182
+		aspectJEditorErrorTickUpdater= new AspectJEditorErrorTickUpdater(this);
 	}
 	
 	// Existing in this map means the modification has occurred
@@ -339,9 +344,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-		IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		ISourceViewer sourceViewer= getSourceViewer();
-		sourceViewer.setDocument(document, annotationModel);
+		if(annotationModel != null) {
+			IDocument document = getDocumentProvider().getDocument(getEditorInput());
+			ISourceViewer sourceViewer= getSourceViewer();		
+			sourceViewer.setDocument(document, annotationModel);
+		}
 	}
 	
 	public void doSetInput(IEditorInput input) throws CoreException {
@@ -353,9 +360,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-
 				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
-						.getAJCompilationUnitFromCache(fInput.getFile());
+					.getAJCompilationUnitFromCache(fInput.getFile());
+		
 				if (unit != null){
 				isEditingAjFile = true;
 
@@ -372,6 +379,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 				}
+				aspectJEditorErrorTickUpdater.updateEditorImage(unit);				
 			}
 
 
@@ -392,7 +400,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				contentOutlinePage.setInput(fInput.getFile());
 				contentOutlinePage.update();
 			}
-
 			if ("aj".equals(fInput.getFile().getFileExtension())) {
 				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
@@ -429,6 +436,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 			} catch (JavaModelException e) {
 			}
 
+		}
+		if (aspectJEditorErrorTickUpdater != null) {
+			aspectJEditorErrorTickUpdater.dispose();
+			aspectJEditorErrorTickUpdater = null;
 		}
 		super.dispose();
 	}
