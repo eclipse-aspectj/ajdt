@@ -108,5 +108,5 @@ test...
 (6) remove the error you inserted in step (3)
 (7) Save the file
 (8) Clean the project Project > Clean > Clean selected project
-(9) There should be no compiler errors in the problems view	
+(9) There should be no compiler errors in the problems view	(BUILD_7)
 				
