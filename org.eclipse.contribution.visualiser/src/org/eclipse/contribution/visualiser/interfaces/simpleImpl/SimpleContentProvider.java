@@ -69,7 +69,7 @@ public class SimpleContentProvider implements IContentProvider {
 
 
 	/**
-	 * Initialise the content provider.  This is a default imploementation and
+	 * Initialise the content provider.  This is a default implementation and
 	 * so does nothing.
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#initialise()
 	 */

@@ -102,7 +102,7 @@
       </contentProvider>
       <contentProvider
             markupclass="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsMarkupProvider"
-            name="JDT Search Results Content Provider"
+            name="JDT Search Results Provider"
             priority="5"
             description="Provider that shows Java search results in the visualiser"
             class="org.eclipse.contribution.visualiser.jdtimpl.JDTSearchResultsContentProvider"
