@@ -1,0 +1,9 @@
+AJDT Manual Tests - Whole System Tests
+----------------------------------------
+
+1. Development Environment
+
+ a.	Install AJDT via the latest update site.  Create a CVS connection to the Eclipse technology server and check out the AJDT project set into your workspace.
+ b.	Build the projects and launch a runtime workbench to check that there are no problems with the build. 
+ c.	Restart the workbench and check that the projects still build without errors.  
+ d.	Make minor changes in several of the projects (e.g. adding whitespace). Save and check that the projects still build without errors.
