@@ -61,7 +61,7 @@ public class Visualiser extends ViewPart {
 
 	private Action preferencesAction;
 
-	private Action absoluteProportionsAction;
+	private Action fitToViewAction;
 
 	private static Action groupViewAction;
 
@@ -79,7 +79,7 @@ public class Visualiser extends ViewPart {
 
 	private static boolean locked = false;
 
-	private static boolean absoluteProportions = false;
+	private static boolean fitToView = false;
 
 	private int maxBarWidth = 200;
 
@@ -138,14 +138,10 @@ public class Visualiser extends ViewPart {
 			boolean includeChangeStripeMode) {
 		manager.add(zoomInAction);
 		manager.add(zoomOutAction);
-		manager.add(new Separator());
+		manager.add(fitToViewAction);
 		manager.add(lockAction);
-		manager.add(new Separator());
-		manager.add(absoluteProportionsAction);
-		manager.add(new Separator());
 		if (includeChangeStripeMode) {
 			manager.add(changeStripeModeAction);
-			manager.add(new Separator());
 		}
 		manager.add(limitAction);
 		manager.add(new Separator());
@@ -165,7 +161,7 @@ public class Visualiser extends ViewPart {
 		makeActionLimitvis();
 		makeActionGroupView();
 		makeActionMemberView();
-		makeActionAbsoluteProportions();
+		makeActionFitToView();
 		makeActionLock();
 	}
 
@@ -245,13 +241,13 @@ public class Visualiser extends ViewPart {
 	 * Creates the actions that specifies whether or not the drawing should use
 	 * absolute proportions
 	 */
-	private void makeActionAbsoluteProportions() {
-		absoluteProportionsAction = new Action() {
+	private void makeActionFitToView() {
+		fitToViewAction = new Action() {
 			private String zString;
 
 			public void run() {
-				absoluteProportions = !absoluteProportions;
-				if (absoluteProportions) {
+				fitToView = !fitToView;
+				if (fitToView) {
 					zString = zoomString;
 					setZoomString(VisualiserPlugin
 							.getResourceString("Zoom.fittoview")); //$NON-NLS-1$
@@ -259,20 +255,20 @@ public class Visualiser extends ViewPart {
 					setZoomString(zString);
 				}
 				updateDisplay(false);
-				zoomInAction.setEnabled(!absoluteProportions);
-				zoomOutAction.setEnabled(!absoluteProportions);
+				zoomInAction.setEnabled(!fitToView);
+				zoomOutAction.setEnabled(!fitToView);
 			}
 
 			public int getStyle() {
 				return IAction.AS_CHECK_BOX;
 			}
 		};
-		absoluteProportionsAction.setText(VisualiserPlugin
+		fitToViewAction.setText(VisualiserPlugin
 				.getResourceString("Absolute_Proportions"));
-		absoluteProportionsAction.setToolTipText(VisualiserPlugin
+		fitToViewAction.setToolTipText(VisualiserPlugin
 				.getResourceString("Absolute_Proportions"));
-		absoluteProportionsAction
-				.setImageDescriptor(VisualiserImages.ABSOLUTE_PROPORTIONS);
+		fitToViewAction
+				.setImageDescriptor(VisualiserImages.FIT_TO_VIEW);
 	}
 
 	/**
@@ -445,7 +441,7 @@ public class Visualiser extends ViewPart {
 	}
 
 	public boolean isFitToView() {
-		return absoluteProportions;
+		return fitToView;
 	}
 
 	public boolean isGroupView() {

@@ -36,7 +36,7 @@ public class VisualiserImages {
 	public static final ImageDescriptor LOCK = create("lock.gif");
 	public static final ImageDescriptor PREFERENCES = create("preferences.gif");
 	public static final ImageDescriptor CHANGE_STRIPE_MODE = create("change_mode.gif");
-	public static final ImageDescriptor ABSOLUTE_PROPORTIONS = create("absolute_proportions.gif");
+	public static final ImageDescriptor FIT_TO_VIEW = create("fit_to_view.gif");
 
 	/**
 	 * Get the URL for an icon file
