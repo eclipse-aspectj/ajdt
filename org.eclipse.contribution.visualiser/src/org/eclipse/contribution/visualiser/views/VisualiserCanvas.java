@@ -122,8 +122,6 @@ public class VisualiserCanvas extends Canvas {
 
 	private ToolTipHelper toolTipHelper;
 
-	private IVisualiserRenderer renderer;
-
 	private Menu contextMenu;
 
 		 
@@ -623,8 +621,8 @@ public class VisualiserCanvas extends Canvas {
 		int x = ex + getHorizontalBar().getSelection();
 		int y = ey + getVerticalBar().getSelection();
 
-		int mh = renderer.getMarginSize();
-		int hh = renderer.getColumnHeaderHeight();
+		int mh = getRenderer().getMarginSize();
+		int hh = getRenderer().getColumnHeaderHeight();
 
 		// remove top and left margins
 		x -= mh;
@@ -647,8 +645,8 @@ public class VisualiserCanvas extends Canvas {
 						// check we're not off the bottom of the column
 						if (y <= columns[col].bounds.y
 								+ scale(columns[col].bounds.height
-										- renderer.getColumnHeaderHeight())
-								+ renderer.getColumnHeaderHeight()) {
+										- getRenderer().getColumnHeaderHeight())
+								+ getRenderer().getColumnHeaderHeight()) {
 							List bars = columns[col].barList;
 							for (int i = 0; i < bars.size(); i++) {
 								BarGeom bg = (BarGeom) bars.get(i);
@@ -775,8 +773,8 @@ public class VisualiserCanvas extends Canvas {
 
 		if (visualiser.isGroupView()) {
 			for (int i = 0; i < data.size(); i++) {
-				int y = renderer.getMarginSize()
-						+ renderer.getColumnHeaderHeight();
+				int y = getRenderer().getMarginSize()
+						+ getRenderer().getColumnHeaderHeight();
 				IGroup ig = (IGroup) data.get(i);
 				List mems = ig.getMembers();
 				int size = 0;
@@ -793,21 +791,21 @@ public class VisualiserCanvas extends Canvas {
 					calculateStripeGeom(m, b);
 					y += h;
 				}
-				columns[i].bounds = new Rectangle(0, renderer.getMarginSize(),
-						colWidth, size + renderer.getColumnHeaderHeight());
+				columns[i].bounds = new Rectangle(0, getRenderer().getMarginSize(),
+						colWidth, size + getRenderer().getColumnHeaderHeight());
 				if (size > maxSize) {
 					maxSize = size;
 				}
 			}
 		} else {
-			int y = renderer.getMarginSize() + renderer.getColumnHeaderHeight();
+			int y = getRenderer().getMarginSize() + getRenderer().getColumnHeaderHeight();
 			for (int i = 0; i < data.size(); i++) {
 				IMember m = (IMember) data.get(i);
 				columns[i] = new ColumnGeom(i);
 				columns[i].member = m;
 				int h = heightOfMember(m);
-				columns[i].bounds = new Rectangle(0, renderer.getMarginSize(),
-						colWidth, h + renderer.getColumnHeaderHeight());
+				columns[i].bounds = new Rectangle(0, getRenderer().getMarginSize(),
+						colWidth, h + getRenderer().getColumnHeaderHeight());
 				if (h > maxSize) {
 					maxSize = h;
 				}
@@ -820,8 +818,8 @@ public class VisualiserCanvas extends Canvas {
 		}
 
 		if (visualiser.isFitToView()) {
-			int mh = renderer.getMarginSize();
-			int hh = renderer.getColumnHeaderHeight();
+			int mh = getRenderer().getMarginSize();
+			int hh = getRenderer().getColumnHeaderHeight();
 			// scale to fit view
 			Rectangle clientRect = getClientArea();
 			int viewH = clientRect.height - hh - 2 * mh;
@@ -990,8 +988,8 @@ public class VisualiserCanvas extends Canvas {
 
 		if (visualiser.isFitToView()) {
 			Rectangle clientRect = getClientArea();
-			int space = clientRect.width - 2 * renderer.getMarginSize();
-			int equalWidth = space / data.size() - renderer.getSpacing();
+			int space = clientRect.width - 2 * getRenderer().getMarginSize();
+			int equalWidth = space / data.size() - getRenderer().getSpacing();
 			if (equalWidth < visualiser.getMinBarSize()) {
 				colWidth = visualiser.getMinBarSize();
 			} else if (equalWidth > visualiser.getMaxBarSize()) {
@@ -1053,6 +1051,10 @@ public class VisualiserCanvas extends Canvas {
 		}
 	}
 
+	private IVisualiserRenderer getRenderer() {
+		return RendererManager.getCurrentRenderer().getRenderer();
+	}
+	
 	/**
 	 * The main paint routine - the start of the rendering process
 	 * 
@@ -1076,15 +1078,13 @@ public class VisualiserCanvas extends Canvas {
 		// clear to bg colour
 		sgc.setBackground(VIS_BG_COLOUR);
 		sgc.fillRectangle(screenImg.getBounds());
-
-		renderer = RendererManager.getCurrentRenderer().getRenderer();
-
+		
 		if ((data == null) || (data.size() == 0)) {
 			String empty = ""; //$NON-NLS-1$
 			if (ProviderManager.getCurrent() != null) {
 				empty = ProviderManager.getCurrent().getEmptyMessage() != null ? ProviderManager.getCurrent().getEmptyMessage() : ""; //$NON-NLS-1$
 			}
-			sgc.drawText(empty, renderer.getMarginSize(), renderer
+			sgc.drawText(empty, getRenderer().getMarginSize(), getRenderer()
 					.getMarginSize());
 			// If the data is null, ask the provider to get to find something
 			// to display. But don't if the data is non-null but zero length,
@@ -1119,9 +1119,9 @@ public class VisualiserCanvas extends Canvas {
 				zoomChanged = false;
 				setSelectedItem(null);
 				reqWidth = data.size() * eachWidth + 2
-						* renderer.getMarginSize();
-				reqHeight = scale(maxSize) + 2 * renderer.getMarginSize()
-						+ renderer.getColumnHeaderHeight();
+						* getRenderer().getMarginSize();
+				reqHeight = scale(maxSize) + 2 * getRenderer().getMarginSize()
+						+ getRenderer().getColumnHeaderHeight();
 
 				// we MUST dispose any previous Image
 				if (cImg != null) {
@@ -1139,12 +1139,12 @@ public class VisualiserCanvas extends Canvas {
 			int scrollv = getVerticalBar().getSelection();
 
 			// determine which column we need to start the rendering from
-			int startcol = (scrollh - renderer.getMarginSize()) / eachWidth;
+			int startcol = (scrollh - getRenderer().getMarginSize()) / eachWidth;
 			if (startcol < 0) {
 				startcol = 0;
 			}
 
-			int x = renderer.getMarginSize() - scrollh;
+			int x = getRenderer().getMarginSize() - scrollh;
 			x += startcol * eachWidth;
 
 			sgc.setClipping(clientRect);
@@ -1201,7 +1201,7 @@ public class VisualiserCanvas extends Canvas {
 		gc.fillRectangle(cImg.getBounds());
 
 		// now render the column
-		renderer.paintColumnHeader(gc, m, 0, scale(colWidth));
+		getRenderer().paintColumnHeader(gc, m, 0, scale(colWidth));
 
 		List bars = columns[index].barList;
 		for (int i = 0; i < bars.size(); i++) {
@@ -1209,7 +1209,7 @@ public class VisualiserCanvas extends Canvas {
 			List stripes = bg.stripeList;
 			if (stripes.size() > 0) {
 				// affected by stripes
-				renderer.paintColumn(gc, m, bg.bounds.x, scaleExH(bg.bounds.y),
+				getRenderer().paintColumn(gc, m, bg.bounds.x, scaleExH(bg.bounds.y),
 						scale(bg.bounds.width), scale(bg.bounds.height), true);
 				for (int j = 0; j < stripes.size(); j++) {
 					List kinds = ((StripeGeom) stripes.get(j)).kindList;
@@ -1224,7 +1224,7 @@ public class VisualiserCanvas extends Canvas {
 				}
 			} else {
 				// not affected by stripes
-				renderer.paintColumn(gc, m, bg.bounds.x, scaleExH(bg.bounds.y),
+				getRenderer().paintColumn(gc, m, bg.bounds.x, scaleExH(bg.bounds.y),
 						scale(bg.bounds.width), scale(bg.bounds.height), false);
 			}
 		}
@@ -1240,7 +1240,7 @@ public class VisualiserCanvas extends Canvas {
 	 */
 	private void paintSelection(GC gc) {
 		Rectangle r = selectedItem.getBounds();
-		int x = renderer.getMarginSize() + selectedItem.getIndex()
+		int x = getRenderer().getMarginSize() + selectedItem.getIndex()
 				* (scale(colWidth) + getScaledSpacing()) + r.x
 				- getHorizontalBar().getSelection();
 		int y = scaleExH(r.y) - getVerticalBar().getSelection();
@@ -1251,8 +1251,8 @@ public class VisualiserCanvas extends Canvas {
 		int n = 0;
 		if (selectedItem instanceof ColumnGeom) {
 			n = 1;
-			height = scale(r.height - renderer.getColumnHeaderHeight())
-					+ renderer.getColumnHeaderHeight() + 1;
+			height = scale(r.height - getRenderer().getColumnHeaderHeight())
+					+ getRenderer().getColumnHeaderHeight() + 1;
 			y = r.y - getVerticalBar().getSelection();
 			height += 2;
 		} else if (selectedItem instanceof BarGeom) {
@@ -1337,11 +1337,11 @@ public class VisualiserCanvas extends Canvas {
 		if (visualiser.isFitToView()) {
 			return v;
 		}
-		return (zoomFactor * (v - renderer.getMarginSize() - renderer
+		return (zoomFactor * (v - getRenderer().getMarginSize() - getRenderer()
 				.getColumnHeaderHeight()))
 				/ zoomSc
-				+ renderer.getMarginSize()
-				+ renderer.getColumnHeaderHeight();
+				+ getRenderer().getMarginSize()
+				+ getRenderer().getColumnHeaderHeight();
 	}
 
 	/**
@@ -1366,9 +1366,9 @@ public class VisualiserCanvas extends Canvas {
 	 */
 	private int getScaledSpacing() {
 		if (visualiser.isFitToView()) {
-			return renderer.getSpacing();
+			return getRenderer().getSpacing();
 		}
-		return Math.max(scale(renderer.getSpacing()), renderer.getSpacing());
+		return Math.max(scale(getRenderer().getSpacing()), getRenderer().getSpacing());
 	}
 
 	interface ISelectable {
