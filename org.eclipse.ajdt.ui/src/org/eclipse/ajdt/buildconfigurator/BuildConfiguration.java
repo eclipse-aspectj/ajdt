@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -321,41 +322,94 @@ public class BuildConfiguration implements Cloneable,
 		InputDialogWithCheck md = new InputDialogWithCheck(parentShell, title, msg, def,
 				validator);
 		md.setBlockOnOpen(true);
-		if ((md.open() == Window.OK) && (md.getValue() != null)) {
-			String newName = md.getValue();
-
-			this.name = newName;
-
-			IFile origFile = origBC.getFile();
-			IFile newFile = this.getFile();
-			if (newFile.exists()) {
-				if (!askUserOverwrite(newFile.getName())) {
-					throw new BuildConfigurationCreationException();
-				} else {
-					try {
-						newFile.delete(true, null);
-					} catch (CoreException e1) {
+		if (md.open() == Window.OK) {
+			if (md.getValue() != null) {
+			
+				String newName = md.getValue();
+				this.name = newName;
+	
+				IFile origFile = origBC.getFile();
+				IFile newFile = this.getFile();
+				if (newFile.exists()) {
+					if (!askUserOverwrite(newFile.getName())) {
+						throw new BuildConfigurationCreationException();
+					} else {
+						try {
+							newFile.delete(true, null);
+						} catch (CoreException e1) {
+						}
 					}
 				}
+				try {
+					origFile.copy(newFile.getFullPath(), true, null);
+					this.propertiesFile = new BuildProperties(newFile);
+				} catch (CoreException e) {
+					//could not copy file, try another way to create it
+					this.propertiesFile = new BuildProperties(
+							getFileFromName(name), new ArrayList(getFileList()));
+				}
+				fileList = new HashSet(propertiesFile.getFiles(false));
+				pbc.addBuildConfiguration(this);
+				if (md.isChecked())
+					pbc.setActiveBuildConfiguration(this);	
+				
+			} else {
+				throw new BuildConfigurationCreationException();
 			}
-			try {
-				origFile.copy(newFile.getFullPath(), true, null);
-				this.propertiesFile = new BuildProperties(newFile);
-			} catch (CoreException e) {
-				//could not copy file, try another way to create it
-				this.propertiesFile = new BuildProperties(
-						getFileFromName(name), new ArrayList(getFileList()));
-			}
-			fileList = new HashSet(propertiesFile.getFiles(false));
-			pbc.addBuildConfiguration(this);
-			if (md.isChecked())
-				pbc.setActiveBuildConfiguration(this);
-			
-		} else {
-			throw new BuildConfigurationCreationException();
 		}
 	}
+	
+	/**
+	 * Creates a build configuration with the given name
+	 * @param name
+	 * @param pbc
+	 */
+	public BuildConfiguration (IFile fileToUse, ProjectBuildConfigurator pbc, boolean makeActive, boolean selectAll) {
+		this.pbc = pbc;
+		name = getNameFromFile(fileToUse);
+		IProject project = fileToUse.getProject();
+		if(!selectAll) {
+			fileList = new HashSet();
+		} else {
+			fileList = BuildConfigurator.getBuildConfigurator()
+				.getInitialFileList();
+		}
+		if(fileList != null) {
+			propertiesFile = new BuildProperties(
+				fileToUse, new ArrayList(getFileList()));
+		} else {
+			try {
+				IJavaProject jp = JavaCore.create(project);		
+				IClasspathEntry[] cpes2 = jp.getRawClasspath();
+				if (BuildConfigurator.getBuildConfigurator()
+						.haveExclusionPatterns(cpes2)) {
+					fileList = BuildConfigurator.getBuildConfigurator()
+							.getFileSetFromCPE(cpes2, jp);
+					propertiesFile = new BuildProperties(fileToUse,
+							minimizeIncludes(fileList));
+				} else {
+					List pathes = new ArrayList();
+					for (int i = 0; i < cpes2.length; i++) {
+						if (cpes2[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+							IPath p = cpes2[i].getPath();
+							IResource res = jp.getProject().getParent()
+									.findMember(p);
+							if ((res != null) && res.exists())
+								pathes.add(res.getProjectRelativePath());
+						}
+					}
+					propertiesFile = new BuildProperties(
+							fileToUse, pathes);
+				}
+			} catch (JavaModelException jme) {}
+		}
+		
+		pbc.addBuildConfiguration(this);
+		if (makeActive)
+			pbc.setActiveBuildConfiguration(this);		
 
+	}
+	
 	IFile getFileFromName(String name) {
 		return pbc.getJavaProject().getProject().getFile(
 				name + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$

@@ -24,8 +24,8 @@ import org.eclipse.ui.IWorkbench;
 public class BuildConfigurationFileWizard
 	extends Wizard
 	implements INewWizard {
-	private IStructuredSelection selection;
-	private IWorkbench workbench;
+	protected IStructuredSelection selection;
+	protected IWorkbench workbench;
 	private BuildConfigurationCreationPage mainPage;
 
 	/** 

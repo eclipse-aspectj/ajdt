@@ -1,11 +1,12 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
+Copyright (c) 2002, 2005 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Common Public License v1.0
 which accompanies this distribution, and is available at
 http://www.eclipse.org/legal/cpl-v10.html
 Contributors:
 Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+Sian January - updated for new style build configurations
 ...
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
@@ -14,16 +15,13 @@ package org.eclipse.ajdt.internal.ui.wizards;
  * (c) Copyright IBM Corp. 2000, 2001.
  * All Rights Reserved.
  */
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -50,6 +48,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	// widgets
 	private Button includeProjectFilesCheckbox;
 	private Button openFileCheckbox;
+	private Button makeActiveCheckbox;
 
 	// constants
 	private static int nameCounter = 1;
@@ -82,7 +81,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		//WorkbenchHelp.setHelp(composite, new String[] {IReadmeConstants.CREATION_WIZARD_PAGE_CONTEXT});
 
 		//ASCFIXME: What happens to name counter after workbench restart???		
-		this.setFileName("buildConfig" + nameCounter + ".lst");
+		this.setFileName("buildConfig" + nameCounter + "." + BuildConfiguration.EXTENSION);
 
 		new Label(composite, SWT.NONE); // vertical spacer
 
@@ -105,6 +104,12 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		openFileCheckbox = new Button(composite, SWT.CHECK);
 		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) );
 		openFileCheckbox.setSelection(true);
+		
+		new Label(composite, SWT.NONE);
+		
+		makeActiveCheckbox = new Button(composite, SWT.CHECK);
+		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) );
+		makeActiveCheckbox.setSelection(true);
 
 		setPageComplete(validatePage());
 
@@ -121,6 +126,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 */
 	public boolean finish() {
 		// create the new file resource
+		
 		IFile newFile = createNewFile();
 
 		
@@ -129,6 +135,9 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 
 		// Since the file resource was created fine, open it for editing
 		// if requested by the user
+		IProject project = newFile.getProject();
+		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
+		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection(), includeProjectFilesCheckbox.getSelection());
 		try {
 			if (openFileCheckbox.getSelection()) {
 				IWorkbenchWindow dwindow = workbench.getActiveWorkbenchWindow();
@@ -137,7 +146,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 			}
 		} catch (PartInitException e) {
 			return false;
-		}
+		} 
 		nameCounter++;
 		AJDTEventTrace.newConfigFileCreated( newFile );
 		return true;
@@ -149,89 +158,89 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * <code>WizardNewFileCreationPage</code> method 
 	 * generates includes for all project files if checked.
 	 */
-	protected InputStream getInitialContents() {
+//	protected InputStream getInitialContents() {
 		
-		// Check if they wanted to include all project source files in this config file
-		if (!includeProjectFilesCheckbox.getSelection())
-			return null;
-			
-			
-		IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
-		
-		// Where in the project is the user creating the new configuration file?
-		String containerFullPath =  this.getContainerFullPath().makeAbsolute().toOSString();
-		// containerFullPath will be something like \TracingAspects\src\tracing\version3
-		
-		java.util.List projectFiles = AspectJUIPlugin.getDefault()
-				.getAjdtProjectProperties().getProjectSourceFiles(proj,
-						CoreUtils.ASPECTJ_SOURCE_FILTER);
-		
-		// Work out the full path in the file system to the workspace
-		IPath workspacePath = proj.getLocation();
-		workspacePath = workspacePath.removeLastSegments(1);
-		// workspacePath will be something like C:\eclipse\workspace
-		String fullPath = workspacePath.toOSString() + containerFullPath;
-		// fullPath will be something like c:\eclipse\workspace\TracingAspects\src\tracing\version3
-		
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < projectFiles.size(); i++) {
-			
-			    // Go through all the files in the project.  
-				File file = (File)projectFiles.get(i);
-				
-				// Check the file is within the containerFullPath location or below.
-				String filename = file.getAbsolutePath();
-
-				filename = getRelativePath(fullPath, filename);
-				sb.append(filename);
-				sb.append("\n");
-		}	
-		return new ByteArrayInputStream(sb.toString().getBytes());
-	}
+//		// Check if they wanted to include all project source files in this config file
+//		if (!includeProjectFilesCheckbox.getSelection())
+//			return null;
+//			
+//			
+//		IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
+//		
+//		// Where in the project is the user creating the new configuration file?
+//		String containerFullPath =  this.getContainerFullPath().makeAbsolute().toOSString();
+//		// containerFullPath will be something like \TracingAspects\src\tracing\version3
+//		
+//		java.util.List projectFiles = AspectJUIPlugin.getDefault()
+//				.getAjdtProjectProperties().getProjectSourceFiles(proj,
+//						CoreUtils.ASPECTJ_SOURCE_FILTER);
+//		
+//		// Work out the full path in the file system to the workspace
+//		IPath workspacePath = proj.getLocation();
+//		workspacePath = workspacePath.removeLastSegments(1);
+//		// workspacePath will be something like C:\eclipse\workspace
+//		String fullPath = workspacePath.toOSString() + containerFullPath;
+//		// fullPath will be something like c:\eclipse\workspace\TracingAspects\src\tracing\version3
+//		
+//		StringBuffer sb = new StringBuffer();
+//		for (int i = 0; i < projectFiles.size(); i++) {
+//			
+//			    // Go through all the files in the project.  
+//				File file = (File)projectFiles.get(i);
+//				
+//				// Check the file is within the containerFullPath location or below.
+//				String filename = file.getAbsolutePath();
+//
+//				filename = getRelativePath(fullPath, filename);
+//				sb.append(filename);
+//				sb.append("\n");
+//		}	
+//		return new ByteArrayInputStream(sb.toString().getBytes());
+//	}
 	
-	//helper function to obtain rel path from source folder to destination file using ../
-	private String getRelativePath(String source, String dest){
-		//AJDTEventTrace.generalEvent("\nCreating relative path for\n" + source + "\n" + dest);
-		source = source.replace('/', '\\');
-		dest = dest.replace('/', '\\');
-		
-		//if on different drive, return absolute path
-		int isource = source.indexOf('\\');
-		int idest = dest.indexOf('\\');
-		if ((idest != isource) || (!source.startsWith(dest.substring(0,idest)))){
-			return dest;
-		}
-		
-		source = source.substring(isource + 1).concat("\\");
-		dest = dest.substring(idest + 1);
-		String relPath = "";
-		String curfols, curfold;
-		boolean different = false;
-		isource = source.indexOf('\\');
-		idest = dest.indexOf('\\');
-		while(isource > 0 && idest > 0){
-			curfols = source.substring(0, isource);
-			curfold = dest.substring(0, idest);			
-			if (different || !curfols.equals(curfold)){
-				different = true;
-				relPath = "..\\".concat(relPath.concat(curfold + "\\"));
-			}
-			source = source.substring(isource + 1);
-			dest = dest.substring(idest + 1);
-			isource = source.indexOf('\\');
-			idest = dest.indexOf('\\');
-		}
-		if(idest <= 0){
-			while (isource > 0){
-				curfols = source.substring(0, isource);		
-				relPath = "..\\".concat(relPath);
-				source = source.substring(isource + 1);
-				isource = source.indexOf('\\');
-			}
-		}
-		//AJDTEventTrace.generalEvent("Result: " + relPath.concat(dest));
-		return relPath.concat(dest);
-	}
+//	//helper function to obtain rel path from source folder to destination file using ../
+//	private String getRelativePath(String source, String dest){
+//		//AJDTEventTrace.generalEvent("\nCreating relative path for\n" + source + "\n" + dest);
+//		source = source.replace('/', '\\');
+//		dest = dest.replace('/', '\\');
+//		
+//		//if on different drive, return absolute path
+//		int isource = source.indexOf('\\');
+//		int idest = dest.indexOf('\\');
+//		if ((idest != isource) || (!source.startsWith(dest.substring(0,idest)))){
+//			return dest;
+//		}
+//		
+//		source = source.substring(isource + 1).concat("\\");
+//		dest = dest.substring(idest + 1);
+//		String relPath = "";
+//		String curfols, curfold;
+//		boolean different = false;
+//		isource = source.indexOf('\\');
+//		idest = dest.indexOf('\\');
+//		while(isource > 0 && idest > 0){
+//			curfols = source.substring(0, isource);
+//			curfold = dest.substring(0, idest);			
+//			if (different || !curfols.equals(curfold)){
+//				different = true;
+//				relPath = "..\\".concat(relPath.concat(curfold + "\\"));
+//			}
+//			source = source.substring(isource + 1);
+//			dest = dest.substring(idest + 1);
+//			isource = source.indexOf('\\');
+//			idest = dest.indexOf('\\');
+//		}
+//		if(idest <= 0){
+//			while (isource > 0){
+//				curfols = source.substring(0, isource);		
+//				relPath = "..\\".concat(relPath);
+//				source = source.substring(isource + 1);
+//				isource = source.indexOf('\\');
+//			}
+//		}
+//		//AJDTEventTrace.generalEvent("Result: " + relPath.concat(dest));
+//		return relPath.concat(dest);
+//	}
 
 
 	/** (non-Javadoc)

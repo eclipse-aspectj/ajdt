@@ -455,6 +455,17 @@
       </wizard>
       
       <!-- Define wizard for creating new build configurations -->
+      <wizard
+            name="%buildConfigFile"
+            icon="icons/structure/new_build_config_wizard.gif"
+            category="org.eclipse.ajdt.wizards"
+            class="org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizard"
+            finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+            id="ajbuildconfigwizard">
+         <description>
+            Create a new AspectJ build configuration
+         </description>
+      </wizard>
    </extension>
 
    <extension
