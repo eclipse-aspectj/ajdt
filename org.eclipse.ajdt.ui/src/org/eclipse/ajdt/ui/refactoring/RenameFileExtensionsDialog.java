@@ -10,8 +10,10 @@
 
 package org.eclipse.ajdt.ui.refactoring;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -23,7 +25,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -34,6 +35,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.refactoring.changes.RenameResourceChange;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,6 +45,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 
 /**
  * Dialog that renames file extensions for an entire project. Three options are
@@ -58,6 +62,8 @@ public class RenameFileExtensionsDialog extends Dialog {
 	private Button convertAllToAJButton;
 
 	private Button convertAspectsToAJButton;
+
+	private Button includeFilesNotInBuildButton;
 
 	/**
 	 * @param parentShell
@@ -86,11 +92,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 		composite.setLayout(layout);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		Label note = new Label(composite, SWT.BOLD);
-		note.setText(AspectJUIPlugin.getResourceString("Refactoring.Note")); //$NON-NLS-1$
-		//note.setFont(JFaceResources.getBannerFont());
-		note.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
-
 		convertAspectsToAJButton = new Button(composite, SWT.RADIO);
 		convertAspectsToAJButton
 				.setText(AspectJUIPlugin
@@ -105,69 +106,108 @@ public class RenameFileExtensionsDialog extends Dialog {
 		convertAllToJavaButton.setText(AspectJUIPlugin
 				.getResourceString("Refactoring.ConvertAllToJava")); //$NON-NLS-1$
 
-		//Label spacer = new Label(composite, SWT.NONE);
+		Label spacer = new Label(composite, SWT.NONE);
+
+		includeFilesNotInBuildButton = new Button(composite, SWT.CHECK);
+		includeFilesNotInBuildButton.setText(AspectJUIPlugin
+				.getResourceString("Refactoring.IncludeFilesNotInBuild")); //$NON-NLS-1$
+		includeFilesNotInBuildButton.setSelection(true);
 
 		applyDialogFont(composite);
 		return composite;
 	}
 
 	protected void okPressed() {
+
 		if (convertAllToAJButton.getSelection()) {
-			convertAllExtensions(true);
+			convertAllExtensions(true, includeFilesNotInBuildButton
+					.getSelection());
 		} else if (convertAllToJavaButton.getSelection()) {
-			convertAllExtensions(false);
+			convertAllExtensions(false, includeFilesNotInBuildButton
+					.getSelection());
 		} else if (convertAspectsToAJButton.getSelection()) {
-			convertAspectsToAJAndOthersToJava();
+			convertAspectsToAJAndOthersToJava(includeFilesNotInBuildButton
+					.getSelection());
 		}
+		
+		
+
+		
 		super.okPressed();
 	}
 
 	/**
-	 *  Convert aspects' file extensions to .aj, and classes and interfaces to .java.
+	 * Convert aspects' file extensions to .aj, and classes and interfaces to
+	 * .java.
+	 * 
+	 * @param includeNotBuiltFiles -
+	 *            include files not included in the active build configuration.
+	 * @param monitor - progress monitor
 	 */
-	private void convertAspectsToAJAndOthersToJava() {
-
-		// Set of all the currently active aspects in the project
-		Set aspects = StructureModelUtil.getAllAspects(project, true);
-		IJavaProject jp = JavaCore.create(project);
-		try {
-			IPackageFragment[] packages = jp.getPackageFragments();
-			IProgressMonitor monitor = new NullProgressMonitor();
-			for (int i = 0; i < packages.length; i++) {
-				if (!(packages[i].isReadOnly())) {
-					try {
-						ICompilationUnit[] files = packages[i]
-								.getCompilationUnits();
-						for (int j = 0; j < files.length; j++) {
-							IResource resource = files[j].getResource();
-							boolean isAspect = aspects.contains(resource);
-							if (!isAspect
-									&& !(BuildConfigurator
-											.getBuildConfigurator()
-											.getProjectBuildConfigurator(jp)
-											.getActiveBuildConfiguration()
-											.isIncluded(resource))) {
-								// If the file is not included in the active
-								// build configuration it may still be an aspect
-								isAspect = checkIsAspect(resource);
-							}
-							if (!isAspect
-									&& resource.getFileExtension().equals("aj")) { //$NON-NLS-1$								
-								renameFile(false, resource, monitor);
-							} else if (isAspect
-									&& resource.getFileExtension().equals(
-											"java")) { //$NON-NLS-1$
-								renameFile(true, resource, monitor);
+	private void convertAspectsToAJAndOthersToJava(final boolean includeNonBuiltFiles) {
+		IRunnableWithProgress runnable= new IRunnableWithProgress() {
+            public void run(IProgressMonitor monitor) {
+            	
+				// Set of all the currently active aspects in the project
+				Set aspects = StructureModelUtil.getAllAspects(project, true);
+				IJavaProject jp = JavaCore.create(project);
+				BuildConfiguration activeBuildConfig = BuildConfigurator
+						.getBuildConfigurator().getProjectBuildConfigurator(jp)
+						.getActiveBuildConfiguration();
+				try {
+					IPackageFragment[] packages = jp.getPackageFragments();
+					monitor.beginTask(AspectJUIPlugin.getResourceString("Refactoring.ConvertingFileExtensions"), packages.length);
+					for (int i = 0; i < packages.length; i++) {
+						if (!(packages[i].isReadOnly())) {
+							try {
+								ICompilationUnit[] files = packages[i]
+										.getCompilationUnits();
+								for (int j = 0; j < files.length; j++) {
+		
+									IResource resource = files[j].getResource();
+		
+									if (!includeNonBuiltFiles
+											&& !(activeBuildConfig.isIncluded(resource))) {
+										// do not rename this file if it is not active
+										break;
+									}
+		
+									boolean isAspect = aspects.contains(resource);
+									if (!isAspect
+											&& !(activeBuildConfig.isIncluded(resource))) {
+										// If the file is not included in the active
+										// build configuration it may still be an aspect
+										isAspect = checkIsAspect(resource);
+									}
+									if (!isAspect
+											&& resource.getFileExtension().equals("aj")) { //$NON-NLS-1$								
+										renameFile(false, resource, monitor);
+									} else if (isAspect
+											&& resource.getFileExtension().equals(
+													"java")) { //$NON-NLS-1$
+										renameFile(true, resource, monitor);
+									}
+								}
+							} catch (JavaModelException e) {
+								AspectJUIPlugin.logException(e);
 							}
 						}
-					} catch (JavaModelException e) {
-						AspectJUIPlugin.logException(e);
+						monitor.worked(1);
 					}
-				}
-			}
-		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
-		}
+				} catch (JavaModelException e) {
+					AspectJUIPlugin.logException(e);
+				}		        
+            }
+        };
+        
+        IRunnableWithProgress op= new WorkspaceModifyDelegatingOperation(runnable);
+        try {
+            new ProgressMonitorDialog(getShell()).run(true, true, op);
+        } catch (InvocationTargetException e) {
+        	AspectJUIPlugin.logException(e);
+        } catch (InterruptedException e) {
+        	AspectJUIPlugin.logException(e);
+        }
 	}
 
 	/**
@@ -218,34 +258,62 @@ public class RenameFileExtensionsDialog extends Dialog {
 	 * 
 	 * @param convertToAJ -
 	 *            if true convert to .aj, otherwise convert to .java
+	 * @param includeNotBuiltFiles -
+	 *            include files not included in the active build configuration.
+	 * @param monitor - progress monitor
 	 */
-	private void convertAllExtensions(boolean convertToAJ) {
-		IJavaProject jp = JavaCore.create(project);
-		try {
-			IPackageFragment[] packages = jp.getPackageFragments();
-			IProgressMonitor monitor = new NullProgressMonitor();
-			for (int i = 0; i < packages.length; i++) {
-				if (!(packages[i].isReadOnly())) {
-					try {
-						ICompilationUnit[] files = packages[i]
-								.getCompilationUnits();
-						for (int j = 0; j < files.length; j++) {
-							IResource resource = files[j].getResource();
-							if ((!convertToAJ && resource.getFileExtension()
-									.equals("aj")) //$NON-NLS-1$
-									|| (convertToAJ && resource
-											.getFileExtension().equals("java"))) { //$NON-NLS-1$
-								renameFile(convertToAJ, resource, monitor);
+	private void convertAllExtensions(final boolean convertToAJ,
+			final boolean includeNotBuiltFiles) {
+
+		IRunnableWithProgress runnable= new IRunnableWithProgress() {
+            public void run(IProgressMonitor monitor) {
+				IJavaProject jp = JavaCore.create(project);
+				BuildConfiguration activeBuildConfig = BuildConfigurator
+						.getBuildConfigurator().getProjectBuildConfigurator(jp)
+						.getActiveBuildConfiguration();
+				try {
+					IPackageFragment[] packages = jp.getPackageFragments();
+					monitor.beginTask(AspectJUIPlugin.getResourceString("Refactoring.ConvertingFileExtensions"), packages.length);
+		//			IProgressMonitor monitor = new NullProgressMonitor();
+					for (int i = 0; i < packages.length; i++) {
+						if (!(packages[i].isReadOnly())) {
+							try {
+								ICompilationUnit[] files = packages[i]
+										.getCompilationUnits();
+								for (int j = 0; j < files.length; j++) {
+									IResource resource = files[j].getResource();
+									if (!includeNotBuiltFiles
+											&& !(activeBuildConfig.isIncluded(resource))) {
+										// do not rename this file if it is not active
+										break;
+									}
+									if ((!convertToAJ && resource.getFileExtension()
+											.equals("aj")) //$NON-NLS-1$
+											|| (convertToAJ && resource
+													.getFileExtension().equals("java"))) { //$NON-NLS-1$
+										renameFile(convertToAJ, resource, monitor);
+									}
+								}
+							} catch (JavaModelException e) {
+								AspectJUIPlugin.logException(e);
 							}
 						}
-					} catch (JavaModelException e) {
-						AspectJUIPlugin.logException(e);
+						monitor.worked(1);
 					}
+				} catch (JavaModelException e) {
+					AspectJUIPlugin.logException(e);
 				}
-			}
-		} catch (JavaModelException e) {
-			AspectJUIPlugin.logException(e);
-		}
+            }
+        };            
+        
+        IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(runnable);
+        try {
+            new ProgressMonitorDialog(getShell()).run(true, true, op);
+        } catch (InvocationTargetException e) {
+        	AspectJUIPlugin.logException(e);
+        } catch (InterruptedException e) {
+        	AspectJUIPlugin.logException(e);
+        }
 
 	}
 
