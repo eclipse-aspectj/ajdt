@@ -1095,7 +1095,7 @@ public class VisualiserCanvas extends Canvas {
 			if (Visualiser.contentP != null) {
 				empty = Visualiser.contentP.getEmptyMessage();
 			}
-			sgc.drawString(empty, renderer.getMarginSize(), renderer
+			sgc.drawText(empty, renderer.getMarginSize(), renderer
 					.getMarginSize());
 			// If the data is null, ask the provider to get to find something
 			// to display. But don't if the data is non-null but zero length,
