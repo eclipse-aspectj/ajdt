@@ -342,6 +342,7 @@ public class Builder extends IncrementalProjectBuilder {
 			}
 
 			waitForBuildCompletion(compilerMonitor);
+			ajPlugin.getAjdtProjectProperties().flushClasspathCache();
 			
 			if (buildCancelled) {
 				markReferencingProjects(project, buildPrereqsMessage);

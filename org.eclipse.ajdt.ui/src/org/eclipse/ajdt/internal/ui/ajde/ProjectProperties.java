@@ -67,6 +67,11 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * Computed classpath to aspectjrt.jar
 	 */
 	private String aspectjrtPath = null;
+	
+	/**
+	 * Created in getClasspath(), should be flushed at end of build
+	 */
+	private String cachedClasspath = null;
 
 	/*
 	 * @see ProjectPropertiesAdapter#getAjcWorkingDir()
@@ -190,13 +195,19 @@ public class ProjectProperties implements ProjectPropertiesAdapter {
 	 * get the classpath to use for compiling the current project.
 	 */
 	public String getClasspath() {
+		if (cachedClasspath!=null) return cachedClasspath;
 		IProject proj = AspectJUIPlugin.getDefault().getCurrentProject();
 		IJavaProject jp = JavaCore.create(proj);
 		// bug 73035: use this build classpath resolver which is a direct
 		// copy from JDT, so the classpath environment is much closer between
 		// AspectJ and Java projects.
-		return new BuildClasspathResolver().getClasspath(AspectJPlugin
+		cachedClasspath = new BuildClasspathResolver().getClasspath(AspectJPlugin
 				.getWorkspace().getRoot(), jp);
+		return cachedClasspath;
+	}
+	
+	public void flushClasspathCache() {
+		cachedClasspath = null;
 	}
 
 	/**
