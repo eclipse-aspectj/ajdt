@@ -499,7 +499,7 @@
             targetID="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor"
             id="org.eclipse.ajdt.ui.AJEditor.BreakpointRulerActions">
          <action
-               label=""
+               label="%AJEditorActionsLabel"
                class="org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionDelegate"
                actionID="RulerDoubleClick"
                id="org.eclipse.ajdt.ui.actions.ManageBreakpointRulerAction">
@@ -509,7 +509,16 @@
             targetID="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor"
             id="org.eclipse.ajdt.ui.AJEditor.AdviceRulerActions">
          <action
-               label="andyslabel"
+               label="%AJEditorActionsLabel"
+               class="org.eclipse.ajdt.internal.ui.editor.AdviceActionDelegate"
+               id="org.eclipse.ajdt.ui.actions.AdviceActionDelegate">
+         </action>
+      </editorContribution>
+      <editorContribution
+            targetID="org.eclipse.jdt.ui.CompilationUnitEditor"
+            id="org.eclipse.ajdt.ui.AJEditor.AdviceRulerActions">
+         <action
+               label="%AJEditorActionsLabel"
                class="org.eclipse.ajdt.internal.ui.editor.AdviceActionDelegate"
                id="org.eclipse.ajdt.ui.actions.AdviceActionDelegate">
          </action>
@@ -518,7 +527,7 @@
             targetID="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor"
             id="org.eclipse.ui.texteditor.ruler.actions">
          <action
-               label="%Dummy.label"
+               label="%AJEditorActionsLabel"
                class="org.eclipse.jdt.internal.ui.javaeditor.JavaSelectRulerAction"
                actionID="RulerClick"
                id="org.eclipse.jdt.internal.ui.javaeditor.JavaSelectRulerAction"/>
@@ -537,7 +546,7 @@
             type="org.eclipse.core.resources.textmarker">
       </super>
       <persistent
-            value="false">
+            value="true">
       </persistent>
       <attribute
             name="sourceLocationOfAdvice">
@@ -552,6 +561,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
    </extension>
    <extension
    	      id="afteradvicemarker"
@@ -560,6 +572,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
    </extension>
     <extension
    	      id="aroundadvicemarker"
@@ -568,6 +583,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+     <persistent
+            value="true">
+      </persistent>
    </extension>
 
 <!-- AJDT Problem markers -->
@@ -654,6 +672,9 @@
           name="Dynamic Advice Marker"
           point="org.eclipse.core.resources.markers">
           <super type="org.eclipse.ajdt.ui.advicemarker"/>
+      <persistent
+            value="true">
+      </persistent>
    </extension>
    <extension
    	      id="dynamicbeforeadvicemarker"
@@ -662,6 +683,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
    </extension>
    <extension
    	      id="dynamicafteradvicemarker"
@@ -670,6 +694,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
    </extension>
     <extension
    	      id="dynamicaroundadvicemarker"
@@ -678,6 +705,9 @@
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
 	</extension>
 	
  <!-- Aspect Declaration Markers -->
@@ -690,7 +720,7 @@
             type="org.eclipse.core.resources.textmarker">
       </super>
       <persistent
-            value="false">
+            value="true">
       </persistent>
       <attribute
             name="sourceLocationOfAdvice">
@@ -703,6 +733,9 @@
       <super
             type="org.eclipse.ajdt.ui.declarationmarker">
       </super>
+      <persistent
+            value="true">
+      </persistent>
 	</extension>
  
  <!-- Marker declarations -->   

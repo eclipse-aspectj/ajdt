@@ -364,10 +364,6 @@ public class Builder extends IncrementalProjectBuilder {
 
 			StructureModelUtil.wipeCache();
 
-			// Tell the editor to perform any marker updates pending from
-			// the compile.
-			AspectJEditor.forceMarkerUpdates(project);
-
 			// refresh the eclipse project to pickup generated artifacts
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 

@@ -12,13 +12,9 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.aspectj.ajde.Ajde;
-import org.aspectj.asm.IProgramElement;
-import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
@@ -26,22 +22,15 @@ import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.visualiser.NodeHolder;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
-import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
@@ -82,16 +71,13 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AnnotationAccessWrapper annotationAccessWrapper;
 
-	private boolean markersNeedUpdating = true;
-
 	private static Set activeEditorList = new HashSet();
-
-	private IFileEditorInput currentFileInput;
 
 	/**
 	 * Constructor for AspectJEditor
 	 */
 	public AspectJEditor() {
+		
 		super();	
 				
 		//		activeEditorList.add(this);
@@ -395,15 +381,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 				}
 			}
 
-			if (currentFileInput != null) {
-				removeAJDTMarkers(currentFileInput);
-			}
-			currentFileInput = fInput;
+
 			AJDTEventTrace.editorOpened(fInput.getFile());
 			// Ensure any advice markers are created since they are not
 			// persisted.
 			updateActiveConfig(fInput);
-			updateAdviceMarkers(fInput);
 			activeEditorList.add(this);
 			IDocument document = getDocumentProvider().getDocument(fInput);
 			AspectJTextTools textTools = AspectJUIPlugin.getDefault()
@@ -424,46 +406,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 
-	/**
-	 * This method forces an update of the markers (i.e. they will all be
-	 * deleted and then readded) - this is called from the build updating code
-	 * in AspectJContentOutlinePage - to ensure that every editor has the right
-	 * markers after a compilation
-	 */
-	public void forceUpdateOfAdviceMarkers() {
-		markersNeedUpdating = true;
-		updateAdviceMarkers((IFileEditorInput) getEditorInput());
-	}
-
-	/**
-	 * Adds the advice markers for a file to the left hand gutter. It kicks off
-	 * a thread that does a delete then adds all the new markers.
-	 */
-	public void updateAdviceMarkers(final IFileEditorInput fInput) {
-
-		if (!markersNeedUpdating)
-			return;
-
-		if (fInput == null) {
-			AJDTEventTrace
-					.generalEvent("AspectJEditor: FileEditorInput is null for editor with title ("
-							+ getTitle() + "): Cannot update markers on it");
-			return;
-		}
-
-		if (fInput.getFile() == null) {
-			AJDTEventTrace
-					.generalEvent("AspectJEditor: fileeditorinput.getFile() is null: see bugzilla #43662");
-			return;
-		}
-
-		removeAJDTMarkers(fInput);
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				addNewMarkers(fInput);
-			}
-		});
-	}
 	
 	/**
 	 * Update active config in AJDE.  Added as part of the fix for bug 70658.
@@ -477,203 +419,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}				
 	}
 
-	/**
-	 * Remove all the AJDT markers from the given file input.
-	 * 
-	 * @param fInput
-	 */
-	private void removeAJDTMarkers(final IFileEditorInput fInput) {
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				try {
-					// Wipe all the current advice markers
-					fInput.getFile().deleteMarkers(IAJModelMarker.ADVICE_MARKER,
-							true, IResource.DEPTH_INFINITE);
-					fInput.getFile().deleteMarkers(
-							IAJModelMarker.DECLARATION_MARKER, true,
-							IResource.DEPTH_INFINITE);
-				} catch (CoreException ce) {
-					//if file has been deleted, don't throw exception
-					if (fInput.getFile().exists())
-						AspectJUIPlugin.getDefault().getErrorHandler()
-								.handleError("Advice marker delete failed", ce);
-				}
-			}
-		});
-	}
-
-	/**
-	 * Adds advice markers to mark each line in the source that is affected by
-	 * advice from an aspect. It uses the StructureModelUtil code that the
-	 * visualizer also uses - to determine what aspects are in effect on a
-	 * specific source file.
-	 * 
-	 * @param fInput
-	 *            The file editor input resource against which the markers will
-	 *            be added.
-	 */
-	private void addNewMarkers(final IFileEditorInput fInput) {
-		IProject project = fInput.getFile().getProject();
-
-		// Don't add markers to resources in non AspectJ projects !
-		try {
-			if (project == null || !project.isOpen()
-					|| !project.hasNature(AspectJUIPlugin.ID_NATURE))
-				return;
-		} catch (CoreException e) {
-		}
-
-		String path = fInput.getFile().getRawLocation().toOSString(); // Copes
-																	  // with
-																	  // linked
-																	  // src
-																	  // folders.
-		// retrieve a map of line numbers to Vectors containing StructureNode
-		// objects
-		// Ask for the detailed version of the map (by specifying 'true') which
-		// maps
-		// line numbers to nodes representing advice (rather than just nodes
-		// representing
-		// aspects).
-		Map m = StructureModelUtil.getLinesToAspectMap(path, true);
-
-		if (m != null) {
-			// iterate through the line numbers in the map
-			Set keys = m.keySet();
-			Iterator i = keys.iterator();
-			while (i.hasNext()) {
-				Object o = i.next();
-				final Integer linenumberInt = (Integer) o;
-
-				// for that line, go through all the advice in effect
-				final Vector v = (Vector) m.get(o);
-				// One runnable per line advised adds the appropriate marker
-				IWorkspaceRunnable r = new IWorkspaceRunnable() {
-					public void run(IProgressMonitor monitor) {
-						try {
-							boolean sameType = true;
-							boolean runtimeTst = false;
-
-							// Apples or Oranges?
-							NodeHolder nh = (NodeHolder) v.get(0);
-							//							if
-							// (nh.node.getKind()!=IProgramElement.Kind.ADVICE)
-							// {
-							//								// probably an intertype decl - SIAN....
-							//								System.err.println(">ITD:"+nh.node.toString());
-							//								
-							//							} else {
-							// advice nodes
-							if (v.size() > 1) {
-								NodeHolder first = (NodeHolder) v.get(0);
-								String adviceType = first.node.getExtraInfo() == null ? null
-										: first.node.getExtraInfo()
-												.getExtraAdviceInformation();
-								for (Iterator iter = v.iterator(); iter
-										.hasNext();) {
-									NodeHolder element = (NodeHolder) iter
-											.next();
-									runtimeTst = runtimeTst
-											|| element.runtimeTest;
-									if (adviceType != null) {
-										if (element.node.getExtraInfo() == null) {
-											sameType = false;
-										} else {
-											sameType = sameType
-													&& adviceType
-															.equals(element.node
-																	.getExtraInfo()
-																	.getExtraAdviceInformation());
-										}
-									} else {
-										sameType = sameType
-												&& element.node.getExtraInfo() == null;
-									}
-								}
-							} else if (v.size() == 1) {
-								runtimeTst = ((NodeHolder) v.get(0)).runtimeTest;
-							}
-							final boolean runtimeTest = runtimeTst;
-							final boolean useDefaultAdviceMarker = !sameType;
-							for (int j = 0; j < v.size(); j++) {
-								// sn will represent the advice in affect at the
-								// given line.
-								final NodeHolder noddyHolder = (NodeHolder) v
-										.get(j);
-								final IProgramElement sn = noddyHolder.node;
-								final IResource ir = (IResource) fInput
-										.getFile();
-								// Thread required to ensure marker created and
-								// set atomically
-								// (and so reflected correctly in the ruler).
-
-								ISourceLocation sl_sn = sn.getSourceLocation();
-								String label = sn.toLinkLabelString();
-								// SIAN: RUNTIMETEST local var gives you whether
-								// to put the ? on
-								// SIAN:
-								// sn.getAdviceInfo().getExtraAdviceInformation()
-								// will
-								//       tell you if its
-								// before/after/afterreturning/afterthrowing/around
-								// advice
-
-								String adviceType = sn.getName();
-								IMarker marker = createMarker(linenumberInt,
-										runtimeTest, ir, sn,
-										useDefaultAdviceMarker,
-										noddyHolder.runtimeTest);
-
-								// Crude format is "FFFF:::NNNN:::NNNN:::NNNN"
-								// Filename:::StartLine:::EndLine:::ColumnNumber
-
-								// Grab the location of the pointcut
-								ISourceLocation sLoc2 = sn.getSourceLocation();
-								// was asn
-								marker.setAttribute(IMarker.PRIORITY,
-										IMarker.PRIORITY_HIGH);
-								marker
-										.setAttribute(
-												AspectJUIPlugin.SOURCE_LOCATION_ATTRIBUTE,
-												sLoc2.getSourceFile()
-														.getAbsolutePath()
-														+ ":::"
-														+ sLoc2.getLine()
-														+ ":::"
-														+ sLoc2.getEndLine()
-														+ ":::"
-														+ sLoc2.getColumn());
-
-								//									System.err.println(
-								//									"Creating advicemarker at line="+
-								// linenumberInt.intValue() +
-								//									" advice="+ sn.getName() +
-								//									" sourcefilepath=" + sLoc2.getSourceFile() +
-								//								    " line="+ sLoc2.getLine());
-
-							}
-							//							}
-						} catch (CoreException ce) {
-							AspectJUIPlugin.getDefault().getErrorHandler()
-									.handleError(
-											"Exception creating advice marker",
-											ce);
-						}
-					}
-				};
-
-				// Kick off the thread to add the marker...
-				try {
-					AspectJUIPlugin.getWorkspace().run(r, null);
-				} catch (CoreException cEx) {
-					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-							"AJDT Error adding advice markers", cEx);
-				}
-			}
-		}
-		// Keep note that we are now up to date
-		markersNeedUpdating = false;
-	}
 
 	public void dispose() {
 		AJDTEventTrace.generalEvent("Disposing editor for:" + getTitle());
@@ -691,7 +436,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 
 		}
-		removeAJDTMarkers(currentFileInput);
 		super.dispose();
 	}
 
@@ -742,37 +486,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		});
 	}
 
-	/**
-	 * Sian - added as part of the fix for bug 70658
-	 * Force marker updates for any editors open on files in the project,
-	 * or on all editors if project is null.
-	 * @param project
-	 */
-	public static void forceMarkerUpdates(final IProject project) {
-		final Iterator editorIter = activeEditorList.iterator();
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				try {
-					while (editorIter.hasNext()) {
-						AspectJEditor ajed = (AspectJEditor) editorIter.next();
-						IEditorInput iei = ajed.getEditorInput();
-						boolean updateThisEditor = true;
-						if (project != null
-								&& (iei instanceof IFileEditorInput)) {
-							IFileEditorInput ifei = (IFileEditorInput) iei;
-							if (!(ifei.getFile().getProject().getName()
-									.equals(project.getName())))
-								updateThisEditor = false;
-						}
-						if (updateThisEditor) {
-							ajed.forceUpdateOfAdviceMarkers();							
-						}
-					}
-				} catch (Exception e) {
-				}
-			}
-		});
-	}
+
 
 	
 	/**
@@ -796,61 +510,12 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// in this case (unlike when opening a new editor) they are likely
 			// to
 			// be correct already.
-			updateAdviceMarkers(fInput);
 		}
 		super.setFocus();
 	}
 
 	public void gotoMarker(IMarker marker) {
 		super.gotoMarker(marker);
-	}
-
-	protected IJavaElement getInputJavaElement() {
-		return JavaPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput());
-	}
-
-	/*
-	 * @see JavaEditor#setOutlinePageInput(JavaOutlinePage, IEditorInput)
-	 */
-	protected void setOutlinePageInput(JavaOutlinePage page, IEditorInput input) {
-		if (page != null) {
-			IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
-			page.setInput(manager.getWorkingCopy(input));
-		}
-	}
-	
-	/**
-	 * Returns the most narrow element including the given offset.  If <code>reconcile</code>
-	 * is <code>true</code> the editor's input element is reconciled in advance. If it is 
-	 * <code>false</code> this method only returns a result if the editor's input element
-	 * does not need to be reconciled.
-	 * 
-	 * @param offset the offset included by the retrieved element
-	 * @param reconcile <code>true</code> if working copy should be reconciled
-	 * @return the most narrow element which includes the given offset
-	 */
-	protected IJavaElement getElementAt(int offset, boolean reconcile) {
-		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
-		ICompilationUnit unit= manager.getWorkingCopy(getEditorInput());
-		
-		if (unit != null) {
-			try {
-				if (reconcile) {
-					synchronized (unit) {
-						unit.reconcile(ICompilationUnit.NO_AST, false, null, null);
-					}
-					return unit.getElementAt(offset);
-				} else if (unit.isConsistent())
-					return unit.getElementAt(offset);
-					
-			} catch (JavaModelException x) {
-				if (!x.isDoesNotExist())
-				JavaPlugin.log(x.getStatus());
-				// nothing found, be tolerant and go on
-			}
-		}
-		
-		return null;
 	}
 	
 	protected void initializeEditor() {
@@ -862,75 +527,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
 	}
 
-	/**
-	 * @param linenumberInt
-	 * @param runtimeTest
-	 * @param ir
-	 * @param programElement
-	 * @param useDefaultAdviceMarker
-	 * @return the IMarker created
-	 * @throws CoreException
-	 */
-	private IMarker createMarker(final Integer linenumberInt,
-			final boolean runtimeTest, final IResource ir,
-			IProgramElement programElement, boolean useDefaultAdviceMarker,
-			boolean nodeRuntimeTest) throws CoreException {
-		String label = programElement.toLinkLabelString();
-		String adviceType = "";
-		if (programElement.getExtraInfo() != null) {
-			adviceType = programElement.getExtraInfo()
-					.getExtraAdviceInformation();
-		}
-		IMarker marker;
-		if (useDefaultAdviceMarker) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_ADVICE_MARKER);
-			} else {
-				if (adviceType == "") {
-					marker = ir.createMarker(IAJModelMarker.DECLARATION_MARKER);
-				} else {
-					marker = ir.createMarker(IAJModelMarker.ADVICE_MARKER);
-				}
-			}
-		} else if (adviceType.equals("before")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.BEFORE_ADVICE_MARKER);
-			}
-		} else if (adviceType.equals("around")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.AROUND_ADVICE_MARKER);
-			}
-		} else if (adviceType.startsWith("after")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.AFTER_ADVICE_MARKER);
-			}
-		} else {
-			// It's an Intertype Declaration
-			marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
-		}
-		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt.intValue());
-		if (nodeRuntimeTest) {
-			label = label
-					+ " "
-					+ AspectJUIPlugin
-							.getResourceString("AspectJEditor.runtimetest");
-		}
-		marker.setAttribute(IMarker.MESSAGE, label);
-		return marker;
-	}
 
 	/**
 	 * Removes unsupported menu options. This is obviously not a nice way to do
@@ -977,5 +573,12 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 		}
 
+	}
+	
+	/**
+	 * @return Returns the activeEditorList.
+	 */
+	public static Set getActiveEditorList() {
+		return activeEditorList;
 	}
 }
