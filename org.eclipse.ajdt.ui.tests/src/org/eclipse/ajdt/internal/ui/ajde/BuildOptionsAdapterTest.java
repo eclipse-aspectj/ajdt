@@ -114,16 +114,9 @@ public class BuildOptionsAdapterTest extends TestCase {
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -Xreweavable:compress","-Xreweavable:compress", 
 				nonStandardOptions[3]);
-
-		prefStore.setValue(AspectJPreferences.OPTION_1_5,true);
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -1.5","-1.5", 
-				nonStandardOptions[4]);
 		
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XReweavableCompress,false);
-		prefStore.setValue(AspectJPreferences.OPTION_1_5,false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should only have -Xlintfile option set",2,nonStandardOptions.length);
@@ -193,16 +186,9 @@ public class BuildOptionsAdapterTest extends TestCase {
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -Xreweavable:compress","-Xreweavable:compress", 
 				nonStandardOptions[3]);
-
-		projectNode.put(AspectJPreferences.OPTION_1_5,"true");
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -1.5","-1.5", 
-				nonStandardOptions[4]);
 		
 		projectNode.put(AspectJPreferences.OPTION_XNoInline,"false");
 		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress,"false");
-		projectNode.put(AspectJPreferences.OPTION_1_5,"false");
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should only have -Xlintfile option set",2,nonStandardOptions.length);

@@ -136,9 +136,6 @@ public class AspectJPreferences {
 
 	public static final String OPTION_ReportNoInterfaceCtorJoinpoint = "org.aspectj.ajdt.core.compiler.lint.NoInterfaceCtorJoinpoint"; //$NON-NLS-1$
 
-	// AspectJ 5 Options
-	public static final String OPTION_1_5 = "org.aspectj.ajdt.core.compiler.aj5"; //$NON-NLS-1$
-
 	// AspectJ 5 Lint Options
 	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
 
@@ -153,7 +150,9 @@ public class AspectJPreferences {
 	public static final String OPTION_invalidTargetForAnnotation = "org.aspectj.ajdt.core.compiler.lint.invalidTargetForAnnotation"; //$NON-NLS-1$
 
 	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
-	
+
+	public static final String OPTION_runtimeExceptionNotSoftened = "org.aspectj.ajdt.core.compiler.lint.runtimeExceptionNotSoftened"; //$NON-NLS-1$
+		
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
 
@@ -196,7 +195,8 @@ public class AspectJPreferences {
 					"annotationAsTargetForDecpIgnored" }, //$NON-NLS-1$
 			{ OPTION_adviceDidNotMatch, "adviceDidNotMatch" }, //$NON-NLS-1$
 			{ OPTION_invalidTargetForAnnotation, "invalidTargetForAnnotation" }, //$NON-NLS-1$
-			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" } //$NON-NLS-1$
+			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" }, //$NON-NLS-1$
+			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" } //$NON-NLS-1$
 	};
 
 	// name of the file to write the Xlint options to
@@ -319,9 +319,6 @@ public class AspectJPreferences {
 		}
 		if (getBooleanPrefValue(project, OPTION_XReweavableCompress)) {
 			opts += "-Xreweavable:compress "; //$NON-NLS-1$
-		}
-		if (getBooleanPrefValue(project, OPTION_1_5)) {
-			opts += "-1.5 "; //$NON-NLS-1$
 		}
 		return opts;
 	}

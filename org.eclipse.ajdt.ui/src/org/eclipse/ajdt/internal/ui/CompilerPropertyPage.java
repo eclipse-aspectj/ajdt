@@ -108,9 +108,11 @@ public class CompilerPropertyPage extends PropertyPage {
 		defaultValueMap.put(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
-		
-		// bug 87128
-		defaultValueMap.put(AspectJPreferences.OPTION_1_5, VALUE_FALSE);
+
+		defaultValueMap.put(AspectJPreferences.OPTION_invalidTargetForAnnotation, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_elementAlreadyAnnotated, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_adviceDidNotMatch, AspectJPreferences.VALUE_WARNING);
 	}
 
 	/**
@@ -136,11 +138,14 @@ public class CompilerPropertyPage extends PropertyPage {
 	    	AspectJPreferences.OPTION_BuildASM,
 			AspectJPreferences.OPTION_Incremental,
 			AspectJPreferences.OPTION_WeaveMessages,
-			AspectJPreferences.OPTION_1_5,
 			AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
 			AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
 			AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
-			AspectJPreferences.OPTION_noJoinpointsForBridgeMethods			
+			AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
+			AspectJPreferences.OPTION_invalidTargetForAnnotation,
+			AspectJPreferences.OPTION_elementAlreadyAnnotated,
+			AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+			AspectJPreferences.OPTION_adviceDidNotMatch
 		};
 
 	public CompilerPropertyPage() {
@@ -525,11 +530,10 @@ public class CompilerPropertyPage extends PropertyPage {
 		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 	
-		
-		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.enable_aj5.label"); //$NON-NLS-1$
-		addCheckBox(composite, label, AspectJPreferences.OPTION_1_5, enableDisableValues, 0, false);
-
-		new Label(composite, SWT.NONE);
+		Label spacer = new Label(composite, SWT.NONE);
+		gd = new GridData();
+		gd.horizontalSpan = nColumns;
+		spacer.setLayoutData(gd);
 		
 		Label description2 = new Label(composite, SWT.WRAP);
 		description2
@@ -539,7 +543,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		gd2.horizontalSpan = nColumns;
 		description2.setLayoutData(gd2);
 		
-		label = AspectJUIPlugin
+		String label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.noJoinpointsForBridgeMethods"); //$NON-NLS-1$
 		addComboBox(composite, label, AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
@@ -559,7 +563,26 @@ public class CompilerPropertyPage extends PropertyPage {
 		addComboBox(composite, label, AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.invalidTargetForAnnotation"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_invalidTargetForAnnotation,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.elementAlreadyAnnotated"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_elementAlreadyAnnotated,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.runtimeExceptionNotSoftened"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.adviceDidNotMatch"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_adviceDidNotMatch,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
 		return composite;
 	}
 

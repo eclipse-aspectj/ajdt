@@ -84,13 +84,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 	private static final String ENABLED = JavaCore.ENABLED;
 	private static final String DISABLED = JavaCore.DISABLED;
-
-	private static final String PREF_ENABLE_AJ5 = AspectJPreferences.OPTION_1_5;
-	private static final String PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS = AspectJPreferences.OPTION_noJoinpointsForBridgeMethods;
-	private static final String PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS = AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs;
-	private static final String PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED = AspectJPreferences.OPTION_enumAsTargetForDecpIgnored;
-	private static final String PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED = AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored;
-
 	
 	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton; 
 	
@@ -163,12 +156,16 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
 		store.setDefault(PREF_ENABLE_WEAVE_MESSAGES, false);
 		
-		store.setDefault(PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS, WARNING);
-		store.setDefault(PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS, IGNORE);
-		store.setDefault(PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED, WARNING);
-		store.setDefault(PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED, WARNING);
-		
-		store.setDefault(PREF_ENABLE_AJ5, false);
+		store.setDefault(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, WARNING);
+
+		store.setDefault(AspectJPreferences.OPTION_invalidTargetForAnnotation, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_elementAlreadyAnnotated, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_adviceDidNotMatch, WARNING);
+
 	}
 
 	/**
@@ -429,11 +426,10 @@ public class AJCompilerPreferencePage extends PreferencePage
 		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 	
-		
-		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.enable_aj5.label"); //$NON-NLS-1$
-		addCheckBox(composite, label, PREF_ENABLE_AJ5, enableDisableValues, 0, false);
-
-		new Label(composite, SWT.NONE);
+		Label spacer = new Label(composite, SWT.NONE);
+		gd = new GridData();
+		gd.horizontalSpan = nColumns;
+		spacer.setLayoutData(gd);
 		
 		Label description2 = new Label(composite, SWT.WRAP);
 		description2
@@ -443,27 +439,46 @@ public class AJCompilerPreferencePage extends PreferencePage
 		gd2.horizontalSpan = nColumns;
 		description2.setLayoutData(gd2);
 		
-		label = AspectJUIPlugin
+		String label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.noJoinpointsForBridgeMethods"); //$NON-NLS-1$
-		addComboBox(composite, label, PREF_AJ_NO_JOINPOINTS_FOR_BRIDGE_METHODS,
+		addComboBox(composite, label, AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.cantMatchArrayTypeOnVarargs"); //$NON-NLS-1$
-		addComboBox(composite, label, PREF_AJ_CANT_MATCH_ARRAY_TYPE_ON_VARARGS,
+		addComboBox(composite, label, AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.enumAsTargetForDecpIgnored"); //$NON-NLS-1$
-		addComboBox(composite, label, PREF_AJ_ENUM_AS_TARGET_FOR_DECP_IGNORED,
+		addComboBox(composite, label, AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.annotationAsTargetForDecpIgnored"); //$NON-NLS-1$
-		addComboBox(composite, label, PREF_AJ_ANNOTATION_AS_TARGET_FOR_DECP_IGNORED,
+		addComboBox(composite, label, AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.invalidTargetForAnnotation"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_invalidTargetForAnnotation,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.elementAlreadyAnnotated"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_elementAlreadyAnnotated,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.runtimeExceptionNotSoftened"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.adviceDidNotMatch"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_adviceDidNotMatch,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
 		return composite;
 	}
 

@@ -333,14 +333,8 @@ public class AspectJPreferencesTest extends TestCase {
 				" -XnoInline -Xreweavable:compress ", 
 				AspectJPreferences.getAdvancedOptions(project));
 
-		prefStore.setValue(AspectJPreferences.OPTION_1_5,true);
-		assertEquals("should have set -1.5  option",
-				" -XnoInline -Xreweavable:compress -1.5 ", 
-				AspectJPreferences.getAdvancedOptions(project));
-
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XReweavableCompress,false);
-		prefStore.setValue(AspectJPreferences.OPTION_1_5,false);
 		assertEquals("should have no advanced options set",
 				" ",AspectJPreferences.getAdvancedOptions(project));
 
@@ -388,11 +382,6 @@ public class AspectJPreferencesTest extends TestCase {
 		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress,"true")	;			
 		assertEquals("should have set -Xreweavable:compress option",
 				" -XnoInline -Xreweavable:compress ", 
-				AspectJPreferences.getAdvancedOptions(project));
-
-		projectNode.put(AspectJPreferences.OPTION_1_5,"true")	;			
-		assertEquals("should have set -1.5  option",
-				" -XnoInline -Xreweavable:compress -1.5 ", 
 				AspectJPreferences.getAdvancedOptions(project));
 	
 		AspectJPreferences.setUsingProjectSettings(project,false);
