@@ -565,6 +565,11 @@ public class AJDTVisualiserUtils {
 	}
 
 	/**
+	 * Non-instantiable class
+	 */
+	private AJDTVisualiserUtils(){}
+		
+	/**
 	 * Compares two ProgramElementNodes by their String names.
 	 */
 	private static class SortingComparator implements Comparator {

@@ -47,18 +47,16 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 	 */
 	public void initialise() {
 		kinds = new HashMap();
-		if (markups == null) {
-			try {
-				URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
-						"/");
-				URL resolved = Platform.resolve(url);
-				URL fileURL = new URL(resolved, "Markup.mvis");
-				InputStream in = fileURL.openStream();
-				loadMarkups(in);
-				in.close();
-			} catch (IOException ioe) {
-				VisualiserPlugin.logException(ioe);
-			}
+		try {
+			URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
+					"/");
+			URL resolved = Platform.resolve(url);
+			URL fileURL = new URL(resolved, "Markup.mvis");
+			InputStream in = fileURL.openStream();
+			loadMarkups(in);
+			in.close();
+		} catch (IOException ioe) {
+			VisualiserPlugin.logException(ioe);
 		}
 	}
 

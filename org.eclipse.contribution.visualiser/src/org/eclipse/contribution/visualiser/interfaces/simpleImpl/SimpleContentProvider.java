@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Andy Clement - initial version
+ * 	   Sian January - added additional methods and refactored
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.interfaces.simpleImpl;
 
@@ -24,7 +25,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
  */
 public class SimpleContentProvider implements IContentProvider {
 
-	protected List groups = null;
+	private List groups = null;
 	
 
 	/**
@@ -124,5 +125,12 @@ public class SimpleContentProvider implements IContentProvider {
 	 */
 	public ImageDescriptor getGroupViewIcon() {
 		return null;
+	}
+	
+	/**
+	 * Empties the data structure that contains the added groups
+	 */
+	protected void resetModel() {
+		groups = null;
 	}
 }

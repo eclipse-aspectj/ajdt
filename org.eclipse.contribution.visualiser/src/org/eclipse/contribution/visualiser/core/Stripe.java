@@ -42,6 +42,14 @@ public class Stripe implements Comparable {
 		return true;
 	}
 	
+	public int hashCode(){
+		int result = 17;
+		result = 37*result + depth;
+		result = 37*result + offset;
+		result = 37*result + stringifyKinds().hashCode();
+		return result;
+	}
+	
 	
 	/**
 	 * Default constructor
@@ -145,9 +153,8 @@ public class Stripe implements Comparable {
 	 * Get a String representation of this Stripe
 	 */
 	public String toString() {
-		return new String(
-			"Stripe: ["	+ offset + ":" + depth + ":"
-				+ (offset + depth) + ":" + stringifyKinds() + "]");
+		return "Stripe: [" + offset + ":" + depth + ":" + (offset + depth)
+				+ ":" + stringifyKinds() + "]";
 	}
 
 

@@ -140,7 +140,8 @@ public class SimpleGroup implements IGroup {
 	 * the size and the number of members.
 	 */
 	public String toString() {
-		return new String("SimpleGroup:["+name+"] Size:["+getSize()+"]  Kids:["+kids.size()+"]");
+		return "SimpleGroup:[" + name + "] Size:[" + getSize() + "]  Kids:["
+				+ kids.size() + "]";
 	}
 
 }

@@ -20,8 +20,8 @@ import org.eclipse.swt.graphics.Image;
  */
 public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	
-	public String name;
-	public Image icon;
+	private final String name;
+	private final Image icon;
 
 	/**
 	 * Constructor
@@ -29,6 +29,7 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	 */
 	public SimpleMarkupKind(String name) {
 		this.name = name;
+		this.icon = null;
 	}
 	
 	

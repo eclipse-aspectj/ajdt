@@ -39,19 +39,19 @@ public interface IMarkupProvider {
 	 * Called when the visualiser initializes and discovers a markup provider
 	 * implementation.  Typically initialise will get the markups 'ready'.
 	 */
-	void initialise();
+	public void initialise();
 	
 	
 	/** 
 	 * Return a list of all stripes in effect on this member.
 	 */
-	List getMemberMarkups(IMember member);
+	public List getMemberMarkups(IMember member);
 
 	
 	/** 
 	 * Return a list of all stripes in effect on all members of the group.
 	 */
-	List getGroupMarkups(IGroup group);
+	public List getGroupMarkups(IGroup group);
 
 	
 	/**
@@ -59,7 +59,7 @@ public interface IMarkupProvider {
 	 * in the visualisation.  This is used by the visualiser menu.
 	 * The return value is a set of Strings.
 	 */
-	SortedSet getAllMarkupKinds();
+	public SortedSet getAllMarkupKinds();
 
 
 	/**
@@ -67,14 +67,14 @@ public interface IMarkupProvider {
 	 * the color for a particular kind, this call ensures the
 	 * logic responsible for color management is told.
 	 */
-	void setColorFor(IMarkupKind kind, Color color);
+	public void setColorFor(IMarkupKind kind, Color color);
 
 	
 	/**
 	 * Ask for a color for a given kind - if one is not currently
 	 * allocated, it will be selected from those available.
 	 */
-	Color getColorFor(IMarkupKind element);
+	public Color getColorFor(IMarkupKind element);
 
 	
 	/**
@@ -83,7 +83,7 @@ public interface IMarkupProvider {
 	 * false if it doesn't.
 	 * @return true iff the provider requires the visualiser to update,
 	 */
-	boolean changeMode();
+	public boolean changeMode();
 	
 	
 	/**
@@ -91,7 +91,7 @@ public interface IMarkupProvider {
 	 * icon, otherwise it disables it.
 	 * @return true if this markup provider has multiple modes
 	 */
-	boolean hasMultipleModes();
+	public boolean hasMultipleModes();
 
 	
 	/**

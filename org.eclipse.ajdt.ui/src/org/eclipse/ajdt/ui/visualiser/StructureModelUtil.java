@@ -394,9 +394,9 @@ public class StructureModelUtil {
 
 		if (kind == null || node.getKind().equals(kind)) {
 			if (prename == null) {
-				prename = new String(node.toString());
+				prename = node.toString();
 			} else {
-				prename = new String(prename + "." + node);
+				prename = prename + "." + node;
 			}
 			Object[] o = new Object[2];
 			o[0] = node;

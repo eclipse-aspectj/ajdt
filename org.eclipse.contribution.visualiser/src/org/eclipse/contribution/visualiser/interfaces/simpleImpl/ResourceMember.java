@@ -29,14 +29,8 @@ public class ResourceMember extends SimpleMember {
 	}
 
 	public String toString() {
-		return new String(
-			"ResourceMember:["
-				+ fullname
-				+ "] Size:["
-				+ size.toString()
-				+ "] Resource:["
-				+ resource
-				+ "]");
+		return "ResourceMember:[" + fullname + "] Size:[" + size.toString()
+				+ "] Resource:[" + resource + "]";
 	}
 
 }

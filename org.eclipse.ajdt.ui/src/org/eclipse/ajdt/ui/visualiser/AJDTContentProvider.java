@@ -5,7 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html 
  * Contributors: 
- * Sian Whiting -  initial version.
+ * 
+ * 	Sian Whiting -  initial version.
+ * 
  **********************************************************************/
 package org.eclipse.ajdt.ui.visualiser;
 
@@ -114,7 +116,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 	 */
 	private void updateData() {
 		if(ProviderManager.getMarkupProvider() instanceof AJDTMarkupProvider) {
-			((AJDTMarkupProvider)ProviderManager.getMarkupProvider()).resetMarkups();
+			((AJDTMarkupProvider)ProviderManager.getMarkupProvider()).resetMarkupsAndKinds();
 		}
 		long stime = System.currentTimeMillis();
 		currentGroups = new ArrayList();

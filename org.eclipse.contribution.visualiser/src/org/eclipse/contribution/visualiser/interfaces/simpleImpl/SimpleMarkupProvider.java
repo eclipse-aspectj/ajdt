@@ -39,15 +39,15 @@ import org.eclipse.swt.widgets.Display;
  */
 public class SimpleMarkupProvider implements IMarkupProvider {
 
-	protected Map colourMemory = new HashMap();
-	protected Map availableColours = new HashMap();
+	private Map colourMemory = new HashMap();
+	private Map availableColours = new HashMap();
 	
-	protected Map allocatedColours = new HashMap(); // indexed by RGB
+	private Map allocatedColours = new HashMap(); // indexed by RGB
 	
 	// Indexed by FULL membername, each entry is a List of Stripe objects.
-	public Hashtable markups = null;
+	private Hashtable markups = null;
 	
-	public SortedSet markupKinds;
+	private SortedSet markupKinds;
 	
 	
 	/**
@@ -80,10 +80,8 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	public List getMemberMarkups(IMember member) {
 		if(member != null && markups != null){	
 			Object o = markups.get(member.getFullname());
-			if(o != null){
-				if(o instanceof List) {
-					return (List) markups.get(member.getFullname());
-				}
+			if(o instanceof List) {
+				return (List) markups.get(member.getFullname());
 			}
 		}
 		return null;
@@ -105,6 +103,15 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 		} else {
 			stripes.add(s);
 		}
+	}
+	
+	
+	/**
+	 * Add a markup kind
+	 * @param kind
+	 */
+	public void addMarkupKind(IMarkupKind kind) {
+		markupKinds.add(kind);
 	}
 	
 	
@@ -177,7 +184,7 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	public Color getColorFor(IMarkupKind id){
 		Color stripeColour = null;
 		String p = "not unique";
-		String key = new String(p + ":" + id.getName());
+		String key = p + ":" + id.getName();
 		if (colourMemory.containsKey(key)) {
 			stripeColour = (Color) colourMemory.get(key);
 		} else {
@@ -190,14 +197,14 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 	
 	/**
 	 * Set the color for a kind.
-	 * @param string - the kind
+	 * @param kind - the kind
 	 * @param color - the Color
 	 */
 	public void setColorFor(IMarkupKind kind, Color color) {
 		colourMemory.put("not unique:" + kind.getName(), color);
 	}
-	    	
-	
+
+
 	/**
 	 * Get the next assignable colour and assign it to the String argument.
 	 * @param p - the kind
@@ -228,6 +235,15 @@ public class SimpleMarkupProvider implements IMarkupProvider {
 			allocatedColours.put(v,c);
 		}
 		return c;
+	}
+	
+	
+	/**
+	 * Empty the data structures that contain the stripe and kind information
+	 */
+	public void resetMarkupsAndKinds() {
+		markups = new Hashtable();
+		markupKinds = new TreeSet();
 	}
 	
 	

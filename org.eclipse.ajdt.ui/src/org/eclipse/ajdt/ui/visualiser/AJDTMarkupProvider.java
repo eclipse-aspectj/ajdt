@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui.visualiser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,14 +70,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 * Get a List of Stripes for the given member, which are its markups.
 	 */
 	public List getMemberMarkups(IMember member) {
-		if(markups != null) {
-			if(markups.containsKey(member.getFullname())) {
-				List markupList = (List)markups.get(member.getFullname());
-				if(markupList != null) {
-					return checkErrorsAndWarnings(markupList); 
-				}
-			}
-		}
+		List markupList = getMemberMarkups(member);
+		if(markupList != null) {
+			return checkErrorsAndWarnings(markupList); 
+		}		
 
 		long stime = System.currentTimeMillis();
 		List stripeList = new ArrayList();
@@ -271,17 +266,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		}
 	}
 	
-	
-	
-	/**
-	 * Reset the table of markups
-	 */
-	protected void resetMarkups() {
-		markups = new Hashtable();
-		kindMap = new HashMap();
-	}
-	
-	
+		
 	protected void saveColourForAspect(String aspectName, int r, int g, int b) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
@@ -361,7 +346,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 				public void run() {
 					hideErrors = hideErrorsAction.isChecked();
-					resetMarkups();
+					resetMarkupsAndKinds();
 					VisualiserPlugin.refresh();
 				}
 			};
@@ -373,7 +358,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 				public void run() {
 					hideWarnings = hideWarningsAction.isChecked();
-					resetMarkups();
+					resetMarkupsAndKinds();
 					VisualiserPlugin.refresh();
 				}
 			};

@@ -38,7 +38,7 @@ public class SimpleMember implements IMember {
 	 * name and size.
 	 */
 	public String toString() {
-		return new String("SimpleMember:["+fullname+"] Size:["+size.toString()+"]");
+		return "SimpleMember:[" + fullname + "] Size:[" + size.toString() + "]";
 	}
 	
 	
