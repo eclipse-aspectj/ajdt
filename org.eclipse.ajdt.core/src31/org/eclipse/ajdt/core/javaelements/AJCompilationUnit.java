@@ -30,11 +30,12 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
@@ -48,6 +49,7 @@ import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 
@@ -115,14 +117,19 @@ public class AJCompilationUnit extends CompilationUnit{
 		return elementName.toCharArray();
 	}
 	
-	protected boolean isValidCompilationUnit() {
+	/* Eclispe 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
+	 * override validateCompilationUnit, otherwise the check for valid name will fail on
+	 * .aj files
+	 */
+	protected IStatus validateCompilationUnit(IResource resource) {
 		IPackageFragmentRoot root = getPackageFragmentRoot();
 		try {
-			if (root.getKind() != IPackageFragmentRoot.K_SOURCE) return false;
+			if (root.getKind() != IPackageFragmentRoot.K_SOURCE) 
+				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
 		} catch (JavaModelException e) {
-			return false;
+			return e.getJavaModelStatus();
 		}
-		return true;
+		return JavaModelStatus.OK_STATUS;
 	}
 	
 	public IResource getResource(){
@@ -156,11 +163,8 @@ public class AJCompilationUnit extends CompilationUnit{
 		try {
 			// check if this compilation unit can be opened
 			if (!isWorkingCopy()) { // no check is done on root kind or exclusion pattern for working copies
-				if (((IPackageFragment)getParent()).getKind() == IPackageFragmentRoot.K_BINARY
-						|| !isValidCompilationUnit()
-						|| !underlyingResource.isAccessible()) {
-					throw newNotPresentException();
-				}
+				IStatus status = validateCompilationUnit(underlyingResource);
+				if (!status.isOK()) throw newJavaModelException(status);
 			}
 			
 			// prevents reopening of non-primary working copies (they are closed when they are discarded and should not be reopened)
