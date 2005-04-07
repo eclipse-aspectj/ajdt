@@ -33,6 +33,7 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.visualiser.AJDTContentProvider;
+import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
@@ -279,6 +280,7 @@ public class UIBuildListener implements IAJBuildListener {
 			AspectJEditor.forceEditorUpdates(project);
 		}
 
+		StructureModelUtil.wipeCache();
 		
 		// before returning, check to see if the project sent it's output
 		// to an outjar and if so, then update any depending projects
