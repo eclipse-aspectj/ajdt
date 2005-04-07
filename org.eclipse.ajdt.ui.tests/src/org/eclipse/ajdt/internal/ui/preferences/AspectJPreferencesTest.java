@@ -12,6 +12,8 @@
 package org.eclipse.ajdt.internal.ui.preferences;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -391,4 +393,59 @@ public class AspectJPreferencesTest extends TestCase {
 				" ",AspectJPreferences.getAdvancedOptions(project));
 	}
 
+	public void testGetXLintOptions() throws Exception {
+		String lint = AspectJPreferences.getLintOptions(project);
+		int ind = lint.indexOf("-Xlintfile");
+		if (ind == -1) {
+			fail("Didn't find -Xlintfile in string returned from AspectJPreferences.getLintOptions(). Got: "+lint);
+		}
+		int ind2 = lint.indexOf('\"',ind);
+		if (ind2 == -1) {
+			fail("Didn't find start quote in string returned from AspectJPreferences.getLintOptions(). Got: "+lint);
+		}
+		int ind3 = lint.indexOf('\"',ind2+1);
+		if (ind3 == -1) {
+			fail("Didn't find end quote in string returned from AspectJPreferences.getLintOptions(). Got: "+lint);
+		}
+		String fileName = lint.substring(ind2+1,ind3);
+		
+		// check the file exists
+		File file = new File(fileName);
+		assertTrue("Xlintfile does not exist: "+file,file.exists());
+		
+		// now try to read from it and check for typeNotExposedToWeaver=warning
+		boolean gotWarning = checkXlintOption(file,"typeNotExposedToWeaver","warning");
+		assertTrue("Did not find typeNotExpostedToWeaver entry set to warning",gotWarning);
+
+		boolean isProjectSettings = AspectJPreferences.isUsingProjectSettings(project);
+		String original = prefStore.getString(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver);
+		try {
+			// change option to ignore
+			AspectJPreferences.setUsingProjectSettings(project,false);
+			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,JavaCore.IGNORE);
+		
+			// recheck
+			boolean gotIgnore = checkXlintOption(file,"typeNotExposedToWeaver","ignore");
+			assertTrue("Did not find typeNotExpostedToWeaver entry set to ignore",gotWarning);
+		} finally {
+			// restore settings
+			AspectJPreferences.setUsingProjectSettings(project,isProjectSettings);
+			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,original);		
+		}
+	}
+	
+	private boolean checkXlintOption(File file, String option, String value) throws Exception {
+		boolean gotValue = false;
+		BufferedReader is = new BufferedReader(new FileReader(file));
+		String line = is.readLine();
+		while (line!=null) {
+			if (line.indexOf(option) != -1) {
+				if (line.indexOf(value) != -1) {
+					gotValue = true;
+				}
+			}
+			line = is.readLine();
+		}
+		return gotValue;
+	}
 }
