@@ -30,12 +30,10 @@ Test to ensure not constantly rebuilding (bug 74174)
 		
 (4) The org.eclipse.contribution.visualiser project should NOT rebuild. (BUILD_1)
 
-		- check the progress monitor in the bottom right hand corner of
-		  your workbench - nothing should be there
-		- check the progress view (Window > Show View > Basic > Progress)- nothing
-		  should be there - no builds
+		- the last entry in the AspectJ Event Trace should be
+		
+		  build: Examined delta - no source file changes for project org.eclipse.contribution.visualiser  
 		  
-If any builds are being triggered then this test fails.		    
 
 
 Test to ensure don't rebuild if src file changes which isn't in active build config file
