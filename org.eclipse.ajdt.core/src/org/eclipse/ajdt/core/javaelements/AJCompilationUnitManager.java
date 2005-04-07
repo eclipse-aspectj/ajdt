@@ -80,16 +80,19 @@ public class AJCompilationUnitManager {
 	public List getAJCompilationUnitsForPackage(IPackageFragment pFragment) throws CoreException, JavaModelException {
 		final List ajcus = new ArrayList();
 		final IResource folder = pFragment.getCorrespondingResource();
-		folder.accept(new IResourceVisitor(){
-
-			public boolean visit(IResource resource) throws CoreException {
-				if(resource instanceof IFile) {
-					if (((IFile)resource).getFileExtension().equals("aj")) {
-						ajcus.add(getAJCompilationUnit((IFile)resource));
+		if(folder != null) {
+			folder.accept(new IResourceVisitor(){
+	
+				public boolean visit(IResource resource) throws CoreException {
+					if(resource instanceof IFile) {
+						if (((IFile)resource).getFileExtension().equals("aj")) {
+							ajcus.add(getAJCompilationUnit((IFile)resource));
+						}
 					}
+					return resource.equals(folder);
 				}
-				return resource.equals(folder);
-			}});
+			});
+		}
 		return ajcus;
 	}
 	

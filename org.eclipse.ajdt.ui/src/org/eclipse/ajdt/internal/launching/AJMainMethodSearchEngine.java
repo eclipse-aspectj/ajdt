@@ -74,7 +74,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		}
 		for (int i = 0; i < projects.length; i++) {
 			try {
-				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { 
+				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
 
 					IJavaProject jp = JavaCore.create(projects[i]);
 					if (jp != null) {

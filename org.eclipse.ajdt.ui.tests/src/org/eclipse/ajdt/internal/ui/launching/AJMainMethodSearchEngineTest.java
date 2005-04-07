@@ -38,16 +38,16 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 		// but does not affect the test.
 		Field field = null;
 		try {
-			field = Util.class.getField("JAVA_LIKE_EXTENSIONS");
+			field = Util.class.getDeclaredField("JAVA_LIKE_EXTENSIONS");
 		} catch (NoSuchFieldException nsfe) {
+			System.out.println("no such field..");
 			// do nothing - we are on eclipse 3.0
 		}
 		if(field != null) {
-			char[][] extensions = new char[4][];
+			char[][] extensions = new char[2][];
 			extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-			extensions[1] = new char[] {'.', 'J', 'A', 'V', 'A'};
-			extensions[2] = new char[] {'.', 'a', 'j'};
-			extensions[3] = new char[] {'.', 'A', 'J'};
+			extensions[1] = new char[] {'.', 'a', 'j'};
+			field.setAccessible(true);
 			field.set(null, extensions);
 		}
 		
