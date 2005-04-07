@@ -101,12 +101,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 		
-		preCallListeners(kind, project, requiredProjects);
-		
 		ICoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
 		if (coreOps.isFullBuildRequested(project)) {
 			kind = IncrementalProjectBuilder.FULL_BUILD;
 		}
+
+		// must call this after checking whether a full build has been requested,
+		// otherwise the listeners are called with a different build kind than
+		// is actually carried out. In the case of the ui, then this means that 
+		// the markers may not be cleared properly.
+		preCallListeners(kind, project, requiredProjects);		
 		
 		// workaround for bug 73435
 		IProject[] dependingProjects = getDependingProjects(project);
