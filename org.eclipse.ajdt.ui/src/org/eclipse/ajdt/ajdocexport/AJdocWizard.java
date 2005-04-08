@@ -304,6 +304,11 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			String aspectjtoolsDir = ""; //$NON-NLS-1$
 			URL ajdeURL = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID).getEntry("ajde.jar"); //$NON-NLS-1$
 			URL coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("runtime.jar"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (coreURL==null) {
+				// From Eclipse 3.1M6 onwards, the runtime plugin is itself a JAR file
+				coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			
 			try {
 				File ajdeFile = new File(Platform.asLocalURL(ajdeURL).getFile());
 				if (ajdeFile.exists()) {
