@@ -3,26 +3,51 @@ Refactoring Tests
 
 1. Rename file extensions for individual files
 
- a.	Right click on a .java file in one of your AspectJ projects and then click “Convert file extension to .aj”.  Check that the file extension changes correctly. (REF_1)
- b.	Right click on a .aj file in one of your AspectJ projects and then click “Convert file extension to .java”.  Check that the extension changes correctly. (REF_2)
+ a.	Right click on a .java file in one of your AspectJ projects and then click
+    “Convert file extension to .aj”.  Check that the file extension changes
+    correctly. (REF_1)
+ b.	Right click on a .aj file in one of your AspectJ projects and then click
+    “Convert file extension to .java”.  Check that the extension changes correctly.
+    (REF_2)
 
 2. Rename file extensions for multiple files
 
- a.	Right click on two or more .java files in one of your AspectJ projects and then click “Convert file extension to .aj”.  Check that the file extensions change correctly. (REF_3)
- b.	Right click on two or more .aj file in one of your AspectJ projects and then click “Convert file extension to .java”.  Check that the extensions change correctly. (REF_4)
- c.	Right click on a selection of two or more files with different extensions and ensure that you see neither of the above actions in the menu. (REF_5)
+ a.	Right click on two or more .java files in one of your AspectJ projects and
+    then click “Convert file extension to .aj”.  Check that the file extensions
+    change correctly. (REF_3)
+ b.	Right click on two or more .aj file in one of your AspectJ projects and then
+    click “Convert file extension to .java”.  Check that the extensions change
+    correctly. (REF_4)
+ c.	Right click on a selection of two or more files with different extensions and
+    ensure that you see neither of the above actions in the menu. (REF_5)
 
 3. Rename excluded files
 
  a.	Right click on a couple of files and click “Exclude from ‘…’ configuration”.
- b.	Open the active configuration in the editor and ensure that the files are listed individually in the exclude list (on the source tab).
- c.	Right click on the selection again and convert the file extensions.  Ensure that the build configuration updates correctly.  Repeat to change the extensions back and ensure that the configuration updates correctly again. (REF_6)
+ b.	Open the active configuration in the editor and ensure that the files are
+    listed individually in the exclude list (on the source tab).
+ c.	Right click on the selection again and convert the file extensions.  Ensure
+    that the build configuration updates correctly.  Repeat to change the
+    extensions back and ensure that the configuration updates correctly again.
+    (REF_6)
 
 4. Rename file extensions for a whole project.
 
- a.	Right click on one of your AspectJ projects, then click “Convert file extensions…”.  
- b.	Select “Convert all extensions to .java” and click ‘OK’.  Ensure that all source files in that project have their extensions changed correctly. (REF_7)
- c.	Repeat step a, then select “Convert all extensions to .aj” and click ‘OK’.  Ensure that all source files in that project have their extensions changed correctly. (REF_8)
- d.	Exclude some of your files from the build configuration.  (Right click on some of the files and click ‘Exclude from current build configuration).  Repeat steps a-c both with the “Include files not included in the active build configuration” checkbox checked.  Ensure that all files are renamed as expected and the build configurations update correctly. (REF_9)
- e.	Repeat step d with the “Include files not included in the active build configuration” checkbox unchecked.  Ensure that all files are renamed as expected. (REF_10)
- f.	Repeat step d with the “Update all build configurations” checkbox unchecked.  Ensure that the build configurations do not change. (REF_11)
+ a.	Right click on one of your AspectJ projects, then click “Convert file
+    extensions…”.  
+ b.	Select “Convert all extensions to .java” and click ‘OK’.  Ensure that all
+    source files in that project have their extensions changed correctly. (REF_7)
+ c.	Repeat step a, then select “Convert all extensions to .aj” and click ‘OK’. 
+    Ensure that all source files in that project have their extensions changed
+    correctly. (REF_8)
+ d.	Exclude some of your files from the build configuration.  (Right click on some
+    of the files and click ‘Exclude from current build configuration).  Repeat steps
+    a-c both with the “Include files not included in the active build
+    configuration” checkbox checked.  Ensure that all files are renamed as expected
+    and the build configurations update correctly. (REF_9)
+ e.	Repeat step d with the “Include files not included in the active build
+    configuration” checkbox unchecked.  Ensure that all files are renamed as
+    expected. (REF_10)
+ f.	Repeat step d with the “Update all build configurations” checkbox unchecked.
+    Ensure that the build configurations do not change. (REF_11)
+    
