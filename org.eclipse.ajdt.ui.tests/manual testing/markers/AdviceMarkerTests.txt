@@ -12,10 +12,11 @@ system).
 Convert the linked folder to a source folder (New > Source Folder, insert name
 of folder you just created).
 
-Rebuild and open one of the files in the spacewar package that is advised by an
-aspect.  Right click on one of the advice markers, click 'Advised by..', then
-click on the advice image in the sub-menu.  The aspect containing the advice 
-should be opened in the editor (at the location of the advice). (ADVICE_1)
+Rebuild and open Registry.aj from the spacewar package. Locate the dummy()
+method that is being advised.  Right click on one of the advice markers,
+click 'Advised by..', then click on one of the entries from Coordinator
+in the sub-menu.  The file containing the advice, Coordinator.aj, should be opened
+in the editor (at the location of the advice). (ADVICE_1)
 
 
 Missing markers (bug 70658)

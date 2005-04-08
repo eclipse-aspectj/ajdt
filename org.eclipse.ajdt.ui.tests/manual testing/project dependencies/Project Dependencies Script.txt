@@ -7,7 +7,7 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 		- Window > Preferences > Java > Compiler > Build Path  
 		- "Abort build when classpath errors occur" option is checked.
  
-(2) check out the following projects from org.eclipse.ajdt.test:
+(2) check out the following projects from org.eclipse.ajdt/AJDT1.2src:
 
 	     org.eclipse.contribution.visualiser
 	     org.eclipse.contribution.visualiser.tests
@@ -93,7 +93,8 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 (18) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests 
      should build with no errors  (DEPS_10)
          	  
-(19) Check that the workbench settings have NOT switched to not aborting due to classpath errors:  (DEPS_11)
+(19) Check that the workbench settings have NOT switched to not aborting due to
+     classpath errors:  (DEPS_11)
 
 		- Window > Preferences > Java > Compiler > Build Path  
 		- "Abort build when classpath errors occur" option is still checked.
@@ -148,7 +149,7 @@ Testing build cancelling with project dependencies
 		
 	from dev.eclipse.org
 	
-(2) Convert org.eclipse.contribution.visualiser to be an AJ project and ensure that
+(2) Ensure that org.eclipse.contribution.visualiser is an AJ project and
     the tests project is a java project
 (3) build org.eclipse.contribution.visualiser by pressing the build button and
     immediately press the "cancel" button on the build progress dialog.
