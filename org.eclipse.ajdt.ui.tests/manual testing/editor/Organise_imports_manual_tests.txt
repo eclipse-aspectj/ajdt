@@ -29,13 +29,15 @@ the pointcut body - this was causing problems.
 
 	(a) click anywhere in the main body of BoundPoint.aj
 	(b) select "Ctrl + Alt + O"
-	(c) nothing should happen. In particular, there should be no dilog which
+	(c) nothing should happen (other than the java.bean.* import being optionally expanded)
+	    In particular, there should be no dilog which
 	    appear with the title "Organize Imports" and the message:
 
 			Compilation unit has parse errors: 'Syntax error on token "$", 
 			delete this token'. No changes applied.   (IMPORTS_1)
 	(d) there should be a message in the bottom left hand corner of Eclipse 
-	    saying "0 import(s) added"
+	    saying "0 import(s) added", or "1 import(s) added" if expansion of
+	    java.bean.* took place
    	(e) Save the file and there should be no build errors  (IMPORTS_2)
 
 (2) Removing an unused import
