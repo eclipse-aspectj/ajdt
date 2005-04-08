@@ -10,10 +10,10 @@ Enter "test1" > Finish	A build.ajproperties file has been created in the new pro
 
 
 Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" 
-tab to go to source view	The source view should contain the following: "src.include = /" (BC_2)
+tab to go to source view	The source view should contain the following: "src.includes = /" (BC_2)
 
 Right-click on project > New > Source folder
-Enter "src" > Finish	Editor view should update to show "src.include = src/" (BC_3)
+Enter "src" > Finish	Editor view should update to show "src.includes = src/" (BC_3)
 
 Right-click on "src" > New > Package
 Enter "test" > Finish
@@ -31,7 +31,7 @@ Enter "src" > OK > Yes > Finish
 	A build.ajproperties file has been created in the new project. (BC_6)
 
 Double click build.ajproperties file to open in editor, and switch to "build.ajproperties" 
-tab to go to source view	The source view should contain the following: "src.include = src/" (BC_7)
+tab to go to source view	The source view should contain the following: "src.includes = src/" (BC_7)
 
 Right-click on "test2" project > New > Folder
 Enter "src2" > Finish	A non-source folder "src2" should be created, but the properties editor 
@@ -40,14 +40,14 @@ should not update (BC_8)
 Right-click on "test2" project > Properties
 Select "Java Build Path" > Source tab > Add Folder...
 Select "src2" > OK > OK	The source view should now contain the following:
-        src.include = src/,\
+        src.includes = src/,\
                                   src2/
 (whitespace and ordering of src and src2 does not matter) (BC_9)
 
 Right-click on "test2" project > Properties
 Select "Java Build Path" > Source tab
 Select "src2" > Remove > OK	The source view should update to contain just 
-"src.include = src/" (BC_10)
+"src.includes = src/" (BC_10)
 	
 
 
@@ -63,7 +63,7 @@ Next > Finish	AJDT config dialog appears if this is the first time.
 is created in this project.
 Double click build.ajproperties file to open in editor, and switch to 
 "build.ajproperties" tab to go to source view	The source view should contain the 
-following: "src.include = src/" (BC_11)
+following: "src.includes = src/" (BC_11)
 	
 Test 2:	 (BC_12)
 Repeat test 1 for examples:
@@ -88,8 +88,8 @@ Right-click tracev2.ajproperties > activate this configuration	The packages "tra
 and "tracing.version2" are activated (filled icon), the others not (empty icon) (BC_14)
 
 Double-click tracev2.ajproperties to open editor, open version2 in resource tree and 
-untick Trace.java, save file	Project gets rebuilt. In package explorer view, package 
-"tracing.version2" gets half-filled and the "J" in the icon next to "Trace.java" gets empty (BC_15)
+untick Trace.aj, save file	Project gets rebuilt. In package explorer view, package 
+"tracing.version2" gets half-filled and the "J" in the icon next to "Trace.aj" gets empty (BC_15)
 
 Try including and excluding source files and packages in the package explorer view and in 
 the editor.	Changes in package explorer view should immediately be reflected in editor. 
@@ -182,18 +182,16 @@ Delete all remaining .ajproperties files	A new build configuration "build" and i
 "build.ajproperties" should get created. Check in pull-down-menu if it is available and if
  it is the only one. (BC_26)
 	
-Project > Active build configuration > Save as.., followed by "ok"	A new file "My Build 
-Config.ajproperties" gets created, this is now the active build configuration, check if both 
+Project > Active build configuration > Save as.., followed by "ok"	A new file
+"build1.ajproperties" gets created, this is now the active build configuration, check if both 
 are available in the pull-down-menu
-Exclude package "tracing" by right-clicking on it and choosing the appropriate option	E
-verything should now be excluded (BC_27)
-Project > Active build configuration > Save as..	The ok button is deactivated
-Change name to "build", click "ok" and then "Yes" when asked whether to overwrite or not	
-"build" is the active configuration again, all source files are excluded (BC_28)
+Exclude package "tracing" by right-clicking on it and choosing the appropriate option
+Everything should now be excluded (BC_27)
+Project > Active build configuration > Save as..	
+Change name to "build", and verify the ok button is deactivated, as the name is already
+used by an existing configuration. (BC_28)
 	
 	
-
-
 
 Known issues:
 This is a list of problems a user might encounter. We did not fix them (yet), because they all are not straight forward to fix, do not cause much inconvenience and should only happen rarely. In some cases it is also not clear what behaviour is expected by the user so it might be best to wait for some feedback before we take further steps.
@@ -204,6 +202,6 @@ When adding aj nature to a project, its exclusion patterns get reset. A user mig
 
 When nothing is included, the package explorer view may show errors on excluded files. Normally, to update the package explorer view, we trigger a full build on every build configuration change to clean away old error symbols. However, if you trigger a build with no included files, nothing happens and the old errors/warnings reamain.
 
-When editting the active build configuration in the editor, errors that are caused because some newly excluded files are needed by some included classes, do not get displayed until the next full build happens. (reason: the class file of the excluded files still exists so it does not miss them)
+When editing the active build configuration in the editor, errors that are caused because some newly excluded files are needed by some included classes, do not get displayed until the next full build happens. (reason: the class file of the excluded files still exists so it does not miss them)
 
 When everything is excluded and the active build configuration gets deleted, another build configuration gets activated as usual, but the package explorer view does not get refreshed.
