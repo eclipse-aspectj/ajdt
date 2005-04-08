@@ -502,23 +502,26 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private void checkTemplatesInstalled() {
 		TemplateStore codeTemplates = JavaPlugin.getDefault()
 				.getTemplateStore();
-		try {
-			URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
-			TemplateReaderWriter trw = new TemplateReaderWriter();
-			TemplatePersistenceData[] templates = trw.read(loc.openStream(),
-					null);
-			if ((templates == null) || (templates.length == 0)) {
+		// bug 90791: don't add templates if they are already there
+		if (codeTemplates.findTemplate("adviceexecution") == null) { //$NON-NLS-1$
+			try {
+				URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
+				TemplateReaderWriter trw = new TemplateReaderWriter();
+				TemplatePersistenceData[] templates = trw.read(
+						loc.openStream(), null);
+				if ((templates == null) || (templates.length == 0)) {
+					AJDTEventTrace.generalEvent(AspectJUIPlugin
+							.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
+				} else {
+					for (int i = 0; i < templates.length; i++) {
+						codeTemplates.add(templates[i]);
+					}
+					codeTemplates.save();
+				}
+			} catch (IOException fnf) {
 				AJDTEventTrace.generalEvent(AspectJUIPlugin
 						.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
-			} else {
-				for (int i = 0; i < templates.length; i++) {
-					codeTemplates.add(templates[i]);
-				}
-				codeTemplates.save();
 			}
-		} catch (IOException fnf) {
-			AJDTEventTrace.generalEvent(AspectJUIPlugin
-					.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
 		}
 	}
 
