@@ -178,6 +178,7 @@
          </action>
       </objectContribution>
       
+      <!--
       <objectContribution 
       		objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
             adaptable="true"
@@ -189,6 +190,7 @@
           	    id="delete">
           </action>
        </objectContribution>
+	-->
 
    <!--Our Toggle breakpoint action and JDT's other breakpoint actions-->
      <viewerContribution
