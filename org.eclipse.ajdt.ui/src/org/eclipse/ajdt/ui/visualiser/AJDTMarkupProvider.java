@@ -140,7 +140,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 					if(kindMap == null) {
 						kindMap = new HashMap();
 					}
-					if(element.getRelationship().equals(AJRelationshipManager.MATCHED_BY)) {
+					if(element.getRelationship().equals(AJRelationshipManager.MATCHES_DECLARE)) {
 						String sourceName = element.getTarget().getElementName();					
 						boolean errorKind = sourceName.startsWith(aspectJErrorKind);
 						if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) {
