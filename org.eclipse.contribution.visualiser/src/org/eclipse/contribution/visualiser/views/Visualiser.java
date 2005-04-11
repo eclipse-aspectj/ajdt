@@ -27,6 +27,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
+import org.eclipse.contribution.visualiser.utils.Traced;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -46,19 +47,20 @@ import org.eclipse.ui.progress.UIJob;
 /**
  * This class represents the main view of the Visualiser.
  */
+@Traced
 public class Visualiser extends ViewPart {
 
 	private VisualiserCanvas visCanvas;
 
-	protected static IContentProvider contentP;
+	protected IContentProvider contentP;
 
-	protected static IMarkupProvider markupP;
+	protected IMarkupProvider markupP;
 
-	private static ImageDescriptor groupViewImage = VisualiserImages.GROUP_VIEW;
+	private ImageDescriptor groupViewImage = VisualiserImages.GROUP_VIEW;
 
-	private static ImageDescriptor memberViewImage = VisualiserImages.MEMBER_VIEW;
+	private ImageDescriptor memberViewImage = VisualiserImages.MEMBER_VIEW;
 
-	private static List data = null;
+	private List data = null;
 
 	// actions
 	private Action limitAction;
@@ -69,21 +71,21 @@ public class Visualiser extends ViewPart {
 
 	private Action fitToViewAction;
 
-	private static Action groupViewAction;
+	private Action groupViewAction;
 
-	private static Action memberViewAction;
+	private Action memberViewAction;
 
 	private Action zoomInAction;
 	
 	private Action zoomOutAction;
 
-	private static boolean inGroupView = false;
+	private boolean inGroupView = false;
 
-	private static boolean inLimitMode = false;
+	private boolean inLimitMode = false;
 
 //	private static boolean locked = false;
 
-	private static boolean fitToView = false;
+	private boolean fitToView = false;
 
 	private int maxBarWidth = 200;
 
@@ -362,7 +364,7 @@ public class Visualiser extends ViewPart {
 	/**
 	 * Activate group mode
 	 */
-	private static void activateGroupView() {
+	private void activateGroupView() {
 		inGroupView = true;
 		memberViewAction.setChecked(false);
 		groupViewAction.setChecked(true);
@@ -371,7 +373,7 @@ public class Visualiser extends ViewPart {
 	/**
 	 * Activate member mode
 	 */
-	private static void activateMemberView() {
+	private void activateMemberView() {
 		inGroupView = false;
 		memberViewAction.setChecked(true);
 		groupViewAction.setChecked(false);
@@ -441,6 +443,7 @@ public class Visualiser extends ViewPart {
 
 	public void dispose() {
 		super.dispose();
+		redrawJob = null;
 		VisualiserPlugin.visualiser=null;
 		visCanvas.dispose();
 		visCanvas = null;
@@ -498,7 +501,7 @@ public class Visualiser extends ViewPart {
 	/**
 	 * Shorten the input data to only those bars that have active kinds.
 	 */
-	private static List limitData(List data) {
+	private List limitData(List data) {
 		if (data == null)
 			return null;
 		log(3, "In limit processing: Input size: " + data.size());

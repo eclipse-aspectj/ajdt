@@ -1090,11 +1090,12 @@ public class VisualiserCanvas extends Canvas {
 			// to display. But don't if the data is non-null but zero length,
 			// otherwise the provider is likely to return a zero length list
 			// again, causing a loop
-			if ((data == null) && (Visualiser.contentP != null)
-					&& (Visualiser.contentP instanceof JDTContentProvider)) {
+			final Visualiser visualiser = VisualiserPlugin.visualiser;
+			if ((data == null) && visualiser != null && (visualiser.contentP != null)
+					&& (visualiser.contentP instanceof JDTContentProvider)) {
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						((JDTContentProvider) Visualiser.contentP)
+						((JDTContentProvider) visualiser.contentP)
 								.lookForData();
 					}
 				});
