@@ -21,6 +21,7 @@ import org.eclipse.ajdt.buildconfigurator.UtilTests;
 import org.eclipse.ajdt.core.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.model.AJComparatorTest;
 import org.eclipse.ajdt.core.model.AJModelTest;
+import org.eclipse.ajdt.core.model.AJModelTest2;
 import org.eclipse.ajdt.core.model.AJProjectModelTest;
 import org.eclipse.ajdt.internal.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
@@ -146,6 +147,7 @@ public class AllTests {
 
 		// core.model tests
 		suite.addTest(new TestSuite(AJModelTest.class));
+		suite.addTest(new TestSuite(AJModelTest2.class));
 		suite.addTest(new TestSuite(AJComparatorTest.class));
 		suite.addTest(new TestSuite(AJCodeElementTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
