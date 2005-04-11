@@ -27,7 +27,6 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
-import org.eclipse.contribution.visualiser.utils.Traced;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -47,7 +46,6 @@ import org.eclipse.ui.progress.UIJob;
 /**
  * This class represents the main view of the Visualiser.
  */
-@Traced
 public class Visualiser extends ViewPart {
 
 	private VisualiserCanvas visCanvas;
