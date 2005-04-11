@@ -59,10 +59,7 @@ The following behaviour should be seen:
 	(3) The following is the default settings:
 	
 			- nothing in the outjar field
-			- nothing in the extra compiler options field
-			- use incremental should not be checked
-			- create structure model should be checked
-			- output weaving info should not be checked.	 (PREFS_10)    
+			- nothing in the extra compiler options field (PREFS_10)    
 			
 (b) The AspectJ Compiler page:
 
@@ -119,7 +116,7 @@ Test weaving messages output
 (3) Right click on Simple AJ Project > select properties > AspectJ Compiler
 (4) Click "use project settings"
 (5) navigate to the "other" tab
-(6) select "show weaving messages"
+(6) select "output weaving info messages to problems view"
 (7) Click "ok" and in the resultant popup, choose to build now
 (8) weaving messages should be sent to the problems view  (PREFS_21)
     		    
