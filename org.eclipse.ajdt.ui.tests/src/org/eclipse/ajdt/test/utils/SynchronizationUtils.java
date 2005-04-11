@@ -58,7 +58,7 @@ public class SynchronizationUtils {
 		//joinTypesCache();
 		
 		// Join jobs
-		joinJobs(0, 0, 500);
+		joinJobs(100, 0, 500);
 		//System.out.println("joined jobs");
 	}
 
@@ -104,7 +104,7 @@ public class SynchronizationUtils {
 		try {
 			Thread.sleep(intervalTime);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 	
