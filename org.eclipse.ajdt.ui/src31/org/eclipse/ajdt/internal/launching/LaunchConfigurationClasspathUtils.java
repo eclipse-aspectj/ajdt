@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.internal.debug.ui.classpath.ClasspathEntry;
 import org.eclipse.jdt.internal.debug.ui.classpath.IClasspathEntry;
 import org.eclipse.jdt.internal.launching.RuntimeClasspathEntry;
@@ -189,7 +190,7 @@ public class LaunchConfigurationClasspathUtils {
 							false, // is exported ?
 							null, //accessRules
 							false, //combine access rules?
-							null // extra attributes?
+							new IClasspathAttribute[0] // extra attributes?
                     		);
 					result.add(new RuntimeClasspathEntry(entry));
 				}// end while

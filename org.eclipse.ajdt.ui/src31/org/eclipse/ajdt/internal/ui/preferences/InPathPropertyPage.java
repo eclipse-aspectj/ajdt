@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -193,7 +194,7 @@ public class InPathPropertyPage extends PropertyPage implements
                             false, // is exported ?
                             null, //accessRules
                             false, //combine access rules?
-                            null // extra attributes?
+							new IClasspathAttribute[0] // extra attributes?
                             );
                     result.add(entry);
                 }// end while
