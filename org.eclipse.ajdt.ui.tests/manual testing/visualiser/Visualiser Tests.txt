@@ -3,57 +3,94 @@ AJDT Visualiser Manual Tests
 
 1. Linked Source Folder (bug 48624)
 
- a.	Install AJDT and the TJP example.  Move the ‘src’ directory to a location outside the workspace and delete the ‘bin’ directory.
- b.	Create a new folder and link it to the ‘src’ folder that you moved.  (Right click on the project, then click ‘New’ > ‘Folder’.  Enter “src” for the name, then click “Advanced >>”. Check “Link to folder in the file system”, then browse to the location that you moved the original source folder to.  
- c.	Build the project and open the Aspect Visualization perspective.  Select the TJP project in the Projects view.  The Visualiser should show two bars, one of which has three stripes on.  The Visualiser Menu should have one entry called GetInfo. (VIS_1)
+ a.	Install AJDT and the TJP example.  Move the ‘src’ directory to a location
+    outside the workspace and delete the ‘bin’ directory.
+ b.	Create a new folder and link it to the ‘src’ folder that you moved.  (Right
+    click on the project, then click ‘New’ > ‘Folder’.  Enter “src” for the name,
+    then click “Advanced >>”. Check “Link to folder in the file system”, then browse
+    to the location that you moved the original source folder to.  
+ c.	Build the project and open the Aspect Visualization perspective.  Select the
+    TJP project in the Projects view.  The Visualiser should show two bars, one of
+    which has three stripes on.  The Visualiser Menu should have one entry called
+    GetInfo. (VIS_1)
 
 2. Errors and Warnings (enhancement 71626)
 
  a.	Install the Telecom Example.  
- b.	Insert the following line in Timing.java: 
-declare warning : call(void Connection.drop()) : "call to Connection.drop";
- c.	Insert the following line in Billing.java: 
-declare error: call(*.new(..)): "Constructor call";
- d.	Rebuild, open the Visualiser and select the Telecom Example project.  The Visualiser should contain some colored stripes and a red stripe and some yellow stripes.  Check particularly that the Menu only contains Timing and Billing and that there are red and yellow stripes in the main Visualiser view. (VIS_2)
- 
- e.	Click the ‘Hide Errors’ button in the Visuliser Menu and check that all the red stripes disappear. (VIS_3)
- f.	Click the ‘Hide Warnings’ button in the Menu and check that the yellow stripe disappears. (VIS_4)
- g.	Press ‘Hide Errors’ and ‘Hide Warnings’ again so that error and warning stripes are not hidden.  Uncheck Billing in the Menu.  The Billing stripes and the red stripes should all disappear.  Uncheck Timing.  The yellow stripe and the Timing stripes should all disappear. (VIS_5)
- h.	Switch providers (see the Visualiser help if you do not know how to do this).  Check that the ‘Hide Errors’ and ‘Hide Warnings’ buttons have disappeared from the Menu. (VIS_6)
+ b.	Insert the following line in Timing.aj: 
+    declare warning : call(void Connection.drop()) : "call to Connection.drop";
+ c.	Insert the following line in Billing.aj: 
+    declare error: call(*.new(..)): "Constructor call";
+ d.	Rebuild, open the Visualiser and select the Telecom Example project.  The
+    Visualiser should contain some colored stripes and a red stripe and some yellow
+    stripes.  Check particularly that the Menu only contains Timing and Billing and
+    that there are red and yellow stripes in the main Visualiser view. (VIS_2)
+ e.	Click the ‘Hide Errors’ button in the Visuliser Menu and check that all the red 
+    stripes disappear. (VIS_3)
+ f.	Click the ‘Hide Warnings’ button in the Menu and check that the yellow stripe
+    disappears. (VIS_4)
+ g.	Press ‘Hide Errors’ and ‘Hide Warnings’ again so that error and warning stripes
+    are not hidden.  Uncheck Billing in the Menu.  The Billing stripes and the red
+    stripes should all disappear.  Uncheck Timing.  The yellow stripe and the Timing
+    stripes should all disappear. (VIS_5)
+ h.	Switch providers (see the Visualiser help if you do not know how to do this). 
+    Check that the ‘Hide Errors’ and ‘Hide Warnings’ buttons have disappeared from
+    the Menu. (VIS_6)
 
 3. Multiple Source folders
 
- a.	Check out the ‘MultipleSourceFolders’ test project from the org.eclipse.ajdt.tests project on Eclipse.org and build it.  Ensure by inspection that the contents of both the ‘src’ and the ‘src2’ source folders are being built.
- b.	Open the Aspect Visualization perspective and select the project.  You should see three bars in the Visualiser labelled ‘Class1’, ‘Class2’ and ‘Class3’.   (VIS_7)
- c.	Select the default package under ‘src’.  You should see one bar labelled ‘Class1’ in the Visualiser. (VIS_8)
- d.	Select the package ‘pack’ under ‘src’.  You should see one bar labelled ‘Class2’ in the Visualiser. (VIS_9)
- e.	Select the package ‘pack’ under ‘src2’.  You should see one bar labelled ‘Class3’ in the Visualiser. (VIS_10)
+ a.	Check out the ‘MultipleSourceFolders’ test project from the org.eclipse.ajdt.tests
+    project on Eclipse.org and build it.  Ensure by inspection that the contents of
+    both the ‘src’ and the ‘src2’ source folders are being built.
+ b.	Open the Aspect Visualization perspective and select the project.  You should see
+    three bars in the Visualiser labelled ‘Class1’, ‘Class2’ and ‘Class3’.   (VIS_7)
+ c.	Select the default package under ‘src’.  You should see one bar labelled ‘Class1’
+    in the Visualiser. (VIS_8)
+ d.	Select the package ‘pack’ under ‘src’.  You should see one bar labelled ‘Class2’
+    in the Visualiser. (VIS_9)
+ e.	Select the package ‘pack’ under ‘src2’.  You should see one bar labelled ‘Class3’
+    in the Visualiser. (VIS_10)
 
 4. Multiple Source folders part 2 (bug 77297)
 
- a.	Visualise the org.eclipse.ajdt.core plugin, and ensure that you do not see duplicate entries for classes that are in the src30 and src31 folders. (VIS_11)
+ a.	Visualise the org.eclipse.ajdt.core plugin, and ensure that you do not see
+    duplicate entries for classes that are in the src30 and src31 folders. (VIS_11)
 
 5. Colour Persistence (bug 72368)
 
- a.	Install the Tracing example and the TJP example.  Open the Aspect Visualization Perspective and select the Tracing example project in the projects view.  
- b.	Using the Visualiser Menu change the colour for one of the aspects listed.  Switch to the TJP example, then switch back to the Tracing example in the project view.  Check that the aspect that you changed still has the colour you selected.   (VIS_12)
- c.	Select a different build configuration for the Tracing example and rebuild.  If still included in the build check that the aspect you changed the colour for still has that colour.  Otherwise rebuild again with the original configuration and check that your colour change is still in effect. (VIS_13)
- d.	Restart the workbench and check again that your colour change is still in effect. (VIS_14)
+ a.	Install the Tracing example and the TJP example.  Open the Aspect Visualization
+    Perspective and select the Tracing example project in the projects view.  
+ b.	Using the Visualiser Menu change the colour for one of the aspects listed.  Switch
+    to the TJP example, then switch back to the Tracing example in the project view. 
+    Check that the aspect that you changed still has the colour you selected.  (VIS_12)
+ c.	Select a different build configuration for the Tracing example and rebuild. If
+    still included in the build check that the aspect you changed the colour for still
+    has that colour.  Otherwise rebuild again with the original configuration and check
+    that your colour change is still in effect. (VIS_13)
+ d.	Restart the workbench and check again that your colour change is still in effect.
+    (VIS_14)
 
 6. Resetting Colour Memory
 
- a.	Save some colours in the Visualiser Menu, as in 4a and b.  Click the ‘Reset Color Memory’ button on the Visualiser Menu’s icon bar.  The colours in the Menu should reset.   (VIS_15)
- b.	Switch to a different project in the package explorer then switch back.  The colour you set in part a should not have returned. (VIS_16)
+ a.	Save some colours in the Visualiser Menu, as in 4a and b.  Click the ‘Reset Color
+    Memory’ button on the Visualiser Menu’s icon bar.  The colours in the Menu should
+    reset.   (VIS_15)
+ b.	Switch to a different project in the package explorer then switch back.  The colour
+    you set in part a should not have returned. (VIS_16)
  c.	Restart the workbench and ensure that the colour has not returned. (VIS_17)
 
 7. Double clicking .aj files (bug 77296)
 
  a.	Select a project in the package explorer that contains at least one .aj file. 
- b.	Identify that file in the Visualiser and double click on it.  The file should open in the editor. (VIS_18)
+ b.	Identify that file in the Visualiser and double click on it.  The file should open
+    in the editor. (VIS_18)
 
 8. Refreshing after a build (bug 75392)
 
  a.	Install the Spacewar example project.
  b.	Build with the ‘demo’ build configuration. 
- c.	Select the Spacewar project in the package explorer so that it is displayed in the Visualiser.
- d.	Rebuild with the ‘debug’ build configuration.  You should see an extra entry in the Visualiser Menu and a number of extra stripes appear on the bars, without having to click a different project then click back to Spacewar.  (VIS_19)
+ c.	Select the Spacewar project in the package explorer so that it is displayed in the
+    Visualiser.
+ d.	Rebuild with the ‘debug’ build configuration.  You should see an extra entry in
+    the Visualiser Menu and a number of extra stripes appear on the bars, without
+    having to click a different project then click back to Spacewar.  (VIS_19)
