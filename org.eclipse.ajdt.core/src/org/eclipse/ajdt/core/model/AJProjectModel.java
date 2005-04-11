@@ -207,7 +207,11 @@ public class AJProjectModel {
 							// or in a jar, or outside the workspace. Create a placeholder
 							// element. In future we could look for the resource in the
 							// workspace, and locate the real java element for it
-							targetEl = new AJCodeElement(null,0,"injar aspect: "+link.getName());
+							if (link.getParent()==null) {
+								// if the problem element has no parent, then we have a binary/injar
+								// aspect, otherwise we don't know what it is, so we skip it
+								targetEl = new AJCodeElement(null,0,"injar aspect: "+link.getName());
+							}
 						}
 
 						AJRelationshipType ajRel = (AJRelationshipType) kindMap.get(rel
