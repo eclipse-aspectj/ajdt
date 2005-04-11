@@ -58,7 +58,7 @@ public class SynchronizationUtils {
 		//joinTypesCache();
 		
 		// Join jobs
-		joinJobs(100, 0, 500);
+		joinJobs(0, 0, 500);
 		//System.out.println("joined jobs");
 	}
 
