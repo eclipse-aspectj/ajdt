@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
@@ -65,18 +64,20 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	    List l = AJModel.getInstance().getExtraChildren(je);
 	    if (l == null) {
 			return null;
-		} else {
-			// this is to stop ClassCastException's when a child
-			// is contained in a jar file which we can't open
-			for (Iterator iter = l.iterator(); iter.hasNext();) {
-				Object o = (Object) iter.next();
-				if (o instanceof AJCodeElement) {
-					AJCodeElement element = (AJCodeElement)o;
-					if (element.getOpenable() == null) {
-						l.remove(o);
-					}
-				}			
-			}
+		// commenting this out for now - see bug 91105
+		// (still see the ClassCastException)	
+//		} else {
+//			// this is to stop ClassCastException's when a child
+//			// is contained in a jar file which we can't open
+//			for (Iterator iter = l.iterator(); iter.hasNext();) {
+//				Object o = (Object) iter.next();
+//				if (o instanceof AJCodeElement) {
+//					AJCodeElement element = (AJCodeElement)o;
+//					if (element.getOpenable() == null) {
+//						l.remove(o);
+//					}
+//				}			
+//			}
 		}
 	    // ensuring that the children are sorted 
 	    Collections.sort(l,new AJComparator());
