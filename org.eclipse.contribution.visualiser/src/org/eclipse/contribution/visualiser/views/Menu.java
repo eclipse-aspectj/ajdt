@@ -457,6 +457,7 @@ public class Menu extends ViewPart {
 	 */
 	public void dispose() {
 	    canvas = null;
+		updateJob = null;
 		VisualiserPlugin.getDefault().removeMenu();
 	}
 
