@@ -36,8 +36,9 @@ Wizard Tests
     to an appropriate directory (e.g. C:\temp).  This directory will now contain a
     ‘plugins’ folder, which itself contains a folder with the name of your plug-in
     (e.g. HelloWorld_1.0.0).  Open the JAR file in this folder.  Check that this JAR
-    file contains the .CLASS files for any aspects and classes you had in your project
-    and that it contains all the .AJ and .JAVA files. (WIZ_3)
+    file contains the .CLASS files for any aspects and classes you had in your project.  
+    There should also be a zip file within the zip file created in b.  This should
+    contain all the .AJ and .JAVA files in your project. (WIZ_3)
  d.	Test the plug-in as in part 1d above. (WIZ_4)
 
 AJDT Plugin Export Wizard - TBD:

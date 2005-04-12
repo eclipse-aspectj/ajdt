@@ -16,7 +16,7 @@ AJDT Visualiser Manual Tests
 
 2. Errors and Warnings (enhancement 71626)
 
- a.	Install the Telecom Example.  
+ a.	Install the Telecom Example and activate the 'billing' build configuration.  
  b.	Insert the following line in Timing.aj: 
     declare warning : call(void Connection.drop()) : "call to Connection.drop";
  c.	Insert the following line in Billing.aj: 
