@@ -1149,9 +1149,12 @@ public class AJDTUtils {
 	}
 
 	public static void refreshPackageExplorer() {
+//		String callerName = (new RuntimeException()).getStackTrace()[1]
+//		                                             				.getClassName();
+//		System.out.println("refreshPackageExplorer called by "+callerName);
 		int delay = 5*previousExecutionTime;
-		if (delay < 100) {
-			delay = 100;
+		if (delay < 250) {
+			delay = 250;
 		} else if (delay > 5000) {
 			delay = 5000;
 		}
