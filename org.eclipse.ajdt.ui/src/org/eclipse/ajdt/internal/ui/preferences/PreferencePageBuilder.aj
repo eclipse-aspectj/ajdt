@@ -69,7 +69,7 @@ aspect PreferencePageBuilder {
     private Hashtable /* PropertyPage -> (Hashtable of ListDialogField -> List)*/ dialogFieldOriginalValues = new Hashtable();
 
     interface AJDTPathBlockPage{}
-    
+       
     declare parents: AspectPathBlock implements AJDTPathBlockPage;
     declare parents: InPathBlock implements AJDTPathBlockPage;
     
@@ -90,6 +90,25 @@ aspect PreferencePageBuilder {
         remainingActivePages.add(page);
     }
 
+    // interested in when the AJDT property page is disposed
+    pointcut disposalOfAnInterestingPage(PropertyPage page) :
+	    (execution(void dispose()))
+	    && interestingPage() && this(page);
+
+    // before the page is disposed, remove it from the lists
+    before(PropertyPage page) : disposalOfAnInterestingPage(page) {
+        buttonOriginalValues.remove(page);
+        comboOriginalValues.remove(page);
+        stringFieldEditorsOriginalValues.remove(page);
+        selectionButtonOriginalValues.remove(page);
+        dialogFieldOriginalValues.remove(page);
+        activePages.remove(page);
+        if (page instanceof CompilerPropertyPage) {
+            compilerPageDoBuild = false;
+        }
+        remainingActivePages.remove(page);
+    }
+    
     pointcut interestingPathBlockPages() : within(AspectPathBlock) || within(InPathBlock);
     
     pointcut setSelection(Button button, boolean val, PropertyPage page):

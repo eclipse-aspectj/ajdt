@@ -265,4 +265,11 @@ public class InPathPropertyPage extends PropertyPage implements
     public IProject getThisProject() {
         return thisProject;
     }
+    
+	/**
+	 * overriding dispose() for PreferencePaageBuilder.aj
+	 */   
+	public void dispose() {
+		super.dispose();
+	}
 }

@@ -405,4 +405,10 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
         return thisProject;
     }
     
+	/**
+	 * overriding dispose() for PreferencePaageBuilder.aj
+	 */   
+	public void dispose() {
+		super.dispose();
+	}  
 }
