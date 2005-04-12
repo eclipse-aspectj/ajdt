@@ -3,24 +3,13 @@ Related Locations / Multiple Source Locations (enhancement 71059)
 
 Checkout the "RelatedLocations" projects from the "test projects" folder
 
-This should build with one error ("Ambiguous binding...") and one warning
-("Declare warning")
-
-Double-click on the error in the problems view to navigate to Game.java
-
-Right-click on the error gutter annotation
-
-There should be an "Advised By" entry on the menu, and a
-"Go To Related Location" entry (LOCS_1)
-
-The "Go To Related Location" entry should contain a sub menu with one
-item: "Display.aj at line 21" (LOCS_2)
-
-Selecting this item should cause Display.aj to be open at that line (LOCS_3)
+This should build with one warning ("Declare warning")
 
 Double-click on the warning in the problems view
 
 Right-click on the declare warning gutter annotation and go to the
-"Go To Related Location" menu (LOCS_4)
+"Go To Related Location" menu (LOCS_1)
 
-This should contain one item: "Display.aj at line 27" (LOCS_5)
+This should contain one item: "Display.aj at line 27" (LOCS_2)
+
+Selecting this item should cause Display.aj to open at that line (LOCS_3)
