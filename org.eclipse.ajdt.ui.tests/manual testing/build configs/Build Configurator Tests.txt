@@ -191,7 +191,16 @@ Project > Active build configuration > Save as..
 Change name to "build", and verify the ok button is deactivated, as the name is already
 used by an existing configuration. (BC_28)
 	
-	
+
+Test the build configuration wizard
+Start with any project
+Click File > New > Other > AspectJ > Build Configuration.  Leave all the default options.  
+The new build configuration should be activated, opened in the editor and should include all 
+source files. (BC_29)
+Create another build configuration and uncheck the open in editor and activate options.  Ensure 
+that the new configuration is not activated or opened in the editor, but that it still includes 
+all source files. (BC_30)
+
 
 Known issues:
 This is a list of problems a user might encounter. We did not fix them (yet), because they all are not straight forward to fix, do not cause much inconvenience and should only happen rarely. In some cases it is also not clear what behaviour is expected by the user so it might be best to wait for some feedback before we take further steps.
