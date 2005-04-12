@@ -10,14 +10,15 @@ plugin is working. You should see a dialog box containing the text “Hello Eclips
 2. Switch to the java perspective and open "Hello World Java Plugin" and then open its 
 plugin.xml file. Click the dependencies tab which is found at the bottom of the new
 window. And in the "Required Plugin-ins" section should be the plugins:
-org.eclipse.ui, org.eclipse.core.runtime and org.aspectj.runtime. (PLUG_2)
+org.eclipse.ui and org.eclipse.core.runtime. (PLUG_2)
 
 3. Right click the project and select "Convert to AspectJ project". You should be
 prompted to import the org.aspectj.runtime plugin. Say Yes and check that the 
 required plugin is added to the plugin.xml (PLUG_3)
 
-4. Right click the project and select "Remove AspectJ Nature" and check that the 
-added plugin org.aspectj.runtime has been removed from the plugin.xml (PLUG_4)
+4. Right click the project and select "Remove AspectJ Nature".  You should be prompted
+to remove the org.aspectj.runtime dependency.  Say 'Yes' and check that the 
+dependency has been removed from the plugin.xml (PLUG_4)
 
 5. Now click "Add..." to the right of the "Required Plug-ins" box and add 
 "org.aspectj.runtime" then save the file. Now right click the "Hello World Java Plugin" 
@@ -26,5 +27,5 @@ the "Required plug-ins"  section still only contains a single entry for
 "org.aspectj.runtime". (PLUG_5)
 
 6. Right click the "Hello World Java Plugin" project and then select "Remove AspectJ
-Nature". There should still be a single entry in the "Required plug-ins" section for 
-"org.aspectj.runtime" (PLUG_6)
+Nature". You will be prompted again.  Click 'No' and check that the dependency
+is not removed. (PLUG_6)
