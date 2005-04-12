@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.jdtImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -41,7 +42,7 @@ public class JDTSearchResultsContentProvider extends JDTContentProvider {
 			((JDTSearchResultsMarkupProvider)ProviderManager.getMarkupProvider()).resetMarkupsAndKinds();
 			updateSearchInformation();
 			if (!((JDTSearchResultsMarkupProvider)ProviderManager.getMarkupProvider()).isJavaSearch()) {
-				return null;
+				return new ArrayList();
 			}
 		}
 		return super.getAllMembers();
