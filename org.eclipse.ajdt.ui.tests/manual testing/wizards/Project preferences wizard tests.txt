@@ -55,7 +55,8 @@ The following behaviour should be seen:
 		pressing restore defaults --> cancel and then bringing up the 
 		project properties again should see the previous settings still 
 		visible (PREFS_8)
-	(2) restore defaults should not force a build  (PREFS_9)
+	(2) restore defaults should not force a build (if the settings when
+	    you brought up the preferences were the defaults)  (PREFS_9)
 	(3) The following is the default settings:
 	
 			- nothing in the outjar field
