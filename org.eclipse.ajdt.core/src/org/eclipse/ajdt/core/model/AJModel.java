@@ -20,6 +20,7 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
 //import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -182,7 +183,7 @@ public class AJModel {
 				public void run(IProgressMonitor monitor) {
 					projectModel.createProjectMap();
 					long elapsed = System.currentTimeMillis() - start;
-					//AJDTEventTrace.generalEvent("Created AJ model for project "+project.getName()+" in "+elapsed+"ms");
+					AJLog.log("Created AJDT relationship map for project "+project.getName()+" in "+elapsed+"ms");
 				}
 			}, null);
 		} catch (CoreException coreEx) {
@@ -191,6 +192,7 @@ public class AJModel {
 	
 	public void clearMap(final IProject project) {
 		projectModelMap.remove(project);
+		AJLog.log("Cleared AJDT relationship map for project "+project.getName());
 	}
 	
 //	private void initForProject(IProject project) {
