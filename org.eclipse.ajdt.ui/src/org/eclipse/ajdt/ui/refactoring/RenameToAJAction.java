@@ -109,38 +109,40 @@ public class RenameToAJAction implements IActionDelegate {
 			String name) {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
-		IFile[] buildConfigs = pbc.getConfigurationFiles();
-		for (int i = 0; i < buildConfigs.length; i++) {
-			BufferedReader br = null;
-			try {
-				br = new BufferedReader(new InputStreamReader(buildConfigs[i]
-						.getContents()));
-			} catch (CoreException e) {
-				continue;
-			}
-			StringBuffer sb = new StringBuffer();
-			try {
-				String line = br.readLine();
-				while (line != null) {
-					line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$
-					sb.append(line);
-					sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
-					line = br.readLine();
-				}
-				StringReader reader = new StringReader(sb.toString());
-				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
-			} catch (IOException ioe) {
-			} catch (CoreException e) {
-			} finally {
+		if(pbc != null) {
+			IFile[] buildConfigs = pbc.getConfigurationFiles();
+			for (int i = 0; i < buildConfigs.length; i++) {
+				BufferedReader br = null;
 				try {
-					br.close();
-				} catch (IOException ioe) {
+					br = new BufferedReader(new InputStreamReader(buildConfigs[i]
+							.getContents()));
+				} catch (CoreException e) {
+					continue;
 				}
-			}
-			Collection c = pbc.getBuildConfigurations();
-			for (Iterator iter = c.iterator(); iter.hasNext();) {
-				BuildConfiguration config = (BuildConfiguration) iter.next();
-				config.update(true);
+				StringBuffer sb = new StringBuffer();
+				try {
+					String line = br.readLine();
+					while (line != null) {
+						line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$
+						sb.append(line);
+						sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
+						line = br.readLine();
+					}
+					StringReader reader = new StringReader(sb.toString());
+					buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
+				} catch (IOException ioe) {
+				} catch (CoreException e) {
+				} finally {
+					try {
+						br.close();
+					} catch (IOException ioe) {
+					}
+				}
+				Collection c = pbc.getBuildConfigurations();
+				for (Iterator iter = c.iterator(); iter.hasNext();) {
+					BuildConfiguration config = (BuildConfiguration) iter.next();
+					config.update(true);
+				}
 			}
 		}
 	}
