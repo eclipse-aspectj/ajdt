@@ -193,7 +193,7 @@
 
       <p>The "New AspectJ Project" wizard has been updated to match
       the current appearance and functionality of the wizard which
-      creates new Java projects. This includs the option to create
+      creates new Java projects. This includes the option to create
       separate source and output folders.</p>
 
       <img src="newproject.png" width="366" height="461">
@@ -236,13 +236,23 @@
       accompanying documentation available in the Eclipse help system, including
       the latest version of the AspectJ 5 Developer's Notebook.</p>
 
-      <p>The <b>pertypewithin</b> instantiation model is supported by hilighting
+      <p>The new <b>pertypewithin</b> instantiation model is supported by highlighting
       this new keyword, and adding it to the instantiation options in the
       New Aspect wizard.</p>
 
+      <p>All AspectJ 5 features that require a Java 5 JRE also require Eclipse
+      support for Java 5 projects, which currently means Eclipse 3.1M6. This
+      means that if running on Eclipse 3.0, the "5.0" tab for AspectJ compiler
+      settings is not present. With Eclipse 3.1M6 the "5.0" tab is present,
+      and now contains the new Xlint warning options added in AspectJ 5 M2,
+      including a warning when advice does not affect any join points, which can
+      be suppressed using the @SuppressAjWarnings annotation. Also,
+      there is no longer a "1.5" option on this page, as the Java Compiler setting
+      for JDK compliance level is used instead.</p>
+
       <p>The new <b>declare annotation</b> statements are fully supported (when
       using Eclipse 3.1M6 and an AspectJ project with a Java compliance
-      setting of 1.5, and a 1.5.0 JRE). The outline view and package explorer
+      setting of 5.0, and a 1.5.0 JRE). The outline view and package explorer
       structure has been updated to include these new declare statements.
       Markers are added to the edge
       of the editor to indicate the source and targets of these statements,
@@ -331,23 +341,25 @@ The more notable ones are:
 
 <ul>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=74426">74426</a> deleting aj files does not work in package explorer
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=74426">74426</a> deleting aj files does not work in package explorer</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78182">78182</a> editor tabs for .aj files are not marked with an error
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78182">78182</a> editor tabs for .aj files are not marked with an error</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78579">78579</a> build does not handle resource files automatically
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=78579">78579</a> build does not handle resource files automatically</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=80920">80920</a> The visualiser menu is reset using the Resources and Markers provider
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=80920">80920</a> The visualiser menu is reset using the Resources and Markers provider</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=80923">80923</a> ajdoc doesn't work with IBM's sdk
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=80923">80923</a> ajdoc doesn't work with IBM's sdk</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=83082">83082</a> NullPointerException from the Cross Reference view
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=83082">83082</a> NullPointerException from the Cross Reference view</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=84310">84310</a> Non-deterministic selection of build configurations
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=84310">84310</a> Non-deterministic selection of build configurations</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=84967">84967</a> Headless build process fails
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=84967">84967</a> Headless build process fails</li>
 
-<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=86941">86941</a> "Cleaning" project does not work
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=86941">86941</a> "Cleaning" project does not work</li>
+
+<li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=89798">89798</a> Visualiser Menu does not show inner aspects correctly</li>
 
 </ul>
 </p>
