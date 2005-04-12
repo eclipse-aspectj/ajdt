@@ -155,10 +155,11 @@
             adaptable="true"
             id="ifilecontributions"
             nameFilter="*.java">
+          <!--  This appears to be broken on 3.1...
           <filter
                name="projectNature"
                value="org.eclipse.ajdt.ui.ajnature">
-          </filter>
+          </filter> -->
           <action
                label="%convertExtToAJ"
                class="org.eclipse.ajdt.ui.refactoring.RenameToAJAction"
