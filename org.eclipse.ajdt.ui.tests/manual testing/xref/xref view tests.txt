@@ -1,0 +1,162 @@
+setup:
+
+- install the Spacewar example
+- activate the debug.ajproperties
+
+
+Test1 - position of XRef view in workbench
+------------------------------------------
+
+- go to the java perspective
+- reset the perspective layout (Window > Reset Perspective)
+- go to Window > show view > other > AspectJ > Cross References
+- click "ok"
+- the Cross references view should appear underneath the outline
+  view 
+							(XREF_VIEW_1)
+
+
+Test2 - link with editor button
+-------------------------------
+
+- ensure that the "link with editor" button in the xref view is 
+  selected and that the "show cross references for entire file" button
+  isn't
+- open spacewar/debug.aj in the editor
+- click around the file and the entries in the xref view should 
+  mirror your selection (with if you click anywhere outside the enclosing
+  {} of the aspect you should see the xrefs for the entire file (unless
+  you select an import statement or a package statement)
+							(XREF_VIEW_2)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view should now contain the 
+  cross references for this new selection
+							(XREF_VIEW_3)
+- return to having debug.aj active in the editor
+- turn off "link with editor"
+- click around the file and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_4)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view shouldn't change
+							(XREF_VIEW_5)
+
+- open Game.java in the editor
+- ensure that "link with editor" is selected
+- click around the file and the entries in the xref view should 
+  mirror your selection (with if you click anywhere outside the enclosing
+  {} of the class you should see the xrefs for the entire file (unless
+  you select an import statement or a package statement)
+							(XREF_VIEW_6)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view should now contain the 
+  cross references for this new selection
+							(XREF_VIEW_7)
+- return to having Game.java active in the editor
+- turn off "link with editor"
+- click around the file and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_8)
+
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view shouldn't change
+							(XREF_VIEW_9)
+
+
+Test3 - ensure follows selections in the outline view
+-----------------------------------------------------
+
+
+- ensure that the "link with editor" button in the xref view is 
+  selected and that the "show cross references for entire file" button
+  isn't
+- open spacewar/debug.aj in the editor
+- click in the outline view and the xref view should 
+  mirror your selection
+							(XREF_VIEW_10)
+- turn off "link with editor"
+- click around the outline view and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_11)
+- open Game.java in the editor
+- ensure that "link with editor" is selected
+- click in the outline view and the xref view should mirror your
+  selection.
+							(XREF_VIEW_12)
+- turn off "link with editor"
+- click around the file and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_13)
+
+
+Test4 - remembers settings
+--------------------------
+
+- have "link with editor" and "show xrefs for entire file" 
+  turned on
+- close the cross reference view
+- open the cross reference view (Window > show view > other > 
+  AspectJ > Cross References)
+- check that "link with editor" and "show xrefs for entire 
+  file" are still turned on 
+							(XREF_VIEW_14)
+- have "link with editor" and "show xrefs for entire file" 
+  turned off
+- close the cross reference view
+- open the cross reference view (Window > show view > other > 
+  AspectJ > Cross References)
+- check that "link with editor" and "show xrefs for entire 
+  file" are still turned off 
+							(XREF_VIEW_15)
+- open up debug.aj in the editor
+- close the cross reference view
+- close debug.aj in the editor
+- bring up the cross reference view
+- the xref view shouldn't have any contents (the contents should not
+  have been persisted)			
+							(XREF_VIEW_16)
+
+
+Test5 - show xrefs for entire file
+----------------------------------
+
+- have "link with editor" and "show xrefs for entire file" 
+  turned on
+- open Debug.aj in the editor
+- click anywhere within the file and the contents of the xref
+  view should always be the same
+							(XREF_VIEW_17)
+- turn off "show xrefs for entire file"
+- xref view should show xrefs for current selection 
+							(XREF_VIEW_18)
+- turn on "show xrefs for entire file"
+- xref view should show xrefs for entire file
+							(XREF_VIEW_19)
+- follow one of the links in the xref view which opens
+  a new file
+- the xref view should show all the xrefs for the new file
+							(XREF_VIEW_20)
+- turn off "show xrefs for entire file"
+- follow the selection which opens a new file
+- the xref view should show the xrefs for this selection
+							(XREF_VIEW_21)
+
+
+Test 6 - selection should be visible in the xref view (scroll bar)
+------------------------------------------------------------------
+
+- opend debug.aj in the editor
+- ensure that show all xrefs for file is selected
+- scroll down and select the following:
+
+    before(): allMethodsCut() {
+        if (traceMethods.getState()) {
+            infoWin.println("entering " + thisJoinPoint.getSignature());
+        }
+    }
+
+- this selection should be visible in the xref view (i.e. the scroll
+  bar should be in the position to show this)
+							(XREF_VIEW_22)
+
+			                  	                

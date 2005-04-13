@@ -1,0 +1,134 @@
+Setup:
+
+- install the Spacewar example
+- activate the debug.ajproperties
+
+
+Test1 - pressing escape removes the view
+----------------------------------------
+
+- open spacewar/debug.aj in the editor
+- position the cursor somewhere in the editor
+- press Ctrl+Alt+X and the inplace view appears
+					(XREF_INPLACE_1)
+- press Esc and the inplace view should disappear
+					(XREF_INPLACE_2)
+
+
+Test2 - can move, resize etc. and remembers the settings
+--------------------------------------------------------
+
+- open spacewar/debug.aj in the editor
+- position the cursor somewhere in the editor
+- press Ctrl+Alt+X and the inplace view appears
+- click the blue arrow in the top right hand corner of the
+  inplace view
+- this brings down a menu with three options:
+	move, resize and remember size and location
+					(XREF_INPLACE_3)
+
+- ensure that "remember size and location" is ticked
+- click move and move the inplace view (test is that
+  you can move the inplace view)
+					(XREF_INPLACE_4)
+- click resize and resize the inplace view (test is that
+  you can resize the inplace view)
+					(XREF_INPLACE_5)
+- shutdown the inplace view (via pressing escape or clicking
+  the editor outside of the view)
+- press Ctrl+Alt+X and the inplace view appears
+- the view should have the size and position that you set 
+  in tests 4 and 5
+					(XREF_INPLACE_6)
+- click the blue arrow in the top right hand corner of the
+  inplace view
+- uncheck "remember size and loation"
+- shut down the inplace view
+- bring up the inplace view
+- the view should have the default size and position and
+  not the ones you set in tests 4 and 5
+					(XREF_INPLACE_7)
+
+Test3 - Ctrl+Alt+X twice shows xrefs for entire file
+----------------------------------------------------
+
+- open spacewar/debug.aj in the editor
+- position the cursor somewhere in the editor
+- press Ctrl+Alt+X and the inplace view appears showing
+  the xrefs for the current selection
+					(XREF_INPLACE_8)
+
+- there is a message at the bottom of the inplace view
+	"Press 'Ctrl+Alt+X' to show cross references
+	 for entire file"
+					(XREF_INPLACE_9)
+
+- press Ctrl+Alt+x again
+- the view now shows xrefs for the entire file
+					(XREF_INPLACE_10)
+- there is a message at the bottom of the inplace view
+	"Press 'Ctrl+Alt+X' to hide cross references
+	 for entire file"
+					(XREF_INPLACE_11)
+
+- press Ctrl+Alt+x again
+- the view now shows the xrefs for the original selection
+  (provided you haven't changed selection in the view)
+					(XREF_INPLACE_12)
+
+Test4 - Scroll bar - should show current selection
+--------------------------------------------------
+
+- open spacewar/debug.aj in the editor
+- position the cursor towards the end of the file
+- press Ctrl+Alt+X and the inplace view appears showing
+  the xrefs for the current selection with the current 
+  selection highlighted in the view
+					(XREF_INPLACE_13)
+- press Ctrl+Alt+x again
+- the view now shows xrefs for the entire file with the 
+  selection from test 13 highlighted and showing
+					(XREF_INPLACE_14)
+
+- press Ctrl+Alt+x again
+- the view now shows the xrefs for the original selection
+  (provided you haven't changed selection in the view) 
+  and this is highlighted in the view
+					(XREF_INPLACE_15)
+
+Test5 - navigation from the view
+--------------------------------
+
+- open spacewar/debug.aj
+- position the cursor somewhere in the file
+- bring up the inplace cross reference view
+- move the cursor around to select something
+- press return
+- the corresponding place should be opened in the editor
+					(XREF_INPLACE_16)
+- repeat for several different types of selection 
+  navigation should always work	
+					(XREF_INPLACE_17)
+
+
+Test6 - text filtering should keep children
+-------------------------------------------
+
+- open spacewar/debug.aj
+- position the cursor somewhere in the file
+- bring up the inplace cross reference view to show
+  the xrefs for the entire file (either from the selection
+  position in the editor or by using the key sequence twice)
+- type "after" in the text filtering section at the top
+  of the view
+- you should see some "afterReturning" nodes with "advises"
+  then the places they advice below them
+					(XREF_INPLACE_18)
+
+- try some more text filtering - should always show
+  children
+					(XREF_INPLACE_19)
+
+
+
+
