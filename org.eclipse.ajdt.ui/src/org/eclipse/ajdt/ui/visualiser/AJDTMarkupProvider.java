@@ -87,7 +87,6 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	
 	private void updateModel() {
 		long stime = System.currentTimeMillis();
-		List stripeList = new ArrayList();
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
@@ -158,13 +157,12 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 					} 
 					kinds.add(markupKind);
 					Stripe stripe = new Stripe(kinds, lineNum, 1);
-					stripeList.add(stripe);
 					addMarkup(memberName, stripe);
 				}
 			}
 		}
 		long mtime = System.currentTimeMillis();
-//		MarkupUtils.processStripes(stripeList);
+		processMarkups();
 		long etime = System.currentTimeMillis();
 	}
 
