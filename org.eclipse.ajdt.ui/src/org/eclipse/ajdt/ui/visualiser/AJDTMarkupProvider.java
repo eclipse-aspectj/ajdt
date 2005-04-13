@@ -34,7 +34,6 @@ import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupKind;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.StealthMarkupKind;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
-import org.eclipse.contribution.visualiser.utils.MarkupUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
@@ -165,7 +164,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 			}
 		}
 		long mtime = System.currentTimeMillis();
-		MarkupUtils.processStripes(stripeList);
+//		MarkupUtils.processStripes(stripeList);
 		long etime = System.currentTimeMillis();
 	}
 
