@@ -172,7 +172,12 @@ public class XReferenceContentProvider
 		} catch (JavaModelException e) {
 			// don't care about this exception
 			//e.printStackTrace();
-		}
+		} catch (ClassCastException e) {
+            // HELEN TODO - catching and rethrowing ClassCastException due to bug 91105
+		    throw new RuntimeException("Threw ClassCastException whilst trying to get children " +
+		    		"for IJavaElement " + je.getElementName() + " (type " + je.getElementType() + 
+		    		")",e);
+        }
 		return hasChildren;		
 	}
 		
