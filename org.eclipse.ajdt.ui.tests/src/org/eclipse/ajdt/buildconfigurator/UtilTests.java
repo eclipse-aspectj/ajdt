@@ -252,6 +252,11 @@ public class UtilTests extends TestCase {
             IPath result = Util.getInlinedLstFile(lstFile);
             assertEquals(Util.getInlinedFileName(lstFile.toString()), result
                     .toString());
+			// cleanup
+			File f = result.toFile();
+			if (f.exists()) {
+				f.delete();
+			}
         } catch (FileNotFoundException e) {
             fail("Caught unexpected FileNotFoundException!");
         }
@@ -264,6 +269,11 @@ public class UtilTests extends TestCase {
             IPath result = Util.getInlinedLstFile(lstFile);
             assertEquals(Util.getInlinedFileName(lstFile.toString()), result
                     .toString());
+			// cleanup
+			File f = result.toFile();
+			if (f.exists()) {
+				f.delete();
+			}
         } catch (FileNotFoundException e) {
             fail("Caught unexpected FileNotFoundException!");
         }
@@ -275,6 +285,11 @@ public class UtilTests extends TestCase {
             IPath result = Util.getInlinedLstFile(lstFile);
             assertEquals(Util.getInlinedFileName(lstFile.toString()), result
                     .toString());
+			// cleanup
+			File f = result.toFile();
+			if (f.exists()) {
+				f.delete();
+			}
         } catch (FileNotFoundException e) {
             fail("Caught unexpected FileNotFoundException!");
         }
@@ -289,6 +304,11 @@ public class UtilTests extends TestCase {
 
             // TODO : Check that we get an empty file
 
+			// cleanup
+			File f = result.toFile();
+			if (f.exists()) {
+				f.delete();
+			}
         } catch (FileNotFoundException e) {
             fail("Caught unexpected FileNotFoundException!");
         }
