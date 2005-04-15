@@ -1,0 +1,21 @@
+
+Scenario Tests - to be run on all platforms
+----------------------------------------------------
+
+- Install the figures demo by checking it out from the 'test projects' directory under org.eclipse.ajdt.test in CVS
+
+- Open 'Code Snippets.jpage'
+
+- Follow instructions 1 and 2 WITHOUT saving the file.
+	- Look in the outline view and ensure that "declare warning: "Canvas....." and the canvasHistoryUpdate()
+	pointcuts are shown. (SCENARIO_1)
+	- Look in the package explorer for the same thing. (SCENARIO_2)
+	
+- Save the file.
+	- Look in the Cross References view and ensure that 4 matches are shown for the declared warning. (SCENARIO_3)
+	- Double click on one of these and ensure that the correct file is opened in the editor. (SCENARIO_4)
+	- There should be a declare warning icon in the editor margin. (SCENARIO_5)
+	- There should also be 4 problems shown in the problems view. (SCENARIO_6)
+	
+- Open the Aspect Visualization perspective and select 'Figures Demo' in the projects view.
+	- 4 yellow stripes should be seen - 2 on Line and 2 on Point. (SCENARIO_7)
