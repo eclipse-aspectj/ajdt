@@ -93,4 +93,27 @@ or remove the save as ant build option.
     HelloWorldPlugin.java, HelloAspect.class, SampleAction.class and
     HelloWorldPlugin.class. (WIZ_8)
 
+7. New Aspect Wizard
 
+ a. Create the Bean Example.
+ b. Select the "bean" package then File > New > Aspect
+ c. The New Aspect wizard should appear, and the source folder and package fields
+    should be filled in appropriately. (WIZ_9)
+ d. Enter "MyAspect" and press Finish. A file called MyAspect.aj should be created
+    in the bean package and opened in the editor. The contents should be a valid
+    aspect definition. (WIZ_10)
+ e. Select the "Bean Example" project, then select the New Aspect wizard using the
+    toolbar shortcut (from the dropdown menu by the New Class wizard button).
+ f. The New Aspect wizard should appear, and the source folder field should be
+    filled in appropriately, with the package field blank. (WIZ_11)
+ g. Use the browse button by the package field to select the "bean" package.
+ h. Enter "MyAspect2" in the name field, then check the "instantiation" box, and
+    then select "pertypewithin". Also check the box to create a main method, and press
+    Finish.
+ i. A file called MyAspect2.aj should be created in the bean package and opened in the
+    editor. Check that pertypewithin is specified (with a type pattern, which may result
+    in a warning) and a main method is included. (WIZ_12)
+ 
+ 
+ 
+ 
