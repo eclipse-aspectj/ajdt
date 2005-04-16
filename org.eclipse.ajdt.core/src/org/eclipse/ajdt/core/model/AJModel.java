@@ -93,7 +93,7 @@ public class AJModel {
 	private AJProjectModel getModelForProject(IProject project) {
 		AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
 		if (pm==null) {
-			//AJDTEventTrace.generalEvent("No current AJ model for project "+project.getName());
+			AJLog.log("No current AJ model for project "+project.getName());
 			initialiseAJDE(project);
 			createMap(project);
 			pm = (AJProjectModel)projectModelMap.get(project);

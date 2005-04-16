@@ -13,11 +13,11 @@ package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
@@ -38,13 +38,15 @@ import org.eclipse.jdt.core.JavaModelException;
  * Core version of project properties - subclassed by UI version
  *
  */
-public class CoreProjectProperties implements ProjectPropertiesAdapter {
+public class CoreProjectProperties implements IProjectProperties {
 
 	/**
 	 * Created in getClasspath(), should be flushed at end of build
 	 */
 	private String cachedClasspath = null;
 
+	private Map filesKnownMap = new HashMap();
+	
 	/**
 	 * The name of the current project
 	 */
@@ -114,6 +116,18 @@ public class CoreProjectProperties implements ProjectPropertiesAdapter {
 		} catch (JavaModelException e) {
 		}
 		return sourceFiles;
+	}
+
+	public void setProjectSourceFileListKnown(IProject project, boolean known) {
+		filesKnownMap.put(project,new Boolean(known));
+	}
+	
+	public boolean isProjectSourceFileListKnown(IProject project) {
+		Boolean known = (Boolean)filesKnownMap.get(project);
+		if (known==null) {
+			return false;
+		}
+		return known.booleanValue();
 	}
 
 	//return a list of all file resources in the given folder, including all

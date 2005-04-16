@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.builder;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,7 +46,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -102,11 +102,8 @@ public class UIBuildListener implements IAJBuildListener {
 		AsmManager.attemptIncrementalModelRepairs = inc;		
 
 		ProjectProperties props = AspectJUIPlugin.getDefault().getAjdtProjectProperties();
-		List projectFiles = props.getProjectSourceFiles(project,
-				CoreUtils.ASPECTJ_SOURCE_FILTER);
-		updateBuildConfigIfNecessary(project, projectFiles);
-
-
+		ensureBuildConfigFileIsValid(props, project);
+		
 		// checking to see if the current project has been marked as needing
 		// a required project to be rebuilt.
 		// IProject[] referencedProjects = getRequiredProjects(project);
@@ -190,43 +187,31 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 	}
 
-	/**
-	 * If the project uses a default build file, then it will be regenerated to
-	 * ensure that all project files are included.
-	 */
-	private void updateBuildConfigIfNecessary(IProject project,
-			List projectFiles) {
-		if (getBuildFilePath(project).endsWith(AspectJPlugin.DEFAULT_CONFIG_FILE)) {
-			try {
-				writeBuildConfigFile(projectFiles, project);
-			} catch (CoreException e) {
-			}
+	private void ensureBuildConfigFileIsValid(ProjectProperties props, IProject project) {
+		if (!props.isProjectSourceFileListKnown(project)) {
+			// optimization: only determine the list of source files and write the .lst file
+			// if the list has changed
+			List projectFiles = props.getProjectSourceFiles(project,
+					CoreUtils.ASPECTJ_SOURCE_FILTER);
+			writeBuildConfigFile(projectFiles, project);
+			// Mark the list as known so we don't have to rewrite the lst file for every build.
+			// We then need to set this to false anytime the build config does change.
+			props.setProjectSourceFileListKnown(project,true);
 		}
 	}
-
-	/**
-	 * Get the fully qualified path to the build configuation file specified for
-	 * this project.
-	 */
-	private String getBuildFilePath(IProject project) {
-		String buildfile = AspectJPlugin.getBuildConfigurationFile(project);
-		return buildfile;
-	}
-
+	
 	/**
 	 * Create a full build configuration file for this project
 	 */
-	private void writeBuildConfigFile(List projectFiles, IProject project)
-			throws CoreException {
-		String configurationFilename = getBuildFilePath(project);
-
+	private void writeBuildConfigFile(List projectFiles, IProject project) {
+		String configurationFilename = AspectJPlugin.getBuildConfigurationFile(project);
 		try {
 			FileWriter fw = new FileWriter(configurationFilename);
 			BufferedWriter bw = new BufferedWriter(fw);
 			for (Iterator it = projectFiles.iterator(); it.hasNext();) {
 				File jf = (File) it.next();
 				String fileName = jf.toString();
-				if (fileName.endsWith(".java") || fileName.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
+				if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fileName)) {
 					bw.write(fileName);
 					bw.write(System.getProperty("line.separator", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
 				}
@@ -234,21 +219,8 @@ public class UIBuildListener implements IAJBuildListener {
 			bw.flush();
 			fw.flush();
 			bw.close();
-			// now tell eclipse the file has been updated
-			IResource res = project.findMember(AspectJPlugin.DEFAULT_CONFIG_FILE);
-			if (res != null) {
-				// Fix for 40556.
-				// No progress reporting required on this
-				// refresh operation so pass in null for second argument.
-				res.refreshLocal(IResource.DEPTH_ZERO, null);
-			}
-		} catch (Exception e) {
-			Status status = new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID,
-					CONFIG_FILE_WRITE_ERROR, AspectJUIPlugin
-							.getResourceString("configFileCreateError"), e); //$NON-NLS-1$
-			throw new CoreException(status);
+		} catch (IOException e) {
 		}
-
 	}
 
 	/* (non-Javadoc)
@@ -256,6 +228,18 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
 		AspectJUIPlugin.getDefault().getAjdtProjectProperties().flushClasspathCache();
+		
+		// we previously refreshed the project to infinite depth to pickup generated
+		// artifacts, but this can be very slow and isn't generally required, except
+		// when an outjar is set
+		String outJar = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getOutJar();
+		if ((outJar!=null) && (outJar.length()>0)) {
+			try {
+				project.refreshLocal(IResource.DEPTH_ONE, null);
+				//project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			} catch (CoreException e) {
+			}
+		}
 		
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);

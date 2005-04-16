@@ -186,10 +186,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			buildManager.build(configFile);
 		}
 		waitForBuildCompletion(compilerMonitor);
-		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall)+"ms");
-		
-		// refresh the eclipse project to pickup generated artifacts
-		project.refreshLocal(IResource.DEPTH_INFINITE, null);
+		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall)+"ms");		
 		
 		AJModel.getInstance().createMap(project);
 		postCallListeners(false);
@@ -471,6 +468,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							outputFile.setReadOnly(false); // just in case the original was read only
+							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
 							return;
 						case IResourceDelta.REMOVED :
 							if (outputFile.exists()) {
@@ -491,6 +489,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
 							outputFile.setReadOnly(false); // just in case the original was read only
+							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
 					}					
 				}
 				return;
@@ -518,10 +517,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private IContainer createFolder(IPath packagePath, IContainer outputFolder) throws CoreException {
 		if (packagePath.isEmpty()) return outputFolder;
 		IFolder folder = outputFolder.getFolder(packagePath);
+		folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		if (!folder.exists()) {
 			createFolder(packagePath.removeLastSegments(1), outputFolder);
 			folder.create(true, true, null);
 			folder.setDerived(true);
+			folder.refreshLocal(IResource.DEPTH_ZERO,null);
 		}
 		return folder;
 	}

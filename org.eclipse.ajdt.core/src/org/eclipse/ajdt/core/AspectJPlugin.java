@@ -219,12 +219,11 @@ public class AspectJPlugin extends Plugin {
 	
 	/**
 	 * Get the build configuration file to be used for building this project.
-	 * Use ".generated.lst" in the project directory
+	 * Use ".generated.lst" in the metadata directory, one per project
 	 */
 	public static String getBuildConfigurationFile(IProject project) {
-		return CoreUtils.getProjectRootDirectory( project ) + 
-						 File.separator +
-						 DEFAULT_CONFIG_FILE;
+		return getDefault().getStateLocation()
+				.append(project.getName()+DEFAULT_CONFIG_FILE).toOSString();
 	}
 
 }

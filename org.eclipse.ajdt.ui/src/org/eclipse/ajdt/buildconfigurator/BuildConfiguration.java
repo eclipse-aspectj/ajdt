@@ -547,7 +547,11 @@ public class BuildConfiguration implements Cloneable,
 	 *  
 	 */
 	public void update(boolean forceReadingFile) {
-		//System.out.println("update");
+		// mark file list as dirty as it is (probably) about to change
+		AspectJUIPlugin.getDefault().getAjdtProjectProperties()
+				.setProjectSourceFileListKnown(
+						pbc.getJavaProject().getProject(), false);
+
 		if (listenToFileChanges == true) {
 			if (fileList == null) {
 				fileList = new HashSet();

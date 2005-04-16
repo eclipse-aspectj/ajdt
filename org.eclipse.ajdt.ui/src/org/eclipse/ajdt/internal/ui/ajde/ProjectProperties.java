@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
@@ -60,7 +59,7 @@ import org.eclipse.jdt.launching.JavaRuntime;
  * ProjectProperties is used to pass all the user, project and plugin settings
  * to AJ Tools.
  */
-public class ProjectProperties extends CoreProjectProperties implements ProjectPropertiesAdapter {
+public class ProjectProperties extends CoreProjectProperties  {
 	
 	/**
 	 * All the source files in the current project, as a List of java.io.Files.
@@ -88,7 +87,6 @@ public class ProjectProperties extends CoreProjectProperties implements ProjectP
 
 	}
 
-	
 	/**
 	 * get the classpath to use for compiling the current project. NOTE: This is
 	 * not currently used, after being replaced by the above version which uses
