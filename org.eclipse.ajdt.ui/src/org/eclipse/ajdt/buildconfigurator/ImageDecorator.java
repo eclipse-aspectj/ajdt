@@ -14,6 +14,7 @@ package org.eclipse.ajdt.buildconfigurator;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
@@ -27,6 +28,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -196,14 +198,20 @@ public class ImageDecorator implements ILabelDecorator {
 		// add the orange triangle to the icon if this method, 
 		// class or aspect is advised
 		if ((element instanceof IMethod || element instanceof SourceType)
-                && AspectJPreferences.isAdviceDecoratorActive()) {
-			if (AJModel.getInstance().isAdvised((IJavaElement) element)) {
-				Image baseImage = img;
-				if (baseImage == null) {
-					baseImage = image;
+				&& AspectJPreferences.isAdviceDecoratorActive()) {
+			IJavaElement je = (IJavaElement) element;
+			IJavaProject jp = je.getJavaProject();
+			// only query the model if the element is in an AJ project
+			if ((jp != null) && AspectJPlugin.isAJProject(jp.getProject())) {
+				if (AJModel.getInstance().isAdvised(je)) {
+					Image baseImage = img;
+					if (baseImage == null) {
+						baseImage = image;
+					}
+					MyCompositeImageDesc overlay = new MyCompositeImageDesc(
+							baseImage);
+					img = getRegistry().get(overlay);
 				}
-				MyCompositeImageDesc overlay = new MyCompositeImageDesc(baseImage);
-				img = getRegistry().get(overlay);
 			}
 		}
 
