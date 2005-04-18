@@ -16,13 +16,20 @@ package org.eclipse.ajdt.core.model;
  * @author mchapman
  */
 public class AJRelationshipType {
-	private String name;
+	
+	private String displayName;
+	private String internalName;
 
-	public AJRelationshipType(String name) {
-		this.name = name;
+	public AJRelationshipType(String internalName, String displayName) {
+		this.displayName = displayName;
+		this.internalName = internalName;
 	}
 
-	public String getName() {
-		return name;
+	public String getDisplayName() {
+		return displayName;
+	}
+	
+	public String getInternalName() {
+		return internalName;
 	}
 }

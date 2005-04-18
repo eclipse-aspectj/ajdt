@@ -41,7 +41,11 @@ public class AJRelationship {
 	}
 
 	public String toString() {
-		return source.getElementName() + " --> " + relationship.getName()
+		return source.getElementName() + " --> " + relationship.getDisplayName()
 				+ " --> " + target.getElementName();
+	}
+
+	public boolean hasRuntimeTest() {
+		return false;
 	}
 }

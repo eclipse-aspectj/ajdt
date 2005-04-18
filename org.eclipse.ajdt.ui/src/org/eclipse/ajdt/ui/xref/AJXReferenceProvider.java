@@ -112,7 +112,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 					associates.add(associate);
 				}
 				Collections.sort(associates,new AJComparator());
-				XRef xref = new XRef(showRels[i].getName(), associates);
+				XRef xref = new XRef(showRels[i].getDisplayName(), associates);
 				xrefs.add(xref);
 			}
 		}

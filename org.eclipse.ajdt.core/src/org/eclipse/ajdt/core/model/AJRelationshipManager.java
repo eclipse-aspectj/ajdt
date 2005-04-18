@@ -11,18 +11,36 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+
 /**
  * 
  * @author mchapman
  */
 public class AJRelationshipManager {
-	public static final AJRelationshipType ADVISES = new AJRelationshipType("advises");
-	public static final AJRelationshipType ADVISED_BY = new AJRelationshipType("advised by");
-	public static final AJRelationshipType DECLARED_ON = new AJRelationshipType("declared on");
-	public static final AJRelationshipType ASPECT_DECLARATIONS = new AJRelationshipType("aspect declarations");
-	public static final AJRelationshipType MATCHED_BY = new AJRelationshipType("matched by");
-	public static final AJRelationshipType MATCHES_DECLARE = new AJRelationshipType("matches declare");
-	public static final AJRelationshipType ANNOTATES = new AJRelationshipType("annotates");
-	public static final AJRelationshipType ANNOTATED_BY = new AJRelationshipType("annotated by");
-
+	
+	/*
+	 * Please note - if you want to add another relationship type here (e.g. type1) you will need to 
+	 * add two entries to the properties file for this plug-in - type1.displayName and type1.menuName.
+	 * In addition the name of the new relationship type (e.g. type1) must not contain spaces.
+	 * 
+	 */
+	
+	public static final AJRelationshipType ADVISES 
+		= new AJRelationshipType("advises", AspectJPlugin.getResourceString("advises.displayName")); //$NON-NLS-1$ //$NON-NLS-2$
+	public static final AJRelationshipType ADVISED_BY 
+		= new AJRelationshipType("advised_by", AspectJPlugin.getResourceString("advised_by.displayName"));
+	public static final AJRelationshipType DECLARED_ON 
+		= new AJRelationshipType("declared_on",  AspectJPlugin.getResourceString("declared_on.displayName"));
+	public static final AJRelationshipType ASPECT_DECLARATIONS 
+		= new AJRelationshipType("aspect_declarations", AspectJPlugin.getResourceString("aspect_declarations.displayName"));
+	public static final AJRelationshipType MATCHED_BY 
+		= new AJRelationshipType("matched_by", AspectJPlugin.getResourceString("matched_by.displayName"));
+	public static final AJRelationshipType MATCHES_DECLARE 
+		= new AJRelationshipType("matches_declare", AspectJPlugin.getResourceString("matches_declare.displayName"));
+	public static final AJRelationshipType ANNOTATES 
+		= new AJRelationshipType("annotates", AspectJPlugin.getResourceString("annotates.displayName"));
+	public static final AJRelationshipType ANNOTATED_BY 
+		= new AJRelationshipType("annotated_by", AspectJPlugin.getResourceString("annotated_by.displayName"));
+		
 }
