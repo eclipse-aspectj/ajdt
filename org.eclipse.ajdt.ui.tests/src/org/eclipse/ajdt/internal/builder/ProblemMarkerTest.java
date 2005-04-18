@@ -78,7 +78,6 @@ public class ProblemMarkerTest extends TestCase {
 		assertNotNull("package p1 should not be null", p1);
 		 
 		IFile newAspect = createFile(p1,"newAspect.aj","blah blah blah");
-		p1.refreshLocal(IResource.DEPTH_INFINITE,null);
 		assertNotNull("newAspect should not be null", newAspect);
 		
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(myProject);
@@ -118,7 +117,8 @@ public class ProblemMarkerTest extends TestCase {
 			file.delete(0,null);
 		}
 		ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
-		file.create(source,true,null);		
+		file.create(source,true,null);
+		file.refreshLocal(IResource.DEPTH_INFINITE,null);
 		return file;
 	}
 	
