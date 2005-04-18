@@ -23,6 +23,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -77,6 +78,7 @@ public class ProblemMarkerTest extends TestCase {
 		assertNotNull("package p1 should not be null", p1);
 		 
 		IFile newAspect = createFile(p1,"newAspect.aj","blah blah blah");
+		p1.refreshLocal(IResource.DEPTH_INFINITE,null);
 		assertNotNull("newAspect should not be null", newAspect);
 		
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(myProject);
