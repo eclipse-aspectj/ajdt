@@ -58,7 +58,7 @@ public class AJModel {
 		return instance;
 	}
 
-	/* These commented out routines are the basis for a complete conversion layer
+	/* These routines are the basis for a complete conversion layer
 	 * on top of the underlying structure model. It would be good if we could perform
 	 * this conversion after a build, and then discard the underlying structure model,
 	 * using only this Eclipse-centric one throughout the rest of AJDT. We would then
@@ -68,27 +68,7 @@ public class AJModel {
 	 * from IProgramElement instead of line numbers, as otherwise we have to do a
 	 * somewhat time consuming conversion. We also have to make sure our new data
 	 * structure contains all the information we need throughout AJDT.
-
-	 
-	
-	private void init(IJavaElement je) {
-		IProject project = je.getJavaProject().getProject();
-		if (!projectSet.contains(project)) {
-			System.out.println("map requested for project: " + project
-					+ " project not known");
-			String lst = AspectJUIPlugin.getBuildConfigurationFile(project);
-			System.out.println("lst file=" + lst);
-			long start = System.currentTimeMillis();
-			AsmManager.getDefault().readStructureModel(lst);
-			long elapsed = System.currentTimeMillis() - start;
-			System.out.println("read structure model in " + elapsed + "ms");
-			createMap(project);
-		} else {
-			System.out.println("map requested for project: " + project
-					+ " project known");
-		}
-	}
-*/
+     */
 
 	private AJProjectModel getModelForProject(IProject project) {
 		AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
@@ -100,7 +80,7 @@ public class AJModel {
 		}
 		return pm;
 	}
-	
+		
 	/**
 	 * Query the AJ model for elements that have a certain relationship to the given element
 	 * @param rel the relationship of interest
