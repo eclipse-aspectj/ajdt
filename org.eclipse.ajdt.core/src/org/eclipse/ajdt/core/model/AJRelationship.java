@@ -21,11 +21,14 @@ public class AJRelationship {
 
 	private AJRelationshipType relationship;
 
+	private boolean runtimeTest;
+	
 	public AJRelationship(IJavaElement source, AJRelationshipType relationship,
-			IJavaElement target) {
+			IJavaElement target, boolean runtimeTest) {
 		this.source = source;
 		this.target = target;
 		this.relationship = relationship;
+		this.runtimeTest = runtimeTest;
 	}
 
 	public IJavaElement getSource() {
@@ -46,6 +49,6 @@ public class AJRelationship {
 	}
 
 	public boolean hasRuntimeTest() {
-		return false;
+		return runtimeTest;
 	}
 }

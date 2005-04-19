@@ -34,23 +34,23 @@ public class AJModelTest2 extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		AllTests.setupAJDTPlugin();	
+		AllTests.setupAJDTPlugin();
 	}
-	
+
 	/**
-	 * Tests for a injar/binary relationship for an element advised by
-	 * advice in another project (by adding that project's bin directory
-	 * to the aspectpath) 
+	 * Tests for a injar/binary relationship for an element advised by advice in
+	 * another project (by adding that project's bin directory to the
+	 * aspectpath)
+	 * 
 	 * @throws Exception
 	 */
 	public void testAspectPathDirWeaving() throws Exception {
 		IProject libProject = Utils.createPredefinedProject("MyAspectLibrary");
 		IProject weaveMeProject = Utils.createPredefinedProject("WeaveMe");
-		
-		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY
-		};
-		List allRels = AJModel.getInstance().getAllRelationships(weaveMeProject,rels);
+
+		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		List allRels = AJModel.getInstance().getAllRelationships(
+				weaveMeProject, rels);
 		boolean gotBinaryAdvice = false;
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
@@ -62,10 +62,47 @@ public class AJModelTest2 extends TestCase {
 				}
 			}
 		}
-		assertTrue("Didn't find main element advised by an injar aspect",gotBinaryAdvice);
-		
+		assertTrue("Didn't find main element advised by an injar aspect",
+				gotBinaryAdvice);
+
 		Utils.deleteProject(weaveMeProject);
 		Utils.deleteProject(libProject);
 	}
 
+	/**
+	 * Tests for the existence of a particular "advised by" relationship with a
+	 * runtime test, and one without.
+	 * 
+	 * @throws Exception
+	 */
+	public void testHasRuntimeTest() throws Exception {
+		IProject project = Utils.createPredefinedProject("MarkersTest");
+
+		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
+		boolean gotBeforeAdviceWithoutRuntimeTest = false;
+		boolean gotAroundAdviceWithRuntimeTest = false;
+		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			IJavaElement source = rel.getSource();
+			if (source.getElementName().equals("bar")) {
+				IJavaElement target = rel.getTarget();
+				if (target.getElementName().equals("before")
+						&& !rel.hasRuntimeTest()) {
+					gotBeforeAdviceWithoutRuntimeTest = true;
+				} else if (target.getElementName().equals("around")
+						&& rel.hasRuntimeTest()) {
+					gotAroundAdviceWithRuntimeTest = true;
+				}
+			}
+		}
+		assertTrue(
+				"Didn't find \"bar\" element advised by before advice without a runtime test",
+				gotBeforeAdviceWithoutRuntimeTest);
+		assertTrue(
+				"Didn't find \"bar\" element advised by around advice with a runtime test",
+				gotAroundAdviceWithRuntimeTest);
+
+		Utils.deleteProject(project);
+	}
 }

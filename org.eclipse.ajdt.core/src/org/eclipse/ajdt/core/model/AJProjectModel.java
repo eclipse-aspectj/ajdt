@@ -51,7 +51,9 @@ public class AJProjectModel {
 
 	private Map jeLinkNames = new HashMap();
 
-	private Map perRelMap = new HashMap();
+	// perRelMaps[0] = rels with runtime test
+	// perRelMaps[1] = rels without runtime test
+	private Map[] perRelMaps = new Map[] { new HashMap(), new HashMap() };
 
 	// map asm kind strings to AJRelationships
 	private Map kindMap = new HashMap();
@@ -79,27 +81,50 @@ public class AJProjectModel {
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {
 		return (IJavaElement) ipeToije.get(ipe);
 	}
-
+	
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
-		Map relMap = (Map) perRelMap.get(rel);
-		if (relMap == null) {
+		// Get related elements for given relationship, both with and without
+		// runtime test. Avoid creating a new List if at all possible.
+		Map relMap1 = (Map) perRelMaps[0].get(rel);
+		Map relMap2 = (Map) perRelMaps[1].get(rel);
+		List l1 = null;
+		List l2 = null;
+		if (relMap1 != null) {
+			l1 = (List) relMap1.get(je);
+		}
+		if (relMap2 != null) {
+			l2 = (List) relMap2.get(je);
+		}
+		if ((l1 == null) && (l2 == null)) {
 			return null;
 		}
-		return (List) relMap.get(je);
+		if (l2 == null) {
+			return l1;
+		}
+		if (l1 == null) {
+			return l2;
+		}
+		List combined = new ArrayList(l1);
+		combined.addAll(l2);
+		return combined;
 	}
 
 	public List getAllRelationships(AJRelationshipType[] rels) {
 		List allRels = new ArrayList();
 		for (int i = 0; i < rels.length; i++) {
-			Map relMap = (Map) perRelMap.get(rels[i]);
-			if (relMap!=null) {
-				for (Iterator iter = relMap.keySet().iterator(); iter.hasNext();) {
-					IJavaElement source = (IJavaElement) iter.next();
-					List targetList = (List)relMap.get(source);
-					for (Iterator iter2 = targetList.iterator(); iter2
+			for (int j = 0; j <= 1; j++) { // with and without runtime test
+				Map relMap = (Map) perRelMaps[j].get(rels[i]);
+				if (relMap != null) {
+					for (Iterator iter = relMap.keySet().iterator(); iter
 							.hasNext();) {
-						IJavaElement target = (IJavaElement) iter2.next();
-						allRels.add(new AJRelationship(source, rels[i], target));
+						IJavaElement source = (IJavaElement) iter.next();
+						List targetList = (List) relMap.get(source);
+						for (Iterator iter2 = targetList.iterator(); iter2
+								.hasNext();) {
+							IJavaElement target = (IJavaElement) iter2.next();
+							allRels.add(new AJRelationship(source, rels[i],
+									target, (j == 0)));
+						}
 					}
 				}
 			}
@@ -223,6 +248,8 @@ public class AJProjectModel {
 //																+ targetEl 
 //																+ " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
+								Map perRelMap = rel.hasRuntimeTest() ? perRelMaps[0]
+										: perRelMaps[1];
 								Map relMap = (Map) perRelMap.get(ajRel);
 								if (relMap == null) {
 									relMap = new HashMap();
@@ -348,25 +375,29 @@ public class AJProjectModel {
 
 	// for debugging...
 	private void dumpModel() {
-		System.out.println("AJDT model for project: "+project.getName());
+		System.out.println("AJDT model for project: " + project.getName());
 		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
 			String kind = (String) iter.next();
-			AJRelationshipType rel = (AJRelationshipType)kindMap.get(kind);
-			Map relMap = (Map) perRelMap.get(rel);
-			if (relMap != null) {
-				for (Iterator iter2 = relMap.keySet().iterator(); iter2
-						.hasNext();) {
-					IJavaElement je = (IJavaElement) iter2.next();
-					List related = (List)relMap.get(je);
-					for (Iterator iter3 = related.iterator(); iter3
+			AJRelationshipType rel = (AJRelationshipType) kindMap.get(kind);
+			for (int i = 0; i <= 1; i++) { // with and without runtime test
+				Map relMap = (Map) perRelMaps[i].get(rel);
+				if (relMap != null) {
+					for (Iterator iter2 = relMap.keySet().iterator(); iter2
 							.hasNext();) {
-						IJavaElement el = (IJavaElement) iter3.next();
-						System.out.println("    "+getJavaElementLinkName(je)+" --"+kind
-								+"-> "+getJavaElementLinkName(el));
-						System.out.println("    "+je.hashCode()+" --"+kind
-								+"-> "+el.hashCode());
-						System.out.println("    "+je.getHandleIdentifier()+" --"+kind
-								+"-> "+el.getHandleIdentifier());
+						IJavaElement je = (IJavaElement) iter2.next();
+						List related = (List) relMap.get(je);
+						for (Iterator iter3 = related.iterator(); iter3
+								.hasNext();) {
+							IJavaElement el = (IJavaElement) iter3.next();
+							System.out.println("    "
+									+ getJavaElementLinkName(je) + " --" + kind
+									+ "-> " + getJavaElementLinkName(el));
+							System.out.println("    " + je.hashCode() + " --"
+									+ kind + "-> " + el.hashCode());
+							System.out.println("    "
+									+ je.getHandleIdentifier() + " --" + kind
+									+ "-> " + el.getHandleIdentifier());
+						}
 					}
 				}
 			}
