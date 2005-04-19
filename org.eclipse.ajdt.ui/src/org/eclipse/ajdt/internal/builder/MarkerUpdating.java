@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others. All rights reserved. This
+ * Copyright (c) 2004, 2005 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Common Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/cpl-v10.html
@@ -9,30 +9,31 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.aspectj.asm.IProgramElement;
-import org.aspectj.asm.IProgramElement.Accessibility;
-import org.aspectj.asm.IProgramElement.Kind;
-import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.visualiser.NodeHolder;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaModelException;
 
 
 /**
@@ -40,6 +41,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * Updates the markers for a given project when it is built.
  */
 public class MarkerUpdating {
+	
 
 	/**
 	 * Delete the advice markers for a project
@@ -67,256 +69,207 @@ public class MarkerUpdating {
 	 * Add new advice markers to a project
 	 */
 	public static void addNewMarkers(final IProject project) {	
-		try {
-			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) {
-					try {
-						project.accept(new IResourceVisitor(){
-							public boolean visit(IResource resource) {
-								if(resource instanceof IFolder) {
-									return true;
-								} else if (resource instanceof IFile) {
-									if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resource.getName())) {
-										addMarkersToFile((IFile)resource);
-									}
-									return false;
-								} else {
-									return true;
-								}
-							}
-						});
-					} catch (CoreException coreEx) {}
-				}
-			}, null);
-		} catch (CoreException coreEx) {}
-	}
-
-	
-	/**
-	 * Add markers to a file
-	 */
-	private static void addMarkersToFile(final IFile file) {	
-		IProject project = file.getProject();
-
-		// Don't add markers to resources in non AspectJ projects !
-		if (project == null || !project.isOpen()
-				|| !AspectJPlugin.isAJProject(project)) {
-			return;
-		}
-			
-		// Copes with linked src folders
-		String path = file.getRawLocation().toOSString();
-		
-		// retrieve a map of line numbers to Vectors containing StructureNode
-		// objects
-		// Ask for the detailed version of the map (by specifying 'true') which
-		// maps
-		// line numbers to nodes representing advice (rather than just nodes
-		// representing
-		// aspects).
-		Map m = StructureModelUtil.getLinesToAspectMap(path, true);
-
-		if (m != null) {
-			// iterate through the line numbers in the map
-			Set keys = m.keySet();
-			Iterator i = keys.iterator();
-			while (i.hasNext()) {
-				Object o = i.next();
-				final Integer linenumberInt = (Integer) o;
-
-				// for that line, go through all the advice in effect
-				final Vector v = (Vector) m.get(o);
-				try {
-					boolean sameType = true;
-					boolean runtimeTst = false;
-
-					if (v.size() > 1) {
-						NodeHolder first = (NodeHolder) v.get(0);
-						String adviceType = first.node.getExtraInfo() == null ? null
-								: first.node.getExtraInfo()
-										.getExtraAdviceInformation();
-						for (Iterator iter = v.iterator(); iter
-								.hasNext();) {
-							NodeHolder element = (NodeHolder) iter
-									.next();
-							runtimeTst = runtimeTst
-									|| element.runtimeTest;
-							if (adviceType != null) {
-								if (element.node.getExtraInfo() == null) {
-									sameType = false;
-								} else {
-									sameType = sameType
-											&& adviceType
-													.equals(element.node
-															.getExtraInfo()
-															.getExtraAdviceInformation());
-								}
-							} else {
-								sameType = sameType
-										&& element.node.getExtraInfo() == null;
-							}
-						}
-					} else if (v.size() == 1) {
-						runtimeTst = ((NodeHolder) v.get(0)).runtimeTest;
-					}
-					final boolean runtimeTest = runtimeTst;
-					final boolean useDefaultAdviceMarker = !sameType;
-					for (int j = 0; j < v.size(); j++) {
-						// sn will represent the advice in affect at the
-						// given line.
-						final NodeHolder noddyHolder = (NodeHolder) v
-								.get(j);
-						final IProgramElement sn = noddyHolder.node;
-						createMarker(linenumberInt.intValue(),
-								runtimeTest, file, sn,
-								useDefaultAdviceMarker,
-								noddyHolder.runtimeTest,
-								noddyHolder.adviceType);
-					}
-				} catch (CoreException ce) {
-					AspectJUIPlugin.getDefault().getErrorHandler()
-							.handleError(
-									"Exception creating advice marker",
-									ce);
-				}		
-			}
-		}
-	}
-
-	/**
-	 * @param linenumberInt
-	 * @param runtimeTest
-	 * @param ir
-	 * @param programElement
-	 * @param useDefaultAdviceMarker
-	 * @return the IMarker created
-	 * @throws CoreException
-	 */
-	private static IMarker createMarker(int linenumberInt,
-			final boolean runtimeTest, final IResource ir,
-			IProgramElement programElement, boolean useDefaultAdviceMarker,
-			boolean nodeRuntimeTest, String adviceType) throws CoreException {
-
-		String label = programElement.toLinkLabelString();
-		IMarker marker;
-		if (useDefaultAdviceMarker) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_ADVICE_MARKER);
-			} else {
-				if (adviceType == "") {
-					marker = ir.createMarker(IAJModelMarker.DECLARATION_MARKER);
+		AJModel ajModel = AJModel.getInstance();
+		// Get all the relationships and sort by compilation unit..
+		List allRelationships = ajModel.getAllRelationships(project, new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES, AJRelationshipManager.ANNOTATED_BY, AJRelationshipManager.ANNOTATES, AJRelationshipManager.DECLARED_ON, AJRelationshipManager.ASPECT_DECLARATIONS});
+		Map CUsToListsOfRelationships = new HashMap();
+		for (Iterator iter = allRelationships.iterator(); iter.hasNext();) {
+			AJRelationship relationship = (AJRelationship) iter.next();
+			IJavaElement source = relationship.getSource();
+			ICompilationUnit parentCU = (ICompilationUnit)source.getAncestor(IJavaElement.COMPILATION_UNIT);
+			if(parentCU != null) {
+				if(CUsToListsOfRelationships.get(parentCU) instanceof List) {
+					((List)CUsToListsOfRelationships.get(parentCU)).add(relationship);
 				} else {
-					marker = ir.createMarker(IAJModelMarker.ADVICE_MARKER);
+					List relationshipsForCU = new ArrayList();
+					relationshipsForCU.add(relationship);
+					CUsToListsOfRelationships.put(parentCU, relationshipsForCU);
 				}
 			}
-		} else if (adviceType.equals("before")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.BEFORE_ADVICE_MARKER);
+		}
+		// For each compilation unit sort the relationships by line number..
+		Set affectedCompilationUnits = CUsToListsOfRelationships.keySet();
+		for (Iterator iter = affectedCompilationUnits.iterator(); iter
+				.hasNext();) {
+			ICompilationUnit cu = (ICompilationUnit)iter.next();
+			List relationships = (List) CUsToListsOfRelationships.get(cu);
+			Map lineNumberToRelationships = new HashMap();
+			for (Iterator iterator = relationships.iterator(); iterator
+					.hasNext();) {
+				AJRelationship relationship = (AJRelationship) iterator.next();
+				IJavaElement source = relationship.getSource();
+				Integer lineNumber = new Integer(ajModel.getJavaElementLineNumber(source));
+				if(lineNumberToRelationships.get(lineNumber) instanceof List) {
+					((List)lineNumberToRelationships.get(lineNumber)).add(relationship);
+				} else {
+					List relationshipsForLine = new ArrayList();
+					relationshipsForLine.add(relationship);
+					lineNumberToRelationships.put(lineNumber, relationshipsForLine);
+				}				
 			}
-		} else if (adviceType.equals("around")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.AROUND_ADVICE_MARKER);
-			}
-		} else if (adviceType.startsWith("after")) {
-			if (runtimeTest) {
-				marker = ir
-						.createMarker(IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER);
-			} else {
-				marker = ir
-						.createMarker(IAJModelMarker.AFTER_ADVICE_MARKER);
-			}
-		} else if (adviceType.startsWith("advises")) {
-			String subType = adviceType.substring("advises".length());
-			if (subType.startsWith("before")) {
-				marker = ir
-					.createMarker(IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER);
-			} else if (subType.startsWith("after")) {
-				marker = ir
-					.createMarker(IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER);
-			} else if (subType.startsWith("around")) {
-				marker = ir
-				.createMarker(IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER);
-			} else {
-				marker = ir
-					.createMarker(IAJModelMarker.SOURCE_ADVICE_MARKER);
-			}
-			// Store the accessibility and kind in an attribute, so we can use
-			// appropriate icons when we later populate the marker context menu
-			// TODO: query this information when needed instead
-			Kind kind = programElement.getKind();
-			Accessibility acc = programElement.getAccessibility();
-			char markerKind='?';
-			if (kind == Kind.CODE) {
-				markerKind='C';
-			} else if ((kind == Kind.METHOD) || (kind == Kind.CONSTRUCTOR)) {
-				markerKind='M';
-			} else if (kind == Kind.FIELD) {
-				markerKind='F';
-			} else if (kind == Kind.ASPECT) {
-				markerKind='A';
-			}
-			char markerAcc='?';
-			if (acc == Accessibility.PUBLIC) {
-				markerAcc='G';
-			} else if (acc == Accessibility.PROTECTED) {
-				markerAcc='Y';
-			} else if (acc == Accessibility.PACKAGE) {
-				markerAcc='B';
-			} else if (acc == Accessibility.PRIVATE) {
-				markerAcc='R';
-			}
-			marker.setAttribute(AspectJUIPlugin.ACCKIND_ATTRIBUTE,""+markerKind+markerAcc);
-		} else if(adviceType.equals("annotates")) { 
-			marker = ir
-				.createMarker(IAJModelMarker.SOURCE_ANNOTATED_MARKER);
-		} else if(adviceType.equals("declared on")){
-			marker = ir
-				.createMarker(IAJModelMarker.SOURCE_ITD_MARKER);
-		} else {
-			if(programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR)
-					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD)
-					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD)
-					|| programElement.getKind().equals(IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE)) {
-				marker = ir.createMarker(IAJModelMarker.ANNOTATED_MARKER);
-			} else {
-				// It's an Intertype Declaration
-				marker = ir.createMarker(IAJModelMarker.ITD_MARKER);
+			Set lineNumbers = lineNumberToRelationships.keySet();
+			// Create one marker for each affected line
+			for (Iterator iterator = lineNumbers.iterator(); iterator.hasNext();) {
+				Integer lineNum = (Integer) iterator.next();
+				List relationshipsForLine = (List) lineNumberToRelationships.get(lineNum);
+				createMarkers(lineNum.intValue(), cu.getResource(), relationshipsForLine);
 			}
 		}
-		marker.setAttribute(IMarker.LINE_NUMBER, linenumberInt);
-		if (nodeRuntimeTest) {
-			label = label
-					+ " "
-					+ AspectJUIPlugin
-							.getResourceString("AspectJEditor.runtimetest");
-		}
-		marker.setAttribute(IMarker.MESSAGE, label);
-		marker.setAttribute(IMarker.PRIORITY,
-				IMarker.PRIORITY_HIGH);
-		ISourceLocation sLoc2 = programElement.getSourceLocation();
-		
-		// Crude format is "FFFF:::NNNN:::NNNN:::NNNN"
-		// Filename:::StartLine:::EndLine:::ColumnNumber
-		marker.setAttribute(
-						AspectJUIPlugin.SOURCE_LOCATION_ATTRIBUTE,
-						sLoc2.getSourceFile()
-								.getAbsolutePath()
-								+ ":::"
-								+ sLoc2.getLine()
-								+ ":::"
-								+ sLoc2.getEndLine()
-								+ ":::"
-								+ sLoc2.getColumn());
-		return marker;
 	}
+		
+
+
+	/**
+	 * Create AspectJ markers representing all the given relationships
+	 * @param lineNumber
+	 * @param resource
+	 * @param relationships
+	 */
+	private static void createMarkers(int lineNumber, IResource resource, List relationships) {
+		String markerType = null;
+		boolean runtimeTest = false;
+		// Work out whether we need a runtime test marker or not
+		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
+			AJRelationship relationship = (AJRelationship) iter.next();
+			runtimeTest = runtimeTest || relationship.hasRuntimeTest();
+		}
+		// Work out what marker type to use (all need to be the same due to overlapping problems)
+		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
+			AJRelationship relationship = (AJRelationship) iter.next();
+			String markerTypeForRelationship = getMarkerTypeForRelationship(relationship, runtimeTest);
+			if(markerType == null) {
+				markerType = markerTypeForRelationship;
+			} else if(!markerType.equals(markerTypeForRelationship)){
+				markerType = getCombinedMarkerType(markerType, markerTypeForRelationship, runtimeTest);
+			}
+		}
+		// Create the markers
+		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
+			AJRelationship relationship = (AJRelationship) iter.next();
+			try {
+				IMarker marker = resource.createMarker(markerType);
+				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+				String label = getMarkerLabel(relationship);			
+				marker.setAttribute(IMarker.MESSAGE, label);
+				marker.setAttribute(IMarker.PRIORITY,
+						IMarker.PRIORITY_HIGH);
+			} catch (CoreException e) {
+			}
+		}			
+	}
+
+	/**
+	 * Get a label for the given relationship
+	 * @param relationship
+	 * @return
+	 */
+	private static String getMarkerLabel(AJRelationship relationship) {		
+		return relationship.getRelationship().getDisplayName()
+				+ " "
+				+ AJModel.getInstance().getJavaElementLinkName(
+						relationship.getTarget()) 
+						+ (relationship.hasRuntimeTest() 
+								? " " + AspectJUIPlugin.getResourceString("AspectJEditor.runtimetest") 
+										: "") ;
+	}
+
+	/**
+	 * Get the marker type that should be used for the given relationship
+	 * @param relationship
+	 * @param runtimeTest
+	 * @return
+	 */
+	private static String getMarkerTypeForRelationship(AJRelationship relationship, boolean runtimeTest) {
+		IJavaElement source = relationship.getSource();
+		IJavaElement target = relationship.getTarget();
+		AJRelationshipType type = relationship.getRelationship();
+		if(type.equals(AJRelationshipManager.ADVISED_BY) &&  target instanceof AdviceElement) {
+			try {
+				IProgramElement.ExtraInformation extraInfo = ((AdviceElement)target).getAJExtraInformation();
+				if (extraInfo.getExtraAdviceInformation()!=null) {				
+					if(extraInfo.getExtraAdviceInformation().equals("before")) {
+						if(runtimeTest) {
+							return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.BEFORE_ADVICE_MARKER;
+						}
+					} else if (extraInfo.getExtraAdviceInformation().equals("around")) {
+						if(runtimeTest) {
+							return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.AROUND_ADVICE_MARKER;
+						}
+					} else {
+						if(runtimeTest) {
+							return IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.AFTER_ADVICE_MARKER;	
+						}
+					}
+				}
+			} catch (JavaModelException jme){}
+			if(runtimeTest) {
+				return IAJModelMarker.DYNAMIC_ADVICE_MARKER;
+			} else {
+				return IAJModelMarker.ADVICE_MARKER;				
+			}
+		} else if (type.equals(AJRelationshipManager.ADVISES) && source instanceof AdviceElement) {
+			try {
+				IProgramElement.ExtraInformation extraInfo = ((AdviceElement)source).getAJExtraInformation();
+				if (extraInfo.getExtraAdviceInformation()!=null) {				
+					if(extraInfo.getExtraAdviceInformation().equals("before")) {
+						if(runtimeTest) {
+							return IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
+						}
+					} else if (extraInfo.getExtraAdviceInformation().equals("around")) {
+						if(runtimeTest) {
+							return IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
+						}
+					} else {
+						if(runtimeTest) {
+							return IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER;
+						} else {
+							return IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER;	
+						}
+					}
+				}
+			} catch (JavaModelException jme){}
+			if(runtimeTest) {
+				return IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
+			} else {
+				return IAJModelMarker.SOURCE_ADVICE_MARKER;				
+			}
+		} else if (type.equals(AJRelationshipManager.DECLARED_ON)) {
+			return IAJModelMarker.SOURCE_ITD_MARKER;
+		} else if (type.equals(AJRelationshipManager.ASPECT_DECLARATIONS)) {
+			return IAJModelMarker.ITD_MARKER;
+		} else if (type.equals(AJRelationshipManager.ANNOTATED_BY)) {
+			return IAJModelMarker.ITD_MARKER;
+		} else if (type.equals(AJRelationshipManager.ANNOTATES)) {
+			return IAJModelMarker.SOURCE_ITD_MARKER;
+		}		
+		return IAJModelMarker.ADVICE_MARKER;
+	}
+
+	/**
+	 * Two or more markers on the same line - get the most approriate marker type to display
+	 * @param firstMarkerType
+	 * @param secondMarkerType
+	 * @return
+	 */
+	private static String getCombinedMarkerType(String firstMarkerType, String secondMarkerType, boolean runtimeTest) {
+		if (firstMarkerType.indexOf("source") != -1 && secondMarkerType.indexOf("source") != -1) {
+			return runtimeTest ? IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER : IAJModelMarker.SOURCE_ADVICE_MARKER;
+		} else if (firstMarkerType.indexOf("source") != -1 || secondMarkerType.indexOf("source") != -1) { 
+			return runtimeTest ? IAJModelMarker.DYNAMIC_SOURCE_AND_TARGET_MARKER : IAJModelMarker.SOURCE_AND_TARGET_MARKER;
+		} else {
+			return runtimeTest ? IAJModelMarker.DYNAMIC_ADVICE_MARKER : IAJModelMarker.ADVICE_MARKER;
+		}
+	}
+
 	
 }

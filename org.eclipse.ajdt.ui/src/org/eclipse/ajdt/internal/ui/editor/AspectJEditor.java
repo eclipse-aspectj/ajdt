@@ -160,6 +160,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	}
 
+	public IDocumentProvider getDocumentProvider() {
+		return super.getDocumentProvider();
+	}
+	
 	/**
 	 * Get an adapter - if they want an outliner, give them ours! Other adapters
 	 * we could consider providing:
@@ -384,7 +388,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				}
 				aspectJEditorErrorTickUpdater.updateEditorImage(unit);				
 			}
-
 
 			AJDTEventTrace.editorOpened(fInput.getFile());
 			// Ensure any advice markers are created since they are not

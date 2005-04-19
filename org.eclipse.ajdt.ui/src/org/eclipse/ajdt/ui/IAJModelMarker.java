@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others. All rights reserved. This
+ * Copyright (c) 2004, 2005 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Common Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/cpl-v10.html
@@ -15,6 +15,12 @@ package org.eclipse.ajdt.ui;
 public interface IAJModelMarker {
 
 //	AJDT Markers as defined in plugin.xml
+	
+	// supertypes
+	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker";
+	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker";
+	
+	// concrete marker types
 	public static final String AJDT_PROBLEM_MARKER = "org.eclipse.ajdt.ui.problemmarker";
 	public static final String ITD_MARKER = "org.eclipse.ajdt.ui.itdmarker";
 	public static final String AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.afteradvicemarker";
@@ -24,17 +30,14 @@ public interface IAJModelMarker {
 	public static final String BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.beforeadvicemarker";
 	public static final String DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicbeforeadvicemarker";
 	public static final String DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicadvicemarker";
-	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker";
-	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker";
-	public static final String ANNOTATED_MARKER = "org.eclipse.ajdt.ui.annotatedmarker";
 	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker";
 	public static final String SOURCE_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcebeforeadvicemarker";
 	public static final String SOURCE_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceafteradvicemarker";
 	public static final String SOURCE_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcearoundadvicemarker";
 	public static final String SOURCE_ITD_MARKER = "org.eclipse.ajdt.ui.sourceitdmarker";
-	public static final String SOURCE_ANNOTATED_MARKER = "org.eclipse.ajdt.ui.sourceannotatedmarker";
-	//TODO: Fix these
 	public static final String SOURCE_DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicadvicemarker";
 	public static final String SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicbeforeadvicemarker";
 	public static final String SOURCE_DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker";
-	public static final String SOURCE_DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker";}
+	public static final String SOURCE_DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker";
+	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker";
+	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker";}

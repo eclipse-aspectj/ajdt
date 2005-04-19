@@ -750,7 +750,32 @@
             name="sourceLocationOfAdvice">
       </attribute>
    </extension>
+   
+<!-- Markers for a line that is both source and target -->
 
+   <extension
+   	      id="sourceandtargetmarker"
+   	      name="Source and Target Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.advicemarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>   
+   <extension
+   	      id="dynamicsourceandtargetmarker"
+   	      name="Dynamic Source and Target Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.advicemarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension> 
+   
 <!-- Markers for different types of advice -->      
    <extension
    	      id="beforeadvicemarker"
@@ -956,6 +981,50 @@
             value="true">
       </persistent>
 	</extension>
+
+   <extension
+		  id="sourcedynamicadvicemarker"
+          name="Source Dynamic Advice Marker"
+          point="org.eclipse.core.resources.markers">
+          <super type="org.eclipse.ajdt.ui.advicemarker"/>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+   	      id="sourcedynamicbeforeadvicemarker"
+   	      name="Source Dynamic Before Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.advicemarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+   	      id="sourcedynamicafteradvicemarker"
+   	      name="Source Dynamic After Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.advicemarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+    <extension
+   	      id="sourcedynamicaroundadvicemarker"
+   	      name="Source Dynamic Around Advice Marker"
+   	      point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.ajdt.ui.advicemarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+	</extension>
+
 	
  <!-- Aspect Declaration Markers -->
  
@@ -984,17 +1053,7 @@
             value="true">
       </persistent>
 	</extension>
-	<extension
-		id="annotatedmarker"
-		name="Annotation Declaration Marker"
-		point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.ajdt.ui.declarationmarker">
-      </super>
-      <persistent
-            value="true">
-      </persistent>
-	</extension>
+
     <extension
    	      id="sourceitdmarker"
    	      name="Intertype Declaration Source Marker"
@@ -1006,17 +1065,7 @@
             value="true">
       </persistent>
 	</extension>
-	<extension
-		id="sourceannotatedmarker"
-		name="Annotation Declaration Source Marker"
-		point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.ajdt.ui.declarationmarker">
-      </super>
-      <persistent
-            value="true">
-      </persistent>
-	</extension>
+
 
  
  <!-- Marker declarations -->   
@@ -1025,6 +1074,14 @@
         	name="org.eclipse.ajdt.advice"
 			markerType="org.eclipse.ajdt.ui.advicemarker">
       </type>
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourceandtargetmarker"
+            name="org.eclipse.ajdt.sourceAndTarget"/>
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.dynamicsourceandtargetmarker"
+            name="org.eclipse.ajdt.dynamicSourceAndTarget"/>
       <type
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.dynamicadvicemarker"
@@ -1045,6 +1102,10 @@
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.sourceadvicemarker"
             name="org.eclipse.ajdt.sourceAdvice"/>            
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourcedynamicadvicemarker"
+            name="org.eclipse.ajdt.sourceDynamicAdvice"/>
       <type
             super="org.eclipse.ajdt.sourceAdvice"
             markerType="org.eclipse.ajdt.ui.sourcebeforeadvicemarker"
@@ -1069,6 +1130,18 @@
             super="org.eclipse.ajdt.advice"
             markerType="org.eclipse.ajdt.ui.dynamicaroundadvicemarker"
             name="org.eclipse.ajdt.dynamicAroundAdvice"/>            
+	  <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker"
+            name="org.eclipse.ajdt.sourceDynamicAfterAdvice"/>
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourcedynamicbeforeadvicemarker"
+            name="org.eclipse.ajdt.sourceDynamicBeforeAdvice"/>
+      <type
+            super="org.eclipse.ajdt.advice"
+            markerType="org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker"
+            name="org.eclipse.ajdt.sourceDynamicAroundAdvice"/>
 	  <type
             markerType="org.eclipse.ajdt.ui.declarationmarker"
             name="org.eclipse.ajdt.aspectDeclaration"/>
@@ -1109,6 +1182,14 @@
             	presentationLayer="4">
  	     </specification>
 		<specification
+			annotationType="org.eclipse.ajdt.sourceAndTarget"
+			icon="icons/markers/source_and_target.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.dynamicSourceAndTarget"
+			icon="icons/markers/dynamic_source_and_target.gif">
+		</specification>
+		<specification
 			annotationType="org.eclipse.ajdt.dynamicAdvice"
 			icon="icons/markers/dynamic_advice.gif">
 		</specification>
@@ -1127,6 +1208,10 @@
 		<specification
 			annotationType="org.eclipse.ajdt.sourceAdvice"
 			icon="icons/markers/source_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceDynamicAdvice"
+			icon="icons/markers/source_dynamic_advice.gif">
 		</specification>
 		<specification
 			annotationType="org.eclipse.ajdt.sourceBeforeAdvice"
@@ -1151,6 +1236,18 @@
 		<specification
 			annotationType="org.eclipse.ajdt.dynamicAroundAdvice"
 			icon="icons/markers/dynamic_around_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceDynamicBeforeAdvice"
+			icon="icons/markers/source_dynamic_before_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceDynamicAfterAdvice"
+			icon="icons/markers/source_dynamic_after_advice.gif">
+		</specification>
+		<specification
+			annotationType="org.eclipse.ajdt.sourceDynamicAroundAdvice"
+			icon="icons/markers/source_dynamic_around_advice.gif">
 		</specification>
 		
 		<!-- Aspect Declaration Markers -->
@@ -1602,7 +1699,6 @@
          </factory>
     </extension>
 
-<!-- EXPERIMENTAL
 
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
@@ -1612,7 +1708,7 @@
     	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
   </extension>
   
--->
+
 
 <!-- EXPERIMENTAL
 

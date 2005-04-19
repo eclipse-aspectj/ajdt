@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2000, 2004 IBM Corp. and others.
+Copyright (c) 2000, 2005 IBM Corp. and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Common Public License v1.0
 which accompanies this distribution, and is available at
@@ -16,20 +16,29 @@ Contributors:
 package org.eclipse.ajdt.internal.ui.editor;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import org.aspectj.ajde.ui.AbstractIcon;
-import org.aspectj.asm.IProgramElement.Accessibility;
-import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
-import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
+import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
+import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.jdt.internal.ui.viewsupport.ImageImageDescriptor;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.Action;
@@ -37,8 +46,9 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
@@ -108,166 +118,21 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			// Which line was right clicked in the ruler?
 			int linenumber = rulerInfo.getLineOfLastMouseButtonActivity();
 			Integer clickedLine = new Integer(linenumber+1);
-			
-			// Go through the advice markers attached to this file, if any have a line number that
-			// matches the line clicked by the user, create the submenu (if it has not already
-			// been created) and add a new submenu entry for the advice.  The data that is
-			// stored with the submenu entry gives the run() method of the inner class the
-			// ability to create a jump marker such that it can jump to the location where
-			// the advice is defined.
-			IMarker markers[] = ifile.findMarkers(IAJModelMarker.ADVICE_MARKER, true, 2);		    
-			MenuManager adviceSubmenu = null;
-		    boolean adviceSubmenuInitialized = false;
-			if (markers != null && markers.length != 0) {							
-				for (int j = 0; j < markers.length; j++) {
-					IMarker m = markers[j];					
-					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
-						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));//.substring(8);
-						// substring(8) skips the 'Advice: ' bit on the front.
-						
-						// Build a new action for our menu.  Set the text label and remember the
-						// marker (an advice marker) in effect on this line, so that if the run
-						// method of the action is driven, it can correctly jump to the right
-						// location in the aspect.
-						AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-						
-						// Initialize the submenu if we haven't done it already.
-						if (!adviceSubmenuInitialized) {
-							adviceSubmenu = new MenuManager(
-							  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.adviceInAffect"));
-							manager.add(new Separator());
-							manager.add(adviceSubmenu);			
-							adviceSubmenuInitialized = true; 
-						}
-							
-					    // Add our new action to the submenu
-						adviceSubmenu.add(ama);
-					}
-				}
+			ICompilationUnit cu;
+			if (ifile.getFileExtension().equals("aj")) { //$NON-NLS-1$
+				cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(ifile);
+			} else {
+				cu = (ICompilationUnit)JavaCore.create(ifile);
 			}
 			
-			// Go through source of advice markers
-			IMarker sMarkers[] = ifile.findMarkers(IAJModelMarker.SOURCE_ADVICE_MARKER, true, 2);
-			MenuManager sourceAdviceSubmenu = null;
-		    boolean sourceAdviceSubmenuInitialized = false;
-			if (sMarkers != null && sMarkers.length != 0) {				
-				for (int j = 0; j < sMarkers.length; j++) {
-					IMarker m = sMarkers[j];
-					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
-						String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));
-						AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-						// Initialize the submenu if we haven't done it already.
-						if (!sourceAdviceSubmenuInitialized) {
-							sourceAdviceSubmenu = new MenuManager(
-							  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.adviceAffects"));
-							manager.add(new Separator());
-							manager.add(sourceAdviceSubmenu);			
-							sourceAdviceSubmenuInitialized = true; 
-						}
-						// Add our new action to the submenu
-						sourceAdviceSubmenu.add(ama);
-					}
-				}
-			}
-
-			// Go through the ITD markers
-			IMarker decMarkers[] = ifile.findMarkers(IAJModelMarker.DECLARATION_MARKER, true, 2);	
-			MenuManager declaresSubmenu = null;
-			MenuManager declarationSubmenu = null;
-			MenuManager annotationSubmenu = null;
-			MenuManager annotatesSubmenu = null;
-			boolean declaresSubmenuInitialized = false;
-		    boolean declarationSubmenuInitialized = false;
-			boolean annotationSubmenuInitialized = false;
-			boolean annotatesSubmenuInitialized = false;
-			if (decMarkers != null && decMarkers.length != 0) {
-				for (int j = 0; j < decMarkers.length; j++) {
-					IMarker m = decMarkers[j];
-					if (m.getAttribute(IMarker.LINE_NUMBER).equals(clickedLine)) {
-						if(m.getType().equals(IAJModelMarker.ANNOTATED_MARKER)) {
-							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
-							// marker (an advice marker) in effect on this line, so that if the run
-							// method of the action is driven, it can correctly jump to the right
-							// location in the aspect.
-							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-							
-							// Initialize the submenu if we haven't done it already.
-							if (!annotationSubmenuInitialized) {
-								annotationSubmenu = new MenuManager(
-								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotations"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized || declaresSubmenuInitialized)) {
-									manager.add(new Separator());
-								}
-								manager.add(annotationSubmenu);			
-								annotationSubmenuInitialized = true; 
-							}
-								
-						    // Add our new action to the submenu
-							annotationSubmenu.add(ama);						
-						} else if(m.getType().equals(IAJModelMarker.SOURCE_ANNOTATED_MARKER)) {
-							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
-							// marker (an advice marker) in effect on this line, so that if the run
-							// method of the action is driven, it can correctly jump to the right
-							// location in the aspect.
-							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-							
-							// Initialize the submenu if we haven't done it already.
-							if (!annotatesSubmenuInitialized) {
-								annotatesSubmenu = new MenuManager(
-								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.annotationAffects"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotationSubmenuInitialized || declaresSubmenuInitialized)) {
-									manager.add(new Separator());
-								}
-								manager.add(annotatesSubmenu);			
-								annotatesSubmenuInitialized = true; 
-							}
-								
-						    // Add our new action to the submenu
-							annotatesSubmenu.add(ama);						
-						} else if (m.getType().equals(IAJModelMarker.SOURCE_ITD_MARKER)) {
-							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
-							// marker (an advice marker) in effect on this line, so that if the run
-							// method of the action is driven, it can correctly jump to the right
-							// location in the aspect.
-							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-							
-							// Initialize the submenu if we haven't done it already.
-							if (!declaresSubmenuInitialized) {
-								declaresSubmenu = new MenuManager(
-								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.declaredOn"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized || declarationSubmenuInitialized)) {
-									manager.add(new Separator());
-								}
-								manager.add(declaresSubmenu);			
-								declaresSubmenuInitialized = true; 
-							}
-								
-						    // Add our new action to the submenu
-							declaresSubmenu.add(ama);
-						} else {
-							String textLabel = ((String)m.getAttribute(IMarker.MESSAGE));						// Build a new action for our menu.  Set the text label and remember the
-							// marker (an advice marker) in effect on this line, so that if the run
-							// method of the action is driven, it can correctly jump to the right
-							// location in the aspect.
-							AJDTMenuAction ama = new AJDTMenuAction(textLabel,m);
-							
-							// Initialize the submenu if we haven't done it already.
-							if (!declarationSubmenuInitialized) {
-								declarationSubmenu = new MenuManager(
-								  AspectJUIPlugin.getResourceString("EditorRulerContextMenu.aspectDeclarations"));
-								if(!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || annotationSubmenuInitialized || annotatesSubmenuInitialized || declaresSubmenuInitialized)) {
-									manager.add(new Separator());
-								}
-								manager.add(declarationSubmenu);			
-								declarationSubmenuInitialized = true; 
-							}
-								
-						    // Add our new action to the submenu
-							declarationSubmenu.add(ama);
-						}
-					}
-				}
-			}		
+			List javaElementsForLine = getJavaElementsForLine(cu, clickedLine.intValue());
+			boolean addedSeparator = false;
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ADVISES);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ADVISED_BY);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ANNOTATES);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ANNOTATED_BY);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.DECLARED_ON);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ASPECT_DECLARATIONS);
 			
 			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);
@@ -301,7 +166,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                     problemSubmenu = new MenuManager(
                                             AspectJUIPlugin
                                                     .getResourceString("EditorRulerContextMenu.relatedLocations"));
-                                    if (!(adviceSubmenuInitialized || sourceAdviceSubmenuInitialized || declarationSubmenuInitialized || annotatesSubmenuInitialized || annotationSubmenuInitialized)) {
+                                    if (!addedSeparator) {
                                         manager.add(new Separator());
                                     }
                                     manager.add(problemSubmenu);
@@ -327,10 +192,134 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                             "Exception whilst extending ruler context menu with advice items",
                             ce);
         }
-    }
+    }	
 	
 	
+	/**
+	 * 
+	 * @param javaElements
+	 * @param manager
+	 * @param addedSeparator
+	 * @param relationshipType
+	 * @return
+	 */
+	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedSeparator, AJRelationshipType relationshipType) {
+		boolean menuInitialized = false;
+		MenuManager menu = null;
+		for (Iterator iter = javaElements.iterator(); iter.hasNext();) {
+			IJavaElement element = (IJavaElement) iter.next();
+		
+			List relationships = AJModel.getInstance().getRelatedElements(relationshipType, element);
+			if(relationships != null) {
+				for (Iterator iterator = relationships.iterator(); iterator
+						.hasNext();) {
+					IJavaElement el = (IJavaElement) iterator.next();
+					if(!addedSeparator) {
+						manager.add(new Separator());
+						addedSeparator = true;
+					}
+					if(!menuInitialized) {
+						menu = new MenuManager(AspectJPlugin.getResourceString(relationshipType.getInternalName() + ".menuName")); //$NON-NLS-1$
+						manager.add(new Separator());
+						manager.add(menu);			
+						menuInitialized = true; 
+					}
+					menu.add(new MenuAction(el));
+				}
+			}
+		}		
+		return addedSeparator;
+	}
+
+
+	/**
+	 * @param cu
+	 * @param clickedLine
+	 * @return
+	 */
+	private List getJavaElementsForLine(IJavaElement je, int clickedLine) {
+		AJModel model = AJModel.getInstance();
+		List toReturn = new ArrayList();
+		List extraChildren = model.getExtraChildren(je);
+		if(extraChildren != null) {
+			for (Iterator iter = extraChildren.iterator(); iter.hasNext();) {
+				IJavaElement element = (IJavaElement) iter.next();
+				if(model.getJavaElementLineNumber(element) == clickedLine) {
+					toReturn.add(element);
+				}
+				toReturn.addAll(getJavaElementsForLine(element, clickedLine));
+			}
+		}
+		if(je instanceof ICompilationUnit) {
+			try {
+				IJavaElement[] children = ((ICompilationUnit)je).getChildren();
+				for (int i = 0; i < children.length; i++) {
+					IJavaElement element = children[i];
+					if(model.getJavaElementLineNumber(element) == clickedLine) {
+						toReturn.add(element);
+					}
+					toReturn.addAll(getJavaElementsForLine(element, clickedLine));
+				}
+			} catch (JavaModelException e) {
+			}
+		} else if (je instanceof IType) {
+			try {
+				IJavaElement[] children = ((IType)je).getChildren();
+				for (int i = 0; i < children.length; i++) {
+					IJavaElement element = children[i];
+					if(model.getJavaElementLineNumber(element) == clickedLine) {
+						toReturn.add(element);
+					}
+					toReturn.addAll(getJavaElementsForLine(element, clickedLine));
+				}
+			} catch (JavaModelException e) {
+			}
+		}
+		return toReturn;
+	}
+
+	/**
+	 * Inner class that represent an entry on the submenu for "Advised By >" 
+	 * or "Aspect Declarations >" or "Go To Related Location >"
+	 * - each Menu Action is a piece of advice or an ITD in affect on the current line.
+	 */
+	private static class MenuAction extends Action {
+	    private static ILabelProvider labelProvider =
+			new DecoratingJavaLabelProvider(new AppearanceAwareLabelProvider());
+
+	    private IJavaElement jumpLocation;
+		
+        /**
+		 * @param el
+		 */
+		public MenuAction(IJavaElement el) {
+			super (AJModel.getInstance().getJavaElementLinkName(el));
+			Image image = labelProvider.getImage(el);
+			if (image != null) {
+				setImageDescriptor(new ImageImageDescriptor(image));
+			}
+			jumpLocation = el;
+		}
+		
+        public void run() {
+        	IJavaElement parentCU = jumpLocation.getAncestor(IJavaElement.COMPILATION_UNIT);
+        	if(parentCU != null) {
+	        	IResource res = parentCU.getResource();
+	        	try {
+		        	IMarker marker = res.createMarker(IMarker.MARKER);
+		        	int lineNumber = AJModel.getInstance().getJavaElementLineNumber(jumpLocation);
+					if(lineNumber>=0){
+						marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+					}
+		        	IDE.openEditor(AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage(),
+		        			marker);
+	        	} catch (CoreException ce){}
+        	}
+        }
+	}
 	
+	
+
 	/**
 	 * Inner classes that represent an entry on the submenu for "Advised By >" 
 	 * or "Aspect Declarations >" or "Go To Related Location >"
@@ -440,107 +429,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	           return jumpLocation;
 	       }
 	}
-	
-	class AJDTMenuAction extends BaseAJDTMenuAction {
-		private IMarker adviceMarker;
 
-		/**
-		 * Set the name, remember the marker and set the image !
-		 */
-		AJDTMenuAction(String s, IMarker marker) {
-			super(s);
-			adviceMarker = marker;
-
-			ImageDescriptor descriptor = null;
-
-			String acckind = marker.getAttribute(
-					AspectJUIPlugin.ACCKIND_ATTRIBUTE, "");
-			if (acckind.length() == 2) {
-				char markerKind = acckind.charAt(0);
-				char markerAcc = acckind.charAt(1);
-				Accessibility acc = null;
-				Kind kind = null;
-				if (markerKind == 'M') {
-					kind = Kind.METHOD;
-				} else if (markerKind == 'F') {
-					kind = Kind.FIELD;
-				} else if (markerKind == 'C') {
-					kind = Kind.CODE;
-				} else if (markerKind == 'A') {
-					kind = Kind.ASPECT;
-				}
-				if (markerAcc == 'G') {
-					acc = Accessibility.PUBLIC;
-				} else if (markerAcc == 'Y') {
-					acc = Accessibility.PROTECTED;
-				} else if (markerAcc == 'B') {
-					acc = Accessibility.PACKAGE;
-				} else if (markerAcc == 'R') {
-					acc = Accessibility.PRIVATE;
-				}
-				if (kind != null) {
-					AbstractIcon icon = AspectJImages.registry()
-							.getStructureIcon(kind, acc);
-					descriptor = ((AJDTIcon) icon).getImageDescriptor();
-				}
-			}
-
-			if (descriptor == null) {
-				String runtimeTest = AspectJUIPlugin
-						.getResourceString("AspectJEditor.runtimetest");
-				boolean hasRuntimeTest = false;
-				if (s.endsWith(runtimeTest)) {
-					hasRuntimeTest = true;
-				}
-				if (s.indexOf(".before(") != -1) {
-					if (hasRuntimeTest) {
-						descriptor = AspectJImages.DYNAMIC_BEFORE_ADVICE
-								.getImageDescriptor();
-					} else {
-						descriptor = AspectJImages.BEFORE_ADVICE
-								.getImageDescriptor();
-					}
-				} else if (s.indexOf(".after(") != -1
-						|| s.indexOf(".afterReturning(") != -1
-						|| s.indexOf(".afterThrowing(") != -1) {
-					if (hasRuntimeTest) {
-						descriptor = AspectJImages.DYNAMIC_AFTER_ADVICE
-								.getImageDescriptor();
-					} else {
-						descriptor = AspectJImages.AFTER_ADVICE
-								.getImageDescriptor();
-					}
-				} else if (s.indexOf(".around(") != -1) {
-					if (hasRuntimeTest) {
-						descriptor = AspectJImages.DYNAMIC_AROUND_ADVICE
-								.getImageDescriptor();
-					} else {
-						descriptor = AspectJImages.AROUND_ADVICE
-								.getImageDescriptor();
-					}
-				}
-			}
-			if (descriptor == null) {
-				descriptor = AspectJImages.ITD.getImageDescriptor();
-			}
-			setImageDescriptor(descriptor);
-		}
-
-        String getJumpLocation() {
-            try {
-                return (String) adviceMarker
-                        .getAttribute(AspectJUIPlugin.SOURCE_LOCATION_ATTRIBUTE);
-            } catch (CoreException ce) {
-                AspectJUIPlugin
-                        .getDefault()
-                        .getErrorHandler()
-                        .handleError(
-                                "Exception whilst executing AdviceMenuAction run method",
-                                ce);
-                return null;
-            }
-        }
-    }
 	
 	protected void report(final String message) {
 		JDIDebugUIPlugin.getStandardDisplay().asyncExec(new Runnable() {
