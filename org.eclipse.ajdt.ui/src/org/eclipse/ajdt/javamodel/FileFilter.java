@@ -74,7 +74,7 @@ public class FileFilter extends ViewerFilter {
 	//(It seems to be difficult to enable it programmatically since the package explorer loads
 	//its preferences before we get called)
 	//this whole check might not be necessary any more if 73991 (a jdt bug) gets fixed
-	public static void checkIfFileFilterEnabled() {
+	public static void checkIfFileFilterEnabledAndAsk() {
 
 		IPreferenceStore javaStore = JavaPlugin.getDefault().getPreferenceStore();
 

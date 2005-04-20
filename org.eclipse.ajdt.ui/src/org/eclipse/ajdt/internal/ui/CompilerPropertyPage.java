@@ -59,6 +59,8 @@ import org.osgi.service.prefs.BackingStoreException;
 public class CompilerPropertyPage extends PropertyPage {
 
 	// TODO - these need to be changed to booleans - bug 90174
+	// NB - if change these, then have to update the settign in the migration wizard
+	// BuilderMigrationPage2.useIncrementalCompilationAsDefault(..)
 	private static final String VALUE_TRUE = "true";
 	private static final String VALUE_FALSE = "false";
 

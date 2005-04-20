@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -32,7 +33,9 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -49,8 +52,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.internal.PDE;
@@ -216,11 +221,13 @@ public class AJDTUtils {
 		// therefore, have commented out the following call.
 		// changeProjectDependencies(project);
 
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				verifyWorkbenchConfiguration();
-			}
-		});
+		// no longer need to verify the workbench config since now done
+		// in the migration wizard
+//		Display.getDefault().asyncExec(new Runnable() {
+//			public void run() {
+//				verifyWorkbenchConfiguration();
+//			}
+//		});
 
 		//Luzius: set up build configuration
 		BuildConfigurator.getBuildConfigurator().setup(project);
@@ -615,7 +622,7 @@ public class AJDTUtils {
 	/**
 	 * @param project
 	 */
-	private static void importRuntimePlugin(IProject project) {
+	public static void importRuntimePlugin(IProject project) {
 		ManifestEditor manEd = getAndPrepareToChangePDEModel(project);
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
@@ -768,6 +775,46 @@ public class AJDTUtils {
 	}
 
 	/**
+	 * Checks whether have run the migration wizard for this workspace and if not
+	 * then runs it
+	 *
+	 */	
+	public static void migrateWorkbench() {
+	    // only want the wizard to come up once per workspace
+	    IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
+	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
+	    boolean alreadyMigratedWorkspace = store.getBoolean(workspaceLocation);
+	    if (alreadyMigratedWorkspace) {
+            return;
+        } 
+	    store.setValue(workspaceLocation,true);
+	    		
+		Job job = new Job(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
+
+			public IStatus run(IProgressMonitor m) {
+				final Display display = AspectJUIPlugin.getDefault().getDisplay();
+				
+				Runnable myRun = new Runnable() {
+					public void run() {
+					    
+					    AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
+						migWizard.init();
+						WizardDialog migDialog = new WizardDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+											.getShell(), migWizard);
+						migDialog.open();
+					}
+				};
+				display.asyncExec(myRun);
+				return Status.OK_STATUS;
+			}
+		};
+		job.setPriority(Job.LONG);
+		job.setRule(null);
+		job.schedule();		
+	}
+	
+	/**
 	 * Removes the AspectJ Nature from an existing AspectJ project.
 	 * 
 	 * @param project
@@ -841,7 +888,7 @@ public class AJDTUtils {
 	// Bugzilla 72007
 	// This method checks whether the project already has
 	// org.aspectj.runtime imported. Returns true if it does.
-	private static boolean hasAJPluginDependency(IProject project) {
+	public static boolean hasAJPluginDependency(IProject project) {
 
 		ManifestEditor manEd = getPDEManifestEditor(project);
 		IPluginModel model = null;
@@ -923,7 +970,7 @@ public class AJDTUtils {
 	 * @param importId
 	 * @throws CoreException
 	 */
-	private static void removeImportFromPDEModel(IPluginModel model,
+	public static void removeImportFromPDEModel(IPluginModel model,
 			String importId) throws CoreException {
 		IPluginImport[] imports = model.getPluginBase().getImports();
 		IPluginImport doomed = null;

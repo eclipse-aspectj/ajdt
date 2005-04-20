@@ -44,7 +44,6 @@ import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.javamodel.FileFilter;
 import org.eclipse.ajdt.javamodel.ResourceChangeListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -673,12 +672,26 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		AJDTEventTrace.startup();
 		checkAspectJVersion();
 
-		FileFilter.checkIfFileFilterEnabled();
+		// don't want to check on startup for .aj resource filter
+		// because handled by the migration wizard
+		// FileFilter.checkIfFileFilterEnabledAndAsk();
+		// AJDTUtils.migrateWorkbench();
+
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
 		AJDTUtils.refreshPackageExplorer();
 	}
 
+	private static boolean migrationWizardRun = false;
+	
+	public static boolean migrationWizardHasRun() {
+	    return migrationWizardRun;
+	}
+	
+	public static void setMigrationWizardHasRun(boolean hasRun) {
+	    migrationWizardRun = hasRun;
+	}
+	
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
 		String version = (String) bundle.getHeaders().get(

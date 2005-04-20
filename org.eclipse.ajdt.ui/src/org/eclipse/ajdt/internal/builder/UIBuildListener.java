@@ -25,7 +25,6 @@ import org.aspectj.ajde.BuildManager;
 import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
@@ -50,7 +49,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.swt.widgets.Display;
 
 /**
  * 
@@ -71,15 +69,7 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {
-		if (!AspectJPreferences.isAJDTPrefConfigShowing()) {
-    		Display.getDefault().asyncExec(new Runnable() {
-    			public void run() {
-    				AJDTUtils.verifyWorkbenchConfiguration();
-    			}
-    		});            
-        }
-		
+	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
 		String kindS = null;
 		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
 			kindS = "AUTOBUILD";  //$NON-NLS-1$

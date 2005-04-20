@@ -75,6 +75,15 @@ public class AJDTConfigSettings {
 	}
 	
 	/**
+	 * Set the compiler preference for unused imports to "warning"
+	 */
+	static public void enableUnusedImports() {
+		Hashtable map = (Hashtable)JavaCore.getOptions();
+		map.put(JavaCore.COMPILER_PB_UNUSED_IMPORT, JavaCore.WARNING);
+		JavaCore.setOptions(map);
+	}
+	
+	/**
 	 * Query whether the workbench file associations preference has already been
 	 * set to make the AspectJ editor the default for .java files
 	 * @return boolean true if AspectJ editor is the default for .java files
@@ -115,6 +124,21 @@ public class AJDTConfigSettings {
 			}
 		}	
 	}
-	
 
+	/**
+	 * Query whether the workbench file associations preference has been
+	 * set to associate the AspectJ editor with .java files
+	 * @return boolean true if AspectJ editor is the associated with .java files
+	 */
+	static public boolean isAspectJEditorAssociatedWithJavaFiles() {
+		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
+		IEditorDescriptor[] desc = editorRegistry.getEditors("*.java");
+		for (int i = 0; i < desc.length; i++) {
+			IEditorDescriptor descriptor = desc[i];
+			if (descriptor.getLabel().equals(AspectJUIPlugin.getResourceString("ajEditor"))) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

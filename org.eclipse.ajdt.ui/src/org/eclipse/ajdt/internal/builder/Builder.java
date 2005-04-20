@@ -47,10 +47,17 @@ public class Builder extends IncrementalProjectBuilder {
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 			throws CoreException {
 		final IProject project = getProject();
+		
 		if (AspectJProjectNature.hasNewBuilder(project)) {
 			// don't need to do anything, the new builder will do the actual
 			// build
 			return null;
+		}
+		
+		// adding this so we don't get the builder migration 
+		// dialog until after we have run the migration wizard
+		if(!AspectJUIPlugin.migrationWizardHasRun()) {
+		    return null;
 		}
 
 		boolean removeOldBuilder = true;

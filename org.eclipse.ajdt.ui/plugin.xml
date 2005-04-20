@@ -379,7 +379,7 @@
       <editor
             name="%ajEditor"
             icon="icons/jdt/jcu_obj.gif"
-            extensions="java,aj"
+            extensions="aj"
             contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
@@ -1699,6 +1699,7 @@
          </factory>
     </extension>
 
+<!-- EXPERIMENTAL-->
 
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
@@ -1708,6 +1709,7 @@
     	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
   </extension>
   
+<!-- -->
 
 
 <!-- EXPERIMENTAL
