@@ -17,7 +17,9 @@ import org.eclipse.jdt.internal.core.JavaElement;
  * @author Luzius Meisser
  */
 public class AdviceElement extends AspectJMemberElement implements IAspectJElement {
-
+	
+	private boolean runtimeTest;	
+	
 	public AdviceElement(JavaElement parent, String name, String[] parameterTypes) {
 		super(parent, name, parameterTypes);
 	}
@@ -60,5 +62,14 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 			buffer.append("#"); //$NON-NLS-1$
 			buffer.append(this.occurrenceCount);
 		}
+	}
+	
+	
+	public boolean hasRuntimeTest() {
+		return runtimeTest;
+	}
+	
+	public void setHasRuntimeTest(boolean runtimeTest) {
+		this.runtimeTest = runtimeTest;
 	}
 }

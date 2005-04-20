@@ -17,6 +17,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.CoreUtils;
@@ -125,7 +126,7 @@ public class ImageDecorator implements ILabelDecorator {
 				AJDTIcon icon;
 				if (acceb == null){
 					if (ajElem.getAJKind() == IProgramElement.Kind.ADVICE)
-						icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), false);
+						icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), ((AdviceElement)ajElem).hasRuntimeTest());
 					else
 						icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
 				}else

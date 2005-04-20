@@ -26,6 +26,7 @@ import org.eclipse.jdt.internal.core.SourceType;
  * @author Luzius Meisser
  */
 public class AspectElement extends SourceType implements IAspectJElement {
+	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {
 //		AJCompilationUnit ajunit = (AJCompilationUnit)this.getCompilationUnit();
@@ -68,5 +69,6 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 		return info.getAJExtraInfo();
 	}
+	
 	
 }

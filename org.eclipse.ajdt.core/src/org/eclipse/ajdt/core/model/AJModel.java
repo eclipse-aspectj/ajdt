@@ -71,14 +71,19 @@ public class AJModel {
      */
 
 	private AJProjectModel getModelForProject(IProject project) {
-		AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
-		if (pm==null) {
-			AJLog.log("No current AJ model for project "+project.getName());
-			initialiseAJDE(project);
-			createMap(project);
-			pm = (AJProjectModel)projectModelMap.get(project);
-		}
-		return pm;
+		try {			
+			if(project.hasNature("org.eclipse.ajdt.ui.ajnature")) {				
+				AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
+				if (pm==null) {
+					AJLog.log("No current AJ model for project "+project.getName());
+					initialiseAJDE(project);
+					createMap(project);
+					pm = (AJProjectModel)projectModelMap.get(project);
+				}
+				return pm;
+			}
+		} catch (CoreException e){}
+		return null;
 	}
 		
 	/**

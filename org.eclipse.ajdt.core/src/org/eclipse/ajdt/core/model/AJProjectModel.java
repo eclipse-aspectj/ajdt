@@ -27,6 +27,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -248,6 +249,10 @@ public class AJProjectModel {
 //																+ targetEl 
 //																+ " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
+								if(sourceEl instanceof AdviceElement) {
+									((AdviceElement)sourceEl).setHasRuntimeTest(rel.hasRuntimeTest());
+								}
+								
 								Map perRelMap = rel.hasRuntimeTest() ? perRelMaps[0]
 										: perRelMaps[1];
 								Map relMap = (Map) perRelMap.get(ajRel);
