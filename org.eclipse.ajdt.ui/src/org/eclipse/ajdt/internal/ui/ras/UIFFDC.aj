@@ -11,10 +11,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.ras;
 
-import org.eclipse.ajdt.ras.PluginFFDC;
+import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.ajdt.ras.PluginFFDC;
 
 /**
  * FFDC policy for org.eclipse.ajdt.ui plug-in
@@ -22,7 +22,9 @@ import org.eclipse.core.runtime.IStatus;
 public aspect UIFFDC extends PluginFFDC {
 
 	public pointcut ffdcScope () :
-		within(org.eclipse.ajdt..*);
+		within(org.eclipse.ajdt..*)
+		// Exclude programming by exception cases
+		&& !within(OpenTypeSelectionDialog);
 		
     protected String getPluginId () {
     	return AspectJUIPlugin.PLUGIN_ID;

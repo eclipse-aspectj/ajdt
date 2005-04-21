@@ -19,6 +19,7 @@ import org.eclipse.ui.help.WorkbenchHelp;
 * Copied from org.eclipse.jdt.internal.ui.dialogs - but extends TypeSelectionDialog
 * from this package in order to get aspects in the dialog.
 */
+// This class excluded from FFDC due to programming by exception in readSettings
 public class OpenTypeSelectionDialog extends TypeSelectionDialog {
 
 	public static final int IN_HIERARCHY= IDialogConstants.CLIENT_ID + 1;
