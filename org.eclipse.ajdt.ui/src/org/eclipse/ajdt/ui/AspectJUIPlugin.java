@@ -675,7 +675,13 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// don't want to check on startup for .aj resource filter
 		// because handled by the migration wizard
 		// FileFilter.checkIfFileFilterEnabledAndAsk();
+
+		// for the moment am commenting out AJDTUtils.migrateWorkbench() since
+		// this is the migration wizard in progress - in order for projects to have
+		// their builders changed, need to set migrationWizardRun to be true 
+		// (this can be removed when migration wizard is in place)
 		// AJDTUtils.migrateWorkbench();
+		setMigrationWizardHasRun(true);
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
