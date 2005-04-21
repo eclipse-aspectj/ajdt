@@ -246,7 +246,7 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 								AJCompilationUnit unit = (AJCompilationUnit) iter.next();
 								IType[] types = unit.getAllTypes();
 								for (int j = 0; j < types.length; j++) {
-									IType type = types[i];
+									IType type = types[j];
 									int kind = 0;
 									if (type.isClass()) {
 										kind = IGenericType.CLASS_DECL;
