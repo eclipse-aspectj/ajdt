@@ -56,6 +56,7 @@ import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.test.utils.Utils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.CodeTemplatesTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
@@ -199,6 +200,9 @@ public class AllTests {
 			window.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e1) {
 		}
+		
+		// want to change builderId without running the migration wizard
+		AspectJUIPlugin.setMigrationWizardHasRun(true);
 
 		Utils.waitForJobsToComplete();
 		setupDone = true;
