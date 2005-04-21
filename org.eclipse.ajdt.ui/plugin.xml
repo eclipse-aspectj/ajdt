@@ -289,6 +289,18 @@
       </viewerContribution>    
    </extension>
 
+<!--
+   <extension
+         point="org.eclipse.jdt.ui.queryParticipants">
+      <queryParticipant
+      		name="AJDT Query Participant"
+            nature="org.eclipse.jdt.core.javanature"
+            class="org.eclipse.ajdt.ui.search.AJDTQueryParticipant"
+            id="org.eclipse.ajdt.ui.search.AJDTQueryParticipant">
+      </queryParticipant>
+   </extension>-->
+
+
 <!-- Define AspectJ Builder -->
 <!-- Note: this is now the *OLD* builder, and is only here to migrate project settings
      to the new builder. The real builder is now defined in the org.eclipse.ajdt.core
@@ -544,7 +556,24 @@
     	        </separator>
          	</menu>
          -->
-         
+         <action
+               label="%OpenTypeInHierarchyAction.label"
+               tooltip="%OpenTypeInHierarchyAction.tooltip"
+               definitionId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
+               class="org.eclipse.ajdt.internal.ui.actions.OpenTypeInHierarchyAction"
+               menubarPath="navigate/open.ext2"
+               id="openTypeInHierarchy">
+         </action> 
+         <action
+               label="%OpenTypeAction.label"
+               icon="icons/actions/opentype.gif"
+               tooltip="%OpenTypeAction.tooltip"
+               class="org.eclipse.ajdt.internal.ui.actions.OpenTypeAction"
+               toolbarPath="org.eclipse.search.searchActionSet/Search"
+               id="OpenTypeIncAspects"
+               definitionId="org.eclipse.ajdt.ui.navigate.open.type"
+               menubarPath="navigate/open.ext2">
+         </action>         
          <action
                label="%buildConfig"
                pulldown="true"
@@ -566,7 +595,63 @@
          </action>
       </actionSet>
    </extension>
-   
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            name="%ActionDefinition.openType.name"
+            description="%ActionDefinition.openType.description"
+            category="org.eclipse.ui.category.navigate"
+            id="org.eclipse.ajdt.ui.navigate.open.type">
+      </command>
+      <keyBinding
+            string="Ctrl+Alt+T"
+            scope="org.eclipse.ui.globalScope"
+            command="org.eclipse.ajdt.ui.navigate.open.type"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+      <keyBinding
+            platform="carbon"
+            string="Ctrl+Alt+T"
+            scope="org.eclipse.ui.globalScope"
+            command=""
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+      <keyBinding
+            platform="carbon"
+            string="Command+Alt+T"
+            scope="org.eclipse.ui.globalScope"
+            command="org.eclipse.ajdt.ui.navigate.open.type"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+      <command
+            name="%ActionDefinition.openTypeInHierarchy.name"
+            description="%ActionDefinition.openTypeInHierarchy.description"
+            category="org.eclipse.ui.category.navigate"
+            id="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy">
+      </command>
+      <keyBinding
+            string="Ctrl+Alt+A"
+            scope="org.eclipse.ui.globalScope"
+            command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+      <keyBinding
+            platform="carbon"
+            string="Ctrl+Alt+A"
+            scope="org.eclipse.ui.globalScope"
+            command=""
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+      <keyBinding
+            platform="carbon"
+            string="Command+Alt+A"
+            scope="org.eclipse.ui.globalScope"
+            command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
+            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </keyBinding>
+   </extension>    
+          
    <extension point="org.eclipse.ui.perspectiveExtensions">
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
