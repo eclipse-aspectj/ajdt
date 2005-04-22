@@ -18,6 +18,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguratorTest;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest2;
 import org.eclipse.ajdt.buildconfigurator.UtilTests;
+import org.eclipse.ajdt.core.AJCoreTest;
 import org.eclipse.ajdt.core.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.model.AJComparatorTest;
 import org.eclipse.ajdt.core.model.AJModelTest;
@@ -146,6 +147,9 @@ public class AllTests {
 		// ras tests
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 
+		// core tests
+		suite.addTest(new TestSuite(AJCoreTest.class));
+		
 		// core.model tests
 		suite.addTest(new TestSuite(AJModelTest.class));
 		suite.addTest(new TestSuite(AJModelTest2.class));
