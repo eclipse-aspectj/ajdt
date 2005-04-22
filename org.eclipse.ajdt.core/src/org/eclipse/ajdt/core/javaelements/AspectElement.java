@@ -35,6 +35,8 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public static final char JEM_ADVICE = '&';
 	public static final char JEM_ASPECT_TYPE = '}';
 	public static final char JEM_CODEELEMENT = '?';
+	// TYPE_PARAMETER is defined in Eclipse 3.1, but not 3.0
+	public static final char JEM_TYPE_PARAMETER = ']';
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {

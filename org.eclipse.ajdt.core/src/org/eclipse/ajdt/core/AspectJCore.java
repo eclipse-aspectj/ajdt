@@ -215,10 +215,10 @@ class AJMementoTokenizer extends MementoTokenizer {
 	private static final String LOCALVARIABLE = Character
 			.toString(JavaElement.JEM_LOCALVARIABLE);
 
-	private static final String TYPE_PARAMETER = Character
-			.toString(JavaElement.JEM_TYPE_PARAMETER);
-
 	// begin AspectJ change
+	private static final String TYPE_PARAMETER = Character
+			.toString(AspectElement.JEM_TYPE_PARAMETER);
+
 	private static final String ADVICE = Character
 			.toString(AspectElement.JEM_ADVICE);
 
@@ -281,9 +281,9 @@ class AJMementoTokenizer extends MementoTokenizer {
 			return IMPORTDECLARATION;
 		case JavaElement.JEM_LOCALVARIABLE:
 			return LOCALVARIABLE;
-		case JavaElement.JEM_TYPE_PARAMETER:
-			return TYPE_PARAMETER;
 		// begin AspectJ change
+		case AspectElement.JEM_TYPE_PARAMETER:
+			return TYPE_PARAMETER;
 		case AspectElement.JEM_ADVICE:
 			return ADVICE;
 		case AspectElement.JEM_ASPECT_TYPE:
@@ -313,12 +313,12 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case JavaElement.JEM_PACKAGEDECLARATION:
 			case JavaElement.JEM_IMPORTDECLARATION:
 			case JavaElement.JEM_LOCALVARIABLE:
-			case JavaElement.JEM_TYPE_PARAMETER:
 			// begin AspectJ change
+			case AspectElement.JEM_TYPE_PARAMETER:
 			case AspectElement.JEM_ADVICE:
 			case AspectElement.JEM_ASPECT_TYPE:
 			case AspectElement.JEM_CODEELEMENT:
-				// end AspectJ change
+			// end AspectJ change
 				break loop;
 			}
 			this.index++;
