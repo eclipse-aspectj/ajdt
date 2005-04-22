@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.ajdt.test.AllTests;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IProject;
@@ -55,11 +56,12 @@ public class AJCoreTest extends TestCase {
 		// note that the elements referred to by the handles need to exist in
 		// the workspace
 		String[][] testHandles = {
-				{ "=TJP Example/src<tjp{Demo.java", "Demo.java", "Demo.java", "CompilationUnit" },
+				{ "=TJP Example/src<tjp{Demo.java", "Demo.java", "Demo.java",
+						"CompilationUnit" },
 				{ "=TJP Example/src<tjp{Demo.java[Demo~main", "main",
 						"Demo.java", "SourceMethod" },
 				{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj",
-						"GetInfo.aj", "AJCompilationUnit" },		
+						"GetInfo.aj", "AJCompilationUnit" },
 				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo",
 						"GetInfo.aj", "AspectElement" },
 				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println", "println",
@@ -80,17 +82,26 @@ public class AJCoreTest extends TestCase {
 	public void testCreateElementFromHandle2() throws Exception {
 		IProject project = Utils.createPredefinedProject("Bean Example");
 
+		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
+		if ((EclipseVersion.MAJOR_VERSION == 3)
+				&& (EclipseVersion.MINOR_VERSION == 0)) {
+			// the handle identifiers for method signatures changed after
+			// eclipes 3.0: note the lack of escape character ~[QString; instead
+			// of ~\[QString;
+			methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
+		}
+
 		// each entry in the array contains:
 		// <handle> <name of element> <containing resource> <class name of
 		// element>
 		// note that the elements referred to by the handles need to exist in
 		// the workspace
 		String[][] testHandles = {
-				{ "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I", "method-call(void bean.Point.setX(int))",
+				{ methodHandle, "method-call(void bean.Point.setX(int))",
 						"Demo.java", "AJCodeElement" },
-				{ "=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;", "around",
-						"BoundPoint.aj", "AdviceElement" }
-		};
+				{
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;",
+						"around", "BoundPoint.aj", "AdviceElement" } };
 		compareWithHandles(testHandles);
 
 		Utils.deleteProject(project);
