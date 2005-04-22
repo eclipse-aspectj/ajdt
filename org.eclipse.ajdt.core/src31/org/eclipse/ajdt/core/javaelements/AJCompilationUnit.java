@@ -65,6 +65,7 @@ import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
+import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 
 /**
@@ -125,7 +126,8 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCopyOwner workingCopyOwner) {
 		super(fragment, elementName, workingCopyOwner);
-		this.ajFile = (IFile)fragment.getCompilationUnit(elementName).getResource();
+		IFolder f = (IFolder)fragment.getResource();
+		this.ajFile = (IFile)f.findMember(elementName);
 	}
 	
 	public Object getElementInfo() throws JavaModelException{
@@ -473,8 +475,6 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	public void delete(boolean force, IProgressMonitor monitor)
 			throws JavaModelException {
-//		 TODO make rename work for .aj files
-		System.out.println("AJ delete");
 		super.delete(force, monitor);
 	}
 	
@@ -569,7 +569,20 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 		return null;
 	}
-		
+
+	/*
+	 * @see JavaElement
+	 */
+	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
+		if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+			if (!memento.hasMoreTokens()) return this;
+			String typeName = memento.nextToken();
+			JavaElement type = new AspectElement(this, typeName);
+			return type.getHandleFromMemento(memento, workingCopyOwner);		
+		}
+		return super.getHandleFromMemento(token, memento, workingCopyOwner);
+	}
+	
 	public String getHandleIdentifier() {
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		String callerName = (new RuntimeException()).getStackTrace()[1]
