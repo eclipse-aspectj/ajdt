@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IJavaProject;
@@ -234,42 +235,68 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 				.getProjects();
 		for (int i = 0; i < projects.length; i++) {
 			try {
-				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-		
+				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
 					IJavaProject jp = JavaCore.create(projects[i]);
 					if (jp != null) {
-						if (scope.encloses(jp)) {
-							List ajCus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
-							for (Iterator iter = ajCus.iterator(); iter
-									.hasNext();) {
-								AJCompilationUnit unit = (AJCompilationUnit) iter.next();
-								IType[] types = unit.getAllTypes();
-								for (int j = 0; j < types.length; j++) {
-									IFileTypeInfo info = new AJCUTypeInfo(
-												types[j].getPackageFragment().getElementName(),
-												types[j].getElementName(),
-												null,
-												types[j].isInterface(),
-												types[j] instanceof AspectElement,
-												jp.getElementName(),
-												unit.getPackageFragmentRoot().getElementName(),
-												unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-												"aj",
-												unit);						
-									ajTypes.add(info);
-									
+						IPath[] paths = scope.enclosingProjectsAndJars();
+						for (int a = 0; a < paths.length; a++) {	
+							if (paths[a].equals(jp.getPath())) { 
+								List ajCus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
+								for (Iterator iter = ajCus.iterator(); iter
+										.hasNext();) {
+									AJCompilationUnit unit = (AJCompilationUnit) iter.next();
+									IType[] types = unit.getAllTypes();
+									for (int j = 0; j < types.length; j++) {
+										char[][] enclosingTypes = getEnclosingTypes(types[j]);
+										IFileTypeInfo info = new AJCUTypeInfo(
+													types[j].getPackageFragment().getElementName(),
+													types[j].getElementName(),
+													enclosingTypes,
+													types[j].isInterface(),
+													types[j] instanceof AspectElement,
+													jp.getElementName(),
+													unit.getPackageFragmentRoot().getElementName(),
+													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+													"aj", //$NON-NLS-1$
+													unit);						
+										ajTypes.add(info);										
+									}
 								}
-							}
+							} 
 						}
 					}
-				}
+				}	
 			} catch (JavaModelException e) {
-			} catch (CoreException e) {
+			} catch (CoreException e) {					
 			}
 		}
 		return ajTypes;
 	}
-	// AspectJ Change End
+	
+	/**
+	 * @param types
+	 * @param j
+	 * @return
+	 */
+	private char[][] getEnclosingTypes(IType startType) {
+		char[][] enclosingTypes = null;
+		IType type = startType.getDeclaringType();
+		List enclosingTypeList = new ArrayList();
+		while(type != null) {
+			char[] typeName = type.getElementName().toCharArray();
+			enclosingTypeList.add(0, typeName);
+			type = type.getDeclaringType();
+		}
+		if(enclosingTypeList.size() > 0) {
+			enclosingTypes = new char[enclosingTypeList.size()][];
+			for (int k = 0; k < enclosingTypeList.size(); k++) {
+				char[] typeName = (char[]) enclosingTypeList.get(k);
+				enclosingTypes[k] = typeName;
+			}
+		}
+		return enclosingTypes;
+	}
+//	 AspectJ Change End
 
 	/*
 	 * @see org.eclipse.ui.dialogs.SelectionStatusDialog#computeResult()

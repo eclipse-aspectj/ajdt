@@ -43,7 +43,6 @@ import org.eclipse.jdt.core.JavaModelException;
  */
 public class MarkerUpdating {
 	
-
 	/**
 	 * Delete the advice markers for a project
 	 */

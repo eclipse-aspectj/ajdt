@@ -25,6 +25,7 @@ import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.internal.builder.BuilderTest;
 import org.eclipse.ajdt.internal.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.internal.builder.ProjectDependenciesTest;
+import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest;
 import org.eclipse.ajdt.internal.core.NewAspectUtilsTest;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
@@ -168,6 +169,8 @@ public class AllTests {
 		if (setupDone) {
 			return;
 		}
+		AspectJUIPlugin.setMigrationWizardHasRun(true);
+
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 		Utils.blockPreferencesConfigWizard();
 
@@ -197,9 +200,6 @@ public class AllTests {
 		} catch (PartInitException e1) {
 		}
 		
-		// want to change builderId without running the migration wizard
-		AspectJUIPlugin.setMigrationWizardHasRun(true);
-
 		Utils.waitForJobsToComplete();
 		setupDone = true;
 	}

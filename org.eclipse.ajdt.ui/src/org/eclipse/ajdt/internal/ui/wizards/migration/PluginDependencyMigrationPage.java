@@ -16,6 +16,7 @@ import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
@@ -92,12 +93,14 @@ public class PluginDependencyMigrationPage extends WizardPage {
 		checkedListDialogField.setButtonsMinWidth(buttonBarWidth);
 	}
 	
-	public void finishPressed() {
+	public void finishPressed(IProgressMonitor monitor) {
 	    List checkedProjects =  checkedListDialogField.getCheckedElements();
 		for (Iterator iter = checkedProjects.iterator(); iter.hasNext();) {
 			IProject project = (IProject) iter.next();
 			updatePluginDependency(project);
+			monitor.worked(2);
 		}
+		monitor.worked(2*(ajPluginProjects.size() - checkedProjects.size()));
 	}
 	
 	private void updatePluginDependency(IProject project) {

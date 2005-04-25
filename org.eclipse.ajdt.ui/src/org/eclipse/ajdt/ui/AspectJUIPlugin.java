@@ -51,6 +51,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
@@ -676,18 +678,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// because handled by the migration wizard
 		// FileFilter.checkIfFileFilterEnabledAndAsk();
 
-		// for the moment am commenting out AJDTUtils.migrateWorkbench() since
-		// this is the migration wizard in progress - in order for projects to have
-		// their builders changed, need to set migrationWizardRun to be true 
-		// (this can be removed when migration wizard is in place)
-		// AJDTUtils.migrateWorkbench();
-		setMigrationWizardHasRun(true);
+		// Find out whether or not we have migrated this workspace.
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
+	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
+	    setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
+		
 		AJDTUtils.refreshPackageExplorer();
 	}
 
+	// have we run the migration wizard for this workspace or for this session?
 	private static boolean migrationWizardRun = false;
 	
 	public static boolean migrationWizardHasRun() {

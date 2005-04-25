@@ -17,6 +17,7 @@ import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
@@ -38,20 +39,20 @@ import org.eclipse.swt.widgets.Display;
  * old builder id. The user is given the option as to which projects
  * they wish to remove the old builder id from. 
  */
-public class BuilderMigrationPage1 extends WizardPage {
+public class BuilderMigrationPage extends WizardPage {
 
 	private CheckedListDialogField checkedListDialogField;
 	
 	private List ajProjects;
 
-	private BuilderMigrationPage1() {
-		super(AspectJUIPlugin.getResourceString("BuilderMigrationPage1.name")); //$NON-NLS-1$
-		this.setTitle(AspectJUIPlugin.getResourceString("BuilderMigrationPage1.title")); //$NON-NLS-1$		
+	private BuilderMigrationPage() {
+		super(AspectJUIPlugin.getResourceString("BuilderMigrationPage.name")); //$NON-NLS-1$
+		this.setTitle(AspectJUIPlugin.getResourceString("BuilderMigrationPage.title")); //$NON-NLS-1$		
 		this.setDescription( AspectJUIPlugin.
-				getResourceString("BuilderMigrationPage1.description")); //$NON-NLS-1$
+				getResourceString("BuilderMigrationPage.description")); //$NON-NLS-1$
 	}
 	
-	protected BuilderMigrationPage1(List projects) {
+	protected BuilderMigrationPage(List projects) {
 	    this();
 	    ajProjects = projects;	    
 	}
@@ -70,7 +71,7 @@ public class BuilderMigrationPage1 extends WizardPage {
 
 		checkedListDialogField = new CheckedListDialogField(null, buttonLabels, new AJProjectListLabelProvider());
 		checkedListDialogField.setLabelText(AspectJUIPlugin
-				.getResourceString("BuilderMigrationPage1.message")); //$NON-NLS-1$
+				.getResourceString("BuilderMigrationPage.message")); //$NON-NLS-1$
 		checkedListDialogField.setCheckAllButtonIndex(0);
 		checkedListDialogField.setUncheckAllButtonIndex(1);
 		checkedListDialogField.setElements(ajProjects);
@@ -86,11 +87,13 @@ public class BuilderMigrationPage1 extends WizardPage {
 			
 	}
 	
-	public void finishPressed() {
-		updateBuilder(ajProjects,checkedListDialogField.getCheckedElements());
+	public void finishPressed(IProgressMonitor monitor) {
+		updateBuilder(ajProjects,checkedListDialogField.getCheckedElements(),monitor);
 	}
 
-	private void updateBuilder(List ajProjects, List projectsToRemoveBuilderFrom) {
+	private void updateBuilder(List ajProjects, 
+	        List projectsToRemoveBuilderFrom,
+	        IProgressMonitor monitor) {
 		for (Iterator iter = ajProjects.iterator(); iter.hasNext();) {
 			final IProject project = (IProject) iter.next();
 			try {
@@ -114,6 +117,8 @@ public class BuilderMigrationPage1 extends WizardPage {
 				}
 			} catch (CoreException e) {
 			}
+			monitor.worked(1);
+    		
 		}
 		
 		for (Iterator iter = projectsToRemoveBuilderFrom.iterator(); iter
@@ -123,7 +128,12 @@ public class BuilderMigrationPage1 extends WizardPage {
                 AspectJProjectNature.removeOldBuilder(project);
             } catch (CoreException e) {
             }
+            monitor.worked(1);
         }
+
+		// have allocated enough work time to remove builder from
+		// every project - need to tell the monitor have worked the difference
+		monitor.worked(ajProjects.size() - projectsToRemoveBuilderFrom.size());
 	}
 	
 	private class AJProjectListLabelProvider extends LabelProvider {

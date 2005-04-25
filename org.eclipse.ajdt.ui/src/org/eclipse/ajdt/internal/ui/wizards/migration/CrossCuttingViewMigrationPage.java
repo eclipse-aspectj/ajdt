@@ -100,10 +100,8 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
 		}
 		
-		//store.setDefault(AspectJPreferences.ASPECTJ_OUTLINE, false);
 		store.setToDefault(AspectJPreferences.ASPECTJ_OUTLINE);
 		store.setToDefault(AspectJPreferences.ADVICE_DECORATOR);
-		//store.setDefault(AspectJPreferences.ADVICE_DECORATOR, true);
 	}
 	
 	private void openXRefView() {

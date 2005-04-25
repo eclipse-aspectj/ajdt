@@ -466,16 +466,16 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		gd.grabExcessHorizontalSpace = true;
 		extendsText.setLayoutData(gd);
 
-		NewAspectUtils.createBlank(composite);
-//		supertypeBrowseButton = new Button(composite, SWT.PUSH);
-//		supertypeBrowseButton
-//				.setText(AspectJUIPlugin
-//						.getResourceString("NewAspectCreationWizardPage.enclosingType.button")); //$NON-NLS-1$
-//		gd = new GridData(GridData.FILL_HORIZONTAL);
-//		gd.grabExcessHorizontalSpace = false;
-//		gd.widthHint = NewAspectUtils.getButtonWidthHint(supertypeBrowseButton);
-//		supertypeBrowseButton.setLayoutData(gd);
-//		supertypeBrowseButton.addListener(SWT.Selection, this);
+//		NewAspectUtils.createBlank(composite);
+		supertypeBrowseButton = new Button(composite, SWT.PUSH);
+		supertypeBrowseButton
+				.setText(AspectJUIPlugin
+						.getResourceString("NewAspectCreationWizardPage.enclosingType.button")); //$NON-NLS-1$
+		gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.grabExcessHorizontalSpace = false;
+		gd.widthHint = NewAspectUtils.getButtonWidthHint(supertypeBrowseButton);
+		supertypeBrowseButton.setLayoutData(gd);
+		supertypeBrowseButton.addListener(SWT.Selection, this);
 
 		Label interfaceLabel = new Label(composite, SWT.NONE);
 		interfaceLabel
@@ -818,7 +818,10 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 			instPercflowbelowButton.setEnabled(iset);
 			instPertypewithinButton.setEnabled(iset);
 		} else if (event.widget == supertypeBrowseButton) {
-			chooseSuperType();
+			IType type = chooseSuperType();
+			if (type != null) {
+				extendsText.setText(type.getFullyQualifiedName());
+			}
 		}
 
 		applyToStatusLine(mostSevereStatus());
@@ -1014,7 +1017,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		IJavaElement[] elements = new IJavaElement[] { root.getJavaProject() };
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements);
 
-		TypeSelectionDialog dialog = new TypeSelectionDialog(getShell(),
+		org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog dialog = new org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog(getShell(),
 				getWizard().getContainer(), IJavaSearchConstants.CLASS, scope);
 		dialog.setTitle(AspectJUIPlugin
 				.getResourceString("NewTypeWizardPage.SuperClassDialog.title")); //$NON-NLS-1$

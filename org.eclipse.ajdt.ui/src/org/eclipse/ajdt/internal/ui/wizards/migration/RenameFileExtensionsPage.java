@@ -9,12 +9,30 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.migration;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.refactoring.RenamingUtils;
+import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
@@ -80,13 +98,14 @@ public class RenameFileExtensionsPage extends WizardPage {
 		
 	}
 	
-	public void finishPressed() {
+	public void finishPressed(IProgressMonitor monitor) {
 		AspectJUIPlugin.getDefault().disableBuildConfiguratorResourceChangeListener();
 		// need to iterate through the selected projects......
 		List checkedProjects =  checkedListDialogField.getCheckedElements();
+		monitor.worked((ajProjects.size() - checkedProjects.size())*20);
 		for (Iterator iter = checkedProjects.iterator(); iter.hasNext();) {
             IProject project = (IProject) iter.next();
-            RenamingUtils.convertAspectsToAJAndOthersToJava(true,true, project, getShell());            
+            convertAspectsToAJAndOthersToJava(true,true, project, monitor); 
         }
 		AspectJUIPlugin.getDefault().enableBuildConfiguratorResourceChangeListener();
 	}
@@ -100,4 +119,85 @@ public class RenameFileExtensionsPage extends WizardPage {
 	    }
 	}
 
+	public static void convertAspectsToAJAndOthersToJava(
+		final boolean includeNonBuiltFiles, 
+		final boolean updateBuildConfigs,
+		final IProject project,
+		IProgressMonitor monitor) {
+		    try {
+                   project.build(IncrementalProjectBuilder.FULL_BUILD,
+                           AspectJPlugin.ID_BUILDER, null,
+                           new NullProgressMonitor());
+                   
+            } catch (CoreException e1) {
+            } 
+        	monitor.worked(6);
+            // Set of all the currently active aspects in the project
+			Set aspects = StructureModelUtil.getAllAspects(project, true);
+				
+			IJavaProject jp = JavaCore.create(project);
+			ProjectBuildConfigurator pbc = BuildConfigurator
+					.getBuildConfigurator().getProjectBuildConfigurator(jp);
+			BuildConfiguration activeBuildConfig = pbc
+					.getActiveBuildConfiguration();
+			int numBuildConfigs = pbc.getBuildConfigurations().size();
+			try {
+				IPackageFragment[] packages = jp.getPackageFragments();
+//				monitor
+//						.beginTask(
+//								AspectJUIPlugin
+//										.getResourceString("Refactoring.ConvertingFileExtensions"),
+//								packages.length + (10 * numBuildConfigs));
+				// map of old to new names - needed to update build config
+				// files.
+				Map oldToNewNames = new HashMap();
+				for (int i = 0; i < packages.length; i++) {
+					if (!(packages[i].isReadOnly())) {
+						try {
+							ICompilationUnit[] files = packages[i]
+									.getCompilationUnits();
+							for (int j = 0; j < files.length; j++) {
+									IResource resource = files[j].getResource();
+									if (!includeNonBuiltFiles
+										&& !(activeBuildConfig
+												.isIncluded(resource))) {
+									// do not rename this file if it is not
+									// active
+									continue;
+								}
+								boolean isAspect = aspects.contains(resource);
+								if (!isAspect
+										&& !(activeBuildConfig
+												.isIncluded(resource))) {
+									// If the file is not included in the
+									// active
+									// build configuration it may still be
+									// an aspect
+									isAspect = RenamingUtils.checkIsAspect(resource);
+								}
+								if (!isAspect
+										&& resource.getFileExtension()
+												.equals("aj")) { //$NON-NLS-1$								
+									RenamingUtils.renameFile(false, resource, new NullProgressMonitor(),
+											oldToNewNames);
+								} else if (isAspect
+										&& resource.getFileExtension()
+												.equals("java")) { //$NON-NLS-1$
+								    RenamingUtils.renameFile(true, resource, new NullProgressMonitor(),
+											oldToNewNames);
+								}
+							}
+						} catch (JavaModelException e) {
+						}
+					}
+				}
+				monitor.worked(10);
+				if (updateBuildConfigs) {
+				    RenamingUtils.updateBuildConfigurations(oldToNewNames, project,
+				    		 new NullProgressMonitor(), false);
+				}
+				monitor.worked(4);
+			} catch (JavaModelException e) {
+			}
+	}
 }

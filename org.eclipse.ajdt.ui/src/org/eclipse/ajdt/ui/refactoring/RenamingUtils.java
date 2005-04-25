@@ -13,149 +13,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.refactoring.changes.RenameResourceChange;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 
 public class RenamingUtils {
 
-	/**
-	 * Convert aspects' file extensions to .aj, and classes and interfaces to
-	 * .java.
-	 * 
-	 * @param includeNotBuiltFiles -
-	 *            include files not included in the active build configuration.
-	 * @param monitor -
-	 *            progress monitor
-	 * @param updateBuildConfigs -
-	 *            update build configurations
-	 */
-	public static void convertAspectsToAJAndOthersToJava(
-			final boolean includeNonBuiltFiles, 
-			final boolean updateBuildConfigs,
-			final IProject project,
-			Shell shell) {
-		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) {
-			    try {
-                    project.build(IncrementalProjectBuilder.FULL_BUILD,
-                            AspectJPlugin.ID_BUILDER, null,
-                            new SubProgressMonitor(monitor, 2));
-                } catch (CoreException e1) {
-                }
-				// Set of all the currently active aspects in the project
-				Set aspects = StructureModelUtil.getAllAspects(project, true);
-				
-				IJavaProject jp = JavaCore.create(project);
-				ProjectBuildConfigurator pbc = BuildConfigurator
-						.getBuildConfigurator().getProjectBuildConfigurator(jp);
-				BuildConfiguration activeBuildConfig = pbc
-						.getActiveBuildConfiguration();
-				int numBuildConfigs = pbc.getBuildConfigurations().size();
-				try {
-					IPackageFragment[] packages = jp.getPackageFragments();
-					monitor
-							.beginTask(
-									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
-									packages.length + (10 * numBuildConfigs));
-					// map of old to new names - needed to update build config
-					// files.
-					Map oldToNewNames = new HashMap();
-					for (int i = 0; i < packages.length; i++) {
-						if (!(packages[i].isReadOnly())) {
-							try {
-								ICompilationUnit[] files = packages[i]
-										.getCompilationUnits();
-								for (int j = 0; j < files.length; j++) {
-
-									IResource resource = files[j].getResource();
-
-									if (!includeNonBuiltFiles
-											&& !(activeBuildConfig
-													.isIncluded(resource))) {
-										// do not rename this file if it is not
-										// active
-										continue;
-									}
-
-									boolean isAspect = aspects
-											.contains(resource);
-									if (!isAspect
-											&& !(activeBuildConfig
-													.isIncluded(resource))) {
-										// If the file is not included in the
-										// active
-										// build configuration it may still be
-										// an aspect
-										isAspect = checkIsAspect(resource);
-									}
-									if (!isAspect
-											&& resource.getFileExtension()
-													.equals("aj")) { //$NON-NLS-1$								
-										renameFile(false, resource, monitor,
-												oldToNewNames);
-									} else if (isAspect
-											&& resource.getFileExtension()
-													.equals("java")) { //$NON-NLS-1$
-										renameFile(true, resource, monitor,
-												oldToNewNames);
-									}
-								}
-							} catch (JavaModelException e) {
-							}
-						}
-						monitor.worked(1);
-					}
-					if (updateBuildConfigs) {
-						updateBuildConfigurations(oldToNewNames, project,
-								monitor);
-					}
-				} catch (JavaModelException e) {
-				}
-			}
-		};
-
-		IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
-				runnable);
-		try {
-			new ProgressMonitorDialog(shell).run(true, true, op);
-		} catch (InvocationTargetException e) {
-		} catch (InterruptedException e) {
-		}
-	}
 
 	/**
 	 * If the file is not on the build path we cannot tell if it is an aspect
@@ -198,87 +80,6 @@ public class RenamingUtils {
 		return false;
 	}
 
-	/**
-	 * Convert all the extensions for files in a project
-	 * 
-	 * @param convertToAJ -
-	 *            if true convert to .aj, otherwise convert to .java
-	 * @param includeNotBuiltFiles -
-	 *            include files not included in the active build configuration.
-	 * @param updateBuildConfigs -
-	 *            update build configuration files if true.
-	 */
-	public static void convertAllExtensions(final boolean convertToAJ,
-			final boolean includeNotBuiltFiles, 
-			final boolean updateBuildConfigs,
-			final IProject project,
-			Shell shell) {
-
-		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) {
-				IJavaProject jp = JavaCore.create(project);
-				ProjectBuildConfigurator pbc = BuildConfigurator
-						.getBuildConfigurator().getProjectBuildConfigurator(jp);
-				BuildConfiguration activeBuildConfig = pbc
-						.getActiveBuildConfiguration();
-				int numBuildConfigs = pbc.getBuildConfigurations().size();
-				try {
-					IPackageFragment[] packages = jp.getPackageFragments();
-					monitor
-							.beginTask(
-									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
-									packages.length + (10 * numBuildConfigs));
-
-					// Map of old to new names - needed to update build config
-					// files.
-					Map oldNamesToNewNames = new HashMap();
-					for (int i = 0; i < packages.length; i++) {
-						if (!(packages[i].isReadOnly())) {
-							try {
-								ICompilationUnit[] files = packages[i]
-										.getCompilationUnits();
-								for (int j = 0; j < files.length; j++) {
-									IResource resource = files[j].getResource();
-									if (!includeNotBuiltFiles
-											&& !(activeBuildConfig
-													.isIncluded(resource))) {
-										// do not rename this file if it is not
-										// active
-										continue;
-									}
-									if ((!convertToAJ && resource
-											.getFileExtension().equals("aj")) //$NON-NLS-1$
-											|| (convertToAJ && resource
-													.getFileExtension().equals(
-															"java"))) { //$NON-NLS-1$
-										renameFile(convertToAJ, resource,
-												monitor, oldNamesToNewNames);
-									}
-								}
-							} catch (JavaModelException e) {
-							}
-						}
-						monitor.worked(1);
-					}
-					if (updateBuildConfigs) {
-						updateBuildConfigurations(oldNamesToNewNames, project,
-								monitor);
-					}
-				} catch (JavaModelException e) {
-				}
-			}
-		};
-
-		IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
-				runnable);
-		try {
-			new ProgressMonitorDialog(shell).run(true, true, op);
-		} catch (InvocationTargetException e) {
-		} catch (InterruptedException e) {
-		}
-
-	}
 
 	/**
 	 * Utility method - Rename a single file's extension. Add the old and new
@@ -313,7 +114,7 @@ public class RenamingUtils {
 	}
 
 	public static void updateBuildConfigurations(Map oldNamesToNewNames,
-			IProject project, IProgressMonitor monitor) {
+			IProject project, IProgressMonitor monitor, boolean showProgress) {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		IFile[] buildConfigs = pbc.getConfigurationFiles();
@@ -345,7 +146,10 @@ public class RenamingUtils {
 			} catch (IOException ioe) {
 			} catch (CoreException e) {
 			} finally {
-				monitor.worked(10);
+//			    if (showProgress) {
+//			        monitor.worked(10);
+//                }
+				
 				try {
 					br.close();
 				} catch (IOException ioe) {

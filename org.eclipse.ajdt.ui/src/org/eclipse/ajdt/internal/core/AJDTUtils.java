@@ -781,15 +781,13 @@ public class AJDTUtils {
 	 */	
 	public static void migrateWorkbench() {
 	    // only want the wizard to come up once per workspace
-	    IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+	    final IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
-	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
+	    final String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
 	    boolean alreadyMigratedWorkspace = store.getBoolean(workspaceLocation);
 	    if (alreadyMigratedWorkspace) {
             return;
-        } 
-	    store.setValue(workspaceLocation,true);
-	    		
+        } 	    		
 		Job job = new Job(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
 
 			public IStatus run(IProgressMonitor m) {
@@ -800,9 +798,20 @@ public class AJDTUtils {
 					    
 					    AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
 						migWizard.init();
-						WizardDialog migDialog = new WizardDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+						WizardDialog migDialog = new WizardDialog(AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 											.getShell(), migWizard);
-						migDialog.open();
+						if(migDialog.open() == Window.OK) {
+							store.setValue(workspaceLocation,true);
+						} else {
+							new MessageDialog(
+									AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
+									AspectJUIPlugin.getResourceString("MigrationWizardCancelled"),  //$NON-NLS-1$
+									MessageDialog.getDefaultImage(),
+									AspectJUIPlugin.getResourceString("MigrationWizardCancelledMessage"), //$NON-NLS-1$
+									MessageDialog.INFORMATION,
+									new String[] {AspectJUIPlugin.getResourceString("MigrationWizardOK")}, //$NON-NLS-1$
+									0).open();
+						}
 					}
 				};
 				display.asyncExec(myRun);

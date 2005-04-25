@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
@@ -89,6 +90,11 @@ public class BuildConfigurator implements ISelectionListener {
 			fileList = null;
 			currentProj = selectedProj;
 			if (canManage(currentProj)){
+				// Run migration wizard if we haven't before
+				if(!AspectJUIPlugin.migrationWizardHasRun()) {
+					AJDTUtils.migrateWorkbench();
+					AspectJUIPlugin.setMigrationWizardHasRun(true);
+				}
 				PropertyPageManager.unregisterJDTPropertyPage();
 			} else {
 				if (currentProj.isOpen())
