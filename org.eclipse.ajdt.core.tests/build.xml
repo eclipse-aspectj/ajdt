@@ -73,7 +73,7 @@ Create a packaged org.eclipse.ajdt.core.tests_version plugin distribution file
 
 	<target name="ajdtcoretestssrcjar" depends="init" description="The source jar file for ajdt core tests, ajdtcoretestssrc.jar">
 		<zip destfile="${build.dir}/ajdtcoretestssrc.jar">
-			<fileset dir="testsrc" />
+			<fileset dir="src" />
 		</zip>
 	</target>
 
