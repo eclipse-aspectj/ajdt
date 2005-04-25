@@ -23,7 +23,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
- * More tests for mapping between IProgramElement and IJavaElements
+ * More tests for mapping between IProgramElement and IJavaElements.
+ * 
+ * Note: can't be moved to core.tests plugin until aspectpath etc
+ * project settings are supported by ajdt core
  * 
  * @author Matt Chapman
  */
