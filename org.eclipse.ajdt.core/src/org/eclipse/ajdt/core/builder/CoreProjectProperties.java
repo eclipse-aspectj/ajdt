@@ -77,9 +77,9 @@ public class CoreProjectProperties implements IProjectProperties {
 	}
 
 	public String getDefaultBuildConfigFile() {
-		String defaultLstFile = (AspectJPlugin.getDefault()
-				.getCurrentProject().getLocation().toOSString()
-				+ File.separator + AspectJPlugin.DEFAULT_CONFIG_FILE);
+		String defaultLstFile = AspectJPlugin
+		.getBuildConfigurationFile(AspectJPlugin.getDefault()
+				.getCurrentProject());
 		return defaultLstFile;
 	}
 
