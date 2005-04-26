@@ -13,13 +13,13 @@ package org.eclipse.ajdt.ui.refactoring;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.codeconversion.CodeChecker;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -136,7 +136,8 @@ public class RenameFileExtensionsDialog extends Dialog {
 
 	/**
 	 * Convert aspects' file extensions to .aj, and classes and interfaces to
-	 * .java.
+	 * .java. Also converts files containing any inner aspects or pointcuts to
+	 * .aj.
 	 * 
 	 * @param includeNotBuiltFiles -
 	 *            include files not included in the active build configuration.
@@ -148,11 +149,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 	private void convertAspectsToAJAndOthersToJava(
 			final boolean includeNonBuiltFiles, final boolean updateBuildConfigs) {
 		IRunnableWithProgress runnable = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) {
-
-				// Set of all the currently active aspects in the project
-				Set aspects = StructureModelUtil.getAllAspects(project, true);
-				
+			public void run(IProgressMonitor monitor) {				
 				IJavaProject jp = JavaCore.create(project);
 				ProjectBuildConfigurator pbc = BuildConfigurator
 						.getBuildConfigurator().getProjectBuildConfigurator(jp);
@@ -186,17 +183,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 										continue;
 									}
 
-									boolean isAspect = aspects
-											.contains(resource);
-									if (!isAspect
-											&& !(activeBuildConfig
-													.isIncluded(resource))) {
-										// If the file is not included in the
-										// active
-										// build configuration it may still be
-										// an aspect
-										isAspect = RenamingUtils.checkIsAspect(resource);
-									}
+									boolean isAspect = CodeChecker.containsAspectJConstructs((IFile)resource);
 									if (!isAspect
 											&& resource.getFileExtension()
 													.equals("aj")) { //$NON-NLS-1$								

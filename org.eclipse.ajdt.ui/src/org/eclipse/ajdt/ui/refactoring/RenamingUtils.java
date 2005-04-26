@@ -20,66 +20,15 @@ import java.util.Map;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.refactoring.changes.RenameResourceChange;
 
 public class RenamingUtils {
-
-
-	/**
-	 * If the file is not on the build path we cannot tell if it is an aspect
-	 * form the structure model. Check the JDT model and
-	 * AJCompilationUnitManager to find out.
-	 * 
-	 * @param resource -
-	 *            resource to test
-	 * @return true if resource is an aspect, otherwise false.
-	 */
-	public static boolean checkIsAspect(IResource resource) {
-		if (resource instanceof IFile) {
-			IJavaElement jEl = JavaCore.create(resource);
-			if (jEl instanceof ICompilationUnit) {
-				IType[] types;
-				try {
-					types = ((ICompilationUnit) jEl).getAllTypes();
-					if (types.length == 0) {
-						return true;
-					}
-
-				} catch (JavaModelException e) {
-				}
-			} else {
-				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
-						.getAJCompilationUnit((IFile) resource);
-				if (unit != null) {
-					try {
-						IType[] types = unit.getAllTypes();
-						for (int i = 0; i < types.length; i++) {
-							if (types[i] instanceof AspectElement) {
-								return true;
-							}
-						}
-					} catch (JavaModelException e) {
-					}
-				}
-			}
-		}
-		return false;
-	}
-
 
 	/**
 	 * Utility method - Rename a single file's extension. Add the old and new

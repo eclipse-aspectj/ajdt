@@ -13,15 +13,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.codeconversion.CodeChecker;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.refactoring.RenamingUtils;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -132,8 +132,6 @@ public class RenameFileExtensionsPage extends WizardPage {
             } catch (CoreException e1) {
             } 
         	monitor.worked(6);
-            // Set of all the currently active aspects in the project
-			Set aspects = StructureModelUtil.getAllAspects(project, true);
 				
 			IJavaProject jp = JavaCore.create(project);
 			ProjectBuildConfigurator pbc = BuildConfigurator
@@ -165,16 +163,7 @@ public class RenameFileExtensionsPage extends WizardPage {
 									// active
 									continue;
 								}
-								boolean isAspect = aspects.contains(resource);
-								if (!isAspect
-										&& !(activeBuildConfig
-												.isIncluded(resource))) {
-									// If the file is not included in the
-									// active
-									// build configuration it may still be
-									// an aspect
-									isAspect = RenamingUtils.checkIsAspect(resource);
-								}
+								boolean isAspect = CodeChecker.containsAspectJConstructs((IFile)resource);
 								if (!isAspect
 										&& resource.getFileExtension()
 												.equals("aj")) { //$NON-NLS-1$								
