@@ -25,4 +25,11 @@ public class IntertypeElement extends AspectJMemberElement {
 		return ((IntertypeElementInfo)getElementInfo()).getTargetType();
 	}
 	
+	/**
+	 * @see JavaElement#getHandleMemento()
+	 */
+	protected char getHandleMementoDelimiter() {
+		return AspectElement.JEM_ITD;
+	}
+	
 }

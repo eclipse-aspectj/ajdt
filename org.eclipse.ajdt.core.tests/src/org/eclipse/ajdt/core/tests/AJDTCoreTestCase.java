@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -68,6 +69,7 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
+		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		waitForAutoBuild();
 		return jp.getProject();
 	}

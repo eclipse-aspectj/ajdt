@@ -29,14 +29,6 @@ import org.eclipse.jdt.core.IJavaElement;
  */
 public class AJCoreTest extends AJDTCoreTestCase {
 
-	/*
-	 * @see TestCase#setUp()
-	 */
-	protected void setUp() throws Exception {
-		super.setUp();
-		//AllTests.setupAJDTPlugin();
-	}
-
 	/**
 	 * Test that AspectJCore.create() can form appropriate Java elements from a
 	 * variety of handle identifiers
@@ -97,7 +89,15 @@ public class AJCoreTest extends AJDTCoreTestCase {
 						"Demo.java", "AJCodeElement" },
 				{
 						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;",
-						"around", "BoundPoint.aj", "AdviceElement" } };
+						"around", "BoundPoint.aj", "AdviceElement" },
+				{
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;",
+						"Point.hasListeners", "BoundPoint.aj", "IntertypeElement" },
+				{
+						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents",
+						"declare parents", "BoundPoint.aj", "DeclareElement" }
+
+		};
 		compareWithHandles(testHandles);
 
 		deleteProject(project);
@@ -131,7 +131,32 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("Bean Example");
 
 		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES };
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS };
+		compareElementsFromRelationships(rels, project);
+
+		deleteProject(project);
+	}
+
+	/**
+	 * Test that going from an IJavaElement to its handle identifier then back
+	 * to an IJavaElement using AspectJCore.create() results in a element that
+	 * is equivalent to the original (not necessarily identical).
+	 * 
+	 * @throws Exception
+	 */
+	public void testHandleCreateRoundtrip3() throws Exception {
+		IProject project = createPredefinedProject("MarkersTest");
+
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
 		compareElementsFromRelationships(rels, project);
 
 		deleteProject(project);
@@ -149,6 +174,11 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	private void compareElementsFromRelationships(AJRelationshipType[] rels,
 			IProject project) {
 		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
+		if (allRels.size() == 0) {
+			// if the project or model didn't build properly we'd get no relationships
+			// and the test would blindly pass without this check
+			fail("No relationships found for project "+project.getName());
+		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
 			IJavaElement source = rel.getSource();
@@ -158,6 +188,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			IJavaElement recreated = AspectJCore.create(sourceHandle);
 			//System.out.println("recreated: " + recreated);
 			String recreatedHandle = recreated.getHandleIdentifier();
+			//System.out.println("recreated handle: " + recreatedHandle);
 
 			assertEquals(
 					"Handle identifier of created element doesn't match original",

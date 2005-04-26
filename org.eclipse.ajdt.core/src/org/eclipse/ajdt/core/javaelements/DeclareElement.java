@@ -21,8 +21,10 @@ public class DeclareElement extends AspectJMemberElement{
 		super(parent, name, parameterTypes);
 	}
 	
-	public String getElementName(){
-		return super.getElementName();
+	/**
+	 * @see JavaElement#getHandleMemento()
+	 */
+	protected char getHandleMementoDelimiter() {
+		return AspectElement.JEM_DECLARE;
 	}
-
 }

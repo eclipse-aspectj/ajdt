@@ -117,13 +117,23 @@ public class AspectJCore {
 						PackageFragment pf = (PackageFragment) je;
 						// System.out.println("pf=" + pf);
 						String cuName = handleIdentifier.substring(index + 1);
-						int index2 = Math.max(cuName
-								.indexOf(JavaElement.JEM_TYPE), cuName
-								.indexOf(AspectElement.JEM_ASPECT_TYPE));
-						if (index2 != -1) {
-							cuName = cuName.substring(0, index2);
+						int ind1 = cuName.indexOf(JavaElement.JEM_TYPE);
+						if (ind1 != -1) {
+							cuName = cuName.substring(0, ind1);
+						}						
+						int ind2 = cuName.indexOf(AspectElement.JEM_ASPECT_TYPE);
+						if (ind2 != -1) {
+							cuName = cuName.substring(0, ind2);
 						}
-						// System.out.println("cuName=" + cuName);
+						int ind3 = cuName.indexOf(AspectElement.JEM_ITD);
+						if (ind3 != -1) {
+							cuName = cuName.substring(0, ind3);
+						}
+						int ind4 = cuName.indexOf(AspectElement.JEM_DECLARE);
+						if (ind4 != -1) {
+							cuName = cuName.substring(0, ind4);
+						}
+						//System.out.println("cuName=" + cuName);
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
 							JavaElement cu = new AJCompilationUnit(pf, cuName,
 									owner);
@@ -228,6 +238,12 @@ class AJMementoTokenizer extends MementoTokenizer {
 	private static final String CODEELEMENT = Character
 			.toString(AspectElement.JEM_CODEELEMENT);
 
+	private static final String ITD = Character
+			.toString(AspectElement.JEM_ITD);
+
+	private static final String DECLARE = Character
+		.toString(AspectElement.JEM_DECLARE);
+
 	// end AspectJ change
 
 	private final char[] memento;
@@ -290,6 +306,10 @@ class AJMementoTokenizer extends MementoTokenizer {
 			return ASPECT_TYPE;
 		case AspectElement.JEM_CODEELEMENT:
 			return CODEELEMENT;
+		case AspectElement.JEM_ITD:
+			return ITD;
+		case AspectElement.JEM_DECLARE:
+			return DECLARE;
 		// end AspectJ change
 		}
 		loop: while (this.index < this.length) {
@@ -318,6 +338,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case AspectElement.JEM_ADVICE:
 			case AspectElement.JEM_ASPECT_TYPE:
 			case AspectElement.JEM_CODEELEMENT:
+			case AspectElement.JEM_ITD:
+			case AspectElement.JEM_DECLARE:
 			// end AspectJ change
 				break loop;
 			}

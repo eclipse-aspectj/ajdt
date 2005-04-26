@@ -35,6 +35,8 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public static final char JEM_ADVICE = '&';
 	public static final char JEM_ASPECT_TYPE = '}';
 	public static final char JEM_CODEELEMENT = '?';
+	public static final char JEM_ITD = '¬';
+	public static final char JEM_DECLARE = '`';
 	// TYPE_PARAMETER is defined in Eclipse 3.1, but not 3.0
 	public static final char JEM_TYPE_PARAMETER = ']';
 	
@@ -90,6 +92,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	
 	/*
 	 * Derived from JEM_METHOD clause in SourceType
+	 * Added support for advice, ITDs, and declare statements
 	 * @see JavaElement
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
@@ -123,7 +126,67 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			params.toArray(parameters);
 			
 			JavaElement advice = new AdviceElement(this, name, parameters);
-			return advice.getHandleFromMemento(memento, workingCopyOwner);
+			if (token.charAt(0) == JavaElement.JEM_COUNT) {
+				return advice.getHandleFromMemento(token, memento, workingCopyOwner);
+			} else {
+				return advice.getHandleFromMemento(memento, workingCopyOwner);
+			}
+		} else if (token.charAt(0) == AspectElement.JEM_ITD) {
+			String name = memento.nextToken();
+			ArrayList params = new ArrayList();
+			nextParam: while (memento.hasMoreTokens()) {
+				token = memento.nextToken();
+				switch (token.charAt(0)) {
+					case JEM_TYPE:
+					case JEM_TYPE_PARAMETER:
+						break nextParam;
+					case JEM_ITD:
+						if (!memento.hasMoreTokens()) return this;
+						String param = memento.nextToken();
+						StringBuffer buffer = new StringBuffer();
+						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
+							buffer.append(Signature.C_ARRAY);
+							if (!memento.hasMoreTokens()) return this;
+							param = memento.nextToken();
+						}
+						params.add(buffer.toString() + param);
+						break;
+					default:
+						break nextParam;
+				}
+			}
+			String[] parameters = new String[params.size()];
+			params.toArray(parameters);
+			JavaElement itd = new IntertypeElement(this, name, parameters);
+			return itd.getHandleFromMemento(memento, workingCopyOwner);
+		} else if (token.charAt(0) == AspectElement.JEM_DECLARE) {
+			String name = memento.nextToken();
+			ArrayList params = new ArrayList();
+			nextParam: while (memento.hasMoreTokens()) {
+				token = memento.nextToken();
+				switch (token.charAt(0)) {
+					case JEM_TYPE:
+					case JEM_TYPE_PARAMETER:
+						break nextParam;
+					case JEM_DECLARE:
+						if (!memento.hasMoreTokens()) return this;
+						String param = memento.nextToken();
+						StringBuffer buffer = new StringBuffer();
+						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
+							buffer.append(Signature.C_ARRAY);
+							if (!memento.hasMoreTokens()) return this;
+							param = memento.nextToken();
+						}
+						params.add(buffer.toString() + param);
+						break;
+					default:
+						break nextParam;
+				}
+			}
+			String[] parameters = new String[params.size()];
+			params.toArray(parameters);
+			JavaElement itd = new DeclareElement(this, name, parameters);
+			return itd.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
