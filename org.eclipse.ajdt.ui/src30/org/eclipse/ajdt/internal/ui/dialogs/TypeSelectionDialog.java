@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -247,19 +248,22 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 									AJCompilationUnit unit = (AJCompilationUnit) iter.next();
 									IType[] types = unit.getAllTypes();
 									for (int j = 0; j < types.length; j++) {
-										char[][] enclosingTypes = getEnclosingTypes(types[j]);
-										IFileTypeInfo info = new AJCUTypeInfo(
-													types[j].getPackageFragment().getElementName(),
-													types[j].getElementName(),
-													enclosingTypes,
-													types[j].isInterface(),
-													types[j] instanceof AspectElement,
-													jp.getElementName(),
-													unit.getPackageFragmentRoot().getElementName(),
-													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-													"aj", //$NON-NLS-1$
-													unit);						
-										ajTypes.add(info);										
+										// Only get aspects because we have already added everything else to the AllTypesCache
+										if(types[j] instanceof AspectElement) {
+											char[][] enclosingTypes = BuilderUtils.getEnclosingTypes(types[j]);
+											IFileTypeInfo info = new AJCUTypeInfo(
+														types[j].getPackageFragment().getElementName(),
+														types[j].getElementName(),
+														enclosingTypes,
+														types[j].isInterface(),
+														types[j] instanceof AspectElement,
+														jp.getElementName(),
+														unit.getPackageFragmentRoot().getElementName(),
+														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+														"aj", //$NON-NLS-1$
+														unit);						
+											ajTypes.add(info);
+										}
 									}
 								}
 							} 
@@ -272,30 +276,7 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 		}
 		return ajTypes;
 	}
-	
-	/**
-	 * @param types
-	 * @param j
-	 * @return
-	 */
-	private char[][] getEnclosingTypes(IType startType) {
-		char[][] enclosingTypes = null;
-		IType type = startType.getDeclaringType();
-		List enclosingTypeList = new ArrayList();
-		while(type != null) {
-			char[] typeName = type.getElementName().toCharArray();
-			enclosingTypeList.add(0, typeName);
-			type = type.getDeclaringType();
-		}
-		if(enclosingTypeList.size() > 0) {
-			enclosingTypes = new char[enclosingTypeList.size()][];
-			for (int k = 0; k < enclosingTypeList.size(); k++) {
-				char[] typeName = (char[]) enclosingTypeList.get(k);
-				enclosingTypes[k] = typeName;
-			}
-		}
-		return enclosingTypes;
-	}
+
 //	 AspectJ Change End
 
 	/*

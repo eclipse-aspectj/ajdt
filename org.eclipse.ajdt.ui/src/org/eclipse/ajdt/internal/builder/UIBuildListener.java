@@ -287,7 +287,10 @@ public class UIBuildListener implements IAJBuildListener {
 						}
 					});
 		}
+		BuilderUtils.updateTypesCache(JavaCore.create(project));
 	}
+
+
 
 	/**
 	 * If the build has been aborted then mark any referencing projects with a

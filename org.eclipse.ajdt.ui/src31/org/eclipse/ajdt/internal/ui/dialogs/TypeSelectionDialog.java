@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -249,7 +250,7 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 									IType[] types = unit.getAllTypes();
 									for (int j = 0; j < types.length; j++) {
 										IType type = types[j];
-										char[][] enclosingTypes = getEnclosingTypes(type);
+										char[][] enclosingTypes = BuilderUtils.getEnclosingTypes(type);
 										int kind = 0;
 										if (type.isClass()) {
 											kind = IGenericType.CLASS_DECL;
@@ -283,30 +284,6 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 			}
 		}
 		return ajTypes;
-	}
-	
-	/**
-	 * @param types
-	 * @param j
-	 * @return
-	 */
-	private char[][] getEnclosingTypes(IType startType) {
-		char[][] enclosingTypes = null;
-		IType type = startType.getDeclaringType();
-		List enclosingTypeList = new ArrayList();
-		while(type != null) {
-			char[] typeName = type.getElementName().toCharArray();
-			enclosingTypeList.add(0, typeName);
-			type = type.getDeclaringType();
-		}
-		if(enclosingTypeList.size() > 0) {
-			enclosingTypes = new char[enclosingTypeList.size()][];
-			for (int k = 0; k < enclosingTypeList.size(); k++) {
-				char[] typeName = (char[]) enclosingTypeList.get(k);
-				enclosingTypes[k] = typeName;
-			}
-		}
-		return enclosingTypes;
 	}
 //	 AspectJ Change End
 
