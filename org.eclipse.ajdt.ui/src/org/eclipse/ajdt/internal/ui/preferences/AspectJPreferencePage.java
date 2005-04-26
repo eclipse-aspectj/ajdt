@@ -136,9 +136,9 @@ public class AspectJPreferencePage
 		createLabel(compilerOptionsComposite, 
 				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
 		
-		addField(createJavaOrAJField(compilerOptionsComposite));
-		createLabel(compilerOptionsComposite, 
-				AspectJUIPlugin.getResourceString("aspectjpreferences.fileExt.details"));
+//		addField(createJavaOrAJField(compilerOptionsComposite));
+//		createLabel(compilerOptionsComposite, 
+//				AspectJUIPlugin.getResourceString("aspectjpreferences.fileExt.details"));
 
 		addField(createAdviceDecoratorField(compilerOptionsComposite));
 		

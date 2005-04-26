@@ -212,8 +212,10 @@ public class AspectJPreferences {
 	public static final String AJDOC_COMMAND = "ajdocCommand"; //$NON-NLS-1$
 
 	public static String getFileExt() {
-		boolean javaOrAjExt = getJavaOrAjExt();
-		return javaOrAjExt ? ".java" : ".aj"; //$NON-NLS-1$ //$NON-NLS-2$
+		// only use .aj for now
+		return ".aj"; //$NON-NLS-1$
+//		boolean javaOrAjExt = getJavaOrAjExt();
+//		return javaOrAjExt ? ".java" : ".aj"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private static boolean getJavaOrAjExt() {
