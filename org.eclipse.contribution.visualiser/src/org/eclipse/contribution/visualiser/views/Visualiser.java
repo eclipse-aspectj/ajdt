@@ -38,6 +38,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
@@ -452,48 +453,55 @@ public class Visualiser extends ViewPart {
 	 * menu has changed.
 	 */
 	public void draw() {
-		 		 getVisualiserRedrawJob().schedule();
+ 		 getVisualiserRedrawJob().schedule();
 	}
 
-		 private synchronized Job getVisualiserRedrawJob() {
-		 		 if (redrawJob == null) {
-		 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
+	 private synchronized Job getVisualiserRedrawJob() {
+ 		 if (redrawJob == null) {
+ 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
 
-		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
-		 		 		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
-		 		 		 		 			visCanvas.redraw(data);
-		 		 		 		 		}
-		 		 		 		 		return Status.OK_STATUS;
-		 		 		 		 }};
-		 		 }
-		 		 return redrawJob;
-		 }
+ 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+ 		 		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
+ 		 		 		 			visCanvas.redraw(data);
+ 		 		 		 		}
+ 		 		 		 		return Status.OK_STATUS;
+ 		 		 		 }};
+ 		 }
+ 		 return redrawJob;
+	 }
 		 
 	/**
 	 * Update the display
 	 */
-	public void updateDisplay(boolean updateMenu) {
-//		if (!locked) {
-			if (inGroupView) {
-				if (inLimitMode) {
-					data = limitData(contentP.getAllGroups());
-				} else {
-					data = contentP.getAllGroups();
-				}
-			} else {
-				if (inLimitMode) {
-					data = limitData(contentP.getAllMembers());
-				} else {
-					data = contentP.getAllMembers();
+	public void updateDisplay(final boolean updateMenu) {
+		// Run in the UI thread to test whether the Visualiser is visible
+		Display.getDefault().syncExec( new Runnable() {
+			public void run() {			
+				if(getSite()!= null) {
+					if(getSite().getPage().isPartVisible(VisualiserPlugin.visualiser)) {
+		
+						if (inGroupView) {
+							if (inLimitMode) {
+								data = limitData(contentP.getAllGroups());
+							} else {
+								data = contentP.getAllGroups();
+							}
+						} else {
+							if (inLimitMode) {
+								data = limitData(contentP.getAllMembers());
+							} else {
+								data = contentP.getAllMembers();
+							}
+						}
+						if (VisualiserPlugin.menu != null && updateMenu) {
+							VisualiserPlugin.menu.reset();
+							VisualiserPlugin.menu.ensureUptodate();
+						}
+						draw();	
+					} 
 				}
 			}
-//		}
-
-		if (VisualiserPlugin.menu != null && updateMenu) {
-			VisualiserPlugin.menu.reset();
-			VisualiserPlugin.menu.ensureUptodate();
-		}
-		 		 draw();
+		});
 	}
 
 	/**
