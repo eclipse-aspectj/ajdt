@@ -1071,7 +1071,7 @@
 		  id="sourcedynamicadvicemarker"
           name="Source Dynamic Advice Marker"
           point="org.eclipse.core.resources.markers">
-          <super type="org.eclipse.ajdt.ui.advicemarker"/>
+          <super type="org.eclipse.ajdt.ui.sourceadvicemarker"/>
       <persistent
             value="true">
       </persistent>
@@ -1081,7 +1081,7 @@
    	      name="Source Dynamic Before Advice Marker"
    	      point="org.eclipse.core.resources.markers">
       <super
-            type="org.eclipse.ajdt.ui.advicemarker">
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
       </super>
       <persistent
             value="true">
@@ -1092,7 +1092,7 @@
    	      name="Source Dynamic After Advice Marker"
    	      point="org.eclipse.core.resources.markers">
       <super
-            type="org.eclipse.ajdt.ui.advicemarker">
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
       </super>
       <persistent
             value="true">
@@ -1103,7 +1103,7 @@
    	      name="Source Dynamic Around Advice Marker"
    	      point="org.eclipse.core.resources.markers">
       <super
-            type="org.eclipse.ajdt.ui.advicemarker">
+            type="org.eclipse.ajdt.ui.sourceadvicemarker">
       </super>
       <persistent
             value="true">

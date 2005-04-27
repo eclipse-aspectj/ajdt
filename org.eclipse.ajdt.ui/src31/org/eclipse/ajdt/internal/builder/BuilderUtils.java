@@ -41,7 +41,7 @@ import org.eclipse.jdt.internal.corext.util.TypeInfo;
 public class BuilderUtils {
 
 	public static void updateTypesCache(final IJavaProject jp) {
-		new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
+		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
 				long startTime = System.currentTimeMillis();
 				try {
@@ -116,7 +116,9 @@ public class BuilderUtils {
 				AJDTEventTrace.generalEvent("Updating types cache took " + totalTime + "ms");
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
-		}.schedule();		
+		};
+		updateJob.setSystem(true);
+		updateJob.schedule();		
 	}
 	
 	
