@@ -162,6 +162,28 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		deleteProject(project);
 	}
 
+	/**
+	 * Test that going from an IJavaElement to its handle identifier then back
+	 * to an IJavaElement using AspectJCore.create() results in a element that
+	 * is equivalent to the original (not necessarily identical).
+	 * 
+	 * @throws Exception
+	 */
+	public void testHandleCreateRoundtrip4() throws Exception {
+		IProject project = createPredefinedProject("Spacewar Example");
+
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
+		compareElementsFromRelationships(rels, project);
+
+		deleteProject(project);
+	}
+
 	private String getSimpleClassName(Object obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');
@@ -181,6 +203,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
+			//System.out.println("rel: "+rel.getRelationship().getDisplayName());
 			IJavaElement source = rel.getSource();
 			//System.out.println("source: " + source);
 			String sourceHandle = source.getHandleIdentifier();
