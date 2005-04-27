@@ -579,6 +579,20 @@ public class AJCompilationUnit extends CompilationUnit{
 			String typeName = memento.nextToken();
 			JavaElement type = new AspectElement(this, typeName);
 			return type.getHandleFromMemento(memento, workingCopyOwner);		
+		} else if (token.charAt(0) == JavaElement.JEM_TYPE) {
+			// might be a class containing an inner aspect so we have to handle it ourselves
+			if (!memento.hasMoreTokens()) return this;
+			String typeName = memento.nextToken();
+			JavaElement type = (JavaElement)getType(typeName);
+			if (!memento.hasMoreTokens()) return type;
+			String nextToken = memento.nextToken();
+			if (nextToken.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+				if (!memento.hasMoreTokens()) return this;
+				String typeName2 = memento.nextToken();
+				JavaElement type2 = new AspectElement(type, typeName2);
+				return type2.getHandleFromMemento(memento, workingCopyOwner);
+			}
+			return type.getHandleFromMemento(nextToken,memento, workingCopyOwner);
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
