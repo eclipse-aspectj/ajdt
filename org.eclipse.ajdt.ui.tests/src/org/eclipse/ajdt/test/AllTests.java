@@ -19,7 +19,6 @@ import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurationTest2;
 import org.eclipse.ajdt.buildconfigurator.UtilTests;
 import org.eclipse.ajdt.core.model.AJModelTest2;
-import org.eclipse.ajdt.core.tests.AllAJDTCoreTests;
 import org.eclipse.ajdt.internal.builder.AdviceMarkerTest3;
 import org.eclipse.ajdt.internal.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.internal.builder.AdviceMarkersTest2;
@@ -73,7 +72,7 @@ public class AllTests {
 		setupAJDTPlugin();
 		
 		// all tests from the core tests plugin
-		suite.addTest(AllAJDTCoreTests.suite());
+		//suite.addTest(AllAJDTCoreTests.suite());
 		
 		// core.model tests which are still in this plugin
 		suite.addTest(new TestSuite(AJModelTest2.class));
