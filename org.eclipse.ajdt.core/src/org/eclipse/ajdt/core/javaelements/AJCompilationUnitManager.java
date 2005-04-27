@@ -102,7 +102,10 @@ public class AJCompilationUnitManager {
 
 			public boolean visit(IResource resource) throws CoreException {
 				if(resource instanceof IFile && resource.getFileExtension().equals("aj")) {
-					ajcus.add(getAJCompilationUnit((IFile)resource));
+					AJCompilationUnit ajcu = getAJCompilationUnit((IFile)resource);
+					if(ajcu != null) {
+						ajcus.add(ajcu);
+					}
 				}				
 				return resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT;
 			}});

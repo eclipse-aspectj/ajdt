@@ -39,6 +39,12 @@ import org.eclipse.jdt.internal.corext.util.TypeInfo;
  */
 public class BuilderUtils {
 
+	/**
+	 * Starts a job that updates JDT's all types cache with the 
+	 * types (but not aspects) contained in .aj files in the given 
+	 * java project (jp).
+	 * @param jp
+	 */
 	public static void updateTypesCache(final IJavaProject jp) {
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
@@ -106,6 +112,7 @@ public class BuilderUtils {
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
 		};
+		updateJob.setRule(jp.getProject());
 		updateJob.setSystem(true);
 		updateJob.schedule();
 	}
