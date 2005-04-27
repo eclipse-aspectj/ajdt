@@ -188,6 +188,27 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		waitForBuildCompletion(compilerMonitor);
 		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall)+"ms");		
 		
+		// We previously refreshed the project to infinite depth to pickup
+		// generated artifacts, but this can be very slow and isn't generally
+		// required. One case it is required is when a Java project depends on
+		// us - without an full refresh, it won't detect the class files written
+		// by AJC. A better solution might be for AJC to give us a list of the
+		// files it wrote, so we can just tell Eclipse about those.
+		boolean javaDep = false;
+		for (int i = 0; !javaDep && (i < dependingProjects.length); i++) {
+			if (dependingProjects[i].hasNature(JavaCore.NATURE_ID)) {
+				javaDep = true;
+			}
+		}
+		try {
+			if (javaDep) {
+				project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			} else {
+				project.refreshLocal(IResource.DEPTH_ONE, null);
+			}
+		} catch (CoreException e) {
+		}
+		
 		AJModel.getInstance().createMap(project);
 		postCallListeners(false);
 		

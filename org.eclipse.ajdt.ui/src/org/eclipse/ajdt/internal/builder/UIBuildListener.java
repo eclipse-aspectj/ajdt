@@ -220,18 +220,6 @@ public class UIBuildListener implements IAJBuildListener {
 	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
 		AspectJUIPlugin.getDefault().getAjdtProjectProperties().flushClasspathCache();
 		
-		// we previously refreshed the project to infinite depth to pickup generated
-		// artifacts, but this can be very slow and isn't generally required, except
-		// when an outjar is set
-		String outJar = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getOutJar();
-		if ((outJar!=null) && (outJar.length()>0)) {
-			try {
-				project.refreshLocal(IResource.DEPTH_ONE, null);
-				//project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			} catch (CoreException e) {
-			}
-		}
-		
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);
 			return;
