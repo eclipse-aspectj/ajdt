@@ -101,7 +101,7 @@ public class AJCompilationUnitManager {
 		jp.getProject().accept(new IResourceVisitor(){
 
 			public boolean visit(IResource resource) throws CoreException {
-				if(resource instanceof IFile && resource.getFileExtension().equals("aj")) {
+				if(resource instanceof IFile && "aj".equals(resource.getFileExtension())) {
 					AJCompilationUnit ajcu = getAJCompilationUnit((IFile)resource);
 					if(ajcu != null) {
 						ajcus.add(ajcu);
