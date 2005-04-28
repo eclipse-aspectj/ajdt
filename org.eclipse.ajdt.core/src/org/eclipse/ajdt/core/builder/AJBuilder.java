@@ -13,6 +13,7 @@
 package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -21,6 +22,8 @@ import java.util.Map;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
+import org.aspectj.ajdt.internal.core.builder.AjState;
+import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJLog;
@@ -48,6 +51,25 @@ import org.eclipse.jdt.internal.core.JavaProject;
  * 
  */
 public class AJBuilder extends IncrementalProjectBuilder {
+
+	// Uses secret API in state to get callbacks on useful events
+	static {
+	  IStateListener isl = new IStateListener() {
+
+		public void detectedClassChangeInThisDir(File f) {
+		}
+
+		public void aboutToCompareClasspaths(List oldClasspath, List newClasspath) {
+		}
+
+		public void pathChangeDetected() {
+		}
+
+		public void buildSuccessful(boolean arg0) {
+			AJLog.log("Aspectj reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL"));
+		}};
+	  AjState.stateListener = isl;
+	}
 
 	private static List buildListeners = new ArrayList();
 	
@@ -128,32 +150,34 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(dta != null) {
 			copyResources(javaProject,dta);
 		}
-		if (kind != FULL_BUILD) {
-			// need to add check here for whether the classpath has changed
-			if (!coreOps.sourceFilesChanged(dta, project)){
-				AJLog.log("build: Examined delta - no source file changes for project " 
-								+ project.getName() );
-				
-				boolean continueToBuild = false;
-				// if the source files of any projects which the current
-				// project depends on have changed, then need
-				// also to build the current project
-				for (int i = 0; i < requiredProjects.length; i++) {
-					IResourceDelta delta = getDelta(requiredProjects[i]);
-					if (coreOps.sourceFilesChanged(delta, project)) {
-						AJLog.log("build: Examined delta - source file changes in "
-									+ "required project " + requiredProjects[i].getName() );
-						continueToBuild = true;
-						break;
-					}
-				}
-				if (!continueToBuild) {
-					postCallListeners(true);
-					return requiredProjects;						
-				}
-			}
-		}
-		
+		// AJDT can't make this decision as it doesn't know enough...
+		// ASC talk to HH about this change - it breaks a test (testUpdateNonSrcFile)
+//		if (kind != FULL_BUILD) {
+//			// need to add check here for whether the classpath has changed
+//			if (!coreOps.sourceFilesChanged(dta, project)){
+//				AJLog.log("build: Examined delta - no source file changes for project " 
+//								+ project.getName() );
+//				
+//				boolean continueToBuild = false;
+//				// if the source files of any projects which the current
+//				// project depends on have changed, then need
+//				// also to build the current project
+//				for (int i = 0; i < requiredProjects.length; i++) {
+//					IResourceDelta delta = getDelta(requiredProjects[i]);
+//					if (coreOps.sourceFilesChanged(delta, project)) {
+//						AJLog.log("build: Examined delta - source file changes in "
+//									+ "required project " + requiredProjects[i].getName() );
+//						continueToBuild = true;
+//						break;
+//					}
+//				}
+//				if (!continueToBuild) {
+//					postCallListeners(true);
+//					return requiredProjects;						
+//				}
+//			}
+//		}
+	
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
 		
