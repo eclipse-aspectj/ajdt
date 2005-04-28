@@ -42,7 +42,6 @@
       <import plugin="org.eclipse.contribution.xref.core.test"/>
       <import plugin="org.eclipse.contribution.xref.ui"/>
       <import plugin="org.eclipse.ltk.core.refactoring"/>
-      <import plugin="org.eclipse.ajdt.core.tests"/>
    </requires>
 
 </plugin>
