@@ -29,6 +29,7 @@ import org.eclipse.contribution.visualiser.internal.preference.VisualiserPrefere
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
@@ -37,8 +38,10 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
+//import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
@@ -90,6 +93,8 @@ public class Visualiser extends ViewPart {
 
 	private String title;
 	
+	private boolean upToDate;
+	
 	private String zoomString;
 	
 		 private static Job redrawJob;
@@ -110,6 +115,13 @@ public class Visualiser extends ViewPart {
 			VisualiserPlugin.logException(pie);
 		}
 		visCanvas = new VisualiserCanvas(parent, this);
+		visCanvas.addPaintListener(new PaintListener() {
+			public void paintControl(final PaintEvent event) {
+				if(!upToDate) {
+					VisualiserPlugin.refresh();
+				}
+			}
+		});
 		makeActions();
 		contributeToActionBars();
 		memberViewAction.setChecked(true);
@@ -117,6 +129,10 @@ public class Visualiser extends ViewPart {
 		refreshTitle(title);
 	}
 
+	public void setNeedsUpdating() {
+		upToDate = false;
+	}
+	
 	/**
 	 * Adds actions to the action bar.
 	 */
@@ -213,31 +229,6 @@ public class Visualiser extends ViewPart {
 						.getResourceString("Limits_visualisation_to_affected_bars_only_10")); //$NON-NLS-1$
 		limitAction.setImageDescriptor(VisualiserImages.LIMIT_MODE);
 	}
-
-//	/**
-//	 * Make the lock action
-//	 */
-//	private void makeActionLock() {
-//		lockAction = new Action() {
-//			public void run() {
-//				locked = !locked;
-//				//groupViewAction.setEnabled(!locked);
-//				//memberViewAction.setEnabled(!locked);
-//				if (!locked) {
-//					updateDisplay(true);
-//				}
-//			}
-//
-//			public int getStyle() {
-//				return IAction.AS_CHECK_BOX;
-//			}
-//		};
-//		lockAction.setText(VisualiserPlugin.getResourceString("Lock")); //$NON-NLS-1$
-//		lockAction.setToolTipText(VisualiserPlugin
-//				.getResourceString("Lock_Tooltip")); //$NON-NLS-1$
-//		lockAction.setImageDescriptor(VisualiserImages.LOCK);
-//
-//	}
 
 	/**
 	 * Creates the actions that specifies whether or not the drawing should use
@@ -458,50 +449,53 @@ public class Visualiser extends ViewPart {
 
 	 private synchronized Job getVisualiserRedrawJob() {
  		 if (redrawJob == null) {
- 		 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
+	 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
 
- 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
- 		 		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
- 		 		 		 			visCanvas.redraw(data);
- 		 		 		 		}
- 		 		 		 		return Status.OK_STATUS;
- 		 		 		 }};
+ 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+ 		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
+ 		 		 			visCanvas.redraw(data);
+ 		 		 			upToDate = true;
+ 		 		 		}		 		 		
+ 		 		 		return Status.OK_STATUS;
+ 		 		 }
+	 		 };
  		 }
  		 return redrawJob;
 	 }
-		 
+
+	 public void updateDisplay(boolean updateMenu) {
+	 	updateDisplay(updateMenu, new NullProgressMonitor());
+	 }
+	 
 	/**
 	 * Update the display
 	 */
-	public void updateDisplay(final boolean updateMenu) {
-		// Run in the UI thread to test whether the Visualiser is visible
-		Display.getDefault().syncExec( new Runnable() {
-			public void run() {			
-				if(getSite()!= null) {
-					if(getSite().getPage().isPartVisible(VisualiserPlugin.visualiser)) {
-		
-						if (inGroupView) {
-							if (inLimitMode) {
-								data = limitData(contentP.getAllGroups());
-							} else {
-								data = contentP.getAllGroups();
-							}
-						} else {
-							if (inLimitMode) {
-								data = limitData(contentP.getAllMembers());
-							} else {
-								data = contentP.getAllMembers();
-							}
-						}
-						if (VisualiserPlugin.menu != null && updateMenu) {
-							VisualiserPlugin.menu.reset();
-							VisualiserPlugin.menu.ensureUptodate();
-						}
-						draw();	
-					} 
-				}
+	public void updateDisplay(final boolean updateMenu, IProgressMonitor monitor) {
+		monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 3); //$NON-NLS-1$
+		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.GettingData")); //$NON-NLS-1$
+		if (inGroupView) {
+			if (inLimitMode) {
+				data = limitData(contentP.getAllGroups());
+			} else {
+				data = contentP.getAllGroups();
 			}
-		});
+		} else {
+			if (inLimitMode) {
+				data = limitData(contentP.getAllMembers());
+			} else {
+				data = contentP.getAllMembers();
+			}
+		}
+		monitor.worked(1);
+		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.UpdatingMenu")); //$NON-NLS-1$
+		if (VisualiserPlugin.menu != null && updateMenu) {
+			VisualiserPlugin.menu.reset();
+			VisualiserPlugin.menu.ensureUptodate();
+		}
+		monitor.worked(1);
+		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.Drawing")); //$NON-NLS-1$
+		draw();	
+		monitor.done();
 	}
 
 	/**

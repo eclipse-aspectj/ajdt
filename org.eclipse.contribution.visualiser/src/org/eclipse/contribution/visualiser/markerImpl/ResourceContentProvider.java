@@ -14,6 +14,7 @@ package org.eclipse.contribution.visualiser.markerImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -44,6 +45,8 @@ public class ResourceContentProvider extends SimpleContentProvider implements IS
 
 	IResource selectedResource;
 	
+	private boolean updateNeeded;
+	
 	public void initialise() {
 		if (VisualiserPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow() != null) {
 			VisualiserPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
@@ -51,7 +54,52 @@ public class ResourceContentProvider extends SimpleContentProvider implements IS
 		}
 	}
 	
-
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.contribution.visualiser.simpleImpl.SimpleContentProvider#getAllMembers()
+	 */
+	public List getAllMembers() {
+		if(updateNeeded) {
+			updateData();
+			IMarkupProvider mProv = ProviderManager.getMarkupProvider();
+			if(mProv instanceof MarkerMarkupProvider) {
+				((MarkerMarkupProvider)mProv).updateMarkups(super.getAllGroups());
+			}
+		}
+		return super.getAllMembers();
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.contribution.visualiser.simpleImpl.SimpleContentProvider#getAllGroups()
+	 */
+	public List getAllGroups() {
+		if(updateNeeded) {
+			updateData();
+			IMarkupProvider mProv = ProviderManager.getMarkupProvider();
+			if(mProv instanceof MarkerMarkupProvider) {
+				((MarkerMarkupProvider)mProv).updateMarkups(super.getAllGroups());
+			}			
+		}
+		return super.getAllGroups();
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.contribution.visualiser.simpleImpl.SimpleContentProvider#getAllMembers(org.eclipse.contribution.visualiser.interfaces.IGroup)
+	 */
+	public List getAllMembers(IGroup group) {
+		if(updateNeeded) {
+			updateData();
+			IMarkupProvider mProv = ProviderManager.getMarkupProvider();
+			if(mProv instanceof MarkerMarkupProvider) {
+				((MarkerMarkupProvider)mProv).updateMarkups(super.getAllGroups());
+			}
+		}
+		return super.getAllMembers(group);
+	}
+	
+	
 	/**
 	 * Workbench selection has changed
 	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
@@ -87,11 +135,7 @@ public class ResourceContentProvider extends SimpleContentProvider implements IS
 			}
 		}
 		if(updateRequired && selectedResource != null) {
-			updateData();
-			IMarkupProvider mProv = ProviderManager.getMarkupProvider();
-			if(mProv instanceof MarkerMarkupProvider) {
-				((MarkerMarkupProvider)mProv).updateMarkups(getAllGroups());
-			}
+			updateNeeded = true;			
 			VisualiserPlugin.refresh();
 		}
 	}
@@ -140,9 +184,9 @@ public class ResourceContentProvider extends SimpleContentProvider implements IS
 				addGroup(group);
 			} catch (CoreException ce) {
 				ce.printStackTrace();
-			}
-			
+			}			
 		}
+		updateNeeded = false;
 	}
 
 

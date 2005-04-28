@@ -337,75 +337,29 @@ public class Menu extends ViewPart {
 		if (uptodate) return;
 			// ClassCastException is thrown if provider has not returned a set
 			// of IMarkupKinds from getAllMarkupKinds().
-		 		 getUpdateJob().schedule();
+		Display.getDefault().syncExec( new Runnable() {
+			public void run() {		
+				if(getSite().getPage().isPartVisible(VisualiserPlugin.menu)) {
+					getUpdateJob().schedule();
+				} else {
+					update();
+				}
+			}
+		});	 		
 
 	}
 
 		 private synchronized Job getUpdateJob() {
 		 		 if (updateJob == null) {
-		 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){ //$NON-NLS-1$
-
-		 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
-		 		 		 		 		if ((canvas==null) || canvas.isDisposed()) {
-		 		 		 		 			return Status.OK_STATUS;
-		 		 		 		 		}
-		 		 		 		 		 clear();
-		 		 		 		 		 Set markupKinds = vmp.getAllMarkupKinds();
-		 		 		 		 		 int numKindsToShow = getNumberToShow(markupKinds);
-		 		 		 		 		 if (markupKinds==null) return Status.OK_STATUS;
-		 		 		 		 		 buttons = new Button[numKindsToShow];
-		 		 		 		 		 checkboxes = new Button[numKindsToShow];
-		 		 		 		 		 labels = new Label[numKindsToShow];
-		 		 		 		 		 icons = new Label[numKindsToShow];
-		 		 		 		 		 shells = new Shell[numKindsToShow];
-		 		 		 		 		 colorSquares = new Image[numKindsToShow];
-		 		 		 		 		 colorDialogs = new ColorDialog[numKindsToShow];
-		 		 		 		 		 colors = new Color[numKindsToShow];
-		 		 		 		 		 
-		 		 		 		 		 
-		 		 		 		 		 kindActive = new Hashtable();
-		 		 		 		 		 kinds = new HashMap();
-		 		 		 		 		 
-		 		 		 		 		 int i = 0;
-		 		 		 		 		 for (Iterator iter = markupKinds.iterator(); iter.hasNext();) {
-		 		 		 		 		 		 IMarkupKind element = (IMarkupKind) iter.next();
-		 		 		 		 		 		 kinds.put(element.getName(), element);
-		 		 		 		 		 		 if(element.showInMenu()) {
-		 		 		 		 		 		 		 int imageSize = 12;
-		 		 		 		 		 		 		 colors[i] = vmp.getColorFor(element);
-		 		 		 		 		 		 		 if(colors[i] == null) {
-		 		 		 		 		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
-		 		 		 		 		 		 		 }
-		 		 		 		 		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
-		 		 		 		 		 		 		 shells[i] = buttons[i].getShell();
-		 		 		 		 		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
-		 		 		 		 		 		 		 Display display = shells[i].getDisplay();
-		 		 		 		 		 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);
-		 		 		 		 		 		 		 buttons[i].setImage(colorSquares[i]);
-		 		 		 		 		 		 		 buttons[i].addSelectionListener(selectionListener);
-		 		 		 		 		 		 		 Image image = buttons[i].getImage();
-		 		 		 		 		 		 		 drawImage(image, colors[i]);
-		 		 		 		 		 		 		 buttons[i].setImage(image);
-		 		 		 		 
-		 		 		 		 		 		 		 checkboxes[i] = new Button(canvas, SWT.CHECK);
-		 		 		 		 		 		 		 checkboxes[i].addSelectionListener(checkboxListener);
-		 		 		 		 		 		 		 checkboxes[i].setSelection(true);
-
-		 		 		 		 		 		 		 icons[i] = new Label(canvas, SWT.NONE);
-		 		 		 		 		 		 		 icons[i].setImage(element.getIcon());
-		 		 		 		 		 		 		 labels[i] = new Label(canvas, SWT.NONE);
-		 		 		 		 		 		 		 labels[i].setText(element.getName());
-		 		 		 		 		 		 		 labels[i].setData(element);
-		 		 		 		 		 		 		 labels[i].setToolTipText(element.getFullName());
-		 		 		 		 		 		 		 i++;
-		 		 		 		 		 		 }
-		 		 		 		 		 		 kindActive.put(element, new Boolean(true));
-		 		 		 		 		 }
-		 		 		 		 		 canvas.layout();
-		 		 		 		 		 canvas.setSize(canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
-		 		 		 		 		 uptodate = true;		 		 		 		 		 
-		 		 		 		 		 return Status.OK_STATUS;
-		 		 		 		 }};
+	 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){ //$NON-NLS-1$
+ 		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
+	 		 		 		if ((canvas==null) || canvas.isDisposed()) {
+	 		 		 			return Status.OK_STATUS;
+	 		 		 		}
+	 		 		 		update();		 		 		 		 		 
+	 		 		 		return Status.OK_STATUS;
+ 		 		 		 }
+	 		 		 };
 		 		 }
 		 		 return updateJob;
 		 }
@@ -442,6 +396,66 @@ public class Menu extends ViewPart {
 	}
 
 
+	/**
+	 * Update the menu
+	 */
+	private void update() {
+		clear();
+		 Set markupKinds = vmp.getAllMarkupKinds();
+		 int numKindsToShow = getNumberToShow(markupKinds);
+		 if (markupKinds==null) return;
+		 buttons = new Button[numKindsToShow];
+		 checkboxes = new Button[numKindsToShow];
+		 labels = new Label[numKindsToShow];
+		 icons = new Label[numKindsToShow];
+		 shells = new Shell[numKindsToShow];
+		 colorSquares = new Image[numKindsToShow];
+		 colorDialogs = new ColorDialog[numKindsToShow];
+		 colors = new Color[numKindsToShow];
+		 
+		 
+		 kindActive = new Hashtable();
+		 kinds = new HashMap();
+		 
+		 int i = 0;
+		 for (Iterator iter = markupKinds.iterator(); iter.hasNext();) {
+		 		 IMarkupKind element = (IMarkupKind) iter.next();
+		 		 kinds.put(element.getName(), element);
+		 		 if(element.showInMenu()) {
+		 		 		 int imageSize = 12;
+		 		 		 colors[i] = vmp.getColorFor(element);
+		 		 		 if(colors[i] == null) {
+		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
+		 		 		 }
+		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+		 		 		 shells[i] = buttons[i].getShell();
+		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
+		 		 		 Display display = shells[i].getDisplay();
+		 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);
+		 		 		 buttons[i].setImage(colorSquares[i]);
+		 		 		 buttons[i].addSelectionListener(selectionListener);
+		 		 		 Image image = buttons[i].getImage();
+		 		 		 drawImage(image, colors[i]);
+		 		 		 buttons[i].setImage(image);
+
+		 		 		 checkboxes[i] = new Button(canvas, SWT.CHECK);
+		 		 		 checkboxes[i].addSelectionListener(checkboxListener);
+		 		 		 checkboxes[i].setSelection(true);
+
+		 		 		 icons[i] = new Label(canvas, SWT.NONE);
+		 		 		 icons[i].setImage(element.getIcon());
+		 		 		 labels[i] = new Label(canvas, SWT.NONE);
+		 		 		 labels[i].setText(element.getName());
+		 		 		 labels[i].setData(element);
+		 		 		 labels[i].setToolTipText(element.getFullName());
+		 		 		 i++;
+		 		 }
+		 		 kindActive.put(element, new Boolean(true));
+		 }
+		 canvas.layout();
+		 canvas.setSize(canvas.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
+		 uptodate = true;
+	}
 	/**
 	 * Passing the focus request to the viewer's control.
 	 */

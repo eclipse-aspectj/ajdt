@@ -69,18 +69,18 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 		return ProviderManager.getProviderManager();
 	}
 
-
 	/**
 	 * Refresh the Visualiser views.
 	 */
 	public static void refresh() {
-		if (visualiser != null) {
-		 		 		 VisualiserUpdateJob.getInstance().schedule();
+		if (visualiser != null && visualiser.getSite() != null) {
+			if(visualiser.getSite().getPage().isPartVisible(visualiser)) {		
+				VisualiserUpdateJob.getInstance().schedule();
+			} else {
+				visualiser.setNeedsUpdating();
+			}
 		}
 	}
-
-
-
 		 
 	/**
 	 * Gets the active workbench window
@@ -88,7 +88,6 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public static IWorkbenchWindow getActiveWorkbenchWindow() {
 		return getDefault().getWorkbench().getActiveWorkbenchWindow();
 	}	
-
 
 	/**
 	 * Returns the shared instance as VisualiserPlugin is a singleton.
@@ -232,7 +231,11 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	}
 }
 
-// Job that updates the Visualiser
+/*
+ *  Job that updates the Visualiser
+ * This update job includes collecting the visualization data, wheras
+ * the two redraw jobs in the Visualiser and Menu classes only cover the redrawing.
+ */
 class VisualiserUpdateJob extends Job {
 		 private static VisualiserUpdateJob theJob;
 		 
@@ -244,18 +247,16 @@ class VisualiserUpdateJob extends Job {
 		 		 if(theJob == null) {
 		 		 		 theJob = new VisualiserUpdateJob(VisualiserPlugin.getResourceString("Jobs.VisualiserUpdate")); //$NON-NLS-1$
 		 		 		 theJob.setUser(true);
-		 		 		 theJob.setPriority(Job.SHORT);
+		 		 		 theJob.setPriority(Job.INTERACTIVE);
 		 		 }
 		 		 return theJob;
 		 }
 		 
 		 public IStatus run(IProgressMonitor monitor) {
-		 		 monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
-		 		 if (VisualiserPlugin.visualiser!=null) {
-		 		 		 VisualiserPlugin.visualiser.updateDisplay(true);
-		 		 }
-		 		 monitor.done();
-		 		 return Status.OK_STATUS;
+	 		 if (VisualiserPlugin.visualiser!=null) {
+	 		 	VisualiserPlugin.visualiser.updateDisplay(true, monitor);
+	 		 }
+	 		 return Status.OK_STATUS;
 		 }
 		 
 }

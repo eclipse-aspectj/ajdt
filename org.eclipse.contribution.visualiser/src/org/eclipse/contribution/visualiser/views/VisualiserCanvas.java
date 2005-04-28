@@ -230,6 +230,8 @@ public class VisualiserCanvas extends Canvas {
 		selectedItem = newItem;
 	}
 
+	
+
 	private void setupContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 
@@ -685,7 +687,7 @@ public class VisualiserCanvas extends Canvas {
 		this.data = data;
 
 		if ((data == null) || (data.size() == 0)) {
-			redraw(); // still paint, so we get the "no data" message
+			redraw(); // still paint, so we get the "no data" message			
 			return;
 		}
 
@@ -701,7 +703,7 @@ public class VisualiserCanvas extends Canvas {
 		calculateGeom();
 
 		dataChanged = true;
-		redraw();
+		redraw();		
 	}
 		 		 		 		 		 
 
