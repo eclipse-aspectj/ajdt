@@ -16,6 +16,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
 import org.eclipse.ajdt.core.builder.CoreBuildOptions;
 import org.eclipse.ajdt.core.builder.CoreErrorHandler;
@@ -93,7 +94,7 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
-		
+		IncrementalStateManager.recordIncrementalStates=true;
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
 				new CoreProjectProperties(), new CoreBuildOptions(),
