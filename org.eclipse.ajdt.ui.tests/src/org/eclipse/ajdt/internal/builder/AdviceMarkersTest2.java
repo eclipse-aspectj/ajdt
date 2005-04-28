@@ -57,7 +57,7 @@ public class AdviceMarkersTest2 extends TestCase {
 					{ "advised by GetInfo.before(): demoExecs..", new Integer(25) },
 					
 					// Temporary - declare soft should have a different type of marker...
-					{ "advised by GetInfo.declare soft: tjp.DemoException", new Integer(25) },
+					//{ "advised by GetInfo.declare soft: tjp.DemoException", new Integer(25) },
 					
 					{ "advised by GetInfo.before(): demoExecs..", new Integer(32) },
 					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
@@ -70,7 +70,7 @@ public class AdviceMarkersTest2 extends TestCase {
 			{ // IAJModelMarker.BEFORE_ADVICE_MARKER
 			{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }
 			// Temporarily removed while we have a declare soft marker on the same line
-//					,{ "advised by GetInfo.before(): demoExecs..", new Integer(25) } 
+					,{ "advised by GetInfo.before(): demoExecs..", new Integer(25) } 
 			},
 			{ // IAJModelMarker.AFTER_ADVICE_MARKER
 			    { "advised by GetInfo.after(): fieldSet..", new Integer(28) }
