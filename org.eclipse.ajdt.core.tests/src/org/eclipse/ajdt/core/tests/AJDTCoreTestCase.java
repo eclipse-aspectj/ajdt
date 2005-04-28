@@ -69,11 +69,11 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
-		waitForAutoBuild();
+//		waitForAutoBuild();
 //		final IProject project = jp.getProject();
 //		IWorkspaceRunnable build = new IWorkspaceRunnable() {
 //			public void run(IProgressMonitor monitor) throws CoreException {
-//				project.build(IncrementalProjectBuilder.FULL_BUILD,null);
+		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 //			}
 //		};
 //		getWorkspace().run(build, null);
