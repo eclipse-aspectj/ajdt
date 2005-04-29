@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
@@ -111,5 +112,31 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	
 	protected char getHandleMementoDelimiter() {
 		return AspectElement.JEM_CODEELEMENT;
+	}
+	
+	public IResource getResource() {
+		if (getParent() == null) {
+			// injar aspect, which has no parent
+			return null;
+		} else {
+			return super.getResource(); 
+		}
+	}
+	
+	/*
+	 * @see JavaElement#getHandleMemento(StringBuffer)
+	 */
+	protected void getHandleMemento(StringBuffer buff) {
+		if (getParent() == null) {
+			// injar aspect, which has no parent
+			buff.append(getHandleMementoDelimiter());
+			buff.append(this.name);
+			if (this.occurrenceCount > 1) {
+				buff.append(JEM_COUNT);
+				buff.append(this.occurrenceCount);
+			}
+		} else {
+			super.getHandleMemento(buff);
+		}
 	}
 }

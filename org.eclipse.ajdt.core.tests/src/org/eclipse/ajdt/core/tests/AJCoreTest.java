@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
@@ -193,6 +194,25 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 	}
 
+	/**
+	 * Test that going from an IJavaElement to its handle identifier then back
+	 * to an IJavaElement using AspectJCore.create() results in a element that
+	 * is equivalent to the original (not necessarily identical).
+	 * 
+	 * @throws Exception
+	 */
+	public void testHandleCreateRoundtrip5() throws Exception {
+		IProject libProject = createPredefinedProject("MyAspectLibrary");
+		IProject weaveMeProject = createPredefinedProject("WeaveMe");
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+			compareElementsFromRelationships(rels, weaveMeProject);
+		} finally {
+			deleteProject(weaveMeProject);
+			deleteProject(libProject);
+		}
+	}
+
 	private String getSimpleClassName(Object obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');
@@ -215,36 +235,42 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			AJRelationship rel = (AJRelationship) iter.next();
 			// System.out.println("rel:
 			// "+rel.getRelationship().getDisplayName());
-			IJavaElement source = rel.getSource();
-			// System.out.println("source: " + source);
-			String sourceHandle = source.getHandleIdentifier();
-			// System.out.println("source handle: " + sourceHandle);
-			IJavaElement recreated = AspectJCore.create(sourceHandle);
-			// System.out.println("recreated: " + recreated);
-			String recreatedHandle = recreated.getHandleIdentifier();
-			// System.out.println("recreated handle: " + recreatedHandle);
+			compareElementWithRecreated(rel.getSource());
+			compareElementWithRecreated(rel.getTarget());
+		}
+	}
 
-			assertEquals(
-					"Handle identifier of created element doesn't match original",
-					sourceHandle, recreatedHandle);
-			assertEquals("Name of created element doesn't match original",
-					source.getElementName(), recreated.getElementName());
+	private void compareElementWithRecreated(IJavaElement element) {
+		String handle = element.getHandleIdentifier();
+		//System.out.println("element handle: " + handle);
+		IJavaElement recreated = AspectJCore.create(handle);
+		String recreatedHandle = recreated.getHandleIdentifier();
+		//System.out.println("recreated handle: " + recreatedHandle);
+
+		assertEquals(
+				"Handle identifier of created element doesn't match original",
+				handle, recreatedHandle);
+		assertEquals("Name of created element doesn't match original", element
+				.getElementName(), recreated.getElementName());
+		IResource res = element.getResource();
+		if (res != null) {
+			// only do this test if the original has a valid resource
 			assertEquals(
 					"Name of created element resource doesn't match original",
-					source.getResource().getName(), recreated.getResource()
-							.getName());
-			assertEquals("Name of created element doesn't match original",
-					getSimpleClassName(source), getSimpleClassName(recreated));
+					res.getName(), recreated.getResource().getName());
+		}
 
-			// test line number of AJCodeElements
-			if ((source instanceof AJCodeElement)
-					&& (recreated instanceof AJCodeElement)) {
-				AJCodeElement sourceCodeEl = (AJCodeElement) source;
-				AJCodeElement recreatedCodeEl = (AJCodeElement) recreated;
-				assertEquals(
-						"Line number of created AJCodeElement doesn't match original",
-						sourceCodeEl.getLine(), recreatedCodeEl.getLine());
-			}
+		assertEquals("Name of created element doesn't match original",
+				getSimpleClassName(element), getSimpleClassName(recreated));
+
+		// test line number of AJCodeElements
+		if ((element instanceof AJCodeElement)
+				&& (recreated instanceof AJCodeElement)) {
+			AJCodeElement sourceCodeEl = (AJCodeElement) element;
+			AJCodeElement recreatedCodeEl = (AJCodeElement) recreated;
+			assertEquals(
+					"Line number of created AJCodeElement doesn't match original",
+					sourceCodeEl.getLine(), recreatedCodeEl.getLine());
 		}
 	}
 

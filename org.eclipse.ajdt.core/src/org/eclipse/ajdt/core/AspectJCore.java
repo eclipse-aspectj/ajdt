@@ -70,12 +70,14 @@ public class AspectJCore {
 				try {
 					int line = new Integer(lineStr)
 							.intValue();
-					IJavaElement codeEl = new AJCodeElement(
+					return new AJCodeElement(
 							parent, line, cname);
-					return codeEl;
 				} catch (NumberFormatException e) {
 				}
 			}
+		} else {
+			// no line number
+			return new AJCodeElement(parent, 0, codeElementHandle);
 		}
 		return null;
 	}
@@ -107,15 +109,10 @@ public class AspectJCore {
 				int index = handleIdentifier
 						.indexOf(JavaElement.JEM_COMPILATIONUNIT);
 				if (index != -1) {
-					// System.out.println("subs="
-					// + handleIdentifier.substring(0, index));
 					IJavaElement je = JavaCore.create(handleIdentifier
 							.substring(0, index));
-					// System.out.println("je=" + je);
-					// System.out.println("je class=" + je.getClass());
 					if (je instanceof PackageFragment) {
 						PackageFragment pf = (PackageFragment) je;
-						// System.out.println("pf=" + pf);
 						String cuName = handleIdentifier.substring(index + 1);
 						int ind1 = cuName.indexOf(JavaElement.JEM_TYPE);
 						if (ind1 != -1) {
@@ -137,18 +134,13 @@ public class AspectJCore {
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
 							JavaElement cu = new AJCompilationUnit(pf, cuName,
 									owner);
-							// System.out.println("AJ compilation unit created:
-							// "+cu.getElementName());
 							token = memento.nextToken();
 							if (!memento.hasMoreTokens()) {
 								return cu;
 							}
 							IJavaElement restEl = cu.getHandleFromMemento(
 									memento.nextToken(), memento, owner);
-							// System.out.println("restEl="+restEl);
 							if (restEl != null) {
-								// System.out.println("class=" +
-								// restEl.getClass());
 								if (isCodeElement) {
 									// there was an AJCodeElement at the end of
 									// the handle
@@ -162,10 +154,7 @@ public class AspectJCore {
 						} else {
 							IJavaElement restEl = pf.getHandleFromMemento(
 									token, memento, owner);
-							// System.out.println("restEl="+restEl.getElementName());
 							if (restEl != null) {
-								// System.out.println("class=" +
-								// restEl.getClass());
 								if (isCodeElement) {
 									// there was an AJCodeElement at the end of
 									// the handle
@@ -179,6 +168,13 @@ public class AspectJCore {
 						}
 					}
 				}
+			}
+		}
+		if (isCodeElement) {
+			// an injar aspect with no parent
+			IJavaElement codeEl = getCodeElement(codeElementHandle,null);
+			if (codeEl != null) {
+				return codeEl;
 			}
 		}
 		return JavaCore.create(handleIdentifier);
