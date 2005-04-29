@@ -27,6 +27,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
@@ -236,7 +237,7 @@ public class AJProjectModel {
 							if (link.getParent()==null) {
 								// if the problem element has no parent, then we have a binary/injar
 								// aspect, otherwise we don't know what it is, so we skip it
-								targetEl = new AJCodeElement(null,0,"injar aspect: "+link.getName());
+								targetEl = new AJInjarElement("injar aspect: "+link.getName());
 							}
 						}
 

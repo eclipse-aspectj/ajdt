@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core;
 
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.jdt.core.IJavaElement;
@@ -172,10 +173,7 @@ public class AspectJCore {
 		}
 		if (isCodeElement) {
 			// an injar aspect with no parent
-			IJavaElement codeEl = getCodeElement(codeElementHandle,null);
-			if (codeEl != null) {
-				return codeEl;
-			}
+			return new AJInjarElement(codeElementHandle);
 		}
 		return JavaCore.create(handleIdentifier);
 	}
