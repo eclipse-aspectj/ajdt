@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
@@ -263,7 +264,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
     private void preserveOutJarSetting(IProject project) {
         try {
             String outjar = project.getPersistentProperty(OUTJAR);
-            setPrefValue(project, AspectJPreferences.OUT_JAR, outjar);
+            setPrefValue(project, AspectJCorePreferences.OUT_JAR, outjar);
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
@@ -442,7 +443,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
 
-        AspectJPreferences.setProjectInPath(project, inpathBuffer.toString(),
+        AspectJCorePreferences.setProjectInPath(project, inpathBuffer.toString(),
                 contentKindBuffer.toString(), entryKindBuffer.toString());
     }
 
@@ -465,7 +466,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
 
-        AspectJPreferences.setProjectAspectPath(project, aspectpathBuffer
+        AspectJCorePreferences.setProjectAspectPath(project, aspectpathBuffer
                 .toString(), contentKindBuffer.toString(), entryKindBuffer
                 .toString());
 

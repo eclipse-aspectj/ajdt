@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -156,7 +156,7 @@ public class LaunchConfigurationClasspathUtils {
 	public static IRuntimeClasspathEntry[] getAspectpath(IProject project)
 			throws CoreException {
 		List result = new ArrayList();
-        String[] v = AspectJPreferences.getProjectAspectPath(project);
+        String[] v = AspectJCorePreferences.getProjectAspectPath(project);
         if (v==null) {
         	return null;
         }

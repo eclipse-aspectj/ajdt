@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -359,7 +360,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		
 		}
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
-		AspectJPreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
+		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
 		//preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
@@ -394,7 +395,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * Ensure the widgets state reflects the persistent property values.
 	 */
 	public void updatePageContents() {
-		outputJarEditor.setStringValue(AspectJPreferences.getProjectOutJar(thisProject));
+		outputJarEditor.setStringValue(AspectJCorePreferences.getProjectOutJar(thisProject));
 		nonStandardOptionsEditor.setStringValue(AspectJPreferences.getCompilerOptions(thisProject));
 	}
  	

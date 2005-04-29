@@ -14,9 +14,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
@@ -298,7 +298,7 @@ public class AspectPathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
         
-        AspectJPreferences.setProjectAspectPath(fCurrJProject.getProject(),aspectpathBuffer.toString(),
+        AspectJCorePreferences.setProjectAspectPath(fCurrJProject.getProject(),aspectpathBuffer.toString(),
         		contentKindBuffer.toString(),entryKindBuffer.toString());
         
         LaunchConfigurationManagementUtils.updateAspectPaths(fCurrJProject, existingAspectPath, aspectPathEntries);

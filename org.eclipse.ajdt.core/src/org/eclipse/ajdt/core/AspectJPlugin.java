@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import java.io.File;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -24,7 +23,6 @@ import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.core.builder.CoreTaskListManager;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.IAJLogger;
 import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.StandinCoreOperations;
@@ -60,8 +58,14 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; //$NON-NLS-1$
 
-	private static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
+	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
 	private static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+
+	/**
+	 * Folder separator used by Eclipse in paths irrespective if on Windows or
+	 * *nix.
+	 */
+	public static final String NON_OS_SPECIFIC_SEPARATOR = "/";
 
 	/**
 	 * Compiler monitor listens to AspectJ compilation events (build progress

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -162,7 +163,7 @@ public class InPathPropertyPage extends PropertyPage implements
     private IClasspathEntry[] getInitialInpathValue(IProject project)
             throws CoreException {
         List result = new ArrayList();
-        String[] v = AspectJPreferences.getProjectInPath(project);
+        String[] v = AspectJCorePreferences.getProjectInPath(project);
         if (v==null) {
         	return null;
         }

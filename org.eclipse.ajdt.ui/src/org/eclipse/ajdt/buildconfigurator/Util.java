@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -118,13 +119,13 @@ public class Util {
 		// For each remaining level in the home path add
         // a double dot (..)
 		for (; i >= 0; i--) {
-			result += ".." + AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR; //$NON-NLS-1$
+			result += ".." + AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR; //$NON-NLS-1$
 		}// end for each remaining level 
 
 		// for each level in the file path, add the path
 		for (; j >= 1; j--) {
 			result += toList.get(j) +
-                AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR;
+                AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR;
 		}
 
 		// Return the file name
@@ -217,7 +218,7 @@ public class Util {
 						// to the linked file.
 						linkedFile = new File(file.getParentFile()
 								.getAbsolutePath()
-								+ AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR
+								+ AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR
 								+ linkedFilePath);
 						if (linkedFile.exists()) {
 							writeInlinedLstFileToBuffer(linkedFile, bw);

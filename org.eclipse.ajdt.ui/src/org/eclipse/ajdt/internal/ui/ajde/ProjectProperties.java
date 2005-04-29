@@ -524,16 +524,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 	// --------------------------------------------
 
 	/**
-	 * Get the set of input jar files for this compilation. Set members should
-	 * be of type java.io.File. An empty set or null is acceptable for this
-	 * option. From -injars.
-	 */
-	public Set getInJars() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getInJars();
-	}
-
-	/**
 	 * Get the set of non-Java resoure files for this compilation. Set members
 	 * should be of type java.io.File. An empty set or null is acceptable for
 	 * this option.
@@ -609,36 +599,7 @@ public class ProjectProperties extends CoreProjectProperties  {
 	// .getAjdtBuildOptionsAdapter().getJavaOrAjExt();
 	// return ".aj";//(javaOrAjExt ? ".java" : ".aj");
 	// }
-
-	/**
-	 * Get the output jar file for the compilation results. Return null to leave
-	 * classfiles unjar'd in output directory From -outjar
-	 */
-	public String getOutJar() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getOutJar();
-	}
-
-	/**
-	 * Get a set of root source directories for the compilation. Set members
-	 * should be of type java.io.File Returning null or an empty set disables
-	 * the option. From -sourceroots
-	 */
-	public Set getSourceRoots() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getSourceRoots();
-	}
-
-	/**
-	 * Get the set of aspect jar files to be used for the compilation. Returning
-	 * null or an empty set disables this option. Set members should be of type
-	 * java.io.File. From -aspectpath
-	 */
-	public Set getAspectPath() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getAspectPath();
-	}
-
+	
 	private ArrayList getLinkedChildFolders(IResource resource) {
 		ArrayList resultList = new ArrayList();
 
@@ -682,11 +643,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 					+ relPath;
 		}
 		return result;
-	}
-
-	public Set getInpath() {
-		return AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getInPath();
 	}
 
 }

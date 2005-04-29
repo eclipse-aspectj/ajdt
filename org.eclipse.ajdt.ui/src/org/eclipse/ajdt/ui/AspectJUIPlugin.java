@@ -164,12 +164,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
 
 	/**
-	 * Folder separator used by Eclipse in paths irrespective if on Windows or
-	 * *nix.
-	 */
-	public static final String NON_OS_SPECIFIC_SEPARATOR = "/";
-
-	/**
 	 * General debug trace for the plug-in enabled through the master trace
 	 * switch.
 	 */

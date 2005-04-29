@@ -14,8 +14,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -301,7 +301,7 @@ public class InPathBlock {
         contentKindBuffer = removeFinalPathSeparatorChar(contentKindBuffer);
         entryKindBuffer = removeFinalPathSeparatorChar(entryKindBuffer);
         
-        AspectJPreferences.setProjectInPath(fCurrJProject.getProject(),inpathBuffer.toString(),
+        AspectJCorePreferences.setProjectInPath(fCurrJProject.getProject(),inpathBuffer.toString(),
         		contentKindBuffer.toString(), entryKindBuffer.toString());
     }
    
