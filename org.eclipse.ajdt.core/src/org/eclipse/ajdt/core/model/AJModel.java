@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.model;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -58,38 +59,46 @@ public class AJModel {
 		return instance;
 	}
 
-	/* These routines are the basis for a complete conversion layer
-	 * on top of the underlying structure model. It would be good if we could perform
-	 * this conversion after a build, and then discard the underlying structure model,
-	 * using only this Eclipse-centric one throughout the rest of AJDT. We would then
-	 * have to handle the life-cycle and persistence ourselves - serialising this
-	 * structure instead of the .ajsym files used by the underlying structure model.
-	 * To progress this we really need to be able to get character offset information
-	 * from IProgramElement instead of line numbers, as otherwise we have to do a
-	 * somewhat time consuming conversion. We also have to make sure our new data
-	 * structure contains all the information we need throughout AJDT.
-     */
+	public void saveAllModels() {
+		for (Iterator iter = projectModelMap.keySet().iterator(); iter.hasNext();) {
+			IProject project = (IProject) iter.next();
+			AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
+			pm.saveModel();
+		}
+	}
+	
+	public void saveModel(IProject project) {
+		AJProjectModel pm = getModelForProject(project);
+		if (pm!=null) {
+			pm.saveModel();
+		}
+	}
 
 	private AJProjectModel getModelForProject(IProject project) {
-		try {			
-			if(project.hasNature("org.eclipse.ajdt.ui.ajnature")) {				
-				AJProjectModel pm = (AJProjectModel)projectModelMap.get(project);
-				if (pm==null) {
-					AJLog.log("No current AJ model for project "+project.getName());
-					initialiseAJDE(project);
-					createMap(project);
-					pm = (AJProjectModel)projectModelMap.get(project);
-				}
+		if (AspectJPlugin.isAJProject(project)) {
+			AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
+			if (pm != null) {
 				return pm;
 			}
-		} catch (CoreException e){}
+			AJLog.log("No current AJ model for project " + project.getName());
+			AJProjectModel projectModel = new AJProjectModel(project);
+			projectModelMap.put(project, projectModel);
+			projectModel.loadModel();
+			AJLog.log("Loaded serialized AJ model for project "
+					+ project.getName());
+			return projectModel;
+		}
 		return null;
 	}
 		
 	/**
-	 * Query the AJ model for elements that have a certain relationship to the given element
-	 * @param rel the relationship of interest
-	 * @param je the IJavaElement to query as the source of the relationship
+	 * Query the AJ model for elements that have a certain relationship to the
+	 * given element
+	 * 
+	 * @param rel
+	 *            the relationship of interest
+	 * @param je
+	 *            the IJavaElement to query as the source of the relationship
 	 * @return a possibly null list of related elements
 	 */
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
@@ -158,11 +167,9 @@ public class AJModel {
 	}
 	
 	public void createMap(final IProject project) {
-		//System.out.println("creating map for project: " + project);
 		final long start = System.currentTimeMillis();
 		final AJProjectModel projectModel = new AJProjectModel(project);
 		projectModelMap.put(project,projectModel);
-		//clearAJModel(project);
 		try {
 			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
@@ -180,62 +187,10 @@ public class AJModel {
 		AJLog.log("Cleared AJDT relationship map for project "+project.getName());
 	}
 	
-//	private void initForProject(IProject project) {
-//		StructureModelUtil.initialiseAJDE(project);
-//		if (!projectSet.contains(project)) {
-//			System.out.println("map requested for project: " + project
-//					+ " project not known");
-//			String lst = AspectJUIPlugin.getBuildConfigurationFile(project);
-//			long start = System.currentTimeMillis();
-//			AsmManager.getDefault().readStructureModel(lst);
-//			long elapsed = System.currentTimeMillis() - start;
-//			System.out.println("read structure model in " + elapsed + "ms");
-//			//projectSet.add(project);
-//		}
-//	}
-	
-	/*
-	private void initForFile(IFile file) {
-		IProject project = file.getProject();
-		initForProject(project);
-		Set fileSet = (Set)perProjectFileSet.get(project);
-		if (fileSet==null) {
-			fileSet = new HashSet();
-			perProjectFileSet.put(project,fileSet);
-		}
-		if (!fileSet.contains(file)) {
-			createMapForFile(file);
-			fileSet.add(file);
-		}
-	}
-*/
 	public void aboutToBuild(IProject project) {
 		beingBuilt = project;
 	}
 	
-	/*
-	public void clearAJModel(IProject project) {
-		beingBuilt = null;
-//		Set fileSet = (Set)perProjectFileSet.get(project);
-//		if (fileSet!=null) {
-//			fileSet.clear();
-//		}
-		Map ipeToije = (Map)perProjectProgramElementMap.get(project);
-		if (ipeToije!=null) {
-			ipeToije.clear();
-		}
-		Map advisesMap = (Map)perProjectAdvisesMap.get(project);
-		if (advisesMap != null) {
-			advisesMap.clear();
-		}
-		Map advisedByMap = (Map)perProjectAdvisedByMap.get(project);
-		if (advisedByMap != null) {
-			advisedByMap.clear();
-		}
-		System.out.println("cleared maps for project "+project);
-	}
-*/
-
 
 	/**
 	 * Query all the relationships of interest in a project
@@ -258,7 +213,7 @@ public class AJModel {
 	 */
 	public int getJavaElementLineNumber(IJavaElement je) {
 		if (je==null) {
-			return -1; //$NON-NLS-1$
+			return -1;
 		}
 		IJavaProject jp = je.getJavaProject();
 		if (jp==null) {
@@ -287,7 +242,8 @@ public class AJModel {
 	}
 	
 	/**
-	 * Maps the given IProgramElement to its corresponding IJavaElement
+	 * Maps the given IProgramElement to its corresponding IJavaElement.
+	 * Note this does not work after reloading a persisted model.
 	 * @param ipe
 	 * @return
 	 */
@@ -295,9 +251,6 @@ public class AJModel {
 		IResource res = programElementToResource(ipe);
 		if (res!=null && (res instanceof IFile)) {
 			IFile file = (IFile)res;
-			//initForFile(file);
-			//System.out.println("ipe="+ipe+" ("+ipe.hashCode()+")");
-			//System.out.println("project="+file.getProject());
 			AJProjectModel pm = getModelForProject(file.getProject());
 			if (pm==null) {
 				return null;

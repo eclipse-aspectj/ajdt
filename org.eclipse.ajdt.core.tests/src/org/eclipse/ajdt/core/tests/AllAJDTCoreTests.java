@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.tests;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
+import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
@@ -38,6 +39,7 @@ public class AllAJDTCoreTests {
 		suite.addTest(new TestSuite(AJComparatorTest.class));
 		suite.addTest(new TestSuite(AJModelTest.class));
 		suite.addTest(new TestSuite(AJModelTest2.class));
+		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
 		
 		return suite;
