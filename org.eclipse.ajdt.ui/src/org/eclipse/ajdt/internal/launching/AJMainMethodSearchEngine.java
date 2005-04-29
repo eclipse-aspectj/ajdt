@@ -56,6 +56,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	public Object[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
 			IJavaSearchScope scope, int style, boolean includeSubtypes)
 			throws JavaModelException {
+		
 		pm.beginTask(
 				LauncherMessages.getString("MainMethodSearchEngine.1"), 200); //$NON-NLS-1$
 		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
@@ -195,7 +196,15 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 */
 	private List searchUnitsInPackage(IJavaSearchScope scope,
 			IPackageFragment packageFragment) throws JavaModelException {
-		return new ArrayList(getAllAspects(packageFragment));
+		List units = new ArrayList();
+		Set allAspects = getAllAspects(packageFragment);
+		for (Iterator iter = allAspects.iterator(); iter.hasNext();) {
+			IType type = (IType) iter.next();
+			if(scope.encloses(type)) {
+				units.add(type);
+			}
+		}
+		return units;
 	}
 
 	/**
@@ -216,7 +225,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
 	/**
 	 * Returns a Set containing all the Aspects in a package that are currently
-	 * active.
+	 * active and contain main types.
 	 * 
 	 * @param packageElement
 	 * @return Set of AJCompilationUnits

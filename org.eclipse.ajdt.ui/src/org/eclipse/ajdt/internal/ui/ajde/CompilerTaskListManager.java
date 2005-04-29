@@ -101,6 +101,7 @@ public class CompilerTaskListManager implements TaskListManager {
 
         problems.add(new ProblemTracker(message, location, kind));
  
+        
         // When will showMessages() get called if we are not 'finishing off a
         // compilation' - the reason this
         // is important is that when AJDE is asked to build a model of a lst

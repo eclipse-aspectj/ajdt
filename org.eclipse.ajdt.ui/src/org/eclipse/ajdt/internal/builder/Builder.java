@@ -68,7 +68,7 @@ public class Builder extends IncrementalProjectBuilder {
 		} else {
 			// prompt user
 			final boolean[] settings = new boolean[2];
-			Display.getDefault().syncExec(new Runnable() {
+			AspectJUIPlugin.getDefault().getDisplay().syncExec(new Runnable() {
 				public void run() {
 					MessageDialogWithToggle dialog = MessageDialogWithToggle
 							.openYesNoCancelQuestion(
@@ -81,7 +81,7 @@ public class Builder extends IncrementalProjectBuilder {
 									AspectJUIPlugin
 											.getResourceString("Builder.migration.toggle"), //$NON-NLS-1$
 									true, null, null);
-					System.out.println("ret: "+dialog.getReturnCode());
+//					System.out.println("ret: "+dialog.getReturnCode());
 					settings[0] = (dialog.getReturnCode() == IDialogConstants.YES_ID);
 					settings[1] = dialog.getToggleState();
 				}

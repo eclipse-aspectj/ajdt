@@ -14,20 +14,15 @@ package org.eclipse.ajdt.internal.launching;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.visualiser.StructureModelUtil;
+import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -36,10 +31,10 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
@@ -57,7 +52,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Shortcut to launching an aspectJ application. Extends
+ * Shortcut to launching an AspectJ application. Extends
  * JavaApplicationLaunchShortcut to enable the launch of main methods in both
  * Java classes and Aspects. Methods are partly copied from the super class.
  */
@@ -195,17 +190,7 @@ public class AspectJApplicationLaunchShortcut extends
 					fullyQualifiedName = ((IType) type).getFullyQualifiedName();
 					projectName = ((IType) type).getJavaProject()
 							.getElementName();
-				} else if (type instanceof Object[]) {
-					IProgramElement element = (IProgramElement) ((Object[]) type)[0];
-					IProject project = (IProject) ((Object[]) type)[1];
-					IJavaProject jp = JavaCore.create(project);
-					fullyQualifiedName = element.getPackageName()
-							+ "." + element.getName(); //$NON-NLS-1$
-					if (jp != null) {
-						projectName = jp.getElementName();
-					}
-				}
-
+				} 
 				if (config.getAttribute(
 						IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
 						"").equals(fullyQualifiedName)) { //$NON-NLS-1$
@@ -255,31 +240,6 @@ public class AspectJApplicationLaunchShortcut extends
 		ILaunchConfiguration config = null;
 		if (type instanceof IType) {
 			config = createConfigurationForIType((IType) type);
-		} else if (type instanceof Object[]) {
-			IProgramElement aspectElement = (IProgramElement) ((Object[]) type)[0];
-			IJavaProject jp = JavaCore.create((IProject) ((Object[]) type)[1]);
-			ILaunchConfigurationWorkingCopy wc = null;
-			try {
-				ILaunchConfigurationType configType = getAJLaunchConfigType();
-				wc = configType.newInstance(null, getLaunchManager()
-						.generateUniqueLaunchConfigurationNameFrom(
-								aspectElement.getName()));
-			} catch (CoreException exception) {
-				reportCreatingConfiguration(exception);
-				return null;
-			}
-			wc.setAttribute(
-					IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME,
-					aspectElement.getPackageName()
-							+ "." + aspectElement.getName()); //$NON-NLS-1$
-			wc.setAttribute(
-					IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, jp
-							.getElementName());
-			try {
-				config = wc.doSave();
-			} catch (CoreException exception) {
-				reportCreatingConfiguration(exception);
-			}
 		}
 		return config;
 	}
@@ -351,12 +311,8 @@ public class AspectJApplicationLaunchShortcut extends
 		} else if (input instanceof IFileEditorInput) {
 			IFile file = (IFile) input.getAdapter(IFile.class);
 			if (file.getFileExtension().equals(AJ_FILE_EXTENSION)) {
-				IProgramElement aspectElement = getAspectForFile(file);
-				if (aspectElement.isRunnable()) {
-					searchAndLaunch(new Object[] { new Object[] {
-							aspectElement, file.getProject() } }, mode, true);
-					error = false;
-				}
+				searchAndLaunch(new Object[] { AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file) }, mode, true);
+				error = false;				
 			}
 		}
 		if (error) {
@@ -372,76 +328,28 @@ public class AspectJApplicationLaunchShortcut extends
 	 * @param file
 	 * @return
 	 */
-	private IProgramElement getAspectForFile(IFile file) {
-		IProject project = file.getProject();
-		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-		if (!(configFile.equals(Ajde.getDefault().getConfigurationManager()
-				.getActiveConfigFile()))) {
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-					configFile);
-		}
-
-		List packages = StructureModelUtil.getPackagesInModel();
-
-		IPath path = file.getProjectRelativePath();
-		String pathStr = path.toString();
-		if (pathStr.endsWith("." + AJ_FILE_EXTENSION)) { //$NON-NLS-1$
-			pathStr = pathStr.substring(0, pathStr.length() - 3);
-		} else if (pathStr.endsWith("." + JAVA_FILE_EXTENSION)) { //$NON-NLS-1$
-			pathStr = pathStr.substring(0, pathStr.length() - 5);
-		}
-
-		Iterator it = packages.iterator();
-		while (it.hasNext()) {
-			Object[] progNodes = (Object[]) it.next();
-
-			IProgramElement packageNode = (IProgramElement) progNodes[0];
-
-			if (pathStr.indexOf(packageNode.getName().replace('.', '/')) != -1) {
-
-				Set temp = getAspectsInPackage(packageNode, project);
-				for (Iterator iter = temp.iterator(); iter.hasNext();) {
-					IProgramElement element = (IProgramElement) iter.next();
-					String pathString = element.getPackageName()
-							+ "." + element.getName(); //$NON-NLS-1$
-					pathString = pathString.replace('.', '/');
-					if (pathStr.endsWith(pathString)) {
-						return element;
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * @param packageNode
-	 * @return
-	 */
-	private Set getAspectsInPackage(IProgramElement packageNode,
-			IProject project) {
-		List files = StructureModelUtil.getFilesInPackage(packageNode);
-		Set aspects = new HashSet();
-		for (Iterator it = files.iterator(); it.hasNext();) {
-			IProgramElement fileNode = (IProgramElement) it.next();
-			if (fileNode.getKind().equals(IProgramElement.Kind.FILE_JAVA)
-					|| fileNode.getKind().equals(
-							IProgramElement.Kind.FILE_ASPECTJ)) {
-				List children = fileNode.getChildren();
-				for (Iterator iter = children.iterator(); iter.hasNext();) {
-					IProgramElement child = (IProgramElement) iter.next();
-					if (child != null
-							&& child.getKind().equals(
-									IProgramElement.Kind.ASPECT)) {
-						if (child.isRunnable()) {
-							aspects.add(child);
+	private List getMainTypesForFile(IFile file) {
+		List mainTypes = new ArrayList();
+		AJCompilationUnit element = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
+		try {
+			if (BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(element.getJavaProject()).getActiveBuildConfiguration().isIncluded(element.getCorrespondingResource())) {
+				IType[] types = element.getAllTypes();
+				for (int i = 0; i < types.length; i++) {
+					IType type = types[i];
+					IMethod[] methods = type.getMethods();
+					for (int j = 0; j < methods.length; j++) {
+						if(methods[j].isMainMethod()) {
+							mainTypes.add(type);
+							break;
 						}
 					}
 				}
 			}
+		} catch (JavaModelException e) {
 		}
-		return aspects;
+		return mainTypes;
 	}
+
 
 	/**
 	 * @see ILaunchShortcut#launch(ISelection, String)
@@ -455,16 +363,9 @@ public class AspectJApplicationLaunchShortcut extends
 				if (element instanceof IJavaElement) {
 					elements.add(element);
 				} else if (element instanceof IFile) {
-					IFile file = (IFile) element;
-					if (file.getFileExtension().equals(AJ_FILE_EXTENSION)
-							|| file.getFileExtension().equals(
-									JAVA_FILE_EXTENSION)) {
-						IProgramElement aspectElement = getAspectForFile(file);
-						if (aspectElement.isRunnable()) {
-							elements.add(new Object[] { aspectElement,
-									file.getProject() });
-						}
-					}
+					IFile file = (IFile)element;
+					List mainTypes = getMainTypesForFile(file);
+					elements.addAll(mainTypes);					
 				}
 			}
 			searchAndLaunch(elements.toArray(), mode, false);
