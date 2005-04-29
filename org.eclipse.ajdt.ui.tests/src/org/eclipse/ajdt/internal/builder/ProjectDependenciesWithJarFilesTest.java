@@ -19,9 +19,9 @@ import java.io.StringReader;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.refactoring.ReaderInputStream;
@@ -365,7 +365,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		AspectJPreferences.setProjectOutJar(projectY,outJar);
+		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 
 		// build the project so it picks up the outjar and sends 
@@ -398,7 +398,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertFalse("project X should not have a class folder dependency on project Y",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
-		AspectJPreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -514,7 +514,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		AspectJPreferences.setProjectOutJar(projectY,outJar);
+		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -543,7 +543,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		// now set the outjar option back to nothing and build projectY 
 		// to send output to bin directory rather than jar file
-		AspectJPreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -675,7 +675,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file mainWork.jar
 		// setup the outjar
 		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY);
-		AspectJPreferences.setProjectOutJar(projectY,outJar);
+		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -704,7 +704,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		// set project Y to send output to jar file newJar.jar
 		// setup the outjar
 		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY);
-		AspectJPreferences.setProjectOutJar(projectY,outJar2);
+		AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists());
 
@@ -734,7 +734,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
-		AspectJPreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,"");
 		Utils.waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -811,7 +811,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		
 		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY);
-		AspectJPreferences.setProjectOutJar(projectY,outJar);
+		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		Utils.waitForJobsToComplete();
 		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
@@ -892,12 +892,12 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		// sanity check on setup of projects....
 		
-		String outjar = AspectJPreferences.getProjectOutJar(jarCreatingProject);
+		String outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
 		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
 		if(outjar == null || !outjar.equals("myJar.jar")) {			
-			AspectJPreferences.setProjectOutJar(jarCreatingProject,jar);
+			AspectJCorePreferences.setProjectOutJar(jarCreatingProject,jar);
 		}
-		outjar = AspectJPreferences.getProjectOutJar(jarCreatingProject);
+		outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
 		assertEquals("the outjar should be called myjar.jar",jar,outjar);
 		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
 				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
