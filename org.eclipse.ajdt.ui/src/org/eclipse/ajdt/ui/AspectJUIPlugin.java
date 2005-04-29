@@ -27,6 +27,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.EclipseVersion;
+import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
@@ -680,6 +681,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
+		BuilderUtils.updateTypesCache(AspectJPlugin.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
 	}
