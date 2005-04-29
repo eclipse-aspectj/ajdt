@@ -37,28 +37,29 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testCreateElementFromHandle() throws Exception {
 		IProject project = createPredefinedProject("TJP Example");
-
-		// each entry in the array contains:
-		// <handle> <name of element> <containing resource> <class name of
-		// element>
-		// note that the elements referred to by the handles need to exist in
-		// the workspace
-		String[][] testHandles = {
-				{ "=TJP Example/src<tjp{Demo.java", "Demo.java", "Demo.java",
-						"CompilationUnit" },
-				{ "=TJP Example/src<tjp{Demo.java[Demo~main", "main",
-						"Demo.java", "SourceMethod" },
-				{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj",
-						"GetInfo.aj", "AJCompilationUnit" },
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo",
-						"GetInfo.aj", "AspectElement" },
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println", "println",
-						"GetInfo.aj", "SourceMethod" },
-				{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo&around", "around",
-						"GetInfo.aj", "AdviceElement" } };
-		compareWithHandles(testHandles);
-
-		deleteProject(project);
+		try {
+			// each entry in the array contains:
+			// <handle> <name of element> <containing resource> <class name of
+			// element>
+			// note that the elements referred to by the handles need to exist
+			// in the workspace
+			String[][] testHandles = {
+					{ "=TJP Example/src<tjp{Demo.java", "Demo.java",
+							"Demo.java", "CompilationUnit" },
+					{ "=TJP Example/src<tjp{Demo.java[Demo~main", "main",
+							"Demo.java", "SourceMethod" },
+					{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj",
+							"GetInfo.aj", "AJCompilationUnit" },
+					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo",
+							"GetInfo.aj", "AspectElement" },
+					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println",
+							"println", "GetInfo.aj", "SourceMethod" },
+					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo&around",
+							"around", "GetInfo.aj", "AdviceElement" } };
+			compareWithHandles(testHandles);
+		} finally {
+			deleteProject(project);
+		}
 	}
 
 	/**
@@ -69,38 +70,41 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testCreateElementFromHandle2() throws Exception {
 		IProject project = createPredefinedProject("Bean Example");
+		try {
+			String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
+			if ((EclipseVersion.MAJOR_VERSION == 3)
+					&& (EclipseVersion.MINOR_VERSION == 0)) {
+				// the handle identifiers for method signatures changed after
+				// eclipes 3.0: note the lack of escape character ~[QString;
+				// instead of ~\[QString;
+				methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
+			}
 
-		String methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~\\[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
-		if ((EclipseVersion.MAJOR_VERSION == 3)
-				&& (EclipseVersion.MINOR_VERSION == 0)) {
-			// the handle identifiers for method signatures changed after
-			// eclipes 3.0: note the lack of escape character ~[QString; instead
-			// of ~\[QString;
-			methodHandle = "=Bean Example/src<bean{Demo.java[Demo~main~[QString;?method-call(void bean.Point.setX(int))!37!0!0!0!I";
+			// each entry in the array contains:
+			// <handle> <name of element> <containing resource> <class name of
+			// element>
+			// note that the elements referred to by the handles need to exist
+			// in the workspace
+			String[][] testHandles = {
+					{ methodHandle, "method-call(void bean.Point.setX(int))",
+							"Demo.java", "AJCodeElement" },
+					{
+							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;",
+							"around", "BoundPoint.aj", "AdviceElement" },
+					{
+							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;",
+							"Point.hasListeners", "BoundPoint.aj",
+							"IntertypeElement" },
+					{
+							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents",
+							"declare parents", "BoundPoint.aj",
+							"DeclareElement" }
+
+			};
+			compareWithHandles(testHandles);
+		} finally {
+			deleteProject(project);
 		}
-
-		// each entry in the array contains:
-		// <handle> <name of element> <containing resource> <class name of
-		// element>
-		// note that the elements referred to by the handles need to exist in
-		// the workspace
-		String[][] testHandles = {
-				{ methodHandle, "method-call(void bean.Point.setX(int))",
-						"Demo.java", "AJCodeElement" },
-				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;",
-						"around", "BoundPoint.aj", "AdviceElement" },
-				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;",
-						"Point.hasListeners", "BoundPoint.aj", "IntertypeElement" },
-				{
-						"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents",
-						"declare parents", "BoundPoint.aj", "DeclareElement" }
-
-		};
-		compareWithHandles(testHandles);
-
-		deleteProject(project);
 	}
 
 	/**
@@ -112,12 +116,14 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testHandleCreateRoundtrip() throws Exception {
 		IProject project = createPredefinedProject("TJP Example");
-
-		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES };
-		compareElementsFromRelationships(rels, project);
-
-		deleteProject(project);
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES };
+			compareElementsFromRelationships(rels, project);
+		} finally {
+			deleteProject(project);
+		}
 	}
 
 	/**
@@ -129,15 +135,16 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testHandleCreateRoundtrip2() throws Exception {
 		IProject project = createPredefinedProject("Bean Example");
-
-		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY,
-				AJRelationshipManager.ADVISES,
-				AJRelationshipManager.DECLARED_ON,
-				AJRelationshipManager.ASPECT_DECLARATIONS };
-		compareElementsFromRelationships(rels, project);
-
-		deleteProject(project);
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES,
+					AJRelationshipManager.DECLARED_ON,
+					AJRelationshipManager.ASPECT_DECLARATIONS };
+			compareElementsFromRelationships(rels, project);
+		} finally {
+			deleteProject(project);
+		}
 	}
 
 	/**
@@ -149,17 +156,18 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testHandleCreateRoundtrip3() throws Exception {
 		IProject project = createPredefinedProject("MarkersTest");
-
-		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY,
-				AJRelationshipManager.ADVISES,
-				AJRelationshipManager.DECLARED_ON,
-				AJRelationshipManager.ASPECT_DECLARATIONS,
-				AJRelationshipManager.MATCHED_BY,
-				AJRelationshipManager.MATCHES_DECLARE };
-		compareElementsFromRelationships(rels, project);
-
-		deleteProject(project);
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES,
+					AJRelationshipManager.DECLARED_ON,
+					AJRelationshipManager.ASPECT_DECLARATIONS,
+					AJRelationshipManager.MATCHED_BY,
+					AJRelationshipManager.MATCHES_DECLARE };
+			compareElementsFromRelationships(rels, project);
+		} finally {
+			deleteProject(project);
+		}
 	}
 
 	/**
@@ -171,17 +179,18 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 */
 	public void testHandleCreateRoundtrip4() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example");
-
-		AJRelationshipType[] rels = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISED_BY,
-				AJRelationshipManager.ADVISES,
-				AJRelationshipManager.DECLARED_ON,
-				AJRelationshipManager.ASPECT_DECLARATIONS,
-				AJRelationshipManager.MATCHED_BY,
-				AJRelationshipManager.MATCHES_DECLARE };
-		compareElementsFromRelationships(rels, project);
-
-		deleteProject(project);
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES,
+					AJRelationshipManager.DECLARED_ON,
+					AJRelationshipManager.ASPECT_DECLARATIONS,
+					AJRelationshipManager.MATCHED_BY,
+					AJRelationshipManager.MATCHES_DECLARE };
+			compareElementsFromRelationships(rels, project);
+		} finally {
+			deleteProject(project);
+		}
 	}
 
 	private String getSimpleClassName(Object obj) {
@@ -197,21 +206,23 @@ public class AJCoreTest extends AJDTCoreTestCase {
 			IProject project) {
 		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
 		if (allRels.size() == 0) {
-			// if the project or model didn't build properly we'd get no relationships
+			// if the project or model didn't build properly we'd get no
+			// relationships
 			// and the test would blindly pass without this check
-			fail("No relationships found for project "+project.getName());
+			fail("No relationships found for project " + project.getName());
 		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
-			//System.out.println("rel: "+rel.getRelationship().getDisplayName());
+			// System.out.println("rel:
+			// "+rel.getRelationship().getDisplayName());
 			IJavaElement source = rel.getSource();
-			//System.out.println("source: " + source);
+			// System.out.println("source: " + source);
 			String sourceHandle = source.getHandleIdentifier();
-			//System.out.println("source handle: " + sourceHandle);
+			// System.out.println("source handle: " + sourceHandle);
 			IJavaElement recreated = AspectJCore.create(sourceHandle);
-			//System.out.println("recreated: " + recreated);
+			// System.out.println("recreated: " + recreated);
 			String recreatedHandle = recreated.getHandleIdentifier();
-			//System.out.println("recreated handle: " + recreatedHandle);
+			// System.out.println("recreated handle: " + recreatedHandle);
 
 			assertEquals(
 					"Handle identifier of created element doesn't match original",
