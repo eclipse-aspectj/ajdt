@@ -59,9 +59,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		model.createMap(project);
 
 		IFolder src = project.getFolder("src");
-		IFolder com = src.getFolder("com");
-		IFolder ibm = com.getFolder("ibm");
-		IFolder wpstest = ibm.getFolder("wpstest");
+		IFolder wpstest = src.getFolder("wpstest");
 		IFolder aspectjPackage = wpstest.getFolder("aspectj");
 		IFile main = aspectjPackage.getFile("Main.java");
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);

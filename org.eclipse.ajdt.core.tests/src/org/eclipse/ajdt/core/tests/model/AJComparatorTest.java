@@ -49,9 +49,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		model.createMap(project);
 
 		IFolder src = project.getFolder("src");
-		IFolder com = src.getFolder("com");
-		IFolder ibm = com.getFolder("ibm");
-		IFolder wpstest = ibm.getFolder("wpstest");
+		IFolder wpstest = src.getFolder("wpstest");
 		aspectjPackage = wpstest.getFolder("aspectj");
 	}
 
