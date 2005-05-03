@@ -476,7 +476,9 @@ public class AJProjectModel {
 				AJRelationshipManager.MATCHED_BY,
 				AJRelationshipManager.MATCHES_DECLARE,
 				AJRelationshipManager.ANNOTATES,
-				AJRelationshipManager.ANNOTATED_BY };
+				AJRelationshipManager.ANNOTATED_BY,
+				AJRelationshipManager.SOFTENS,
+				AJRelationshipManager.SOFTENED_BY};
 	
 		private Map relIDs;
 	
