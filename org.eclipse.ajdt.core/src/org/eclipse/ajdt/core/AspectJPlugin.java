@@ -99,6 +99,7 @@ public class AspectJPlugin extends Plugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		IncrementalStateManager.recordIncrementalStates=true;
+		IncrementalStateManager.debugIncrementalStates=true;
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
 				new CoreProjectProperties(), new CoreBuildOptions(),
