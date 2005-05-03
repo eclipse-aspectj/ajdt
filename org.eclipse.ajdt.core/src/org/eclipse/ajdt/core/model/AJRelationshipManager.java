@@ -42,5 +42,10 @@ public class AJRelationshipManager {
 		= new AJRelationshipType("annotates", AspectJPlugin.getResourceString("annotates.displayName"));
 	public static final AJRelationshipType ANNOTATED_BY 
 		= new AJRelationshipType("annotated_by", AspectJPlugin.getResourceString("annotated_by.displayName"));
+	public static final AJRelationshipType SOFTENS
+		= new AJRelationshipType("softens", AspectJPlugin.getResourceString("softens.displayName"));
+	public static final AJRelationshipType SOFTENED_BY
+		= new AJRelationshipType("softened_by", AspectJPlugin.getResourceString("softened_by.displayName"));
+	
 		
 }

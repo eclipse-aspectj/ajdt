@@ -133,6 +133,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ANNOTATED_BY);
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.DECLARED_ON);
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ASPECT_DECLARATIONS);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENS);
+			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENED_BY);
 			
 			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);

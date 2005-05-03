@@ -89,7 +89,8 @@ public class AdviceMarkerTest3 extends TestCase {
 				{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) }
 			},
 			{ // IAJModelMarker.SOURCE_ITD_MARKER
-				{ "declared on Demo", new Integer(25)},	
+				{ "declared on Demo", new Integer(25)},
+				{ "softens Demo.go()", new Integer(27)},
 				{ "declared on Demo", new Integer(29)},
 				{ "declared on Demo", new Integer(33)}
 			}//, // IAJModelMarker.ADVICE_MARKER

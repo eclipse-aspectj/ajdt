@@ -94,6 +94,8 @@ public class AJProjectModel {
 		kindMap.put(AsmRelationshipProvider.MATCHES_DECLARE, AJRelationshipManager.MATCHES_DECLARE);
 		kindMap.put(AsmRelationshipProvider.ANNOTATES, AJRelationshipManager.ANNOTATES);
 		kindMap.put(AsmRelationshipProvider.ANNOTATED_BY, AJRelationshipManager.ANNOTATED_BY);
+		kindMap.put(AsmRelationshipProvider.SOFTENS, AJRelationshipManager.SOFTENS);
+		kindMap.put(AsmRelationshipProvider.SOFTENED_BY, AJRelationshipManager.SOFTENED_BY);
 	}
 
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {

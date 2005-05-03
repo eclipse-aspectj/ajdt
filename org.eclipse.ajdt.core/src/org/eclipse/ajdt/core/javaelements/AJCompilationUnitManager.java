@@ -186,7 +186,7 @@ public class AJCompilationUnitManager {
 				createCU(f);
 			}
 			l.clear();
-		}
+		}		
 	}
 
 	private void addProjectToList(IProject project, List l) {

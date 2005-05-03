@@ -62,13 +62,13 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-
 /**
  * AspectJ Editor extends internal JDT editor in order to use our TextTools.
  * Better would be a clean interface in JDT to achieve the same effect. We also
  * override getAdapter( ) to plug-in the AspectJ-aware outline view.
  */
 public class AspectJEditor extends CompilationUnitEditor {
+	
 
 	public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor";
 
@@ -76,7 +76,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AnnotationAccessWrapper annotationAccessWrapper;
 
-	private static Set activeEditorList = new HashSet();
+	private static Set activeEditorList = new HashSet();	
 
 	private AspectJEditorErrorTickUpdater aspectJEditorErrorTickUpdater;
 

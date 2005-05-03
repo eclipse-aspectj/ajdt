@@ -74,7 +74,15 @@ public class MarkerUpdating {
 		int numMarkers = 0;
 		AJModel ajModel = AJModel.getInstance();
 		// Get all the relationships and sort by compilation unit..
-		List allRelationships = ajModel.getAllRelationships(project, new AJRelationshipType[] {AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES, AJRelationshipManager.ANNOTATED_BY, AJRelationshipManager.ANNOTATES, AJRelationshipManager.DECLARED_ON, AJRelationshipManager.ASPECT_DECLARATIONS});
+		List allRelationships = ajModel.getAllRelationships(project, new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY, 
+				AJRelationshipManager.ADVISES, 
+				AJRelationshipManager.ANNOTATED_BY, 
+				AJRelationshipManager.ANNOTATES, 
+				AJRelationshipManager.DECLARED_ON, 
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.SOFTENS,
+				AJRelationshipManager.SOFTENED_BY});
 		numMarkers = allRelationships.size();
 		Map CUsToListsOfRelationships = new HashMap();
 		for (Iterator iter = allRelationships.iterator(); iter.hasNext();) {
@@ -248,15 +256,15 @@ public class MarkerUpdating {
 			} else {
 				return IAJModelMarker.SOURCE_ADVICE_MARKER;				
 			}
-		} else if (type.equals(AJRelationshipManager.DECLARED_ON)) {
-			return IAJModelMarker.SOURCE_ITD_MARKER;
-		} else if (type.equals(AJRelationshipManager.ASPECT_DECLARATIONS)) {
+		} else if (type.equals(AJRelationshipManager.ASPECT_DECLARATIONS)
+				|| type.equals(AJRelationshipManager.ANNOTATED_BY) 
+				|| type.equals(AJRelationshipManager.SOFTENED_BY)) {
 			return IAJModelMarker.ITD_MARKER;
-		} else if (type.equals(AJRelationshipManager.ANNOTATED_BY)) {
-			return IAJModelMarker.ITD_MARKER;
-		} else if (type.equals(AJRelationshipManager.ANNOTATES)) {
+		} else if (type.equals(AJRelationshipManager.DECLARED_ON)
+				|| type.equals(AJRelationshipManager.ANNOTATES)
+				|| type.equals(AJRelationshipManager.SOFTENS)) {
 			return IAJModelMarker.SOURCE_ITD_MARKER;
-		}		
+		}
 		return IAJModelMarker.ADVICE_MARKER;
 	}
 
