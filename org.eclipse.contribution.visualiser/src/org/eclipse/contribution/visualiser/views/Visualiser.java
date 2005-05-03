@@ -41,7 +41,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
-//import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;

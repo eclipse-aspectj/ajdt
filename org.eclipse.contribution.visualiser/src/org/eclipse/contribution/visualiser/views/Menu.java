@@ -55,7 +55,6 @@ import org.eclipse.ui.progress.UIJob;
  * The Menu part of the Visualiser.  
  * Displays Markup kinds, colour selection buttons and checkboxes.
  */
-
 public class Menu extends ViewPart {
 
 	private IAction selectNoneAction;
