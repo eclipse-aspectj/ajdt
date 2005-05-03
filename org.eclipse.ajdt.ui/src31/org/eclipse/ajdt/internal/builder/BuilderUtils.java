@@ -19,7 +19,8 @@ import java.util.List;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.ajdt.internal.ui.dialogs.AJCUTypeInfo;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.internal.jobs.JobStatus;
@@ -53,7 +54,7 @@ public class BuilderUtils {
 	public static void updateTypesCache(final IJavaProject jp) {
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				long startTime = System.currentTimeMillis();
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE);
 				try {
 					List cus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
 					List types = getTypeInfosForProject(jp);
@@ -89,9 +90,7 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				long endTime = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				AJDTEventTrace.generalEvent("Updating types cache took " + totalTime + "ms");
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
 		};
@@ -118,7 +117,7 @@ public class BuilderUtils {
 		}
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				long startTime = System.currentTimeMillis();
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE);
 				List allTypes = new ArrayList();
 				try {
 					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
@@ -159,10 +158,7 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				long endTime = System.currentTimeMillis();
-				long totalTime = endTime - startTime;
-				AJDTEventTrace.generalEvent("Updating types cache took " + totalTime + "ms");					
-			
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}			
 			

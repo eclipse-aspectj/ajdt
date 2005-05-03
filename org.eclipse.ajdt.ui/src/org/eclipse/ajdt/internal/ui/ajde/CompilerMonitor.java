@@ -19,6 +19,8 @@ import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -41,8 +43,6 @@ import org.eclipse.core.runtime.Path;
  * the compilation is done asynchronously once the AJC compiler is started.
  */
 public class CompilerMonitor implements IAJCompilerMonitor {
-
-    private long compileStartTime;
 
     private boolean reportedCompiledMessages;
 
@@ -119,7 +119,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                     AspectJUIPlugin.PROGRESS_MONITOR_MAX);
         }
 
-        compileStartTime = System.currentTimeMillis();
+        AJLog.logStart(TimerLogEvent.FIRST_COMPILED);
+        AJLog.logStart(TimerLogEvent.FIRST_WOVEN);
         reportedCompiledMessages = false;
         reportedWovenMessages = false;
         compilationInProgress = true;
@@ -172,13 +173,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     public void setProgressText(String text) {
         if (!reportedCompiledMessages && text.startsWith("compiled: ")) {
             reportedCompiledMessages = true;
-            AJDTEventTrace.generalEvent("Time to first 'compiled:' message: "
-                    + (System.currentTimeMillis() - compileStartTime) + "ms");
+            AJLog.logEnd(TimerLogEvent.FIRST_COMPILED);
         }
         if (!reportedWovenMessages && text.startsWith("woven ")) {
             reportedWovenMessages = true;
-            AJDTEventTrace.generalEvent("Time to first 'woven' message: "
-                    + (System.currentTimeMillis() - compileStartTime) + "ms");
+            AJLog.logEnd(TimerLogEvent.FIRST_WOVEN);
         }
 
         // Three messages are caught here:

@@ -40,6 +40,7 @@ import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -114,7 +115,9 @@ public class AJProjectModel {
 		if (!getPersistence().isPersisted()) {
 			return;
 		}
+		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel();
+		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,project.getName());
 		if (!worked) {
 			AJLog.log("Loading model failed for project: "+project.getName());
 		}

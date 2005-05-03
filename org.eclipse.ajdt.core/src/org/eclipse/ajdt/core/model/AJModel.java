@@ -23,6 +23,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 //import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -75,20 +76,17 @@ public class AJModel {
 	}
 
 	private AJProjectModel getModelForProject(IProject project) {
-		if (AspectJPlugin.isAJProject(project)) {
-			AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
-			if (pm != null) {
-				return pm;
-			}
-			AJLog.log("No current AJ model for project " + project.getName());
-			AJProjectModel projectModel = new AJProjectModel(project);
-			projectModelMap.put(project, projectModel);
-			projectModel.loadModel();
-			AJLog.log("Loaded serialized AJ model for project "
-					+ project.getName());
-			return projectModel;
+		if (!AspectJPlugin.isAJProject(project)) {
+			return null;
 		}
-		return null;
+		AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
+		if (pm != null) {
+			return pm;
+		}
+		AJProjectModel projectModel = new AJProjectModel(project);
+		projectModelMap.put(project, projectModel);
+		projectModel.loadModel();
+		return projectModel;
 	}
 		
 	/**
@@ -173,9 +171,10 @@ public class AJModel {
 		try {
 			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
+					AJLog.logStart(TimerLogEvent.CREATE_MODEL);
 					projectModel.createProjectMap();
 					long elapsed = System.currentTimeMillis() - start;
-					AJLog.log("Created AJDT relationship map for project "+project.getName()+" in "+elapsed+"ms");
+					AJLog.logEnd(TimerLogEvent.CREATE_MODEL,project.getName());
 				}
 			}, null);
 		} catch (CoreException coreEx) {

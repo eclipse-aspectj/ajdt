@@ -13,7 +13,6 @@
 package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -27,8 +26,9 @@ import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.core.ICoreOperations;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -66,7 +66,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		public void buildSuccessful(boolean arg0) {
-			AJLog.log("Aspectj reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL"));
+			AJLog.log("AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL"));
 		}};
 	  AjState.stateListener = isl;
 	}
@@ -115,7 +115,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
 		this.progressMonitor = progressMonitor;
-		long buildstarttime = System.currentTimeMillis();
+		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
 		IProject project = getProject();
 		AspectJPlugin.getDefault().setCurrentProject(project);
 		AJModel.getInstance().aboutToBuild(project);
@@ -203,14 +203,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		lastBuiltProject = project;
 		
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-		long beforeAjdeCall = System.currentTimeMillis();
+		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
 		if (kind == FULL_BUILD) {
 			buildManager.buildFresh(configFile);
 		} else {
 			buildManager.build(configFile);
 		}
 		waitForBuildCompletion(compilerMonitor);
-		AJLog.log("Time spent in ajde = "+(System.currentTimeMillis()-beforeAjdeCall)+"ms");		
+		AJLog.logEnd(TimerLogEvent.TIME_IN_AJDE);
 		
 		// We previously refreshed the project to infinite depth to pickup
 		// generated artifacts, but this can be very slow and isn't generally
@@ -236,9 +236,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJModel.getInstance().createMap(project);
 		postCallListeners(false);
 		
-		AJLog.log("Time spent in build() = "
-				+ (System.currentTimeMillis() - buildstarttime) + "ms");
-	
+		AJLog.logEnd(TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
 	}
 

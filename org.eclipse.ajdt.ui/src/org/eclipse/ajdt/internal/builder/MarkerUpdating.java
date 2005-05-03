@@ -23,7 +23,8 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IMarker;
@@ -68,8 +69,8 @@ public class MarkerUpdating {
 	/**
 	 * Add new advice markers to a project
 	 */
-	public static void addNewMarkers(final IProject project) {	
-		long startTime = System.currentTimeMillis();
+	public static void addNewMarkers(final IProject project) {
+		AJLog.logStart(TimerLogEvent.ADD_MARKERS);
 		int numMarkers = 0;
 		AJModel ajModel = AJModel.getInstance();
 		// Get all the relationships and sort by compilation unit..
@@ -118,9 +119,7 @@ public class MarkerUpdating {
 				createMarkers(lineNum.intValue(), cu.getResource(), relationshipsForLine);
 			}
 		}
-		long endTime = System.currentTimeMillis();
-		long timeTaken = endTime - startTime;
-		AJDTEventTrace.generalEvent("Added " + numMarkers + " markers in " + timeTaken + " ms");
+		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers");
 	}
 		
 
