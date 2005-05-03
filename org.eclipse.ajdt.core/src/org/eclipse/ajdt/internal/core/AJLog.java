@@ -51,6 +51,7 @@ public class AJLog {
 			} else {
 				log("Timer event: "+elapsed + "ms: "+event);
 			}
+			timers.remove(event);
 		}
 	}
 	

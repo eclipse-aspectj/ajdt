@@ -81,6 +81,9 @@ public class AJProjectModel {
 
 	private Persistence persistence;
 	
+	// only for information/diagnosis purposes
+	private int relsCount;
+	
 	public AJProjectModel(IProject project) {
 		this.project = project;
 
@@ -119,8 +122,8 @@ public class AJProjectModel {
 		}
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel();
-		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,project.getName());
-		if (!worked) {
+		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName());
+		if (!worked && getPersistence().isPersisted()) {
 			AJLog.log("Loading model failed for project: "+project.getName());
 		}
 		return;
@@ -221,6 +224,7 @@ public class AJProjectModel {
 	}
 
 	public void createProjectMap() {
+		AJLog.logStart(TimerLogEvent.CREATE_MODEL);
 		try {
 			project.accept(new IResourceVisitor() {
 				public boolean visit(IResource resource) {
@@ -240,10 +244,13 @@ public class AJProjectModel {
 		} catch (CoreException coreEx) {
 		}
 		processRelationships();
+		AJLog.logEnd(TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName());
+
 		// dumpModel();
 	}
 
 	private void processRelationships() {
+		relsCount = 0;
 		IRelationshipMap asmRelMap = AsmManager.getDefault()
 				.getRelationshipMap();
 		for (Iterator iter = asmRelMap.getEntries().iterator(); iter.hasNext();) {
@@ -314,6 +321,7 @@ public class AJProjectModel {
 									relMap.put(sourceEl, l);
 								}
 								l.add(targetEl);
+								relsCount++;
 							}
 						}
 					}
@@ -478,7 +486,7 @@ public class AJProjectModel {
 				AJRelationshipManager.ANNOTATES,
 				AJRelationshipManager.ANNOTATED_BY,
 				AJRelationshipManager.SOFTENS,
-				AJRelationshipManager.SOFTENED_BY};
+				AJRelationshipManager.SOFTENED_BY };
 	
 		private Map relIDs;
 	
@@ -683,6 +691,7 @@ public class AJProjectModel {
 	
 		void loadRelationships(ObjectInputStream ois) throws IOException,
 			ClassNotFoundException {
+			relsCount = 0;
 			int numRelTypes = ois.readInt();
 			//System.out.println("num rel types=" + numRelTypes);
 	
@@ -727,6 +736,7 @@ public class AJProjectModel {
 						//IJavaElement targetEl = AspectJCore.create(targetHandle);
 						//System.out.println("target: " + targetEl);
 						l.add(targetEl);
+						relsCount++;
 					}
 				}
 			}

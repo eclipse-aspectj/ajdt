@@ -20,10 +20,8 @@ import java.util.Map;
 import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
-//import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.CoreUtils;
-import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -171,10 +169,7 @@ public class AJModel {
 		try {
 			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
-					AJLog.logStart(TimerLogEvent.CREATE_MODEL);
 					projectModel.createProjectMap();
-					long elapsed = System.currentTimeMillis() - start;
-					AJLog.logEnd(TimerLogEvent.CREATE_MODEL,project.getName());
 				}
 			}, null);
 		} catch (CoreException coreEx) {
