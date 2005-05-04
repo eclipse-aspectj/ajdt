@@ -74,7 +74,7 @@ public class AJModel {
 	}
 
 	private AJProjectModel getModelForProject(IProject project) {
-		if (!AspectJPlugin.isAJProject(project)) {
+		if ((project==null) || !project.isAccessible() || !AspectJPlugin.isAJProject(project)) {
 			return null;
 		}
 		AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
@@ -126,18 +126,26 @@ public class AJModel {
 		if (jp==null) {
 			return false;
 		}
-		IProject project = jp.getProject();
-		if (project==null) {
-			return false;
-		}
-		if (!project.isAccessible()) {
-			return false;
-		}
-		AJProjectModel pm = getModelForProject(project);
+		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return false;
 		}
 		return pm.isAdvised(je);
+	}
+	
+	public boolean hasRuntimeTest(IJavaElement je) {
+		if (je==null) {
+			return false;
+		}
+		IJavaProject jp= je.getJavaProject();
+		if (jp==null) {
+			return false;
+		}
+		AJProjectModel pm = getModelForProject(jp.getProject());
+		if (pm==null) {
+			return false;
+		}
+		return pm.hasRuntimeTest(je);
 	}
 	
 	public List getExtraChildren(IJavaElement je) {
@@ -148,14 +156,7 @@ public class AJModel {
 		if (jp==null) {
 			return null;
 		}
-		IProject project = jp.getProject();
-		if (project==null) {
-			return null;
-		}
-		if (!project.isAccessible()) {
-			return null;
-		}
-		AJProjectModel pm = getModelForProject(project);
+		AJProjectModel pm = getModelForProject(jp.getProject());
 		if (pm==null) {
 			return null;
 		}

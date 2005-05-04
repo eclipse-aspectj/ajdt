@@ -63,15 +63,7 @@ public class AdviceElement extends AspectJMemberElement implements IAspectJEleme
 			buffer.append(this.occurrenceCount);
 		}
 	}
-	
-	public boolean hasRuntimeTest() {
-		return runtimeTest;
-	}
-	
-	public void setHasRuntimeTest(boolean runtimeTest) {
-		this.runtimeTest = runtimeTest;
-	}
-	
+		
 	/**
 	 * @see JavaElement#getHandleMemento()
 	 */

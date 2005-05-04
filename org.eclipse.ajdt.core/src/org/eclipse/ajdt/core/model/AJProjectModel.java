@@ -20,6 +20,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,12 @@ public class AJProjectModel {
 
 	private Map extraChildren = new HashMap();
 
+	// remember those AdviceElements which are the source of relationships
+	// with a runtime test. This information can be determined from the
+	// relationship map, but it is used by the workbench image decorator so is
+	// stored separately for performance
+	private Set hasRuntime = new HashSet();
+	
 	// map IJavaElement to Integer line number
 	private Map lineNumbers = new HashMap();
 
@@ -207,6 +214,16 @@ public class AJProjectModel {
 		return false;
 	}
 
+	/**
+	 * Returns true if this element (such as an AdviceElement) is the source
+	 * of a relationship
+	 * @param je
+	 * @return
+	 */
+	public boolean hasRuntimeTest(IJavaElement je) {
+		return hasRuntime.contains(je);
+	}
+	
 	public int getJavaElementLineNumber(IJavaElement je) {
 		Integer i = (Integer) lineNumbers.get(je);
 		if (i != null) {
@@ -305,7 +322,9 @@ public class AJProjectModel {
 							// + " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
 								if(sourceEl instanceof AdviceElement) {
-									((AdviceElement)sourceEl).setHasRuntimeTest(rel.hasRuntimeTest());
+									if (rel.hasRuntimeTest()) {
+										hasRuntime.add(sourceEl);
+									}
 								}
 								
 								Map perRelMap = rel.hasRuntimeTest() ? perRelMaps[0]
@@ -719,7 +738,10 @@ public class AJProjectModel {
 					IJavaElement sourceEl = (IJavaElement) elementList
 							.get(sourceID);
 					//System.out.println("source: " + sourceEl);
-	
+					if (hasRuntimeTest(relType)) {
+						hasRuntime.add(sourceEl);
+					}
+					
 					List l = (List) relMap.get(sourceEl);
 					if (l == null) {
 						l = new ArrayList();

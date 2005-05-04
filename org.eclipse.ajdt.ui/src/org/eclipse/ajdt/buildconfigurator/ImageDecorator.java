@@ -125,17 +125,17 @@ public class ImageDecorator implements ILabelDecorator {
 				IProgramElement.Accessibility acceb = ajElem.getAJAccessibility();
 				AJDTIcon icon;
 				if (acceb == null){
-					if (ajElem.getAJKind() == IProgramElement.Kind.ADVICE)
-						icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), ((AdviceElement)ajElem).hasRuntimeTest());
-					else
+					if (ajElem instanceof AdviceElement) {						
+						icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
+					} else {
 						icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
-				}else
+					}
+				} else {
 					icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
-				
+				}
 				if (icon != null){
 					img = getImageLabel(getJavaImageDescriptor(icon.getImageDescriptor(), image.getBounds(), computeJavaAdornmentFlags(ajElem)));
-				}
-			
+				}			
 			} catch (JavaModelException e) {
 			}
 		} else if (element instanceof IFile){
