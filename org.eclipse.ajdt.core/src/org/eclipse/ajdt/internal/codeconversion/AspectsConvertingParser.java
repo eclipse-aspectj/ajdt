@@ -91,7 +91,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 	private boolean insideAspect;
 
 	private boolean insideAspectDeclaration;
-
+	
 	public class Replacement {
 		//the position in the original char[]
 		public int posBefore;
@@ -137,6 +137,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 		insidePointcutDesignator = false;
 		insideAspect = false;
 		insideAspectDeclaration = false;
+		boolean insideBlock = false;
 		replacements.clear();
 		typeReferences.clear();
 		usedIdentifiers.clear();
@@ -189,6 +190,8 @@ public class AspectsConvertingParser implements TerminalTokens {
 			case TokenNameCOLON:
 				if (!insideAspect)
 					break;
+				if (insideBlock)
+					break;
 				startPointcutDesignator();
 				break;
 
@@ -216,8 +219,11 @@ public class AspectsConvertingParser implements TerminalTokens {
 								tjpRefs2);
 				}
 				insideAspectDeclaration = false;
+				insideBlock = true;
 				break;
-
+			case TokenNameRBRACE:
+				insideBlock = false;
+				break;
 			case TokenNameaspect:
 				insideAspect = true;
 				insideAspectDeclaration = true;

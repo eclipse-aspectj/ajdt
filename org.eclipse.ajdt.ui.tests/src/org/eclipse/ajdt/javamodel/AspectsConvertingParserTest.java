@@ -83,6 +83,18 @@ public class AspectsConvertingParserTest extends AbstractTestCase {
 			fail("Some pointcut designators have not been removed.");
 	}
 
+	public void testBug93248() {
+		String statement = "System.out.println(true?\"foo\":\"bar\");";
+		char[] testContent = ("public aspect ABC {\npublic static void main(String[] args) {\n"
+				+ statement + "\n}\n}").toCharArray();
+		AspectsConvertingParser pars = new AspectsConvertingParser(testContent);
+		pars.convert(ConversionOptions.STANDARD);
+		String converted = new String(pars.content);
+		if (converted.indexOf(statement) == -1) {
+			fail("Regression of bug 93248: tertiary operator breaks organise imports");
+		}
+	}
+	
 	/*
 	 * Class under test for int findPrevious(char, char[], int)
 	 */
