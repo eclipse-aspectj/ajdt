@@ -186,7 +186,11 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			String[] parameters = new String[params.size()];
 			params.toArray(parameters);
 			JavaElement itd = new DeclareElement(this, name, parameters);
-			return itd.getHandleFromMemento(memento, workingCopyOwner);
+			if (token.charAt(0) == JavaElement.JEM_COUNT) {
+				return itd.getHandleFromMemento(token, memento, workingCopyOwner);
+			} else {
+				return itd.getHandleFromMemento(memento, workingCopyOwner);
+			}
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}

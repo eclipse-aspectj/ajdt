@@ -99,6 +99,10 @@ public class AJCoreTest extends AJDTCoreTestCase {
 					{
 							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents",
 							"declare parents", "BoundPoint.aj",
+							"DeclareElement" },
+					{
+							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents!2",
+							"declare parents", "BoundPoint.aj",
 							"DeclareElement" }
 
 			};

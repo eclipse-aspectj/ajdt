@@ -56,6 +56,9 @@ aspect BoundPoint {
 
   declare parents: Point implements Serializable;
 
+  // added to test handle identifiers for multiple declare parents
+  declare parents: Demo implements Serializable; 
+
   /**
    * Pointcut describing the set<property> methods on Point.
    * (uses a wildcard in the method name)
