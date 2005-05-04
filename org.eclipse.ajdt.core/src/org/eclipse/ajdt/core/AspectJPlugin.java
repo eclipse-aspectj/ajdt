@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.builder.CoreErrorHandler;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.core.builder.CoreTaskListManager;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
+import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.IAJLogger;
 import org.eclipse.ajdt.internal.core.ICoreOperations;
@@ -111,6 +112,8 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		super.stop(context);
+		
+		AJModel.getInstance().saveAllModels();
 	}
 
 	/**
