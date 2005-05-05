@@ -24,7 +24,6 @@ import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -134,14 +133,5 @@ public class BuilderMigrationPage extends WizardPage {
 		// have allocated enough work time to remove builder from
 		// every project - need to tell the monitor have worked the difference
 		monitor.worked(ajProjects.size() - projectsToRemoveBuilderFrom.size());
-	}
-	
-	private class AJProjectListLabelProvider extends LabelProvider {
-	    public String getText(Object element) {
-	        if (element instanceof IProject) {
-                return ((IProject)element).getName();
-            }
-	    	return element.toString();
-	    }
 	}
 }

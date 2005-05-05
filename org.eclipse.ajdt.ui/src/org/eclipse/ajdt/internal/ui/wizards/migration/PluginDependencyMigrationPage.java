@@ -27,7 +27,6 @@ import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.pde.core.plugin.IPluginImport;
@@ -188,14 +187,5 @@ public class PluginDependencyMigrationPage extends WizardPage {
 							AspectJUIPlugin
 									.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
 		}
-	}
-	
-	private class AJProjectListLabelProvider extends LabelProvider {
-	    public String getText(Object element) {
-	        if (element instanceof IProject) {
-                return ((IProject)element).getName();
-            }
-	    	return element.toString();
-	    }
 	}
 }

@@ -38,7 +38,6 @@ import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.CheckedListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -108,15 +107,6 @@ public class RenameFileExtensionsPage extends WizardPage {
             convertAspectsToAJAndOthersToJava(true,true, project, monitor); 
         }
 		AspectJUIPlugin.getDefault().enableBuildConfiguratorResourceChangeListener();
-	}
-		
-	private class AJProjectListLabelProvider extends LabelProvider {
-	    public String getText(Object element) {
-	        if (element instanceof IProject) {
-                return ((IProject)element).getName();
-            }
-	    	return element.toString();
-	    }
 	}
 
 	public static void convertAspectsToAJAndOthersToJava(
