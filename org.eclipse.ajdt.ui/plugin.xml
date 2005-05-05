@@ -391,7 +391,7 @@
       <editor
             name="%ajEditor"
             icon="icons/jdt/jcu_obj.gif"
-            extensions="aj"
+            extensions="aj, java"
             contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">

@@ -30,7 +30,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IProblemRequestor;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
@@ -48,6 +52,7 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -108,7 +113,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
 
-	private AJCompilationUnitAnnotationModel annotationModel;
+	private IAnnotationModel annotationModel;
 
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
@@ -352,41 +357,55 @@ public class AspectJEditor extends CompilationUnitEditor {
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 		if(annotationModel != null) {
+			if(annotationModel instanceof CompilationUnitAnnotationModelWrapper) {
+				((CompilationUnitAnnotationModelWrapper)annotationModel).setDelegate(getSourceViewer().getAnnotationModel());
+			}
+			if(fGlobalAnnotationModelListener == null) {
+				fGlobalAnnotationModelListener = new AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener();
+				fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
+			}
+			annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);			
 			IDocument document = getDocumentProvider().getDocument(getEditorInput());
 			ISourceViewer sourceViewer= getSourceViewer();		
 			sourceViewer.setDocument(document, annotationModel);
-		}
+			getDocumentProvider().getAnnotationModel(getEditorInput()).connect(document);
+		} 
 	}
 	
 	public void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
-
+			ICompilationUnit unit = null;
 			//in case it is a .aj file, we need to register it in the
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
-				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
+				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
 		
 				if (unit != null){
-				isEditingAjFile = true;
-
-				//TODO: if we want to get errors/warnings markers from the
-				//parser, pass the appropriate ProblemRequestor instead of null
-				annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
-				annotationModel.setCompilationUnit(unit);
-				unit.becomeWorkingCopy(annotationModel, null);
-				if(fGlobalAnnotationModelListener == null) {
-					fGlobalAnnotationModelListener = new AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener();
-					fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
+					isEditingAjFile = true;
+	
+					aspectJEditorErrorTickUpdater.updateEditorImage(unit);	
+					annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
+					((AJCompilationUnitAnnotationModel)annotationModel).setCompilationUnit(unit);
+					
 				}
-				annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);
+			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
+					.getFile().getName())){
+				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
+				annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
+			}
+			
+						
+			if(annotationModel != null) {
+				if(unit instanceof CompilationUnit) {
+					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
+				}
+				unit.becomeWorkingCopy((IProblemRequestor)annotationModel, null);
 				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
-				}
-				aspectJEditorErrorTickUpdater.updateEditorImage(unit);				
 			}
 
 			AJDTEventTrace.editorOpened(fInput.getFile());
