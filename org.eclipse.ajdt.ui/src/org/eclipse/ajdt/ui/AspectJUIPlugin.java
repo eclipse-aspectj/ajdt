@@ -267,6 +267,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	public static final String ACCKIND_ATTRIBUTE = "acckind";
 
+	// have we run the migration wizard for this workspace or for this session?
+	private static boolean migrationWizardRun = false;
+	
+	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
+	
 	/**
 	 * Return the single default instance of this plugin
 	 */
@@ -667,17 +672,30 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		checkEclipseVersion();
 
 		AJDTEventTrace.startup();
+		// get the previous aj version before calling checkAspectJVersion() because
+		// this method sets the store value - need to know for migration wizard if this
+		// is the first time AJDT has been installed.
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		String previousAJVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
+		
 		checkAspectJVersion();
 
 		// don't want to check on startup for .aj resource filter
 		// because handled by the migration wizard
 		// FileFilter.checkIfFileFilterEnabledAndAsk();
 
-		// Find out whether or not we have migrated this workspace.
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
-	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-	    setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
+		// Find out whether or not we have migrated this workspace.		
+	    
+	    // If this is the first install of AJDT, then don't want to run
+	    // the migration wizard.
+	    if (previousAJVersion.equals("")) {  //$NON-NLS-1$
+	        store.setValue(NEVER_RUN_MIGRATION_WIZARD,true); 
+            setMigrationWizardHasRun(true);
+        } else {
+	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
+    	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
+    	    setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
+        }
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
@@ -686,9 +704,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		AJDTUtils.refreshPackageExplorer();
 	}
 
-	// have we run the migration wizard for this workspace or for this session?
-	private static boolean migrationWizardRun = false;
-	
 	public static boolean migrationWizardHasRun() {
 		// TODO: activate the migration wizard when ready
 	    return true; //migrationWizardRun;

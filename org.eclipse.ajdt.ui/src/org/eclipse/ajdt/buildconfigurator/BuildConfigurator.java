@@ -75,6 +75,13 @@ public class BuildConfigurator implements ISelectionListener {
 	public void selectionChanged(IWorkbenchPart action, ISelection selection) {
 		IResource res;
 		IProject selectedProj;
+		// Run migration wizard if we haven't before 
+		if(!AspectJUIPlugin.getDefault().getPreferenceStore()
+	        	.getBoolean(AspectJUIPlugin.NEVER_RUN_MIGRATION_WIZARD)
+		        && !AspectJUIPlugin.migrationWizardHasRun() ) {
+			AJDTUtils.migrateWorkbench();
+			AspectJUIPlugin.setMigrationWizardHasRun(true);
+		}
 		if (action instanceof IEditorPart) {
 			res = (IResource) ((IEditorPart) action).getEditorInput()
 					.getAdapter(IResource.class);
@@ -90,11 +97,7 @@ public class BuildConfigurator implements ISelectionListener {
 			fileList = null;
 			currentProj = selectedProj;
 			if (canManage(currentProj)){
-				// Run migration wizard if we haven't before
-				if(!AspectJUIPlugin.migrationWizardHasRun()) {
-					AJDTUtils.migrateWorkbench();
-					AspectJUIPlugin.setMigrationWizardHasRun(true);
-				}
+				
 				PropertyPageManager.unregisterJDTPropertyPage();
 			} else {
 				if (currentProj.isOpen())
