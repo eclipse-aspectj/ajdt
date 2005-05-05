@@ -12,7 +12,6 @@ package org.eclipse.ajdt.examples;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -22,9 +21,6 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-
-import org.eclipse.swt.widgets.Display;
-
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -32,7 +28,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -119,14 +115,6 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 		if (res != null) {
 			openResource(res);
 		}
-		
-		// Check we've done the config ...
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				AJDTUtils.verifyWorkbenchConfiguration();
-			}
-		});
-		
 		return true;
 	}
 	

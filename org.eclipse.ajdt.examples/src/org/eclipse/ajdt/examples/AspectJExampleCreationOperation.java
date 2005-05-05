@@ -85,8 +85,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		} finally {
 			monitor.done();
 		}
-		// Check we've done the config ...
-		AJDTUtils.verifyWorkbenchConfiguration();
 	}
 
 	public IResource getElementToOpen() {
