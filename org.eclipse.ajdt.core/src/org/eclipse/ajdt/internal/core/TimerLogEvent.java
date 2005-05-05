@@ -22,5 +22,6 @@ public class TimerLogEvent {
 	public static final String FIRST_WOVEN = "Time to first woven message";
 	public static final String TIME_IN_AJDE = "Total time spent in AJDE";
 	public static final String ADD_MARKERS = "Add markers";
-	public static final String UPDATE_TYPES_CACHE = "Update types cache";
+	public static final String UPDATE_TYPES_CACHE_FOR_PROJECT = "Update types cache for project ";
+	public static final String UPDATE_TYPES_CACHE_FOR_WORKSPACE = "Update types cache for the workspace";
 }

@@ -54,9 +54,8 @@ public class BuilderUtils {
 	public static void updateTypesCache(final IJavaProject jp) {
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
 				try {
-					List cus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
 					List types = getTypeInfosForProject(jp);
 					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
 					List typeList = new ArrayList(Arrays.asList(type));
@@ -90,7 +89,7 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
 		};
@@ -117,7 +116,7 @@ public class BuilderUtils {
 		}
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
 				List allTypes = new ArrayList();
 				try {
 					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
@@ -158,7 +157,7 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}			
 			

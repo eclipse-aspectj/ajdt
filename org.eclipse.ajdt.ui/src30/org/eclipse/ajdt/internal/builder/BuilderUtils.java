@@ -48,12 +48,12 @@ public class BuilderUtils {
 	 * Starts a job that updates JDT's all types cache with the 
 	 * types (but not aspects) contained in .aj files in the given 
 	 * java project (jp).
-	 * @param jp 
+	 * @param jp
 	 */
 	public static void updateTypesCache(final IJavaProject jp) {
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
 				try {
 					List types = getTypeInfosForProject(jp);
 					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
@@ -88,11 +88,9 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
-
-			
 		};
 		updateJob.setRule(jp.getProject());
 		updateJob.setSystem(true);
@@ -117,7 +115,7 @@ public class BuilderUtils {
 		}
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
-				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
 				List allTypes = new ArrayList();
 				try {
 					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
@@ -158,7 +156,7 @@ public class BuilderUtils {
 				} catch (InvocationTargetException e) {			
 				} catch (IllegalAccessException e) {			
 				}
-				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE);
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}			
 			
