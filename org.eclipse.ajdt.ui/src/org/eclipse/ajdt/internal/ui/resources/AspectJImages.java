@@ -234,6 +234,8 @@ public class AspectJImages extends AbstractIconRegistry {
 		return instance;	
 	}
 
+	private AspectJImages(){}
+	
 	// Methods inherited from AbstractIconRegistry
 
 	/**

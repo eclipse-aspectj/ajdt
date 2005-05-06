@@ -27,6 +27,7 @@ import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.internal.resources.ResourceException;
@@ -80,7 +81,6 @@ public class CompilerTaskListManager implements TaskListManager {
      */
     private static Map otherProjectMarkers = new HashMap();
     
-    private static List problemChangedListeners = new ArrayList();
 
     /**
      * Add a problem to the tasks list for the given file and line number
@@ -309,12 +309,11 @@ public class CompilerTaskListManager implements TaskListManager {
                             throw re;
                         }
                     }
-                    notifyListeners(affectedResources);
                     clearTasks();
                 } catch (Exception e) {
                     AspectJUIPlugin.getDefault().getErrorHandler().handleError(
                             "Error creating marker", e);
-                }
+                }                
             }
         };
 
@@ -324,6 +323,13 @@ public class CompilerTaskListManager implements TaskListManager {
             AspectJUIPlugin.getDefault().getErrorHandler().handleError(
                     "AJDT Error adding problem markers", cEx);
         }
+ 		 // Part of the fix for bug 89793 - editor image is not updated
+        Set activeEditorList = AspectJEditor.getActiveEditorList();
+        synchronized(activeEditorList) {
+	        for(Iterator iter = activeEditorList.iterator(); iter.hasNext();) {
+	        	((AspectJEditor)iter.next()).resetTitleImage();
+	        }
+	    }
     }
 
     /**
@@ -583,25 +589,4 @@ public class CompilerTaskListManager implements TaskListManager {
         }
     }
 
-    
-    /*
-     * Sian - Added listener capabilities as part of the fix for bug 78182
-     */
-    
-    public void addListener(IProblemChangedListener listener) {
-    	if(!problemChangedListeners.contains(listener)) {
-    		problemChangedListeners.add(listener);
-    	}
-    }
-    
-    public void removeListener(IProblemChangedListener listener) {
-    	problemChangedListeners.remove(listener);
-    }
-    
-    private void notifyListeners(Set changedResources) {
-    	for (Iterator iter = problemChangedListeners.iterator(); iter.hasNext();) {
-			IProblemChangedListener listener = (IProblemChangedListener) iter.next();
-			listener.problemsChanged(changedResources);
-		}
-    }
 }

@@ -68,7 +68,7 @@ public class ImageDecorator implements ILabelDecorator {
 	private ImageDescriptor activeConfigFileImage;
 	private BuildConfigurator buildConfor;
 	
-	private AspectJImages iconRegistry = new AspectJImages();
+	private AspectJImages iconRegistry = AspectJImages.registry();
 	
 	/**
 	 *
@@ -146,7 +146,7 @@ public class ImageDecorator implements ILabelDecorator {
 				if (pbc == null)
 					return null;
 				
-				if (pbc.getActiveBuildConfiguration().isIncluded(file)){			
+				if (pbc.getActiveBuildConfiguration().isIncluded(file)){
 					Rectangle rect = image.getBounds();
 					img = getImageLabel(getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_CUNIT, rect, 0));
 				} else {

@@ -83,7 +83,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private static Set activeEditorList = new HashSet();	
 
-	private AspectJEditorErrorTickUpdater aspectJEditorErrorTickUpdater;
+	private AspectJEditorTitleImageUpdater aspectJEditorErrorTickUpdater;
 
 	/**
 	 * Constructor for AspectJEditor
@@ -101,7 +101,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		//((PartSite)getSite()).getConfigurationElement()
 		
 		// Bug 78182
-		aspectJEditorErrorTickUpdater= new AspectJEditorErrorTickUpdater(this);
+		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
 	}
 	
 	// Existing in this map means the modification has occurred
@@ -387,7 +387,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 				if (unit != null){
 					isEditingAjFile = true;
 	
-					aspectJEditorErrorTickUpdater.updateEditorImage(unit);	
 					annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
 					((AJCompilationUnitAnnotationModel)annotationModel).setCompilationUnit(unit);
 					
@@ -412,7 +411,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// Ensure any advice markers are created since they are not
 			// persisted.
 			updateActiveConfig(fInput);
-			activeEditorList.add(this);
+			synchronized(activeEditorList) {
+				activeEditorList.add(this);
+			}
 			IDocument document = getDocumentProvider().getDocument(fInput);
 			AspectJTextTools textTools = AspectJUIPlugin.getDefault()
 					.getAspectJTextTools();
@@ -429,6 +430,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
 			
+//			 Part of the fix for 89793 - editor icon is not always correct
+			aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
 		}
 	}
 
@@ -455,7 +458,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			JavaPlugin.getDefault().getWorkingCopyManager().disconnect(input);
 			
 			AJDTEventTrace.editorClosed(fInput.getFile());
-			activeEditorList.remove(this);
+			synchronized(activeEditorList) {
+				activeEditorList.remove(this);
+			}
 
 			try {
 				ICompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(fInput.getFile());
@@ -486,40 +491,43 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * IF YOU PASS NULL, WE WILL UPDATE ALL THE EDITORS FOR ALL PROJECTS
 	 */
 	public static void forceEditorUpdates(final IProject project) {
-		final Iterator editorIter = activeEditorList.iterator();
-		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				try {
-					while (editorIter.hasNext()) {
-						AspectJEditor ajed = (AspectJEditor) editorIter.next();
-						IEditorInput iei = ajed.getEditorInput();
-						boolean updateThisEditor = true;
-						if (project != null
-								&& (iei instanceof IFileEditorInput)) {
-							IFileEditorInput ifei = (IFileEditorInput) iei;
-							if (!(ifei.getFile().getProject().getName()
-									.equals(project.getName())))
-								updateThisEditor = false;
-						}
-						if (updateThisEditor) {
-							AJDTEventTrace
-									.generalEvent("Forcing update of outline page for editor: "
-											+ ajed.getEditorInput().getName());
-							try {
-								if (ajed.contentOutlinePage != null) {
-									ajed.contentOutlinePage.update();
-								}
-							} catch (Exception e) {
-								AJDTEventTrace
-										.generalEvent("Unexpected exception updating editor outline "
-												+ e.toString());
+		synchronized(activeEditorList) {
+			final Iterator editorIter = activeEditorList.iterator();
+				AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					try {
+						while (editorIter.hasNext()) {
+							AspectJEditor ajed = (AspectJEditor) editorIter.next();
+							IEditorInput iei = ajed.getEditorInput();
+							boolean updateThisEditor = true;
+							if (project != null
+									&& (iei instanceof IFileEditorInput)) {
+								IFileEditorInput ifei = (IFileEditorInput) iei;
+								if (!(ifei.getFile().getProject().getName()
+										.equals(project.getName())))
+									updateThisEditor = false;
 							}
+							if (updateThisEditor) {
+								AJDTEventTrace
+										.generalEvent("Forcing update of outline page for editor: "
+												+ ajed.getEditorInput().getName());
+								try {
+									if (ajed.contentOutlinePage != null) {
+										ajed.contentOutlinePage.update();
+									}
+								} catch (Exception e) {
+									AJDTEventTrace
+											.generalEvent("Unexpected exception updating editor outline "
+													+ e.toString());
+								}
+							}
+//							ajed.aspectJEditorErrorTickUpdater.updateEditorImage(ajed.getInputJavaElement());
 						}
+					} catch (Exception e) {
 					}
-				} catch (Exception e) {
 				}
-			}
-		});
+			});
+		}
 	}
 
 
@@ -634,7 +642,17 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * @return Returns the activeEditorList.
 	 */
 	public static Set getActiveEditorList() {
-		return activeEditorList;
+		synchronized(activeEditorList) {
+			return activeEditorList;
+		}
+	}
+
+	/**
+	 * Update the title image
+	 */
+	// Part of the fix for 89793 - editor icon is not always correct
+	public void resetTitleImage() {
+		aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
 	}
 	
 

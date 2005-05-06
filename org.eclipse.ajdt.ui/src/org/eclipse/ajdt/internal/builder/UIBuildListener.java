@@ -256,22 +256,22 @@ public class UIBuildListener implements IAJBuildListener {
 			AJLog.log("Not updating vis or xref view, display is disposed!");
 		} else {
 			AspectJUIPlugin.getDefault().getDisplay().syncExec(
-					new Runnable() {
-						public void run() {
-							if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-								AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
-										.getContentProvider();
-								provider.reset();
-								VisualiserPlugin.refresh();
-							}
+				new Runnable() {
+					public void run() {
+						if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
+							AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
+									.getContentProvider();
+							provider.reset();
+							VisualiserPlugin.refresh();
 						}
-					});
+					}
+				});
 			AspectJUIPlugin.getDefault().getDisplay().syncExec(
-					new Runnable() {
-						public void run() {
-							XReferenceUIPlugin.refresh();
-						}
-					});
+				new Runnable() {
+					public void run() {
+						XReferenceUIPlugin.refresh();
+					}
+				});
 		}
 		BuilderUtils.updateTypesCache(JavaCore.create(project));
 	}
