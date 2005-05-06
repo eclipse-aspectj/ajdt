@@ -450,14 +450,18 @@ public class AspectJEditor extends CompilationUnitEditor {
 		AJDTEventTrace.generalEvent("Disposing editor for:" + getTitle());
 		IEditorInput input = getEditorInput();
 		if (input instanceof IFileEditorInput) {
-			IFileEditorInput fInput = (IFileEditorInput) input;
+			IFileEditorInput fInput = (IFileEditorInput) input;			
+			// Fix for bug 79633 - editor buffer is not refreshed
+			JavaPlugin.getDefault().getWorkingCopyManager().disconnect(input);
+			
 			AJDTEventTrace.editorClosed(fInput.getFile());
 			activeEditorList.remove(this);
 
 			try {
 				ICompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(fInput.getFile());
-				if (unit != null)
-					unit.discardWorkingCopy();
+				if (unit != null) {
+					unit.discardWorkingCopy();					
+				}
 			} catch (JavaModelException e) {
 			}
 
