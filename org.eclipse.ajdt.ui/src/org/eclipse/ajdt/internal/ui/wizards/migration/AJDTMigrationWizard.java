@@ -115,7 +115,6 @@ public class AJDTMigrationWizard extends Wizard {
                             		monitor.subTask(AspectJUIPlugin.getResourceString("MigratingFileExtensions")); //$NON-NLS-1$
                             		fileExtensionsPage.finishPressed(monitor);                            		
                             		
-                            		AspectJUIPlugin.setMigrationWizardHasRun(true);
                             		monitor.done();
                             		// Do this last because it interferes with the progress monitor.
                             		crossCuttingViewPage.finishPressed();

@@ -83,7 +83,6 @@ public class BuildConfigurator implements ISelectionListener {
 	        	.getBoolean(AspectJUIPlugin.NEVER_RUN_MIGRATION_WIZARD)
 		        && AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
 			AJDTUtils.migrateWorkbench();
-			AspectJUIPlugin.setMigrationWizardHasRun(true);
 		}
 		if (action instanceof IEditorPart) {
 			res = (IResource) ((IEditorPart) action).getEditorInput()

@@ -759,6 +759,7 @@ public class AJDTUtils {
 											.getShell(), migWizard);
 						if(migDialog.open() == Window.OK) {
 							store.setValue(workspaceLocation,true);
+							AspectJUIPlugin.setMigrationWizardHasRun(true);
 						} else {
 							new MessageDialog(
 									AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
