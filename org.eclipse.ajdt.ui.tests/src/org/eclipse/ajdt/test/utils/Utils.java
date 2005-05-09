@@ -36,8 +36,6 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
 
 /**
  * Provides useful utils when writing test cases.
@@ -46,17 +44,15 @@ import org.osgi.framework.Constants;
  */
 public class Utils{
 	
-	public static void blockPreferencesConfigWizard() {
-		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
-		AspectJPreferences.setAJDTPrefConfigDone(true, version);	
-	}
-	
-	public static void restoreBlockedSettings() {
-		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
-		AspectJPreferences.setAJDTPrefConfigDone(false, version);		
-	}
+//	public static void blockPreferencesConfigWizard() {
+//		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+//		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+//	}
+//	
+//	public static void restoreBlockedSettings() {
+//		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
+//		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+//	}
 	
 	public static final String TEST_PROJECTS_FOLDER = "/test projects";
 

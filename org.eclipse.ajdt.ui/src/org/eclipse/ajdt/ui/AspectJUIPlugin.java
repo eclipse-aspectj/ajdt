@@ -706,7 +706,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	public static boolean migrationWizardHasRun() {
 		// TODO: activate the migration wizard when ready
-	    return true; //migrationWizardRun;
+//	    return true; 
+	    return migrationWizardRun;
 	}
 	
 	public static void setMigrationWizardHasRun(boolean hasRun) {

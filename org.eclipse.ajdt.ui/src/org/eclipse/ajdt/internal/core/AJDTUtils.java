@@ -22,7 +22,6 @@ import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
@@ -69,8 +68,6 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
 
 /**
  * A utility class to capture all those little functions that keep cropping up.
@@ -734,50 +731,10 @@ public class AJDTUtils {
 		return manEd;
 	}
 
-	public static void verifyWorkbenchConfiguration() {
-		/*
-		 * JWP: new code to popup the AJDT Preferences Configuration Wizard
-		 * Since the finish() method of the AspectProjectWizard calls this
-		 * method, this code covers both the case where an existing project is
-		 * converted to an AspectJ project, and when the AspectProjectWizard's
-		 * finish is invoked
-		 */
-		// First check to see whether we should popup the wizard
-		boolean showWizard = true;
-		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String) bundle.getHeaders().get(
-				Constants.BUNDLE_VERSION);
-		// 1. Has the wizard been popped up before for this install?
-		if (AspectJPreferences.isAJDTPrefConfigDone(version)) {
-			showWizard = false;
-		}
-		// 2. Have all of the settings already been set appropriately?
-		if (AJDTConfigSettings.isAnalyzeAnnotationsDisabled()
-				&& !AJDTConfigSettings.isAspectJEditorDefault()
-		/* && AJDTConfigSettings.isUnusedImportsDisabled() */) {
-			showWizard = false;
-		}
-
-		if (showWizard && !AspectJPreferences.isAJDTPrefConfigShowing()) {
-			AspectJPreferences.setAJDTPrefConfigShowing(true);
-			// Create and initialize the AJDT Preferences Configuration Wizard
-			org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard wizard = new org.eclipse.ajdt.internal.ui.wizards.AJDTPrefConfigWizard();
-			wizard.init();
-			// Create the wizard dialog
-			org.eclipse.jface.wizard.WizardDialog dialog = new org.eclipse.jface.wizard.WizardDialog(
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-							.getShell(), wizard);
-			// Open the wizard dialog
-			if (dialog.open() == Window.OK) {
-				AspectJPreferences.setAJDTPrefConfigDone(true, version);
-			}
-		}
-	}
-
+	
 	/**
 	 * Checks whether have run the migration wizard for this workspace and if not
 	 * then runs it
-	 *
 	 */	
 	public static void migrateWorkbench() {
 	    // only want the wizard to come up once per workspace

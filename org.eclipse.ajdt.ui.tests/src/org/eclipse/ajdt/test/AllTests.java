@@ -168,7 +168,6 @@ public class AllTests {
 		AspectJUIPlugin.setMigrationWizardHasRun(true);
 
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
-		Utils.blockPreferencesConfigWizard();
 
 		AspectJPreferences.setAutoBuilderMigrationEnabled(true);
 		AspectJPreferences.setAutoBuilderMigrationRemoveOldBuilder(true);

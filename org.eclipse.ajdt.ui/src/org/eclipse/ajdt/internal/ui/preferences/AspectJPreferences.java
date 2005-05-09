@@ -66,8 +66,6 @@ public class AspectJPreferences {
 	 */
 	public static final String AJDT_PREF_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.ajdtPrefConfigDone"; //$NON-NLS-1$
 
-	public static final String PREF_RUN_FOR_AJDT_VERSION = "org.eclipse.ajdt.ui.preferences.prefRunForAjdtVersion"; //$NON-NLS-1$
-
 	public static final String PERFORM_AUTO_BUILDER_MIGRATION = "org.eclipse.ajdt.ui.preferences.perform.auto.migration";
 
 	public static final String AUTO_BUILDER_MIGRATION_SETTING = "org.eclipse.ajdt.ui.preferences.auto.migration.setting";
@@ -330,49 +328,6 @@ public class AspectJPreferences {
 		// return store.getBoolean(AUTOBUILD_SUPPRESSED);
 	}
 
-	/**
-	 * Helper set method used by AJDTPrefConfigPage
-	 * 
-	 * @param done
-	 *            true if the AJDTPrefConfigWizard should not be shown again (if
-	 *            user checked the "don't ask me again" box, we call this method
-	 *            with 'true")
-	 */
-	static public void setAJDTPrefConfigDone(boolean done, String version) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		store.setValue(AJDT_PREF_CONFIG_DONE, done);
-		store.setValue(PREF_RUN_FOR_AJDT_VERSION, version);
-	}
-
-	/**
-	 * Helper get method used by AJDTUtils to determine whether to show the
-	 * AJDTPrefConfigWizard
-	 * 
-	 * @return boolean true if we should not show the AJDTPrefConfigWizard again
-	 *         (if user checked the "don't ask me again" box)
-	 */
-	static public boolean isAJDTPrefConfigDone(String version) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		String prefsAJDTVersion = store.getString(PREF_RUN_FOR_AJDT_VERSION);
-		return version.equals(prefsAJDTVersion) ? store
-				.getBoolean(AJDT_PREF_CONFIG_DONE) : false;
-	}
-
-	// whether or not the AJDT Peference config wizard is already showing
-	private static boolean isShowing = false;
-
-	/**
-	 * This is used in the case of a CVS checkout of multiple projects only want
-	 * to show the AJDT Preference Config Wizard once and not one copy for each
-	 * AJ project checked out.
-	 * 
-	 */
-	static public boolean isAJDTPrefConfigShowing() {
-		return isShowing;
-	}
-
 	// preferences relating to migration of ajdt eclipse builder
 	
 	public static boolean isAutoBuilderMigrationEnabled() {
@@ -399,16 +354,6 @@ public class AspectJPreferences {
 		store.setValue(AUTO_BUILDER_MIGRATION_SETTING, remove);
 	}
 
-	
-	/**
-	 * This is used in the case of a CVS checkout of multiple projects only want
-	 * to show the AJDT Preference Config Wizard once and not one copy for each
-	 * AJ project checked out.
-	 * 
-	 */
-	static public void setAJDTPrefConfigShowing(boolean showing) {
-		isShowing = showing;
-	}
 
 	/**
 	 * Helper set method

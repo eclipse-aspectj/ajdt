@@ -18,6 +18,7 @@ import java.util.Vector;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -75,10 +76,12 @@ public class BuildConfigurator implements ISelectionListener {
 	public void selectionChanged(IWorkbenchPart action, ISelection selection) {
 		IResource res;
 		IProject selectedProj;
-		// Run migration wizard if we haven't before 
-		if(!AspectJUIPlugin.getDefault().getPreferenceStore()
+		// Run migration wizard if we haven't before and if we have previously 
+		// run the old preference wizard on this workspace
+		if(!AspectJUIPlugin.migrationWizardHasRun() 
+				&& !AspectJUIPlugin.getDefault().getPreferenceStore()
 	        	.getBoolean(AspectJUIPlugin.NEVER_RUN_MIGRATION_WIZARD)
-		        && !AspectJUIPlugin.migrationWizardHasRun() ) {
+		        && AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
 			AJDTUtils.migrateWorkbench();
 			AspectJUIPlugin.setMigrationWizardHasRun(true);
 		}
