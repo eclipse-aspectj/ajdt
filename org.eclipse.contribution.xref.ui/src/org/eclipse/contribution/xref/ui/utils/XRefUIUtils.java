@@ -155,7 +155,6 @@ public class XRefUIUtils {
 			IEditorPart p = JavaUI.openInEditor(j);
 			JavaUI.revealInEditor(p, j);
 		} catch (Exception ex) {
-			ex.printStackTrace();
 		}
 	}
 
@@ -166,7 +165,6 @@ public class XRefUIUtils {
 			m = r.createMarker(IMarker.MARKER);
 			IDE.openEditor(getActiveWorkbenchWindow().getActivePage(), m, true);
 		} catch (CoreException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -237,7 +235,6 @@ public class XRefUIUtils {
 						}
 					}
 				} catch (JavaModelException e) {
-					e.printStackTrace();
 				}				
 			}
 		} else {

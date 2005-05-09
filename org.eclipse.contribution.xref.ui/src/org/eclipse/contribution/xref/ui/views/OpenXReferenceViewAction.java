@@ -42,7 +42,6 @@ public class OpenXReferenceViewAction implements IObjectActionDelegate {
 			XReferenceView xrefView = XReferenceUIPlugin.xrefView;
 			xrefView.selectionChanged(workbenchPart,currentSelection);
 		} catch (PartInitException e) {
-			e.printStackTrace();
 		}        
     }
 
