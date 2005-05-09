@@ -24,6 +24,7 @@ import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileA
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -37,7 +38,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
@@ -47,7 +52,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutline;
 /**
  * This class represents the Cross Reference View
  */
-public class XReferenceView extends ViewPart implements ISelectionListener {
+public class XReferenceView extends ViewPart implements ISelectionListener, IPartListener {
 
 	public static final String ID =
 		"org.eclipse.contribution.xref.ui.views.XReferenceView"; //$NON-NLS-1$
@@ -96,8 +101,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		IWorkbenchWindow window = XRefUIUtils.getActiveWorkbenchWindow();
 
 		if (window != null) {
-			window.getSelectionService().addSelectionListener(this);
-		}
+		    window.getSelectionService().addPostSelectionListener(this);
+		}		
 	}
 
 	/**
@@ -114,9 +119,17 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (!(part instanceof AbstractTextEditor) && !(part instanceof ContentOutline)) {
+	    IEditorReference[] openEditors = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+	    if (openEditors.length != 0) {
+            // add a part listener to each open editor 
+            for (int i = 0; i < openEditors.length; i++) {
+                openEditors[i].getPage().addPartListener(this);
+            }
+        }
+
+	    if (!(part instanceof AbstractTextEditor) && !(part instanceof ContentOutline)) {
 			// only want to respond to changes in selection
-			// in editors and outline view
+			// in editors and outline view		    
 			return;
 		}
 		lastWorkbenchPart = part;
@@ -190,8 +203,21 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 		IWorkbenchWindow window = XRefUIUtils.getActiveWorkbenchWindow();
 
 		if (window != null) {
-			window.getSelectionService().removeSelectionListener(this);
+			window.getSelectionService().removePostSelectionListener(this);
 		}
+		IWorkbenchWindow activeWindow = JavaPlugin.getActiveWorkbenchWindow();
+		if (activeWindow != null) {
+            IWorkbenchPage activePage = activeWindow.getActivePage();
+            if (activePage != null) {
+                IEditorReference[] openEditors = activePage.getEditorReferences();
+        	    if (openEditors.length != 0) {
+                    // remove the part listener for each open editor 
+                    for (int i = 0; i < openEditors.length; i++) {
+                        openEditors[i].getPage().removePartListener(this);
+                    }
+                }               
+            }
+        }
 		persistSettings();
 		XReferenceUIPlugin.xrefView = null;
 	}
@@ -367,5 +393,56 @@ public class XReferenceView extends ViewPart implements ISelectionListener {
 	public void setChangeDrivenByBuild(boolean changeDrivenByBuild) {
 		this.changeDrivenByBuild = changeDrivenByBuild;
 	}
-	
+
+
+// ----------------- IPartLisenter implementation ----------------------	
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IPartListener#partActivated(org.eclipse.ui.IWorkbenchPart)
+     */
+    public void partActivated(IWorkbenchPart part) {        
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IPartListener#partBroughtToTop(org.eclipse.ui.IWorkbenchPart)
+     */
+    public void partBroughtToTop(IWorkbenchPart part) {        
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IPartListener#partClosed(org.eclipse.ui.IWorkbenchPart)
+     */
+    public void partClosed(IWorkbenchPart part) {
+        if (part instanceof IEditorPart) {
+    		IWorkbenchWindow activeWindow = JavaPlugin.getActiveWorkbenchWindow();
+    		if (activeWindow != null) {
+                IWorkbenchPage activePage = activeWindow.getActivePage();
+                if (activePage != null) {
+                    IEditorReference[] openEditors = activePage.getEditorReferences();
+            	    if (openEditors.length == 0 && viewer != null) {
+            	        // if there are no editors open, then want to clear the
+            	        // contents of the xref view and all the records 
+                        viewer.setInput(null);
+
+                        lastXRefAdapterList = null;
+                        lastLinkedSelection = null;
+                        lastLinkedWorkbenchPart = null;            
+            	    }
+                }
+            }
+        }
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IPartListener#partDeactivated(org.eclipse.ui.IWorkbenchPart)
+     */
+    public void partDeactivated(IWorkbenchPart part) {       
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.IPartListener#partOpened(org.eclipse.ui.IWorkbenchPart)
+     */
+    public void partOpened(IWorkbenchPart part) {    }
+
 }

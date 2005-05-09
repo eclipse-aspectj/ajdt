@@ -99,4 +99,28 @@
       </keyBinding>
    </extension>    
 
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.IJavaElement"
+            id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
+         <action
+            label="Open Cross References"
+            class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
+            enablesFor="1"
+            id="org.eclipse.contribution.xref.ui.views.openXRefView">
+         </action>
+      </objectContribution>
+            <objectContribution
+            objectClass="org.eclipse.ui.IEditorPart"
+            id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
+         <action
+            label="Open Cross References"
+            class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
+            enablesFor="1"
+            id="org.eclipse.contribution.xref.ui.views.openXRefView">
+         </action>
+      </objectContribution>
+    </extension>  
 </plugin>
