@@ -44,6 +44,7 @@ import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.javamodel.ResourceChangeListener;
 import org.eclipse.core.resources.IContainer;
@@ -266,11 +267,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-";
 
 	public static final String ACCKIND_ATTRIBUTE = "acckind";
-
-	// have we run the migration wizard for this workspace or for this session?
-	private static boolean migrationWizardRun = false;
-	
-	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
 	
 	/**
 	 * Return the single default instance of this plugin
@@ -689,12 +685,12 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	    // If this is the first install of AJDT, then don't want to run
 	    // the migration wizard.
 	    if (previousAJVersion.equals("")) {  //$NON-NLS-1$
-	        store.setValue(NEVER_RUN_MIGRATION_WIZARD,true); 
-            setMigrationWizardHasRun(true);
+	        store.setValue(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD,true); 
+            AspectJPreferences.setMigrationWizardHasRun(true);
         } else {
 	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
     	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-    	    setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
+    	    AspectJPreferences.setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
         }
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
@@ -702,16 +698,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		BuilderUtils.updateTypesCache(AspectJPlugin.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
-	}
-
-	public static boolean migrationWizardHasRun() {
-		// TODO: activate the migration wizard when ready
-//	    return true; 
-	    return migrationWizardRun;
-	}
-	
-	public static void setMigrationWizardHasRun(boolean hasRun) {
-	    migrationWizardRun = hasRun;
 	}
 	
 	private void checkEclipseVersion() {

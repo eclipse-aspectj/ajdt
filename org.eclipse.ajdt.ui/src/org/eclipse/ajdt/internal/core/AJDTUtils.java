@@ -743,6 +743,7 @@ public class AJDTUtils {
 	    final String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
 	    boolean alreadyMigratedWorkspace = store.getBoolean(workspaceLocation);
 	    if (alreadyMigratedWorkspace) {
+	        AspectJPreferences.setMigrationWizardIsRunning(false);
             return;
         } 	    		
 		Job job = new Job(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
@@ -759,7 +760,7 @@ public class AJDTUtils {
 											.getShell(), migWizard);
 						if(migDialog.open() == Window.OK) {
 							store.setValue(workspaceLocation,true);
-							AspectJUIPlugin.setMigrationWizardHasRun(true);
+							AspectJPreferences.setMigrationWizardHasRun(true);
 						} else {
 							new MessageDialog(
 									AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
@@ -769,10 +770,15 @@ public class AJDTUtils {
 									MessageDialog.INFORMATION,
 									new String[] {AspectJUIPlugin.getResourceString("MigrationWizardOK")}, //$NON-NLS-1$
 									0).open();
+							// don't want the migration wizard to pop up again for this
+							// workspace and this running of eclipse. Therefore, set the 
+							// boolean but not the PreferenceStore property
+							AspectJPreferences.setMigrationWizardHasRun(true);
 						}
 					}
 				};
 				display.asyncExec(myRun);
+				AspectJPreferences.setMigrationWizardIsRunning(false);
 				return Status.OK_STATUS;
 			}
 		};

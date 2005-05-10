@@ -52,7 +52,6 @@ import org.eclipse.ajdt.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ras.PluginFFDCTest;
 import org.eclipse.ajdt.test.utils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.CodeTemplatesTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
@@ -165,7 +164,7 @@ public class AllTests {
 		if (setupDone) {
 			return;
 		}
-		AspectJUIPlugin.setMigrationWizardHasRun(true);
+		AspectJPreferences.setMigrationWizardHasRun(true);
 
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 

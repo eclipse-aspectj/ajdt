@@ -78,11 +78,13 @@ public class BuildConfigurator implements ISelectionListener {
 		IProject selectedProj;
 		// Run migration wizard if we haven't before and if we have previously 
 		// run the old preference wizard on this workspace
-		if(!AspectJUIPlugin.migrationWizardHasRun() 
+		if(!AspectJPreferences.migrationWizardIsRunning()
+		        && !AspectJPreferences.migrationWizardHasRun() 
 				&& !AspectJUIPlugin.getDefault().getPreferenceStore()
-	        	.getBoolean(AspectJUIPlugin.NEVER_RUN_MIGRATION_WIZARD)
+	        	.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
 		        && AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
-			AJDTUtils.migrateWorkbench();
+			AspectJPreferences.setMigrationWizardIsRunning(true);
+		    AJDTUtils.migrateWorkbench();
 		}
 		if (action instanceof IEditorPart) {
 			res = (IResource) ((IEditorPart) action).getEditorInput()

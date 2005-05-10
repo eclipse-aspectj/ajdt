@@ -192,6 +192,13 @@ public class AspectJPreferences {
 	 */
 	public static final String AJDOC_COMMAND = "ajdocCommand"; //$NON-NLS-1$
 
+	// migration wizard options	
+	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
+	// have we run the migration wizard for this workspace or for this session?
+	private static boolean migrationWizardRun = false;
+	// is the migration wizard running? (to prevent multiple copies popping up)
+	private static boolean migrationWizardIsRunning = false;
+		
 	public static String getFileExt() {
 		// only use .aj for now
 		return ".aj"; //$NON-NLS-1$
@@ -529,5 +536,22 @@ public class AspectJPreferences {
 			return store.getBoolean(key);
 		}
 	}
+	
+	public static boolean migrationWizardHasRun() {
+		// TODO: activate the migration wizard when ready
+//	    return true; 
+	    return migrationWizardRun;
+	}
+	
+	public static void setMigrationWizardHasRun(boolean hasRun) {
+	    migrationWizardRun = hasRun;
+	}
 
+	public static boolean migrationWizardIsRunning() {
+	    return migrationWizardIsRunning;
+	}
+	
+	public static void setMigrationWizardIsRunning(boolean isRunning) {
+	    migrationWizardIsRunning = isRunning;
+	}
 }

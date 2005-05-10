@@ -9,7 +9,6 @@
 package org.eclipse.ajdt.internal.ui.editor;
 
 
-import org.eclipse.ajdt.buildconfigurator.ImageDecorator;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
