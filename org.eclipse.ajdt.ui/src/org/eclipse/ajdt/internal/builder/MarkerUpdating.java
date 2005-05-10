@@ -76,7 +76,7 @@ public class MarkerUpdating {
 		// Get all the relationships and sort by compilation unit..
 		List allRelationships = ajModel.getAllRelationships(project, new AJRelationshipType[] {
 				AJRelationshipManager.ADVISED_BY, 
-//				AJRelationshipManager.ADVISES, 
+				AJRelationshipManager.ADVISES, 
 				AJRelationshipManager.ANNOTATED_BY, 
 				AJRelationshipManager.ANNOTATES, 
 				AJRelationshipManager.DECLARED_ON, 
