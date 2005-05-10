@@ -83,28 +83,27 @@ public class MarkerUpdating {
 				AJRelationshipManager.ASPECT_DECLARATIONS,
 				AJRelationshipManager.SOFTENS,
 				AJRelationshipManager.SOFTENED_BY});
-		numMarkers = allRelationships.size();
-		Map CUsToListsOfRelationships = new HashMap();
+		Map cUsToListsOfRelationships = new HashMap();
 		for (Iterator iter = allRelationships.iterator(); iter.hasNext();) {
 			AJRelationship relationship = (AJRelationship) iter.next();
 			IJavaElement source = relationship.getSource();
 			ICompilationUnit parentCU = (ICompilationUnit)source.getAncestor(IJavaElement.COMPILATION_UNIT);
 			if(parentCU != null) {
-				if(CUsToListsOfRelationships.get(parentCU) instanceof List) {
-					((List)CUsToListsOfRelationships.get(parentCU)).add(relationship);
+				if(cUsToListsOfRelationships.get(parentCU) instanceof List) {
+					((List)cUsToListsOfRelationships.get(parentCU)).add(relationship);
 				} else {
 					List relationshipsForCU = new ArrayList();
 					relationshipsForCU.add(relationship);
-					CUsToListsOfRelationships.put(parentCU, relationshipsForCU);
+					cUsToListsOfRelationships.put(parentCU, relationshipsForCU);
 				}
 			}
 		}
 		// For each compilation unit sort the relationships by line number..
-		Set affectedCompilationUnits = CUsToListsOfRelationships.keySet();
+		Set affectedCompilationUnits = cUsToListsOfRelationships.keySet();
 		for (Iterator iter = affectedCompilationUnits.iterator(); iter
 				.hasNext();) {
 			ICompilationUnit cu = (ICompilationUnit)iter.next();
-			List relationships = (List) CUsToListsOfRelationships.get(cu);
+			List relationships = (List) cUsToListsOfRelationships.get(cu);
 			Map lineNumberToRelationships = new HashMap();
 			for (Iterator iterator = relationships.iterator(); iterator
 					.hasNext();) {
@@ -122,9 +121,10 @@ public class MarkerUpdating {
 			Set lineNumbers = lineNumberToRelationships.keySet();
 			// Create one marker for each affected line
 			for (Iterator iterator = lineNumbers.iterator(); iterator.hasNext();) {
+				numMarkers++;
 				Integer lineNum = (Integer) iterator.next();
 				List relationshipsForLine = (List) lineNumberToRelationships.get(lineNum);
-				createMarkers(lineNum.intValue(), cu.getResource(), relationshipsForLine);
+				createMarker(lineNum.intValue(), cu.getResource(), relationshipsForLine);
 			}
 		}
 		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers");
@@ -138,7 +138,7 @@ public class MarkerUpdating {
 	 * @param resource
 	 * @param relationships
 	 */
-	private static void createMarkers(int lineNumber, IResource resource, List relationships) {
+	private static void createMarker(int lineNumber, IResource resource, List relationships) {
 		String markerType = null;
 		boolean runtimeTest = false;
 		// Work out whether we need a runtime test marker or not
@@ -156,19 +156,37 @@ public class MarkerUpdating {
 				markerType = getCombinedMarkerType(markerType, markerTypeForRelationship, runtimeTest);
 			}
 		}
-		// Create the markers
-		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
-			AJRelationship relationship = (AJRelationship) iter.next();
-			try {
-				IMarker marker = resource.createMarker(markerType);
-				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-				String label = getMarkerLabel(relationship);			
-				marker.setAttribute(IMarker.MESSAGE, label);
-				marker.setAttribute(IMarker.PRIORITY,
-						IMarker.PRIORITY_HIGH);
-			} catch (CoreException e) {
+		// Create the marker
+		try {
+			IMarker marker = resource.createMarker(markerType);
+			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+			String label;
+			if(relationships.size() == 1) {
+				label = getMarkerLabel((AJRelationship)relationships.get(0));
+			} else {
+				label = getMultipleMarkersLabel(relationships.size());
 			}
-		}			
+			marker.setAttribute(IMarker.MESSAGE, label);
+			marker.setAttribute(IMarker.PRIORITY,
+					IMarker.PRIORITY_HIGH);
+		} catch (CoreException e) {
+		}
+//		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
+//			AJRelationship relationship = (AJRelationship) iter.next();
+//			try {
+//				IMarker marker = resource.createMarker(markerType);
+//				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+//				String label = getMarkerLabel(relationship);			
+//				marker.setAttribute(IMarker.MESSAGE, label);
+//				marker.setAttribute(IMarker.PRIORITY,
+//						IMarker.PRIORITY_HIGH);
+//			} catch (CoreException e) {
+//			}
+//		}			
+	}
+
+	private static String getMultipleMarkersLabel(int number) {
+		return number + " " + AspectJUIPlugin.getResourceString("AspectJMarkersAtLine"); //$NON-NLS-1$ //$NON-NLS-2$		
 	}
 
 	/**
@@ -275,9 +293,9 @@ public class MarkerUpdating {
 	 * @return
 	 */
 	private static String getCombinedMarkerType(String firstMarkerType, String secondMarkerType, boolean runtimeTest) {
-		if (firstMarkerType.indexOf("source") != -1 && secondMarkerType.indexOf("source") != -1) {
+		if (firstMarkerType.indexOf("source") != -1 && secondMarkerType.indexOf("source") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
 			return runtimeTest ? IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER : IAJModelMarker.SOURCE_ADVICE_MARKER;
-		} else if (firstMarkerType.indexOf("source") != -1 || secondMarkerType.indexOf("source") != -1) { 
+		} else if (firstMarkerType.indexOf("source") != -1 || secondMarkerType.indexOf("source") != -1) { //$NON-NLS-1$ //$NON-NLS-2$ 
 			return runtimeTest ? IAJModelMarker.DYNAMIC_SOURCE_AND_TARGET_MARKER : IAJModelMarker.SOURCE_AND_TARGET_MARKER;
 		} else {
 			return runtimeTest ? IAJModelMarker.DYNAMIC_ADVICE_MARKER : IAJModelMarker.ADVICE_MARKER;

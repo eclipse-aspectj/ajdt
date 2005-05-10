@@ -49,23 +49,26 @@ public class AdviceMarkerTest3 extends TestCase {
 					// Temporary - declare soft should have a different type of marker...
 //					{ "advises Demo.go()", new Integer(28) },
 					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)},
-					{ "advises Demo.bar(Integer)", new Integer(49) },
-					{ "advises Demo.foo(int, Object)", new Integer(49) },
-					{ "advises Demo.go()", new Integer(49) },
-					{ "advises Demo.main(String[])", new Integer(49) },
+//					{ "advises Demo.bar(Integer)", new Integer(49) },
+//					{ "advises Demo.foo(int, Object)", new Integer(49) },
+//					{ "advises Demo.go()", new Integer(49) },
+//					{ "advises Demo.main(String[])", new Integer(49) },
+					{ "4 AspectJ markers at this line", new Integer(49) },
 					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(53) },
 					{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) },
-					{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
-					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
-					{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) },
+//					{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
+//					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
+//					{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) },
+					{ "3 AspectJ markers at this line", new Integer(61) },
 					{ "advises GetInfo.printParameters(JoinPoint)", new Integer(74) }
 			},
 			{ // IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER
 					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)},
-					{ "advises Demo.bar(Integer)", new Integer(49) },
-					{ "advises Demo.foo(int, Object)", new Integer(49) },
-					{ "advises Demo.go()", new Integer(49) },
-					{ "advises Demo.main(String[])", new Integer(49) }
+					{ "4 AspectJ markers at this line", new Integer(49) }
+//					{ "advises Demo.bar(Integer)", new Integer(49) },
+//					{ "advises Demo.foo(int, Object)", new Integer(49) },
+//					{ "advises Demo.go()", new Integer(49) },
+//					{ "advises Demo.main(String[])", new Integer(49) }
 					},
 			{ // IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER
 			    	{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) },
@@ -84,9 +87,10 @@ public class AdviceMarkerTest3 extends TestCase {
 				{}
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER
-				{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
-				{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
-				{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) }
+				{ "3 AspectJ markers at this line", new Integer(61) }
+//				{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
+//				{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
+//				{ "advises Demo.bar(Integer) (runtime test)", new Integer(61) }
 			},
 			{ // IAJModelMarker.SOURCE_ITD_MARKER
 				{ "declared on Demo", new Integer(25)},

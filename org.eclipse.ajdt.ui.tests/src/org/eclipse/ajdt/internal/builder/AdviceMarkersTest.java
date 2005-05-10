@@ -31,7 +31,7 @@ public class AdviceMarkersTest extends TestCase {
 	public void testMarkersAreAdded() throws Exception {
 		//myProject.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
 		//Utils.waitForJobsToComplete();
-		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 4);
+		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 2);
 	}
 	
 	
