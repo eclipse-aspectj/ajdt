@@ -21,12 +21,16 @@ import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
+import org.eclipse.core.internal.jobs.JobStatus;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -40,6 +44,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.progress.UIJob;
 /**
  * @author Luzius Meisser
  * 
@@ -62,6 +67,7 @@ public class BuildConfigurator implements ISelectionListener {
 	private static BuildConfigurator buildConfigurator;
 	
 	private HashSet fileList;
+	private boolean triedToOpenXRefView;
 	
 	//make it singleton
 	private BuildConfigurator() {
@@ -84,29 +90,36 @@ public class BuildConfigurator implements ISelectionListener {
 		// moment, if we have previously run the old preference wizard on this 
 		// workspace and if this is not a brand new workspace
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 		if(!AspectJPreferences.migrationWizardIsRunning()
 		        && !AspectJPreferences.migrationWizardHasRun() 
 				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
 		        && store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
 			AspectJPreferences.setMigrationWizardIsRunning(true);
 		    AJDTUtils.migrateWorkbench();
-		} else { 
-		    if (!AspectJPreferences.migrationWizardIsRunning()
-		        && !store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)
-		        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)) {
-		        // open xref view in perspective if it's a brand new workspace, 
-		        // if the migration wizard isn't running and we haven't opened the xref view before.
-		        try {
-	                AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
-						.getActivePage().showView(XReferenceView.ID);
-		        } catch (PartInitException e) {
-		            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-						AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
-		        }
+		} else if (!triedToOpenXRefView) { // only try this once
+			String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+			if (!AspectJPreferences.migrationWizardIsRunning()
+			        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)) {
+		        // open xref view in perspective if the migration wizard isn't running and we haven't opened the xref view before.
+				Job job = new UIJob(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView")) { //$NON-NLS-1$
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						try {
+			                AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
+								.getActivePage().showView(XReferenceView.ID);
+			                return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView")); //$NON-NLS-1$
+				        } catch (PartInitException e) {
+				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+								AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e); //$NON-NLS-1$
+				            return new JobStatus(IStatus.ERROR, this, AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView")); //$NON-NLS-1$
+				        }
+					}
+				};
+			    job.schedule();
 		        store.setValue(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation, true);
 		    }
-        }
+			triedToOpenXRefView = true;
+			
+		}
 		if (action instanceof IEditorPart) {
 			res = (IResource) ((IEditorPart) action).getEditorInput()
 					.getAdapter(IResource.class);

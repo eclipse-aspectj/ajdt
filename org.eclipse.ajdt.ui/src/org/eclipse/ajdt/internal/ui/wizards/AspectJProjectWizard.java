@@ -81,6 +81,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	public boolean performFinish() {
 		boolean res= super.performFinish();
 		if (res) {
+			// Fix for 78263
 	        BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 	 		IProject project = fSecondPage.getJavaProject().getProject();
 	 		selectAndReveal(project);
