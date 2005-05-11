@@ -60,4 +60,4 @@ also need to test:
   org.aspectj.runtime for one project and not another
 
 
-
+- also check that the xref view comes up in a clean workspace
