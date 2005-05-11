@@ -99,6 +99,7 @@ public class AspectJExampleCreationWizard extends Wizard implements INewWizard, 
 	 * @see Wizard#performFinish
 	 */		
 	public boolean performFinish() {
+		// Fix for 78263
 		BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 		AspectJExampleCreationOperation runnable= new AspectJExampleCreationOperation(fPages, new ImportOverwriteQuery());
 		
