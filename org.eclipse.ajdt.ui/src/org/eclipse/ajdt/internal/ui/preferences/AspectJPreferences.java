@@ -194,6 +194,7 @@ public class AspectJPreferences {
 
 	// migration wizard options	
 	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
+	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
 	// have we run the migration wizard for this workspace or for this session?
 	private static boolean migrationWizardRun = false;
 	// is the migration wizard running? (to prevent multiple copies popping up)

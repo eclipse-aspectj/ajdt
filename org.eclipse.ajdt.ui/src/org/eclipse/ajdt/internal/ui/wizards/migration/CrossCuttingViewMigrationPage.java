@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui.wizards.migration;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -81,6 +82,9 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 			}
 			useJDTOutlineView();
 			openXRefView();
+			String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+			AspectJUIPlugin.getDefault().getPreferenceStore()
+				.setValue(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation, true);
 		}
 	}
 	

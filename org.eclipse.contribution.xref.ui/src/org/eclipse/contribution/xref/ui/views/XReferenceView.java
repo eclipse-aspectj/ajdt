@@ -34,6 +34,8 @@ import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -42,9 +44,11 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.views.contentoutline.ContentOutline;
@@ -79,6 +83,17 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 		XReferenceUIPlugin.xrefView = this;
 	}
 
+	/* (non-Javadoc)
+	 * Method declared on IViewPart.
+	 * 
+	 * Need to set the ISelectionProvider to prevent an NPE when we open the
+	 * view automatically.
+	 */
+	public void init(IViewSite site) throws PartInitException {
+		site.setSelectionProvider(new EmptySelectionProvider());
+		super.init(site);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -445,4 +460,34 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
      */
     public void partOpened(IWorkbenchPart part) {    }
 
+
+    private class EmptySelectionProvider implements ISelectionProvider {
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ISelectionProvider#addSelectionChangedListener(org.eclipse.jface.viewers.ISelectionChangedListener)
+         */
+        public void addSelectionChangedListener(ISelectionChangedListener listener) {           
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ISelectionProvider#getSelection()
+         */
+        public ISelection getSelection() {
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ISelectionProvider#removeSelectionChangedListener(org.eclipse.jface.viewers.ISelectionChangedListener)
+         */
+        public void removeSelectionChangedListener(ISelectionChangedListener listener) {           
+        }
+
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ISelectionProvider#setSelection(org.eclipse.jface.viewers.ISelection)
+         */
+        public void setSelection(ISelection selection) {            
+        }
+        
+    }
+    
 }

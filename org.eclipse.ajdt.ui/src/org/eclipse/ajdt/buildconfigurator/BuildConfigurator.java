@@ -20,9 +20,11 @@ import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -31,11 +33,13 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 /**
  * @author Luzius Meisser
  * 
@@ -76,16 +80,33 @@ public class BuildConfigurator implements ISelectionListener {
 	public void selectionChanged(IWorkbenchPart action, ISelection selection) {
 		IResource res;
 		IProject selectedProj;
-		// Run migration wizard if we haven't before and if we have previously 
-		// run the old preference wizard on this workspace
+		// Run migration wizard if we haven't before or if it's not running at the
+		// moment, if we have previously run the old preference wizard on this 
+		// workspace and if this is not a brand new workspace
+		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+		String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 		if(!AspectJPreferences.migrationWizardIsRunning()
 		        && !AspectJPreferences.migrationWizardHasRun() 
-				&& !AspectJUIPlugin.getDefault().getPreferenceStore()
-	        	.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
-		        && AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
+				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
+		        && store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
 			AspectJPreferences.setMigrationWizardIsRunning(true);
 		    AJDTUtils.migrateWorkbench();
-		}
+		} else { 
+		    if (!AspectJPreferences.migrationWizardIsRunning()
+		        && !store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)
+		        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)) {
+		        // open xref view in perspective if it's a brand new workspace, 
+		        // if the migration wizard isn't running and we haven't opened the xref view before.
+		        try {
+	                AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
+						.getActivePage().showView(XReferenceView.ID);
+		        } catch (PartInitException e) {
+		            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+						AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+		        }
+		        store.setValue(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation, true);
+		    }
+        }
 		if (action instanceof IEditorPart) {
 			res = (IResource) ((IEditorPart) action).getEditorInput()
 					.getAdapter(IResource.class);
