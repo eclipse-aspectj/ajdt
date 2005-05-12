@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.javaelements;
 
 import org.eclipse.jdt.core.IBuffer;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
@@ -111,6 +112,15 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	
 	protected char getHandleMementoDelimiter() {
 		return AspectElement.JEM_CODEELEMENT;
+	}
+		
+	/* (non-Javadoc)
+	 * @see org.eclipse.jdt.internal.core.JavaElement#getChildren()
+	 */
+	// Workaround for bug 94401 - JavaElement expects the parent
+	// to be an openable, but it is not for an AJCodeElement
+	public IJavaElement[] getChildren() throws JavaModelException {
+		return JavaElement.NO_ELEMENTS;
 	}
 	
 }
