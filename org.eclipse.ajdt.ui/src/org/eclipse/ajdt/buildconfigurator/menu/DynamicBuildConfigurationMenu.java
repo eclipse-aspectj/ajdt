@@ -29,6 +29,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.progress.UIJob;
 
 /**
  * @author Luzius Meisser
@@ -58,8 +59,9 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	}
 
 	public void buildConfigurationChanged(final ProjectBuildConfigurator pbc) {
-		Job job = new Job("BuildConfiguration update build menu") {
-			protected IStatus run(IProgressMonitor monitor) {
+		Job job = new UIJob("BuildConfiguration update build menu") {
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				final IAction addAction = new AddBuildConfigurationAction();
 				rebuildMenu(pbc);
 				return Status.OK_STATUS;
 			}
@@ -74,15 +76,11 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	private void rebuildMenu(final ProjectBuildConfigurator pbc) {
 		final IAction addAction = new AddBuildConfigurationAction();
 		if (pbc == null) {
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					DynamicBuildConfigurationMenu.this.removeAll();
-					DynamicBuildConfigurationMenu.this.setVisible(true);
-					addAction.setEnabled(false);
-					DynamicBuildConfigurationMenu.this.add(separator);
-					DynamicBuildConfigurationMenu.this.add(addAction);
-				}
-			});
+			DynamicBuildConfigurationMenu.this.removeAll();
+			DynamicBuildConfigurationMenu.this.setVisible(true);
+			addAction.setEnabled(false);
+			DynamicBuildConfigurationMenu.this.add(separator);
+			DynamicBuildConfigurationMenu.this.add(addAction);
 			return;
 		}
 

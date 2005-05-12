@@ -76,14 +76,14 @@ public class BuildConfigurator implements ISelectionListener {
 		notificationType = -1;
 	}
 	
-	//garantuees to return a non-null value
+	//guarantuees to return a non-null value
 	public static synchronized BuildConfigurator getBuildConfigurator(){
 		if (buildConfigurator == null)
 			buildConfigurator = new BuildConfigurator();
 		return buildConfigurator;
 	}
 
-	public void selectionChanged(IWorkbenchPart action, ISelection selection) {
+	public synchronized void selectionChanged(IWorkbenchPart action, ISelection selection) {
 		IResource res;
 		IProject selectedProj;
 		// Run migration wizard if we haven't before or if it's not running at the
