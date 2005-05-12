@@ -28,7 +28,7 @@ the pointcut body - this was causing problems.
 (1) Organize imports when there's nothing to add or remove
 
 	(a) click anywhere in the main body of BoundPoint.aj
-	(b) select "Ctrl + Alt + O"
+	(b) select "Ctrl + Shift + O"
 	(c) nothing should happen (other than the java.bean.* import being optionally expanded)
 	    In particular, there should be no dilog which
 	    appear with the title "Organize Imports" and the message:
@@ -48,7 +48,7 @@ the pointcut body - this was causing problems.
 		
 	(b)	after the build, a warning appears next to the import statement you
 	    have just entered.	   
-	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Alt + O".
+	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Shift + O".
 	(d) "import java.io.File;" should no longer be in the import list and there
 	    should be a message in the bottom left hand corner of Eclipse, that one
 	    import was removed. (IMPORTS_3)     
@@ -64,7 +64,7 @@ the pointcut body - this was causing problems.
 	  	
 	  	pointcut setter(Point p): call(void Point.set*(*)) && call(* File.*(..)) && target(p);
 
-	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Alt + O".
+	(c) click anywhere in the main body of BoundPoint.aj and select "Ctrl + Shift + O".
 	(d) "import java.io.File;" should now be in the import list and there
 	    should be a message in the bottom left hand corner of Eclipse, that one
 	    import was added.  (IMPORTS_5)    
@@ -81,8 +81,8 @@ Using the Spacewar example:
 (4) Organize imports when there's nothing to add or remove (where there are two variables)
 
 	(a) click anywhere in the main body of Gamesynchronization.aj
-	(b) select "Ctrl + Alt + O"
-	(c) nothing should happen. In particular, there should be no dilog which
+	(b) select "Ctrl + Shift + O"
+	(c) nothing should happen. In particular, there should be no dialog which
 	    appear with the title "Organize Imports" and the message:
 
 			Compilation unit has parse errors: 'Syntax error on token "$", 
