@@ -368,7 +368,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 			IDocument document = getDocumentProvider().getDocument(getEditorInput());
 			ISourceViewer sourceViewer= getSourceViewer();		
 			sourceViewer.setDocument(document, annotationModel);
-			getDocumentProvider().getAnnotationModel(getEditorInput()).connect(document);
+			IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
+			if(model != null) { // this is null in a linked source folder due to an eclipse bug..
+				model.connect(document);
+			}
 		} 
 	}
 	
