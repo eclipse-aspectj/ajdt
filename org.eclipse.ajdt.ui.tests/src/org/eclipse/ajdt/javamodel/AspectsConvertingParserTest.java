@@ -95,6 +95,20 @@ public class AspectsConvertingParserTest extends AbstractTestCase {
 		}
 	}
 	
+	public void testBug93248again() {
+		// nested conditional statements
+		String statement = "System.out.println(true?true?\"foo\":\"foobar\":\"bar\");";
+		char[] testContent = ("public aspect ABC {\npublic static void main(String[] args) {\n"
+				+ statement + "\n}\n}").toCharArray();
+		AspectsConvertingParser pars = new AspectsConvertingParser(testContent);
+		pars.convert(ConversionOptions.STANDARD);
+		String converted = new String(pars.content);
+		if (converted.indexOf(statement) == -1) {
+			fail("Regression of bug 93248: tertiary operator breaks organise imports");
+		}
+	}	
+	
+	
 	/*
 	 * Class under test for int findPrevious(char, char[], int)
 	 */
