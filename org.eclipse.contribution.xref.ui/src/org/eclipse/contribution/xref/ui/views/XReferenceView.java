@@ -234,7 +234,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
             }
         }
 		persistSettings();
-		XReferenceUIPlugin.xrefView = null;
+		XReferenceUIPlugin.xrefView = null;		
 	}
 
 	public boolean isLinkingEnabled() {
@@ -434,11 +434,12 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
                 IWorkbenchPage activePage = activeWindow.getActivePage();
                 if (activePage != null) {
                     IEditorReference[] openEditors = activePage.getEditorReferences();
-            	    if (openEditors.length == 0 && viewer != null) {
-            	        // if there are no editors open, then want to clear the
-            	        // contents of the xref view and all the records 
-                        viewer.setInput(null);
-
+            	    if (openEditors.length == 0) {
+            	    	// if there are no editors open, then want to clear the
+            	        // contents of the xref view and all the records             	    	
+            	    	if (viewer != null && viewer.getContentProvider() != null) {
+            	        	viewer.setInput(null);
+            	    	}
                         lastXRefAdapterList = null;
                         lastLinkedSelection = null;
                         lastLinkedWorkbenchPart = null;            
