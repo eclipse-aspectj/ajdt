@@ -137,7 +137,10 @@ public class AspectsConvertingParser implements TerminalTokens {
 		insidePointcutDesignator = false;
 		insideAspect = false;
 		insideAspectDeclaration = false;
-		boolean insideBlock = false;
+		
+		// Bug 93248: Count question marks so as to ignore colons that are part of conditional statements		
+		int questionMarkCount = 0; 
+		
 		replacements.clear();
 		typeReferences.clear();
 		usedIdentifiers.clear();
@@ -190,11 +193,17 @@ public class AspectsConvertingParser implements TerminalTokens {
 			case TokenNameCOLON:
 				if (!insideAspect)
 					break;
-				if (insideBlock)
+				if (questionMarkCount > 0) {
+					questionMarkCount--;
 					break;
+				}
 				startPointcutDesignator();
 				break;
-
+				
+			case TokenNameQUESTION:
+				questionMarkCount++;
+				break;
+				
 			case TokenNameSEMICOLON:
 				if (insidePointcutDesignator)
 					endPointcutDesignator();
@@ -219,10 +228,10 @@ public class AspectsConvertingParser implements TerminalTokens {
 								tjpRefs2);
 				}
 				insideAspectDeclaration = false;
-				insideBlock = true;
+//				insideBlockCount ++;
 				break;
 			case TokenNameRBRACE:
-				insideBlock = false;
+//				insideBlockCount ++;
 				break;
 			case TokenNameaspect:
 				insideAspect = true;
