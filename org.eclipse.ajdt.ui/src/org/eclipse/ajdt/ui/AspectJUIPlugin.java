@@ -690,7 +690,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
         } else {
 	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
     	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-    	    AspectJPreferences.setMigrationWizardHasRun(store.getBoolean(workspaceLocation));
+    	    AspectJPreferences.setMigrationWizardHasRun(store.getBoolean(workspaceLocation) || !store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE));
         }
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
