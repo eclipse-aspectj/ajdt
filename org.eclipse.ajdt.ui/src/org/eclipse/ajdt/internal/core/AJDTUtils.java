@@ -760,7 +760,6 @@ public class AJDTUtils {
 											.getShell(), migWizard);
 						if(migDialog.open() == Window.OK) {
 							store.setValue(workspaceLocation,true);
-							AspectJPreferences.setMigrationWizardHasRun(true);
 						} else {
 							new MessageDialog(
 									AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
@@ -773,18 +772,18 @@ public class AJDTUtils {
 							// don't want the migration wizard to pop up again for this
 							// workspace and this running of eclipse. Therefore, set the 
 							// boolean but not the PreferenceStore property
-							AspectJPreferences.setMigrationWizardHasRun(true);
 						}
+						AspectJPreferences.setMigrationWizardHasRun(true);						
+						AspectJPreferences.setMigrationWizardIsRunning(false);
 					}
 				};
 				display.asyncExec(myRun);
-				AspectJPreferences.setMigrationWizardIsRunning(false);
 				return Status.OK_STATUS;
 			}
 		};
 		job.setPriority(Job.LONG);
 		job.setRule(null);
-		job.schedule();		
+		job.schedule();	
 	}
 	
 	/**

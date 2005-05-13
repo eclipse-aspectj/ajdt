@@ -67,9 +67,6 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 			}
 		};
 		job.setPriority(Job.SHORT);
-		if (pbc!=null) {
-			job.setRule(pbc.getJavaProject().getProject());
-		}
 		job.schedule();
 	}
 
