@@ -51,50 +51,49 @@ public class BuilderUtils {
 	 * @param jp
 	 */
 	public static void updateTypesCache(final IJavaProject jp) {
-//		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
-//			protected IStatus run(IProgressMonitor monitor) {
-//				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
-//				try {
-//					List types = getTypeInfosForProject(jp);
-//					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
-//					List typeList = new ArrayList(Arrays.asList(type));
-//					for (Iterator iter = typeList.iterator(); iter.hasNext();) {
-//						TypeInfo info = (TypeInfo) iter.next();
-//						if(info instanceof AJCUTypeInfo) {
-//							if(((AJCUTypeInfo)info).getProject().equals(jp.getElementName())) {
-//								iter.remove();
-//							}
-//						}				
-//					}
-//					TypeInfo[] typesIncludingAspects = new TypeInfo[typeList.size() + types.size()];			
-//					System.arraycopy(typeList.toArray(), 0, typesIncludingAspects, 0, typeList.size());
-//					int index = typeList.size();
-//					for (Iterator iter = types.iterator(); iter.hasNext();) {
-//						TypeInfo info = (TypeInfo) iter.next();
-//						typesIncludingAspects[index] = info;
-//						index ++;
-//					}
-//					Arrays.sort(typesIncludingAspects, new Comparator() {
-//						public int compare(Object o1, Object o2) {
-//							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
-//						}
-//					});
-//					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
-//					setTypes.setAccessible(true);
-//					setTypes.invoke(null, new Object[] {typesIncludingAspects});
-//				} catch (SecurityException e) {
-//				} catch (NoSuchMethodException e) {
-//				} catch (CoreException e) {			
-//				} catch (InvocationTargetException e) {			
-//				} catch (IllegalAccessException e) {			
-//				}
-//				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
-//				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
-//			}
-//		};
-//		updateJob.setRule(jp.getProject());
-////		updateJob.setSystem(true);
-//		updateJob.schedule();		
+		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
+			protected IStatus run(IProgressMonitor monitor) {
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
+				try {
+					List types = getTypeInfosForProject(jp);
+					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
+					List typeList = new ArrayList(Arrays.asList(type));
+					for (Iterator iter = typeList.iterator(); iter.hasNext();) {
+						TypeInfo info = (TypeInfo) iter.next();
+						if(info instanceof AJCUTypeInfo) {
+							if(((AJCUTypeInfo)info).getProject().equals(jp.getElementName())) {
+								iter.remove();
+							}
+						}				
+					}
+					TypeInfo[] typesIncludingAspects = new TypeInfo[typeList.size() + types.size()];			
+					System.arraycopy(typeList.toArray(), 0, typesIncludingAspects, 0, typeList.size());
+					int index = typeList.size();
+					for (Iterator iter = types.iterator(); iter.hasNext();) {
+						TypeInfo info = (TypeInfo) iter.next();
+						typesIncludingAspects[index] = info;
+						index ++;
+					}
+					Arrays.sort(typesIncludingAspects, new Comparator() {
+						public int compare(Object o1, Object o2) {
+							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
+						}
+					});
+					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
+					setTypes.setAccessible(true);
+					setTypes.invoke(null, new Object[] {typesIncludingAspects});
+				} catch (SecurityException e) {
+				} catch (NoSuchMethodException e) {
+				} catch (CoreException e) {			
+				} catch (InvocationTargetException e) {			
+				} catch (IllegalAccessException e) {			
+				}
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
+				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
+			}
+		};
+		updateJob.setSystem(true);
+		updateJob.schedule();		
 	}
 	
 	
@@ -105,68 +104,67 @@ public class BuilderUtils {
 	 * @param workspace - the current workspace
 	 */
 	public static void updateTypesCache(IWorkspace workspace) {
-//		IProject[] projectArray = workspace.getRoot().getProjects();
-//		final List projects = new ArrayList();
-//		for (int i = 0; i < projectArray.length; i++) {
-//			IJavaProject jp = (IJavaProject)JavaCore.create(projectArray[i]);
-//			if(jp != null) {
-//				projects.add(jp);
-//			}
-//		}
-//		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
-//			protected IStatus run(IProgressMonitor monitor) {
-//				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
-//				List allTypes = new ArrayList();
-//				try {
-//					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
-//					List typeList = new ArrayList(Arrays.asList(type));
-//					for (Iterator iterator = projects.iterator(); iterator.hasNext();) {
-//					IJavaProject jp = (IJavaProject) iterator.next();
-//						List types = getTypeInfosForProject(jp);
-//						allTypes.addAll(types);
-//						for (Iterator iter = typeList.iterator(); iter.hasNext();) {
-//							TypeInfo info = (TypeInfo) iter.next();
-//							if(info instanceof AJCUTypeInfo) {
-//								if(((AJCUTypeInfo)info).getProject().equals(jp.getElementName())) {
-//									iter.remove();
-//								}
-//							}				
-//						}
-//					}
-//				
-//					TypeInfo[] typesIncludingAspects = new TypeInfo[typeList.size() + allTypes.size()];			
-//					System.arraycopy(typeList.toArray(), 0, typesIncludingAspects, 0, typeList.size());
-//					int index = typeList.size();
-//					for (Iterator iter = allTypes.iterator(); iter.hasNext();) {
-//						TypeInfo info = (TypeInfo) iter.next();
-//						typesIncludingAspects[index] = info;
-//						index ++;
-//					}
-//					Arrays.sort(typesIncludingAspects, new Comparator() {
-//						public int compare(Object o1, Object o2) {
-//							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
-//						}
-//					});
-//					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
-//					setTypes.setAccessible(true);
-//					setTypes.invoke(null, new Object[] {typesIncludingAspects});
-//				} catch (SecurityException e) {
-//				} catch (NoSuchMethodException e) {
-//				} catch (CoreException e) {			
-//				} catch (InvocationTargetException e) {			
-//				} catch (IllegalAccessException e) {			
-//				}
-//				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
-//				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
-//			}			
-//			
-//		};
-//		if(projects.size() > 0) {
-//			IJavaProject jp = (IJavaProject)projects.get(0);
-//			updateJob.setRule(jp.getProject().getParent());
-////			updateJob.setSystem(true);
-//			updateJob.schedule();
-//		}
+		IProject[] projectArray = workspace.getRoot().getProjects();
+		final List projects = new ArrayList();
+		for (int i = 0; i < projectArray.length; i++) {
+			IJavaProject jp = (IJavaProject)JavaCore.create(projectArray[i]);
+			if(jp != null) {
+				projects.add(jp);
+			}
+		}
+		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
+			protected IStatus run(IProgressMonitor monitor) {
+				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
+				List allTypes = new ArrayList();
+				try {
+					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
+					List typeList = new ArrayList(Arrays.asList(type));
+					for (Iterator iterator = projects.iterator(); iterator.hasNext();) {
+					IJavaProject jp = (IJavaProject) iterator.next();
+						List types = getTypeInfosForProject(jp);
+						allTypes.addAll(types);
+						for (Iterator iter = typeList.iterator(); iter.hasNext();) {
+							TypeInfo info = (TypeInfo) iter.next();
+							if(info instanceof AJCUTypeInfo) {
+								if(((AJCUTypeInfo)info).getProject().equals(jp.getElementName())) {
+									iter.remove();
+								}
+							}				
+						}
+					}
+				
+					TypeInfo[] typesIncludingAspects = new TypeInfo[typeList.size() + allTypes.size()];			
+					System.arraycopy(typeList.toArray(), 0, typesIncludingAspects, 0, typeList.size());
+					int index = typeList.size();
+					for (Iterator iter = allTypes.iterator(); iter.hasNext();) {
+						TypeInfo info = (TypeInfo) iter.next();
+						typesIncludingAspects[index] = info;
+						index ++;
+					}
+					Arrays.sort(typesIncludingAspects, new Comparator() {
+						public int compare(Object o1, Object o2) {
+							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
+						}
+					});
+					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
+					setTypes.setAccessible(true);
+					setTypes.invoke(null, new Object[] {typesIncludingAspects});
+				} catch (SecurityException e) {
+				} catch (NoSuchMethodException e) {
+				} catch (CoreException e) {			
+				} catch (InvocationTargetException e) {			
+				} catch (IllegalAccessException e) {			
+				}
+				AJLog.logEnd(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
+				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
+			}			
+			
+		};
+		if(projects.size() > 0) {
+			IJavaProject jp = (IJavaProject)projects.get(0);
+			updateJob.setSystem(true);
+			updateJob.schedule();
+		}
 	}
 	
 	/**
