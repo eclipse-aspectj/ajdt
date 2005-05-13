@@ -93,7 +93,7 @@ public class BuildConfigurator implements ISelectionListener {
 		if(!AspectJPreferences.migrationWizardIsRunning()
 		        && !AspectJPreferences.migrationWizardHasRun() 
 				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
-		        && store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
+		        && AspectJUIPlugin.getDefault().workspaceIsEmpty(AspectJPlugin.getWorkspace().getRoot())) {
 			AspectJPreferences.setMigrationWizardIsRunning(true);
 		    AJDTUtils.migrateWorkbench();
 		} else if (!triedToOpenXRefView 

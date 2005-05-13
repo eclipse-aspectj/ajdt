@@ -54,6 +54,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
@@ -690,7 +691,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
         } else {
 	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
     	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-    	    AspectJPreferences.setMigrationWizardHasRun(store.getBoolean(workspaceLocation) || !store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE));
+    	    AspectJPreferences.setMigrationWizardHasRun(store.getBoolean(workspaceLocation) || workspaceIsEmpty(currentWorkspace.getRoot()));
         }
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
@@ -700,6 +701,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		AJDTUtils.refreshPackageExplorer();
 	}
 	
+	/**
+	 * @param root
+	 * @return
+	 */
+	public boolean workspaceIsEmpty(IWorkspaceRoot root) {
+		return !AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)
+			&& root.getProjects().length == 0;
+	}
+
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
 		String version = (String) bundle.getHeaders().get(
