@@ -706,7 +706,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * @return
 	 */
 	public boolean workspaceIsEmpty(IWorkspaceRoot root) {
-		return !AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)
+		return (!AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE))
 			&& root.getProjects().length == 0;
 	}
 
