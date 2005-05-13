@@ -91,6 +91,10 @@ public class AJDTUtils {
 	private static int previousExecutionTime;
 	
 	private static final String ID_NATURE = AspectJUIPlugin.PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+
+	// for testing purposes only: set this to true to force the migration wizard
+	// to appear
+	public static final boolean FORCE_MIGRATION = false; //true;
 	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
@@ -738,12 +742,16 @@ public class AJDTUtils {
 	 * then runs it
 	 */	
 	public static void migrateWorkbench() {
+		if (AspectJPreferences.migrationWizardIsRunning()) {
+			return;
+		}
+		AspectJPreferences.setMigrationWizardIsRunning(true);
 	    // only want the wizard to come up once per workspace
 	    final IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
 	    final String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
 	    boolean alreadyMigratedWorkspace = store.getBoolean(workspaceLocation);
-	    if (alreadyMigratedWorkspace) {
+	    if (!FORCE_MIGRATION && alreadyMigratedWorkspace) {
 	        AspectJPreferences.setMigrationWizardIsRunning(false);
             return;
         } 	    		
