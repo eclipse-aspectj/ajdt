@@ -231,10 +231,6 @@ public class CoreProjectProperties implements IProjectProperties {
 		return null;
 	}
 
-	public Set getInpath() {
-		return null;
-	}
-
 	public Map getSourcePathResources() {
 		return null;
 	}
@@ -299,7 +295,7 @@ public class CoreProjectProperties implements IProjectProperties {
 		return mapStringToSet(aspectpath, false);
 	}
 
-	public Set getInPath() {
+	public Set getInpath() {
 		IProject thisProject = AspectJPlugin.getDefault().getCurrentProject();
 		String[] v = AspectJCorePreferences.getProjectInPath(thisProject);
 
