@@ -100,7 +100,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 	private Button enableRedSquigglesButton;
 	private Button enableUnusedImportsButton;
 	private Button fileAssociationsButton;
-    private Button useIncrementalButton;
+    //private Button useIncrementalButton;
 
 	
 	protected WorkbenchSettingsMigrationPage() {
@@ -163,12 +163,12 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         label5.setText(AspectJUIPlugin
                 .getResourceString("WorkbenchSettingsMigrationPage.useIncrementalButton.message")); //$NON-NLS-1$
 
-        Label spacer10 = new Label(composite, SWT.NONE);
+        //Label spacer10 = new Label(composite, SWT.NONE);
 
-        useIncrementalButton = new Button(composite, SWT.CHECK);
-        useIncrementalButton.setText(AspectJUIPlugin
-              .getResourceString("WorkbenchSettingsMigrationPage.useIncrementalButton.label")); //$NON-NLS-1$
-        useIncrementalButton.setSelection(true);
+        //useIncrementalButton = new Button(composite, SWT.CHECK);
+        //useIncrementalButton.setText(AspectJUIPlugin
+        //     .getResourceString("WorkbenchSettingsMigrationPage.useIncrementalButton.label")); //$NON-NLS-1$
+        //useIncrementalButton.setSelection(true);
 
 
 	}
@@ -182,7 +182,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         // clear up the redundent .ajsym and .generated.lst files
         clearupRedundantFilesButton(ajProjects,monitor);
 	    
-        useIncrementalCompilationAsDefault(ajProjects, monitor, useIncrementalButton.getSelection());       
+        //useIncrementalCompilationAsDefault(ajProjects, monitor, useIncrementalButton.getSelection());       
 	    	    
 		// turn off red squgglies if this button is checked
 		AJDTConfigSettings.disableAnalyzeAnnotations(!(enableRedSquigglesButton.getSelection()));
@@ -233,8 +233,8 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
             IProject project = (IProject) iter.next();
             // must work out whether using project settings or not first
             preserveUseProjectSettingsChoice(project, store);
-            preserveBuildAsmSetting(project);
-            preserveWeaveMessagesSetting(project);
+            //preserveBuildAsmSetting(project);
+            //preserveWeaveMessagesSetting(project);
             preserveOutJarSetting(project);
             preserveNonStandardOptions(project);
             preserveAspectPathSetting(project);
@@ -257,7 +257,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
     private void preserveOutJarSetting(IProject project) {
         try {
             String outjar = project.getPersistentProperty(OUTJAR);
-            setPrefValue(project, AspectJCorePreferences.OUT_JAR, outjar);
+            AspectJCorePreferences.setProjectOutJar(project,outjar);
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
@@ -275,8 +275,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         try {
             String nonStandardOptions = project
                     .getPersistentProperty(NON_STANDARD_OPTS);
-            setPrefValue(project, AspectJPreferences.COMPILER_OPTIONS,
-                    nonStandardOptions);
+            AspectJPreferences.setCompilerOptions(project,nonStandardOptions);
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
