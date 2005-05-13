@@ -157,11 +157,11 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 				.getResourceString("WorkbenchSettingsMigrationPage.updateFileAssociations.label")); //$NON-NLS-1$
 		fileAssociationsButton.setSelection(true);
 		
-		Label spacer9 = new Label(composite, SWT.NONE);
+//		Label spacer9 = new Label(composite, SWT.NONE);
 		
-        Label label5 = new Label(composite, SWT.NONE);
-        label5.setText(AspectJUIPlugin
-                .getResourceString("WorkbenchSettingsMigrationPage.useIncrementalButton.message")); //$NON-NLS-1$
+//        Label label5 = new Label(composite, SWT.NONE);
+//        label5.setText(AspectJUIPlugin
+//                .getResourceString("WorkbenchSettingsMigrationPage.useIncrementalButton.message")); //$NON-NLS-1$
 
         //Label spacer10 = new Label(composite, SWT.NONE);
 
