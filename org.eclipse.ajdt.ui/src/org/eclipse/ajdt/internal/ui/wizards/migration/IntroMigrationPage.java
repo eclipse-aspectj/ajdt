@@ -40,12 +40,6 @@ public class IntroMigrationPage extends WizardPage {
 		Label label = new Label(composite, SWT.NONE);
 		label.setText(AspectJUIPlugin.getResourceString("IntroMigrationPage.message"));
 		setControl(composite);
-		
-		Label spacer = new Label(composite, SWT.NONE);
-	
-		Label label2 = new Label(composite, SWT.NONE);
-		label2.setText(AspectJUIPlugin.getResourceString("IntroMigrationPage.message2"));
-		setControl(composite);
 
 	}
 
