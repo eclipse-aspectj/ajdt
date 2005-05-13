@@ -96,11 +96,14 @@ public class BuildConfigurator implements ISelectionListener {
 		        && store.getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE)) {
 			AspectJPreferences.setMigrationWizardIsRunning(true);
 		    AJDTUtils.migrateWorkbench();
-		} else if (!triedToOpenXRefView && !AspectJPreferences.migrationWizardIsRunning()) { // only try this once
+		} else if (!triedToOpenXRefView 
+		        && !AspectJPreferences.migrationWizardIsRunning()) { // only try this once
 			String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 			if (!AspectJPreferences.migrationWizardIsRunning()
-			        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)) {
-		        // open xref view in perspective if the migration wizard isn't running and we haven't opened the xref view before.
+			        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)
+			        && !store.getBoolean(workspaceLocation)) {
+		        // open xref view in perspective if the migration wizard either isn't running 
+			    // or hasn't run and we haven't opened the xref view before.
 				Job job = new UIJob(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView")) { //$NON-NLS-1$
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {
