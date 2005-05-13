@@ -22,6 +22,7 @@ import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.builder.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
@@ -795,6 +796,8 @@ public class AJDTUtils {
 	public static void removeAspectJNature(IProject project)
 			throws CoreException {
 
+		MarkerUpdating.deleteAllMarkers(project);
+		
 		//remove compilation units for .aj files
 		//(the way it is currently implemented, this must happen before nature
 		// gets removed)

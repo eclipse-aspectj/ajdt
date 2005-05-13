@@ -182,11 +182,7 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         // clear up the redundent .ajsym and .generated.lst files
         clearupRedundantFilesButton(ajProjects,monitor);
 	    
-        if (useIncrementalButton.getSelection()) {
-            useIncrementalCompilationAsDefault(ajProjects,monitor);
-        } else {
-        	monitor.worked(ajProjects.size());
-        }
+        useIncrementalCompilationAsDefault(ajProjects, monitor, useIncrementalButton.getSelection());       
 	    	    
 		// turn off red squgglies if this button is checked
 		AJDTConfigSettings.disableAnalyzeAnnotations(!(enableRedSquigglesButton.getSelection()));
@@ -199,14 +195,11 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 		}
 		monitor.worked(ajProjects.size());
 		
-		// update file associations if need be
-		if (fileAssociationsButton.getSelection()) {
-			if (AJDTConfigSettings.isAspectJEditorDefault()) {
-				AJDTConfigSettings.setDefaultEditorForJavaFiles(false);
-			}
-			AspectJUIPlugin.getDefault().getPreferenceStore()
-				.setToDefault(AspectJPreferences.JAVA_OR_AJ_EXT);
-		}
+		// update editor file associations
+		AJDTConfigSettings.setDefaultEditorForJavaFiles(!fileAssociationsButton.getSelection());			
+		AspectJUIPlugin.getDefault().getPreferenceStore()
+			.setValue(AspectJPreferences.JAVA_OR_AJ_EXT, !fileAssociationsButton.getSelection());
+
 		monitor.worked(ajProjects.size());
 		
 		
@@ -552,19 +545,22 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         }
     }
 	
-    private void useIncrementalCompilationAsDefault(List ajProjects, IProgressMonitor monitor) {
+    private void useIncrementalCompilationAsDefault(List ajProjects, IProgressMonitor monitor, boolean value) {
         // update the workbench compiler settings
         IPreferenceStore store = AspectJUIPlugin.getDefault()
                 .getPreferenceStore();
-        store.setDefault(AspectJPreferences.OPTION_Incremental, true);
-        store.setToDefault(AspectJPreferences.OPTION_Incremental);
+        store.setValue(AspectJPreferences.OPTION_Incremental, value);
 
         for (Iterator iter = ajProjects.iterator(); iter.hasNext();) {
             IProject project = (IProject) iter.next();
             boolean useProjectSettings = AspectJPreferences.isUsingProjectSettings(project);
             if (useProjectSettings) {
                 // HELEN - hard coded string!!!!!!!
-                setPrefValue(project, AspectJPreferences.OPTION_Incremental,"true"); //$NON-NLS-1$
+            	if(value) {
+            		setPrefValue(project, AspectJPreferences.OPTION_Incremental,"true"); //$NON-NLS-1$
+            	} else {
+            		setPrefValue(project, AspectJPreferences.OPTION_Incremental,"false"); //$NON-NLS-1$
+            	}
                 flushPrefs(project);
             }
             // in the world of AJDT 1.1.12, we set the following persistent

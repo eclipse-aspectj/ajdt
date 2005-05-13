@@ -55,7 +55,7 @@ public class AspectJPreferencePage
         store.setDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT, false);
         store.setDefault(AspectJPreferences.PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE, false);
         store.setDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT, true);
-        store.setDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT, false);
+        store.setDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT, false);        
 	}
 
 	/**
