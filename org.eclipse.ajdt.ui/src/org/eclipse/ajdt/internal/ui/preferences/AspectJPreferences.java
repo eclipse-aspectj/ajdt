@@ -492,7 +492,7 @@ public class AspectJPreferences {
 	public static void setCompilerOptions(IProject project, String value) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJUIPlugin.PLUGIN_ID);
+				.getNode(AspectJPlugin.PLUGIN_ID);
 		projectNode.put(COMPILER_OPTIONS, value);
 		if (value.length()==0) {
 			projectNode.remove(COMPILER_OPTIONS);
