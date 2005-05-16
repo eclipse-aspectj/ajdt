@@ -90,10 +90,12 @@ public class BuildConfigurator implements ISelectionListener {
 		// moment, if we have previously run the old preference wizard on this 
 		// workspace and if this is not a brand new workspace
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		if (AJDTUtils.FORCE_MIGRATION || (!AspectJPreferences.migrationWizardHasRun() 
+		if (AJDTUtils.FORCE_MIGRATION
+		        || (!AspectJPreferences.migrationWizardHasRun() 
 				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
 		        && !AspectJUIPlugin.getDefault().workspaceIsEmpty(AspectJPlugin.getWorkspace().getRoot()))) {			
 		    AJDTUtils.migrateWorkbench();
+		    AJDTUtils.FORCE_MIGRATION = false;
 		} else if (!triedToOpenXRefView 
 		        && !AspectJPreferences.migrationWizardIsRunning()) { // only try this once
 			String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();

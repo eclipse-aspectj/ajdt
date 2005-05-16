@@ -94,7 +94,7 @@ public class AJDTUtils {
 
 	// for testing purposes only: set this to true to force the migration wizard
 	// to appear
-	public static final boolean FORCE_MIGRATION = false; //true;
+	public static boolean FORCE_MIGRATION = false; //true;
 	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
