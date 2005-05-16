@@ -257,7 +257,6 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
     private void preserveOutJarSetting(IProject project) {
         try {
             String outjar = project.getPersistentProperty(OUTJAR);
-//            System.out.println("old outjar - " + outjar);
             if(outjar != null) {
             	AspectJCorePreferences.setProjectOutJar(project,outjar);
             }

@@ -257,7 +257,9 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
     private void preserveOutJarSetting(IProject project) {
         try {
             String outjar = project.getPersistentProperty(OUTJAR);
-            AspectJCorePreferences.setProjectOutJar(project,outjar);
+            if(outjar != null) {
+            	AspectJCorePreferences.setProjectOutJar(project,outjar);
+            }
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
@@ -275,7 +277,9 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
         try {
             String nonStandardOptions = project
                     .getPersistentProperty(NON_STANDARD_OPTS);
-            AspectJPreferences.setCompilerOptions(project,nonStandardOptions);
+        	if(nonStandardOptions != null) {                
+        		AspectJPreferences.setCompilerOptions(project,nonStandardOptions);
+        	}
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
