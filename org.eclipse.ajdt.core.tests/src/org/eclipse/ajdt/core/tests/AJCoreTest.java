@@ -217,6 +217,23 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 	}
 
+	/**
+	 * Test that going from an IJavaElement to its handle identifier then back
+	 * to an IJavaElement using AspectJCore.create() results in a element that
+	 * is equivalent to the original (not necessarily identical).
+	 * 
+	 * @throws Exception
+	 */
+	public void testHandleCreateRoundtripBug94107() throws Exception {
+		IProject project = createPredefinedProject("bug94107");
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+			compareElementsFromRelationships(rels, project);
+		} finally {
+			deleteProject(project);
+		}
+	}
+	
 	private String getSimpleClassName(Object obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');

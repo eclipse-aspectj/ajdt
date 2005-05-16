@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +67,7 @@ import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
+import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 
 
@@ -570,31 +573,45 @@ public class AJCompilationUnit extends CompilationUnit{
 		return null;
 	}
 
+
+	// hack: need to use protected constructor in SourceType
+	private JavaElement getType(JavaElement type, String typeName) {
+		try {
+			Constructor cons = SourceType.class.getDeclaredConstructor(new Class[]{JavaElement.class,String.class});
+			cons.setAccessible(true);
+			Object obj = cons.newInstance(new Object[]{type,typeName});
+			return (JavaElement)obj;
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (InstantiationException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		return null;
+	}
+	
 	/*
 	 * @see JavaElement
 	 */
 	public IJavaElement getHandleFromMemento(String token, MementoTokenizer memento, WorkingCopyOwner workingCopyOwner) {
-		if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
-			if (!memento.hasMoreTokens()) return this;
-			String typeName = memento.nextToken();
-			JavaElement type = new AspectElement(this, typeName);
-			return type.getHandleFromMemento(memento, workingCopyOwner);		
-		} else if (token.charAt(0) == JavaElement.JEM_TYPE) {
-			// might be a class containing an inner aspect so we have to handle it ourselves
-			if (!memento.hasMoreTokens()) return this;
-			String typeName = memento.nextToken();
-			JavaElement type = (JavaElement)getType(typeName);
+		JavaElement type = this;
+		// need to handle types ourselves, because they may contain inner aspects
+		// (or inner classes containing inner aspects etc)
+		while ((token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) ||
+				(token.charAt(0) == JavaElement.JEM_TYPE)) {
 			if (!memento.hasMoreTokens()) return type;
-			String nextToken = memento.nextToken();
-			if (nextToken.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
-				if (!memento.hasMoreTokens()) return this;
-				String typeName2 = memento.nextToken();
-				JavaElement type2 = new AspectElement(type, typeName2);
-				return type2.getHandleFromMemento(memento, workingCopyOwner);
+			String typeName = memento.nextToken();
+			if (token.charAt(0) == AspectElement.JEM_ASPECT_TYPE) {
+				type = new AspectElement(type, typeName);
+			} else if (token.charAt(0) == JavaElement.JEM_TYPE) {
+				type = getType(type,typeName);
+				if (type == null) type = (JavaElement)getType(typeName);
 			}
-			return type.getHandleFromMemento(nextToken,memento, workingCopyOwner);
+			if (!memento.hasMoreTokens()) return type;
+			token = memento.nextToken();
 		}
-		return super.getHandleFromMemento(token, memento, workingCopyOwner);
+		return type.getHandleFromMemento(token, memento, workingCopyOwner);
 	}
 	
 	public String getHandleIdentifier() {
