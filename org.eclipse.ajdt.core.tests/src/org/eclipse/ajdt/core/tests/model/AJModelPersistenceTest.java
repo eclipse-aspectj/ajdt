@@ -104,14 +104,17 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testReloadingModel5() throws Exception {
-		IProject libProject = createPredefinedProject("MyAspectLibrary");
+		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary");
+		if (libProject==null) {
+			libProject = createPredefinedProject("MyAspectLibrary");
+		}
 		IProject weaveMeProject = createPredefinedProject("WeaveMe");
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 			compareAfterReloadingModel(rels, weaveMeProject);
 		} finally {
 			deleteProject(weaveMeProject);
-			deleteProject(libProject);
+			//deleteProject(libProject);
 		}
 	}
 

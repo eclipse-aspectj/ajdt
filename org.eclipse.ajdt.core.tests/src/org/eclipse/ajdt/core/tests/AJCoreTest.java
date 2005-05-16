@@ -206,14 +206,17 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip5() throws Exception {
-		IProject libProject = createPredefinedProject("MyAspectLibrary");
+		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary");
+		if (libProject==null) {
+			libProject = createPredefinedProject("MyAspectLibrary");
+		}
 		IProject weaveMeProject = createPredefinedProject("WeaveMe");
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 			compareElementsFromRelationships(rels, weaveMeProject);
 		} finally {
 			deleteProject(weaveMeProject);
-			deleteProject(libProject);
+			//deleteProject(libProject);
 		}
 	}
 

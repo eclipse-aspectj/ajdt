@@ -36,7 +36,10 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testAspectPathDirWeaving() throws Exception {
-		IProject libProject = createPredefinedProject("MyAspectLibrary");
+		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary");
+		if (libProject==null) {
+			libProject = createPredefinedProject("MyAspectLibrary");
+		}
 		IProject weaveMeProject = createPredefinedProject("WeaveMe");
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
@@ -57,7 +60,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 					gotBinaryAdvice);
 		} finally {
 			deleteProject(weaveMeProject);
-			deleteProject(libProject);
+			//deleteProject(libProject);
 		}
 	}
 
