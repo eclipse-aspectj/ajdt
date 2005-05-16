@@ -237,9 +237,8 @@ public class BuilderUtils {
 				Display d = Display.getDefault();
 				d.syncExec(new Runnable() {
 					public void run() {
-						Method startBackgroundMode;
 						try {
-							startBackgroundMode = AllTypesCache.class.getDeclaredMethod("startBackgroundMode", new Class[0]);
+							Method startBackgroundMode = AllTypesCache.class.getDeclaredMethod("startBackgroundMode", new Class[0]);
 							startBackgroundMode.setAccessible(true);
 							startBackgroundMode.invoke(null, new Object[0]);
 						} catch (SecurityException e) {
