@@ -276,9 +276,11 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 
     private void preserveNonStandardOptions(IProject project) {
         try {
-            String nonStandardOptions = project
+        	String nonStandardOptions = project
                     .getPersistentProperty(NON_STANDARD_OPTS);
-            AspectJPreferences.setCompilerOptions(project,nonStandardOptions);
+        	if(nonStandardOptions != null) {                
+        		AspectJPreferences.setCompilerOptions(project,nonStandardOptions);
+        	}
         } catch (CoreException e) {
         }
         // in the world of AJDT 1.1.12, we set the following persistent
