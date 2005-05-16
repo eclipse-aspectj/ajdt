@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -30,6 +31,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
@@ -39,6 +41,7 @@ import org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.eclipse.jdt.internal.corext.util.AllTypesCache;
 import org.eclipse.jdt.internal.corext.util.IFileTypeInfo;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * Builder Utilities
@@ -93,8 +96,7 @@ public class BuilderUtils {
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
 		};
-		updateJob.setRule(jp.getProject());
-		updateJob.setSystem(true);
+//		updateJob.setSystem(true);
 		updateJob.schedule();		
 	}
 	
@@ -119,7 +121,7 @@ public class BuilderUtils {
 				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_WORKSPACE);
 				List allTypes = new ArrayList();
 				try {
-					TypeInfo[] type = AllTypesCache.getAllTypes(new NullProgressMonitor());
+					TypeInfo[] type = AllTypesCache.getAllTypes(monitor);
 					List typeList = new ArrayList(Arrays.asList(type));
 					for (Iterator iterator = projects.iterator(); iterator.hasNext();) {
 					IJavaProject jp = (IJavaProject) iterator.next();
@@ -164,8 +166,7 @@ public class BuilderUtils {
 		};
 		if(projects.size() > 0) {
 			IJavaProject jp = (IJavaProject)projects.get(0);
-			updateJob.setRule(jp.getProject().getParent());
-			updateJob.setSystem(true);
+//			updateJob.setSystem(true);
 			updateJob.schedule();
 		}
 	}
@@ -199,8 +200,8 @@ public class BuilderUtils {
 	 * except aspects
 	 */
 	private static List getTypeInfosForProject(final IJavaProject jp) throws CoreException, JavaModelException {
-		List cus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
 		List types = new ArrayList();
+		List cus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
 		for (Iterator iter = cus.iterator(); iter.hasNext();) {
 			AJCompilationUnit unit = (AJCompilationUnit) iter.next();
 			IType[] itypes = unit.getAllTypes();
@@ -234,5 +235,34 @@ public class BuilderUtils {
 			}
 		}
 		return types;
+	}
+
+
+	/**
+	 * Initialise the types cache
+	 */
+	public static void initTypesCache() {
+		Job job = new Job("") {
+			public IStatus run(IProgressMonitor monitor) {
+				Display d = Display.getDefault();
+				d.syncExec(new Runnable() {
+					public void run() {
+						try {
+							Method startBackgroundMode = AllTypesCache.class.getDeclaredMethod("startBackgroundMode", new Class[0]);
+							startBackgroundMode.setAccessible(true);
+							startBackgroundMode.invoke(null, new Object[0]);
+						} catch (SecurityException e) {
+						} catch (NoSuchMethodException e) {
+						} catch (IllegalArgumentException e) {
+						} catch (IllegalAccessException e) {
+						} catch (InvocationTargetException e) {
+						}						
+					}
+				}); 
+				updateTypesCache(AspectJPlugin.getWorkspace());
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
 }
