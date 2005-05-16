@@ -696,7 +696,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
-		BuilderUtils.updateTypesCache(AspectJPlugin.getWorkspace());
+		BuilderUtils.initTypesCache();
 		
 		AJDTUtils.refreshPackageExplorer();
 	}

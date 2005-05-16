@@ -64,7 +64,6 @@ import org.eclipse.pde.internal.ui.IPDEUIConstants;
 import org.eclipse.pde.internal.ui.editor.plugin.DependenciesPage;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -94,7 +93,7 @@ public class AJDTUtils {
 
 	// for testing purposes only: set this to true to force the migration wizard
 	// to appear
-	public static boolean FORCE_MIGRATION = false; //true;
+	public static boolean FORCE_MIGRATION =  false; // true;
 	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
@@ -755,43 +754,33 @@ public class AJDTUtils {
 	        AspectJPreferences.setMigrationWizardIsRunning(false);
             return;
         } 	    		
-		Job job = new Job(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
+		Job job = new UIJob(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
 
-			public IStatus run(IProgressMonitor m) {
-				final Display display = AspectJUIPlugin.getDefault().getDisplay();
-				
-				Runnable myRun = new Runnable() {
-					public void run() {
-					    
-					    AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
-						migWizard.init();
-						WizardDialog migDialog = new WizardDialog(AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-											.getShell(), migWizard);
-						if(migDialog.open() == Window.OK) {
-							store.setValue(workspaceLocation,true);
-						} else {
-							new MessageDialog(
-									AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
-									AspectJUIPlugin.getResourceString("MigrationWizardCancelled"),  //$NON-NLS-1$
-									MessageDialog.getDefaultImage(),
-									AspectJUIPlugin.getResourceString("MigrationWizardCancelledMessage"), //$NON-NLS-1$
-									MessageDialog.INFORMATION,
-									new String[] {AspectJUIPlugin.getResourceString("MigrationWizardOK")}, //$NON-NLS-1$
-									0).open();
-							// don't want the migration wizard to pop up again for this
-							// workspace and this running of eclipse. Therefore, set the 
-							// boolean but not the PreferenceStore property
-						}
-						AspectJPreferences.setMigrationWizardHasRun(true);						
-						AspectJPreferences.setMigrationWizardIsRunning(false);
-					}
-				};
-				display.asyncExec(myRun);
+			public IStatus runInUIThread(IProgressMonitor m) {
+				AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
+				migWizard.init();
+				WizardDialog migDialog = new WizardDialog(AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+									.getShell(), migWizard);
+				if(migDialog.open() == Window.OK) {
+					store.setValue(workspaceLocation,true);
+				} else {
+					new MessageDialog(
+							AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
+							AspectJUIPlugin.getResourceString("MigrationWizardCancelled"),  //$NON-NLS-1$
+							MessageDialog.getDefaultImage(),
+							AspectJUIPlugin.getResourceString("MigrationWizardCancelledMessage"), //$NON-NLS-1$
+							MessageDialog.INFORMATION,
+							new String[] {AspectJUIPlugin.getResourceString("MigrationWizardOK")}, //$NON-NLS-1$
+							0).open();
+					// don't want the migration wizard to pop up again for this
+					// workspace and this running of eclipse. Therefore, set the 
+					// boolean but not the PreferenceStore property
+				}
 				return Status.OK_STATUS;
 			}
 		};
+		job.setSystem(true);
 		job.setPriority(Job.LONG);
-		job.setRule(null);
 		job.schedule();	
 	}
 	
