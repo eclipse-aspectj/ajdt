@@ -23,6 +23,7 @@ import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.builder.ProjectDependenciesUtils;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -30,6 +31,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -433,6 +435,35 @@ public class AspectJPreferencesTest extends TestCase {
 			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,original);		
 		}
 	}
+	
+	public void testSetCompilerOptions() throws Exception {
+	    assertFalse("project shouldn't have any error markers",
+	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
+	    AspectJPreferences.setCompilerOptions(project,"blah");
+	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+	    Utils.waitForJobsToComplete();
+	    assertTrue("build should fail because can't understand compiler options",
+	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
+	    AspectJPreferences.setCompilerOptions(project,"");
+	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+	    Utils.waitForJobsToComplete();
+	    assertFalse("project shouldn't have any error markers",
+	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));    
+	}
+	
+	public void testGetCompilerOptions() throws Exception {
+	    AspectJPreferences.setCompilerOptions(project,"blah");
+	    String compilerOptions = AspectJPreferences.getCompilerOptions(project);
+	    assertEquals("should have \"blah\" as compiler options, instead has " + compilerOptions,
+	            "blah",
+	            compilerOptions);
+	    AspectJPreferences.setCompilerOptions(project,"");
+	    compilerOptions = AspectJPreferences.getCompilerOptions(project);
+	    assertEquals("should have \" \" as compiler options, instead has " + compilerOptions,
+	            "",
+	            compilerOptions);
+	}
+	
 	
 	private boolean checkXlintOption(File file, String option, String value) throws Exception {
 		boolean gotValue = false;
