@@ -86,7 +86,7 @@ public class XRefUIUtils {
 			caret= offset + styledText.getCaretOffset();
 		}			
 
-		IJavaElement element= getElementAt(editor, caret, true);
+		IJavaElement element= getElementAt(editor, caret, false);
 		
 		if ( !(element instanceof ISourceReference))
 			return null;
