@@ -116,8 +116,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 		IWorkbenchWindow window = XRefUIUtils.getActiveWorkbenchWindow();
 
 		if (window != null) {
-		    window.getSelectionService().addPostSelectionListener(this);
-		}		
+			window.getSelectionService().addSelectionListener(this);
+		}
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 		IWorkbenchWindow window = XRefUIUtils.getActiveWorkbenchWindow();
 
 		if (window != null) {
-			window.getSelectionService().removePostSelectionListener(this);
+			window.getSelectionService().removeSelectionListener(this);
 		}
 		IWorkbenchWindow activeWindow = JavaPlugin.getActiveWorkbenchWindow();
 		if (activeWindow != null) {
