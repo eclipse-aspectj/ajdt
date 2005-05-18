@@ -581,7 +581,7 @@
                disabledIcon="icons/actions/disabled_build.gif"
                tooltip="Build AspectJ Project / Select Configuration"
                class="org.eclipse.ajdt.internal.ui.PulldownBuildselectorMenu"
-               toolbarPath="Normal/build.group"
+               toolbarPath="org.eclipse.ui.workbench.file/build.ext"
                id="SelectBuildConfiguration">
          </action>
          
