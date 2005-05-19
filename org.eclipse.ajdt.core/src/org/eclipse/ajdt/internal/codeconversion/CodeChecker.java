@@ -16,9 +16,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.aspectj.org.eclipse.jdt.core.compiler.InvalidInputException;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Scanner;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.TerminalTokens;
+import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.aspectj.org.eclipse.jdt.internal.compiler.batch.CompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
@@ -49,36 +52,69 @@ public class CodeChecker {
 			// read contents of file into char array
 			FileReader fr = new FileReader(f);
 			int size = (int) f.length();
-			char[] data = new char[size];
-			fr.read(data, 0, size);
+			char[] source = new char[size];
+			fr.read(source, 0, size);
 			fr.close();
 
-			Scanner scanner = new Scanner();
-			scanner.setSource(data);
+			/*
+			 * bug 95370: we previously used a simple scanner here, looking for
+			 * aspect or pointcut tokens. But there might be identifiers with
+			 * the same name, which is allowed. Therefore we need to do a parse
+			 * instead, so that the context is taken into account, allowing us
+			 * to determine only when "aspect" or "pointcut" are used as
+			 * keywords.
+			 */
 
-			int tok;
-			while (true) {
-				try {
-					tok = scanner.getNextToken();
-				} catch (InvalidInputException e) {
-					continue;
-				}
-				if (tok == TerminalTokens.TokenNameEOF)
-					break;
+			// create a compilation unit with the source code for input to the
+			// parser
+			CompilerOptions options = new CompilerOptions();
+			ProblemReporter probrep = new ProblemReporter(null, options, null);
+			ICompilationUnit sourceUnit = new CompilationUnit(source, "", //$NON-NLS-1$
+					options.defaultEncoding);
+			CompilationResult result = new CompilationResult(sourceUnit, 0, 0,
+					options.maxProblemsPerUnit);
 
-				switch (tok) {
-				case TerminalTokens.TokenNameaspect:
-					return true;
-				case TerminalTokens.TokenNamepointcut:
-					return true;
-				default:
-					break;
-				}
-			}
+			// drive our parser extension which records aspect and pointcut
+			// declarations
+			AspectDetectingParser parser = new AspectDetectingParser(probrep,
+					false);
+			parser.parse(sourceUnit, result);
+			return parser.containsAspectJSyntax();
 		} catch (FileNotFoundException e) {
 		} catch (IOException e) {
 		}
 
 		return false;
 	}
+
+}
+
+/**
+ * Extends the AspectJ parser, and records whether any AspectJ-specific syntax
+ * (aspects or pointcut declarations) is encountered.
+ */
+class AspectDetectingParser extends Parser {
+
+	private boolean foundAspectJSyntax = false;
+
+	public AspectDetectingParser(ProblemReporter problemReporter,
+			boolean optimizeStringLiterals) {
+		super(problemReporter, optimizeStringLiterals);
+		diet = true;
+	}
+
+	protected void consumeAspectDeclaration() {
+		foundAspectJSyntax = true;
+		super.consumeAspectDeclaration();
+	}
+
+	protected void consumePointcutDeclaration() {
+		foundAspectJSyntax = true;
+		super.consumePointcutDeclaration();
+	}
+
+	public boolean containsAspectJSyntax() {
+		return foundAspectJSyntax;
+	}
+
 }

@@ -48,7 +48,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 		trueList.add("Display"); // inner aspect in a class
 		trueList.add("Debug"); // aspect and class
 		trueList.add("Coordinator"); // abstract aspect with inner classes
-		
+
 		project.accept(new IResourceVisitor() {
 			public boolean visit(IResource resource) throws CoreException {
 				if (resource.getType() == IResource.FILE) {
@@ -81,5 +81,35 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 				+ trueList, trueList.size() == 0);
 
 		deleteProject(project);
+	}
+
+	/**
+	 * Check that CodeChecker.containsAspectJConstructs() returns false for all
+	 * the given source files, despite them containing "pointcut" and "aspect"
+	 * used as identifiers (instead of keywords)
+	 * 
+	 * @throws Exception
+	 */
+	public void testContainsAspectJConstructs2() throws Exception {
+		IProject project = createPredefinedProject("bug95370");
+		try {
+			project.accept(new IResourceVisitor() {
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource.getType() == IResource.FILE) {
+						String name = resource.getName();
+						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
+							boolean ret = CodeChecker
+									.containsAspectJConstructs((IFile) resource);
+							assertFalse(
+									"Returned true from CodeChecker.containsAspectJConstructs for "
+											+ name + ", expected false", ret);
+						}
+					}
+					return true;
+				}
+			});
+		} finally {
+			deleteProject(project);
+		}
 	}
 }
