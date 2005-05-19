@@ -99,6 +99,34 @@ public class AJDTUtilsTest extends TestCase {
 		Utils.deleteProject(testProject);
 		Utils.waitForJobsToComplete();
 	}
+	
+	/**
+	 * Test for bug 93532 - NPE when add aspectj nature to a plugin project
+	 * which doesn't have a plugin.xml file.
+	 * 
+	 * @throws Exception
+	 */
+	public void testBug93532() throws Exception {
+		IProject testProject = Utils.createPredefinedProject("bug93532");
+		IJavaProject jY = JavaCore.create(testProject);
+		Utils.waitForJobsToComplete();
+		
+		assertFalse("Java project should not have AspectJ Nature",
+				AspectJPlugin.isAJProject(testProject.getProject()));
+		assertFalse("Build path shouldn't contain aspectjrt.jar",
+				hasAjrtOnBuildPath(jY));
+		AJDTUtils.addAspectJNature(testProject.getProject());
+		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin
+				.isAJProject(testProject.getProject()));
+		assertTrue("Build path should now contain aspectjrt.jar",
+				hasAjrtOnBuildPath(jY));
+		AJDTUtils.removeAspectJNature(testProject.getProject());
+		assertFalse("Java project should not have AspectJ Nature",
+				AspectJPlugin.isAJProject(testProject.getProject()));
+		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
+		Utils.deleteProject(testProject);
+		Utils.waitForJobsToComplete();	    
+	}
 
 	/**
 	 * This tests whether you get back the manifest editor for the project you

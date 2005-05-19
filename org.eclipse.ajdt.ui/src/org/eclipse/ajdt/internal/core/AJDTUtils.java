@@ -197,7 +197,10 @@ public class AJDTUtils {
 		project.setDescription(description, null);
 
 		// Bugzilla 62625
-		if (project.hasNature(PDE.PLUGIN_NATURE)) {
+		// Bugzilla 93532 - just add plugin dependency if there is a plugin.xml file
+		if (project.hasNature(PDE.PLUGIN_NATURE) 
+		        && PDECore.getDefault().getWorkspaceModelManager()
+		        	.getWorkspacePluginModel(project) != null) {
 			// Dealing with a plugin project. In that case the
 			// aspectjrt.jar should be added to the classpath container
 			// that lists jars imported from dependent plugins. In order
@@ -830,7 +833,10 @@ public class AJDTUtils {
 		project.setDescription(description, null);
 
 		// Bugzilla 62625
-		if (project.hasNature(PDE.PLUGIN_NATURE)) {
+		// Bugzilla 93532 - just remove plugin dependency if there is a plugin.xml file
+		if (project.hasNature(PDE.PLUGIN_NATURE) 
+		        && PDECore.getDefault().getWorkspaceModelManager()
+		        	.getWorkspacePluginModel(project) != null) {
 //			// Bugzilla 72007
 //			// Checks if it was ajdt that added the ajde dependancy and removes
 //			// it if it was
