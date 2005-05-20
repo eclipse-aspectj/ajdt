@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      Viewing crosscutting information
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,11 +10,43 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      Viewing crosscutting information
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      In this section you are going to use the Cross References view to see how your
+      aspect advises your class.  The cross references view shows crosscutting information
+      and can also be used to navigate.
     </p>
+    
+   <ol>
+   <li> Make sure that your <em>World</em> aspect is open in the editor.
+   </li>
+   
+    <li> If the Cross References view is not already open, open it now. Select 
+		  &nbsp;<strong>Window &gt; Show View &gt; Other...</strong>.  Expand the 
+		  &nbsp;<strong>AspectJ</strong> folder and select &nbsp<strong>Cross References</strong>.
+		  Click&nbsp;<strong>Finish</strong> to open the view.
+		  </li>
+		  <li> Select the aspect declaration in the editor and make sure that the Cross References
+		  view shows one <em>advises</em> relationship.
+		  <p><img src="../images/xrefs.png" alt="Cross References view"> </p>
+		  </li>
+		  <li> Double click on the <strong>Hello.sayHello()</strong> method in the Cross References view.  The
+		  <em>Hello</em> class will open in the editor with the <em>sayHello()</em> method highlighted.
+		  The cross references view has updated to show relationships for the new selection.
+		  <p><img src="../images/xrefs2.png" alt="Cross References view"> </p>
+		  </li>
+	</ol>
+		<p>
+		<img src="../images/ngrelc.gif" width=159 height=27 alt="Related concepts" border="0"> 
+		</p>
+		<p> <a href="../tasks/views.htm">AspectJ views</a><br>
+		  <a href="../concepts/editor.htm">AspectJ editor</a> </p>
+		<p> <img src="../images/ngrelt.gif" width=159 height=27 alt="Related tasks" border="0"> 
+		</p>
+		<p> 
+		  <a href="../tasks/xrefview.htm">Using the Cross References view</a><br>
+		</p>
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>

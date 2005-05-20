@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      Advice markers
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,11 +10,45 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      Advice markers
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      In this section you will use advice markers to navigate between advised and advising source locations.
     </p>
+    
+		<ol>
+		  <li> Make sure that the &nbsp;<em>World</em> aspect is open in the editor.  There should
+		  be one marker in the left hand margin.
+		  </li>
+		  <li> Right click on the marker.  Select <strong>Advises &gt; 
+		  Hello.sayHello()</strong> to navigate to the advised method.
+		  <p><img src="../images/marker.png" alt="Advice marker navigation">
+		  </p>
+		  </li>
+		  <li>The <em>Hello</em> class opens in the editor.  There should
+		  be one marker in the left hand margin.
+		  </li>
+		   <li> Right click on this marker.  Select <strong>Advised By &gt; 
+		  World.afterReturning(): greeting...</strong> to navigate to the advice in effect.
+		  <p><img src="../images/marker2.png" alt="Advice marker navigation">
+		  </p>
+		  </li>
+    </ol>
+
+    <p>
+      <img border="0" src="../images/ngrelc.gif" alt="Related concepts" width="159" height="27">
+    </p>
+    <p>
+      <a href="../concepts/editor.htm">AspectJ editor</a><br>
+    </p>
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
+    </p>
+    <p>
+       <a href="../tasks/markers.htm">Navigating with advice markers</a><br>
+    </p>
+
+    
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>

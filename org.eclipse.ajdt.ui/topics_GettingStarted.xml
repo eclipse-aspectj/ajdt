@@ -8,8 +8,8 @@
    <topic label="Basic tutorial" href="doc/gettingStarted/basictutorial.htm"> 
 	   <topic label="Creating your first AspectJ project" href="doc/gettingStarted/firstproject.htm"/>
 	   <topic label="Creating an aspect" href="doc/gettingStarted/firstaspect.htm"/>
-	   <topic label="Navigating with advice markers" href="doc/gettingStarted/navigating.htm"/>
 	   <topic label="Viewing crosscutting information" href="doc/gettingStarted/crosscutting.htm"/>
+	   <topic label="Navigating with advice markers" href="doc/gettingStarted/navigating.htm"/>
 	   <topic label="Running your programs" href="doc/gettingStarted/launching.htm"/>
 	   <topic label="Using the Aspect Visualization perspective" href="doc/gettingStarted/visualising.htm"/>
    </topic>
