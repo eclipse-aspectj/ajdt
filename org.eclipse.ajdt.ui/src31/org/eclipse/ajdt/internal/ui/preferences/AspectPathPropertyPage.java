@@ -104,7 +104,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
      */ 
     private Control createWithoutJava(Composite parent) {
         Label label= new Label(parent, SWT.LEFT);
-        label.setText(PreferencesMessages.getString("BuildPathsPropertyPage.no_java_project.message")); //$NON-NLS-1$
+        label.setText(PreferencesMessages.BuildPathsPropertyPage_no_java_project_message); //$NON-NLS-1$
         
         fAspectPathBlock= null;
         setValid(true);
@@ -125,7 +125,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
      */     
     private Control createForClosedProject(Composite parent) {
         Label label= new Label(parent, SWT.LEFT);
-        label.setText(PreferencesMessages.getString("BuildPathsPropertyPage.closed_project.message")); //$NON-NLS-1$
+        label.setText(PreferencesMessages.BuildPathsPropertyPage_closed_project_message); //$NON-NLS-1$
         
         fAspectPathBlock= null;
         setValid(true);
@@ -243,8 +243,8 @@ public class AspectPathPropertyPage extends PropertyPage implements
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
             } catch (InvocationTargetException e) {
-                String title= PreferencesMessages.getString("BuildPathsPropertyPage.error.title");
-                String message= PreferencesMessages.getString("BuildPathsPropertyPage.error.message"); //$NON-NLS-1$
+                String title= PreferencesMessages.BuildPathsPropertyPage_error_title;
+                String message= PreferencesMessages.BuildPathsPropertyPage_error_message; //$NON-NLS-1$
                 // TODO : Handle exception 
                 return false;
             } catch (InterruptedException e) {

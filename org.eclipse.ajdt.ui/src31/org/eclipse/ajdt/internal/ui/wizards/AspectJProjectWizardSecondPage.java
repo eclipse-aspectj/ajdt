@@ -98,8 +98,8 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 		try {
 			getContainer().run(true, false, new WorkspaceModifyDelegatingOperation(op));
 		} catch (InvocationTargetException e) {
-			final String title= NewWizardMessages.getString("JavaProjectWizardSecondPage.error.title"); //$NON-NLS-1$
-			final String message= NewWizardMessages.getString("JavaProjectWizardSecondPage.error.message"); //$NON-NLS-1$
+			final String title= NewWizardMessages.JavaProjectWizardSecondPage_error_title; //$NON-NLS-1$
+			final String message= NewWizardMessages.JavaProjectWizardSecondPage_error_message; //$NON-NLS-1$
 			ExceptionHandler.handle(e, getShell(), title, message);
 		} catch  (InterruptedException e) {
 			// cancel pressed
@@ -117,7 +117,7 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 			monitor= new NullProgressMonitor();
 		}
 		try {
-			monitor.beginTask(NewWizardMessages.getString("JavaProjectWizardSecondPage.operation.initialize"), 2); //$NON-NLS-1$
+			monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize, 2); //$NON-NLS-1$
 			if (monitor.isCanceled()) {
 				throw new OperationCanceledException();
 			}
@@ -185,7 +185,7 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 	 */
 	public void performFinish(IProgressMonitor monitor) throws CoreException, InterruptedException {
 		try {
-			monitor.beginTask(NewWizardMessages.getString("JavaProjectWizardSecondPage.operation.create"), 3); //$NON-NLS-1$
+			monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_create, 3); //$NON-NLS-1$
 			if (fCurrProject == null) {
 				updateProject(true, new SubProgressMonitor(monitor, 1));
 			}
@@ -210,7 +210,7 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 					monitor= new NullProgressMonitor();
 				}
 
-				monitor.beginTask(NewWizardMessages.getString("JavaProjectWizardSecondPage.operation.remove"), 3); //$NON-NLS-1$
+				monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_remove, 3); //$NON-NLS-1$
 
 				try {
 					boolean removeContent= !fKeepContent && fCurrProject.isSynchronized(IResource.DEPTH_INFINITE);
@@ -228,8 +228,8 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 		try {
 			getContainer().run(true, true, new WorkspaceModifyDelegatingOperation(op));
 		} catch (InvocationTargetException e) {
-			final String title= NewWizardMessages.getString("JavaProjectWizardSecondPage.error.remove.title"); //$NON-NLS-1$
-			final String message= NewWizardMessages.getString("JavaProjectWizardSecondPage.error.remove.message"); //$NON-NLS-1$
+			final String title= NewWizardMessages.JavaProjectWizardSecondPage_error_remove_title; //$NON-NLS-1$
+			final String message= NewWizardMessages.JavaProjectWizardSecondPage_error_remove_message; //$NON-NLS-1$
 			ExceptionHandler.handle(e, getShell(), title, message);		
 		} catch  (InterruptedException e) {
 			// cancel pressed
