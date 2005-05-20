@@ -20,7 +20,6 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.JavadocTagsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.LocalCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ModifierCorrectionSubProcessor;
@@ -224,7 +223,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 		}
 		switch (id) {
 			case IProblem.UnterminatedString:
-				String quoteLabel= CorrectionMessages.getString("JavaCorrectionProcessor.addquote.description"); //$NON-NLS-1$
+				String quoteLabel= CorrectionMessages.JavaCorrectionProcessor_addquote_description;
 				int pos= moveBack(problem.getOffset() + problem.getLength(), problem.getOffset(), "\n\r", context.getCompilationUnit()); //$NON-NLS-1$
 				proposals.add(new ReplaceCorrectionProposal(quoteLabel, context.getCompilationUnit(), pos, 0, "\"", 0)); //$NON-NLS-1$ 
 				break;

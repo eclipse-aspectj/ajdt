@@ -52,7 +52,6 @@ import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
 import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeCorrectionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.ContributedProcessorDescriptor;
-import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.MarkerResolutionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.ProblemLocation;
 
@@ -193,7 +192,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 			processAnnotations(context, model, proposals);
 		}
 		if (proposals.isEmpty()) {
-			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.getString("NoCorrectionProposal.description"), null, 0, null));  //$NON-NLS-1$
+			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.NoCorrectionProposal_description, null, 0, null));
 		}
 		
 		ICompletionProposal[] res= (ICompletionProposal[]) proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -261,7 +260,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}
 				}
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message"); //$NON-NLS-1$
+				fErrorMessage= CorrectionMessages.JavaCorrectionProcessor_error_quickfix_message;
 			}
 		}
 	}
@@ -280,7 +279,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}				
 				}				
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message"); //$NON-NLS-1$
+				fErrorMessage= CorrectionMessages.JavaCorrectionProcessor_error_quickassist_message;
 			}
 		}
 	}	
