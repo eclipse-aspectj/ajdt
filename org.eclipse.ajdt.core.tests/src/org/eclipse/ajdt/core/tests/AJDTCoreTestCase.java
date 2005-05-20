@@ -272,10 +272,10 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
-			System.out.println(e.getMessage());
+			System.out.println("(CoreException): " + e.getMessage() + ", resource " + resource.getFullPath());
 		} catch (IllegalArgumentException iae) {
 			// just print for info
-			System.out.println(iae.getMessage());
+			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath());
 		}
 		int retryCount = 60; // wait 1 minute at most
 		while (resource.isAccessible() && --retryCount >= 0) {
@@ -288,10 +288,10 @@ public class AJDTCoreTestCase extends TestCase {
 			} catch (CoreException e) {
 				lastException = e;
 				// just print for info
-				System.out.println("Retry "+retryCount+": "+ e.getMessage());
+				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath());
 			} catch (IllegalArgumentException iae) {
 				// just print for info
-				System.out.println("Retry "+retryCount+": "+ iae.getMessage());
+				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath());
 			}
 		}
 		if (!resource.isAccessible()) return;
