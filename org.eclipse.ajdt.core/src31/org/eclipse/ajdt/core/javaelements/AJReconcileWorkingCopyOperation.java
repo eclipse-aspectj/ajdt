@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.core.JavaElementDelta;
 import org.eclipse.jdt.internal.core.JavaElementDeltaBuilder;
 import org.eclipse.jdt.internal.core.JavaModelOperation;
 import org.eclipse.jdt.internal.core.JavaModelStatus;
-import org.eclipse.jdt.internal.core.util.Util;
+import org.eclipse.jdt.internal.core.util.Messages;
 
 /**
  * Mostly copied from ReconcileWorkingCopyOperation in order to use the
@@ -67,7 +67,7 @@ public class AJReconcileWorkingCopyOperation extends
 	protected void executeOperation() throws JavaModelException {
 		if (this.progressMonitor != null){
 			if (this.progressMonitor.isCanceled()) return;
-			this.progressMonitor.beginTask(Util.bind("element.reconciling"), 2); //$NON-NLS-1$
+			this.progressMonitor.beginTask(Messages.element_reconciling, 2); //$NON-NLS-1$
 		}
 	
 		CompilationUnit workingCopy = getWorkingCopy();

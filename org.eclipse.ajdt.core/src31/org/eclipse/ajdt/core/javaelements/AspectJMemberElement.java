@@ -26,7 +26,6 @@ import org.eclipse.jdt.core.jdom.IDOMMethod;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -121,7 +120,11 @@ protected char getHandleMementoDelimiter() {
  * @see org.eclipse.jdt.core.IMethod#getKey()
  */
 public String getKey() {
-	return getKey(this);
+	try {
+		return getKey(this, true);
+	} catch (JavaModelException e) {
+	}
+	return "";
 }
 /**
  * @see IMethod
