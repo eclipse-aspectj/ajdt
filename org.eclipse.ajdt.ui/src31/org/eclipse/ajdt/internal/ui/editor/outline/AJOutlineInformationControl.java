@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.SuperTypeHierarchyCache;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -706,9 +707,9 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		String keySequence= sequences[0].format();
 		
 		if (fOutlineContentProvider.isShowingInheritedMembers())
-			return JavaUIMessages.getFormattedString("JavaOutlineControl.statusFieldText.hideInheritedMembers", keySequence); //$NON-NLS-1$
+			return Messages.format(JavaUIMessages.JavaOutlineControl_statusFieldText_hideInheritedMembers, keySequence);
 		else
-			return JavaUIMessages.getFormattedString("JavaOutlineControl.statusFieldText.showInheritedMembers", keySequence); //$NON-NLS-1$
+			return Messages.format(JavaUIMessages.JavaOutlineControl_statusFieldText_showInheritedMembers, keySequence);
 	}
 	
 	/*
