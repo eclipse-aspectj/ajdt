@@ -1416,7 +1416,10 @@
        <!--<toc file="toc_ajdt.xml" />-->
        <!--<toc file="toc_ajprogguide.xml" />-->   
        <!--<toc file="toc_ajdevguide.xml" />-->   
-       <toc file="toc_ajdtuguide.xml" />    
+       <toc file="toc_ajdtuguide.xml" />
+       <toc file="topics_GettingStarted.xml" />    
+       <toc file="topics_Tasks.xml" />    
+       <toc file="topics_Concepts.xml" />    
    </extension> 
    
 <extension 
