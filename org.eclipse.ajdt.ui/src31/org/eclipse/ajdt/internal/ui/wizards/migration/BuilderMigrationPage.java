@@ -64,8 +64,8 @@ public class BuilderMigrationPage extends WizardPage {
 		setControl(composite);
 
 		String[] buttonLabels= new String[] {
-		        /* 0 */ NewWizardMessages.getString("ProjectsWorkbookPage.projects.checkall.button"), //$NON-NLS-1$
-		        /* 1 */ NewWizardMessages.getString("ProjectsWorkbookPage.projects.uncheckall.button") //$NON-NLS-1$
+		        /* 0 */ NewWizardMessages.BuildPathsBlock_classpath_checkall_button, //$NON-NLS-1$
+		        /* 1 */ NewWizardMessages.BuildPathsBlock_classpath_uncheckall_button //$NON-NLS-1$
 		};
 
 		checkedListDialogField = new CheckedListDialogField(null, buttonLabels, new AJProjectListLabelProvider());
