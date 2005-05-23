@@ -38,7 +38,6 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.compiler.env.IGenericType;
-import org.eclipse.jdt.internal.corext.util.AllTypesCache;
 import org.eclipse.jdt.internal.corext.util.IFileTypeInfo;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.swt.widgets.Display;
@@ -55,6 +54,7 @@ public class BuilderUtils {
 	 * @param jp
 	 */
 	public static void updateTypesCache(final IJavaProject jp) {
+		/*
 		Job updateJob = new Job(AspectJUIPlugin.getResourceString("AllTypesUpdateJob")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
 				AJLog.logStart(TimerLogEvent.UPDATE_TYPES_CACHE_FOR_PROJECT + jp.getElementName());
@@ -98,6 +98,7 @@ public class BuilderUtils {
 		};
 //		updateJob.setSystem(true);
 		updateJob.schedule();		
+		*/
 	}
 	
 	
@@ -108,6 +109,7 @@ public class BuilderUtils {
 	 * @param workspace - the current workspace
 	 */
 	public static void updateTypesCache(IWorkspace workspace) {
+		/*
 		IProject[] projectArray = workspace.getRoot().getProjects();
 		final List projects = new ArrayList();
 		for (int i = 0; i < projectArray.length; i++) {
@@ -169,6 +171,7 @@ public class BuilderUtils {
 //			updateJob.setSystem(true);
 			updateJob.schedule();
 		}
+		*/
 	}
 	
 	/**
@@ -218,7 +221,8 @@ public class BuilderUtils {
 						kind = IGenericType.ENUM_DECL;
 					} else /*if (type.isAnnotation())*/ {
 						kind = IGenericType.ANNOTATION_TYPE_DECL;
-					}										
+					}
+					/*
 					IFileTypeInfo info = new AJCUTypeInfo(
 							itypes[i].getPackageFragment().getElementName(),
 							itypes[i].getElementName(),
@@ -231,6 +235,7 @@ public class BuilderUtils {
 							"aj",
 							unit);						
 					types.add(info);
+					*/
 				}
 			}
 		}
@@ -242,6 +247,7 @@ public class BuilderUtils {
 	 * Initialise the types cache
 	 */
 	public static void initTypesCache() {
+		/*
 		Job job = new Job("") {
 			public IStatus run(IProgressMonitor monitor) {
 				Display d = Display.getDefault();
@@ -264,5 +270,6 @@ public class BuilderUtils {
 			}
 		};
 		job.schedule();
+		*/
 	}
 }
