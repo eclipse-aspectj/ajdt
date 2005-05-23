@@ -56,50 +56,51 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	public Object[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
 			IJavaSearchScope scope, int style, boolean includeSubtypes)
 			throws JavaModelException {
-		
-		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
-		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
-		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope,
-				style, includeSubtypes);
-		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-				.getProjects();
-		List mainList = new ArrayList(Arrays.asList(mainTypes));
-
-		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
-		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
-		double ticksPerProject = Math.floor(100F / (float) projects.length);
-		if (ticksPerProject < 1) {
-			ticksPerProject = 1;
-		}
-		for (int i = 0; i < projects.length; i++) {
-			try {
-				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-
-					IJavaProject jp = JavaCore.create(projects[i]);
-					if (jp != null) {
-						if (scope.encloses(jp)) {
-							Set aspects = getAllAspects(jp);
-							mainList.addAll(aspects);
-						} else {
-							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
-							for (int j = 0; j < enclosingPaths.length; j++) {
-								IPath path = enclosingPaths[j];
-								if (path.equals(jp.getPath())) {
-									IJavaElement[] children = jp.getChildren();
-									mainList
-											.addAll(searchJavaElements(scope, children));
-								}
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-			}
-			ajSearchMonitor.internalWorked(ticksPerProject);
-		}
-		ajSearchMonitor.done();
-		pm.done();
-		return mainList.toArray();
+		// Eclipse M7 change
+		return new IType[4];
+//		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
+//		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
+//		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope,
+//				style, includeSubtypes);
+//		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+//				.getProjects();
+//		List mainList = new ArrayList(Arrays.asList(mainTypes));
+//
+//		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
+//		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
+//		double ticksPerProject = Math.floor(100F / (float) projects.length);
+//		if (ticksPerProject < 1) {
+//			ticksPerProject = 1;
+//		}
+//		for (int i = 0; i < projects.length; i++) {
+//			try {
+//				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
+//
+//					IJavaProject jp = JavaCore.create(projects[i]);
+//					if (jp != null) {
+//						if (scope.encloses(jp)) {
+//							Set aspects = getAllAspects(jp);
+//							mainList.addAll(aspects);
+//						} else {
+//							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
+//							for (int j = 0; j < enclosingPaths.length; j++) {
+//								IPath path = enclosingPaths[j];
+//								if (path.equals(jp.getPath())) {
+//									IJavaElement[] children = jp.getChildren();
+//									mainList
+//											.addAll(searchJavaElements(scope, children));
+//								}
+//							}
+//						}
+//					}
+//				}
+//			} catch (Exception e) {
+//			}
+//			ajSearchMonitor.internalWorked(ticksPerProject);
+//		}
+//		ajSearchMonitor.done();
+//		pm.done();
+//		return mainList.toArray();
 	}
 
 
