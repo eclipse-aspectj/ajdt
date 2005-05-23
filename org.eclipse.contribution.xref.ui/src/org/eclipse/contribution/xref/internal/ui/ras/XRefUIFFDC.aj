@@ -12,14 +12,11 @@ package org.eclipse.contribution.xref.internal.ui.ras;
 import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ras.PluginFFDC;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 
 public aspect XRefUIFFDC extends PluginFFDC {
 
 	public pointcut ffdcScope () :
-		within(org.eclipse.contribution.xref..*)
-		// Exclude programming by exception cases
-		&& !within(OpenTypeSelectionDialog);
+		within(org.eclipse.contribution.xref..*);
 		
     protected String getPluginId () {
     	return XReferenceUIPlugin.PLUGIN_ID;
