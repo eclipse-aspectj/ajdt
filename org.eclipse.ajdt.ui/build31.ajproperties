@@ -1,3 +1,13 @@
 src.includes = src/,\
                src31/
-src.excludes = src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj
+src.excludes = src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj,\
+               src31/org/eclipse/ajdt/internal/ui/wizards/NewAspectCreationWizardPage.java,\
+               src/org/eclipse/ajdt/internal/ui/wizards/NewAspectWizard.java,\
+               src/org/eclipse/ajdt/internal/ui/actions/OpenAspectWizardAction.java,\
+               src31/org/eclipse/ajdt/internal/ui/dialogs/TypeSelectionDialog.java,\
+               src/org/eclipse/ajdt/internal/ui/dialogs/OpenTypeSelectionDialog.java,\
+               src/org/eclipse/ajdt/internal/ui/ras/UIFFDC.aj,\
+               src31/org/eclipse/ajdt/internal/ui/wizards/exports/AJPluginExportJob.java,\
+               src31/org/eclipse/ajdt/internal/ui/actions/OpenTypeAction.java,\
+               src31/org/eclipse/ajdt/internal/ui/wizards/exports/AJPluginExportWizard.java,\
+               src31/org/eclipse/ajdt/internal/ui/actions/BuildPluginAction.java
