@@ -65,7 +65,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 		GridData gd;
 
 		Label label = new Label(comp, SWT.NONE);
-		label.setText(LauncherMessages.JavaClasspathTab_0); //$NON-NLS-1$
+		label.setText(LauncherMessages.JavaClasspathTab_0);
 		gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		gd.horizontalSpan = 2;
 		label.setLayoutData(gd);

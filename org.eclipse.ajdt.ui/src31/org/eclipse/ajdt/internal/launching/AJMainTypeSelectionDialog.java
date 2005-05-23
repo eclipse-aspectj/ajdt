@@ -95,11 +95,11 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 				new PackageRenderer());
 		this.types = types;
 		setMessage(LauncherMessages
-				.MainTypeSelectionDialog_Choose_a_type); //$NON-NLS-1$		
+				.MainTypeSelectionDialog_Choose_a_type);
 		setUpperListLabel(LauncherMessages
-				.MainTypeSelectionDialog_Matching_types); //$NON-NLS-1$
+				.MainTypeSelectionDialog_Matching_types);
 		setLowerListLabel(LauncherMessages
-				.MainTypeSelectionDialog_Qualifier); //$NON-NLS-1$
+				.MainTypeSelectionDialog_Qualifier);
 
 	}
 

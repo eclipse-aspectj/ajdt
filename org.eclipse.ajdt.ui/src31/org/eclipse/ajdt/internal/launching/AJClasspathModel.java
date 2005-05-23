@@ -154,7 +154,7 @@ public class AJClasspathModel extends ClasspathModel {
 
 	public IClasspathEntry getBootstrapEntry() {
 		if (bootstrapEntries == null) {
-			String name = ClasspathMessages.ClasspathModel_0; //$NON-NLS-1$
+			String name = ClasspathMessages.ClasspathModel_0;
 			bootstrapEntries = createGroupEntry(new IRuntimeClasspathEntry[0],
 					null, name, false, true);
 		}
@@ -163,7 +163,7 @@ public class AJClasspathModel extends ClasspathModel {
 
 	public IClasspathEntry getUserEntry() {
 		if (userEntries == null) {
-			String name = ClasspathMessages.ClasspathModel_1; //$NON-NLS-1$
+			String name = ClasspathMessages.ClasspathModel_1;
 			userEntries = createGroupEntry(new IRuntimeClasspathEntry[0], null,
 					name, false, true);
 		}

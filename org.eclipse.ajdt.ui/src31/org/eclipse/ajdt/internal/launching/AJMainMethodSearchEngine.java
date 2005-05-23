@@ -57,7 +57,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 			IJavaSearchScope scope, int style, boolean includeSubtypes)
 			throws JavaModelException {
 		
-		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100); //$NON-NLS-1$
+		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
 		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
 		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope,
 				style, includeSubtypes);
@@ -66,7 +66,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		List mainList = new ArrayList(Arrays.asList(mainTypes));
 
 		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
-		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100); //$NON-NLS-1$
+		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
 		double ticksPerProject = Math.floor(100F / (float) projects.length);
 		if (ticksPerProject < 1) {
 			ticksPerProject = 1;

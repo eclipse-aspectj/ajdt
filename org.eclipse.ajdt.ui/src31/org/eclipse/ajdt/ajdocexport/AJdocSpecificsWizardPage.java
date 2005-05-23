@@ -123,7 +123,7 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 
 		fExtraOptionsText.setText(fStore.getAdditionalParams());
 
-		fJDK14Button= createButton(composite, SWT.CHECK, JavadocExportMessages.JavadocSpecificsWizardPage_jdk14mode_label, createGridData(3)); //$NON-NLS-1$
+		fJDK14Button= createButton(composite, SWT.CHECK, JavadocExportMessages.JavadocSpecificsWizardPage_jdk14mode_label, createGridData(3));
 		fJDK14Button.setSelection(fStore.isJDK14Mode());
 		
 //		 AspectJ Extension - commenting out unused code
@@ -170,7 +170,7 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 //		fAntText.setEnabled(false);
 //		fAntBrowseButton.setEnabled(false);
 		
-		fCheckbrowser= createButton(c, SWT.CHECK, JavadocExportMessages.JavadocSpecificsWizardPage_openbrowserbutton_label, createGridData(3)); //$NON-NLS-1$
+		fCheckbrowser= createButton(c, SWT.CHECK, JavadocExportMessages.JavadocSpecificsWizardPage_openbrowserbutton_label, createGridData(3));
 		fCheckbrowser.setSelection(fStore.doOpenInBrowser());
 
 //		 AspectJ Extension - commenting out unused code

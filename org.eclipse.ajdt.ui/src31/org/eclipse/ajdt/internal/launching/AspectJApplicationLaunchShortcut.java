@@ -104,11 +104,11 @@ public class AspectJApplicationLaunchShortcut extends
 			if (types.length == 0) {
 				String message = null;
 				if (editor) {
-					message = LauncherMessages.JavaApplicationLaunchShortcut_The_active_editor_does_not_contain_a_main_type__1; //$NON-NLS-1$
+					message = LauncherMessages.JavaApplicationLaunchShortcut_The_active_editor_does_not_contain_a_main_type__1;
 				} else {
-					message = LauncherMessages.JavaApplicationLaunchShortcut_The_selection_does_not_contain_a_main_type__2; //$NON-NLS-1$
+					message = LauncherMessages.JavaApplicationLaunchShortcut_The_selection_does_not_contain_a_main_type__2;
 				}
-				MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, message); //$NON-NLS-1$
+				MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, message);
 			} else if (types.length > 1) {
 				type = chooseType(types, mode);
 			} else {
@@ -279,9 +279,9 @@ public class AspectJApplicationLaunchShortcut extends
 		AJMainTypeSelectionDialog dialog = new AJMainTypeSelectionDialog(
 				getShell(), types);
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			dialog.setTitle(LauncherMessages.JavaApplicationAction_Type_Selection_Debug); //$NON-NLS-1$
+			dialog.setTitle(LauncherMessages.JavaApplicationAction_Type_Selection_Debug);
 		} else {
-			dialog.setTitle(LauncherMessages.JavaApplicationAction_Type_Selection_Run); //$NON-NLS-1$
+			dialog.setTitle(LauncherMessages.JavaApplicationAction_Type_Selection_Run);
 		}
 		dialog.setMultipleSelection(false);
 		if (dialog.open() == Window.OK) {
@@ -308,7 +308,7 @@ public class AspectJApplicationLaunchShortcut extends
 			}
 		}
 		if (error) {
-			MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, LauncherMessages.JavaApplicationLaunchShortcut_The_active_editor_does_not_contain_a_main_type__1); //$NON-NLS-1$ //$NON-NLS-2$
+			MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, LauncherMessages.JavaApplicationLaunchShortcut_The_active_editor_does_not_contain_a_main_type__1);
 		}
 	}
 
@@ -358,7 +358,7 @@ public class AspectJApplicationLaunchShortcut extends
 			}
 			searchAndLaunch(elements.toArray(), mode, false);
 		} else {
-			MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, LauncherMessages.JavaApplicationLaunchShortcut_The_selection_does_not_contain_a_main_type__2); //$NON-NLS-1$ //$NON-NLS-2$
+			MessageDialog.openError(getShell(), LauncherMessages.JavaApplicationAction_Launch_failed_7, LauncherMessages.JavaApplicationLaunchShortcut_The_selection_does_not_contain_a_main_type__2);
 		}
 	}
 
