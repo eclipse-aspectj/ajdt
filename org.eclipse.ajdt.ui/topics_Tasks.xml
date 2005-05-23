@@ -49,6 +49,12 @@
 		<topic label="Navigating with markers" href="doc/tasks/markers.htm"></topic>
 	</topic>
 	<anchor id="t_navigatingajdt" />
+	
+	<topic label="Converting file extensions" href="doc/tasks/convertingextensions.htm" >
+		<topic label="Converting the extensions for individual files" href="doc/tasks/convertfileextension.htm"></topic>
+		<topic label="Converting the extensions for a project" href="doc/tasks/convertprojectextensions.htm"></topic>
+	</topic>
+	<anchor id="t_convertingfileextensions" />
 
 	<topic label="Working with build configurations" href="doc/tasks/buildconfigs.htm">
 		<topic label="Creating a new build configuration" href="doc/tasks/newbuildconfig.htm"></topic>

@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      AspectJ editor
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,10 +10,53 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      AspectJ editor
     </h1>
-    <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+    <p>The AspectJ editor extends the Java editor and provides specialized features for editing AspectJ code.</p>
+
+    <p>Associated with the editor is an Outline view, which shows the structure of the active compilation unit.
+    It is updated as the user edits the compilation unit.</p>
+
+    <p>The editor includes the following features:</p>
+
+    <ul>
+      <li>Syntax highlighting</li>
+
+      <li>Some content/code assist</li>
+
+      <li>Code formatting</li>
+
+      <li>Some import assistance</li>
+
+      <li>Integrated debugging features</li>
+    </ul>
+
+    <p>The most common way to open the AspectJ editor is to open a file from
+    the Navigator or Package explorer using pop-up menus or by clicking the file.
+	You can also open the editor by opening AspectJ elements from other views.</p>
+
+	<p>By default the AspectJ editor used for files with the .aj extension
+	and the Java editor for files with the .java extension.  Some
+	experienced AspectJ users may wish to use AspectJ function in .java files such as
+	referring to ITD methods or fields, using inner aspects, implementing interfaces
+	defined in aspects or calling methods on aspects.  In this case you will see
+	errors in the Java editor (although there will not be build errors). You may wish to 
+	either convert the file extension to .aj or use the AspectJ editor.</p>
+	
+	<p> To open a
+	.java file with the AspectJ editor right click, then select <strong>Open With 
+	&gt; AspectJ/Java Editor</strong>.  To use the AspectJ editor for all .java files
+	select <strong>Window &gt; Preferences &gt; Workbench &gt; File Associations</strong>.
+	Select <em>.java</em> in the right-hand window, then use the section below to change the 
+	default editor.</p>
+	
+
+    <p><img width="159" height="27" src="../images/ngrelc.gif" alt="Related concepts" border="0"><br>
+     <a href="aspects.htm">Aspects</a><br>
+      <a href="refactoring.htm">Refactoring support</a></p>
+
+    <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
+     <a href="../tasks/newaspect.htm">Creating a new aspect</a><br>
     </p>
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>

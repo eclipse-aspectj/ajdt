@@ -3,7 +3,7 @@
 <!-- ========================== -->
 <!-- Define topics for the Concepts -->
 <!-- ========================== -->
-<toc label="Concepts" href="doc/concepts/concepts.htm" >
+<toc label="Concepts" >
    <topic label="AspectJ projects" href="doc/concepts/projects.htm"/>
    <anchor id="c_aspectjprojects" />
    <topic label="Aspects" href="doc/concepts/aspects.htm"/>
