@@ -18,8 +18,6 @@
    <anchor id="c_aspectjeditor" />
    <topic label="Templates" href="doc/concepts/templates.htm" />
    <anchor id="c_ajtemplates" />
-   <topic label="Refactoring support" href="doc/concepts/refactoring.htm"/>
-   <anchor id="c_refactoring_fileextensions" />
    <topic label="Build configurations" href="doc/concepts/buildconfigs.htm" />
    <anchor id="c_buildconfigs" />
    <topic label="Debugging" href="doc/concepts/debugging.htm"/>
