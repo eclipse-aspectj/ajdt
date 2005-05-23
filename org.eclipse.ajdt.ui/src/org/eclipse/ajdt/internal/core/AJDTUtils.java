@@ -27,6 +27,7 @@ import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
 import org.eclipse.ajdt.javamodel.AJCompilationUnitUtils;
+import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -59,7 +60,7 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.internal.PDE;
-import org.eclipse.pde.internal.core.PDECore;
+import org.eclipse.pde.internal.core.WorkspaceModelManager;
 import org.eclipse.pde.internal.ui.IPDEUIConstants;
 import org.eclipse.pde.internal.ui.editor.plugin.DependenciesPage;
 import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
@@ -199,8 +200,7 @@ public class AJDTUtils {
 		// Bugzilla 62625
 		// Bugzilla 93532 - just add plugin dependency if there is a plugin.xml file
 		if (project.hasNature(PDE.PLUGIN_NATURE) 
-		        && PDECore.getDefault().getWorkspaceModelManager()
-		        	.getWorkspacePluginModel(project) != null) {
+		        && WorkspaceModelManager.hasPluginManifest(project)) {
 			// Dealing with a plugin project. In that case the
 			// aspectjrt.jar should be added to the classpath container
 			// that lists jars imported from dependent plugins. In order
@@ -689,8 +689,8 @@ public class AJDTUtils {
 		// Must have already been validated as a PDE project
 		// to get to this method. Now get the id of the plugin
 		// being developed in current project.
-		String pluginId = PDECore.getDefault().getWorkspaceModelManager()
-				.getWorkspacePluginModel(project).getPluginBase().getId();
+		String pluginId = (new AJDTWorkspaceModelManager().getWorkspacePluginModel(project))
+								.getPluginBase().getId();
 
 		// Attempt to get hold of the open manifest editor
 		// for the current project.
@@ -721,8 +721,8 @@ public class AJDTUtils {
 		// to get to this method. Now get the id of the plugin
 		// being developed in current project.
 
-		String pluginId = PDECore.getDefault().getWorkspaceModelManager()
-				.getWorkspacePluginModel(project).getPluginBase().getId();
+		String pluginId = (new AJDTWorkspaceModelManager().getWorkspacePluginModel(project))
+								.getPluginBase().getId();
 
 		// Open the manifest editor if it is not already open.
 		ManifestEditor.openPluginEditor(pluginId);
@@ -835,8 +835,7 @@ public class AJDTUtils {
 		// Bugzilla 62625
 		// Bugzilla 93532 - just remove plugin dependency if there is a plugin.xml file
 		if (project.hasNature(PDE.PLUGIN_NATURE) 
-		        && PDECore.getDefault().getWorkspaceModelManager()
-		        	.getWorkspacePluginModel(project) != null) {
+		        && WorkspaceModelManager.hasPluginManifest(project)) {
 //			// Bugzilla 72007
 //			// Checks if it was ajdt that added the ajde dependancy and removes
 //			// it if it was
