@@ -34,7 +34,7 @@ Create a packaged org.eclipse.contribution.xref.ui.test_version plugin distribut
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.ui.test}"/>
+	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.ui.test};../org.eclipse.contribution.xref.ui/build/xrefui.jar"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >

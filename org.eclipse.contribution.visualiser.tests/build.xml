@@ -34,7 +34,7 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.visualiser.tests}"/>
+	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.visualiser.tests};../org.eclipse.contribution.visualiser/build/Visualiser.jar"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >
