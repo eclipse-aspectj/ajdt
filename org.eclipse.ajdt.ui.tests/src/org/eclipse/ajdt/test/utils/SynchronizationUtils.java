@@ -11,11 +11,8 @@
 
 package org.eclipse.ajdt.test.utils;
 
-import java.util.ArrayList;
-
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
@@ -24,7 +21,6 @@ import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.ITypeNameRequestor;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.internal.corext.util.AllTypesCache;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -74,7 +70,8 @@ public class SynchronizationUtils {
 			IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
 			null);
 	}
-	
+
+	/* not currently used, doesn't work with 3.1M7
 	private static void joinTypesCache() {
 		// Join all types cache
 		try {
@@ -84,6 +81,7 @@ public class SynchronizationUtils {
 			// sometimes this NPEs, don't know why. let's ignore it
 		}		
 	}
+	*/
 	
 	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
