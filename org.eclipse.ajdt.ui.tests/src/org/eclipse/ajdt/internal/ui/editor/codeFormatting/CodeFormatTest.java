@@ -13,11 +13,11 @@ package org.eclipse.ajdt.internal.ui.editor.codeFormatting;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.test.utils.Utils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.internal.ui.javaeditor.JavaEditorMessages;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -229,7 +229,7 @@ public class CodeFormatTest extends TestCase {
 	 */
 	private void formatEditor(ITextEditor editor) {
 		IAction act= new TextOperationAction(
-				JavaEditorMessages.getResourceBundle(), 
+				AspectJUIPlugin.getDefault().getResourceBundle(),
 				"Format.", editor, ISourceViewer.FORMAT); //$NON-NLS-1$
 		act.run();
 	}

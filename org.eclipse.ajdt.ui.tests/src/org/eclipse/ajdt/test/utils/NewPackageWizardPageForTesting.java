@@ -26,7 +26,6 @@ import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
@@ -50,6 +49,15 @@ import org.eclipse.swt.widgets.Label;
  */
 public class NewPackageWizardPageForTesting extends NewContainerWizardPage {
 
+	static class NewWizardMessages {
+		static String getString(String s) {
+			return "";
+		}
+		static String getFormattedString(String s, String v) {
+			return "";
+		}
+	}
+	
 	private static final String PAGE_NAME= "NewPackageWizardPage"; //$NON-NLS-1$
 	
 	private static final String PACKAGE= "NewPackageWizardPage.package"; //$NON-NLS-1$

@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.preferences.NewJavaProjectPreferencePage;
 import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IStringButtonAdapter;
@@ -53,7 +52,11 @@ import org.eclipse.swt.widgets.Text;
  */
 public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstPage {
 
-
+	static class NewWizardMessages {
+		static String getString(String s) {
+			return "";
+		}
+	}
 
 	/**
 	 * Request a project name. Fires an event whenever the text field is
