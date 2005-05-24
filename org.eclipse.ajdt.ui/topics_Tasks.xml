@@ -83,7 +83,8 @@
 	
 	<topic label="Using the Visualiser" href="doc/tasks/visualiser.htm">
 		<topic label="Opening the Aspect Visualisation perspective" href="doc/tasks/avperspective.htm"></topic>
-		<topic label="Visualizing the effects of your aspects in a project" href="doc/tasks/visualisingproject.htm"></topic>
+        <topic label="Visualizing the effects of your aspects in a project" href="doc/tasks/visualisingproject.htm"></topic>
+		<topic label="AspectJ declare error and declare warning statements in the Visualiser" href="doc/tasks/declarestatementsinvisualiser.htm"></topic>
 		<topic label="Navigating with the Visualiser" href="doc/tasks/navigatingwithvisualiser.htm"></topic>
 	</topic>
 	<anchor id="t_visualiser" />
