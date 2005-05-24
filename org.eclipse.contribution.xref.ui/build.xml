@@ -47,7 +47,7 @@ Create a packaged org.eclipse.contribution.xref.ui_version plugin distribution f
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
 	<property file="build.ajproperties"/>
-	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.contribution.xref.ui}"
+	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.contribution.xref.ui};../org.eclipse.contribution.xref.core/build/xrefcore.jar"
 		debug="false" verbose="true" fork="true" maxmem="256m"
 		includes="${src.includes}" excludes="${src.excludes}" />
     <!--
