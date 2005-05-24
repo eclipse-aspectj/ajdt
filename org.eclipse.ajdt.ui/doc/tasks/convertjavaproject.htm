@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      Converting a Java project to an AspectJ project
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,10 +10,33 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      Converting a Java project to an AspectJ project
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      To convert a Java project to an AspectJ project right click on that project, then select
+      <strong>Convert to AspectJ Project</strong>. This will add the AspectJ nature to that
+      project and replace the Java builder with the AspectJ builder.  It will also add the 
+      AspectJ runtime library, aspectjrt.jar, to the classpath.
+    </p>
+    
+    <p>
+      To convert an AspectJ project back to a Java project right click on that project,
+      then select <strong>Remove AspectJ Nature</strong>. This will remove the AspectJ nature from that
+      project and replace the AspectJ builder with the Java builder.  It will also remove the 
+      AspectJ runtime from the classpath.
+    <p>
+    <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159"> <br>
+    
+      <a href="../concepts/projects.htm">AspectJ projects</a><br>
+      <a href="../concepts/builder.htm">AspectJ builder</a>
+    </p>
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159"><br>
+    
+      <a href="ajelements.htm">Creating AspectJ elements</a><br>
+       <a href="newajproject.htm">Creating a new AspectJ project</a><br>
+       <a href="convertpluginproject.htm">Converting a plug-in project to an AspectJ project</a><br>
+       <a href="newaspect.htm">Creating a new aspect</a>
     </p>
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>

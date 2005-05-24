@@ -6,8 +6,8 @@
 <toc label="Tasks">
 
 	<topic label="Creating AspectJ elements" href="doc/tasks/ajelements.htm">
-		<topic label="Creating a new AspectJ project" href="doc/tasks/ajprojects.htm">
-			<topic label="Creating an AspectJ project" href="doc/tasks/newajproject.htm"></topic>
+		<topic label="Creating AspectJ projects" href="doc/tasks/ajprojects.htm">
+			<topic label="Creating a new AspectJ project" href="doc/tasks/newajproject.htm"></topic>
 			<topic label="Converting a Java project to an AspectJ project" href="doc/tasks/convertjavaproject.htm"></topic>
 			<topic label="Converting a plug-in project to an AspectJ project" href="doc/tasks/convertpluginproject.htm"></topic>
 		</topic>
@@ -20,7 +20,6 @@
 
 	<topic label="Creating JAR Files" href="doc/tasks/jarfiles.htm">
 		<topic label="Creating a new JAR file" href="doc/tasks/newjarfile.htm"></topic>
-		<topic label="Setting advanced options" href="doc/tasks/advancedjaroptions.htm"></topic>
 	</topic>
 	<anchor id="t_createjar" />
 
