@@ -12,9 +12,52 @@
     <h1>
       Working with aspect libraries
     </h1>
+   <p>
+      An aspect library is a jar file containing aspects which 
+      others can use to weave into their code. Working with 
+      aspect libraries comes in two parts:
+     <ul>
+          <li>Creating an aspect library</li>
+          <li>Using an aspect library</li>
+       </ul>      
+   </p> 
+    
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+     To create an aspect library you need to set your aspect library
+     project to use the <b>outjar</b> capability. To setup your 
+     AspectJ project to use the outjar:
+       <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Right click and select <b>Properties</b></li>
+          <li>Select <b>AspectJ</b> in the list on the left
+              of the properties page</li>
+          <li>Enter a name for your aspect library in the text field
+              next to <b>Output jar</b></li>
+          <li>Click <b>Ok</b> to close the project properties dialog</li>
+       </ol>
+      A build is triggered and the outjar you specified is created. 
     </p>
+    
+   <p>
+      To use an aspect library, or in other words, to weave advice from 
+      aspects contained in an aspect library or bin directory with the 
+      classes and aspects in your AspectJ project, you need to use 
+      the <b>aspectpath</b> capability.  
+    </p>
+    <p>
+      To setup your AspectJ project to use the aspectpath:
+      <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Right click and select <b>Properties</b></li>
+          <li>Select <b>AspectJ Aspect Path</b> in the list on the left
+              of the properties page</li>
+          <li>Click the <b>Libraries and Folders</b> tab</li>
+          <li>Add the necessary jar file or bin directory using the
+              <b>Add XXX</b> buttons</li>
+          <li>Click <b>Ok</b> to close the project properties dialog</li>
+       </ol>
+    </p>
+
     <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
      <a href="linkedsrcfolders.htm">Using linked source folders</a><br>
      <a href="inpath.htm">Using the inpath</a>     

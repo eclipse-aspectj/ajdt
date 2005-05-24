@@ -13,7 +13,33 @@
       Using the inpath
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      If you wish to weave into binary files (either that are contained in a 
+      jar or in a bin directory), then you need to use the inpath capability.
+    </p>
+    <p>
+      To setup your AspectJ project to use the inpath:
+      <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Right click and select <b>Properties</b></li>
+          <li>Select <b>AspectJ Inpath</b> in the list on the left
+              of the properties page</li>
+          <li>Click the <b>Libraries and Folders</b> tab</li>
+          <li>Add the necessary jar file or bin directory using the
+              <b>Add XXX</b> buttons</li>
+          <li>Click <b>Ok</b> to close the project properties dialog</li>
+       </ol>
+    </p>
+    <p>
+      When the AspectJ project is built, it will compile the aspects and
+      weave them against the class files specified via inpath and produce a
+     complete set of woven class files in the output directory of
+     the AspectJ project.
+    </p>
+    <p>
+     The disadvantage of using this approach is that AJDT will not show how 
+     the advice in the aspects applies to the input classe. The Cross References
+     view will show that the advice came from an injar aspect, but will
+     not provide any more detail.
     </p>
     
     <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>

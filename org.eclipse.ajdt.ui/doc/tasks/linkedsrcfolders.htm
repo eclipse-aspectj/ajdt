@@ -13,7 +13,55 @@
       Using linked source folders
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      If you want to keep your aspects and your java code in separate
+      projects, then one setup you can use is linked source folders:
+      <ol>
+      <li>Ensure your java project has a source folder (rather than
+          having it's source directly in the top level of the project)</li>
+      <li>Create an AspectJ project which contains your aspects,
+          again ensuring that it has a source folder</li>
+      <li>Within your AspectJ project, define a second source folder and
+          specify that it is a linked source folder. Either,
+          <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Select <b>File &gt New &gt Folder</b></li>
+          <li>Enter a name for your linked source folder</li>
+          <li>Click <b>Advanced</b></li>
+          <li>Check <b>link to folder in the file system</b> and browse 
+              to the location of the source folder in your non-AspectJ 
+              project</li>
+          <li>Click <b>Finish</b></li>
+          </ol>
+          or
+          <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Right click and select <b>Properties</b></li>
+          <li>Select <b>Java Build Path</b> in the list on the left
+              of the properties page</li>
+          <li>Click the <b>Source</b> tab</li>
+          <li>Click <b>Add Folder</b> and then <b>Create new Folder</b></li>
+          <li> <b>New Source Folder</b> dialog will appear</li>
+          <li>Enter a name for your linked source folder</li>
+          <li>Click <b>Advanced</b></li>
+          <li>Check <b>link to folder in the file system</b> and browse 
+              to the location of the source folder in your non-AspectJ 
+              project</li>
+          <li>Click <b>Ok</b> to close the project properties dialog</li>
+          </ol>
+          </li>
+      </ol> 
+    </p>
+    <p>
+     When the AspectJ project is built, it will use the AspectJ project
+     source and the source from the non-AspectJ project and produce a
+     complete set of woven class files in the output directory of
+     the AspectJ project.
+    </p>
+    
+    <p>
+     The advantage of using this approach is that the navigation and crosscutting
+     views available in AJDT will show how the advice in the aspects applies 
+     to the java project. 
     </p>
     
     <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
