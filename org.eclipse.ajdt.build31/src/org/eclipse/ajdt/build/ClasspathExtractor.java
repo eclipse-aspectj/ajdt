@@ -56,7 +56,7 @@ public class ClasspathExtractor implements IPlatformRunnable {
 			}
 		}
 		
-		outDir=".";
+		//outDir=".";
 		System.out.println("output dir="+outDir);
 		IWorkspace workspace = BuildPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
