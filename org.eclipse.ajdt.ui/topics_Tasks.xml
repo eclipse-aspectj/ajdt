@@ -24,13 +24,13 @@
 	<anchor id="t_createjar" />
 
 	<topic label="Working with AspectJ plug-in projects" href="doc/tasks/plugins.htm">
-		<topic label="Creating an AspectJ plug-in" href="doc/tasks/newplugin.htm"></topic>
+		<topic label="Creating a new AspectJ plug-in project" href="doc/tasks/newplugin.htm"></topic>
 		<topic label="Deploying an AspectJ plug-in" href="doc/tasks/deployplugin.htm"></topic>
 	</topic>
 	<anchor id="t_createplugin" />
 	
-	<topic label="Creating Ajdoc documentation" href="doc/tasks/ajdoc.htm">
-		<topic label="Using the Generate Ajdoc wizard" href="doc/tasks/generateajdoc.htm"></topic>
+	<topic label="Creating AJdoc documentation" href="doc/tasks/ajdoc.htm">
+		<topic label="Using the Generate AJdoc wizard" href="doc/tasks/generateajdoc.htm"></topic>
 	</topic>
 	<anchor id="t_createajdoc" />
 
@@ -83,7 +83,7 @@
 	
 	<topic label="Using the Visualiser" href="doc/tasks/visualiser.htm">
 		<topic label="Opening the Aspect Visualisation perspective" href="doc/tasks/avperspective.htm"></topic>
-		<topic label="Visualizing the affects of your aspects in a project" href="doc/tasks/visualisingproject.htm"></topic>
+		<topic label="Visualizing the effects of your aspects in a project" href="doc/tasks/visualisingproject.htm"></topic>
 		<topic label="Navigating with the Visualiser" href="doc/tasks/navigatingwithvisualiser.htm"></topic>
 	</topic>
 	<anchor id="t_visualiser" />

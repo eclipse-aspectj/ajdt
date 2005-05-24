@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      Deploying an AspectJ plug-in
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,11 +10,39 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      Deploying an AspectJ plug-in
     </h1>
+
+<p>The easiest way to deploy an AspectJ plug-in is through the <b>Export Plug-ins and Fragments
+with AspectJ Support</b> Wizard.</p>
+<ol>
+  <li>Select <strong>File &gt; Export... &gt; Deployable plug-ins and fragments with AspectJ support</strong>.</li>
+  <li>Select the plug-ins and fragments you want to export.&nbsp; </li>
+  <li>You can deploy the plug-ins in one of three formats:
+  <ul>
+    <li>a single ZIP file whose content can be unzipped into any Eclipse-based 
+    product.</li>
+    <li>a directory structure, so the destination of the export operation can be 
+    the root of an Eclipse installation.</li>
+    <li>individual JAR archives for an Update site.&nbsp; This option will 
+    result in the creation of one JAR per plug-in, and the JARs will be placed 
+    in a plugins/ subdirectory of the chosen destination.</li>
+  </ul>
+  <p>&nbsp;</li>
+</ol>
+
+<p>Alternatively, plug-ins can be built with an Ant build script.  To create
+a build script for your AspectJ plug-in right click on the plugin.xml file in the package explorer
+then select <strong>PDE Tools &gt; Create Ant Build File with AspectJ Support</strong>.
+This will generate a build.xml file that can be used to build your plug-in.</p>
+
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
     </p>
+    <p>
+      <a href="newplugin.htm">Creating a new AspectJ plug-in project</a><br>
+      <a href="convertpluginproject.htm">Converting a plug-in project to an AspectJ project</a><br>
+    </p> 
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>
