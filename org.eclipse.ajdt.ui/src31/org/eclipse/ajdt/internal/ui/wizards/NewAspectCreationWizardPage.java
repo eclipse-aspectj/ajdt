@@ -56,7 +56,8 @@ import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
-import org.eclipse.jdt.internal.ui.dialogs.TypeSelectionDialog;
+import org.eclipse.jdt.internal.ui.dialogs.TypeSelectionDialog2;
+import org.eclipse.jdt.internal.ui.wizards.SuperInterfaceSelectionDialog;
 import org.eclipse.jdt.ui.CodeGeneration;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
@@ -788,6 +789,9 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 			}
 			updateEnclosingStatus();
 		} else if (event.widget == addInterfaceButton) {
+			/*
+			SuperInterfaceSelectionDialog dialog= new SuperInterfaceSelectionDialog(getShell(), getWizard().getContainer(), fSuperInterfacesDialogField, project);
+
 			SuperInterfaceSelectionDialog dialog = new SuperInterfaceSelectionDialog(
 					getShell(), getWizard().getContainer(), interfaceList,
 					jproject);
@@ -798,6 +802,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					.setMessage(AspectJUIPlugin
 							.getResourceString("NewAspectCreationWizardPage.InterfacesDialog.message")); //$NON-NLS-1$
 			dialog.open();
+			*/
 		} else if (event.widget == removeInterfaceButton) {
 			String[] selected = interfaceList.getSelection();
 			for (int i = 0; i < selected.length; i++) {
@@ -907,7 +912,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		IJavaSearchScope scope = SearchEngine
 				.createJavaSearchScope(new IJavaElement[]{root});
 
-		TypeSelectionDialog dialog = new TypeSelectionDialog(getShell(),
+		/*
+		TypeSelectionDialog2 dialog = new TypeSelectionDialog2(getShell(),
 				getWizard().getContainer(), IJavaSearchConstants.TYPE, scope);
 		dialog
 				.setTitle(AspectJUIPlugin
@@ -917,9 +923,9 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						.getResourceString("NewAspectCreationWizardPage.ChooseEnclosingTypeDialog.description")); //$NON-NLS-1$
 		//dialog.setFilter(Signature.getSimpleName(getEnclosingTypeText()));
 
-		if (dialog.open() == TypeSelectionDialog.OK) {
+		if (dialog.open() == TypeSelectionDialog2.OK) {
 			return (IType) dialog.getFirstResult();
-		}
+		}*/
 		return null;
 	}
 
@@ -1017,6 +1023,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		IJavaElement[] elements = new IJavaElement[] { root.getJavaProject() };
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements);
 
+		/*
 		org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog dialog = new org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog(getShell(),
 				getWizard().getContainer(), IJavaSearchConstants.CLASS, scope);
 		dialog.setTitle(AspectJUIPlugin
@@ -1028,6 +1035,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		if (dialog.open() == Window.OK) {
 			return (IType) dialog.getFirstResult();
 		}
+		*/
 		return null;
 	}
 	 
@@ -1738,97 +1746,6 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				}
 			}
 			return false;
-		}
-
-	}
-
-	static class SuperInterfaceSelectionDialog extends TypeSelectionDialog {
-
-		private static final int ADD_ID = IDialogConstants.CLIENT_ID + 1;
-
-		private List fList;
-		private String[] fOldContent;
-
-		public SuperInterfaceSelectionDialog(Shell parent,
-				IRunnableContext context, List list, IJavaProject p) {
-			super(parent, context, IJavaSearchConstants.INTERFACE,
-					createSearchScope(p));
-			fList = list;
-			// to restore the content of the dialog field if the dialog is
-			// canceled
-			fOldContent = fList.getItems();
-			setStatusLineAboveButtons(true);
-		}
-
-		/*
-		 * @see Dialog#createButtonsForButtonBar
-		 */
-		protected void createButtonsForButtonBar(Composite parent) {
-			createButton(parent, ADD_ID, "Add", true); //$NON-NLS-1$
-			super.createButtonsForButtonBar(parent);
-		}
-
-		/*
-		 * @see Dialog#cancelPressed
-		 */
-		protected void cancelPressed() {
-			fList.setItems(fOldContent);
-			super.cancelPressed();
-		}
-
-		/*
-		 * @see Dialog#buttonPressed
-		 */
-		protected void buttonPressed(int buttonId) {
-			if (buttonId == ADD_ID) {
-				addSelectedInterface();
-			}
-			super.buttonPressed(buttonId);
-		}
-
-		/*
-		 * @see Dialog#okPressed
-		 */
-		protected void okPressed() {
-			addSelectedInterface();
-			super.okPressed();
-		}
-
-		private void addSelectedInterface() {
-			Object ref = getLowerSelectedElement();
-			if (ref instanceof TypeInfo) {
-				String qualifiedName = ((TypeInfo) ref).getFullyQualifiedName();
-				if (fList.indexOf(qualifiedName) == -1) {
-					fList.add(qualifiedName);
-				}
-				updateStatus(new Status(
-						IStatus.INFO,
-						AspectJUIPlugin.PLUGIN_ID,
-						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.SuperInterfaceSelectionDialog.interfaceadded.info"), null)); //$NON-NLS-1$
-			}
-		}
-
-		private static IJavaSearchScope createSearchScope(IJavaProject p) {
-			return SearchEngine.createJavaSearchScope(new IJavaProject[]{p});
-		}
-
-		/*
-		 * @see AbstractElementListSelectionDialog#handleDefaultSelected()
-		 */
-		protected void handleDefaultSelected() {
-			if (validateCurrentSelection())
-				buttonPressed(ADD_ID);
-		}
-
-		/*
-		 * @see org.eclipse.jface.window.Window#configureShell(Shell)
-		 */
-		protected void configureShell(Shell newShell) {
-			super.configureShell(newShell);
-			//WorkbenchHelp.setHelp(newShell,
-			// IJavaHelpContextIds.SUPER_INTERFACE_SELECTION_DIALOG);
 		}
 
 	}
