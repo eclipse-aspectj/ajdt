@@ -32,7 +32,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.internal.compiler.env.IGenericType;
-import org.eclipse.jdt.internal.corext.util.AllTypesCache;
 import org.eclipse.jdt.internal.corext.util.IFileTypeInfo;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
@@ -192,11 +191,13 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 		try {
 			if (isCacheUpToDate()) {
 				// run without progress monitor
-				AllTypesCache.getTypes(fScope, fElementKinds, null, typeList);
+				// TODO: 3.1M7
+				//AllTypesCache.getTypes(fScope, fElementKinds, null, typeList);
 			} else {
 				IRunnableWithProgress runnable= new IRunnableWithProgress() {
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						AllTypesCache.getTypes(fScope, fElementKinds, monitor, typeList);
+						// TODO: 3.1M7
+						// AllTypesCache.getTypes(fScope, fElementKinds, monitor, typeList);
 						if (monitor.isCanceled()) {
 							throw new InterruptedException();
 						}
@@ -262,7 +263,8 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 										} else /*if (type.isAnnotation())*/ {
 											kind = IGenericType.ANNOTATION_TYPE_DECL;
 										}
-										IFileTypeInfo info = new AJCUTypeInfo(
+										// TODO: 3.1M7
+										/* IFileTypeInfo info = new AJCUTypeInfo(
 												type.getPackageFragment().getElementName(),
 												type.getElementName(),
 												enclosingTypes,
@@ -273,7 +275,7 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 												unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
 												"aj", //$NON-NLS-1$
 												unit);							
-										ajTypes.add(info);										
+										ajTypes.add(info); */									
 									}
 								}
 							} 
@@ -324,7 +326,8 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 		IRunnableWithProgress runnable= new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 				try {
-					result[0]= AllTypesCache.isCacheUpToDate(monitor);
+					// TODO: 3.1M7
+					result[0]= true; //AllTypesCache.isCacheUpToDate(monitor);
 				} catch (OperationCanceledException e) {
 					throw new InterruptedException(e.getMessage());
 				}

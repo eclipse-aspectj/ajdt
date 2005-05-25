@@ -36,7 +36,7 @@ public class OpenTypeAction extends
 		}
 		// end fix https://bugs.eclipse.org/bugs/show_bug.cgi?id=66436
 		
-		dialog.setMatchEmptyString(true);	
+		//dialog.setMatchEmptyString(true);	
 		dialog.setTitle(JavaUIMessages.OpenTypeAction_dialogTitle);
 		dialog.setMessage(JavaUIMessages.OpenTypeAction_dialogMessage);
 		int result= dialog.open();
