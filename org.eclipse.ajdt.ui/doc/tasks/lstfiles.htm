@@ -13,8 +13,21 @@
       .lst file support
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      Prior to AJDT 1.1.11 build configurations were stored in a different format in <em>.lst</em> files.
+      The command line AspectJ compiler and other IDEs still use <em>.lst</em> files so AJDT provides
+      support for converting between <em>.lst</em> and <em>.ajproperties</em> files.
     </p>
+    <p>
+      To convert a <em>.lst</em> file to a <em>.ajproperties</em> file, right click on the file
+      in the package explorer then select <strong>Save as .ajproperties file...</strong>.  In the
+      resulting dialog optionally change the name of the file to be created, then click 
+      <strong>OK</strong> to complete.
+    <p>
+    <p>
+      To convert a <em>.ajproperties</em> file to a <em>.lst</em> file, right click on the file
+      in the package explorer then select <strong>Save as .lst file...</strong>. In the
+      resulting dialog optionally change the name of the file to be created, then click 
+      <strong>OK</strong> to complete. 
     <p>
     <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159"> <br>
     
