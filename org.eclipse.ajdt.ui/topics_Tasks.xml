@@ -65,7 +65,7 @@
 	<anchor id="t_workingwithbuildconfigs" />
 
 	<topic label="Running and debugging" href="doc/tasks/runninganddebugging.htm">
-		<topic label="Launching a program" href="doc/tasks/launching.htm"></topic>
+		<topic label="Launching a program with the main method in a class" href="doc/tasks/launching.htm"></topic>
 		<topic label="Launching a program with the main method in an aspect" href="doc/tasks/ajlaunching.htm"></topic>
 		<topic label="Launching a program with an aspectpath" href="doc/tasks/aspectpathlaunching.htm"></topic>
 		<topic label="Debugging a program" href="doc/tasks/debugging.htm"></topic>
