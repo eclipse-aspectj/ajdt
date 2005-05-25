@@ -57,8 +57,8 @@
 
 	<topic label="Working with build configurations" href="doc/tasks/buildconfigs.htm">
 		<topic label="Creating a new build configuration" href="doc/tasks/newbuildconfig.htm"></topic>
-		<topic label="Editing an existing build configuration" href="doc/tasks/editbuildconfig.htm"></topic>
-		<topic label="Switching build configuration" href="doc/tasks/switchbuildconfig.htm"></topic>
+		<topic label="Editing a build configuration" href="doc/tasks/editbuildconfig.htm"></topic>
+		<topic label="Switching build configurations" href="doc/tasks/switchbuildconfig.htm"></topic>
 		<topic label="Using build configurations with Ant" href="doc/tasks/buildconfigsandant.htm"></topic>
 		<topic label=".lst file support" href="doc/tasks/lstfiles.htm"></topic>		
 	</topic>
@@ -99,6 +99,7 @@
 		<topic label="Using the inpath" href="doc/tasks/inpath.htm"></topic>
 		<topic label="Working with aspect libraries" href="doc/tasks/aspectpath.htm"></topic>
 	</topic>
+	<anchor id="t_setups" />
 	<anchor id="t_setups" />
 	
 </toc>

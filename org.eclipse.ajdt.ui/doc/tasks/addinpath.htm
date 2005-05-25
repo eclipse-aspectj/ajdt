@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Basic tutorial
+      Adding an inpath
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,11 +10,43 @@
   </head>
   <body>
     <h1>
-      Basic tutorial
+      Adding an inpath
     </h1>
     <p>
-      This tutorial provides a step by step walk-through of the Java development tooling.
+      The AspectJ inpath setting enables weaving aspects in the project
+      into one or more folder(s) or JAR file(s) on the inpath and outputting the results
+      to the normal output location.  
     </p>
+    <p> To set the inpath: </p><p>
+    <ol>
+    <li>Right click on the project, then select <strong>Properties</strong>.</li>
+    <li>Select <strong>AspectJ Inpath</strong> in the left hand column.</li>
+    <li>Select the <strong>Libraries and Folders</strong> tab.
+    <li>Use the buttons on the right hand side to add class folders and/or
+    JAR files to the inpath.</li>
+    <li>Click <strong>OK</strong> to finish.  If automatic building is switched on
+    the project will rebuild.</li>    
+    </ol>
+    </p>
+    
+    <p>Note: The inpath can be used in conjunction with other AspectJ compiler settings
+    such as the aspectpath and outjar</p>
+        
+    <p>
+    <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159"> <br>
+    
+      <a href="../concepts/projects.htm">AspectJ projects</a><br>
+      <a href="../concepts/aspects.htm">Aspects</a><br>
+      <a href="../concepts/builder.htm">AspectJ builder</a>
+    </p> 
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
+    <br>
+      <a href="addoutjar.htm">Adding an outjar</a><br>
+      <a href="addaspectpath.htm">Adding an aspectpath</a><br>
+      <a href="compilersettings.htm">Changing compiler settings</a><br>
+      <a href="setups.htm">Using a multi-project setup</a>
+    </p>    
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>
