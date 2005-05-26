@@ -51,7 +51,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 				IJavaElement source = rel.getSource();
 				if (source.getElementName().equals("main")) {
 					IJavaElement target = rel.getTarget();
-					if (target.getElementName().indexOf("injar aspect") != -1) {
+					if (target.getElementName().indexOf("binary aspect") != -1) {
 						gotBinaryAdvice = true;
 					}
 				}

@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -165,6 +166,26 @@ public class AspectJPlugin extends Plugin {
 		}
 	}
 
+	/**
+	 * @param key
+	 * @param arg
+	 * @return string from plugin's resource bundle that includes the inserted
+	 *         argument.
+	 */
+	public static String getFormattedResourceString(String key, String arg) {
+		return getFormattedResourceString(key, new String[] { arg });
+	}
+
+	/**
+	 * @param key
+	 * @param arg
+	 * @return string from plugin's resource bundle that includes all of the
+	 *         inserted arguments.
+	 */
+	public static String getFormattedResourceString(String key, String[] args) {
+		return MessageFormat.format(getResourceString(key), args);
+	}
+	
 	/**
 	 * Returns the plugin's resource bundle,
 	 */

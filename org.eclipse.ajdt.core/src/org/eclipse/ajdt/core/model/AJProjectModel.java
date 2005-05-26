@@ -301,11 +301,15 @@ public class AJProjectModel {
 							// element. In future we could look for the resource in the
 							// workspace, and locate the real java element for it
 							if (link.getParent() == null) {
-								// if the problem element has no parent, then we have a binary/injar
-								// aspect, otherwise we don't know what it is, so we skip it
-								String name = "injar aspect: " + link.getName();
-								targetEl = new AJInjarElement("injar aspect: "+link.getName());
-								
+								// if the problem element has no parent, then we
+								// have a binary/injar aspect, otherwise we
+								// don't know what it is, so we skip it
+								String name = AspectJPlugin
+										.getFormattedResourceString(
+												"injarElementLabel", link //$NON-NLS-1$
+														.getName());
+								targetEl = new AJInjarElement(name);
+
 								// store this elements, so that it gets saved
 								jeLinkNames.put(targetEl, name);
 								lineNumbers.put(targetEl, new Integer(0));
@@ -372,7 +376,7 @@ public class AJProjectModel {
 		ICompilationUnit unit = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit(file);
 		if (unit == null) {
-			if (file.getName().endsWith(".java")) {
+			if (file.getName().endsWith(".java")) { //$NON-NLS-1$
 				// JavaCore can only cope with .java files. The
 				// AJCompilationUnitManager
 				// should have given us the unit for .aj files
