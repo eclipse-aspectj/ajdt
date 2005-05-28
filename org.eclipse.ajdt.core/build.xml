@@ -86,7 +86,8 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 <target name="ajdtsrcjar" depends="init"
  description="The source jar file for ajdt core, ajdtcoresrc.jar">
   <zip destfile= "${build.dir}/ajdtcoresrc.jar" >
-   <fileset dir="src"/>
+    <fileset dir="src"/>
+    <fileset dir="src${eclipse.build.id}"/>
   </zip>
 </target>
 
