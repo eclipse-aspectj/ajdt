@@ -1412,11 +1412,6 @@
    <toc file="toc.xml" primary="true" />
    </extension>
    <extension point="org.eclipse.help.toc">
-       <!--<toc file="toc_aspectj.xml" />-->
-       <!--<toc file="toc_ajdt.xml" />-->
-       <!--<toc file="toc_ajprogguide.xml" />-->   
-       <!--<toc file="toc_ajdevguide.xml" />-->   
-       <toc file="toc_ajdtuguide.xml" />
        <toc file="topics_GettingStarted.xml" />    
        <toc file="topics_Tasks.xml" />    
        <toc file="topics_Concepts.xml" />    
