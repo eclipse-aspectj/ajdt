@@ -129,6 +129,23 @@ Test6 - text filtering should keep children
   children
 					(XREF_INPLACE_19)
 
+Test 7 - bug 95726: Quick XRef Navigate menu entry
+--------------------------------------------------
 
+- open spacewar/debug.aj (ensuring that it is included
+  in the current build configuration).
+- position the cursor somewhere in the file
+- go to the Navigate menu and there should be a menu item
+  "Quick Cross References" in the same section as "Quick Outline"
+  
+  					(XREF_INPLACE_20)				
 
+- bring up the inplace cross references view via
+
+	Navigate > Quick Cross References
+	
+- the inplace xref view should appear with the current
+  selection 
+  					(XREF_INPLACE_21)
+ 					
 

@@ -145,7 +145,7 @@ Test5 - show xrefs for entire file
 Test 6 - selection should be visible in the xref view (scroll bar)
 ------------------------------------------------------------------
 
-- opend debug.aj in the editor
+- open debug.aj in the editor
 - ensure that show all xrefs for file is selected
 - scroll down and select the following:
 
@@ -159,4 +159,20 @@ Test 6 - selection should be visible in the xref view (scroll bar)
   bar should be in the position to show this)
 							(XREF_VIEW_22)
 
-			                  	                
+Test 7 - bug 95726: "Show In" navigate menu entry
+------------------------------------------------------------------
+
+- open debug.aj in the editor
+- close the cross references view
+- go to the Navigate menu and there should be a menu item
+  "Show In > Cross References" 
+  
+  							(XREF_VIEW_23)				
+
+- bring up the cross references view via
+
+	Navigate > Show In > Cross References
+	
+- the xref view should appear with the current
+  selection 
+  							(XREF_VIEW_24)			                  	                

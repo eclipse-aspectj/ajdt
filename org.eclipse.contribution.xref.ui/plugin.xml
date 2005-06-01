@@ -31,7 +31,7 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            name="Cross References"
+            name="%XRefView.label"
             icon="icons/XRefIcon.gif"
             category="org.eclipse.ajdt.ui.cat"
             class="org.eclipse.contribution.xref.ui.views.XReferenceView"
@@ -64,7 +64,7 @@
    </extension> 
    -->
    
-   <!-- Adding action set for inplace XReferenceView -->   
+   <!-- Actions contributed by the XReference plugin to the Java perspective -->
    <extension
        	 point="org.eclipse.ui.actionSets">
    	  <actionSet
@@ -74,19 +74,28 @@
             id="org.eclipse.contribution.xref.ui.XRefActionSet">
          <action
                definitionId="org.eclipse.contribution.xref.show.xref"
-               label="Open Cross References"
+               label="%QuickXRef.label"
                class="org.eclipse.contribution.xref.internal.ui.inplace.OpenInplaceXReferenceAction"
-               menubarPath="navigate/open.ext2"
-               id="openXRef">
+               menubarPath="navigate/showIn"
+               id="openInplaceXRef">
          </action>
+         <action
+               definitionId="org.eclipse.contribution.xref.show.xref.view"
+               label="%XRefView.label"
+               icon="icons/XRefIcon.gif"
+               class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
+               menubarPath="navigate/showIn/"
+               id="openXRefView">
+         </action>       
       </actionSet>
    </extension> 
         
-   <!-- Adding key binding for inplace XReferenceView -->             
+   <!-- Adding key binding for inplace XReferenceView 
+        and commands for showing the inplace and regular view -->             
    <extension
          point="org.eclipse.ui.commands">
       <command
-            name="%ShowXRef.label"
+            name="%QuickXRef.label"
             description="%ShowXRef.description"
             category="org.eclipse.ui.category.navigate"
             id="org.eclipse.contribution.xref.show.xref">
@@ -97,26 +106,33 @@
             command="org.eclipse.contribution.xref.show.xref"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
       </keyBinding>
+      <command
+            name="%XRefView.label"
+            description="%ShowXRef.description"
+            category="org.eclipse.ui.category.navigate"
+            id="org.eclipse.contribution.xref.show.xref.view">
+      </command>
    </extension>    
 
-
+   <!-- Adding "Open Cross References" to outline views 
+        context menu -->             
    <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             objectClass="org.eclipse.jdt.core.IJavaElement"
             id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
          <action
-            label="Open Cross References"
+            label="%OpenXRef.label"
             class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
             enablesFor="1"
             id="org.eclipse.contribution.xref.ui.views.openXRefView">
          </action>
       </objectContribution>
-            <objectContribution
+         <objectContribution
             objectClass="org.eclipse.ui.IEditorPart"
             id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
          <action
-            label="Open Cross References"
+            label="%OpenXRef.label"
             class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
             enablesFor="1"
             id="org.eclipse.contribution.xref.ui.views.openXRefView">
