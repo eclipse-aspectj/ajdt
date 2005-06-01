@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
 
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.core.resources.IProject;
@@ -48,8 +49,12 @@ public class BCResourceChangeListener implements IResourceChangeListener {
 				|| (event.getType() == IResourceChangeEvent.PRE_DELETE)) {
 			IResource res = event.getResource();
 			if (res.getType() == IResource.PROJECT) {
-				myBCor.closeProject((IProject) res);
-				AJModel.getInstance().clearMap((IProject) res);
+				IProject project = (IProject) res;
+				myBCor.closeProject(project);
+				AJModel.getInstance().clearMap(project);
+				IncrementalStateManager
+						.removeIncrementalStateInformationFor(AspectJPlugin
+								.getBuildConfigurationFile(project));
 			}
 		} else if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 			// avoid processing deltas for non-AspectJ projects,
