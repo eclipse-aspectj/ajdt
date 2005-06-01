@@ -21,6 +21,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJDTEventTrace;
 import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -41,6 +42,8 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
+import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -312,7 +315,19 @@ public class AspectJEditor extends CompilationUnitEditor {
 		//if (contentOutlinePage != null)
 		// contentOutlinePage.update( );
 	}
-
+	
+	/**
+	 * Override to replace some of the java editor actions
+	 * @see org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor#createActions()
+	 */
+	protected void createActions() {
+		super.createActions();
+		IAction organizeImports= new AJOrganizeImportsAction(this);
+		organizeImports.setActionDefinitionId(IJavaEditorActionDefinitionIds.ORGANIZE_IMPORTS);
+		setAction("OrganizeImports", organizeImports); //$NON-NLS-1$
+	}
+	
+	
 	/**
 	 * Get the content outline page - either the JDT one or our own depending on
 	 * the preference setting.
