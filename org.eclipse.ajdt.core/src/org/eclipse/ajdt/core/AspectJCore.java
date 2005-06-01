@@ -106,9 +106,13 @@ public class AspectJCore {
 		while (memento.hasMoreTokens()) {
 			String token = memento.nextToken();
 			// System.out.println("token: " + token);
-			if (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT) {
-				int index = handleIdentifier
+			if ((token.charAt(0) == AspectElement.JEM_ASPECT_CU)
+					|| (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT)) {
+				int index1 = handleIdentifier
 						.indexOf(JavaElement.JEM_COMPILATIONUNIT);
+				int index2 = handleIdentifier
+					.indexOf(AspectElement.JEM_ASPECT_CU);
+				int index = Math.max(index1,index2);
 				if (index != -1) {
 					IJavaElement je = JavaCore.create(handleIdentifier
 							.substring(0, index));
@@ -220,6 +224,9 @@ class AJMementoTokenizer extends MementoTokenizer {
 			.toString(JavaElement.JEM_LOCALVARIABLE);
 
 	// begin AspectJ change
+	private static final String ASPECT_CU = Character
+			.toString(AspectElement.JEM_ASPECT_CU);
+
 	private static final String TYPE_PARAMETER = Character
 			.toString(AspectElement.JEM_TYPE_PARAMETER);
 
@@ -292,6 +299,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 		case JavaElement.JEM_LOCALVARIABLE:
 			return LOCALVARIABLE;
 		// begin AspectJ change
+		case AspectElement.JEM_ASPECT_CU:
+			return ASPECT_CU;
 		case AspectElement.JEM_TYPE_PARAMETER:
 			return TYPE_PARAMETER;
 		case AspectElement.JEM_ADVICE:
@@ -328,6 +337,7 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case JavaElement.JEM_IMPORTDECLARATION:
 			case JavaElement.JEM_LOCALVARIABLE:
 			// begin AspectJ change
+			case AspectElement.JEM_ASPECT_CU:
 			case AspectElement.JEM_TYPE_PARAMETER:
 			case AspectElement.JEM_ADVICE:
 			case AspectElement.JEM_ASPECT_TYPE:

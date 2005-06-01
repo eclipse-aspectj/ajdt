@@ -32,6 +32,7 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 public class AspectElement extends SourceType implements IAspectJElement {
 	
 	// characters to use for handle identifiers, alongside the ones in JavaCore
+	public static final char JEM_ASPECT_CU = '*';
 	public static final char JEM_ADVICE = '&';
 	public static final char JEM_ASPECT_TYPE = '}';
 	public static final char JEM_CODEELEMENT = '?';

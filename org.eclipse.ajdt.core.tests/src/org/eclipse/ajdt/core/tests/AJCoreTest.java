@@ -49,13 +49,13 @@ public class AJCoreTest extends AJDTCoreTestCase {
 							"Demo.java", "CompilationUnit" },
 					{ "=TJP Example/src<tjp{Demo.java[Demo~main", "main",
 							"Demo.java", "SourceMethod" },
-					{ "=TJP Example/src<tjp{GetInfo.aj", "GetInfo.aj",
+					{ "=TJP Example/src<tjp*GetInfo.aj", "GetInfo.aj",
 							"GetInfo.aj", "AJCompilationUnit" },
-					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo", "GetInfo",
+					{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo", "GetInfo",
 							"GetInfo.aj", "AspectElement" },
-					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo~println",
+					{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo~println",
 							"println", "GetInfo.aj", "SourceMethod" },
-					{ "=TJP Example/src<tjp{GetInfo.aj}GetInfo&around",
+					{ "=TJP Example/src<tjp*GetInfo.aj}GetInfo&around",
 							"around", "GetInfo.aj", "AdviceElement" } };
 			compareWithHandles(testHandles);
 		} finally {
@@ -90,18 +90,18 @@ public class AJCoreTest extends AJDTCoreTestCase {
 					{ methodHandle, "method-call(void bean.Point.setX(int))",
 							"Demo.java", "AJCodeElement" },
 					{
-							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint&around&QPoint;",
+							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint&around&QPoint;",
 							"around", "BoundPoint.aj", "AdviceElement" },
 					{
-							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;",
+							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;",
 							"Point.hasListeners", "BoundPoint.aj",
 							"IntertypeElement" },
 					{
-							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents",
+							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint`declare parents",
 							"declare parents", "BoundPoint.aj",
 							"DeclareElement" },
 					{
-							"=Bean Example/src<bean{BoundPoint.aj}BoundPoint`declare parents!2",
+							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint`declare parents!2",
 							"declare parents", "BoundPoint.aj",
 							"DeclareElement" }
 

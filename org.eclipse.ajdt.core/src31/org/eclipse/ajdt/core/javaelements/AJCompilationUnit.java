@@ -612,6 +612,13 @@ public class AJCompilationUnit extends CompilationUnit{
 			token = memento.nextToken();
 		}
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
+		}
+	
+	/**
+	 * @see JavaElement#getHandleMementoDelimiter()
+	 */
+	protected char getHandleMementoDelimiter() {
+		return AspectElement.JEM_ASPECT_CU;
 	}
 	
 	public String getHandleIdentifier() {
@@ -634,7 +641,13 @@ public class AJCompilationUnit extends CompilationUnit{
 					dummyFile = folder.getFile(newName);
 				}
 				try {
+					// create an empty file
 					dummyFile.create(null, false, null);
+
+					// this avoids exceptions caused by clients responding
+					// to the file creation
+					dummyFile.setTeamPrivateMember(true);
+										
 					// delete the real .aj file
 					res.delete(true, null);
 				} catch (CoreException e) {
