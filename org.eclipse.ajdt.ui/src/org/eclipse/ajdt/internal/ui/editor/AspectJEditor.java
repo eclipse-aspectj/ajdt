@@ -320,6 +320,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * Override to replace some of the java editor actions
 	 * @see org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor#createActions()
 	 */
+	// Fix for bug 88474
 	protected void createActions() {
 		super.createActions();
 		IAction organizeImports= new AJOrganizeImportsAction(this);
