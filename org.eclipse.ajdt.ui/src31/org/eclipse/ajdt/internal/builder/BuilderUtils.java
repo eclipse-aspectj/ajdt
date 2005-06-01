@@ -96,7 +96,7 @@ public class BuilderUtils {
 				return new JobStatus(IStatus.OK, this, AspectJUIPlugin.getResourceString("UpdatedTypesCache")); //$NON-NLS-1$
 			}
 		};
-//		updateJob.setSystem(true);
+		updateJob.setSystem(true);
 		updateJob.schedule();		
 		*/
 	}
@@ -168,7 +168,7 @@ public class BuilderUtils {
 		};
 		if(projects.size() > 0) {
 			IJavaProject jp = (IJavaProject)projects.get(0);
-//			updateJob.setSystem(true);
+			updateJob.setSystem(true);
 			updateJob.schedule();
 		}
 		*/
