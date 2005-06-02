@@ -192,6 +192,20 @@
           </action>
        </objectContribution>
 	-->
+	
+	<!-- Adding our own rename action for .aj files -->
+	  <objectContribution
+           objectClass="org.eclipse.core.resources.IFile"
+           nameFilter="*.aj"
+           adaptable="true"
+           id="ajfileContribution"> 
+         <action
+             label="%renameAJFiles"
+             class="org.eclipse.ajdt.internal.ui.actions.RenameAJFileAction"
+             menubarPath="org.eclipse.jdt.ui.refactoring.menu"
+             id="renameAJFile">
+         </action>
+      </objectContribution>
 
    <!--Our Toggle breakpoint action and JDT's other breakpoint actions-->
      <viewerContribution
@@ -1741,28 +1755,6 @@
          </perspective>
       </shortcut>
    </extension>
-   <extension
-         point="org.eclipse.ltk.core.refactoring.moveParticipants">
-      <moveParticipant
-            class="org.eclipse.ajdt.internal.ui.actions.RefractoringMoveAction"
-            name="org.eclipse.ajdt.moveParticipant"
-            id="org.eclipse.ajdt.moveParticipant">
-         <enablement>
-            <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
-         </enablement>
-      </moveParticipant>
-   </extension>
-   <extension
-         point="org.eclipse.ltk.core.refactoring.renameParticipants">
-      <renameParticipant
-            class="org.eclipse.ajdt.internal.ui.actions.RefractoringRenameAction"
-            name="org.eclipse.ajdt.renameParticipant"
-            id="org.eclipse.ajdt.renameParticipant">
-         <enablement>
-            <instanceof value="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"/>
-         </enablement>
-      </renameParticipant>   
-    </extension>  
     
    <extension
          point="org.eclipse.contribution.xref.core.providers">
@@ -1781,6 +1773,7 @@
             <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
          </factory>
     </extension>
+
 
 <!-- EXPERIMENTAL
 

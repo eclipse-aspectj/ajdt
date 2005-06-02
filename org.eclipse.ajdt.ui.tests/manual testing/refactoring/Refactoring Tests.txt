@@ -62,6 +62,9 @@ Refactoring Tests
  f. Choose to rename BoundPoint.aj to BoundPoint1.aj.
  g. Click "OK"
  h. The file should be renamed correctly (REF_13)
+ i. Right click on Point.java
+ j. There should be no "Rename..." option on the context menu
+    other thaan "Refactor > Rename...". (REF_14)
     
 NOTE: this is not a clever rename - it just renames the file. It doesn't
       rename any references etc. and if the file is excluded from the
