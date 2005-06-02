@@ -152,13 +152,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		// AJDT can't make this decision as it doesn't know enough...
 		// ASC talk to HH about this change - it breaks a test (testUpdateNonSrcFile)
-//		if (kind != FULL_BUILD) {
-//			// need to add check here for whether the classpath has changed
-//			if (!coreOps.sourceFilesChanged(dta, project)){
-//				AJLog.log("build: Examined delta - no source file changes for project " 
-//								+ project.getName() );
-//				
-//				boolean continueToBuild = false;
+		if (dta != null && kind != FULL_BUILD) {
+			// need to add check here for whether the classpath has changed
+			if (!coreOps.sourceFilesChanged(dta, project)){
+				AJLog.log("build: Examined delta - no source file changes for project " 
+								+ project.getName() );
+				
+				boolean continueToBuild = false;
 //				// if the source files of any projects which the current
 //				// project depends on have changed, then need
 //				// also to build the current project
@@ -171,12 +171,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 //						break;
 //					}
 //				}
-//				if (!continueToBuild) {
-//					postCallListeners(true);
-//					return requiredProjects;						
-//				}
-//			}
-//		}
+				if (!continueToBuild) {
+					postCallListeners(true);
+					return requiredProjects;						
+				}
+			}
+		}
 	
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
