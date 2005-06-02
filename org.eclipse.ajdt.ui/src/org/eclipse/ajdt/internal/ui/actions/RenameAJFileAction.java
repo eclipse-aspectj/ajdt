@@ -15,10 +15,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.internal.corext.refactoring.rename.RenameResourceProcessor;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.ActionUtil;
-import org.eclipse.jdt.internal.ui.refactoring.RefactoringMessages;
 import org.eclipse.jdt.internal.ui.refactoring.UserInterfaceStarter;
 import org.eclipse.jdt.internal.ui.refactoring.reorg.RenameUserInterfaceManager;
-import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,8 +50,7 @@ public class RenameAJFileAction implements IActionDelegate {
 					RenameRefactoring refactoring= new RenameRefactoring(processor);
 					UserInterfaceStarter starter= RenameUserInterfaceManager.getDefault().getStarter(refactoring);
 					starter.activate(refactoring, window.getShell(), true);
-				} catch (CoreException e) {
-					ExceptionHandler.handle(e, RefactoringMessages.getString("RenameJavaElementAction.name"), RefactoringMessages.getString("RenameJavaElementAction.exception"));  //$NON-NLS-1$ //$NON-NLS-2$
+				} catch (CoreException e) {					
 				}                       
             }
 
