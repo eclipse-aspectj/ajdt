@@ -206,4 +206,12 @@ Test 7 - bug 95726: "Show In" navigate menu entry and other menu entries
 
 							(XREF_VIEW_29)	
 
-							(XREF_VIEW_28)
+Test for clicking around Package Explorer
+-----------------------------------------
+
+- open the cross references view
+- click around the package explorer
+- the package explorer should be responsive to your clicks
+  i.e. it should not freeze up.
+  
+  							(XREF_VIEW_30)	
