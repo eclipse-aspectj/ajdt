@@ -33,7 +33,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-create-project.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstproject.htm"
 		title="Create an AspectJ Project"
 		skip="true">
 		<action
@@ -58,7 +58,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-newclass.html"
+		href="/org.eclipse.jdt.doc.user/tasks/tasks-15.htm"
 		title="Create the hello package"
 		skip="true">
 		<action
@@ -79,7 +79,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-newclass.html" 
+		href="/org.eclipse.jdt.doc.user/gettingStarted/qs-9.htm" 
 		title="Create the HelloWorld class"
 		skip="true">
 		<action
@@ -103,7 +103,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-newclass.html"
+		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm" 
 		title="Add a sayHello() method to the HelloWorld class which prints out Hello">
 		<description>
 			Now that you have a HelloWorld class, you can create a public void sayHello() 
@@ -120,7 +120,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-newclass.html"
+		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm"
 		title="Add a call to sayHello() in the main method">
 		<description>
 			You now need to call the sayHello() method. In the &quot;public static void main&quot; 
@@ -156,7 +156,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstaspect.htm"
 		title="Create the World Aspect"
 		skip="true">
 		<action
@@ -177,7 +177,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstaspect.htm"
 		title="Define a greeting() pointcut">
 		<description>
 			Now that you have a World aspect, add the following statement to the
@@ -197,7 +197,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/firstaspect.htm"
 		title="Define after() returning advice to print &quot;World!&quot;">
 		<description>
 			The greeting pointcut will match the execution of the sayHello() method, but
@@ -224,7 +224,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.jdt.doc.user/tasks/tasks-106.htm"
 		title="Building the Application"
 		skip="true">
 		<description>
@@ -242,7 +242,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.platform.doc.user/concepts/coutline.htm"
 		title="Open the Outline View">
 		<description>
 			Before running the new application, 
@@ -258,7 +258,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.platform.doc.user/concepts/coutline.htm"
 		title="Viewing the World Aspect in the Outline View">
 		<description>
 			Let us first look at the World Aspect. Select the World Aspect so that it 
@@ -292,7 +292,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.platform.doc.user/concepts/coutline.htm"
 		title="Viewing the advised HelloWorld class in the Outline View">
 		<description>
 			Select the HelloWorld class so that it appears in the editor. You see that the 
@@ -319,7 +319,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
 		title="Open the Cross Reference View">
 		<description>
 			AJDT provides a new view which shows you where your advice is affecting.
@@ -335,7 +335,7 @@
 
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
 		title="Viewing the World Aspect in the Cross Reference View">
 		<description>
 			Let us first look at the World Aspect. Select the World Aspect so that it 
@@ -358,7 +358,7 @@
 
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-addaspect.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/crosscutting.htm"
 		title="Viewing the advised HelloWorld class in the Cross Reference View">
 		<description>
 			Select the HelloWorld class so that it appears in the editor. You see that the 
@@ -375,7 +375,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-vis.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/visualising.htm"
 		title="Open the Aspect Visualization Perspective">
 		<description>
 			There is a whole perspective dedicated to showing you where the aspects you have
@@ -388,7 +388,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-vis.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/visualising.htm"
 		title="The AspectJ Visualiser">
 		<description>
 			In the middle of your workbench is the <b>AspectJ Visualiser</b>. Selecting either your project 
@@ -423,7 +423,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.ajdt.ui/doc/AJDTug/aspectj-launch.html"
+		href="/org.eclipse.ajdt.ui/doc/gettingStarted/launching.htm"
 		title="Test the application">
 		<description>
 			The final moment has arrived.  You are ready to test the AspectJ Hello World application.
@@ -443,6 +443,7 @@
 
 
 	<item
+		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm"
 		title="Saying World, Hello rather than Hello World">
 		<description>
 			In the example so far we have used after returning advice to print &quot;Hello World&quot; to the 
