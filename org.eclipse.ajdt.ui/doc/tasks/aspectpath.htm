@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>
-      Working with aspect libraries
+      Using the aspectpath
     </title>
     <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -10,40 +10,18 @@
   </head>
   <body>
     <h1>
-      Working with aspect libraries
+      Using the aspectpath
     </h1>
-   <p>
-      An aspect library is a jar file containing aspects which 
-      others can use to weave into their code. Working with 
-      aspect libraries comes in two parts:
-     <ul>
-          <li>Creating an aspect library</li>
-          <li>Using an aspect library</li>
-       </ul>      
-   </p> 
-    
-    <p>
-     To create an aspect library you need to set your aspect library
-     project to use the <b>outjar</b> capability. To setup your 
-     AspectJ project to use the outjar:
-       <ol>
-          <li>Select the AspectJ project in the Package Explorer</li>
-          <li>Right click and select <b>Properties</b></li>
-          <li>Select <b>AspectJ</b> in the list on the left
-              of the properties page</li>
-          <li>Enter a name for your aspect library in the text field
-              next to <b>Output jar</b></li>
-          <li>Click <b>OK</b> to close the project properties dialog</li>
-       </ol>
-      A build is triggered and the outjar you specified is created. 
-    </p>
+   <p>The <b>aspectpath</b> enables aspects from a JAR file or an output directory to
+      be weaved into a project and the results output to the normal location.</p>
     
    <p>
-      To use an aspect library, or in other words, to weave advice from 
-      aspects contained in an aspect library or bin directory with the 
-      classes and aspects in your AspectJ project, you need to use 
-      the <b>aspectpath</b> capability.  
-    </p>
+   	  Using the aspectpath means that you can write your aspects in a different project
+   	  and also means that they can be re-used across multiple projects. You may wish to 
+   	  build an aspect library, using the outjar setting or another method.  Alternatively
+   	  you can simply add the output directory of your aspect-containing project to the aspectpath.
+   </p>
+
     <p>
       To setup your AspectJ project to use the aspectpath:
       <ol>
@@ -57,10 +35,7 @@
           <li>Click <b>OK</b> to close the project properties dialog</li>
        </ol>
     </p>
-   <p>
-      <b><i>Note: </i></b> The <b>aspectpath</b> can also be set to 
-      an output folder if you do not wish to create a jar.  
-    </p>
+
     
     <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
 

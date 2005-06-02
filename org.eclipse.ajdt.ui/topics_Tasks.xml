@@ -98,7 +98,7 @@
 	<topic label="Using a multi-project setup" href="doc/tasks/setups.htm">
 		<topic label="Using linked source folders" href="doc/tasks/linkedsrcfolders.htm"></topic>
 		<topic label="Using the inpath" href="doc/tasks/inpath.htm"></topic>
-		<topic label="Working with aspect libraries" href="doc/tasks/aspectpath.htm"></topic>
+		<topic label="Using the aspectpath" href="doc/tasks/aspectpath.htm"></topic>
 	</topic>
 	<anchor id="t_setups" />
 	<anchor id="t_setups" />
