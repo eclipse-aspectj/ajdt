@@ -25,7 +25,6 @@ import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProv
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -143,9 +142,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
             }
         }
 
-	    if (!(part instanceof AbstractTextEditor) 
-	            && !(part instanceof ContentOutline)
-	            && !(part instanceof PackageExplorerPart)) {
+	    if (!(part instanceof AbstractTextEditor) && !(part instanceof ContentOutline)) {
 			// only want to respond to changes in selection
 			// in editors and outline view		    
 			return;
