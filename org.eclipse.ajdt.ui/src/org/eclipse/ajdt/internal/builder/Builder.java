@@ -56,7 +56,7 @@ public class Builder extends IncrementalProjectBuilder {
 		
 		// adding this so we don't get the builder migration 
 		// dialog until after we have run the migration wizard
-		if(!AspectJPreferences.migrationWizardHasRun()) {
+		if(!AspectJPreferences.dontRunMigrationWizard()) {
 		    return null;
 		}
 

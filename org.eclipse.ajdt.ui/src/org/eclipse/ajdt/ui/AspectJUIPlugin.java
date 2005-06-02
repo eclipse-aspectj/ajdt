@@ -687,11 +687,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	    // the migration wizard.
 	    if (previousAJVersion.equals("")) {  //$NON-NLS-1$
 	        store.setValue(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD,true); 
-            AspectJPreferences.setMigrationWizardHasRun(true);
+            AspectJPreferences.setDontRunMigrationWizard(true);
         } else {
 	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
     	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-    	    AspectJPreferences.setMigrationWizardHasRun(
+    	    AspectJPreferences.setDontRunMigrationWizard(
     	    		store.getBoolean(workspaceLocation) || 
 					workspaceIsEmpty(currentWorkspace.getRoot()) ||
 					store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD));

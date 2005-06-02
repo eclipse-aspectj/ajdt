@@ -45,6 +45,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.progress.UIJob;
+
 /**
  * @author Luzius Meisser
  * 
@@ -91,7 +92,7 @@ public class BuildConfigurator implements ISelectionListener {
 		// workspace and if this is not a brand new workspace
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		if (AJDTUtils.FORCE_MIGRATION
-		        || (!AspectJPreferences.migrationWizardHasRun() 
+		        || (!AspectJPreferences.dontRunMigrationWizard() 
 				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
 		        && !AspectJUIPlugin.getDefault().workspaceIsEmpty(AspectJPlugin.getWorkspace().getRoot()))) {			
 		    AJDTUtils.migrateWorkbench();
@@ -242,12 +243,21 @@ public class BuildConfigurator implements ISelectionListener {
 				pbc);
 	}
 	/**
-	 * @param menu
+	 * @param bccl
 	 */
 	public void addBuildConfigurationChangedListener(
 			IBuildConfigurationChangedListener bccl) {
 		changeListeners.add(bccl);
 	}
+	
+	/**
+	 * @param bccl
+	 */
+	public void removeBuildConfigurationChangedListener(IBuildConfigurationChangedListener bccl) {
+		changeListeners.remove(bccl);
+		
+	}	
+	
 	/**
 	 * @param jp
 	 */
@@ -387,6 +397,8 @@ public class BuildConfigurator implements ISelectionListener {
 			}
 		}
 		return counter==0 ? defaultFileName : defaultFileName+counter;
-	}	
+	}
+
+
 	
 }
