@@ -50,4 +50,21 @@ Refactoring Tests
     expected. (REF_10)
  f.	Repeat step d with the “Update all build configurations” checkbox unchecked.
     Ensure that the build configurations do not change. (REF_11)
+  
+5. bug 92482: Rename of .aj file fails in package explorer
+
+ a. Install the Bean Example
+ b. Expand the Bean Example in the package explorer
+ c. Right click on "BoundPoint.aj" to bring up the context menu
+ d. Select "Rename..." which apppears under "Refactor" (not the rename
+    in the "Refactor > Rename..." menu)
+ e. A "Rename Resource" dialog appears (REF_12)
+ f. Choose to rename BoundPoint.aj to BoundPoint1.aj.
+ g. Click "OK"
+ h. The file should be renamed correctly (REF_13)
     
+NOTE: this is not a clever rename - it just renames the file. It doesn't
+      rename any references etc. and if the file is excluded from the
+      active build configuration then the .ajproperties file isn't 
+      updated correctly. Moreover, the type isn't updated.    
+           
