@@ -147,5 +147,15 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
 - the inplace xref view should appear with the current
   selection 
   					(XREF_INPLACE_21)
- 					
+  					
+- click in the package explorer 
+- open the Navigate menu
+- the "Quick Cross References" entry should be disabled 
+  (greyed out)			
+                    (XREF_INPLACE_22)
+                    		
+- select something in the outline view
+- open the "Navigate" menu
+- the "Quick Cross References" entry should be activated  
 
+				     (XREF_INPLACE_23)

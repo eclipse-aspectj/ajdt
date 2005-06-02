@@ -72,21 +72,58 @@
             description="%XRefActionSet.description"
             visible="true"
             id="org.eclipse.contribution.xref.ui.XRefActionSet">
+         <!-- Action to add Open the quick xref view to the 
+              Navigate menu -->   
          <action
                definitionId="org.eclipse.contribution.xref.show.xref"
                label="%QuickXRef.label"
                class="org.eclipse.contribution.xref.internal.ui.inplace.OpenInplaceXReferenceAction"
                menubarPath="navigate/showIn"
                id="openInplaceXRef">
+               <enablement>
+                  <or>
+                    <and>
+               		  <objectClass name="org.eclipse.jdt.core.IJavaElement"/>
+               			<not>
+               			  <or>
+               			    <objectClass name="org.eclipse.jdt.core.ICompilationUnit"/>
+               			    <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
+               			    <objectClass name="org.eclipse.jdt.core.IPackageFragmentRoot"/>
+               			    <objectClass name="org.eclipse.jdt.core.IPackageFragment"/>
+               			  </or>   
+               			</not>
+               		</and>	
+               		<objectClass name="org.eclipse.jface.text.TextSelection"/>
+               	  </or>	
+               </enablement>
          </action>
+         <!-- Action to add Open the cross references view to the 
+              Navigate > Show In menu -->
          <action
-               definitionId="org.eclipse.contribution.xref.show.xref.view"
                label="%XRefView.label"
-               icon="icons/XRefIcon.gif"
                class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
+               icon="icons/XRefIcon.gif"
+               definitionId="org.eclipse.contribution.xref.show.xref.view"
                menubarPath="navigate/showIn/"
                id="openXRefView">
-         </action>       
+               <enablement>
+                  <or>
+                    <and>
+               		  <objectClass name="org.eclipse.jdt.core.IJavaElement"/>
+               			<not>
+               			  <or>
+               			    <objectClass name="org.eclipse.jdt.core.ICompilationUnit"/>
+               			    <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
+               			    <objectClass name="org.eclipse.jdt.core.IPackageFragmentRoot"/>
+               			    <objectClass name="org.eclipse.jdt.core.IPackageFragment"/>
+               			  </or>   
+               			</not>
+               		</and>	
+               		<objectClass name="org.eclipse.jface.text.TextSelection"/>
+               	  </or>	
+               </enablement>
+         </action>   
+             
       </actionSet>
    </extension> 
         
@@ -94,6 +131,7 @@
         and commands for showing the inplace and regular view -->             
    <extension
          point="org.eclipse.ui.commands">
+      <!-- Command and Keybinding for inplace xref view -->   
       <command
             name="%QuickXRef.label"
             description="%ShowXRef.description"
@@ -106,6 +144,8 @@
             command="org.eclipse.contribution.xref.show.xref"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
       </keyBinding>
+      <!-- Command for opening the xref view via the
+           Navigate > Show In menu -->
       <command
             name="%XRefView.label"
             description="%ShowXRef.description"
@@ -114,29 +154,38 @@
       </command>
    </extension>    
 
-   <!-- Adding "Open Cross References" to outline views 
-        context menu -->             
+   <!-- Adding "Open Cross References" to the context menu 
+        of the outline view. The visibility entries are
+        to ensure it doesn't appear in the context menu
+        of the package explorer -->             
    <extension
          point="org.eclipse.ui.popupMenus">
-      <objectContribution
+      <objectContribution     
             objectClass="org.eclipse.jdt.core.IJavaElement"
             id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
+         <visibility>
+             <or>
+               <and>
+           		  <objectClass name="org.eclipse.jdt.core.IJavaElement"/>
+            		<not>
+            		  <or>
+            		    <objectClass name="org.eclipse.jdt.core.ICompilationUnit"/>
+            		    <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
+            		    <objectClass name="org.eclipse.jdt.core.IPackageFragmentRoot"/>
+            		    <objectClass name="org.eclipse.jdt.core.IPackageFragment"/>
+            		  </or>   
+            		</not>
+            	</and>	
+            	<objectClass name="org.eclipse.jface.text.TextSelection"/>
+            </or>	
+         </visibility>
          <action
             label="%OpenXRef.label"
             class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
             enablesFor="1"
             id="org.eclipse.contribution.xref.ui.views.openXRefView">
-         </action>
-      </objectContribution>
-         <objectContribution
-            objectClass="org.eclipse.ui.IEditorPart"
-            id="org.eclipse.contribution.xref.ui.views.OpenXRefActionContribution">
-         <action
-            label="%OpenXRef.label"
-            class="org.eclipse.contribution.xref.ui.views.OpenXReferenceViewAction"
-            enablesFor="1"
-            id="org.eclipse.contribution.xref.ui.views.openXRefView">
-         </action>
-      </objectContribution>
+         </action>        
+      </objectContribution>    
     </extension>  
+    
 </plugin>
