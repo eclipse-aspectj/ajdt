@@ -21,7 +21,7 @@
 
 			<!-- HH: when have other cheat sheets - link them from here........ -->
     		<link label="The AJDT Tutorial" 
-				url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/AJDTug/ajdt-create-project.html" 
+				url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/gettingStarted/basictutorial.htm" 
 				id="ajdt-help-tutorial" 
 				class-id="left">
       
