@@ -207,7 +207,7 @@ class XReferenceViewUpdateJob extends UIJob {
 		 public static XReferenceViewUpdateJob getInstance() {
 	 		 if(theJob == null) {
  		 		 theJob = new XReferenceViewUpdateJob(XReferenceUIPlugin.getResourceString("Jobs.XRefViewUpdate")); //$NON-NLS-1$
- 		 		 theJob.setUser(true);
+ 		 		 theJob.setSystem(true);
  		 		 theJob.setPriority(Job.SHORT);
 	 		 }
 	 		 return theJob;
