@@ -164,7 +164,7 @@ public class AllTests {
 		if (setupDone) {
 			return;
 		}
-		AspectJPreferences.setMigrationWizardHasRun(true);
+		AspectJPreferences.setDontRunMigrationWizard(true);
 
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 
