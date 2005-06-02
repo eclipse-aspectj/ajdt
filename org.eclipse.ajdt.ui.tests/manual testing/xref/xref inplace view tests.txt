@@ -148,7 +148,7 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
   selection 
   					(XREF_INPLACE_21)
   					
-- click in the package explorer 
+- select a project, package or file in the package explorer 
 - open the Navigate menu
 - the "Quick Cross References" entry should be disabled 
   (greyed out)			

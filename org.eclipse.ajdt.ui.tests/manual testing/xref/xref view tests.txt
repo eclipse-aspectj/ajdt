@@ -188,13 +188,13 @@ Test 7 - bug 95726: "Show In" navigate menu entry and other menu entries
 
 							(XREF_VIEW_26)	
 
-- select something in the package explorer
+- select a project, package or file in the package explorer
 - right click and bring up the context menu of the package explorer  	
 - this should NOT contain an entry "Open Cross References"
 
 							(XREF_VIEW_27)	
  							
-- select something in the package explorer
+- select a project, package or file in the package explorer
 - open the "Navigate > Show In" menu
 - the "Cross References" entry should be disabled (greyed out)  
 
