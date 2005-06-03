@@ -104,13 +104,13 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
  description="Create the plugin jar file from the assembled components in the build dir">
 <copy todir="${build.dir}/doc">
 	<fileset dir="doc">
-	     <include name="AJDTug/*"/>
-	     <include name="AJDTug/*/*"/>
-	     <exclude name="AJdevguide"/>
-	     <exclude name="AJprogguide"/>
-	     <exclude name="api"/>
-	     <exclude name="aspectj" />
-		 <include name="whatsnew*/**" />
+		 <include name="concepts/*"/>
+		 <include name="gettingStarted/*"/>
+		 <include name="images/*"/>
+	     <include name="questions/*"/>
+	     <include name="questions/*/*"/>
+		 <include name="tasks/*"/>
+		 <include name="whatsNew/*" />
 		 <include name="book.css" />
 	</fileset>
 </copy>
