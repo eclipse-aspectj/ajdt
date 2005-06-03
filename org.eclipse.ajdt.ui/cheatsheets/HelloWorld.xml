@@ -177,7 +177,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e194"
 		title="Define a greeting() pointcut">
 		<description>
 			Now that you have a World aspect, add the following statement to the
@@ -197,7 +197,7 @@
 </item>
 
 	<item
-		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e304"
 		title="Define after() returning advice to print &quot;World!&quot;">
 		<description>
 			The greeting pointcut will match the execution of the sayHello() method, but
@@ -443,7 +443,7 @@
 
 
 	<item
-		href="/org.eclipse.jdt.doc.user/tasks/tasks-54.htm"
+		href="/org.aspectj.ajde/doc/progguide/starting-aspectj.html#d0e304"
 		title="Saying World, Hello rather than Hello World">
 		<description>
 			In the example so far we have used after returning advice to print &quot;Hello World&quot; to the 
