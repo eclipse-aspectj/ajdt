@@ -46,6 +46,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.javamodel.FileFilter;
 import org.eclipse.ajdt.javamodel.ResourceChangeListener;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -677,9 +678,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		
 		checkAspectJVersion();
 
-		// don't want to check on startup for .aj resource filter
-		// because handled by the migration wizard
-		// FileFilter.checkIfFileFilterEnabledAndAsk();
+		// check on startup for .aj resource filter
+		FileFilter.checkIfFileFilterEnabledAndAsk();
 
 		// Find out whether or not we have migrated this workspace.		
 	    
