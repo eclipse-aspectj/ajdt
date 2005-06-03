@@ -8,7 +8,9 @@ AJDT Visualiser Manual Tests
  b.	Create a new folder and link it to the ‘src’ folder that you moved.  (Right
     click on the project, then click ‘New’ > ‘Folder’.  Enter “src” for the name,
     then click “Advanced >>”. Check “Link to folder in the file system”, then browse
-    to the location that you moved the original source folder to.  
+    to the location that you moved the original source folder to. Then right click
+    the project and bring up the properties. Java Build Path > Source > Add folder
+    and add the newly created folder.  
  c.	Build the project and open the Aspect Visualization perspective.  Select the
     TJP project in the Projects view.  The Visualiser should show two bars, one of
     which has three stripes on.  The Visualiser Menu should have one entry called

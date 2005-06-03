@@ -45,11 +45,37 @@ AJDT Plugin Export Wizard - TBD:
 Export as directory structure, Test an AJ project with different build options, test
 or remove the save as ant build option.
 
+---------------------------------------------------------------------------------
+
+For the following jar export tests, need to create your own plugin project:
+
+1. File > New > Plugin project
+2. fill in Name = helloWorld and click next
+3. click "next"
+4. Select "create a plugin using one of the templates" and highlight
+   the "Hello, World" template
+5. click finish
+6. Convert your project to be an AspectJ Project
+7. Add the following aspect to the helloWorld package:
+
+package helloWorld;
+
+public aspect HelloAspect {
+
+	String around () : call(String getMessage()) {
+		return proceed() + " and hello from AspectJ";
+	}
+	
+}
+
+8. Save and build the project.
+
+
+
 
 3. AJDT JAR Export Wizard – Export generated class files
  
- a.	If you have not already done so, check out the test plug-in project as defined in
-    1a.
+ a.	If you have not already done so, create the test plug-in project as defined above
  b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
     Support’, then click ‘Next’. Check ‘Export generated class files…’ and ensure that
     ‘Export java source files…’ is not checked.  
@@ -61,8 +87,8 @@ or remove the save as ant build option.
 
 4. AJDT JAR Export Wizard – Export output folders
 
- a.	If you have not already done so, check out the test plug-in project as defined in
-    1a.
+ a.	If you have not already done so, create the test plug-in project as defined above 
+    (or use the copy you created for test 3.)
  b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
     Support’, then click ‘Next’.  Check ‘Export all output folders…’ and ensure that
     ‘Export java source files…’ is not checked.  
@@ -72,8 +98,8 @@ or remove the save as ant build option.
 
 5. AJDT JAR Export Wizard – Export source
 
- a.	If you have not already done so, check out the test plug-in project as defined in
-    1a.
+ a.	If you have not already done so, create the test plug-in project as defined above 
+    (or use the copy you created for test 3 and 4)
  b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
     Support’, then click ‘Next’. Check ‘Export java source files…’ and ensure that both
     ‘Export all output folders…’ and ‘Export generated classes…’ are not checked.
@@ -83,8 +109,8 @@ or remove the save as ant build option.
 
 6. AJDT JAR Export Wizard – Export generated class files and source
 
- a.	If you have not already done so, check out the test plug-in project as defined in
-    1a.
+ a.	If you have not already done so, create the test plug-in project as defined above 
+    (or use the copy you created for test 3, 4 and 5)
  b.	Right click on the project then click ‘Export’.  Select ‘JAR file with AspectJ
     Support’, then click ‘Next’. Check ‘Export generated classes…’ and ‘Export java
     source files…’.  
