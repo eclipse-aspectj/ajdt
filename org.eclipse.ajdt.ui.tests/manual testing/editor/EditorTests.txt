@@ -28,6 +28,9 @@ e.	Do the same check in a .java file (when opened in the AspectJ Editor)
 
 3. Linked source folders containing .aj files (bug 77917)
 
+*** Note: This test only applies to Eclipse 3.1 onwards. It should
+be skipped on Eclipse 3.0 - it is known to fail there.
+
 a. Install AJDT and the Spacewar example.
 b. Move the spacewar package to a location outside the workspace and create a 
 linked folder to it in your Spacewar project.
