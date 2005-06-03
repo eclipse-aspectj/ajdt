@@ -111,7 +111,7 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
 	     <include name="questions/*/*"/>
 		 <include name="tasks/*"/>
 		 <include name="whatsNew/*" />
-		 <include name="book.css" />
+		 <include name="*" />
 	</fileset>
 </copy>
  <copy todir="${build.dir}/cheatsheets">
