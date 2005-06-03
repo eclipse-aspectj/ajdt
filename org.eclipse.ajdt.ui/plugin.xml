@@ -195,8 +195,7 @@
 	
 	<!-- Adding our own rename action for .aj files -->
 	  <objectContribution
-           objectClass="org.eclipse.core.resources.IFile"
-           nameFilter="*.aj"
+           objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
            adaptable="true"
            id="ajfileContribution"> 
          <action
@@ -1775,7 +1774,7 @@
     </extension>
 
 
-<!-- EXPERIMENTAL
+<!-- EXPERIMENTAL -->
 
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
@@ -1785,7 +1784,7 @@
     	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
   </extension>
   
- -->
+ <!-- -->
 
 
 <!-- EXPERIMENTAL

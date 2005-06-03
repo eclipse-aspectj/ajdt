@@ -65,6 +65,12 @@ Refactoring Tests
  i. Right click on Point.java
  j. There should be no "Rename..." option on the context menu
     other thaan "Refactor > Rename...". (REF_14)
+ k. Undo the .aj filter (click the drop down menu in the package
+    explorer and click filters. Uncheck .aj resource fitler).
+ l. Click on the BoundPoint.aj node which doesn't have any
+    sub nodes (in the package explorer).
+ m. There should be no "Rename..." option on the context menu
+    other thaan "Refactor > Rename...". (REF_15)         
     
 NOTE: this is not a clever rename - it just renames the file. It doesn't
       rename any references etc. and if the file is excluded from the
