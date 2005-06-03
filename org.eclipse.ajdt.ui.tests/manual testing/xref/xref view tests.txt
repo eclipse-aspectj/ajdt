@@ -24,9 +24,7 @@ Test2 - link with editor button
   isn't
 - open spacewar/debug.aj in the editor
 - click around the file and the entries in the xref view should 
-  mirror your selection (with if you click anywhere outside the enclosing
-  {} of the aspect you should see the xrefs for the entire file (unless
-  you select an import statement or a package statement)
+  mirror your selection 
 							(XREF_VIEW_2)
 - follow one of the links in the XRef view that opens
   a new file - the contents of the XRef view should now contain the 
@@ -44,9 +42,7 @@ Test2 - link with editor button
 - open Game.java in the editor
 - ensure that "link with editor" is selected
 - click around the file and the entries in the xref view should 
-  mirror your selection (with if you click anywhere outside the enclosing
-  {} of the class you should see the xrefs for the entire file (unless
-  you select an import statement or a package statement)
+  mirror your selection 
 							(XREF_VIEW_6)
 - follow one of the links in the XRef view that opens
   a new file - the contents of the XRef view should now contain the 
