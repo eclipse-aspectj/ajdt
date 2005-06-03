@@ -15,7 +15,9 @@ import java.util.List;
 import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
@@ -87,7 +89,21 @@ public class BuilderMigrationPage extends WizardPage {
 	}
 	
 	public void finishPressed(IProgressMonitor monitor) {
+	    // the way we define markers has changed, therefore, first
+	    // delete all the old markers.
+	    clearMarkers(ajProjects);
 		updateBuilder(ajProjects,checkedListDialogField.getCheckedElements(),monitor);
+	}
+	
+	private void clearMarkers(List ajProjects) {
+	    for (Iterator iter = ajProjects.iterator(); iter.hasNext();) {
+            IProject project = (IProject) iter.next();
+            try {
+                project.deleteMarkers(IMarker.PROBLEM, true,
+                        IResource.DEPTH_INFINITE);
+            } catch (CoreException e) {
+            }
+        }
 	}
 
 	private void updateBuilder(List ajProjects, 
