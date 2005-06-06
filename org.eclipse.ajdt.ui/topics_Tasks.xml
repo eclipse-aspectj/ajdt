@@ -18,6 +18,11 @@
 	</topic>
 	<anchor id="t_createaspectjelements" />
 
+	<topic label="Using Ant in AJDT" href="doc/tasks/jarfiles.htm">
+		<topic label="Creating a new Ant build file" href="doc/tasks/newantfile.htm"></topic>
+	</topic>
+	<anchor id="t_createjar" />
+
 	<topic label="Creating JAR Files" href="doc/tasks/jarfiles.htm">
 		<topic label="Creating a new JAR file" href="doc/tasks/newjarfile.htm"></topic>
 	</topic>

@@ -16,37 +16,23 @@
       The format used in .ajproperties files is that of standard properties files.  
       If want to build your Eclipse projects using Ant, you can either convert your 
       .ajproperties files to the old .lst format, or you can process the .ajproperties 
-      files directly in Ant. Below is an example build.xml file which reads the 
+      files directly in Ant. Below is a snippet from an example build.xml file which reads the 
       src.includes and src.excludes properties from a file and passes them to the 
       iajc Ant task.</p>
 
  <p><code><br>
-&lt;project name="ajprops-example" default="compile" &gt;<br><br>
 
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;property name="aspectj" value="c:/aspectj1.2" /&gt; <br><br>
+&nbsp;&nbsp;    &lt;property file="tracelib.ajproperties"/&gt;<br><br>      
 
- &nbsp;&nbsp;&nbsp;&nbsp;   &lt;property name="aspectjrt" value="${aspectj}/lib/aspectjrt.jar" /&gt; <br><br>
 
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;property name="aspectjtools" value="${aspectj}/lib/aspectjtools.jar" /&gt; <br><br> 
-
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;property file="tracelib.ajproperties"/&gt;<br><br>      
-
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;taskdef <br>
-&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;      resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties"&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        &lt;classpath&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           &lt;pathelement location="${aspectjtools}"/&gt;<br>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       &lt;/classpath&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;/taskdef&gt;<br><br>
-
- 
-
-&nbsp;&nbsp;&nbsp;&nbsp;   &lt;target name="compile" &gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        &lt;iajc classpath="${aspectjrt}" srcdir="."<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;               includes="${src.includes}" excludes="${src.excludes}"/&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;    &lt;/target&gt;<br><br>
-
-&lt;/project&gt;<br><br>
-
+&nbsp;&nbsp;   &lt;target name="compile" &gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;        &lt;iajc srcdir="."<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  includes="${src.includes}" excludes="${src.excludes}" <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; fork="true"/&gt;<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;forkclasspath&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement .../&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...<br><br>
+&nbsp;&nbsp;    &lt;/target&gt;<br><br>
 </code>
 </p>
  
@@ -65,6 +51,7 @@ Note that there is a limitation here in that Ant processes the includes and excl
       <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
     </p>
     <p>
+     <a href="newantfile.htm">Creating a new Ant build file</a><br>
      <a href="newbuildconfig.htm">Creating a new build configuration</a><br>
      <a href="editbuildconfig.htm">Editing a build configuration</a><br>
      <a href="switchbuildconfig.htm">Switching build configurations</a><br>
