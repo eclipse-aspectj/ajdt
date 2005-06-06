@@ -10,11 +10,306 @@
   </head>
   <body>
     <h1>
-      What's new in 1.2.0
+      What's new in AJDT 1.2
     </h1>
-    <p>
-      To do.....
-    </p>
+
+<p>Here are some of the more interesting or significant changes made to the 
+AspectJ Developement Tools since the 1.1.12 release:</p>
+
+<table border="1" cellpadding="10" cellspacing="0" width="600">
+  <colgroup>
+    <col width="20%" valign="top" align="left">
+    <col width="80%" valign="top" align="left">
+  </colgroup>
+  <tbody>
+
+  <tr>
+    <td valign="top" align="left"><b>AspectJ editor</b></td>
+    <td>
+
+      The AspectJ editor has been significantly improved and now
+      offers the following features:
+
+      <ul>
+         <li>Folding</li>
+         <li>Code formatting</li>
+         <li>Add import</li>
+         <li>Organize imports</li>
+         <li>Code completion (within advice and method bodies)</li>
+         <li>Early error indication (syntax errors only)</li>
+      </ul>
+
+      <p>The default arrangement is to use the AspectJ editor only for
+      .aj files and to use the standard Java editor for .java
+      files.</p>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Outline view</b></td>
+    <td>
+
+       The standard outline view shows the structure of your aspects
+       and is updated as you type. Filters are available to hide
+       pointcuts, advice, declare statements, and introductions.  The
+       same aspect structure is also shown in the package explorer and
+       in the quick outline view in the AspectJ editor.
+
+       <p><img src="outline.png" width="278" height="178"
+       alt="Screenshot showing the structure of an aspect in the outline view"></p>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Cross References</b></td>
+    <td>
+
+      The new Cross References view shows how a given element is
+      related to other elements. For example, which advice is
+      affecting a given method or the places advised by a given piece
+      of advice. The view responds to selections in the editor and the
+      outline view.
+
+      <p><img src="xref.png" width="340" height="135" alt="Screenshot showing the Cross References view"></p>
+
+      <p>If you select a method the Cross References view shows you
+      the relationships involving that method plus any that involve
+      code elements within the method (such as when the setting of a
+      field is advised). If you select a class or aspect you will see
+      the relationships involving that class/aspect plus any that
+      involve the methods contained in the class/aspect.</p>
+
+      <p>The view supports navigation; you can double-click an element
+      to open the containing resource in the editor with that element
+      selected. There are buttons available to disable the link with
+      the editor and to toggle between showing crosscutting
+      information for the current element or the entire file.</p>
+
+      <p>Like the outline view there is also a quick version of the
+      view that appears in-place over the editor. This is available
+      from the Navigate menu or via the default "Ctrl+Alt+X" key
+      binding.</p>
+
+      <p><img src="quickxref.png" width="288" height="125" alt="The quick form of the Cross References view"></p>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Advice Decorator</b></td>
+    <td>
+
+      An image decorator has been added to indicate which Java
+      elements are being advised. A small orange arrow to the left of
+      the icon is used as shown in the enlargement below. This
+      decorator is used anywhere that the standard Java decorator is
+      used which includes the package explorer, the outline
+      view, the Cross Reference view, and the members view in the Java
+      browsing perspective. A preference page option is available if
+      you wish to disable this function.
+
+      <p><img src="advicedecorator.png" width="347" height="215"
+      alt="An example of the image decorator for advice"></p>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Advises markers</b></td>
+    <td>
+
+      Markers are added to the left-hand edge of the editor to
+      indicate where advice will take effect at runtime (or may take
+      effect, if there is a dynamic test to the pointcut). In addition
+      to these, markers are also added at the source of these
+      relationships, namely the advice itself. Selecting the context
+      menu from one of these markers will show an "Advises" menu,
+      similar to the "Advised By" menu shown at the other end of the
+      relationship. As well as being more consistent, these new
+      markers provide an additional means of navigating the
+      aspect-oriented structure of your code. The markers are present
+      with both the AspectJ and Java editors.
+
+      <p><img src="markers1.png" width="423" height="46" alt="An example advises marker"></p>
+
+      <p><img src="markers2.png" width="423" height="85" alt="The advises context menu"></p>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Incremental compilation</b></td>
+    <td>
+
+      Incremental compilation is now set as the default mode of
+      operation. Both the generated class files and the structure
+      model (used to display the advice markers and to populate the
+      Cross References view and Visualiser etc) should be
+      incrementally updated as required.
+
+      <p>Simple changes to classes should result in a fast incremental
+      build of the project and any dependent projects. A chain of
+      large projects dependent on each other will have high memory
+      requirements. Changes to aspects will trigger a full build.</p>
+
+      <p>Incremental mode can be set either for the whole workspace
+      or per-project via the <b>AspectJ Compiler &gt; Other</b>
+      tab.</p>
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>File Extensions</b></td>
+    <td>
+
+      The best arrangement for your source code is to only put pure
+      Java code in .java files and to use .aj files for aspects (and
+      for classes containing inner aspects or pointcuts). You can
+      select a file or files in the package explorer and right-click
+      to convert their file extension. You can also convert all of the
+      source files in a project in one go using a wizard. This is
+      available by right-clicking on a project and selecting
+      <b>Convert File Extensions...</b>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>AspectPath Directories</b></td>
+    <td>
+
+      You can now specify directories on the aspect-path instead
+      of just jars or zips. Simply right-click on a project and select
+      Properties, then go to the <b>AspectJ Aspect Path</b>
+      section. On the Libraries tab there is now a <b>Add Class
+      Folder...</b> button which you can use to add the output "bin"
+      directory of another project for example. This allows you to
+      apply the aspects from another project without requiring that
+      other project to send its class files to an output jar.
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Launch configuration</b></td>
+    <td>
+
+      You can now do <b>Run As &gt; AspectJ/Java Application.</b>
+      This looks and behaves exactly like the basic Java launch
+      configuration with the following two additions:
+
+      <ul>
+
+        <li>Main methods inside aspects are detected. This means when
+        you press the <b>Search...</b> button in the <b>Main class</b>
+        section of the run configuration dialog, or when you do <b>Run
+        As &gt; AspectJ/Java Application</b> directly, you are
+        presented with a selection dialog containing all main methods
+        in both classes and aspects.</li>
+
+        <li>On the <b>Classpath</b> tab of the run configuration
+        dialog there is an additional classpath entry for <b>Aspect
+        Path</b>. If the aspect-path for a project has been set (via
+        Properties &gt; AspectJ Aspect Path) then the same entries
+        will automatically appear here.</li>
+
+      </ul>
+
+      <p><img src="ajlaunch.png" width="411" height"286" alt="The AspectJ Launch Configuration"></p>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Visible project options</b></td>
+    <td>
+
+      Project-specific AspectJ compiler options and other project
+      settings are now saved in preference files under a ".settings"
+      folder in the project. This enables the settings to be shared
+      between workspaces and other developers by committing the preference
+      files to CVS.
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>Plug-in projects</b></td>
+    <td>
+
+      If you have an AspectJ-enabled plug-in project you can now
+      generate a build.xml file that can build the project correctly
+      using the <code>iajc</code> ant task. This operation is
+      available by right-clicking on your plugin.xml file and
+      selecting <b>PDE tools &gt; Create Ant Build File with AspectJ
+      support.</b>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>The Visualiser</b></td>
+    <td>
+
+      A large number of improvements have been made to the
+      Visualiser:
+
+      <ul>
+        <li>The graphical rendering is faster and better able to cope
+        with less memory / larger projects.</li>
+
+        <li>The appearance of the columns is more in keeping with the
+        rest of Eclipse 3.0</li>
+
+        <li>Alternative drawing styles and color palettes are
+        available and new ones can be implemented using the defined
+        extension points.</li>
+
+        <li>The drawing preferences page has been changed to handle
+        the new options and to provide a preview of the changes.</li>
+
+        <li>A selection mechanism allows columns, bars, and stripes to
+        be selected using the mouse or keyboard.</li>
+
+        <li>The results of any AspectJ declare error and declare
+        warning statements are now shown as stripes in the Visualiser
+        in colors matching the usual Eclipse colors for errors and
+        warnings. There are toggles on the Visualiser menu toolbar to
+        hide these stripes.</li>
+
+        <li>If you change the color of a stripe in the Visualiser
+        then that setting will be preserved such that an aspect of
+        that name, in the same project, will continue to use that
+        color even across workbench sessions. There is a menu option
+        to reset this color memory back to the default of the current
+        palette.</li>
+
+        <li>A new provider has been added to the Visualiser to show
+        the location of Eclipse markers (such as bookmarks,
+        breakpoints, tasks, etc).</li>
+      </ul>
+
+      <p><img src="visualiser.png" width="393" height="255"
+      alt="Screenshot of the new Visualiser"></p>
+
+    </td>
+  </tr>
+
+
+</tbody>
+</table>
+
     <p>
        <a href="../notices.html"><img src="../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>
