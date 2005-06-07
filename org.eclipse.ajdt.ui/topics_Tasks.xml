@@ -18,11 +18,6 @@
 	</topic>
 	<anchor id="t_createaspectjelements" />
 
-	<topic label="Using Ant in AJDT" href="doc/tasks/ant.htm">
-		<topic label="Creating a new Ant build file" href="doc/tasks/newantfile.htm"></topic>
-	</topic>
-	<anchor id="t_usingant" />
-
 	<topic label="Creating JAR Files" href="doc/tasks/jarfiles.htm">
 		<topic label="Creating a new JAR file" href="doc/tasks/newjarfile.htm"></topic>
 	</topic>
@@ -30,6 +25,7 @@
 
 	<topic label="Working with AspectJ plug-in projects" href="doc/tasks/plugins.htm">
 		<topic label="Creating a new AspectJ plug-in project" href="doc/tasks/newplugin.htm"></topic>
+		<topic label="Creating an Ant build file for an AspectJ plug-in" href="doc/tasks/newpluginbuildfile.htm"></topic>		
 		<topic label="Deploying an AspectJ plug-in" href="doc/tasks/deployplugin.htm"></topic>
 	</topic>
 	<anchor id="t_createplugin" />
@@ -60,6 +56,11 @@
 	</topic>
 	<anchor id="t_convertingfileextensions" />
 
+	<topic label="Using Ant in AJDT" href="doc/tasks/ant.htm">
+		<topic label="Creating a new Ant build file" href="doc/tasks/newantfile.htm"></topic>
+	</topic>
+	<anchor id="t_usingant" />
+	
 	<topic label="Working with build configurations" href="doc/tasks/buildconfigs.htm">
 		<topic label="Creating a new build configuration" href="doc/tasks/newbuildconfig.htm"></topic>
 		<topic label="Editing a build configuration" href="doc/tasks/editbuildconfig.htm"></topic>

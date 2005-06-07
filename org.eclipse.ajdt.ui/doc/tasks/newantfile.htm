@@ -35,8 +35,8 @@
 					
 			&nbsp;&nbsp; &lt;target name="init.variables" description="init variables"&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="plugins.dir" location="${basedir}/../../plugins" /&gt; <br>
-			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="aspectjrt.jar" location="${plugins.dir}/org.aspectj.runtime_1.5.0.20050517150219/aspectjrt.jar" /&gt; <br>
-			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="ajde.jar" location="${plugins.dir}/org.aspectj.ajde_1.5.0.20050517150219/ajde.jar" /&gt; <br>				
+			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="aspectjrt.jar" location="${plugins.dir}/org.aspectj.runtime_1.5.0.20050609/aspectjrt.jar" /&gt; <br>
+			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="ajde.jar" location="${plugins.dir}/org.aspectj.ajde_1.5.0.20050609/ajde.jar" /&gt; <br>				
 			&nbsp;&nbsp; &lt;/target&gt;<br><br>				
 					
 			&nbsp;&nbsp; &lt;target name="init.taskdefs" depends="init.variables" unless="taskdefs.init"&gt;<br>				 
@@ -70,7 +70,7 @@
       </li>
       <li>
       <strong>Note: </strong>The path to the 'plugins' directory may be different on your machine and you may need
-		to add other paths to the classpath.  Correct these to reflect the correct values.		
+		to add other paths to the classpath.  Correct these to reflect the correct values.	You may also need to check the version numbers.	
       </li>
     </ol>
     <p>
@@ -82,7 +82,8 @@
 	</p>
 	<p>	  
        <a href="buildconfigsandant.htm">Using build configurations with Ant</a><br>
-    </p>
+       <a href="newpluginbuildfile.htm">Creating an Ant build file for an AspectJ plug-in</a>      
+   </p>
     <p>
        <a href="../notices.html"><img src="../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>
