@@ -16,8 +16,8 @@
       The format used in .ajproperties files is that of standard properties files.  
       If want to build your Eclipse projects using Ant, you can either convert your 
       .ajproperties files to the old .lst format, or you can process the .ajproperties 
-      files directly in Ant. Below is a snippet from an example build.xml file which reads the 
-      src.includes and src.excludes properties from a file and passes them to the 
+      files directly. Below is a snippet from an example build.xml file which reads the 
+      src.includes and src.excludes properties from a .ajproperties file and passes them to the 
       iajc Ant task.</p>
 
  <p><code><br>
@@ -36,9 +36,15 @@
 </code>
 </p>
  
-<p>
-Note that there is a limitation here in that Ant processes the includes and excludes in a slightly different way to Eclipse. For example, if you include “lib/AbstractTracing.java” but exclude “lib/” then as a build configuration in Eclipse, the source file will be an included entry in an otherwise excluded package, but Ant processes the includes first, then removes the matching excludes, so everything under “lib/” will be excluded (thus overriding the include entry). This issue should be addressed in a future version of the iajc Ant task.
-</p>
+	<p>
+		Note that there is a limitation here in that Ant processes the includes 
+		and excludes in a slightly different way to Eclipse. For example if you 
+		include “lib/AbstractTracing.java” but exclude “lib/” then as a build 
+		configuration in Eclipse, the source file will be an included entry in an 
+		otherwise excluded package. Ant processes the includes first, then removes 
+		the matching excludes, so everything under “lib/” will be excluded 
+		(thus overriding the include entry). 
+	</p>
       
     </p>
     <p>
