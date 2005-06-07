@@ -149,13 +149,14 @@ AspectJ Developement Tools since the 1.1.12 release:</p>
       Incremental compilation is now set as the default mode of
       operation. Both the generated class files and the structure
       model (used to display the advice markers and to populate the
-      Cross References view and Visualiser etc) should be
+      Cross References view and Visualiser etc) will be
       incrementally updated as required.
 
-      <p>Simple changes to classes should result in a fast incremental
-      build of the project and any dependent projects. A chain of
+      <p>Simple changes to classes will result in a fast incremental
+      build of the project and any dependent projects, whereas
+      changes to aspects will trigger a full build. A chain of
       large projects dependent on each other will have high memory
-      requirements. Changes to aspects will trigger a full build.</p>
+      requirements.</p>
 
       <p>Incremental mode can be set either for the whole workspace
       or per-project via the <b>AspectJ Compiler &gt; Other</b>
@@ -253,6 +254,21 @@ AspectJ Developement Tools since the 1.1.12 release:</p>
       available by right-clicking on your plugin.xml file and
       selecting <b>PDE tools &gt; Create Ant Build File with AspectJ
       support.</b>
+
+    </td>
+  </tr>
+
+
+  <tr>
+    <td valign="top" align="left"><b>New docs</b></td>
+    <td>
+
+       The documentation provided in the Eclipse help system has
+       been overhauled. The "AspectJ Development User
+       Guide" has been rewritten to reflect the changes in AJDT 1.2
+       and to be more consistent with other Eclipse documentation.
+       The documentation from the AspectJ project is available
+       as the "AspectJ Language Guide".
 
     </td>
   </tr>
