@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.FileSet;
 import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
 import org.eclipse.pde.internal.build.site.BuildTimeFeature;
+import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
 import org.eclipse.update.core.Feature;
 import org.eclipse.update.core.IFeature;
 import org.eclipse.update.core.IIncludedFeatureReference;
@@ -103,6 +105,8 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	//Cache the result of compteElements for performance
 	private List computedElements = null;
 	
+	private static final String TEMPLATE = "data"; //$NON-NLS-1$
+	
 	public AJFeatureBuildScriptGenerator() {
 		super();
 	}
@@ -111,7 +115,6 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	 * Constructor FeatureBuildScriptGenerator.
 	 */
 	public AJFeatureBuildScriptGenerator(String featureId, String versionId, AssemblyInformation informationGathering) throws CoreException {
-		super(featureId, versionId, informationGathering);
 		if (featureId == null) {
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_FEATURE_MISSING, Messages.error_missingFeatureId, null));
 		}
@@ -174,6 +177,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	}
 
 	private void generateEmbeddedSource(String pluginId) throws CoreException {
+//		 AspectJ Change
 		AJFeatureBuildScriptGenerator featureGenerator = new AJFeatureBuildScriptGenerator(Utils.getArrayFromString(getBuildProperties().getProperty(GENERATION_SOURCE_PLUGIN_PREFIX + pluginId))[0], null, assemblyData);
 		featureGenerator.setGenerateIncludedFeatures(false);
 		featureGenerator.setAnalyseChildren(analysePlugins);
@@ -251,6 +255,8 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 			}
 			return;
 		}
+		if (analyseIncludedFeatures)
+			generateIncludedFeatureBuildFile();
 		if (sourceFeatureGeneration)
 			generateSourceFeature();
 		if (analysePlugins)
@@ -263,8 +269,6 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 			collectElementToAssemble(feature);
 
 		// Do the recursive generation of build files for the features required by the current feature
-		if (analyseIncludedFeatures)
-			generateIncludedFeatureBuildFile();
 		if (sourceFeatureGeneration)
 			generateSourceFeatureScripts();
 		if (scriptGeneration) {
@@ -284,6 +288,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 			//If the feature which is included is a source feature, then instead of calling the generation of the featureID we are
 			// calling the generation of the corresponding binary feature but without generating the  scripts (set binaryFeatureGeneration to false)
 			boolean doSourceFeatureGeneration = getBuildProperties().containsKey(GENERATION_SOURCE_FEATURE_PREFIX + featureId);
+//			 AspectJ Change
 			AJFeatureBuildScriptGenerator generator = new AJFeatureBuildScriptGenerator(doSourceFeatureGeneration == true ? Utils.getArrayFromString(getBuildProperties().getProperty(GENERATION_SOURCE_FEATURE_PREFIX + featureId))[0] : featureId, null, assemblyData);
 			//If we are  generating a  source  feature we don't  want to go recursively
 			generator.setGenerateIncludedFeatures(doSourceFeatureGeneration ? false : true);
@@ -345,7 +350,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	private void generateGatherSourcesTarget() {
 		script.printTargetDeclaration(TARGET_GATHER_SOURCES, null, null, null, null);
 		Map params = new HashMap(2);
-		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, getPropertyFormat(PROPERTY_FEATURE_TEMP_FOLDER) + '/' + DEFAULT_PLUGIN_LOCATION + '/' + sourceFeatureFullNameVersionned + '/' + "src"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_FEATURE_TEMP_FOLDER) + '/' + DEFAULT_PLUGIN_LOCATION + '/' + sourceFeatureFullNameVersionned + '/' + "src"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		params.put(PROPERTY_TARGET, TARGET_GATHER_SOURCES);
 		script.printAntCallTask(TARGET_CHILDREN, null, params);
 		script.printTargetEnd();
@@ -406,7 +411,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	private void generateZipIndividualTarget(String zipName, String source) {
 		script.println();
 		script.printTargetDeclaration(zipName, TARGET_INIT, null, null, null);
-		script.printZipTask(getPropertyFormat(PROPERTY_BASEDIR) + '/' + zipName, getPropertyFormat(PROPERTY_BASEDIR) + '/' + source, false, false, null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printZipTask(Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/' + zipName, Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/' + source, false, false, null); //$NON-NLS-1$ //$NON-NLS-2$
 		script.printTargetEnd();
 	}
 
@@ -416,10 +421,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	private void generateCleanTarget() {
 		script.println();
 		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, NLS.bind(Messages.build_feature_clean, featureIdentifier));
-		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar", null); //$NON-NLS-1$ //$NON-NLS-2$
-		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".bin.dist.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
-		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".log.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
-		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".src.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printDeleteTask(null, Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar", null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printDeleteTask(null, Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".bin.dist.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printDeleteTask(null, Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".log.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printDeleteTask(null, Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".src.zip", null); //$NON-NLS-1$ //$NON-NLS-2$
 		script.printDeleteTask(featureTempFolder, null, null);
 		Map params = new HashMap(2);
 		params.put(PROPERTY_TARGET, TARGET_CLEAN);
@@ -440,7 +445,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		params.put(PROPERTY_TARGET, TARGET_GATHER_LOGS);
 		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, new Path(featureTempFolder).append(DEFAULT_PLUGIN_LOCATION).toString()); //$NON-NLS-1$
 		script.printAntCallTask(TARGET_ALL_CHILDREN, "false", params); //$NON-NLS-1$
-		IPath destination = new Path(getPropertyFormat(PROPERTY_FEATURE_DESTINATION)).append(featureFullName + ".log.zip"); //$NON-NLS-1$
+		IPath destination = new Path(Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION)).append(featureFullName + ".log.zip"); //$NON-NLS-1$
 		script.printZipTask(destination.toString(), featureTempFolder, true, false, null);
 		script.printDeleteTask(featureTempFolder, null, null);
 		script.printTargetEnd();
@@ -459,7 +464,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		params.put(PROPERTY_TARGET, TARGET_GATHER_SOURCES);
 		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, featureTempFolder + '/' + DEFAULT_PLUGIN_LOCATION + '/' + sourceFeatureFullNameVersionned + '/' + "src"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 		script.printAntCallTask(TARGET_ALL_CHILDREN, null, params);
-		script.printZipTask(getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".src.zip", featureTempFolder, true, false, null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printZipTask(Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".src.zip", featureTempFolder, true, false, null); //$NON-NLS-1$ //$NON-NLS-2$
 		script.printDeleteTask(featureTempFolder, null, null);
 		script.printTargetEnd();
 	}
@@ -474,17 +479,17 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		script.printTargetDeclaration(TARGET_GATHER_BIN_PARTS, TARGET_INIT, PROPERTY_FEATURE_BASE, null, null);
 		Map params = new HashMap(1);
 		params.put(PROPERTY_TARGET, TARGET_GATHER_BIN_PARTS);
-		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, new Path(getPropertyFormat(PROPERTY_FEATURE_BASE)).append(DEFAULT_PLUGIN_LOCATION).toString()); //$NON-NLS-1$
+		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, new Path(Utils.getPropertyFormat(PROPERTY_FEATURE_BASE)).append(DEFAULT_PLUGIN_LOCATION).toString()); //$NON-NLS-1$
 		script.printAntCallTask(TARGET_CHILDREN, null, params);
 		String include = (String) getBuildProperties().get(PROPERTY_BIN_INCLUDES);
 		String exclude = (String) getBuildProperties().get(PROPERTY_BIN_EXCLUDES);
-		String root = getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + featureFolderName; //$NON-NLS-1$
+		String root = Utils.getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + featureFolderName; //$NON-NLS-1$
 
 		if (include != null) {
 			script.printMkdirTask(root);
 			if (include != null || exclude != null) {
-				FileSet fileSet = new FileSet(getPropertyFormat(PROPERTY_BASEDIR), null, include, null, exclude, null, null);
-				script.printCopyTask(null, root, new FileSet[] {fileSet}, true);
+				FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_BASEDIR), null, include, null, exclude, null, null);
+				script.printCopyTask(null, root, new FileSet[] {fileSet}, true, false);
 			}
 			// Generate the parameters for the Id Replacer.
 			String featureVersionInfo = ""; //$NON-NLS-1$
@@ -520,7 +525,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	 *  
 	 */
 	private void generateRootFilesAndPermissionsCalls() {
-		script.printAntCallTask(TARGET_ROOTFILES_PREFIX + getPropertyFormat(PROPERTY_OS) + '_' + getPropertyFormat(PROPERTY_WS) + '_' + getPropertyFormat(PROPERTY_ARCH), null, null);
+		script.printAntCallTask(TARGET_ROOTFILES_PREFIX + Utils.getPropertyFormat(PROPERTY_OS) + '_' + Utils.getPropertyFormat(PROPERTY_WS) + '_' + Utils.getPropertyFormat(PROPERTY_ARCH), null, null);
 	}
 
 	/**
@@ -531,7 +536,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 			Config aConfig = (Config) iter.next();
 			script.printTargetDeclaration(TARGET_ROOTFILES_PREFIX + aConfig.toString("_"), null, null, null, null); //$NON-NLS-1$ //$NON-NLS-2$
 			generateCopyRootFiles(aConfig);
-			generatePermissions(aConfig);
+			Utils.generatePermissions(getBuildProperties(), aConfig, PROPERTY_FEATURE_BASE, script);
 			script.printTargetEnd();
 		}
 	}
@@ -546,11 +551,11 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 
 		assemblyData.addRootFileProvider(aConfig, feature);
 		configName = aConfig.toStringReplacingAny(".", ANY_STRING); //$NON-NLS-1$
-		script.printMkdirTask(getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configName + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER)); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printMkdirTask(Utils.getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configName + '/' + Utils.getPropertyFormat(PROPERTY_COLLECTING_FOLDER)); //$NON-NLS-1$ //$NON-NLS-2$
 		String[] files = Utils.getArrayFromString(fileList, ","); //$NON-NLS-1$
 		FileSet[] fileSet = new FileSet[files.length];
 		for (int i = 0; i < files.length; i++) {
-			String fromDir = getPropertyFormat(PROPERTY_BASEDIR) + '/'; //$NON-NLS-1$
+			String fromDir = Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/'; //$NON-NLS-1$
 			String file = files[i];
 			if (file.startsWith("absolute:")) { //$NON-NLS-1$
 				file = file.substring(9);
@@ -563,57 +568,11 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 				fileSet[i] = new FileSet(fromDir + file, null, "**", null, null, null, null); //$NON-NLS-1$
 			}
 		}
-		script.printCopyTask(null, getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configName + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER), fileSet, true);
+		String shouldOverwrite =  getBuildProperties().getProperty(PROPERTY_OVERWRITE_ROOTFILES, "true"); //$NON-NLS-1$
+		script.printCopyTask(null, Utils.getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configName + '/' + Utils.getPropertyFormat(PROPERTY_COLLECTING_FOLDER), fileSet, true, Boolean.valueOf(shouldOverwrite).booleanValue());
 	}
 
-	private void generatePermissions(Config aConfig) throws CoreException {
-		String configInfix = aConfig.toString("."); //$NON-NLS-1$
-		Properties featureProperties = getBuildProperties();
-		String prefixPermissions = ROOT_PREFIX + configInfix + '.' + PERMISSIONS + '.';
-		String prefixLinks = ROOT_PREFIX + configInfix + '.' + LINK;
-		String commonPermissions = ROOT_PREFIX + PERMISSIONS + '.';
-		String commonLinks = ROOT_PREFIX + LINK;
-		for (Iterator iter = featureProperties.entrySet().iterator(); iter.hasNext();) {
-			Map.Entry permission = (Map.Entry) iter.next();
-			String instruction = (String) permission.getKey();
-			String parameters = (String) permission.getValue();
-			if (instruction.startsWith(prefixPermissions)) {
-				generateChmodInstruction(getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configInfix + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER), instruction.substring(prefixPermissions.length()), parameters); //$NON-NLS-1$ //$NON-NLS-2$
-				continue;
-			}
-			if (instruction.startsWith(prefixLinks)) {
-				generateLinkInstruction(getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configInfix + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER), parameters);
-				continue;
-			}
-			if (instruction.startsWith(commonPermissions)) {
-				generateChmodInstruction(getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configInfix + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER), instruction.substring(commonPermissions.length()), parameters);
-				continue;
-			}
-			if (instruction.startsWith(commonLinks)) {
-				generateLinkInstruction(getPropertyFormat(PROPERTY_FEATURE_BASE) + '/' + configInfix + '/' + getPropertyFormat(PROPERTY_COLLECTING_FOLDER), parameters);
-				continue;
-			}
-		}
-	}
 
-	private void generateChmodInstruction(String dir, String rights, String files) {
-		if (rights.equals(EXECUTABLE)) {
-			rights = "755"; //$NON-NLS-1$
-		}
-		script.printChmod(dir, rights, files);
-	}
-
-	private void generateLinkInstruction(String dir, String files) {
-		String[] links = Utils.getArrayFromString(files, ","); //$NON-NLS-1$
-		List arguments = new ArrayList(2);
-		for (int i = 0; i < links.length; i += 2) {
-			arguments.add("-s"); //$NON-NLS-1$
-			arguments.add(links[i]);
-			arguments.add(links[i + 1]);
-			script.printExecTask("ln", dir, arguments, "Linux"); //$NON-NLS-1$ //$NON-NLS-2$
-			arguments.clear();
-		}
-	}
 
 	/**
 	 * Add the <code>build.update.jar</code> target to the given script.
@@ -638,13 +597,13 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		// to clear all inherited values. Must remember to setup anything that
 		// is really expected.
 		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, "false", params); //$NON-NLS-1$
-		String jar = getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar"; //$NON-NLS-1$
+		String jar = Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar"; //$NON-NLS-1$
 		script.printJarTask(jar, featureTempFolder + '/' + featureFolderName, null); //$NON-NLS-1$ //$NON-NLS-2$ 
 		script.printDeleteTask(featureTempFolder, null, null);
 		if (generateJnlp)
-			script.println("<eclipse.jnlpGenerator feature=\"" + jar + "\"  codebase=\"" + getPropertyFormat("jnlp.codebase") + "\" j2se=\"" + getPropertyFormat("jnlp.j2se") + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
+			script.println("<eclipse.jnlpGenerator feature=\"" + jar + "\"  codebase=\"" + Utils.getPropertyFormat("jnlp.codebase") + "\" j2se=\"" + Utils.getPropertyFormat("jnlp.j2se") + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
 		if (signJars)
-			script.println("<signjar jar=\"" + jar + "\" alias=\"" + getPropertyFormat("sign.alias") + "\" keystore=\"" + getPropertyFormat("sign.keystore") + "\" storepass=\"" + getPropertyFormat("sign.storepass") + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ 
+			script.println("<signjar jar=\"" + jar + "\" alias=\"" + Utils.getPropertyFormat("sign.alias") + "\" keystore=\"" + Utils.getPropertyFormat("sign.keystore") + "\" storepass=\"" + Utils.getPropertyFormat("sign.storepass") + "\"/>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ 
 		script.printTargetEnd();
 	}
 
@@ -665,7 +624,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		params.put(PROPERTY_ARCH, feature.getOSArch() == null ? Config.ANY : feature.getOSArch());
 		params.put(PROPERTY_NL, feature.getNL() == null ? Config.ANY : feature.getNL());
 		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, null, params);
-		script.printZipTask(getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".bin.dist.zip", featureTempFolder, false, false, null); //$NON-NLS-1$ //$NON-NLS-2$
+		script.printZipTask(Utils.getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".bin.dist.zip", featureTempFolder, false, false, null); //$NON-NLS-1$ //$NON-NLS-2$
 		script.printDeleteTask(featureTempFolder, null, null);
 		script.printTargetEnd();
 	}
@@ -725,7 +684,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 				if (!aMatchingConfig.getArch().equals(Config.ANY))
 					params.put(PROPERTY_ARCH, aMatchingConfig.getArch());
 				IPath location = Utils.makeRelative(new Path(getLocation(current)), new Path(featureRootLocation));
-				script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toString(), getPropertyFormat(PROPERTY_TARGET), null, null, params);
+				script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toString(), Utils.getPropertyFormat(PROPERTY_TARGET), null, null, params);
 			}
 		}
 		script.printTargetEnd();
@@ -754,7 +713,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 					includedFeatureDirectory = includedFeatureDirectory.substring(0, j);
 				IPath location;
 				location = Utils.makeRelative(new Path(includedFeatureDirectory), new Path(featureRootLocation));
-				script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toString(), getPropertyFormat(PROPERTY_TARGET), null, null, null);
+				script.printAntTask(DEFAULT_BUILD_SCRIPT_FILENAME, location.toString(), Utils.getPropertyFormat(PROPERTY_TARGET), null, null, null);
 			}
 		}
 		script.printTargetEnd();
@@ -775,8 +734,8 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		script.printProjectDeclaration(feature.getVersionedIdentifier().getIdentifier(), TARGET_BUILD_UPDATE_JAR, "."); //$NON-NLS-1$
 		script.println();
 		script.printTargetDeclaration(TARGET_INIT, null, null, null, null);
-		script.printProperty(PROPERTY_FEATURE_TEMP_FOLDER, getPropertyFormat(PROPERTY_BASEDIR) + '/' + PROPERTY_FEATURE_TEMP_FOLDER); //$NON-NLS-1$ 
-		script.printProperty(PROPERTY_FEATURE_DESTINATION, getPropertyFormat(PROPERTY_BASEDIR));
+		script.printProperty(PROPERTY_FEATURE_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_BASEDIR) + '/' + PROPERTY_FEATURE_TEMP_FOLDER); //$NON-NLS-1$ 
+		script.printProperty(PROPERTY_FEATURE_DESTINATION, Utils.getPropertyFormat(PROPERTY_BASEDIR));
 		script.printTargetEnd();
 	}
 
@@ -811,9 +770,8 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 				List list = selectConfigs(correspondingEntry);
 				if (list.size() == 0)
 					continue;
-				// Aspect J Change Begin
+				// AspectJ Change 
 				AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
-				// AspectJ Change End
 				generator.setBuildSiteFactory(siteFactory);
 				generator.setCompiledElements(getCompiledElements());
 				generator.setIgnoreMissingPropertiesFile(isIgnoreMissingPropertiesFile());
@@ -860,7 +818,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		featureFolderName = DEFAULT_FEATURE_LOCATION + '/' + featureFullName; //$NON-NLS-1$
 		sourceFeatureFullName = computeSourceFeatureName(feature, false);
 		sourceFeatureFullNameVersionned = computeSourceFeatureName(feature, true);
-		featureTempFolder = getPropertyFormat(PROPERTY_FEATURE_TEMP_FOLDER);
+		featureTempFolder = Utils.getPropertyFormat(PROPERTY_FEATURE_TEMP_FOLDER);
 
 		if (feature instanceof BuildTimeFeature) {
 			if (getBuildProperties() == MissingProperties.getInstance()) {
@@ -930,7 +888,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		script.println();
 		script.printTargetDeclaration(TARGET_REFRESH, TARGET_INIT, PROPERTY_ECLIPSE_RUNNING, null, NLS.bind(Messages.build_feature_refresh, featureIdentifier));
 		script.printConvertPathTask(new Path(featureRootLocation).removeLastSegments(0).toOSString().replace('\\', '/'), PROPERTY_RESOURCE_PATH, false);
-		script.printRefreshLocalTask(getPropertyFormat(PROPERTY_RESOURCE_PATH), "infinite"); //$NON-NLS-1$
+		script.printRefreshLocalTask(Utils.getPropertyFormat(PROPERTY_RESOURCE_PATH), "infinite"); //$NON-NLS-1$
 		Map params = new HashMap(2);
 		params.put(PROPERTY_TARGET, TARGET_REFRESH);
 		script.printAntCallTask(TARGET_ALL_CHILDREN, null, params);
@@ -960,7 +918,11 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		Feature featureExample = (Feature) feature;
 		sourceFeature = createSourceFeature(featureExample);
 		associateExtraPlugins();
-		sourcePlugin = createSourcePlugin();
+		if (isBuildingOSGi())
+			sourcePlugin = create30SourcePlugin();
+		else
+			sourcePlugin = createSourcePlugin();
+
 		generateSourceFragment();
 	}
 
@@ -980,7 +942,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 			sourceFragment.setArch(configInfo.getArch());
 			sourceFragment.isFragment(true);
 			//sourceFeature.addPluginEntryModel(sourceFragment);
-			createSourceFragment(sourceFragment, sourcePlugin);
+			if (isBuildingOSGi())
+				create30SourceFragment(sourceFragment, sourcePlugin);
+			else
+				createSourceFragment(sourceFragment, sourcePlugin);
 		}
 	}
 
@@ -1009,7 +974,8 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 	}
 
 	private void generateSourceFeatureScripts() throws CoreException {
-		FeatureBuildScriptGenerator sourceScriptGenerator = new FeatureBuildScriptGenerator(sourceFeatureFullName, null, assemblyData);
+//		 AspectJ Change
+		FeatureBuildScriptGenerator sourceScriptGenerator = new AJFeatureBuildScriptGenerator(sourceFeatureFullName, null, assemblyData);
 		sourceScriptGenerator.setGenerateIncludedFeatures(false);
 		sourceScriptGenerator.setAnalyseChildren(true);
 		sourceScriptGenerator.setSourceToGather(sourceToGather);
@@ -1047,6 +1013,84 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		}
 	}
 
+	private PluginEntry create30SourcePlugin() throws CoreException {
+		//Create an object representing the plugin
+		PluginEntry result = new PluginEntry();
+		String sourcePluginId = sourceFeature.getFeatureIdentifier();
+		result.setPluginIdentifier(sourcePluginId);
+		result.setPluginVersion(sourceFeature.getFeatureVersion());
+		sourceFeature.addPluginEntryModel(result);
+		// create the directory for the plugin
+		IPath sourcePluginDirURL = new Path(workingDirectory + '/' + DEFAULT_PLUGIN_LOCATION + '/' + getSourcePluginName(result, false) ); //$NON-NLS-1$
+		File sourcePluginDir = sourcePluginDirURL.toFile();
+		new File(sourcePluginDir, "META-INF").mkdirs();
+
+		// Create the MANIFEST.MF
+		StringBuffer buffer;
+		Path templateManifest = new Path(TEMPLATE + "/30/plugin/" + DEFAULT_BUNDLE_FILENAME_DESCRIPTOR); //$NON-NLS-1$
+		URL templateManifestURL = BundleHelper.getDefault().find(templateManifest);
+		if (templateManifestURL == null) {
+			IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind(Messages.error_readingDirectory, templateManifest), null);
+			BundleHelper.getDefault().getLog().log(status);
+			return null;
+		}
+		try {
+			buffer = readFile(templateManifestURL.openStream()); //$NON-NLS-1$
+		} catch (IOException e1) {
+			String message = NLS.bind(Messages.exception_readingFile, templateManifestURL.toExternalForm());
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_READING_FILE, message, e1));
+		}
+		int beginId = scan(buffer, 0, REPLACED_PLUGIN_ID);
+		buffer.replace(beginId, beginId + REPLACED_PLUGIN_ID.length(), result.getPluginIdentifier());
+		//set the version number
+		beginId = scan(buffer, beginId, REPLACED_PLUGIN_VERSION);
+		buffer.replace(beginId, beginId + REPLACED_PLUGIN_VERSION.length(), result.getPluginVersion());
+		try {
+			Utils.transferStreams(new ByteArrayInputStream(buffer.toString().getBytes()), new FileOutputStream(sourcePluginDirURL.append(DEFAULT_BUNDLE_FILENAME_DESCRIPTOR).toOSString()));
+		} catch (IOException e1) {
+			String message = NLS.bind(Messages.exception_writingFile, templateManifestURL.toExternalForm());
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_READING_FILE, message, e1));
+		}
+		
+		//Copy the plugin.xml
+		try {
+			InputStream pluginXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/plugin/plugin.xml").openStream();
+			Utils.transferStreams(pluginXML, new FileOutputStream(sourcePluginDirURL.append(DEFAULT_PLUGIN_FILENAME_DESCRIPTOR).toOSString()));
+		} catch (IOException e1) {
+			String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/plugin/plugin.xml");
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e1));
+		}
+
+		//Copy the other files
+		Collection copiedFiles = Utils.copyFiles(featureRootLocation + '/' + "sourceTemplatePlugin", sourcePluginDir.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
+		//	If a build.properties file already exist then we use it supposing it is correct.
+		File buildProperty = sourcePluginDirURL.append(PROPERTIES_FILE).toFile();
+		if (!buildProperty.exists()) {
+			copiedFiles.add(DEFAULT_PLUGIN_FILENAME_DESCRIPTOR); //Because the plugin.xml is not copied, we need to add it to the file
+			copiedFiles.add("src/**/*.zip"); //$NON-NLS-1$
+			copiedFiles.add(DEFAULT_BUNDLE_FILENAME_DESCRIPTOR);//Because the manifest.mf is not copied, we need to add it to the file
+			Properties sourceBuildProperties = new Properties();
+			sourceBuildProperties.put(PROPERTY_BIN_INCLUDES, Utils.getStringFromCollection(copiedFiles, ",")); //$NON-NLS-1$
+			sourceBuildProperties.put(SOURCE_PLUGIN_ATTRIBUTE, "true"); //$NON-NLS-1$
+			try {
+				OutputStream buildFile = new BufferedOutputStream(new FileOutputStream(buildProperty));
+				try {
+					sourceBuildProperties.store(buildFile, null); //$NON-NLS-1$
+				} finally {
+					buildFile.close();
+				}
+			} catch (FileNotFoundException e) {
+				String message = NLS.bind(Messages.exception_writingFile, buildProperty.getAbsolutePath());
+				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+			} catch (IOException e) {
+				String message = NLS.bind(Messages.exception_writingFile, buildProperty.getAbsolutePath());
+				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+			}
+		}
+		getSite(false).getRegistry().addBundle(sourcePluginDir);
+		return result;
+	}
+	
 	/**
 	 * Method createSourcePlugin.
 	 */
@@ -1064,10 +1108,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 
 		// Create the plugin.xml
 		StringBuffer buffer;
-		Path templatePluginXML = new Path("templates/plugin/" + DEFAULT_PLUGIN_FILENAME_DESCRIPTOR); //$NON-NLS-1$
+		Path templatePluginXML = new Path(TEMPLATE + "/21/plugin/" + DEFAULT_PLUGIN_FILENAME_DESCRIPTOR); //$NON-NLS-1$
 		URL templatePluginURL = BundleHelper.getDefault().find(templatePluginXML);
 		if (templatePluginURL == null) {
-			IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind(Messages.error_readingDirectory, templatePluginURL.toExternalForm()), null);
+			IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind(Messages.error_readingDirectory, templatePluginXML), null);
 			BundleHelper.getDefault().getLog().log(status);
 			return null;
 		}
@@ -1116,6 +1160,75 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		return result;
 	}
 
+	private void create30SourceFragment(PluginEntry fragment, PluginEntry plugin) throws CoreException {
+		// create the directory for the plugin
+		Path sourceFragmentDirURL = new Path(workingDirectory + '/' + DEFAULT_PLUGIN_LOCATION + '/' + getSourcePluginName(fragment, false)); //$NON-NLS-1$ //$NON-NLS-2$
+		File sourceFragmentDir = new File(sourceFragmentDirURL.toOSString());
+		new File(sourceFragmentDir, "META-INF").mkdirs();
+		try {
+			// read the content of the template file
+			Path fragmentPath = new Path(TEMPLATE + "/30/fragment/" + DEFAULT_BUNDLE_FILENAME_DESCRIPTOR);//$NON-NLS-1$
+			URL templateLocation = BundleHelper.getDefault().find(fragmentPath);
+			if (templateLocation == null) {
+				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind(Messages.error_readingDirectory, fragmentPath), null);
+				BundleHelper.getDefault().getLog().log(status);
+				return;
+			}
+
+			//Copy the fragment.xml
+			try {
+				InputStream fragmentXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/fragment/fragment.xml").openStream();
+				Utils.transferStreams(fragmentXML, new FileOutputStream(sourceFragmentDirURL.append(DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR).toOSString()));
+			} catch (IOException e1) {
+				String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/fragment/fragment.xml");
+				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e1));
+			}
+			
+			StringBuffer buffer = readFile(templateLocation.openStream()); //$NON-NLS-1$
+			//Set the Id of the fragment
+			int beginId = scan(buffer, 0, REPLACED_FRAGMENT_ID);
+			buffer.replace(beginId, beginId + REPLACED_FRAGMENT_ID.length(), fragment.getPluginIdentifier());
+			//		set the version number
+			beginId = scan(buffer, beginId, REPLACED_FRAGMENT_VERSION);
+			buffer.replace(beginId, beginId + REPLACED_FRAGMENT_VERSION.length(), fragment.getPluginVersion());
+			// Set the Id of the plugin for the fragment
+			beginId = scan(buffer, beginId, REPLACED_PLUGIN_ID);
+			buffer.replace(beginId, beginId + REPLACED_PLUGIN_ID.length(), plugin.getPluginIdentifier());
+			//		set the version number of the plugin to which the fragment is attached to
+			beginId = scan(buffer, beginId, REPLACED_PLUGIN_VERSION);
+			buffer.replace(beginId, beginId + REPLACED_PLUGIN_VERSION.length(), plugin.getPluginVersion());
+			Utils.transferStreams(new ByteArrayInputStream(buffer.toString().getBytes()), new FileOutputStream(sourceFragmentDirURL.append(DEFAULT_BUNDLE_FILENAME_DESCRIPTOR).toOSString()));
+			Collection copiedFiles = Utils.copyFiles(featureRootLocation + '/' + "sourceTemplateFragment", sourceFragmentDir.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
+			File buildProperty = sourceFragmentDirURL.append(PROPERTIES_FILE).toFile();
+			if (!buildProperty.exists()) { //If a build.properties file already exist  then we don't override it.
+				copiedFiles.add(DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR); //Because the fragment.xml is not copied, we need to add it to the file
+				copiedFiles.add("src/**"); //$NON-NLS-1$
+				copiedFiles.add(DEFAULT_BUNDLE_FILENAME_DESCRIPTOR);
+				Properties sourceBuildProperties = new Properties();
+				sourceBuildProperties.put(PROPERTY_BIN_INCLUDES, Utils.getStringFromCollection(copiedFiles, ",")); //$NON-NLS-1$
+				sourceBuildProperties.put("sourcePlugin", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+				try {
+					OutputStream buildFile = new BufferedOutputStream(new FileOutputStream(buildProperty));
+					try {
+						sourceBuildProperties.store(buildFile, null); //$NON-NLS-1$
+					} finally {
+						buildFile.close();
+					}
+				} catch (FileNotFoundException e) {
+					String message = NLS.bind(Messages.exception_writingFile, buildProperty.getAbsolutePath());
+					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+				} catch (IOException e) {
+					String message = NLS.bind(Messages.exception_writingFile, buildProperty.getAbsolutePath());
+					throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
+				}
+			}
+		} catch (IOException e) {
+			String message = NLS.bind(Messages.exception_writingFile, sourceFragmentDir.getName());
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, null));
+		}
+		getSite(false).getRegistry().addBundle(sourceFragmentDir);
+	}
+	
 	private void createSourceFragment(PluginEntry fragment, PluginEntry plugin) throws CoreException {
 		// create the directory for the plugin
 		Path sourceFragmentDirURL = new Path(workingDirectory + '/' + DEFAULT_PLUGIN_LOCATION + '/' + getSourcePluginName(fragment, false)); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1123,7 +1236,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		sourceFragmentDir.mkdirs();
 		try {
 			// read the content of the template file
-			Path fragmentPath = new Path("templates/fragment/" + DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR);//$NON-NLS-1$
+			Path fragmentPath = new Path(TEMPLATE + "/21/fragment/" + DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR);//$NON-NLS-1$
 			URL templateLocation = BundleHelper.getDefault().find(fragmentPath);
 			if (templateLocation == null) {
 				IStatus status = new Status(IStatus.WARNING, PI_PDEBUILD, IPDEBuildConstants.EXCEPTION_READING_FILE, NLS.bind(Messages.error_readingDirectory, fragmentPath), null);
@@ -1325,4 +1438,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		}
 		getSite(false).addFeatureReferenceModel(sourceDir);
 	}
+	
+	// AspectJ Change Begin
+	protected BuildTimeSiteFactory getSiteFactory() {
+		return siteFactory;
+	}
+	// AspectJ Change End
 }

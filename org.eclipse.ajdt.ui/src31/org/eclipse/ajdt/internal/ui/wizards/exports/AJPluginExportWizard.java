@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+/*******************************************************************************
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,30 +10,56 @@
 
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
+import org.eclipse.pde.internal.ui.wizards.exports.AdvancedPluginExportPage;
+import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizard;
+import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizardPage;
 import org.eclipse.pde.internal.ui.wizards.exports.ExportWizardPageWithTable;
-import org.eclipse.pde.internal.ui.wizards.exports.PluginExportJob;
-import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizard;
+import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizardPage;
 import org.eclipse.ui.progress.IProgressConstants;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Mostly copied from PluginExportWizard.
- * Enables AspectJ plugins to be correctly exported.
+ * Enables AspectJ plugins to be correctly exported. Changes marked // AspectJ change
  */
-public class AJPluginExportWizard extends PluginExportWizard {
+public class AJPluginExportWizard extends BaseExportWizard {
 
-	/**
-	 * The constructor.
-	 */
+	private static final String STORE_SECTION = "PluginExportWizard"; //$NON-NLS-1$
+	private AdvancedPluginExportPage fPage2;
+
 	public AJPluginExportWizard() {
 		setDefaultPageImageDescriptor(PDEPluginImages.DESC_PLUGIN_EXPORT_WIZ);
-		setWindowTitle("Export Plugins and Fragments with AspectJ Support");
+	}
+
+	protected BaseExportWizardPage createPage1() {
+		return new PluginExportWizardPage(getSelection());
 	}
 	
-		
+	protected String getSettingsSectionName() {
+		return STORE_SECTION;
+	}
+	
+	public void addPages() {
+		super.addPages();
+		fPage2 = new AdvancedPluginExportPage("plugin-sign"); //$NON-NLS-1$
+		// AspectJ Change
+		fPage1.setTitle(AspectJUIPlugin.getResourceString("PluginExportWizard.31Title")); //$NON-NLS-1$
+		addPage(fPage2);
+	}
+	
 	protected void scheduleExportJob() {
 		String[] signingInfo = fPage1.useJARFormat() ? fPage2.getSigningInfo() : null;
-		PluginExportJob job =
+		AJPluginExportJob job =
+			// AspectJ Change
 			new AJPluginExportJob(
 				fPage1.doExportToDirectory(),
 				fPage1.useJARFormat(),
@@ -46,4 +72,50 @@ public class AJPluginExportWizard extends PluginExportWizard {
 		job.schedule();
 		job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_PLUGIN_OBJ);
 	}
+
+	protected Document generateAntTask() {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			Document doc = factory.newDocumentBuilder().newDocument();
+			Element root = doc.createElement("project"); //$NON-NLS-1$
+			root.setAttribute("name", "build"); //$NON-NLS-1$ //$NON-NLS-2$
+			root.setAttribute("default", "plugin_export"); //$NON-NLS-1$ //$NON-NLS-2$
+			doc.appendChild(root);
+			
+			Element target = doc.createElement("target"); //$NON-NLS-1$
+			target.setAttribute("name", "plugin_export"); //$NON-NLS-1$ //$NON-NLS-2$
+			root.appendChild(target);
+			
+			Element export = doc.createElement("pde.exportPlugins"); //$NON-NLS-1$
+			export.setAttribute("plugins", getPluginIDs()); //$NON-NLS-1$
+			export.setAttribute("destination", fPage1.getDestination()); //$NON-NLS-1$
+			String filename = fPage1.getFileName();
+			if (filename != null)
+				export.setAttribute("filename", filename); //$NON-NLS-1$
+			export.setAttribute("exportType", getExportOperation());  //$NON-NLS-1$
+			export.setAttribute("useJARFormat", Boolean.toString(fPage1.useJARFormat()));  //$NON-NLS-1$
+			export.setAttribute("exportSource", Boolean.toString(fPage1.doExportSource()));  //$NON-NLS-1$
+			target.appendChild(export);
+			return doc;
+		} catch (DOMException e) {
+		} catch (FactoryConfigurationError e) {
+		} catch (ParserConfigurationException e) {
+		}
+		return null;
+	}
+	
+	private String getPluginIDs() {
+		StringBuffer buffer = new StringBuffer();
+		Object[] objects = ((ExportWizardPageWithTable)fPage1).getSelectedItems();
+		for (int i = 0; i < objects.length; i++) {
+			Object object = objects[i];
+			if (object instanceof IPluginModelBase) {
+				buffer.append(((IPluginModelBase)object).getPluginBase().getId());
+				if (i < objects.length - 1)
+					buffer.append(",");					 //$NON-NLS-1$
+			}
+		}
+		return buffer.toString();
+	}
+
 }

@@ -1,6 +1,3 @@
 src.includes = src/,\
                src31/
-src.excludes = src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj,\
-               src31/org/eclipse/ajdt/internal/ui/wizards/exports/AJPluginExportJob.java,\
-               src31/org/eclipse/ajdt/internal/ui/wizards/exports/AJPluginExportWizard.java,\
-               src31/org/eclipse/ajdt/internal/ui/actions/BuildPluginAction.java
+src.excludes = src/org/eclipse/ajdt/internal/ui/editor/PerEditorMarkerUpdating.aj

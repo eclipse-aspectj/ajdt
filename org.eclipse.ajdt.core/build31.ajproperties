@@ -1,3 +1,2 @@
 src.includes = src/,\
                src31/
-src.excludes = src31/org/eclipse/ajdt/internal/exports/

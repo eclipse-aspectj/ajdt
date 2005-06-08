@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+/*******************************************************************************
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,29 +21,24 @@ import org.eclipse.ajdt.internal.exports.AJBuildScriptGenerator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
-import org.eclipse.pde.internal.build.IXMLConstants;
 import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.TargetPlatform;
-import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.pde.internal.ui.wizards.exports.PluginExportJob;
+import org.eclipse.pde.internal.ui.PDEUIMessages;
+import org.eclipse.pde.internal.ui.wizards.exports.FeatureExportJob;
 
 /**
  * Mostly copied from PluginExportJob and FeatureExportJob.  
  * Enables AspectJ plugins to be correctly exported
  */
-public class AJPluginExportJob extends PluginExportJob {
+public class AJPluginExportJob extends FeatureExportJob {
 
 	private String fFeatureLocation;
-	private String[] fSigningInfo;
+	
 	private String fDevProperties;
-	private String[] fJnlpInfo = null;
 	
 	/**
 	 * 
@@ -82,8 +77,7 @@ public class AJPluginExportJob extends PluginExportJob {
 			String zipFileName,
 			Object[] items,
 			String[] signingInfo) {
-			super(toDirectory, useJarFormat, exportSource, destination, zipFileName, items, signingInfo);
-			this.fSigningInfo = signingInfo;
+			super(toDirectory, useJarFormat, exportSource, destination, zipFileName, items, signingInfo, null, null);
 		}
 
 	/* (non-Javadoc)
@@ -92,11 +86,12 @@ public class AJPluginExportJob extends PluginExportJob {
 	protected void doExports(IProgressMonitor monitor)
 			throws InvocationTargetException, CoreException {
 		try {
-            monitor.beginTask("", 10);
+            monitor.beginTask("", 10); //$NON-NLS-1$
 			// create a feature to contain all plug-ins
 			String featureID = "org.eclipse.pde.container.feature"; //$NON-NLS-1$
 			fFeatureLocation = fBuildTempLocation + File.separator + featureID;
-			createFeature(featureID, fFeatureLocation);
+			String[] config = new String[] {TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), TargetPlatform.getNL() };
+			createFeature(featureID, fFeatureLocation, config, false);
 			createBuildPropertiesFile(fFeatureLocation);
 			if (fUseJarFormat)
 				createPostProcessingFile(new File(fFeatureLocation, PLUGIN_POST_PROCESSING));
@@ -106,46 +101,23 @@ public class AJPluginExportJob extends PluginExportJob {
 		} finally {
 			for (int i = 0; i < fItems.length; i++) {
 				if (fItems[i] instanceof IPluginModelBase)
-					deleteBuildFiles((IPluginModelBase)fItems[i]);
+					deleteBuildFiles(fItems[i]);
 			}
-			cleanup(new SubProgressMonitor(monitor, 3));
+			cleanup(null, new SubProgressMonitor(monitor, 3));
 			monitor.done();
 		}
 	}
-
 	
-	private void makeScript(String featureID, String versionId, String os, String ws, String arch, String featureLocation) throws CoreException {
-		BuildScriptGenerator generator = new AJBuildScriptGenerator();
-		generator.setBuildingOSGi(PDECore.getDefault().getModelManager().isOSGiRuntime());
-		generator.setChildren(true);
-		generator.setWorkingDirectory(featureLocation);
-		generator.setDevEntries(getDevProperties());
-		generator.setElements(new String[] {"feature@" + featureID + (versionId == null ? "" : ":" + versionId)}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		generator.setPluginPath(getPaths());
-		generator.setReportResolutionErrors(false);
-		generator.setIgnoreMissingPropertiesFile(true);
-		generator.setSignJars(fSigningInfo != null);
-		generator.setGenerateJnlp(fJnlpInfo != null);
-		String config = os + ',' + ws + ',' + arch;
-		AbstractScriptGenerator.setConfigInfo(config);  //This needs to be set before we set the format
-		String format;
-		if (fExportToDirectory)
-			format = config + '-' + IXMLConstants.FORMAT_FOLDER;
-		else
-			format = config + '-' + IXMLConstants.FORMAT_ANTZIP;
-		generator.setArchivesFormat(format);
-		AbstractScriptGenerator.setForceUpdateJar(false);
-		AbstractScriptGenerator.setEmbeddedSource(fExportSource);
-		generator.generate();
-	}
-
-	
+// AspectJ Change Begin - override from FeatureExportJob	
 	protected void doExport(String featureID, String version, String featureLocation, String os, String ws, String arch, IProgressMonitor monitor) throws CoreException, InvocationTargetException {
-		monitor.beginTask("", 5); //$NON-NLS-1$
-		monitor.setTaskName(PDEPlugin.getResourceString("FeatureExportJob.taskName")); //$NON-NLS-1$
+//		fHasErrors = false;
+		monitor.beginTask("", 9); //$NON-NLS-1$
+		monitor.setTaskName(PDEUIMessages.FeatureExportJob_taskName); //$NON-NLS-1$
 		try {
 			HashMap properties = createAntBuildProperties(os, ws, arch);
-			makeScript(featureID, version, os, ws, arch, featureLocation);
+			BuildScriptGenerator generator = new AJBuildScriptGenerator();
+			setupGenerator(generator, featureID, version, os, ws, arch, featureLocation);
+			generator.generate();
 			monitor.worked(1);
 			runScript(getBuildScriptName(featureLocation), getBuildExecutionTargets(), properties, new SubProgressMonitor(monitor, 2));
 			runScript(getAssemblyScriptName(featureID, os, ws, arch, featureLocation), new String[] {"main"}, //$NON-NLS-1$
@@ -157,12 +129,12 @@ public class AJPluginExportJob extends PluginExportJob {
 			monitor.done();
 		}
 	}
-
+//	 AspectJ Change End
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.wizards.exports.FeatureExportJob#getPaths()
 	 */
-	protected String[] getPaths() throws CoreException {
+	protected String[] getPaths() {
 		String[] paths =  super.getPaths();
 		String[] all = new String[paths.length + 1];
 		all[0] = fFeatureLocation + File.separator + "feature.xml"; //$NON-NLS-1$
@@ -189,7 +161,7 @@ public class AJPluginExportJob extends PluginExportJob {
 			PDECore.logException(e);
 		}
 	}
-
+// AspectJ Change Begin - copied from FeatureExportJob
 	private String getBuildScriptName(String featureLocation) {
 		return fFeatureLocation + IPath.SEPARATOR + "build.xml"; //$NON-NLS-1$
 	}
@@ -200,10 +172,12 @@ public class AJPluginExportJob extends PluginExportJob {
 		return new String[] {"build.jars"}; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
-	private String getDevProperties() {
+	 private String getDevProperties() {
 		if (fDevProperties == null) {
 			fDevProperties = ClasspathHelper.getDevEntriesProperties(fBuildTempLocation + "/dev.properties", false); //$NON-NLS-1$
 		}
 		return fDevProperties;
 	}
+// AspectJ Change End
+	
 }
