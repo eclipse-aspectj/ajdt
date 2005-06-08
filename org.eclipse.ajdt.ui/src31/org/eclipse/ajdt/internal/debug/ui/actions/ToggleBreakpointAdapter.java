@@ -144,7 +144,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 					}
 				}
 			} catch (CoreException e) {
-                ExceptionHandler.handle(e, ActionMessages.ManageBreakpointActionDelegate_error_title1, ActionMessages.ManageBreakpointActionDelegate_error_message1);
+                //ExceptionHandler.handle(e, ActionMessages.ManageBreakpointActionDelegate_error_title1, ActionMessages.ManageBreakpointActionDelegate_error_message1);
                 return;
 			}
 		}
