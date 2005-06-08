@@ -45,7 +45,7 @@
 	
 	<topic label="Navigating the AJDT workbench" href="doc/tasks/navigating.htm" >
 		<topic label="Opening an editor on a type" href="doc/tasks/opentype.htm"></topic>
-<!--		<topic label="Opening a type in the type hierarchy view" href="doc/tasks/openhierarchy.htm"></topic> -->
+		<topic label="Opening a type in the type hierarchy view" href="doc/tasks/openhierarchy.htm"></topic>
 		<topic label="Navigating with markers" href="doc/tasks/markers.htm"></topic>
 	</topic>
 	<anchor id="t_navigatingajdt" />

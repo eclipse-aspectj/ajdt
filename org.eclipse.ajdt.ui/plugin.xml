@@ -569,15 +569,14 @@
     	        </separator>
          	</menu>
          -->
-<!--         
-		<action
+         <action
                label="%OpenTypeInHierarchyAction.label"
                tooltip="%OpenTypeInHierarchyAction.tooltip"
                definitionId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
                class="org.eclipse.ajdt.internal.ui.actions.OpenTypeInHierarchyAction"
                menubarPath="navigate/open.ext2"
                id="openTypeInHierarchy">
-         </action> -->
+         </action> 
          <action
                label="%OpenTypeAction.label"
                icon="icons/actions/opentype.gif"
@@ -638,7 +637,7 @@
             command="org.eclipse.ajdt.ui.navigate.open.type"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
       </keyBinding>
- <!--     <command
+      <command
             name="%ActionDefinition.openTypeInHierarchy.name"
             description="%ActionDefinition.openTypeInHierarchy.description"
             category="org.eclipse.ui.category.navigate"
@@ -663,7 +662,7 @@
             scope="org.eclipse.ui.globalScope"
             command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>-->
+      </keyBinding>
    </extension>    
           
    <extension point="org.eclipse.ui.perspectiveExtensions">
