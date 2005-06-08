@@ -123,7 +123,8 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 
 		fExtraOptionsText.setText(fStore.getAdditionalParams());
 
-		fJDK14Button= createButton(composite, SWT.CHECK, JavadocExportMessages.JavadocSpecificsWizardPage_jdk14mode_label, createGridData(3));
+		// HELEN TODO: fix the ajdoc pages to fit with Eclipse rc1
+		fJDK14Button= createButton(composite, SWT.CHECK, "JRE 1.4 source compatibility", createGridData(3));
 		fJDK14Button.setSelection(fStore.isJDK14Mode());
 		
 //		 AspectJ Extension - commenting out unused code
