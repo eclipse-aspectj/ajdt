@@ -1,20 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 package org.eclipse.ajdt.buildconfigurator.propertypage;
 
-
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,23 +20,33 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.SubProgressMonitor;
+
+import org.eclipse.core.resources.IProject;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+
+import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.internal.ui.util.BusyIndicatorRunnableContext;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.ui.wizards.NewElementWizardPage;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * Copied from same in org.eclipse.jdt.ui.wizards.  Only change is to use
  * BuildPathsBlock in this package.
  */
-
 public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 
 	private static final String PAGE_NAME= "JavaCapabilityConfigurationPage"; //$NON-NLS-1$
@@ -55,21 +63,36 @@ public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 	 * </p>
 	 */	
 	public JavaCapabilityConfigurationPage() {
-		super(PAGE_NAME);
-		fJavaProject= null;
-		
+        super(PAGE_NAME);
+        fJavaProject= null;
+        
         setTitle(NewWizardMessages.JavaCapabilityConfigurationPage_title); 
         setDescription(NewWizardMessages.JavaCapabilityConfigurationPage_description); 
-		
-		IStatusChangeListener listener= new IStatusChangeListener() {
-			public void statusChanged(IStatus status) {
-				updateStatus(status);
-			}
-		};
-
-		fBuildPathsBlock= new BuildPathsBlock(listener, 0);
 	}
+    
+    private BuildPathsBlock getBuildPathsBlock() {
+        if (fBuildPathsBlock == null) {
+            IStatusChangeListener listener= new IStatusChangeListener() {
+                public void statusChanged(IStatus status) {
+                    updateStatus(status);
+                }
+            };
+            fBuildPathsBlock= new BuildPathsBlock(new BusyIndicatorRunnableContext(), listener, 0, useNewSourcePage(), null);
+        }
+        return fBuildPathsBlock;
+    }
 	
+	/**
+	 * Clients can override this method to choose if the new source page is used. The new source page
+	 * requires that the project is already created as Java project. The page will directly manipulate the classpath.
+	 * By default <code>false</code> is returned.
+	 * @return Returns <code>true</code> if the new source page should be used.
+	 * @since 3.1
+	 */
+	protected boolean useNewSourcePage() {
+		return false;
+	}
+
 	/**
 	 * Initializes the page with the project and default classpaths.
 	 * <p>
@@ -94,19 +117,22 @@ public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 			defaultOutputLocation= null;
 			defaultEntries= null;
 		}
-		fBuildPathsBlock.init(jproject, defaultOutputLocation, defaultEntries);
+		getBuildPathsBlock().init(jproject, defaultOutputLocation, defaultEntries);
 		fJavaProject= jproject;
-	}
-	
+	}	
 
 	/* (non-Javadoc)
 	 * @see WizardPage#createControl
 	 */	
 	public void createControl(Composite parent) {
-		Control control= fBuildPathsBlock.createControl(parent);
-		setControl(control);
-		Dialog.applyDialogFont(control);
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(control, IJavaHelpContextIds.NEW_JAVAPROJECT_WIZARD_PAGE);
+		Composite composite= new Composite(parent, SWT.NONE);
+		composite.setFont(parent.getFont());
+		composite.setLayout(new GridLayout(1, false));
+		Control control= getBuildPathsBlock().createControl(composite);
+		control.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		Dialog.applyDialogFont(composite);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.NEW_JAVAPROJECT_WIZARD_PAGE);
+		setControl(composite);
 	}
 		
 	/**
@@ -116,7 +142,7 @@ public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 	 * @return the currently configured output location
 	 */
 	public IPath getOutputLocation() {
-		return fBuildPathsBlock.getOutputLocation();
+		return getBuildPathsBlock().getOutputLocation();
 	}
 
 	/**
@@ -126,7 +152,7 @@ public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 	 * @return the currently configured classpath
 	 */	
 	public IClasspathEntry[] getRawClassPath() {
-		return fBuildPathsBlock.getRawClassPath();
+		return getBuildPathsBlock().getRawClassPath();
 	}
 	
 	/**
@@ -197,12 +223,11 @@ public class JavaCapabilityConfigurationPage extends NewElementWizardPage {
 		try {
 			IProject project= getJavaProject().getProject();
 			BuildPathsBlock.addJavaNature(project, new SubProgressMonitor(monitor, 1));
-			fBuildPathsBlock.configureJavaProject(new SubProgressMonitor(monitor, 5));
+			getBuildPathsBlock().configureJavaProject(new SubProgressMonitor(monitor, 5));
 		} catch (OperationCanceledException e) {
 			throw new InterruptedException();
 		} finally {
 			monitor.done();
 		}			
 	}
-	
 }

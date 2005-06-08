@@ -13,7 +13,6 @@ package org.eclipse.ajdt.buildconfigurator.propertypage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -66,8 +65,8 @@ import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -86,11 +85,12 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ISelectionStatusValidator;
-import org.eclipse.ui.help.WorkbenchHelp;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.eclipse.ui.views.navigator.ResourceSorter;
 
 
@@ -135,7 +135,7 @@ public class BuildPathsBlock {
 	
 	private int fPageIndex;
 	
-	private SourceContainerWorkbookPage fSourceContainerPage;
+	private BuildPathBasePage fSourceContainerPage;
 	private ProjectsWorkbookPage fProjectsPage;
 	private LibrariesWorkbookPage fLibrariesPage;
 	
@@ -143,10 +143,17 @@ public class BuildPathsBlock {
 	
 	private String fUserSettingsTimeStamp;
 	private long fFileTimeStamp;
+    
+    private IRunnableContext fRunnableContext;
+    private boolean fUseNewPage;
+
+	private final IWorkbenchPreferenceContainer fPageContainer; // null when invoked from a non-property page context
 		
-	public BuildPathsBlock(IStatusChangeListener context, int pageToShow) {
+	public BuildPathsBlock(IRunnableContext runnableContext, IStatusChangeListener context, int pageToShow, boolean useNewPage, IWorkbenchPreferenceContainer pageContainer) {
+		fPageContainer= pageContainer;
 		fWorkspaceRoot= JavaPlugin.getWorkspace().getRoot();
 		fContext= context;
+		fUseNewPage= useNewPage;
 		
 		fPageIndex= pageToShow;
 		
@@ -154,17 +161,18 @@ public class BuildPathsBlock {
 		fLibrariesPage= null;
 		fProjectsPage= null;
 		fCurrPage= null;
+        fRunnableContext= runnableContext;
 				
 		BuildPathAdapter adapter= new BuildPathAdapter();			
 	
 		String[] buttonLabels= new String[] {
-				NewWizardMessages.BuildPathsBlock_classpath_up_button, 
-				NewWizardMessages.BuildPathsBlock_classpath_down_button, 
-				/* 2 */ null,
-				NewWizardMessages.BuildPathsBlock_classpath_checkall_button, 
-				NewWizardMessages.BuildPathsBlock_classpath_uncheckall_button
-			
-			};
+			NewWizardMessages.BuildPathsBlock_classpath_up_button, 
+			NewWizardMessages.BuildPathsBlock_classpath_down_button, 
+			/* 2 */ null,
+			NewWizardMessages.BuildPathsBlock_classpath_checkall_button, 
+			NewWizardMessages.BuildPathsBlock_classpath_uncheckall_button
+		
+		};
 		
 		fClassPathList= new CheckedListDialogField(null, buttonLabels, new CPListLabelProvider());
 		fClassPathList.setDialogFieldListener(adapter);
@@ -194,23 +202,20 @@ public class BuildPathsBlock {
 		PixelConverter converter= new PixelConverter(parent);
 		
 		Composite composite= new Composite(parent, SWT.NONE);	
+		composite.setFont(parent.getFont());
 		
 		GridLayout layout= new GridLayout();
 		layout.marginWidth= 0;
+		layout.marginHeight= 0;
 		layout.numColumns= 1;		
 		composite.setLayout(layout);
 		
 		TabFolder folder= new TabFolder(composite, SWT.NONE);
-		folder.setLayout(new TabFolderLayout());	
 		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		ImageRegistry imageRegistry= JavaPlugin.getDefault().getImageRegistry();
+		folder.setFont(composite.getFont());
 		
 		TabItem item;
-				
-		//AspectJ Extension Start (by Luzius)
-		//fSourceContainerPage= new SourceContainerWorkbookPage(fWorkspaceRoot,
-		// fClassPathList, fBuildPathDialogField);
+		//AspectJ Extension Begin (by Luzius)
 		if (fCurrJProject != null) {
 			try {
 				if (fCurrJProject.getProject().hasNature("org.eclipse.ajdt.ui.ajnature")){ //$NON-NLS-1$
@@ -228,27 +233,34 @@ public class BuildPathsBlock {
 					 fClassPathList, fBuildPathDialogField);
 		}
 		//AspectJ Extension End (by Luzius)
-	
-		item= new TabItem(folder, SWT.NONE);
+        item= new TabItem(folder, SWT.NONE);
         item.setText(NewWizardMessages.BuildPathsBlock_tab_source); 
-		item.setImage(imageRegistry.get(JavaPluginImages.IMG_OBJS_PACKFRAG_ROOT));
-		item.setData(fSourceContainerPage);		
-		item.setControl(fSourceContainerPage.getControl(folder));
+        item.setImage(JavaPluginImages.get(JavaPluginImages.IMG_OBJS_PACKFRAG_ROOT));
+		
+//      AspectJ Extension Start
+//        if (fUseNewPage) {
+//			fSourceContainerPage= new NewSourceContainerWorkbookPage(fClassPathList, fBuildPathDialogField, fRunnableContext);
+//        } else {
+//			fSourceContainerPage= new SourceContainerWorkbookPage(fClassPathList, fBuildPathDialogField);
+//        }
+//      AspectJ Extension End
+        item.setData(fSourceContainerPage);     
+        item.setControl(fSourceContainerPage.getControl(folder));
 		
 		IWorkbench workbench= JavaPlugin.getDefault().getWorkbench();	
 		Image projectImage= workbench.getSharedImages().getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
 		
-		fProjectsPage= new ProjectsWorkbookPage(fClassPathList);		
+		fProjectsPage= new ProjectsWorkbookPage(fClassPathList, fPageContainer);		
 		item= new TabItem(folder, SWT.NONE);
 		item.setText(NewWizardMessages.BuildPathsBlock_tab_projects); 
 		item.setImage(projectImage);
 		item.setData(fProjectsPage);
 		item.setControl(fProjectsPage.getControl(folder));
 		
-		fLibrariesPage= new LibrariesWorkbookPage(fWorkspaceRoot, fClassPathList);		
+		fLibrariesPage= new LibrariesWorkbookPage(fClassPathList, fPageContainer);		
 		item= new TabItem(folder, SWT.NONE);
 		item.setText(NewWizardMessages.BuildPathsBlock_tab_libraries); 
-		item.setImage(imageRegistry.get(JavaPluginImages.IMG_OBJS_LIBRARY));
+		item.setImage(JavaPluginImages.get(JavaPluginImages.IMG_OBJS_LIBRARY));
 		item.setData(fLibrariesPage);
 		item.setControl(fLibrariesPage.getControl(folder));
 		
@@ -288,7 +300,7 @@ public class BuildPathsBlock {
 			}	
 		});		
 
-		WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK);				
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK);				
 		Dialog.applyDialogFont(composite);
 		return composite;
 	}
@@ -299,7 +311,6 @@ public class BuildPathsBlock {
 		}
 		return JavaPlugin.getActiveWorkbenchShell();
 	}
-	
 	
 	/**
 	 * Initializes the classpath for the given project. Multiple calls to init are allowed,
@@ -347,23 +358,34 @@ public class BuildPathsBlock {
 		
 		// inits the dialog field
 		fBuildPathDialogField.setText(outputLocation.makeRelative().toString());
-		fBuildPathDialogField.enableButton(projectExists);
+		fBuildPathDialogField.enableButton(project.exists());
 		fClassPathList.setElements(newClassPath);
 		fClassPathList.setCheckedElements(exportedEntries);
 		
-		if (Display.getCurrent() != null) {
-			updateUI();
-		} else {
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					updateUI();
-				}
-			});
-		}
 		initializeTimeStamps();
+		updateUI();
 	}
 	
 	protected void updateUI() {
+		if (fSWTWidget == null || fSWTWidget.isDisposed()) {
+			return;
+		}
+		
+		if (Display.getCurrent() != null) {
+			doUpdateUI();
+		} else {
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					if (fSWTWidget == null || fSWTWidget.isDisposed()) {
+						return;
+					}
+					doUpdateUI();
+				}
+			});
+		}
+	}
+
+	protected void doUpdateUI() {
 		fBuildPathDialogField.refresh();
 		fClassPathList.refresh();
 	
@@ -650,6 +672,9 @@ public class BuildPathsBlock {
 	}
 
 	public static void addJavaNature(IProject project, IProgressMonitor monitor) throws CoreException {
+		if (monitor != null && monitor.isCanceled()) {
+			throw new OperationCanceledException();
+		}
 		if (!project.hasNature(JavaCore.NATURE_ID)) {
 			IProjectDescription description = project.getDescription();
 			String[] prevNatures= description.getNatureIds();
@@ -669,35 +694,34 @@ public class BuildPathsBlock {
 		}
 		monitor.setTaskName(NewWizardMessages.BuildPathsBlock_operationdesc_java); 
 		monitor.beginTask("", 10); //$NON-NLS-1$
-
 		try {
-			internalConfigureJavaProject(fClassPathList.getElements(), getOutputLocation(), monitor);
+			IRemoveOldBinariesQuery reorgQuery= getRemoveOldBinariesQuery(null);
+			// remove old .class files
+			if (reorgQuery != null) {
+				IPath oldOutputLocation= fCurrJProject.getOutputLocation();
+				if (!getOutputLocation().equals(oldOutputLocation)) {
+					IResource res= fWorkspaceRoot.findMember(oldOutputLocation);
+					if (res instanceof IContainer && hasClassfiles(res)) {
+						if (reorgQuery.doQuery(oldOutputLocation)) {
+							removeOldClassfiles(res);
+						}
+					}
+				}		
+			}
+			
+			internalConfigureJavaProject(fClassPathList.getElements(), getOutputLocation(), reorgQuery, monitor);
 		} finally {
 			monitor.done();
 		}
+		updateUI();
 	}
-	
+    	
 	/*
 	 * Creates the Java project and sets the configured build path and output location.
 	 * If the project already exists only build paths are updated.
 	 */
-	private void internalConfigureJavaProject(List classPathEntries, IPath outputLocation, IProgressMonitor monitor) throws CoreException, OperationCanceledException {
+	private void internalConfigureJavaProject(List classPathEntries, IPath outputLocation, IRemoveOldBinariesQuery reorgQuery, IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// 10 monitor steps to go
-		
-		IRemoveOldBinariesQuery reorgQuery= getRemoveOldBinariesQuery(null);
-
-		// remove old .class files
-		if (reorgQuery != null) {
-			IPath oldOutputLocation= fCurrJProject.getOutputLocation();
-			if (!outputLocation.equals(oldOutputLocation)) {
-				IResource res= fWorkspaceRoot.findMember(oldOutputLocation);
-				if (res instanceof IContainer && hasClassfiles(res)) {
-					if (reorgQuery.doQuery(oldOutputLocation)) {
-						removeOldClassfiles(res);
-					}
-				}
-			}		
-		}
 		
 		// create and set the output path first
 		if (!fWorkspaceRoot.exists(outputLocation)) {
@@ -715,9 +739,6 @@ public class BuildPathsBlock {
 		int nEntries= classPathEntries.size();
 		IClasspathEntry[] classpath= new IClasspathEntry[nEntries];
 		
-		ArrayList paths= new ArrayList();
-		ArrayList urls= new ArrayList();
-		
 		// create and set the class path
 		for (int i= 0; i < nEntries; i++) {
 			CPListElement entry= ((CPListElement)classPathEntries.get(i));
@@ -734,9 +755,7 @@ public class BuildPathsBlock {
 			}
 			
 			classpath[i]= entry.getClasspathEntry();
-			//entry.collectJavaDocLocations(paths, urls);
 		}	
-		//JavaUI.setLibraryJavadocLocations((IPath[]) paths.toArray(new IPath[paths.size()]), (URL[]) urls.toArray(new URL[paths.size()]));
 		
 		if (monitor.isCanceled()) {
 			throw new OperationCanceledException();
@@ -783,7 +802,7 @@ public class BuildPathsBlock {
 						Shell sh= shell != null ? shell : JavaPlugin.getActiveWorkbenchShell();
 						String title= NewWizardMessages.BuildPathsBlock_RemoveBinariesDialog_title; 
 						String message= Messages.format(NewWizardMessages.BuildPathsBlock_RemoveBinariesDialog_description, oldOutputLocation.toString()); 
-						MessageDialog dialog= new MessageDialog(sh, title, null, message, MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL }, 2);
+						MessageDialog dialog= new MessageDialog(sh, title, null, message, MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL }, 0);
 						res[0]= dialog.open();
 					}
 				});
@@ -851,5 +870,5 @@ public class BuildPathsBlock {
 			fCurrPage= newPage;
 			fPageIndex= tabItem.getParent().getSelectionIndex();
 		}
-	}		
+	}
 }

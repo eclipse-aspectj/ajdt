@@ -25,16 +25,19 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.WorkbenchRunnableAdapter;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
+import org.eclipse.jdt.internal.ui.util.BusyIndicatorRunnableContext;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferencePageContainer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.eclipse.ui.help.WorkbenchHelp;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 /**
  * Copied from jdt Original name:
@@ -75,7 +78,7 @@ protected Control createContents(Composite parent) {
  */
 public void createControl(Composite parent) {
 	super.createControl(parent);
-	WorkbenchHelp.setHelp(getControl(), IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE);
+	PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE);
 }	
 
 private IDialogSettings getSettings() {
@@ -126,7 +129,14 @@ public void setVisible(boolean visible) {
  * Content for valid projects.
  */
 private Control createWithJava(Composite parent, IProject project) {
-	fBuildPathsBlock= new BuildPathsBlock(this, getSettings().getInt(INDEX));
+	IWorkbenchPreferenceContainer pageContainer= null;	
+	IPreferencePageContainer container= getContainer();
+	if (container instanceof IWorkbenchPreferenceContainer) {
+		pageContainer= (IWorkbenchPreferenceContainer) container;
+	}
+	
+	fBuildPathsBlock= new BuildPathsBlock(new BusyIndicatorRunnableContext(), this, getSettings().getInt(INDEX), false, pageContainer);
+
 	fBuildPathsBlock.init(JavaCore.create(project), null, null);
 	return fBuildPathsBlock.createControl(parent);
 }
