@@ -14,6 +14,8 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Iterator;
 
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
@@ -21,13 +23,12 @@ import org.eclipse.ajdt.internal.launching.AJMainMethodSearchEngine;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.internal.core.search.JavaSearchScope;
+import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.core.util.Util;
-
-import junit.framework.TestCase;
 
 public class AJMainMethodSearchEngineTest extends TestCase {
 
@@ -71,14 +72,16 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 		pbc.setActiveBuildConfiguration(notrace);
 		Utils.waitForJobsToComplete();
 		AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
-		JavaSearchScope scope = new JavaSearchScope();
-		scope.add(jp);
-		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, IJavaSearchScope.SOURCES, true);
-		assertTrue("There should be one result", results.length == 1);
+		IJavaElement[] elements = new IJavaElement[]{jp};
+	
+		int constraints = IJavaSearchScope.SOURCES;
+		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
+		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, constraints, true);
+		assertTrue("There should be one result, found " + results.length, results.length == 1);
 		pbc.setActiveBuildConfiguration(tracev1);
 		Utils.waitForJobsToComplete();
-		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, IJavaSearchScope.SOURCES, true);
-		assertTrue("There should be two results", results2.length == 2);
+		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, constraints, true);
+		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
 		Utils.deleteProject(project);
 		if(field != null) {
 			char[][] extensions = new char[2][];

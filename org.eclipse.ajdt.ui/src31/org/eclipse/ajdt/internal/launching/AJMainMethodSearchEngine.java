@@ -51,6 +51,17 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * Searches for all main methods in the given scope. Also searches 
 	 * for Aspects that have main methods.
 	 */
+	// TODO: Remove when we branch - extra method to avoid splitting the tests plug-in	
+	public IType[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
+			IJavaSearchScope scope, int style, boolean includeSubtypes)
+			throws JavaModelException {
+		return searchMainMethodsIncludingAspects(pm, scope, includeSubtypes);
+	}
+	
+	/**
+	 * Searches for all main methods in the given scope. Also searches 
+	 * for Aspects that have main methods.
+	 */
 	public IType[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
 			IJavaSearchScope scope, boolean includeSubtypes)
 			throws JavaModelException {
