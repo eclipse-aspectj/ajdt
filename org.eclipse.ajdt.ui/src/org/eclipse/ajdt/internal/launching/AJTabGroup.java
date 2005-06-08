@@ -27,15 +27,20 @@ import org.eclipse.jdt.internal.debug.ui.launcher.LocalJavaApplicationTabGroup;
  */
 public class AJTabGroup extends LocalJavaApplicationTabGroup {
 
+	
 	/**
 	 * @see ILaunchConfigurationTabGroup#createTabs(ILaunchConfigurationDialog,
 	 *      String)
 	 */
 	public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
 		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] {
-				new AspectJMainTab(), new JavaArgumentsTab(), new JavaJRETab(),
-				new AJClasspathTab(), new SourceLookupTab(),
-				new EnvironmentTab(), new CommonTab() };
+				new AspectJMainTab(), 
+				new JavaArgumentsTab(), 
+				new JavaJRETab(),
+				new AJClasspathTab(), 
+				new SourceLookupTab(),
+				new EnvironmentTab(), 
+				new CommonTab() };
 		setTabs(tabs);		
 	}
 

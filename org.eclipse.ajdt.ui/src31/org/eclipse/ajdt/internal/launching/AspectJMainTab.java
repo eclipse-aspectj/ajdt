@@ -13,17 +13,18 @@ package org.eclipse.ajdt.internal.launching;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.aspectj.asm.IProgramElement;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaMainTab;
 import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
-import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.SelectionDialog;
@@ -36,30 +37,41 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 public class AspectJMainTab extends JavaMainTab {
 
 	/**
-	 * Show a dialog that lists all main types. Mostly copied from super.
+	 * Show a dialog that lists all main types	 * 
 	 */
+	// Method copied from JavaMainTab - changes marked with // AspectJ Change
 	protected void handleSearchButtonSelected() {
-
+		
 		IJavaProject javaProject = getJavaProject();
-		IJavaSearchScope searchScope = null;
+		IJavaElement[] elements = null;
 		if ((javaProject == null) || !javaProject.exists()) {
-			searchScope = SearchEngine.createWorkspaceScope();
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+			IJavaModel model = JavaCore.create(root);
+			if (model != null) {
+				try {
+					elements = model.getJavaProjects();
+				} catch (JavaModelException e) {
+				}
+			}
 		} else {
-			searchScope = SearchEngine.createJavaSearchScope(
-					new IJavaElement[] { javaProject }, false);
+			elements = new IJavaElement[]{javaProject};
+		}		
+		if (elements == null) {
+			elements = new IJavaElement[]{};
 		}
-
-		int constraints = IJavaElementSearchConstants.CONSIDER_BINARIES;
+		int constraints = IJavaSearchScope.SOURCES;
 		if (fSearchExternalJarsCheckButton.getSelection()) {
-			constraints |= IJavaElementSearchConstants.CONSIDER_EXTERNAL_JARS;
-		}
-
+			constraints |= IJavaSearchScope.APPLICATION_LIBRARIES;
+			constraints |= IJavaSearchScope.SYSTEM_LIBRARIES;
+		}		
+		IJavaSearchScope searchScope = SearchEngine.createJavaSearchScope(elements, constraints);
+		
+		// AspectJ Change
 		AJMainMethodSearchEngine engine = new AJMainMethodSearchEngine();
-		Object[] types = null;
+		IType[] types = null;
 		try {
-			types = engine.searchMainMethodsIncludingAspects(
-					getLaunchConfigurationDialog(), searchScope, constraints,
-					fConsiderInheritedMainButton.getSelection());
+			// AspectJ Change
+			types = engine.searchMainMethodsIncludingAspects(getLaunchConfigurationDialog(), searchScope, fConsiderInheritedMainButton.getSelection());
 		} catch (InvocationTargetException e) {
 			setErrorMessage(e.getMessage());
 			return;
@@ -67,33 +79,26 @@ public class AspectJMainTab extends JavaMainTab {
 			setErrorMessage(e.getMessage());
 			return;
 		}
-
+		
 		Shell shell = getShell();
-		SelectionDialog dialog = new AJMainTypeSelectionDialog(shell, types);
+		// AspectJ Change
+		SelectionDialog dialog = new AJMainTypeSelectionDialog(shell, types); 
 		dialog.setTitle(LauncherMessages.JavaMainTab_Choose_Main_Type_11); //$NON-NLS-1$
 		dialog.setMessage(LauncherMessages.JavaMainTab_Choose_a_main__type_to_launch__12); //$NON-NLS-1$
 		if (dialog.open() == Window.CANCEL) {
 			return;
 		}
-
+		
 		Object[] results = dialog.getResult();
 		if ((results == null) || (results.length < 1)) {
 			return;
-		}
-		Object type = results[0];
-		if (type instanceof IType) {
-			fMainText.setText(((IType) type).getFullyQualifiedName());
-			javaProject = ((IType) type).getJavaProject();
-			fProjText.setText(javaProject.getElementName());
-
-		} else if (type instanceof Object[]) {
-			IProgramElement element = (IProgramElement) ((Object[]) type)[0];
-			IProject project = (IProject) ((Object[]) type)[1];
-			fMainText.setText(element.getPackageName()
-					+ "." + element.getName()); //$NON-NLS-1$
-			IJavaProject jp = JavaCore.create(project);
-			fProjText.setText(jp.getElementName());
 		}		
+		IType type = (IType)results[0];
+		if (type != null) {
+			fMainText.setText(type.getFullyQualifiedName());
+			javaProject = type.getJavaProject();
+			fProjText.setText(javaProject.getElementName());
+		}
 	}
-
+	
 }

@@ -80,15 +80,14 @@ public class AspectJApplicationLaunchShortcut extends
 				IJavaElement[] elements = getJavaElements(search);
 				if (elements.length > 0) {
 					AJMainMethodSearchEngine engine = new AJMainMethodSearchEngine();
-					IJavaSearchScope scope = SearchEngine
-							.createJavaSearchScope(elements, false);
+					int constraints = IJavaElementSearchConstants.CONSIDER_BINARIES
+					| IJavaElementSearchConstants.CONSIDER_EXTERNAL_JARS;
+					IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
 					types = engine
 							.searchMainMethodsIncludingAspects(
 									PlatformUI.getWorkbench()
 											.getProgressService(),
 									scope,
-									IJavaElementSearchConstants.CONSIDER_BINARIES
-											| IJavaElementSearchConstants.CONSIDER_EXTERNAL_JARS,
 									true);
 				} else {
 					types = search;

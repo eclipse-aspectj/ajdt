@@ -39,10 +39,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
 import org.eclipse.jdt.internal.debug.ui.launcher.MainMethodSearchEngine;
-import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.util.Assert;
 
 /**
  * Search Engine to search for main methods and include Aspects in that search
@@ -53,54 +51,55 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * Searches for all main methods in the given scope. Also searches 
 	 * for Aspects that have main methods.
 	 */
-	public Object[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
-			IJavaSearchScope scope, int style, boolean includeSubtypes)
+	public IType[] searchMainMethodsIncludingAspects(IProgressMonitor pm,
+			IJavaSearchScope scope, boolean includeSubtypes)
 			throws JavaModelException {
-		// Eclipse M7 change
-		return new IType[4];
-//		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
-//		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
-//		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope,
-//				style, includeSubtypes);
-//		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-//				.getProjects();
-//		List mainList = new ArrayList(Arrays.asList(mainTypes));
-//
-//		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
-//		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
-//		double ticksPerProject = Math.floor(100F / (float) projects.length);
-//		if (ticksPerProject < 1) {
-//			ticksPerProject = 1;
-//		}
-//		for (int i = 0; i < projects.length; i++) {
-//			try {
-//				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-//
-//					IJavaProject jp = JavaCore.create(projects[i]);
-//					if (jp != null) {
-//						if (scope.encloses(jp)) {
-//							Set aspects = getAllAspects(jp);
-//							mainList.addAll(aspects);
-//						} else {
-//							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
-//							for (int j = 0; j < enclosingPaths.length; j++) {
-//								IPath path = enclosingPaths[j];
-//								if (path.equals(jp.getPath())) {
-//									IJavaElement[] children = jp.getChildren();
-//									mainList
-//											.addAll(searchJavaElements(scope, children));
-//								}
-//							}
-//						}
-//					}
-//				}
-//			} catch (Exception e) {
-//			}
-//			ajSearchMonitor.internalWorked(ticksPerProject);
-//		}
-//		ajSearchMonitor.done();
-//		pm.done();
-//		return mainList.toArray();
+
+		pm.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
+		IProgressMonitor javaSearchMonitor = new SubProgressMonitor(pm, 100);
+		IType[] mainTypes = super.searchMainMethods(javaSearchMonitor, scope, includeSubtypes);
+		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+				.getProjects();
+		List mainList = new ArrayList(Arrays.asList(mainTypes));
+
+		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
+		ajSearchMonitor.beginTask(LauncherMessages.MainMethodSearchEngine_1, 100);
+		double ticksPerProject = Math.floor(100F / (float) projects.length);
+		if (ticksPerProject < 1) {
+			ticksPerProject = 1;
+		}
+		for (int i = 0; i < projects.length; i++) {
+			try {
+				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
+
+					IJavaProject jp = JavaCore.create(projects[i]);
+					if (jp != null) {
+						if (scope.encloses(jp)) {
+							Set aspects = getAllAspects(jp);
+							mainList.addAll(aspects);
+						} else {
+							IPath[] enclosingPaths = scope.enclosingProjectsAndJars();
+							for (int j = 0; j < enclosingPaths.length; j++) {
+								IPath path = enclosingPaths[j];
+								if (path.equals(jp.getPath())) {
+									IJavaElement[] children = jp.getChildren();
+									mainList
+											.addAll(searchJavaElements(scope, children));
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+			}
+			ajSearchMonitor.internalWorked(ticksPerProject);
+		}
+		ajSearchMonitor.done();
+		pm.done();
+		Object[] objects = mainList.toArray();
+		IType[] types = new IType[objects.length];
+		System.arraycopy(objects,0, types, 0, types.length);
+		return types;
 	}
 
 
@@ -108,23 +107,19 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * Searches for all main methods in the given scope. Also searches 
      * for Aspects that have main methods.
 	 */
-	public Object[] searchMainMethodsIncludingAspects(IRunnableContext context,
-			final IJavaSearchScope scope, final int style,
+	public IType[] searchMainMethodsIncludingAspects(IRunnableContext context,
+			final IJavaSearchScope scope, 
 			final boolean includeSubtypes) throws InvocationTargetException,
 			InterruptedException {
 
-		int allFlags = IJavaElementSearchConstants.CONSIDER_EXTERNAL_JARS
-				| IJavaElementSearchConstants.CONSIDER_BINARIES;
-		Assert.isTrue((style | allFlags) == allFlags);
-
-		final Object[][] res = new Object[1][];
+		final IType[][] res = new IType[1][];
 
 		IRunnableWithProgress runnable = new IRunnableWithProgress() {
 			public void run(IProgressMonitor pm)
 					throws InvocationTargetException {
 				try {
 					res[0] = searchMainMethodsIncludingAspects(pm, scope,
-							style, includeSubtypes);
+							 includeSubtypes);
 				} catch (JavaModelException e) {
 					throw new InvocationTargetException(e);
 				}
