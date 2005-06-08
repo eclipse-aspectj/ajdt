@@ -2,10 +2,8 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
@@ -20,25 +18,16 @@ public class OpenTypeAction extends
 
 	public OpenTypeAction() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	
 	public void run() {
 		Shell parent= JavaPlugin.getActiveWorkbenchShell();
-		// begin fix https://bugs.eclipse.org/bugs/show_bug.cgi?id=66436
-		OpenTypeSelectionDialog dialog;
-		try {
-			dialog= new OpenTypeSelectionDialog(parent, PlatformUI.getWorkbench().getProgressService(), 
-				IJavaSearchConstants.TYPE, SearchEngine.createWorkspaceScope());
-		} catch (OperationCanceledException e) {
-			// action got canceled
-			return;
-		}
-		// end fix https://bugs.eclipse.org/bugs/show_bug.cgi?id=66436
+		OpenTypeSelectionDialog dialog= new OpenTypeSelectionDialog(parent, false, 
+			PlatformUI.getWorkbench().getProgressService(),
+			null, IJavaSearchConstants.TYPE);
+		dialog.setTitle(JavaUIMessages.OpenTypeAction_dialogTitle); 
+		dialog.setMessage(JavaUIMessages.OpenTypeAction_dialogMessage); 
 		
-		//dialog.setMatchEmptyString(true);	
-		dialog.setTitle(JavaUIMessages.OpenTypeAction_dialogTitle);
-		dialog.setMessage(JavaUIMessages.OpenTypeAction_dialogMessage);
 		int result= dialog.open();
 		if (result != IDialogConstants.OK_ID)
 			return;
@@ -50,8 +39,8 @@ public class OpenTypeAction extends
 				IEditorPart part= EditorUtility.openInEditor(type, true);
 				EditorUtility.revealInEditor(part, type);
 			} catch (CoreException x) {
-				String title= JavaUIMessages.OpenTypeAction_errorTitle;
-				String message= JavaUIMessages.OpenTypeAction_errorMessage;
+				String title= JavaUIMessages.OpenTypeAction_errorTitle; 
+				String message= JavaUIMessages.OpenTypeAction_errorMessage; 
 				ExceptionHandler.handle(x, title, message);
 			}
 		}

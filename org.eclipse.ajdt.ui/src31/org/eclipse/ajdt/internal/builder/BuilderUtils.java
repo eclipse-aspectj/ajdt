@@ -180,7 +180,7 @@ public class BuilderUtils {
 	 * @return
 	 */
 	public static char[][] getEnclosingTypes(IType startType) {
-		char[][] enclosingTypes = null;
+		char[][] enclosingTypes = new char[0][];
 		IType type = startType.getDeclaringType();
 		List enclosingTypeList = new ArrayList();
 		while(type != null) {

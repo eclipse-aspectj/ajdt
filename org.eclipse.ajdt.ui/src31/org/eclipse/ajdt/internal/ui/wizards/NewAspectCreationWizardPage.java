@@ -50,6 +50,7 @@ import org.eclipse.jdt.core.compiler.ITerminalSymbols;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
@@ -69,6 +70,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontMetrics;
@@ -1016,19 +1018,17 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		IJavaElement[] elements = new IJavaElement[] { root.getJavaProject() };
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements);
 
-		/*
-		org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog dialog = new org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog(getShell(),
-				getWizard().getContainer(), IJavaSearchConstants.CLASS, scope);
+		org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog2 dialog = new org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog2(getShell(),
+				true, getWizard().getContainer(), scope, IJavaSearchConstants.CLASS);
 		dialog.setTitle(AspectJUIPlugin
 				.getResourceString("NewTypeWizardPage.SuperClassDialog.title")); //$NON-NLS-1$
 		dialog.setMessage(AspectJUIPlugin
 				.getResourceString("NewTypeWizardPage.SuperClassDialog.message")); //$NON-NLS-1$
-		//dialog.setFilter(getSuperClass());
 
 		if (dialog.open() == Window.OK) {
 			return (IType) dialog.getFirstResult();
 		}
-		*/
+		
 		return null;
 	}
 	 
