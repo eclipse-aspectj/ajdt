@@ -28,6 +28,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
 import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
@@ -186,5 +188,10 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     public boolean canFinish() {
         return super.canFinish();
     }
+
+	public IJavaElement getCreatedElement() {
+		// HELEN - rc1 change - taken from NewElementWizard
+		return JavaCore.create(fFirstPage.getProjectHandle());
+	}
 
 }
