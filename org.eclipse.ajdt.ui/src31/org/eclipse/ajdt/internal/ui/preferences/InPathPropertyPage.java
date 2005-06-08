@@ -46,9 +46,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.eclipse.ui.help.WorkbenchHelp;
 
 
 /**
@@ -255,9 +255,7 @@ public class InPathPropertyPage extends PropertyPage implements
 
     public void createControl(Composite parent) {
         super.createControl(parent);
-        WorkbenchHelp.setHelp(
-            getControl(),
-            IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE); // GCH change this.
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), IJavaHelpContextIds.BUILD_PATH_PROPERTY_PAGE); // GCH change this.
     }
     
     /**
