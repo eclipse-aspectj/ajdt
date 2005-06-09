@@ -150,27 +150,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(dta != null) {
 			copyResources(javaProject,dta);
 		}
-		// AJDT can't make this decision as it doesn't know enough...
-		// ASC talk to HH about this change - it breaks a test (testUpdateNonSrcFile)
-		if (dta != null && kind != FULL_BUILD) {
+		
+		// int deltaSize = (dta==null?0:dta.getAffectedChildren().length);
+
+		if (kind != FULL_BUILD) {
 			// need to add check here for whether the classpath has changed
 			if (!coreOps.sourceFilesChanged(dta, project)){
 				AJLog.log("build: Examined delta - no source file changes for project " 
 								+ project.getName() );
 				
+				// if the source files of any projects which the current
+				// project depends on have changed, then need
+				// also to build the current project				
 				boolean continueToBuild = false;
-//				// if the source files of any projects which the current
-//				// project depends on have changed, then need
-//				// also to build the current project
-//				for (int i = 0; i < requiredProjects.length; i++) {
-//					IResourceDelta delta = getDelta(requiredProjects[i]);
-//					if (coreOps.sourceFilesChanged(delta, project)) {
-//						AJLog.log("build: Examined delta - source file changes in "
-//									+ "required project " + requiredProjects[i].getName() );
-//						continueToBuild = true;
-//						break;
-//					}
-//				}
+				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
+					IResourceDelta delta = getDelta(requiredProjects[i]);
+					continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
+				}
 				if (!continueToBuild) {
 					postCallListeners(true);
 					return requiredProjects;						

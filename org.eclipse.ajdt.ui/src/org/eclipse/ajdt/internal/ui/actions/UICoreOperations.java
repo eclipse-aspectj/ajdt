@@ -16,10 +16,15 @@ import java.util.List;
 import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
 import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
 import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.core.AJLog;
 import org.eclipse.ajdt.internal.core.ICoreOperations;
 import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * This class captures the implementation of those operations which logically
@@ -45,17 +50,36 @@ public class UICoreOperations implements ICoreOperations {
 		}
 		return false;
 	}
-
-	public boolean sourceFilesChanged(IResourceDelta dta, IProject project) {
-		if (dta == null)
-			return true;
-		String resname = dta.getFullPath().toString();
-
-		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
+	
+	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
+		if (delta!=null && delta.getAffectedChildren().length!=0) {
 			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
+		                               .getProjectBuildConfigurator(project);
 			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
+			IJavaProject ijp = JavaCore.create(project);
+		
+			try {
+				if (sourceFilesChanged(delta, includedFileNames,ijp.getOutputLocation())) {
+					AJLog.log("build: Examined delta - source file changes in "
+							+ "required project " + project.getName() );
+					return true;
+				}
+			} catch (JavaModelException e) {}
+		}
+		return false;
+	}
+	
+	private boolean sourceFilesChanged(IResourceDelta dta, List includedFileNames,IPath outputLocation) { //IProject project) {
+		if (dta == null) return false;
+		
+		String resname = dta.getFullPath().toString();
+
+		if ( outputLocation.equals(dta.getFullPath()) ) {
+			return false;
+		}
+		
+		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
 		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
                 return true;
             } else {
@@ -69,7 +93,7 @@ public class UICoreOperations implements ICoreOperations {
 			int i = 0;
 			IResourceDelta[] kids = dta.getAffectedChildren();
 			while (!kids_results && i < kids.length) {
-				kids_results = kids_results | sourceFilesChanged(kids[i], project);
+				kids_results = kids_results | sourceFilesChanged(kids[i], includedFileNames, outputLocation);
 				i++;
 			}
 			return kids_results;
