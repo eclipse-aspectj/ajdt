@@ -41,7 +41,6 @@ import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
 import org.eclipse.jdt.internal.debug.ui.launcher.JavaApplicationLaunchShortcut;
 import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
-import org.eclipse.jdt.ui.IJavaElementSearchConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -80,9 +79,7 @@ public class AspectJApplicationLaunchShortcut extends
 				IJavaElement[] elements = getJavaElements(search);
 				if (elements.length > 0) {
 					AJMainMethodSearchEngine engine = new AJMainMethodSearchEngine();
-					int constraints = IJavaElementSearchConstants.CONSIDER_BINARIES
-					| IJavaElementSearchConstants.CONSIDER_EXTERNAL_JARS;
-					IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
+					IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, false);
 					types = engine
 							.searchMainMethodsIncludingAspects(
 									PlatformUI.getWorkbench()
