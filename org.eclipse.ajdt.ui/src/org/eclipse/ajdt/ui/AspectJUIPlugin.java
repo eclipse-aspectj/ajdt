@@ -486,10 +486,13 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				.getSection(TAG_DIALOG_SECTION);
 		if (settings != null) {
 			IDialogSettings filterSettings = settings.getSection("filter");
-			String enabledMarkers = filterSettings.get("selectedType");
-			if (enabledMarkers.indexOf(problemMarker) == -1) {
-				enabledMarkers = enabledMarkers + problemMarker;
-				filterSettings.put("selectedType", enabledMarkers);
+			if (filterSettings != null) {
+				String enabledMarkers = filterSettings.get("selectedType");
+				if ((enabledMarkers != null)
+						&& enabledMarkers.indexOf(problemMarker) == -1) {
+					enabledMarkers = enabledMarkers + problemMarker;
+					filterSettings.put("selectedType", enabledMarkers);
+				}
 			}
 		}
 	}
