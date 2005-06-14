@@ -17,6 +17,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
+import org.eclipse.pde.internal.ui.build.FeatureExportInfo;
 import org.eclipse.pde.internal.ui.wizards.exports.AdvancedPluginExportPage;
 import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizard;
 import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizardPage;
@@ -57,17 +58,18 @@ public class AJPluginExportWizard extends BaseExportWizard {
 	}
 	
 	protected void scheduleExportJob() {
-		String[] signingInfo = fPage1.useJARFormat() ? fPage2.getSigningInfo() : null;
-		AJPluginExportJob job =
-			// AspectJ Change
-			new AJPluginExportJob(
-				fPage1.doExportToDirectory(),
-				fPage1.useJARFormat(),
-				fPage1.doExportSource(),
-				fPage1.getDestination(),
-				fPage1.getFileName(),
-				((ExportWizardPageWithTable)fPage1).getSelectedItems(),
-				signingInfo);
+		FeatureExportInfo info = new FeatureExportInfo();
+		info.toDirectory = fPage1.doExportToDirectory();
+		info.useJarFormat = fPage1.useJARFormat();
+		info.exportSource = fPage1.doExportSource();
+		info.destinationDirectory = fPage1.getDestination();
+		info.zipFileName = fPage1.getFileName();
+		info.javacSource = fPage1.getJavacSource();
+		info.javacTarget = fPage1.getJavacTarget();
+		info.items = ((ExportWizardPageWithTable)fPage1).getSelectedItems();
+		info.signingInfo = fPage1.useJARFormat() ? fPage2.getSigningInfo() : null;
+		
+		AJPluginExportJob job = new AJPluginExportJob(info);
 		job.setUser(true);
 		job.schedule();
 		job.setProperty(IProgressConstants.ICON_PROPERTY, PDEPluginImages.DESC_PLUGIN_OBJ);

@@ -864,7 +864,7 @@ public class BuildPathsBlock {
 			if (fCurrPage != null) {
 				List selection= fCurrPage.getSelection();
 				if (!selection.isEmpty()) {
-					newPage.setSelection(selection);
+					newPage.setSelection(selection, false);
 				}
 			}
 			fCurrPage= newPage;

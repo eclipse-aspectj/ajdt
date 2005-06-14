@@ -28,7 +28,8 @@ import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.TargetPlatform;
 import org.eclipse.pde.internal.ui.PDEUIMessages;
-import org.eclipse.pde.internal.ui.wizards.exports.FeatureExportJob;
+import org.eclipse.pde.internal.ui.build.FeatureExportInfo;
+import org.eclipse.pde.internal.ui.build.FeatureExportJob;
 
 /**
  * Mostly copied from PluginExportJob and FeatureExportJob.  
@@ -39,46 +40,17 @@ public class AJPluginExportJob extends FeatureExportJob {
 	private String fFeatureLocation;
 	
 	private String fDevProperties;
+
+	private FeatureExportInfo info;
 	
 	/**
 	 * 
-	 * @param toDirectory
-	 * @param useJarFormat
-	 * @param exportSource
-	 * @param destination
-	 * @param zipFileName
-	 * @param items
+	 * @param info
 	 */
-	public AJPluginExportJob(
-			boolean toDirectory,
-			boolean useJarFormat,
-			boolean exportSource,
-			String destination,
-			String zipFileName,
-			Object[] items) {
-			this(toDirectory, useJarFormat, exportSource, destination, zipFileName, items, null);
-		}
-
-	/**
-	 * 
-	 * @param toDirectory
-	 * @param useJarFormat
-	 * @param exportSource
-	 * @param destination
-	 * @param zipFileName
-	 * @param items
-	 * @param signingInfo
-	 */
-	public AJPluginExportJob(
-			boolean toDirectory,
-			boolean useJarFormat,
-			boolean exportSource,
-			String destination,
-			String zipFileName,
-			Object[] items,
-			String[] signingInfo) {
-			super(toDirectory, useJarFormat, exportSource, destination, zipFileName, items, signingInfo, null, null);
-		}
+	public AJPluginExportJob(FeatureExportInfo info) {
+		super(info);
+		this.info = info;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.wizards.exports.FeatureExportJob#doExports(org.eclipse.core.runtime.IProgressMonitor)
@@ -93,15 +65,15 @@ public class AJPluginExportJob extends FeatureExportJob {
 			String[] config = new String[] {TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), TargetPlatform.getNL() };
 			createFeature(featureID, fFeatureLocation, config, false);
 			createBuildPropertiesFile(fFeatureLocation);
-			if (fUseJarFormat)
+			if (info.useJarFormat)
 				createPostProcessingFile(new File(fFeatureLocation, PLUGIN_POST_PROCESSING));
 			doExport(featureID, null, fFeatureLocation, TargetPlatform.getOS(), TargetPlatform.getWS(), TargetPlatform.getOSArch(), 
                     new SubProgressMonitor(monitor, 7));
 		} catch (IOException e) {
 		} finally {
-			for (int i = 0; i < fItems.length; i++) {
-				if (fItems[i] instanceof IPluginModelBase)
-					deleteBuildFiles(fItems[i]);
+			for (int i = 0; i < info.items.length; i++) {
+				if (info.items[i] instanceof IPluginModelBase)
+					deleteBuildFiles(info.items[i]);
 			}
 			cleanup(null, new SubProgressMonitor(monitor, 3));
 			monitor.done();
@@ -167,7 +139,7 @@ public class AJPluginExportJob extends FeatureExportJob {
 	}
 
 	private String[] getBuildExecutionTargets() {
-		if (fExportSource)
+		if (info.exportSource)
 			return new String[] {"build.jars", "build.sources"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return new String[] {"build.jars"}; //$NON-NLS-1$ //$NON-NLS-2$
 	}
