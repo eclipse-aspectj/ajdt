@@ -190,7 +190,6 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     }
 
 	public IJavaElement getCreatedElement() {
-		// HELEN - rc1 change - taken from NewElementWizard
 		return JavaCore.create(fFirstPage.getProjectHandle());
 	}
 

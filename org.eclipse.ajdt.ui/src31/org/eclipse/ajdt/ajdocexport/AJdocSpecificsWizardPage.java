@@ -123,7 +123,7 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 
 		fExtraOptionsText.setText(fStore.getAdditionalParams());
 
-		// HELEN TODO: fix the ajdoc pages to fit with Eclipse rc1
+		// TODO: fix the ajdoc pages to fit with Eclipse 3.1
 		fJDK14Button= createButton(composite, SWT.CHECK, "JRE 1.4 source compatibility", createGridData(3));
 		fJDK14Button.setSelection(fStore.isJDK14Mode());
 		
