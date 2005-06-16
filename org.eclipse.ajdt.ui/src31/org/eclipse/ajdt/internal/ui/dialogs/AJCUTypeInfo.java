@@ -78,7 +78,7 @@ public class AJCUTypeInfo extends IFileTypeInfo {
 		return null;
 	}
 
-	protected IJavaElement getJavaElement(IJavaSearchScope scope) {
+	protected IJavaElement getContainer(IJavaSearchScope scope) {
 		return javaElement;
 	}
 	
