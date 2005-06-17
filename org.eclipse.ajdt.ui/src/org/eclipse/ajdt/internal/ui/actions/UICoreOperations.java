@@ -55,19 +55,28 @@ public class UICoreOperations implements ICoreOperations {
 		if (delta!=null && delta.getAffectedChildren().length!=0) {
 			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 		                               .getProjectBuildConfigurator(project);
+			if (pbc == null) {
+				// may not be an AJ project, better assume there might be changes
+				return true;
+			}
 			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
-			IJavaProject ijp = JavaCore.create(project);
-		
+			IJavaProject ijp = JavaCore.create(project);		
+			if (ijp == null) {
+				return true;
+			}
+			
 			try {
 				if (sourceFilesChanged(delta, includedFileNames,ijp.getOutputLocation())) {
 					AJLog.log("build: Examined delta - source file changes in "
 							+ "required project " + project.getName() );
 					return true;
+				} else {
+					return false;
 				}
 			} catch (JavaModelException e) {}
 		}
-		return false;
+		return true;
 	}
 	
 	private boolean sourceFilesChanged(IResourceDelta dta, List includedFileNames,IPath outputLocation) { //IProject project) {
