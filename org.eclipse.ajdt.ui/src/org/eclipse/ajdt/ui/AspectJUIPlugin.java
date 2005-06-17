@@ -82,7 +82,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
 // --- end imports ---
-//hellos
 /**
  * The main plugin class used in the desktop for AspectJ integration.
  * <p>
