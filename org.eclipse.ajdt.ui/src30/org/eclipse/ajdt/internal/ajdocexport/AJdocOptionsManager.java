@@ -11,7 +11,7 @@
  *     Luzius Meisser - adjusted for ajdoc 
  *******************************************************************************/
 
-package org.eclipse.ajdt.ajdocexport;
+package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.io.FileOutputStream;

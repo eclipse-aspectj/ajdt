@@ -11,7 +11,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
+import org.eclipse.ajdt.internal.exports.AJModelBuildScriptGenerator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;

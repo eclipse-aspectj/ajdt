@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.ajdt.buildconfigurator.propertypage;
+package org.eclipse.ajdt.internal.buildconfig.propertypage;
 
 import org.eclipse.ajdt.internal.buildconfig.propertypage.BuildPathsBlock;
 import org.eclipse.core.resources.IProject;

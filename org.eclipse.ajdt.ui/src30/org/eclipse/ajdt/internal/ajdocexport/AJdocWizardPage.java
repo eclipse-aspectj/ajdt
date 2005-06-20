@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.ajdt.ajdocexport;
+package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 

@@ -9,9 +9,8 @@
  *     IBM Corporation - initial API and implementation
  * 	   Luzius Meisser - adjusted for ajdoc 
  *******************************************************************************/
-package org.eclipse.ajdt.ajdocexport;
+package org.eclipse.ajdt.internal.ajdocexport;
 
-import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocTreeWizardPage;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;

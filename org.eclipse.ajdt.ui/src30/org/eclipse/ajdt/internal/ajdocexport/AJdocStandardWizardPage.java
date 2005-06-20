@@ -10,7 +10,7 @@
  *     Helen Hawkins   - adjusted for ajdoc
  *******************************************************************************/
 
-package org.eclipse.ajdt.ajdocexport;
+package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.net.URL;
@@ -23,7 +23,6 @@ import java.util.List;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
 
-import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocTreeWizardPage;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.core.resources.IProject;

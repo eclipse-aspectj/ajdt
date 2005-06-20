@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal;
+package org.eclipse.ajdt.core;
 
 /**
  * Used to distinguish the builds of AJDT for different versions of Eclipse

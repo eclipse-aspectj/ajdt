@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.buildconfigurator.propertypage;
+package org.eclipse.ajdt.internal.buildconfig.propertypage;
 
 
 import java.lang.reflect.InvocationTargetException;

@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Luzius Meisser - adjusted for ajdoc 
  *******************************************************************************/
-package org.eclipse.ajdt.ajdocexport;
+package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocProjectContentProvider;
 import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
