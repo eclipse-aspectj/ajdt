@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.eclipse.ajdt.exports.AJAntScript;
 import org.eclipse.ajdt.exports.AJCTask;
-import org.eclipse.ajdt.exports.AJFeatureBuildScriptGenerator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
