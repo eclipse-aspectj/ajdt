@@ -13,8 +13,8 @@ package org.eclipse.ajdt.internal.builder;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
 import org.eclipse.ajdt.internal.core.AJDTUtilsTest.MyJobChangeListener;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.test.utils.BlockingProgressMonitor;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IProject;

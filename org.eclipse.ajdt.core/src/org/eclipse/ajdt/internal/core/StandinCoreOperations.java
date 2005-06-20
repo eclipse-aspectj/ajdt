@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core;
 
+import org.eclipse.ajdt.core.ICoreOperations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
 

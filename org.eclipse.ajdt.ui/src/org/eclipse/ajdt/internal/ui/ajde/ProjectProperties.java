@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
-import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
-import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;

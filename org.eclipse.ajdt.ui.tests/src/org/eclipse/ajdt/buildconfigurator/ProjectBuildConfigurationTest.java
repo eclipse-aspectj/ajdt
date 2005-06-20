@@ -18,7 +18,10 @@ import java.util.Iterator;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

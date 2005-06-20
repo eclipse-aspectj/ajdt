@@ -11,6 +11,7 @@ Matt Chapman - refactored and moved to core plugin (84967)
 **********************************************************************/
 package org.eclipse.ajdt.internal.core;
 
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ClasspathVariableInitializer;
 import org.eclipse.jdt.core.JavaCore;

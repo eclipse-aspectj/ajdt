@@ -14,9 +14,9 @@ package org.eclipse.ajdt.core.tests.codeconversion;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.codeconversion.CodeChecker;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.internal.codeconversion.CodeChecker;
-import org.eclipse.ajdt.internal.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

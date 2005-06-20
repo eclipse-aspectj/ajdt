@@ -18,6 +18,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocProjectContentProvider;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;

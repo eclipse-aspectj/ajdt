@@ -16,7 +16,7 @@ import java.util.Map;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
-import org.eclipse.ajdt.parserbridge.wrapperclasses.AJCompilationUnitDeclarationWrapper;
+import org.eclipse.ajdt.internal.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;

@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ui.wizards.migration;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;

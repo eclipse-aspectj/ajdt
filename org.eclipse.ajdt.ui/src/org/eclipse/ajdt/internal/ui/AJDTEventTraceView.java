@@ -10,8 +10,8 @@ Adrian Colyer - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace.Event;
+import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.internal.utils.AJDTEventTrace.Event;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;

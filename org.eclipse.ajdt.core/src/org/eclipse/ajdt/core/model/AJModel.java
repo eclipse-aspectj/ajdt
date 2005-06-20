@@ -19,9 +19,9 @@ import java.util.Map;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

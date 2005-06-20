@@ -17,7 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.eclipse.ajdt.internal.exports.AJBuildScriptGenerator;
+import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;

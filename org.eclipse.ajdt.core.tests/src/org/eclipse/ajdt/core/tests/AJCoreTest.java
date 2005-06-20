@@ -15,12 +15,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCore;
+import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
-import org.eclipse.ajdt.internal.EclipseVersion;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;

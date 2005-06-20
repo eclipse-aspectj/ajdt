@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.launching;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
+import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;

@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.wizards.exports;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
-import org.eclipse.ajdt.internal.exports.AJBuildScriptGenerator;
+import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;

@@ -14,7 +14,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;

@@ -13,7 +13,7 @@ package org.eclipse.ajdt.core.builder;
 
 import java.util.List;
 
-import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 

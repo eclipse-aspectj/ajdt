@@ -13,11 +13,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
-import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
-import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -204,7 +204,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			}
 
 			// add aspectjrt.jar to project classpath
-			AJDTUtils.addAjrtToBuildPath(project);
+			AspectJUIPlugin.addAjrtToBuildPath(project);
 
 			// add JRE entry to project classpath
 			IJavaProject javaProject = JavaCore.create(project);

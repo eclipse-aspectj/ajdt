@@ -8,7 +8,7 @@
 package org.eclipse.ajdt.internal.ui.editor;
 
 import org.aspectj.ajde.ui.IStructureViewNode;
-import org.eclipse.ajdt.internal.core.AJDTStructureViewNode;
+import org.eclipse.ajdt.internal.utils.AJDTStructureViewNode;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;

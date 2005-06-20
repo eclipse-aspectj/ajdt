@@ -15,7 +15,7 @@ import org.aspectj.ajde.TaskListManager;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.bridge.IMessage.Kind;
-import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.core.AJLog;
 
 public class CoreTaskListManager implements TaskListManager {
 

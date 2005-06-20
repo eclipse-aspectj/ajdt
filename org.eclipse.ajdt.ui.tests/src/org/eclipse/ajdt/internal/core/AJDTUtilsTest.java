@@ -18,7 +18,10 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.test.utils.Utils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -186,13 +189,13 @@ public class AJDTUtilsTest extends TestCase {
 
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
-		AJDTUtils.addAjrtToBuildPath(projectY);
+		AspectJUIPlugin.addAjrtToBuildPath(projectY);
 		Utils.waitForJobsToComplete();
 
 		assertTrue("project.java.Y should have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
-		AJDTUtils.removeAjrtFromBuildPath(projectY);
+		AspectJUIPlugin.removeAjrtFromBuildPath(projectY);
 		Utils.waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));

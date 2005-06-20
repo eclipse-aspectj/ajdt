@@ -12,7 +12,7 @@
 package org.eclipse.ajdt.core.builder;
 
 import org.aspectj.ajde.ErrorHandler;
-import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.core.AJLog;
 
 public class CoreErrorHandler implements ErrorHandler {
 

@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ui.wizards.migration;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;

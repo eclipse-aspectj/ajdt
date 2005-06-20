@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator.propertypage;
 
+import org.eclipse.ajdt.internal.buildconfig.propertypage.BuildPathsBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;

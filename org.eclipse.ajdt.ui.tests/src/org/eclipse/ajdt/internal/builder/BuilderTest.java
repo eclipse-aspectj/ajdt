@@ -21,10 +21,10 @@ import java.io.StringReader;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
-import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
 import org.eclipse.ajdt.test.utils.Utils;
-import org.eclipse.ajdt.ui.refactoring.ReaderInputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;

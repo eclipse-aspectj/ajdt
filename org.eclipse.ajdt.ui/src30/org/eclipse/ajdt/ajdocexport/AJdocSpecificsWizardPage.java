@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ajdocexport;
 
+import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocTreeWizardPage;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;

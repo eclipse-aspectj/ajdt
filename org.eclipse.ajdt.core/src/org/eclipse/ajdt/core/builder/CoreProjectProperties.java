@@ -21,10 +21,10 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;

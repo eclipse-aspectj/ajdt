@@ -21,17 +21,16 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
-import org.eclipse.ajdt.buildconfigurator.BCResourceChangeListener;
-import org.eclipse.ajdt.buildconfigurator.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.EclipseVersion;
+import org.eclipse.ajdt.internal.buildconfig.BCResourceChangeListener;
+import org.eclipse.ajdt.internal.buildconfig.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.AJDTStructureViewNodeFactory;
-import org.eclipse.ajdt.internal.core.AJDTUtils;
+import org.eclipse.ajdt.internal.javamodel.FileFilter;
+import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.EventTraceLogger;
 import org.eclipse.ajdt.internal.ui.actions.UICoreOperations;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
@@ -46,8 +45,9 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.javamodel.FileFilter;
-import org.eclipse.ajdt.javamodel.ResourceChangeListener;
+import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -58,9 +58,15 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -974,6 +980,75 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 						| IResourceChangeEvent.PRE_DELETE
 						| IResourceChangeEvent.POST_CHANGE
 						| IResourceChangeEvent.PRE_BUILD);
+	}
+
+	/**
+	 * Attempt to update the project's build classpath with the AspectJ runtime
+	 * library.
+	 * 
+	 * @param project
+	 */
+	public static void addAjrtToBuildPath(IProject project) {
+		// Locate the aspectjrt.jar file.
+		// String ajrtPath =
+		//	AspectJPlugin.
+		//	getDefault().
+		//	getAjdtProjectProperties().
+		//	getAspectjrtClasspath();
+
+		//		if (ajrtPath != null)
+		//		{
+		IJavaProject javaProject = JavaCore.create(project);
+		try {
+			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
+			IClasspathEntry ajrtLIB = JavaCore.newVariableEntry(new Path(
+					"ASPECTJRT_LIB"), // library location
+					null, // no source
+					null // no source
+					);
+			// Update the raw classpath with the new ajrtCP entry.
+			int originalCPLength = originalCP.length;
+			IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
+			System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
+			newCP[originalCPLength] = ajrtLIB;
+			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+		} catch (JavaModelException e) {
+		}
+		//		}
+	}
+
+	/**
+	 * Attempt to update the project's build classpath by removing any occurance
+	 * of the AspectJ runtime library.
+	 * 
+	 * @param project
+	 */
+	public static void removeAjrtFromBuildPath(IProject project) {
+		IJavaProject javaProject = JavaCore.create(project);
+		try {
+			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
+			ArrayList tempCP = new ArrayList();
+
+			// Go through each current classpath entry one at a time. If it
+			// is not a reference to the aspectjrt.jar then do not add it
+			// to the collection of new classpath entries.
+			for (int i = 0; i < originalCP.length; i++) {
+				IPath path = originalCP[i].getPath();
+				if (!path.toOSString().endsWith("ASPECTJRT_LIB")
+						&& !path.toOSString().endsWith("aspectjrt.jar")) {
+					tempCP.add(originalCP[i]);
+				}
+			}// end for
+
+			// Set the classpath with only those elements that survived the
+			// above filtration process.
+			if (originalCP.length != tempCP.size()) {
+				IClasspathEntry[] newCP = (IClasspathEntry[]) tempCP
+						.toArray(new IClasspathEntry[tempCP.size()]);
+				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
+			}// end if at least one classpath element removed
+		} catch (JavaModelException e) {
+		}
 	}
 
 }

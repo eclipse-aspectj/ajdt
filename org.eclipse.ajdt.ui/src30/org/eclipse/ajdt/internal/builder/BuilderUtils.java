@@ -16,12 +16,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.TimerLogEvent;
 import org.eclipse.ajdt.internal.ui.dialogs.AJCUTypeInfo;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.internal.jobs.JobStatus;

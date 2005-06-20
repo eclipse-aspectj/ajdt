@@ -11,6 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.buildconfigurator;
 
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IProject;
 

@@ -143,7 +143,7 @@
          </filter>
          <action
                label="%convertExt"
-               class="org.eclipse.ajdt.ui.refactoring.RenameFileExtensionsAction"
+               class="org.eclipse.ajdt.internal.ui.refactoring.RenameFileExtensionsAction"
                menubarPath="additions"
                id="renamefileextensionsaction"
                enablesFor="1">
@@ -162,7 +162,7 @@
           </filter> -->
           <action
                label="%convertExtToAJ"
-               class="org.eclipse.ajdt.ui.refactoring.RenameToAJAction"
+               class="org.eclipse.ajdt.internal.ui.refactoring.RenameToAJAction"
                menubarPath="additions"
                id="renametoajaction">
          </action>
@@ -173,7 +173,7 @@
             id="ifilecontributions"> 
           <action
                label="%convertExtToJava"
-               class="org.eclipse.ajdt.ui.refactoring.RenameToJavaAction"
+               class="org.eclipse.ajdt.internal.ui.refactoring.RenameToJavaAction"
                menubarPath="additions"
                id="renametojavaaction">
          </action>
@@ -186,7 +186,7 @@
             id="ifilecontributions">
           <action
           	    label="Delete"
-          	    class="org.eclipse.ajdt.ui.refactoring.DeleteAction"
+          	    class="org.eclipse.ajdt.internal.ui.refactoring.DeleteAction"
           	    menubarPath="edit"
           	    id="delete">
           </action>
@@ -367,7 +367,7 @@
       <filter
             targetId="org.eclipse.jdt.ui.PackageExplorer"
             enabled="true"
-            class="org.eclipse.ajdt.javamodel.FileFilter"
+            class="org.eclipse.ajdt.internal.javamodel.FileFilter"
             description="%ajFileFilterDesc"
             name="%ajFileFilter"
             id="org.eclipse.ajdt.javamodel.FileFilter"/>
@@ -413,8 +413,8 @@
             name="AspectJ Properties Editor"
             icon="icons/buildconfig/buildconfig_file.gif"
             extensions="ajproperties"
-            contributorClass="org.eclipse.ajdt.buildconfigurator.editor.BuildEditorContributor"
-            class="org.eclipse.ajdt.buildconfigurator.editor.BuildEditor"
+            contributorClass="org.eclipse.ajdt.internal.buildconfig.editor.BuildEditorContributor"
+            class="org.eclipse.ajdt.internal.buildconfig.editor.BuildEditor"
             id="AJPropertiesEditor">
       </editor>
 <!-- do we need to duplicate these next 3 editors from JDT??? org.eclipse.jdt.ui.ClassFileEditor -->
@@ -730,7 +730,7 @@
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
             name="Java Build Path"
-            class="org.eclipse.ajdt.buildconfigurator.propertypage.BCPropertyPage"
+            class="org.eclipse.ajdt.internal.buildconfig.propertypage.BCPropertyPage"
             id="org.eclipse.ajdt.ui.ConfiguratorPage">
          <filter
                name="projectNature"
@@ -1388,12 +1388,12 @@
          name="AJDT Provider"
          point="org.eclipse.contribution.visualiser.providers">
       <provider
-            markupProviderClass="org.eclipse.ajdt.ui.visualiser.AJDTMarkupProvider"
+            markupProviderClass="org.eclipse.ajdt.internal.ui.visualiser.AJDTMarkupProvider"
             name="AspectJ Provider"
             priority="10"
             description="Provider that shows where AspectJ advice applies on Java packages and classes."
             emptyMessage="Nothing to display. Select a project, package, or class from the Package Explorer."
-            contentProviderClass="org.eclipse.ajdt.ui.visualiser.AJDTContentProvider"
+            contentProviderClass="org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider"
             id="ajdtprovider"
             paletteid="ajdtpalette">
       </provider>
@@ -1401,7 +1401,7 @@
    </extension>
    <extension
          point="org.eclipse.contribution.visualiser.palettes">
-         <palette class="org.eclipse.ajdt.ui.visualiser.AJDTPalette"
+         <palette class="org.eclipse.ajdt.internal.ui.visualiser.AJDTPalette"
              name="AJDT palette"
              id="ajdtpalette">
          </palette>
@@ -1434,10 +1434,10 @@
 <extension 
 	point="org.eclipse.ui.perspectives">
 	<perspective
-		id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"
+		id="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizationPerspective"
 		name="Aspect Visualization"
 		icon="icons/aspect_visualization.gif"
-		class="org.eclipse.ajdt.ui.visualiser.AspectVisualizerPerspectiveFactory">
+		class="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizerPerspectiveFactory">
 	</perspective>
 </extension>
 
@@ -1471,7 +1471,7 @@
             id="Build Configurator Plugin.objectContribution2">
          <action
                label="Exclude from active build configuration"
-               class="org.eclipse.ajdt.buildconfigurator.popup.actions.ExcludeAction"
+               class="org.eclipse.ajdt.internal.buildconfig.actions.ExcludeAction"
                menubarPath="replaceWithMenu"
                id="exclude">
          </action>
@@ -1496,7 +1496,7 @@
             id="Build Configurator Plugin.objectContribution1">
          <action
                label="Include in active build configuration"
-               class="org.eclipse.ajdt.buildconfigurator.popup.actions.IncludeAction"
+               class="org.eclipse.ajdt.internal.buildconfig.actions.IncludeAction"
                menubarPath="replaceWithMenu"
                id="include">
          </action>
@@ -1522,7 +1522,7 @@
             id="buildfilecontributions">
          <action
                label="%saveAsAJProperties"
-               class="org.eclipse.ajdt.buildconfigurator.popup.actions.ImportAction"
+               class="org.eclipse.ajdt.internal.buildconfig.actions.ImportAction"
                menubarPath="replaceWithMenu"
                id="buildselectorpopup">
          </action>
@@ -1534,13 +1534,13 @@
             id="ajproperties">
          <action
                label="%activateConfig"
-               class="org.eclipse.ajdt.buildconfigurator.popup.actions.ActivateAction"
+               class="org.eclipse.ajdt.internal.buildconfig.actions.ActivateAction"
                menubarPath="replaceWithMenu"
                id="ajpropertiespopup">
          </action>
          <action
                label="%saveAsLst"
-               class="org.eclipse.ajdt.buildconfigurator.popup.actions.ExportAction"
+               class="org.eclipse.ajdt.internal.buildconfig.actions.ExportAction"
                menubarPath="replaceWithMenu"
                id="org.eclipse.ajdt.buildconfigurator.exportAction"/>
       </objectContribution>
@@ -1567,9 +1567,9 @@
       <decorator
             lightweight="false"
             label="%BuildConfigDecorator.label"
-            class="org.eclipse.ajdt.buildconfigurator.ImageDecorator"
+            class="org.eclipse.ajdt.internal.buildconfig.ImageDecorator"
             state="true"
-            id="org.eclipse.ajdt.buildconfigurator.decorator1">
+            id="org.eclipse.ajdt.buildconfig.decorator">
          <description>
 			%BuildConfigDecorator.description
 		 </description>
@@ -1761,7 +1761,7 @@
       <xrefProvider
             label="AspectJ XReference Provider"
             enabled="true"
-            class="org.eclipse.ajdt.ui.xref.AJXReferenceProvider"
+            class="org.eclipse.ajdt.internal.ui.xref.AJXReferenceProvider"
             id="org.eclipse.ajdt.ui.xref.providers.AJXReferenceProvider">
       </xrefProvider>
    </extension>
@@ -1794,7 +1794,7 @@
     <view name="Pointcut Navigator" 
     	icon="icons/structure/after_advice.gif" 
     	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.ui.navigator.PointcutNavigatorView" 
+    	class="org.eclipse.ajdt.internal.ui.navigator.PointcutNavigatorView" 
     	id="org.eclipse.ajdt.ui.navigator.PointcutNavigatorView" /> 
   </extension>
 

@@ -13,12 +13,12 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import java.util.List;
 
-import org.eclipse.ajdt.buildconfigurator.BuildConfiguration;
-import org.eclipse.ajdt.buildconfigurator.BuildConfigurator;
-import org.eclipse.ajdt.buildconfigurator.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.core.AJLog;
-import org.eclipse.ajdt.internal.core.ICoreOperations;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.ICoreOperations;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.IPath;

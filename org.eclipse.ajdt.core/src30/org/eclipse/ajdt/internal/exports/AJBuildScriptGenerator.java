@@ -12,6 +12,8 @@ package org.eclipse.ajdt.internal.exports;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.exports.AJFeatureBuildScriptGenerator;
+import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.pde.internal.build.AssembleScriptGenerator;
 import org.eclipse.pde.internal.build.AssemblyInformation;

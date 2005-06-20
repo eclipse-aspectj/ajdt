@@ -24,7 +24,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.core.CoreUtils;
+import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocSpecificsWizardPage;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocStandardWizardPage;
+import org.eclipse.ajdt.internal.ajdocexport.AJdocTreeWizardPage;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;

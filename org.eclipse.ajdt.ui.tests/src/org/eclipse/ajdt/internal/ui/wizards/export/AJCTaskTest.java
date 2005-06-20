@@ -22,8 +22,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.internal.exports.AJAntScript;
-import org.eclipse.ajdt.internal.exports.AJCTask;
+import org.eclipse.ajdt.exports.AJAntScript;
+import org.eclipse.ajdt.exports.AJCTask;
 import org.eclipse.core.runtime.Platform;
 
 /**

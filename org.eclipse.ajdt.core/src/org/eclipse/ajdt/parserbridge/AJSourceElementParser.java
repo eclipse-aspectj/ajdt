@@ -75,6 +75,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CommentRecorderParser;
+import org.eclipse.ajdt.internal.parserbridge.IAspectSourceElementRequestor;
 
 /*
  * Luzius:

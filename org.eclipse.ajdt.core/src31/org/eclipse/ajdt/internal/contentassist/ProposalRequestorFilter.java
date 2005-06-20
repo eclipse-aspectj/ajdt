@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.contentassist;
 
-import org.eclipse.ajdt.internal.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
 

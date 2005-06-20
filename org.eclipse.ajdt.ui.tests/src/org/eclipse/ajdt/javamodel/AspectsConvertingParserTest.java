@@ -10,8 +10,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.javamodel;
 
-import org.eclipse.ajdt.internal.codeconversion.AspectsConvertingParser;
-import org.eclipse.ajdt.internal.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.codeconversion.ConversionOptions;
 
 /**
  * Test 

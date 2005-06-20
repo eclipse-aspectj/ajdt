@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
-import org.eclipse.ajdt.internal.core.AJDTEventTrace;
-import org.eclipse.ajdt.internal.core.IAJLogger;
+import org.eclipse.ajdt.core.IAJLogger;
+import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 
 /**
  * This logger simply outputs to the event trace view

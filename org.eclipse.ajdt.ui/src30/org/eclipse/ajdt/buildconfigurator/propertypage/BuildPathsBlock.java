@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.buildconfig.propertypage.BCContainerWorkbookPage;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

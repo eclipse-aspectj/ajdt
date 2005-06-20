@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.builder;
 
 import java.util.Map;
 
-import org.eclipse.ajdt.internal.core.AJLog;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;

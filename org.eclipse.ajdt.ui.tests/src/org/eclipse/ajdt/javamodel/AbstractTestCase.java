@@ -14,9 +14,9 @@ import java.io.File;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.test.utils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

@@ -14,6 +14,7 @@ package org.eclipse.ajdt.buildconfigurator.propertypage;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.internal.buildconfig.propertypage.BuildPathsBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
