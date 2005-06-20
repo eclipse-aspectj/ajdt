@@ -33,6 +33,7 @@ import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.internal.ui.ajde.ClasspathOrderTest;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectPropertiesTest;
+import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointKeyboardActionTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditorTest;
 import org.eclipse.ajdt.internal.ui.editor.codeFormatting.CodeFormatTest;
@@ -100,6 +101,7 @@ public class AllTests {
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
+		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		
 		// code format tests
 		suite.addTest(new TestSuite(CodeFormatTest.class));

@@ -107,6 +107,8 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 		
 		//toggling breakpoint on line 100 should not be possible
 		setBreakpoint(100, false, sourcefile, editorPart);
+		
+		editorPart.close(false);
 	}
 	
 	private void setBreakpoint(int line, boolean hasEffect, IFile file, ITextEditor editor){
