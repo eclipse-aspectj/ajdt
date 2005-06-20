@@ -9,7 +9,7 @@
  ******************************************************************************/
 package org.eclipse.contribution.xref.internal.core.ras;
 
-import org.eclipse.contribution.xref.internal.core.XReferencePlugin;
+import org.eclipse.contribution.xref.core.XReferencePlugin;
 import org.eclipse.contribution.xref.ras.PluginFFDC;
 import org.eclipse.core.runtime.IStatus;
 

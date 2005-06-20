@@ -9,8 +9,8 @@
  ******************************************************************************/
 package org.eclipse.contribution.xref.ui.views;
 
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
-import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

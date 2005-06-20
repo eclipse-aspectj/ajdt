@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.actions;
 
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;

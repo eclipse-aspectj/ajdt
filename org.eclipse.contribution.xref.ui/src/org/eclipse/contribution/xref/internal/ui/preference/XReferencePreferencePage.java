@@ -13,9 +13,9 @@ package org.eclipse.contribution.xref.internal.ui.preference;
 
 import java.util.List;
 
-import org.eclipse.contribution.xref.internal.core.XReferenceProviderDefinition;
-import org.eclipse.contribution.xref.internal.core.XReferenceProviderManager;
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
+import org.eclipse.contribution.xref.core.XReferenceProviderManager;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;

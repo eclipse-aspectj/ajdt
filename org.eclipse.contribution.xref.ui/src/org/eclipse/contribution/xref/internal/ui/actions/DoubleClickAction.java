@@ -14,7 +14,7 @@ package org.eclipse.contribution.xref.internal.ui.actions;
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
-import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.action.Action;

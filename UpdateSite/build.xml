@@ -65,9 +65,9 @@ Creates an update site structure for AspectJ
   <ant dir="../org.eclipse.ajdt.test" inheritAll="true" target="clean"/>
 <!--  <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" target="clean"/> -->
   <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true" target="clean"/>
-  <ant dir="../org.eclipse.contribution.xref.core.test" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.core.tests" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true" target="clean"/>
-  <ant dir="../org.eclipse.contribution.xref.ui.test" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.contribution.xref.ui.tests" inheritAll="true" target="clean"/>
 </target>
 
 	
@@ -131,9 +131,9 @@ Creates an update site structure for AspectJ
  <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.core.test" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.core.tests" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.ui.test" inheritAll="true"/>
+ <ant dir="../org.eclipse.contribution.xref.ui.tests" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.core" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.ui" inheritAll="true"/>
  <ant dir="../org.eclipse.ajdt.examples" inheritAll="true"/>

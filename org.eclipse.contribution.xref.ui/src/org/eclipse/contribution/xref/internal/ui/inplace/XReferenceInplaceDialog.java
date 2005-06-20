@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceNode;
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
-import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.util.StringMatcher;

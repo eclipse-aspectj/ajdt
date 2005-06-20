@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.inplace;
 
-import org.eclipse.contribution.xref.ui.utils.XRefUIUtils;
+import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

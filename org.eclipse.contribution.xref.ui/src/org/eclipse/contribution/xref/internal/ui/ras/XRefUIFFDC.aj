@@ -9,7 +9,7 @@
  ******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.ras;
 
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ras.PluginFFDC;
 import org.eclipse.core.runtime.IStatus;
 

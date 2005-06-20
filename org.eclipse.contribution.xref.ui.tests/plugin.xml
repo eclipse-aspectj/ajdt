@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin
-   id="org.eclipse.contribution.xref.ui.test"
+   id="org.eclipse.contribution.xref.ui.tests"
    name="%pluginName"
    version="92.2.29"
    provider-name="%providerName">
@@ -26,14 +26,14 @@
       <xrefProvider
             label="Test XReference Provider Label"
             enabled="true"
-            class="org.eclipse.contribution.xref.ui.views.TestXRefProvider"
-            id="org.eclipse.contribution.xref.core.test.testXRefProvider">
+            class="org.eclipse.contribution.xref.ui.tests.views.TestXRefProvider"
+            id="org.eclipse.contribution.xref.ui.tests.views.testXRefProvider">
       </xrefProvider>
       <xrefProvider
             label="Test XReference Provider With Entities Label"
             enabled="true"
-            class="org.eclipse.contribution.xref.ui.views.TestXRefProviderWithEntities"
-            id="org.eclipse.contribution.xref.core.test.testXRefProviderWithEntities">
+            class="org.eclipse.contribution.xref.ui.tests.views.TestXRefProviderWithEntities"
+            id="org.eclipse.contribution.xref.ui.tests.views.testXRefProviderWithEntities">
       </xrefProvider>
    </extension>
 </plugin>

@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <!-- writen for Ant 1.5.1 -->
-<project name="org.eclipse.contribution.xref.core.test" default="packaged-plugin">
+<project name="org.eclipse.contribution.xref.core.tests" default="packaged-plugin">
 
 <description>
-Create a packaged org.eclipse.contribution.xref.core.test_version plugin distribution file
+Create a packaged org.eclipse.contribution.xref.core.tests_version plugin distribution file
 </description>
 <!-- VERSION-STRING -->
 <!-- these property values will be overridden when called from the master build script -->
@@ -34,11 +34,11 @@ Create a packaged org.eclipse.contribution.xref.core.test_version plugin distrib
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.core.test};../org.eclipse.contribution.xref.core/build/xrefcore.jar"/>
+	<javac srcdir="src" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.core.tests};../org.eclipse.contribution.xref.core/build/xrefcore.jar"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >
-	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.core.test" />
+	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.core.tests" />
 </target>
 
 <target name="buildproject" depends="externalbuild,eclipsebuild" />
@@ -59,7 +59,7 @@ Create a packaged org.eclipse.contribution.xref.core.test_version plugin distrib
 <target name="xrefcoretestsrcjar" depends="init"
  description="The source jar file for xref core tests, xrefcoretestsrc.jar">
   <zip destfile= "${build.dir}/xrefcoretestsrc.jar" >
-   <fileset dir="testsrc"/>
+   <fileset dir="src"/>
   </zip>
 </target>
 
@@ -81,7 +81,7 @@ Create a packaged org.eclipse.contribution.xref.core.test_version plugin distrib
  	</filterset>
  </copy>  
 
- <zip destfile= "dist/org.eclipse.contribution.xref.core.test_${xref.version}.jar" >
+ <zip destfile= "dist/org.eclipse.contribution.xref.core.tests_${xref.version}.jar" >
    <fileset dir= "build" />
  </zip>
 </target>

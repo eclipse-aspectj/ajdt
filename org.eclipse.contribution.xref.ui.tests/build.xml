@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <!-- writen for Ant 1.5.1 -->
-<project name="org.eclipse.contribution.xref.ui.test" default="packaged-plugin">
+<project name="org.eclipse.contribution.xref.ui.tests" default="packaged-plugin">
 
 <description>
-Create a packaged org.eclipse.contribution.xref.ui.test_version plugin distribution file
+Create a packaged org.eclipse.contribution.xref.ui.tests_version plugin distribution file
 </description>
 <!-- VERSION-STRING -->
 <!-- these property values will be overridden when called from the master build script -->
@@ -34,11 +34,11 @@ Create a packaged org.eclipse.contribution.xref.ui.test_version plugin distribut
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="testsrc" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.ui.test};../org.eclipse.contribution.xref.core/build/xrefcore.jar;../org.eclipse.contribution.xref.ui/build/xrefui.jar"/>
+	<javac srcdir="src" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.ui.tests};../org.eclipse.contribution.xref.core/build/xrefcore.jar;../org.eclipse.contribution.xref.ui/build/xrefui.jar"/>
 </target>
 
 <target name="eclipsebuild" unless="external.build" >
-	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.ui.test" />
+	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.ui.tests" />
 </target>
 
 <target name="buildproject" depends="externalbuild,eclipsebuild" />
@@ -59,7 +59,7 @@ Create a packaged org.eclipse.contribution.xref.ui.test_version plugin distribut
 <target name="xrefuitestsrcjar" depends="init"
  description="The source jar file for xref ui tests, xrefuitestsrc.jar">
   <zip destfile= "${build.dir}/xrefuitestsrc.jar" >
-   <fileset dir="testsrc"/>
+   <fileset dir="src"/>
   </zip>
 </target>
 
@@ -81,7 +81,7 @@ Create a packaged org.eclipse.contribution.xref.ui.test_version plugin distribut
  	</filterset>
  </copy>  
 
- <zip destfile= "dist/org.eclipse.contribution.xref.ui.test_${xref.version}.jar" >
+ <zip destfile= "dist/org.eclipse.contribution.xref.ui.tests_${xref.version}.jar" >
    <fileset dir= "build" />
  </zip>
 </target>

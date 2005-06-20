@@ -12,7 +12,7 @@
 package org.eclipse.contribution.xref.internal.core.policy;
 
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.contribution.xref.internal.core.XReferencePlugin;
+import org.eclipse.contribution.xref.core.XReferencePlugin;
 
 import java.io.PrintStream;
 import java.util.Set;

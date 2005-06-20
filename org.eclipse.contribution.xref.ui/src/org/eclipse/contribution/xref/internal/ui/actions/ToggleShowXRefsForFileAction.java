@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.actions;
 
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
-import org.eclipse.contribution.xref.ui.utils.XReferenceImages;
+import org.eclipse.contribution.xref.internal.ui.utils.XReferenceImages;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jface.action.Action;
 

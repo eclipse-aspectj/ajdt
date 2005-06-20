@@ -19,7 +19,7 @@ import java.util.List;
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
-import org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;

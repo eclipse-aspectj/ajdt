@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin
-   id="org.eclipse.contribution.xref.core.test"
+   id="org.eclipse.contribution.xref.core.tests"
    name="%pluginName"
    version="92.2.29"
    provider-name="%providerName">
@@ -23,14 +23,14 @@
       <xrefProvider
             enabled="true"
             label="My Label"
-            class="org.eclipse.contribution.xref.internal.core.TestProvider"
-            id="org.eclipse.contribution.xref.core.test.testProvider">
+            class="org.eclipse.contribution.xref.core.tests.TestProvider"
+            id="org.eclipse.contribution.xref.core.tests.testProvider">
       </xrefProvider>
       <xrefProvider
             enabled="true"
             label="My Label 2"
-            class="org.eclipse.contribution.xref.internal.core.UnknownProvider"
-            id="org.eclipse.contribution.xref.core.test.unknownProvider">
+            class="org.eclipse.contribution.xref.core.tests.UnknownProvider"
+            id="org.eclipse.contribution.xref.core.tests.unknownProvider">
       </xrefProvider>
    </extension>
 

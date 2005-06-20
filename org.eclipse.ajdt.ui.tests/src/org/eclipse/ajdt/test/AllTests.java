@@ -148,8 +148,8 @@ public class AllTests {
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 
 		// xref tests
-		suite.addTest(org.eclipse.contribution.xref.core.AllTests.suite());
-		suite.addTest(org.eclipse.contribution.xref.ui.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());
+		suite.addTest(org.eclipse.contribution.xref.ui.tests.AllTests.suite());
 
 		// visualiser tests
 		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
