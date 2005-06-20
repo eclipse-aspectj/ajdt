@@ -31,7 +31,6 @@ public class Views extends TestCase {
   private static Visualiser visView;
   private static Menu vismenuView;
   
-  private static boolean viewsonscreen = false;
   
   private IWorkbenchPage getPage() {
      IWorkbench workbench= PlatformUI.getWorkbench();
@@ -42,13 +41,11 @@ public class Views extends TestCase {
   public void showViews() throws PartInitException {
 	vismenuView = (Menu)       getPage().showView("org.eclipse.contribution.visualiser.views.Menu");
 	visView     = (Visualiser) getPage().showView("org.eclipse.contribution.visualiser.views.Visualiser");
-	viewsonscreen = true;
   }
   
   public void hideViews() {
   	getPage().hideView(vismenuView);
   	getPage().hideView(visView);
-  	viewsonscreen = false;
   }
   
   public void testOne() {

@@ -182,7 +182,7 @@ public class StripeTest extends TestCase {
 		
 		//an exception is expected when a non stripe object is used (not certain why it isnt defined in the constructor)
 		try {
-			int compareResult1 = testStripe2.compareTo("hello");	
+			testStripe2.compareTo("hello");
 			
 			//if the test gets here something is wrong because no exception is thrown
 			fail("The method is trying to compare to a non stripe type");

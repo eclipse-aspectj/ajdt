@@ -52,7 +52,6 @@ public class MarkupKindsTest extends TestCase {
 
 	public void testHashCodeWithImages() {
 		Image image1 = VisualiserImages.MEMBER_VIEW.createImage();
-		Image image2 = VisualiserImages.FIT_TO_VIEW.createImage();
 		IMarkupKind kind1 = new SimpleMarkupKind("kind", image1);
 		IMarkupKind kind2 = new SimpleMarkupKind("kind", image1);
 		assertEquals("SimpleMarkupKinds that are equal should have the same hashCode", kind1.hashCode(), kind2.hashCode());
