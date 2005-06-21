@@ -48,7 +48,7 @@ public class AJCTaskTest extends TestCase {
 
 	protected void setUp() throws Exception {
 		URL location = Platform.resolve(Platform.getBundle(
-				"org.eclipse.ajdt.test").getEntry("/"));
+				"org.eclipse.ajdt.ui.tests").getEntry("/"));
 		URL fileURL = new URL(location, "temp.xml");
 		tempFile = new File(fileURL.getPath());
 
