@@ -81,8 +81,8 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 		 <copy todir="${build.dir}/testdata">
 		   <fileset dir="testdata" />
 		 </copy>
-		 <copy todir="${build.dir}/test projects">
-		   <fileset dir="test projects" />
+		 <copy todir="${build.dir}/workspace">
+		   <fileset dir="workspace" />
 		 </copy>
 		<copy todir="${build.dir}">
 			<fileset dir=".">
