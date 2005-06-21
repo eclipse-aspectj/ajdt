@@ -73,7 +73,7 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 
 	<target name="ajdttestsrcjar" depends="init" description="The source jar file for ajdt test, ajdttestsrc.jar">
 		<zip destfile="${build.dir}/ajdttestsrc.jar">
-			<fileset dir="testsrc" />
+			<fileset dir="src" />
 		</zip>
 	</target>
 
