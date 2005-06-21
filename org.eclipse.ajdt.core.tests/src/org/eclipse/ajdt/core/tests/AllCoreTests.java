@@ -25,10 +25,10 @@ import junit.framework.TestSuite;
 /**
  * 
  */
-public class AllAJDTCoreTests {
+public class AllCoreTests {
 
 	public static Test suite() {
-		TestSuite suite = new TestSuite(AllAJDTCoreTests.class.getName());
+		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 		
 		suite.addTest(new TestSuite(AJCoreTest.class));
 
