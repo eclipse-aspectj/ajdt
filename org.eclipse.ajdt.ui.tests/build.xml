@@ -48,7 +48,7 @@ Create a packaged org.eclipse.ajdt.test_version plugin distribution file
 		<property file="${eclipse.home}/ajdtworkspace.properties"/>
 		<property file="build.ajproperties"/>
 		<iajc srcdir="." destdir="bin"
-			classpath="${aspectjrt};${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar;../org.eclipse.ajdt.core/build/ajdtcore.jar;../org.eclipse.ajdt.core.tests/build/ajdtcoretests.jar;../org.eclipse.contribution.visualiser.tests/build/visualisertests.jar;../org.eclipse.contribution.xref.core.test/build/xrefcoretest.jar;../org.eclipse.contribution.xref.ui.test/build/xrefuitest.jar;../org.eclipse.contribution.xref.ui/build/xrefui.jar"
+			classpath="${aspectjrt};${classpath.org.eclipse.ajdt.test};../org.eclipse.ajdt.ui/build/ajdtui.jar;../org.eclipse.ajdt.core/build/ajdtcore.jar;../org.eclipse.ajdt.core.tests/build/ajdtcoretests.jar;../org.eclipse.contribution.visualiser.tests/build/visualisertests.jar;../org.eclipse.contribution.xref.core.tests/build/xrefcoretest.jar;../org.eclipse.contribution.xref.ui.tests/build/xrefuitest.jar;../org.eclipse.contribution.xref.ui/build/xrefui.jar"
 			debug="false" verbose="true" fork="true" maxmem="256m"
 			includes="${src.includes}" excludes="${src.excludes}" />	
 	</target>
