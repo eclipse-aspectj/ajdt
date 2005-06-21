@@ -5,7 +5,7 @@
    name="%pluginName"
    version="92.2.29"
    provider-name="%providerName"
-   class="org.eclipse.contribution.xref.internal.ui.XReferenceUIPlugin">
+   class="org.eclipse.contribution.xref.ui.XReferenceUIPlugin">
 
    <runtime>
       <library name="xrefui.jar">
