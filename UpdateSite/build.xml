@@ -62,7 +62,7 @@ Creates an update site structure for AspectJ
   <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.core.tests" inheritAll="true" target="clean"/>
-  <ant dir="../org.eclipse.ajdt.test" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.ui.tests" inheritAll="true" target="clean"/>
 <!--  <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" target="clean"/> -->
   <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.contribution.xref.core.tests" inheritAll="true" target="clean"/>
@@ -140,7 +140,7 @@ Creates an update site structure for AspectJ
  <ant dir="../org.eclipse.aspectj" inheritAll="true" />
  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
  <ant dir="../org.eclipse.ajdt.core.tests" inheritAll="true" />
- <ant dir="../org.eclipse.ajdt.test" inheritAll="true" />
+ <ant dir="../org.eclipse.ajdt.ui.tests" inheritAll="true" />
 <!-- <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" /> -->
 	
  <copy file="site.xml" todir="dist">
