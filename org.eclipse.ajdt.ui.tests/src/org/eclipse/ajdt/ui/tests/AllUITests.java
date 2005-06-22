@@ -31,7 +31,6 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
-import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointKeyboardActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
@@ -49,6 +48,7 @@ import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.utils.NewAspectUtilsTest;
+import org.eclipse.ajdt.ui.tests.visual.AspectJBreakpointKeyboardActionTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
@@ -99,7 +99,6 @@ public class AllUITests {
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
-		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		
 		// code format tests
 		suite.addTest(new TestSuite(CodeFormatTest.class));

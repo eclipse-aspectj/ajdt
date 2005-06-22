@@ -10,11 +10,12 @@
  *     Sian January  - initial version
  *******************************************************************************/
 
-package org.eclipse.ajdt.ui.tests.editor;
+package org.eclipse.ajdt.ui.tests.visual;
 
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -43,6 +44,7 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
+		AllUITests.setupAJDTPlugin();
 		super.setUp();
 		project = Utils.createPredefinedProject("Simple AJ Project");
 	}
@@ -118,6 +120,8 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 		event.type = SWT.KeyDown;
 		event.character = 'b';
 		display.post(event);
+		
+		Utils.waitForJobsToComplete();
 
 		event = new Event();
 		event.type = SWT.KeyUp;
