@@ -48,7 +48,6 @@ import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.utils.NewAspectUtilsTest;
-import org.eclipse.ajdt.ui.tests.visual.AspectJBreakpointKeyboardActionTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
@@ -70,6 +69,8 @@ public class AllUITests {
 		
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
+		
+		suite.addTest(new TestSuite(VerificationTest.class));
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
