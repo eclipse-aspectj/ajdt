@@ -23,11 +23,14 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
@@ -118,6 +121,65 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		}
 	}
 
+	public void testLoadingModelFromFile() throws Exception {
+		IProject project = createPredefinedProject("Spacewar Example");
+		IProject project2 = null;
+		IPath ajmap = null;
+
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES,
+					AJRelationshipManager.DECLARED_ON,
+					AJRelationshipManager.ASPECT_DECLARATIONS,
+					AJRelationshipManager.MATCHED_BY,
+					AJRelationshipManager.MATCHES_DECLARE };
+			IResource res = project.findMember("Spacewar Example.ajmap");
+			assertNotNull("Couldn't find ajmap file", res);
+
+			// copy ajmap file somewhere safe
+			ajmap = AspectJPlugin.getDefault().getStateLocation().append(
+					"test.ajmap");
+			copy(res.getLocation().toFile(), ajmap.toFile());
+
+			// delete project to clear model
+			deleteProject(project);
+
+			// make sure project model is clear
+			AJProjectModel model = AJModel.getInstance().getModelForProject(
+					project);
+			assertNull("Project model should be null", model);
+			List allRels = AJModel.getInstance().getAllRelationships(project,
+					rels);
+			if (allRels != null && allRels.size() > 0) {
+				fail("Deleted project should have no relationships");
+			}
+
+			// now test loading model from map file
+			// need to have a project in order to load model, doesn't matter
+			// which one
+			project2 = createPredefinedProject("TJP Example");
+			model = new AJProjectModel(project2);
+			model.loadModel(ajmap);
+			allRels = model.getAllRelationships(rels);
+			assertNotNull(
+					"Loaded model should have non-null relationship list",
+					allRels);
+			assertTrue("Loaded model should have non-empty relationship list",
+					allRels.size() > 0);
+		} finally {
+			if (project != null) {
+				deleteProject(project);
+			}
+			if (project2 != null) {
+				deleteProject(project2);
+			}
+			if (ajmap != null) {
+				ajmap.toFile().delete();
+			}
+		}
+	}
+	
 	// can be used to read the contents of an element map file
 	public static void main(String[] args) {
 		new AJModelPersistenceTest().readModelFile(new File(args[0]));

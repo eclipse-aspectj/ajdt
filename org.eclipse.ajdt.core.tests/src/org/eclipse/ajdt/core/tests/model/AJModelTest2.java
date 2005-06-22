@@ -22,7 +22,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaElement;
-// testing
+
 /**
  * More tests for mapping between IProgramElement and IJavaElements.
  */

@@ -73,7 +73,7 @@ public class AJModel {
 		}
 	}
 
-	private AJProjectModel getModelForProject(IProject project) {
+	public AJProjectModel getModelForProject(IProject project) {
 		if ((project==null) || !project.isAccessible() || !AspectJPlugin.isAJProject(project)) {
 			return null;
 		}

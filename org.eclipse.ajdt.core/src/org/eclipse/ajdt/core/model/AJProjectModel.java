@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -48,6 +47,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
@@ -120,7 +120,11 @@ public class AJProjectModel {
 	}
 	
 	public void saveModel() {
-		getPersistence().saveModel();
+		getPersistence().saveModel(null);
+	}
+
+	public void saveModel(IPath file) {
+		getPersistence().saveModel(file);
 	}
 
 	public void loadModel() {
@@ -128,12 +132,21 @@ public class AJProjectModel {
 			return;
 		}
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
-		boolean worked = getPersistence().loadModel();
+		boolean worked = getPersistence().loadModel(null);
 		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName());
 		if (!worked && getPersistence().isPersisted()) {
 			AJLog.log("Loading model failed for project: "+project.getName());
 		}
 		return;
+	}
+	
+	public void loadModel(IPath file) {
+		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
+		boolean worked = getPersistence().loadModel(file);
+		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName());
+		if (!worked) {
+			AJLog.log("Loading model failed for file: "+file);
+		}
 	}
 	
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
@@ -521,20 +534,27 @@ public class AJProjectModel {
 		}
 	
 		public boolean isPersisted() {
-			File modelFile = new File(getFileName());
-			return modelFile.exists();
+			return getDefaultFile().toFile().exists();
 		}
 	
-		private String getFileName() {
+		private IPath getDefaultFile() {
 			return AspectJPlugin.getDefault().getStateLocation().append(
-					project.getName() + MODEL_FILE).toOSString();
+					project.getName() + MODEL_FILE);
 		}
 	
-		public void saveModel() {
-			String filename = getFileName();
-			//System.out.println("saving model filename=" + filename);
+
+		/**
+		 * Save the current model to the given file path, or if null to the
+		 * default location for the current project.
+		 * @param path
+		 */
+		public void saveModel(IPath path) {
+			if (path == null) {
+				path = getDefaultFile();
+			}
+			//System.out.println("saving model file=" + path.makeAbsolute());
 			try {
-				FileOutputStream fos = new FileOutputStream(filename);
+				FileOutputStream fos = new FileOutputStream(path.toFile());
 				ObjectOutputStream oos = new ObjectOutputStream(fos);
 				saveVersion(oos);
 				saveJavaElements(oos);
@@ -551,14 +571,16 @@ public class AJProjectModel {
 	
 		}
 	
-		public boolean loadModel() {
-			if (!isPersisted()) {
+		public boolean loadModel(IPath path) {
+			if (path == null) {
+				path = getDefaultFile();
+			}
+			if (!path.toFile().exists()) {
 				return false;
 			}
 			boolean worked = false;
-			String filename = getFileName();
 			try {
-				FileInputStream fis = new FileInputStream(getFileName());
+				FileInputStream fis = new FileInputStream(path.toFile());
 				ObjectInputStream ois = new ObjectInputStream(fis);
 				int version = loadVersion(ois);
 				//System.out.println("loading model version: " + version);
