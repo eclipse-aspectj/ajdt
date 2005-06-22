@@ -118,7 +118,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
 		IProject project = getProject();
 		AspectJPlugin.getDefault().setCurrentProject(project);
-		AJModel.getInstance().aboutToBuild(project);
 		buildCancelled = false;
 		
 		IProject[] requiredProjects = getRequiredProjects(project,true);
@@ -310,30 +309,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		IProject[] result = new IProject[projects.size()];
 		projects.toArray(result);
 		return result;
-	}
-
-	/**
-	 * Get all the projects this project has a dependency on. This includes both
-	 * project and class folder dependencies.
-	 */
-	private IProject[] getRequiredProjects(IProject project) {
-		IProject[] referencedProjects;
-		try {
-			referencedProjects = project.getReferencedProjects();
-		} catch (CoreException e) {
-			referencedProjects = new IProject[0];
-		}
-		IProject[] classFolderRequirements = CoreUtils
-				.getRequiredClassFolderProjects(project);
-		IProject[] requiredProjects = new IProject[referencedProjects.length
-				+ classFolderRequirements.length];
-		for (int i = 0; i < referencedProjects.length; i++) {
-			requiredProjects[i] = referencedProjects[i];
-		}
-		for (int i = 0; i < classFolderRequirements.length; i++) {
-			requiredProjects[i + referencedProjects.length] = classFolderRequirements[i];
-		}
-		return requiredProjects;
 	}
 
 	/**

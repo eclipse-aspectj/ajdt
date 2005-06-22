@@ -29,7 +29,6 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -53,11 +52,6 @@ import org.eclipse.jdt.core.JavaCore;
  * 
  */
 public class UIBuildListener implements IAJBuildListener {
-
-	/**
-	 * Code returned when a failure occurs creating a build config file
-	 */
-	private static final int CONFIG_FILE_WRITE_ERROR = -10;
 
 	/**
 	 * Map of projects with the IClasspathEntry corresponding
@@ -237,12 +231,7 @@ public class UIBuildListener implements IAJBuildListener {
 		// that compile.
 		CompilerTaskListManager.showOutstandingProblems();
 
-		if (!AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getBuildAsm()) {
-			AspectJEditor.forceEditorUpdates(project);
-		}
-
-		// before returning, check to see if the project sent it's output
+		// before returning, check to see if the project sent its output
 		// to an outjar and if so, then update any depending projects
 		checkOutJarEntry(project);
 

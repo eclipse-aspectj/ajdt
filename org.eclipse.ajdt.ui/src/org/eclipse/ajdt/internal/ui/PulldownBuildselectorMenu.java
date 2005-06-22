@@ -59,7 +59,6 @@ public class PulldownBuildselectorMenu implements
 		IWorkbenchWindowPulldownDelegate, SelectionListener, IBuildConfigurationChangedListener{
 
 	private IAction buildAction;
-	private ProjectBuildConfigurator currentPbc;
 
 	public PulldownBuildselectorMenu(){
 		super();
@@ -135,111 +134,23 @@ public class PulldownBuildselectorMenu implements
 
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getActiveProjectBuildConfigurator();
-		if (pbc != null)
+		if (pbc != null) {
 			build(pbc.getJavaProject().getProject());
-
-		/*
-		 * //ASCFIXME - toNLS all this bit String workspaceDir =
-		 * getWorkspaceDirectory(); // Fixes Bug 25958. Now builds selected
-		 * project. // Test whether the active window has a IResource selected,
-		 * if so get // its project. IResource selectedRes = null; if (selection
-		 * instanceof IStructuredSelection) { IStructuredSelection sel =
-		 * (IStructuredSelection) selection; if (sel.getFirstElement()
-		 * instanceof IAdaptable) { Object resource = ((IAdaptable)
-		 * sel.getFirstElement()) .getAdapter(IResource.class); if (resource !=
-		 * null) { selectedRes = (IResource) resource; } } } // If we can't get
-		 * the selected project, try the instance var from the // plugin.
-		 * IProject project; if (selectedRes == null) { project =
-		 * AspectJPlugin.getDefault().getCurrentProject(); } else { project =
-		 * selectedRes.getProject(); }
-		 * 
-		 * try { if (!project.hasNature(AspectJPlugin.ID_NATURE)) return; }
-		 * catch (CoreException cEx) {
-		 * AspectJPlugin.getDefault().getErrorHandler().handleError( "Unable to
-		 * verify project nature", cEx); } // Fix bug 25958 to build selected
-		 * project
-		 * 
-		 * MessageDialog dialog;
-		 * 
-		 * if (workspaceDir == null) { // There is no AspectJ project so tell
-		 * the user.
-		 * 
-		 * dialog = new MessageDialog(window.getShell(), "Build Configuration
-		 * Selection", // ASCFIXME-NONLS null, "There are no AspectJ projects in
-		 * the workspace",// ASCFIXME-NONLS MessageDialog.INFORMATION, new
-		 * String[]{"OK"}, 0);
-		 * 
-		 * dialog.open(); } else { // dialog = // new MessageDialog( //
-		 * window.getShell(), // "Build Configuration Selection for project: " + //
-		 * project.getName(),// ASCFIXME-NONLS // null, //
-		 * AspectJPlugin.getBuildConfigurationFile(project).substring( //
-		 * workspaceDir.length()),// ASCFIXME-NONLS //
-		 * MessageDialog.INFORMATION, // new String[] { "OK" }, // 0);
-		 * 
-		 * build(project); }
-		 */
+		}
 	}
 	
-
 	public void buildConfigurationChanged(ProjectBuildConfigurator pbc){
-		currentPbc = pbc;
-		if (pbc == null)
+		if (pbc == null) {
 			buildAction.setEnabled(false);
-		else
+		} else {
 			buildAction.setEnabled(true);
+		}
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (buildAction == null) {
 			buildAction = action;
 		}
-//		IProject currentProject = null;
-//		IResource selectedRes = null;
-//		if (selection instanceof IStructuredSelection) {
-//			IStructuredSelection sel = (IStructuredSelection) selection;
-//			if (sel.getFirstElement() instanceof IAdaptable) {
-//				Object resource = ((IAdaptable) sel.getFirstElement())
-//						.getAdapter(IResource.class);
-//				if (resource != null) {
-//					selectedRes = (IResource) resource;
-//					AspectJPlugin.getDefault().setCurrentProject(
-//							selectedRes.getProject());
-//					currentProject = selectedRes.getProject();
-//				}
-//			}
-//		} else {
-//			IWorkbenchPart activePart = AspectJPlugin.getDefault()
-//					.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-//					.getActivePart();
-//			if (activePart instanceof IEditorPart) {
-//
-//				selectedRes = (IResource) ((IEditorPart) activePart)
-//						.getEditorInput().getAdapter(IResource.class);
-//				if (selectedRes != null) {
-//					currentProject = selectedRes.getProject();
-//				}
-//			}
-//		}
-//
-//		// Sian: Set the build button to be disabled if selected project is
-//		// not an AspectJ project.
-//		if (buildAction != null && currentProject != null) {
-//			if (!currentProject.exists())
-//				buildAction.setEnabled(false);
-//			else if (!currentProject.isOpen())
-//				buildAction.setEnabled(false);
-//			else {
-//				try {
-//					buildAction.setEnabled(currentProject
-//							.hasNature("org.eclipse.ajdt.ui.ajnature"));
-//				} catch (CoreException e) {
-//					AJDTEventTrace
-//							.generalEvent("An exception occurred setting enabled state of the build action"
-//									+ e.getLocalizedMessage());
-//					e.printStackTrace();
-//				}
-//			}
-//		}
 	}
 
 	/**

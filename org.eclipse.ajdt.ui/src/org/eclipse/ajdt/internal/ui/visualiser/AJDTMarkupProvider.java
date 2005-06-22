@@ -86,7 +86,6 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	
 	
 	private void updateModel() {
-		long stime = System.currentTimeMillis();
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IJavaProject jp = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject();
 			if( jp != null) {
@@ -162,9 +161,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 			}
 		}
-		long mtime = System.currentTimeMillis();
 		processMarkups();
-		long etime = System.currentTimeMillis();
 	}
 
 

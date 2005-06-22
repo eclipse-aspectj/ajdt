@@ -21,17 +21,13 @@ package org.eclipse.ajdt.internal.ui.ajde;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -52,8 +48,6 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
-import org.eclipse.jdt.launching.JavaRuntime;
 
 /**
  * ProjectProperties is used to pass all the user, project and plugin settings
@@ -86,211 +80,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 		return new ArrayList(0);
 
 	}
-
-	/**
-	 * get the classpath to use for compiling the current project. NOTE: This is
-	 * not currently used, after being replaced by the above version which uses
-	 * BuildClasspathResolver
-	 */
-	public String getOldClasspath() {
-		// bug 36577 - about time we stopped using our own hokey classpath
-		// building logic
-		// and started using the proper APIs!
-		StringBuffer classpath = new StringBuffer();
-
-		try {
-			IProject proj = AspectJPlugin.getDefault().getCurrentProject();
-			IJavaProject jp = JavaCore.create(proj);
-			IRuntimeClasspathEntry[] rtcp = JavaRuntime
-					.computeUnresolvedRuntimeClasspath(jp);
-			HashSet cp = new HashSet();
-			for (int i = 0; i < rtcp.length; i++) {
-				IRuntimeClasspathEntry[] resolved = RuntimeClasspathCalculator
-						.resolveRuntimeClasspathEntry(
-						// IRuntimeClasspathEntry[] resolved =
-								// JavaRuntime.resolveRuntimeClasspathEntry(
-								rtcp[i], jp);
-				for (int j = 0; j < resolved.length; j++) {
-					cp.add(resolved[j].getLocation());
-				}
-			}
-			for (Iterator it = cp.iterator(); it.hasNext();) {
-				classpath.append(it.next());
-				classpath.append(File.pathSeparator);
-			}
-		} catch (CoreException cEx) {
-		}
-
-		// StringBuffer classpath = new StringBuffer();
-		//
-		// // Related to bug21998: Use the project location rather than the
-		// workspace location, this allows
-		// // for projects who keep their source/binaries in a location other
-		// than the workspace directories.
-		// //String prependPath =
-		// AspectJPlugin.getWorkspace().getRoot().getLocation().toOSString();
-		// IProject currProject =
-		// AspectJPlugin.getDefault().getCurrentProject();
-		//
-		// classpath.append(getAspectjrtClasspath());
-		// classpath.append(File.pathSeparator);
-		// IProject project = AspectJPlugin.getDefault().getCurrentProject();
-		//
-		// Set projectClasspathSet = new HashSet();
-		// Set circularDependencyPreventer = new HashSet();
-		//
-		// circularDependencyPreventer.add(project);
-		//
-		// if (project != null) {
-		// try {
-		//
-		// getJavaProjectClasspath(currProject, projectClasspathSet,
-		// circularDependencyPreventer,false);
-		//
-		// } catch (CoreException corex) {
-		// String message = AspectJPlugin.getResourceString("jmCoreException");
-		// Status status = new Status(Status.ERROR, AspectJPlugin.PLUGIN_ID,
-		// Status.OK, message, corex);
-		// Shell shell =
-		// AspectJPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-		// ErrorDialog.openError(shell,
-		// AspectJPlugin.getResourceString("ajErrorDialogTitle"), message,
-		// status);
-		// }
-		// }
-		//
-		// for (Iterator iter = projectClasspathSet.iterator(); iter.hasNext();)
-		// {
-		// classpath.append((String) iter.next());
-		// classpath.append(File.pathSeparator);
-		// }
-
-		if (AspectJUIPlugin.isDebugging) {
-			// It's *always* a classpath problem ;-). Better print it out.
-			System.out.println("Using classpath: " + classpath);
-		}
-
-		return classpath.toString();
-	}
-
-	private void getJavaProjectClasspath(IProject project,
-			Set projectClasspathSet, Set circularDependencyPreventer,
-			boolean processingDependantProjects) throws CoreException {
-
-		// Bug 30461 discussion: Rons bug about not supporting dependant
-		// projects correctly.
-		// The intent here is that the routine is gathering 'classpath elements'
-		// in order to build
-		// a classpath that can be passed to AJC. The interesting case is when
-		// you have a dependant
-		// project. In this case recursion occurs - and this routine breaks
-		// down. In the recursive case, we are
-		// processing the project upon which our *REAL* project depends. And so
-		// we want to add components that this
-		// dependant project exports, not components that make up its own
-		// classpath. To this end I have added the
-		// boolean flag to the parameter set for this method, which tells us
-		// whether we are in the recursive case.
-		// I then added code that (in the case of processing a dependant
-		// project) checks that the dependant
-		// project has each classpath entry marked as exported, before it is
-		// included in the classpath that
-		// is being built.
-		//
-		// However, it is also true that getResolvedClasspath() does not return
-		// the outputlocation of the project -
-		// this is perfectly reasonable. So part (2) of this fix is to check if
-		// we are processing a dependant
-		// project (using the new flag) - if we are then we add the
-		// outputlocation of the project to the classpath
-		// we are building up.
-
-		String projectLocalPrefix = File.separator + project.getName();
-
-		// After this call prependPath will be something like
-		// "c:\eclipse\runtime-workspace"
-		String prependPath = project.getLocation().removeLastSegments(1)
-				.toOSString();
-
-		IJavaProject jProject = JavaCore.create(project);
-
-		// After this call outputLocation will be something like
-		// "\MyProject\bin"
-		String outputLocation = jProject.getOutputLocation().toOSString();
-
-		// In the recursive case, the project we depend on should have its
-		// output directory
-		// added to the classpath set.
-		if (processingDependantProjects)
-			projectClasspathSet.add(prependPath + outputLocation);
-
-		IClasspathEntry[] classpathEntries = jProject
-				.getResolvedClasspath(false);
-		for (int i = 0; i < classpathEntries.length; i++) {
-
-			String cpstring = classpathEntries[i].getPath().toOSString();
-
-			// This says, for dependant project processing, check the classpath
-			// element is marked exported
-			// before proceeding.
-			if (!processingDependantProjects
-					|| classpathEntries[i].isExported()) {
-				// what to do next depends on the entry kind
-				switch (classpathEntries[i].getEntryKind()) {
-
-				case IClasspathEntry.CPE_LIBRARY:
-					// could be an external jar (fully qualified),
-					// or a local jar (starts with our project name).
-					// the latter needs qualifying for ajc
-					if (cpstring != null
-							&& cpstring.startsWith(projectLocalPrefix)) {
-						cpstring = prependPath + cpstring;
-					}
-					break;
-
-				case IClasspathEntry.CPE_PROJECT:
-
-					String name = classpathEntries[i].getPath().lastSegment();
-					IProject projectDependancy = AspectJPlugin.getWorkspace()
-							.getRoot().getProject(name);
-
-					// if classpathEntries[i].isExported())
-
-					if (projectDependancy.exists()
-							&& projectDependancy.isOpen()
-							&& projectDependancy.hasNature(JavaCore.NATURE_ID)
-							&& !circularDependencyPreventer
-									.contains(projectDependancy)) {
-
-						circularDependencyPreventer.add(projectDependancy);
-						getJavaProjectClasspath(projectDependancy,
-								projectClasspathSet,
-								circularDependencyPreventer, true);
-
-					}
-					continue;
-
-				case IClasspathEntry.CPE_SOURCE:
-					// a source directory under my project, needs
-					// qualification with the base location for the project.
-					cpstring = prependPath + cpstring;
-					break;
-
-				case IClasspathEntry.CPE_VARIABLE:
-				case IClasspathEntry.CPE_CONTAINER:
-				// these two should already be qualified through use of
-				// getResolvedClasspath
-
-				default:
-				// do nothing
-				}
-
-				projectClasspathSet.add(cpstring);
-			}
-
-		}
-	}
-
 
 	/*
 	 * @see ProjectPropertiesAdapter#getExecutionArgs()
@@ -425,52 +214,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 		return CoreUtils.getAspectjrtClasspath();
 	}
 
-	/**
-	 * Find all the ".java" and ".aj" files in the project.
-	 */
-	// Change Luzius begin
-	// original version:
-	// private void getAllFiles(IResource[] resource_list, List allProjectFiles,
-	// Hashtable fileToResourceHt, FilenameFilter filter){
-	// Luzius' version:
-	private void getAllFiles(IResource[] resource_list, List allProjectFiles,
-			Hashtable fileToResourceHt, CoreUtils.FilenameFilter filter,
-			BuildConfiguration bc) {
-		// change Luzius end
-		// System.err.println(JavaCore.getOptions().keySet());
-		// System.err.println("? getAllFiles() option="
-		// +JavaCore.getOption("org.eclipse.jdt.core.builder.resourceCopyExclusionFilter"));
-
-		try {
-			for (int i = 0; i < resource_list.length; i++) {
-				IResource ir = resource_list[i];
-
-				// Change Luzius begin
-				// check exclusion patterns
-				// original version:
-				// if (ir instanceof IContainer) {
-				// getAllFiles(((IContainer) ir).members(), allProjectFiles,
-				// fileToResourceHt,filter);
-				// }
-				// else if (filter.accept(ir.getName())) {
-				// Luzius' version:
-				if (ir instanceof IContainer) {
-					getAllFiles(((IContainer) ir).members(), allProjectFiles,
-							fileToResourceHt, filter, bc);
-				} else if (filter.accept(ir.getName()) && bc.isIncluded(ir)) {
-					// change Luzius end
-
-					allProjectFiles
-							.add(new File(ir.getLocation().toOSString()));
-					if (fileToResourceHt != null)
-						fileToResourceHt.put(new File(ir.getLocation()
-								.toOSString()), ir);
-				}
-			}
-		} catch (Exception e) {
-		}
-	}
-
 	private void getProjectRelativePaths(IResource[] resource_list,
 			List allProjectFiles, CoreUtils.FilenameFilter filter,
 			int trimSegments) {
@@ -510,18 +253,11 @@ public class ProjectProperties extends CoreProjectProperties  {
 		Iterator iter = lstFiles_IResources.iterator();
 		IResource ir;
 		while (iter.hasNext()) {
-
 			ir = (IResource) iter.next();
-			// System.err.println("AC_temp_debug:
-			// ProjectProperties.getBuildConfigFiles(): Path to a .lst is
-			// "+ir.getFullPath().toOSString());
 			lstFiles_Strings.add(ir.getFullPath().toOSString());
 		}
 		return lstFiles_Strings;
 	}
-
-	// The following methods added for AspectJ 1.1
-	// --------------------------------------------
 
 	/**
 	 * Get the set of non-Java resoure files for this compilation. Set members
@@ -593,12 +329,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 		return map;
 		// return new HashSet(list);
 	}
-
-	// public String getFileExt() {
-	// boolean javaOrAjExt = AspectJPlugin.getDefault()
-	// .getAjdtBuildOptionsAdapter().getJavaOrAjExt();
-	// return ".aj";//(javaOrAjExt ? ".java" : ".aj");
-	// }
 	
 	private ArrayList getLinkedChildFolders(IResource resource) {
 		ArrayList resultList = new ArrayList();

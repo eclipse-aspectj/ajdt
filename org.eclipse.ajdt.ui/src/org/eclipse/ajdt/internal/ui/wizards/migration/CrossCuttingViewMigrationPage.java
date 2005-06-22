@@ -63,7 +63,7 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 		label1.setText(AspectJUIPlugin
 				.getResourceString("CrossCuttingViewMigrationPage.useNewCrossCuttingViews.message")); //$NON-NLS-1$
 		
-		Label spacer = new Label(composite, SWT.NONE);
+		new Label(composite, SWT.NONE);
 		
 		useNewCrossCuttingViews = new Button(composite, SWT.CHECK);
 		useNewCrossCuttingViews.setText(AspectJUIPlugin
@@ -93,18 +93,13 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 		try {
 			IWorkbenchPage activePage = AspectJUIPlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow().getActivePage();
-			if (AspectJPreferences.isAspectJOutlineEnabled()) {
-				store.setToDefault(AspectJPreferences.ASPECTJ_OUTLINE);
-			}
 			IViewPart viewPart = activePage.findView(IPageLayout.ID_OUTLINE);
 			activePage.hideView(viewPart);
 			activePage.showView(IPageLayout.ID_OUTLINE);
 		} catch (PartInitException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
-		}
-		
-		store.setToDefault(AspectJPreferences.ASPECTJ_OUTLINE);
+		}		
 		store.setToDefault(AspectJPreferences.ADVICE_DECORATOR);
 	}
 	

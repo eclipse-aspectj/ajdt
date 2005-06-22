@@ -20,11 +20,11 @@ import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -407,8 +407,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 						.getResourceString("CompilerConfigurationBlock.ignore") //$NON-NLS-1$
 		};
 
-		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
-
 		int nColumns = 3;
 
 		GridLayout layout = new GridLayout();
@@ -562,7 +560,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 						monitor
 								.setTaskName(AspectJUIPlugin
 										.getResourceString("OptionsConfigurationBlock.buildall.taskname")); //$NON-NLS-1$
-						JavaPlugin.getWorkspace().build(
+						ResourcesPlugin.getWorkspace().build(
 								IncrementalProjectBuilder.FULL_BUILD,
 								new SubProgressMonitor(monitor, 2));
 					} catch (CoreException e) {

@@ -26,7 +26,6 @@ import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -51,8 +50,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 
 	// Relevant project for which the properties are being set
 	private IProject thisProject;
-    private static int BROWSE_FOR_CLASSJARS = 0;
-    private static int BROWSE_FOR_ASPECTJARS = 1;
 
 	/**
 	 * Build the page of properties that can be set on a per project basis for the
@@ -62,13 +59,11 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		// Grab the resource (must be a project) for which this property page
 		// is being created
 		thisProject = (IProject) getElement();
-		//BuildOptionsAdapter.ensurePropertiesInitialized(thisProject);
 		Composite pageComposite = createPageComposite(parent, 3);
 
         // This will cover the top row of the panel.
         Composite row0Composite = createRowComposite(pageComposite,1);
-		Label optionsLabel =
-			createLabel(
+		createLabel(
                 row0Composite,
 				AspectJUIPlugin.getResourceString("compilerPropsPage.description"));
 
@@ -86,50 +81,12 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 				StringFieldEditor.UNLIMITED,
 				pageComposite);
 				
-		Label spacerLabel009 = createLabel(	pageComposite,"");				
+		createLabel(pageComposite,"");				
 
 		createLabel(pageComposite,"");
 
 		updatePageContents();
 		return pageComposite;
-	}
-
-	/**
-	 * Helper method to build a labelled check box button.
-	 */
-	private Button buildButton(Composite container, String label) {
-		Button btn = new Button(container, SWT.CHECK);
-		btn.setText(label);
-
-		GridData data = new GridData();
-		data.horizontalSpan = 3;
-		data.horizontalAlignment = GridData.FILL;
-		btn.setLayoutData(data);
-
-		return btn;
-	}
-
-    /**
-     * Helper method to build a simple push button.
-     */
-    private Button buildPushButton(Composite container, String label) {
-        Button btn = new Button(container, SWT.PUSH);
-        btn.setText(label);
-        return btn;
-    }
-
-	/**
-	 * Helper method to build a labelled radio button.
-	 */
-	private Button createRadioButton(Composite parent, String label) {
-		Button button = new Button(parent, SWT.RADIO | SWT.LEFT);
-		button.setText(label);
-
-		GridData data = new GridData();
-		data.horizontalSpan = 3;
-		button.setLayoutData(data);
-
-		return button;
 	}
 
 	/**
@@ -192,142 +149,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 
         return composite;   
     }
-
-//	/**
-//	 * Preserves a boolean value for a named field on the project resource.
-//	 * Actually converts the boolean to a string and delegates to the 
-//	 * other implementation of preserveSetting() that takes a string as the
-//	 * value to store.
-//	 */
-//	private void preserveSetting(QualifiedName key, boolean flag)
-//		throws CoreException {
-//		preserveSetting(key, new Boolean(flag).toString());
-//	}
-//
-//	/**
-//	 * Preserve a key/value pair as a persistent property against the 
-//	 * project resource.
-//	 */
-//	private void preserveSetting(QualifiedName key, String value)
-//		throws CoreException {
-//		thisProject.setPersistentProperty(key, value);
-//	}
-
-//	/** 
-//	 * Retrieve a persistent property value and return it.  If the key is
-//	 * not found, this will return null *but* that should not occur because
-//	 * ensurePropertiesInitialized() makes sure all the keys have valid 
-//	 * values when the properties page first appears for a project.
-//	 */
-//	private String retrieveSettingString(QualifiedName key) {
-//		try {
-//			String value = thisProject.getPersistentProperty(key);
-//			if (value==null) {
-//				return "";
-//			}
-//			return value;
-//		} catch (CoreException ce) {
-//			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-//				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
-//				ce);
-//		}
-//		return "";
-//	}
-
-//	/**
-//	 * Retrieve a persistent property value, convert it to a boolean and return it.
-//	 * If the key is not found, this will return 'false' *but* that should not 
-//	 * occur because ensurePropertiesInitialized() makes sure all the keys have 
-//	 * valid values when the properties page first appears for a project.
-//	 */
-//	private boolean retrieveSettingBoolean(QualifiedName key) {
-//		try {
-//			String value = thisProject.getPersistentProperty(key);
-//			if (value == null)
-//				return false;
-//			boolean valueB = new Boolean(value).booleanValue();
-//			return valueB;
-//		} catch (CoreException ce) {
-//			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-//				AspectJUIPlugin.getResourceString("projectProperties.exceptionDuringRetrieve"),
-//				ce);
-//		}
-//		return false;
-//	}
-	
-	private String findInvalidJars(String setOfJars) {
-
-		if (setOfJars.length()==0) return null;
-		String inputCopy = setOfJars;
-		
-		StringBuffer invalidEntries = new StringBuffer();
-		
-		// For relative paths (they don't start with a File.separator
-		// or a drive letter on windows) - we prepend the projectBaseDirectory
-		String projectBaseDirectory = thisProject.getLocation().toOSString();
-
-		
-		while (inputCopy.indexOf(java.io.File.pathSeparator)!=-1) {
-		  int idx = inputCopy.indexOf(java.io.File.pathSeparator);
-		  String path = inputCopy.substring(0,idx);
-		  
-		  java.io.File f = new java.io.File(path);
-		  if (!f.isAbsolute())
-		  	f = new File(projectBaseDirectory+java.io.File.separator+path);
-		  	if (!f.exists()) invalidEntries.append(f+"\n");
-		  inputCopy = inputCopy.substring(idx+1);	
-		}
-		
-		// Process the final element
-		if (inputCopy.length()!=0) {
-		  java.io.File f = new java.io.File(inputCopy);
-		  if (!f.isAbsolute())
-		  	f = new File(projectBaseDirectory+java.io.File.separator+inputCopy);
-		  	if (!f.exists()) invalidEntries.append(f+"\n");
-	
-		}
-		
-		if (invalidEntries.length()==0) return null;
-		
-		return invalidEntries.toString();
-	}
-	
-	private String findInvalidDirs(String setOfDirs) {
-
-		if (setOfDirs.length()==0) return null;
-		String inputCopy = setOfDirs;
-		
-		StringBuffer invalidEntries = new StringBuffer();
-		
-		// For relative paths (they don't start with a File.separator
-		// or a drive letter on windows) - we prepend the projectBaseDirectory
-		String projectBaseDirectory = 
-		  AspectJPlugin.getDefault().getCurrentProject().
-		  getLocation().toOSString();
-		
-		while (inputCopy.indexOf(java.io.File.pathSeparator)!=-1) {
-		  int idx = inputCopy.indexOf(java.io.File.pathSeparator);
-		  String path = inputCopy.substring(0,idx);
-		  
-		  java.io.File f = new java.io.File(path);
-		  if (!f.isAbsolute())
-		  	f = new File(projectBaseDirectory+java.io.File.separator+path);
-		  if (!f.isDirectory()) invalidEntries.append(f+"\n");
-		  inputCopy = inputCopy.substring(idx+1);	
-		}
-		
-		// Process the final element
-		if (inputCopy.length()!=0) {
-		  java.io.File f = new java.io.File(inputCopy);
-		  if (!f.isAbsolute())
-		  	f = new File(projectBaseDirectory+java.io.File.separator+inputCopy);
-		  	if (!f.isDirectory()) invalidEntries.append(f+"\n");
-	
-		}
-		
-		if (invalidEntries.length()==0) return null;
-		return invalidEntries.toString();
-	}
 	
 	/**
 	 * overriding performApply() for PreferencePaageBuilder.aj

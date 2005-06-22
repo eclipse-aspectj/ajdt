@@ -48,7 +48,6 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	private IWorkbench workbench;
 
 	// widgets
-	private Button includeProjectFilesCheckbox;
 	private Button openFileCheckbox;
 	private Button makeActiveCheckbox;
 
@@ -155,7 +154,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		// if requested by the user
 		IProject project = newFile.getProject();
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		BuildConfiguration bc = new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection());
+		new BuildConfiguration(newFile, pbc, makeActiveCheckbox.getSelection());
 		try {
 			if (openFileCheckbox.getSelection()) {
 				IWorkbenchWindow dwindow = workbench.getActiveWorkbenchWindow();

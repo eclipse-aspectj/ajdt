@@ -103,7 +103,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 		convertAllToJavaButton.setText(AspectJUIPlugin
 				.getResourceString("Refactoring.ConvertAllToJava")); //$NON-NLS-1$
 
-		Label spacer = new Label(composite, SWT.NONE);
+		new Label(composite, SWT.NONE);
 
 		includeFilesNotInBuildButton = new Button(composite, SWT.CHECK);
 		includeFilesNotInBuildButton.setText(AspectJUIPlugin

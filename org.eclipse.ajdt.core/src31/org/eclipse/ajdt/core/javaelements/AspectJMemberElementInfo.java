@@ -16,7 +16,6 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceRange;
 

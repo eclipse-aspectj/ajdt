@@ -59,15 +59,12 @@ public class AspectJPreferencePageTest extends TestCase {
         IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
         AspectJPreferencePage.initDefaults(ps);
         
-        ps.setToDefault(AspectJPreferences.ASPECTJ_OUTLINE);
         ps.setToDefault(AspectJPreferences.JAVA_OR_AJ_EXT);
         ps.setToDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED);
         ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
         ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
         ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT);
         
-        
-        assertEquals(false, ps.getBoolean(AspectJPreferences.ASPECTJ_OUTLINE));
         assertEquals(false, ps.getBoolean(AspectJPreferences.JAVA_OR_AJ_EXT));
         assertEquals(true, ps.getBoolean(AspectJPreferences.AUTOBUILD_SUPPRESSED));
         assertEquals(false, ps.getBoolean(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE));

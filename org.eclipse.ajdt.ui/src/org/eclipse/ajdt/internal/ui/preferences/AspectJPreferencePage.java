@@ -47,7 +47,6 @@ public class AspectJPreferencePage
 	public static void initDefaults(IPreferenceStore store) {
 		//store.setDefault(AspectJPreferences.COMPILER_OPTIONS, "");
 		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
-		store.setDefault(AspectJPreferences.ASPECTJ_OUTLINE, false);
 		store.setDefault(AspectJPreferences.ADVICE_DECORATOR, true);
 		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
         store.setDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE, false);
@@ -87,8 +86,7 @@ public class AspectJPreferencePage
 
 		Composite compilerOptionsComposite = createComposite(parent, 2);
 
-		Label optionsLabel =
-			createLabel(
+		createLabel(
 				compilerOptionsComposite,
 				AspectJUIPlugin.getResourceString("aspectjPreferences.description"));
 
@@ -131,10 +129,6 @@ public class AspectJPreferencePage
 					
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
-
-		addField(createAJOutlineField(compilerOptionsComposite));
-		createLabel(compilerOptionsComposite, 
-				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline.details"));
 		
 //		addField(createJavaOrAJField(compilerOptionsComposite));
 //		createLabel(compilerOptionsComposite, 
@@ -194,16 +188,7 @@ public class AspectJPreferencePage
 
 	/**
 	 * Create a string field editor for the AspectJ compiler options
-	 */
-	private FieldEditor createAJOutlineField(Composite parent) {
-		BooleanFieldEditor editor =
-			new BooleanFieldEditor(
-				AspectJPreferences.ASPECTJ_OUTLINE,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.useAJOutline"),
-				parent);
-		return editor;
-	}
-	
+	 */	
 	private FieldEditor createJavaOrAJField(Composite parent) {
 		BooleanFieldEditor editor =
 			new BooleanFieldEditor(

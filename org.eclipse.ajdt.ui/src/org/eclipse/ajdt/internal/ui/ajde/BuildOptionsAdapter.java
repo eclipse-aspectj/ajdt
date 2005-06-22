@@ -61,13 +61,7 @@ public class BuildOptionsAdapter extends CoreBuildOptions {
 	 */
 	public String getNonStandardOptions() {
 		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();
-		String nonStandardOptions = AspectJPreferences.getCompilerOptions(currentProject);
-		if (AspectJUIPlugin.DEBUG_BUILDER) {
-			System.out.println(
-				"BuildOptionsAdapter.getNonStandardOptions called, returning :"
-					+ nonStandardOptions);
-		}
-		
+		String nonStandardOptions = AspectJPreferences.getCompilerOptions(currentProject);		
 		nonStandardOptions += AspectJPreferences.getLintOptions(currentProject);
 		nonStandardOptions += AspectJPreferences.getAdvancedOptions(currentProject);
 		if (AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter().getShowWeaveMessages()) {

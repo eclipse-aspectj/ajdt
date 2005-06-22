@@ -578,7 +578,6 @@ public class AJProjectModel {
 			if (!path.toFile().exists()) {
 				return false;
 			}
-			boolean worked = false;
 			try {
 				FileInputStream fis = new FileInputStream(path.toFile());
 				ObjectInputStream ois = new ObjectInputStream(fis);
@@ -746,8 +745,6 @@ public class AJProjectModel {
 				//System.out.println("relType: " + relType);
 				AJRelationshipType ajRel = decodeRelType(relType);
 				//System.out.println("ajRel: " + ajRel);
-				boolean runtimeTest = hasRuntimeTest(relType);
-				//System.out.println("runtime test: " + runtimeTest);
 				//System.out.println("numRels: " + numRels);
 	
 				Map perRelMap = hasRuntimeTest(relType) ? perRelMaps[0]

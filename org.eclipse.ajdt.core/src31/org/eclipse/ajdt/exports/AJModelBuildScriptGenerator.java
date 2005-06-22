@@ -454,15 +454,6 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		script.printTargetEnd();
 	}
 
-	//Check if the string contains *.jar
-	private boolean containsStarDotJar(String[] strings) {
-		for (int i = 0; i < strings.length; i++) {
-			if (strings[i].trim().equalsIgnoreCase("*.jar")) //$NON-NLS-1$
-				return true;
-		}
-		return false;
-	}
-
 	/**
 	 * Add the <code>gather.bin.parts</code> target to the given Ant script.
 	 * 

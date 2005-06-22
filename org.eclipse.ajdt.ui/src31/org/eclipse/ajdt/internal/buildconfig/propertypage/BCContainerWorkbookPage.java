@@ -145,17 +145,11 @@ public class BCContainerWorkbookPage extends SourceContainerWorkbookPage {
 	private void updateFoldersList() {	
 		ArrayList folders= new ArrayList();
 	
-		boolean useFolderOutputs= false;
 		List cpelements= fClassPathList.getElements();
 		for (int i= 0; i < cpelements.size(); i++) {
 			CPListElement cpe= (CPListElement)cpelements.get(i);
 			if (cpe.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 				folders.add(cpe);
-				boolean hasOutputFolder= (cpe.getAttribute(CPListElement.OUTPUT) != null);
-				if (hasOutputFolder) {
-					useFolderOutputs= true;
-				}
-
 			}
 		}
 		fFoldersList.setElements(folders);

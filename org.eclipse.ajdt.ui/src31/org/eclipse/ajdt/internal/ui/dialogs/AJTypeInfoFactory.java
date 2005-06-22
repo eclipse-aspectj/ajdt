@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.ui.dialogs;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.aspectj.ajdt.core.AspectJCore;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;

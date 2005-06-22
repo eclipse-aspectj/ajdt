@@ -53,11 +53,6 @@ public class AspectJPreferences {
 
 	public static final String ACTIVE_CONFIG = "org.eclipse.ajdt.ui.activeBuildConfiguration"; //$NON-NLS-1$
 
-	/**
-	 * Identifier for outline view mode selection
-	 */
-	public static final String ASPECTJ_OUTLINE = "org.eclipse.ajdt.ui.ajoutline2"; //$NON-NLS-1$
-
 	public static final String AUTOBUILD_SUPPRESSED = "org.eclipse.ajdt.ui.preferences.autobuildSuppressed"; //$NON-NLS-1$
 
 	/**
@@ -312,15 +307,6 @@ public class AspectJPreferences {
 			opts += "-Xreweavable:compress "; //$NON-NLS-1$
 		}
 		return opts;
-	}
-
-	/**
-	 * Helper get method used by AspectJPreference page
-	 */
-	static public boolean isAspectJOutlineEnabled() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(ASPECTJ_OUTLINE);
 	}
 
 	static public boolean isAdviceDecoratorActive() {

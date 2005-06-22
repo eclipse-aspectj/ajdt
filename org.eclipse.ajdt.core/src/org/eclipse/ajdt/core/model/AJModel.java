@@ -40,9 +40,6 @@ import org.eclipse.jdt.core.IJavaProject;
 public class AJModel {
 	private static AJModel instance;
 	
-	// needs which project is being built, if any
-	private IProject beingBuilt = null;
-	
 	private Map projectModelMap = new HashMap();
 	
 	private static String lastLoadedConfigFile;
@@ -164,7 +161,6 @@ public class AJModel {
 	}
 	
 	public void createMap(final IProject project) {
-		final long start = System.currentTimeMillis();
 		final AJProjectModel projectModel = new AJProjectModel(project);
 		projectModelMap.put(project,projectModel);
 		try {
@@ -182,11 +178,6 @@ public class AJModel {
 		AJLog.log("Cleared AJDT relationship map for project "+project.getName());
 	}
 	
-	public void aboutToBuild(IProject project) {
-		beingBuilt = project;
-	}
-	
-
 	/**
 	 * Query all the relationships of interest in a project
 	 * @param project

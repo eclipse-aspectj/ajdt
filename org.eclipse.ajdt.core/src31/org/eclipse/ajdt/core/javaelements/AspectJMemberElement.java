@@ -223,7 +223,7 @@ public boolean isResolved() {
  */
 public boolean isSimilar(IMethod method) {
 	return 
-		this.areSimilarMethods(
+		AspectJMemberElement.areSimilarMethods(
 			this.getElementName(), this.getParameterTypes(),
 			method.getElementName(), method.getParameterTypes(),
 			null);

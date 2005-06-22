@@ -17,8 +17,6 @@ import org.eclipse.jdt.internal.core.JavaElement;
  * @author Luzius Meisser
  */
 public class AdviceElement extends AspectJMemberElement implements IAspectJElement {
-
-	private boolean runtimeTest;	
 	
 	public AdviceElement(JavaElement parent, String name, String[] parameterTypes) {
 		super(parent, name, parameterTypes);

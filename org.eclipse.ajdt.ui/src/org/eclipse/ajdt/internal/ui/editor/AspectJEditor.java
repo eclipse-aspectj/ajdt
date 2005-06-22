@@ -12,7 +12,6 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
@@ -22,10 +21,8 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -68,7 +65,6 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
  * AspectJ Editor extends internal JDT editor in order to use our TextTools.
@@ -79,8 +75,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 	
 
 	public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor";
-
-	private AspectJContentOutlinePage contentOutlinePage;
 
 	private AnnotationAccessWrapper annotationAccessWrapper;
 
@@ -186,9 +180,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// use our own wrapper around the one returned by the superclass
 			return new AJTextOperationTarget((ITextOperationTarget) super
 					.getAdapter(key));
-		}
-		if (key.equals(IContentOutlinePage.class)) {
-			return getContentOutlinePage(key);
 		}
 		if (key.equals(IAnnotationAccess.class)) {
 			Object o = super.getAdapter(key);
@@ -302,18 +293,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			} else
 				performSave(false, progressMonitor);
 		}
-		if (contentOutlinePage == null) {
-			Object outlinePage = getContentOutlinePage(IContentOutlinePage.class);
-			if (outlinePage instanceof AspectJContentOutlinePage)
-				contentOutlinePage = (AspectJContentOutlinePage) outlinePage;
-		}
-
-		// AMC - commented this out - it sometimes causes "Save Failed 'Null'"
-		// problems and the update will never do anything since we don't have
-		// eager parsing and incremental compilation yet.
-
-		//if (contentOutlinePage != null)
-		// contentOutlinePage.update( );
 	}
 	
 	/**
@@ -327,35 +306,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		organizeImports.setActionDefinitionId(IJavaEditorActionDefinitionIds.ORGANIZE_IMPORTS);
 		setAction("OrganizeImports", organizeImports); //$NON-NLS-1$
 	}
-	
-	
-	/**
-	 * Get the content outline page - either the JDT one or our own depending on
-	 * the preference setting.
-	 */
-	private Object getContentOutlinePage(Class key) {
-		Object outlinePage = null;
 
-		if (AspectJPreferences.isAspectJOutlineEnabled()) {
-			IEditorInput input = getEditorInput();
-			if (input instanceof IFileEditorInput) {
-				IFile f = ((IFileEditorInput) input).getFile();
-				IProject p = f.getProject();
-				if (AspectJPlugin.isAJProject(p)) {
-					contentOutlinePage = new AspectJContentOutlinePage(this, f);
-					outlinePage = contentOutlinePage;
-				} else {
-					outlinePage = super.getAdapter(key);
-				}
-			} else {
-				outlinePage = super.getAdapter(key);
-			}
-		} else {
-			outlinePage = super.getAdapter(key);
-		}
-
-		return outlinePage;
-	}
 
 	//override this function to prevent others from setting the
 	// SourceViewConfiguration
@@ -440,11 +391,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			textTools.setupJavaDocumentPartitioner(document,
 					EclipseEditorIsolation.JAVA_PARTITIONING);
 
-			// Fix to bug 61679 - update the input to the outline view
-			if (contentOutlinePage != null) {
-				contentOutlinePage.setInput(fInput.getFile());
-				contentOutlinePage.update();
-			}
 			if ("aj".equals(fInput.getFile().getFileExtension())) {
 				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
@@ -496,61 +442,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 		super.dispose();
 	}
-
-	/**
-	 * Used by the builder. This method forces content outlines to update. I've
-	 * added this method because we now have a way to do a build without
-	 * creating the ASM. If we don't create the ASM then the outlines don't get
-	 * refreshed (there is no callback to update them) - so from the builder we
-	 * call this function. It means we keep track of active editors, something
-	 * we have not done previously.
-	 * 
-	 * We usually only update editors related to the specified project.
-	 * 
-	 * IF YOU PASS NULL, WE WILL UPDATE ALL THE EDITORS FOR ALL PROJECTS
-	 */
-	public static void forceEditorUpdates(final IProject project) {
-		synchronized(activeEditorList) {
-			final Iterator editorIter = activeEditorList.iterator();
-				AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						while (editorIter.hasNext()) {
-							AspectJEditor ajed = (AspectJEditor) editorIter.next();
-							IEditorInput iei = ajed.getEditorInput();
-							boolean updateThisEditor = true;
-							if (project != null
-									&& (iei instanceof IFileEditorInput)) {
-								IFileEditorInput ifei = (IFileEditorInput) iei;
-								if (!(ifei.getFile().getProject().getName()
-										.equals(project.getName())))
-									updateThisEditor = false;
-							}
-							if (updateThisEditor) {
-								AJDTEventTrace
-										.generalEvent("Forcing update of outline page for editor: "
-												+ ajed.getEditorInput().getName());
-								try {
-									if (ajed.contentOutlinePage != null) {
-										ajed.contentOutlinePage.update();
-									}
-								} catch (Exception e) {
-									AJDTEventTrace
-											.generalEvent("Unexpected exception updating editor outline "
-													+ e.toString());
-								}
-							}
-//							ajed.aspectJEditorErrorTickUpdater.updateEditorImage(ajed.getInputJavaElement());
-						}
-					} catch (Exception e) {
-					}
-				}
-			});
-		}
-	}
-
-
-
 	
 	/**
 	 * @see org.eclipse.ui.IWorkbenchPart#setFocus()

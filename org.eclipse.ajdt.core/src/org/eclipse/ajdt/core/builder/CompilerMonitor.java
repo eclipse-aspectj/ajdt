@@ -24,8 +24,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
 	private IProgressMonitor monitor = null;
 
-	private long compileStartTime;
-
 	/**
 	 * Is this CompilerMonitor instance currently 'in use' ?
 	 */
@@ -107,7 +105,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 			monitor.beginTask("AJC build", 100);
 		}
 
-		compileStartTime = System.currentTimeMillis();
 		AJLog.log("AJC: Starting new build for project " + project.getName());
 		compilationInProgress = true;
 	}
