@@ -57,9 +57,8 @@ public class AJDTStructureViewNodeAdapter implements IWorkbenchAdapter {
 		if ( o instanceof AJDTStructureViewNode ) {
 			AJDTStructureViewNode node = (AJDTStructureViewNode) o;	
 			return node.getChildren().toArray();
-		} else {
-			return new Object[0];
-		}
+		} 
+		return new Object[0];
 	}
 
 	/**

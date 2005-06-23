@@ -30,7 +30,6 @@ import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
@@ -203,16 +202,8 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 		
 		FileStructureView structureView = svManager.
 			createViewForSourceFile( filePath, viewProperties );
-			
-	    // I believe the guard was in place to prevent problems of multiple callbacks to the outline 
-	    // view.  I think multiple callbacks were due to not removing the view above.  With views
-	    // being removed, the guard can be removed.
-		//if ( registerForUpdates ) {
 		structureView.setRenderer( this );
-		//}
 		this.view = structureView; 
-		//return (AJDTStructureViewNode) view.getRootNode();				
-//		return tempPatch( view.getRootNode( ) );
 		return (AJDTStructureViewNode)view.getRootNode();
 	}
 	
@@ -238,7 +229,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 */
 	public void setActiveNode( IStructureViewNode node ) {
 		TreeViewer viewer = getTreeViewer();
-		viewer.setInput( (AJDTStructureViewNode)node );		
+		viewer.setInput(node );		
 	}
 	
 	/**
@@ -291,15 +282,12 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 		}
 		// add this extra text to stop us geting empty view structure updates
 		// caused by builds from other projects.
-		IProject myProject = input.getProject( );
-		IProject builtProject = AJBuilder.getLastBuildTarget();
 		if ( input.getProject().equals( AJBuilder.getLastBuildTarget() )  ) {
 			AJDTEventTrace.modelUpdated( input );
 
 			this.view = view;
 
 			getControl().setRedraw(false);
-	//		getTreeViewer().setInput( (AJDTStructureViewNode) view.getRootNode());
 			AJDTStructureViewNode toDisplay = (AJDTStructureViewNode)view.getRootNode();
 			getTreeViewer( ).setInput( toDisplay );
 			expandTreeView( );

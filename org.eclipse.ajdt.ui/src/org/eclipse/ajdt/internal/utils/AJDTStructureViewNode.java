@@ -33,10 +33,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
 public class AJDTStructureViewNode 
-implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
+implements IStructureViewNode, IAdaptable {
 
 	private static final String JDT_IMPORTS_LABEL = "import declarations";
-	private static final String FWD_INTRO_REL_NAME = "declares member on";
 
 	private IStructureViewNode.Kind kind = IStructureViewNode.Kind.DECLARATION;
 	
@@ -57,18 +56,6 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 	private AJDTStructureViewNode() {
 		super();
 	}
-//
-//	/**
-//	 * Constructor used only to add dummy root node at top of tree
-//	 */
-//	public AJDTStructureViewNode( AJDTStructureViewNode child ) {
-//		this.node = child.node;
-//		this.icon = AJDTIcon.MISSING_ICON;
-//		this.children = new ArrayList( );
-//		children.add( child );
-//		child.setParent( this );
-//		this.label = "<root>";	
-//	}
 
 	/**
 	 * Create a relationship node.
@@ -108,41 +95,12 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 		if (children != null) {
 			for (Iterator it = children.iterator(); it.hasNext(); ) {
 				AJDTStructureViewNode child = (AJDTStructureViewNode)it.next();
-//				if (StructureViewNodeFactory.acceptNode(node, child.getStructureNode())) {
-					child.setParent(this);
-					if (isImportContainer) {
-						child.icon = AspectJImages.JDT_IMPORTED;
-					}	
-//				}   
+				child.setParent(this);
+				if (isImportContainer) {
+					child.icon = AspectJImages.JDT_IMPORTED;
+				}	
 			}				
 		}
-		
-//		for (Iterator it = node.getChildren().iterator(); it.hasNext();){
-//			IProgramElement next = (IProgramElement)it.next();
-//		}
-		
-//		System.out.println( "Created node " + node.getName());
-//		if (node.getChildren() != null) {
-//		System.out.println( "Children: " );
-//			for (Iterator it = node.getChildren().iterator(); it.hasNext();){
-//				Object next = it.next();
-//				if ( next instanceof IProgramElement ) {
-//					System.out.println( "    SN " + ((IProgramElement)next).getName() + " " + next.getClass());
-//					if (next instanceof ProgramElementNode) {
-//						ProgramElementNode pe = (ProgramElementNode) next;
-//						System.out.println( "       Kind: " + pe.getProgramElementKind());
-//						System.out.println( "       Member Kind?: " + pe.isMemberKind());					
-//					}				
-//				} else if ( node instanceof LinkNode ) {
-//					System.out.println( "    LN " + ((LinkNode)next).getName());				
-//				} else if ( node instanceof RelationNode ) {
-//					System.out.println( "    RN " + ((RelationNode)next).getName());				
-//				} else {
-//					System.out.println( "    " + next.getClass());	
-//				}
-//			}
-//		} 
-//		System.out.println( "End Node.");
 	}
 
 	/**
@@ -177,12 +135,6 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 			ret = node.toLinkLabelString();	
 		} else {
 			ret = node.toLabelString();
-//			if( getParent().kind == IStructureViewNode.Kind.RELATIONSHIP) {
-//				if ( getParent().relationship.getKind().equals(IRelationship.Kind.ADVICE)) {
-//				if ( !getParent().relationshipName.startsWith("declare") ) {
-//					ret = node.getParent().toLabelString() + "." + ret;
-//				}			
-//			}
 		}
 		return ret;
 	}
@@ -201,11 +153,8 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 	public Object getAdapter(Class adapter) {
 		if (adapter == IWorkbenchAdapter.class) {
 			return AJDTStructureViewNodeAdapter.getDefault( );
-		} else /*if (adapter == IRelationshipAdapter.class){
-			return this;
-		} else */{
-			return null;
-		}
+		}  
+		return null;
 	}
 
 
@@ -352,28 +301,13 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 		return node;
 	}
 
-	// Relationships for Cross-Reference
-	// ===============================================================
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.aosd.relations.IRelationshipAdapter#getRelationshipsSource()
 	 */
 	public Object getRelationshipsSource() {
 		return this;
 	}
-	/* (non-Javadoc)
-	 * @see org.eclipse.aosd.relations.IRelationshipAdapter#getRelationship(java.lang.String)
-	 */
-	//AJDT RELS
-//	public org.eclipse.aosd.relations.IRelationship getRelationship(String name) {
-//		return null;
-//	}
-//	/* (non-Javadoc)
-//	 * @see org.eclipse.aosd.relations.IRelationshipAdapter#hasRelationships()
-//	 */
-//	public boolean hasRelationships() {
-//		return false;
-//	}
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.aosd.relations.IRelationshipAdapter#getRelationships()
 	 */
@@ -411,8 +345,7 @@ implements IStructureViewNode, IAdaptable/*, IRelationshipAdapter*/{
 		}
 	}
 
-	static class AJDTPointcutMatcher /*
-	implements IDeferredRelationship */{
+	static class AJDTPointcutMatcher {
 		private AJDTStructureViewNode anchor = null;
 		public AJDTPointcutMatcher(AJDTStructureViewNode anchor) {
 			this.anchor = anchor;

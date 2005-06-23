@@ -196,16 +196,7 @@ public class AspectJPreferences {
 	private static boolean migrationWizardIsRunning = false;
 		
 	public static String getFileExt() {
-		// only use .aj for now
-		return ".aj"; //$NON-NLS-1$
-//		boolean javaOrAjExt = getJavaOrAjExt();
-//		return javaOrAjExt ? ".java" : ".aj"; //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	private static boolean getJavaOrAjExt() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(JAVA_OR_AJ_EXT);
+		return ".aj"; 
 	}
 
 	public static String getLintOptions(IProject thisProject) {
@@ -273,9 +264,6 @@ public class AspectJPreferences {
 				String value = getStringPrefValue(thisProject,
 						lintKeysName[i][0]);
 				if (value.equals("")) {  //$NON-NLS-1$
-					// catches and initializes uninitialized variables
-				// store.setDefault(prefix+lintKeysName[i][0],VALUE_WARNING);
-				// value = store.getString(prefix+lintKeysName[i][0]);
 					value = VALUE_WARNING;
 				}
 				writer.write(lintKeysName[i][1] + " = " + value); //$NON-NLS-1$
@@ -317,9 +305,6 @@ public class AspectJPreferences {
 
 	static public boolean isAutobuildSuppressed() {
 		return false; // Bug 46653
-		// IPreferenceStore store =
-		// AspectJPlugin.getDefault().getPreferenceStore();
-		// return store.getBoolean(AUTOBUILD_SUPPRESSED);
 	}
 
 	// preferences relating to migration of ajdt eclipse builder
@@ -503,11 +488,10 @@ public class AspectJPreferences {
 					.getNode(AspectJPlugin.PLUGIN_ID);
 			String v = projectNode.get(key, ""); //$NON-NLS-1$
 			return v;
-		} else {
-			IPreferenceStore store = AspectJUIPlugin.getDefault()
-					.getPreferenceStore();
-			return store.getString(key);
-		}
+		} 
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		return store.getString(key);
 	}
 
 	private static boolean getBooleanPrefValue(IProject project, String key) {
@@ -517,16 +501,13 @@ public class AspectJPreferences {
 					.getNode(AspectJPlugin.PLUGIN_ID);
 			boolean v = projectNode.getBoolean(key, false);
 			return v;
-		} else {
-			IPreferenceStore store = AspectJUIPlugin.getDefault()
+		} 
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
 					.getPreferenceStore();
-			return store.getBoolean(key);
-		}
+		return store.getBoolean(key);
 	}
 	
 	public static boolean dontRunMigrationWizard() {
-		// TODO: activate the migration wizard when ready
-//	    return true; 
 	    return doNotRunMigrationWizard;
 	}
 	

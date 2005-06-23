@@ -80,8 +80,6 @@ public class BuildConfigEditor
 
 	ImageDescriptor compilationUnitImgDesc;
 	ImageDescriptor directoryImgDesc;
-//	Image compilationUnitImage;
-//	Image directoryImage;
 	
 	/**
 	 * Double clicking on an lst file opens it, double clicking on anything
@@ -94,9 +92,6 @@ public class BuildConfigEditor
 		if ( node != null && 
 			 node.getBuildConfigNodeKind() == BuildConfigNode.Kind.FILE_LST ) {
 			 String relativePath = node.getResourcePath();
-//			 IPath path = fileInput.getFile().getLocation();
-//			 path = path.removeLastSegments(1);
-//			 path = path.append( relativePath );
 			 IFile file = fileInput.getFile().getProject().getFile( relativePath );	
 			 if ( file != null ) {
 				 try {		 
@@ -105,7 +100,8 @@ public class BuildConfigEditor
 					 	getWorkbench().
 					 	getActiveWorkbenchWindow().
 					 	getActivePage(),file,true );
-				 } catch ( Exception ex ) { System.err.println( ex ); }
+				 } catch ( Exception ex ) { 
+				 }
 			 }
 		} else {
 			widgetSelected( e );
@@ -188,7 +184,6 @@ public class BuildConfigEditor
 
 		setSite( site );
 		setInput( input );
-		//setTitle( input.getName() );
 		setContentDescription(input.getName());
 
 		if (!(input instanceof IFileEditorInput)) {
@@ -272,7 +267,7 @@ public class BuildConfigEditor
 	 */
 	private void populateTree( ) {
 		if ( model != null ) {
-			populateBranch( tree, (BuildConfigNode) model.getRoot() );
+			populateBranch( tree, model.getRoot() );
 			ensureTreeCheckboxConsistency( tree );
 		}
 	}
@@ -342,12 +337,11 @@ public class BuildConfigEditor
 			}
 
 			return oneselected || ti.getChecked();
-		} else {
-			tis = ((Tree) where).getItems();
-			for (int i = 0; i < tis.length; i++)
-				ensureTreeCheckboxConsistency(tis[i]);
-			return false;
-		}
+		} 
+		tis = ((Tree) where).getItems();
+		for (int i = 0; i < tis.length; i++)
+			ensureTreeCheckboxConsistency(tis[i]);
+		return false;
 	}
 
 	/**
@@ -436,7 +430,6 @@ public class BuildConfigEditor
 
 			realLocation = realLocation.replace('/',File.separatorChar);
 			realLocation = realLocation.replace('\\',File.separatorChar);
-			boolean isReachableFromHere = false;
 			for (Iterator fldr = linkedsrcfolders.iterator(); fldr.hasNext();) {
 				String element = (String) fldr.next();
 				element = element.replace('/',File.separatorChar);
@@ -459,19 +452,15 @@ public class BuildConfigEditor
 			
 	
 		if (reusableImageMap.get(key) != null) {
-			// System.err.println("ReusableImageMap cache hit for "+key);
 			return (Image) reusableImageMap.get(key);
-		} else {
-
-			//System.err.println("ReusableImageMap cache miss for "+key);
-			AJDTIcon icon =
-				(AJDTIcon) AspectJImages.registry().getIcon(kind);
-			baseDescriptor = icon.getImageDescriptor();
-			Image newImage =
-				AJDTUtils.decorate(baseDescriptor, overlayFlags).createImage();
-			reusableImageMap.put(key, newImage);
-			return newImage;
-		}
+		} 
+		AJDTIcon icon =
+			(AJDTIcon) AspectJImages.registry().getIcon(kind);
+		baseDescriptor = icon.getImageDescriptor();
+		Image newImage =
+			AJDTUtils.decorate(baseDescriptor, overlayFlags).createImage();
+		reusableImageMap.put(key, newImage);
+		return newImage;
 				
 	}
 	
@@ -502,47 +491,5 @@ public class BuildConfigEditor
 
 		return linkedSourceFolders;
 	}
-	
-//	public List getProjectSourceFiles(IProject project, FilenameFilter filter) {
-//
-//		List allProjectSourceFiles = new ArrayList();
-//		fileToResourceHt = new Hashtable();
-//
-//		// bug 23045 - we don't want every file in the project, just those in
-//		// the active source directories	
-//		IJavaProject jProject = JavaCore.create(project);
-//		try {
-//			IClasspathEntry[] classpathEntries = jProject.getResolvedClasspath(false);
-//			for (int i = 0; i < classpathEntries.length; i++) {
-//				if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-//					IClasspathEntry sourceEntry = classpathEntries[i];
-//					IPath sourcePath = sourceEntry.getPath();
-//					AJDTEventTrace.generalEvent("Get project source files request: Processing "+sourceEntry);
-//					// remove the first segment because the findMember call following
-//					// always adds it back in under the covers (doh!) and we end up
-//					// with two first segments otherwise!
-//					sourcePath = sourcePath.removeFirstSegments(1);
-//					IResource[] srcContainer = new IResource[] { project.findMember(sourcePath)};
-//					getAllFiles(srcContainer, allProjectSourceFiles, fileToResourceHt,filter);
-//				}
-//			}
-//		} catch (JavaModelException jmEx) {
-//			String message = AspectJPlugin.getResourceString("jmCoreException");
-//			Status status = new Status(Status.ERROR, AspectJPlugin.PLUGIN_ID, Status.OK, message, jmEx);
-//			if (AspectJPlugin.getDefault() == null ||
-//			    AspectJPlugin.getDefault().getActiveWorkbenchWindow()==null ||
-//			    AspectJPlugin.getDefault().getActiveWorkbenchWindow().getShell()==null) {
-//			    AJDTEventTrace.generalEvent(
-//                  "ProjectProperties.getProjectSourceFiles() has blown up.  User can't be informed :"+
-//                  jmEx.toString()+": See plugin message log for complete exception trace.");
-//				AspectJPlugin.getDefault().getLog().log(status);
-//			} else {    
-//				Shell shell = AspectJPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-//				ErrorDialog.openError(shell, AspectJPlugin.getResourceString("ajErrorDialogTitle"), message, status);
-//			}
-//		}
-//
-//		return allProjectSourceFiles;
-//	}
 	
 }

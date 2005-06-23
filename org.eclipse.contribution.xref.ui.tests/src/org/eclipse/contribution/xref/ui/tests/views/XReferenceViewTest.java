@@ -63,7 +63,6 @@ public class XReferenceViewTest extends TestCase {
 	// tests for XReferenceView.TreeObject
 	// pretty basic stuff...
 	public void testTreeObject() {
-		XReferenceView xrv = new XReferenceView();
 		TreeObject to = new TreeObject("name");
 
 		assertEquals("name", to.getName());
@@ -78,7 +77,6 @@ public class XReferenceViewTest extends TestCase {
 
 	// test for TreeParent, basic stuff again
 	public void testTreeParent() {
-		XReferenceView xrv = new XReferenceView();
 		TreeParent tp = new TreeParent("pname");
 		assertFalse(tp.hasChildren());
 
@@ -103,7 +101,6 @@ public class XReferenceViewTest extends TestCase {
 	}
 
 	public void testViewContentProvider() {
-		XReferenceView xrefView = new XReferenceView();
 		XReferenceContentProvider viewContentProvider =
 			new XReferenceContentProvider();
 
@@ -143,7 +140,6 @@ public class XReferenceViewTest extends TestCase {
 
 	// test view content provider - real input
 	public void testViewContentProviderLive() {
-		XReferenceView xrefView = new XReferenceView();
 		XReferenceContentProvider viewContentProvider =
 			new XReferenceContentProvider();
 
@@ -205,7 +201,6 @@ public class XReferenceViewTest extends TestCase {
 		} else {
 			ch = viewContentProvider.getChildren(ch[1]);
 		}
-		TestXRefProviderWithEntities t = new TestXRefProviderWithEntities();
 		assertEquals(
 			"test associate",
 			((TreeObject) ch[0]).getData());

@@ -76,9 +76,8 @@ public class AJDTStructureViewNodeFactory extends StructureViewNodeFactory {
 		latestRelationship = relationship;
 		if (relationship.getKind() == IRelationship.Kind.USES_POINTCUT) {
 		    return null;
-		} else {
-		    return new AJDTStructureViewNode(relationship, icon);
-		}
+		} 
+		return new AJDTStructureViewNode(relationship, icon);
 	}
 
 	

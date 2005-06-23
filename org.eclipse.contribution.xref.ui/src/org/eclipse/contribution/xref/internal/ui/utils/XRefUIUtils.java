@@ -127,14 +127,13 @@ public class XRefUIUtils {
 					IJavaElement elementAt = unit.getElementAt(offset);
 					if (elementAt != null) {
 						return elementAt;
-					} else {
-						// this is if the selection in the editor
-						// is outside the {} of the class or aspect
-						IJavaElement[] children = unit.getChildren();
-						for (int i = 0; i < children.length; i++) {
-							if (children[i] instanceof SourceType) {
-								return children[i];
-							}
+					} 
+					// this is if the selection in the editor
+					// is outside the {} of the class or aspect
+					IJavaElement[] children = unit.getChildren();
+					for (int i = 0; i < children.length; i++) {
+						if (children[i] instanceof SourceType) {
+							return children[i];
 						}
 					}
 				} else if (unit.isConsistent())
@@ -228,9 +227,9 @@ public class XRefUIUtils {
 					for (int i = 0; i < types.length; i++) {
 						if ((types[i] instanceof SourceType)
 								&& (types[i].getParent() instanceof ICompilationUnit)) {
-							IAdaptable a = (IAdaptable)((SourceType)types[i]);
+							IAdaptable a = ((SourceType)types[i]);
 							if (a != null) {
-								xrefAdapterList.add((IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class));
+								xrefAdapterList.add(a.getAdapter(IXReferenceAdapter.class));
 							}
 						}
 					}
@@ -238,9 +237,9 @@ public class XRefUIUtils {
 				}				
 			}
 		} else {
-			IAdaptable a = (IAdaptable)javaElement;
+			IAdaptable a = javaElement;
 			if (a != null) {
-				xrefAdapterList.add((IXReferenceAdapter) a.getAdapter(IXReferenceAdapter.class));
+				xrefAdapterList.add(a.getAdapter(IXReferenceAdapter.class));
 			}
 		}	
 	    return xrefAdapterList;

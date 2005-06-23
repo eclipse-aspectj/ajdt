@@ -318,31 +318,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
-
-        // Summarize what happened during weaving... ASC170205 - commented out for now - not that useful!
-//        AJDTEventTrace.generalEvent("Weaver stress level: ");
-//        int fastMatchOnTypeMaybe = (WeaverMetrics.fastMatchOnTypeAttempted
-//                - WeaverMetrics.fastMatchOnTypeTrue - WeaverMetrics.fastMatchOnTypeFalse);
-//        AJDTEventTrace.generalEvent("Fast fast matching (type level) of #"
-//                + WeaverMetrics.fastMatchOnTypeAttempted + " types "
-//                + "resulting in us dismissing "
-//                + WeaverMetrics.fastMatchOnTypeFalse);
-//        //System.err.println(" YES/NO/MAYBE =
-//        // "+Metrics.fastMatchOnTypeTrue+"/"+Metrics.fastMatchOnTypeFalse+"/"+Metrics.fastMatchOnTypeMaybe);
-//        //		int fastMatchMaybe = (WeaverMetrics.fastMatchOnShadowsAttempted
-//        //				- WeaverMetrics.fastMatchOnShadowsFalse -
-//        // WeaverMetrics.fastMatchOnShadowsTrue);
-//        AJDTEventTrace.generalEvent("Fast matching within the remaining #"
-//                + (WeaverMetrics.fastMatchOnTypeTrue + fastMatchOnTypeMaybe)
-//                + " types, " + "we fast matched on #"
-//                + WeaverMetrics.fastMatchOnShadowsAttempted
-//                + " shadows and dismissed #"
-//                + WeaverMetrics.fastMatchOnShadowsFalse);
-//        // System.err.println(" YES/NO/MAYBE =
-//        // "+Metrics.fastMatchTrue+"/"+Metrics.fastMatchFalse+"/"+fastMatchMaybe);
-//        AJDTEventTrace.generalEvent("Slow match then attempted on #"
-//                + WeaverMetrics.matchAttempted + " shadows of which "
-//                + WeaverMetrics.matchTrue + " successful");
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
@@ -363,18 +338,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                             monitor.done();
                         monitor = null;
                     }
-                    //monitoringInProgress = false;
-                    // Attempting this here will lock the GUI up if there is
-                    // another
-                    // compile about to
-                    // be done. So it has been moved to an equivalent call
-                    // (showOutstandingProblems())
-                    // in the Builder.java file.
-                    //showMessages();
-
-                    // this next piece should really be handled by an aspect
-                    //				AspectVisualiserPlugin.getDefault().refreshView();
-
                 }
             });
     }
@@ -441,78 +404,5 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         }
         return ret;
     }
-
-//    /**
-//     * Inner class used to ensure marker creation and attribute setting occur as
-//     * an atomic unit (otherwise tick marks do not appear correctly in editor
-//     * margin.
-//     */
-//    class ProblemAdder implements IWorkspaceRunnable {
-//        private Iterator problemIterator;
-//
-//        public ProblemAdder(Iterator it) {
-//            this.problemIterator = it;
-//        }
-//
-//        public void run(IProgressMonitor monitor) {
-//            while (problemIterator.hasNext()) {
-//                ProblemTracker p = (ProblemTracker) problemIterator.next();
-//                IResource ir = null;
-//                if (p.location != null) {
-//                    String loc = p.location.getSourceFile().getAbsolutePath();
-//                    ir = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-//                            .findResource(loc);
-//                    if (ir == null) {
-//                        ir = AspectJUIPlugin.getDefault().getCurrentProject();
-//                    }
-//                    try {
-//                        IMarker im = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-//                        if (p.location.getLine() > 0) {
-//                            im.setAttribute(IMarker.LINE_NUMBER, p.location
-//                                    .getLine());
-//                        }
-//                        if (p.location.getColumn() > 0) {
-//                            //im.setAttribute(IMarker.CHAR_START ,
-//                            // p.location.getColumnNumber());
-//                            //im.setAttribute(IMarker.CHAR_END,...);
-//                        }
-//
-//                        if (p.kind == IMessage.ERROR) {
-//                            im.setAttribute(IMarker.SEVERITY,
-//                                    IMarker.SEVERITY_ERROR);
-//                        } else if (p.kind == IMessage.WARNING) {
-//                            im.setAttribute(IMarker.SEVERITY,
-//                                    IMarker.SEVERITY_WARNING);
-//                        } else {
-//                            im.setAttribute(IMarker.SEVERITY,
-//                                    IMarker.SEVERITY_INFO);
-//                        }
-//
-//                        // FIXME: Remove this horrid hack.
-//                        // Hack the filename off the front and the line number
-//                        // off the end
-//                        if (p.message.indexOf("\":") != -1
-//                                && p.message.indexOf(", at line") != -1) {
-//                            String hackedMessage = p.message
-//                                    .substring(p.message.indexOf("\":") + 2);
-//                            hackedMessage = hackedMessage.substring(0,
-//                                    hackedMessage.indexOf(", at line"));
-//                            im.setAttribute(IMarker.MESSAGE, hackedMessage);
-//                        } else {
-//                            im.setAttribute(IMarker.MESSAGE, p.message);
-//                        }
-//                    } catch (Exception e) {
-//                        AspectJUIPlugin.getDefault().getErrorHandler()
-//                                .handleError("Error creating marker", e);
-//                    }
-//                }
-//            }
-//            clearTasks();
-//        } // end of run method
-//
-//    }; // end of ProblemAdder class
-//
-
-
  
 }

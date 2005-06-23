@@ -61,7 +61,7 @@ public class AJDTConfigSettings {
 	 * @return boolean true if unused imports option already set to "ignore"
 	 */
 	static public boolean isUnusedImportsDisabled() {
-		Hashtable map = (Hashtable)JavaCore.getOptions();
+		Hashtable map = JavaCore.getOptions();
 		return ((String)map.get(JavaCore.COMPILER_PB_UNUSED_IMPORT)).equals(JavaCore.IGNORE) ? true : false;
 	}
 	
@@ -69,7 +69,7 @@ public class AJDTConfigSettings {
 	 * Set the compiler preference for unused imports to "ignore"
 	 */
 	static public void disableUnusedImports() {
-		Hashtable map = (Hashtable)JavaCore.getOptions();
+		Hashtable map = JavaCore.getOptions();
 		map.put(JavaCore.COMPILER_PB_UNUSED_IMPORT, JavaCore.IGNORE);
 		JavaCore.setOptions(map);
 	}
@@ -78,7 +78,7 @@ public class AJDTConfigSettings {
 	 * Set the compiler preference for unused imports to "warning"
 	 */
 	static public void enableUnusedImports() {
-		Hashtable map = (Hashtable)JavaCore.getOptions();
+		Hashtable map = JavaCore.getOptions();
 		map.put(JavaCore.COMPILER_PB_UNUSED_IMPORT, JavaCore.WARNING);
 		JavaCore.setOptions(map);
 	}

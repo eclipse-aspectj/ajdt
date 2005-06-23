@@ -72,7 +72,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -143,7 +142,6 @@ public class XReferenceInplaceDialog {
 	/**
 	 * Fields for view menu support.
 	 */
-	private Button viewMenuButton;
 	private ToolBar toolBar;
 	private MenuManager viewMenuManager;
 	
@@ -211,6 +209,7 @@ public class XReferenceInplaceDialog {
 		createHorizontalSeparator(composite);
 		viewer = createTreeViewer(composite, SWT.V_SCROLL | SWT.H_SCROLL);
 
+		// leaving this in for enhancement 95724
 //		customFiltersActionGroup = new CustomFiltersActionGroup(
 //				"org.eclipse.contribution.xref.QuickXRef", viewer);//$NON-NLS-1$
 
@@ -557,8 +556,8 @@ public class XReferenceInplaceDialog {
 		
 		if (isShowingParentCrosscutting)
 			return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.hideParentCrosscutting", keySequence); //$NON-NLS-1$
-		else
-			return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.showParentCrosscutting", keySequence); //$NON-NLS-1$
+		
+		return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.showParentCrosscutting", keySequence); //$NON-NLS-1$
 	}
 	
 	private KeySequence[] getInvokingCommandKeySequences() {

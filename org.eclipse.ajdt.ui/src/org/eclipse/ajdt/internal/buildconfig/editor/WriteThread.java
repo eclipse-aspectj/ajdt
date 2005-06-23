@@ -34,10 +34,9 @@ public class WriteThread extends Thread{
 		if (temp == null){
 			instance = null;
 			return null;
-		} else {
-			nextJob = null;
-			return temp;
 		}
+		nextJob = null;
+		return temp;
 	}
 	
 	public void run(){

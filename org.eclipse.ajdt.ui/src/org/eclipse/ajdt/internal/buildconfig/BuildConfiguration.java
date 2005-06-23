@@ -49,8 +49,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 
 /**
- * @author Luzius Meisser
- * 
  * This class represents a Build Configuration. It stores all the Classpath data
  * and offers functionality to include/exclude files, commit changes and to
  * create new Build Configurations using sophisticated constructors.
@@ -318,14 +316,12 @@ public class BuildConfiguration implements Cloneable,
 		String fileName = BuildConfigurator.getFreeFileName(pbc.getJavaProject().getProject());
 
 		BuildConfiguration origBC = pbc.getActiveBuildConfiguration();
-//
-//		final String forbiddenName = origBC.getName();
+
 		IInputValidator validator = new IInputValidator() {
 			public String isValid(String input) {
 				IFile[] files = pbc.getConfigurationFiles();
 				for (int i = 0; i < files.length; i++) {
 					IFile file = files[i];
-					String name = files[i].getName();
 					if (file.getName().equals(input)
 							|| file.getName()  //$NON-NLS-1$
 									.equals(input + "." + BuildConfiguration.EXTENSION)) {
@@ -351,12 +347,12 @@ public class BuildConfiguration implements Cloneable,
 				if (newFile.exists()) {
 					if (!askUserOverwrite(newFile.getName())) {
 						throw new BuildConfigurationCreationException();
-					} else {
-						try {
-							newFile.delete(true, null);
-						} catch (CoreException e1) {
-						}
+					} 
+					try {
+						newFile.delete(true, null);
+					} catch (CoreException e1) {
 					}
+					
 				}
 				try {
 					origFile.copy(newFile.getFullPath(), true, null);

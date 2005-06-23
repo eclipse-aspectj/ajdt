@@ -45,7 +45,6 @@ public class AspectJPreferencePage
 	 * when "restore defaults" is clicked.
 	 */
 	public static void initDefaults(IPreferenceStore store) {
-		//store.setDefault(AspectJPreferences.COMPILER_OPTIONS, "");
 		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
 		store.setDefault(AspectJPreferences.ADVICE_DECORATOR, true);
 		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
@@ -114,7 +113,6 @@ public class AspectJPreferencePage
 			  "Please refer to the forum eclipse.technology.ajdt\n"+
 			  "on the eclipse.org website."));
 
-		//createLabel(compilerOptionsComposite, ""); // Spacer
 		createLabel(compilerOptionsComposite, "Licensing");
 		ITextViewer itw2 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 		
@@ -130,10 +128,6 @@ public class AspectJPreferencePage
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
 		
-//		addField(createJavaOrAJField(compilerOptionsComposite));
-//		createLabel(compilerOptionsComposite, 
-//				AspectJUIPlugin.getResourceString("aspectjpreferences.fileExt.details"));
-
 		addField(createAdviceDecoratorField(compilerOptionsComposite));
 		
 	}
@@ -186,32 +180,11 @@ public class AspectJPreferencePage
 		return label;
 	}
 
-	/**
-	 * Create a string field editor for the AspectJ compiler options
-	 */	
-	private FieldEditor createJavaOrAJField(Composite parent) {
-		BooleanFieldEditor editor =
-			new BooleanFieldEditor(
-				AspectJPreferences.JAVA_OR_AJ_EXT,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.fileExt"),
-				parent);
-		return editor;
-	}
-
 	private FieldEditor createAdviceDecoratorField(Composite parent) {
 		BooleanFieldEditor editor =
 			new BooleanFieldEditor(
 				AspectJPreferences.ADVICE_DECORATOR,
 				AspectJUIPlugin.getResourceString("aspectjPreferences.adviceDec"),
-				parent);
-		return editor;
-	}
-
-	private FieldEditor createAutobuildSuppressedField(Composite parent) {
-		BooleanFieldEditor editor =
-			new BooleanFieldEditor(
-				AspectJPreferences.AUTOBUILD_SUPPRESSED,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.autobuildSuppressed"),
 				parent);
 		return editor;
 	}

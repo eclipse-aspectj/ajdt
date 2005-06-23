@@ -38,9 +38,8 @@ public class AJNode implements IAdaptable, IXReferenceNode {
 	public Object getAdapter(Class adapter) {
 		if (adapter == IWorkbenchAdapter.class) {
 			return AJNodeAdapter.getDefault( );
-		} else {
-			return null;
-		}
+		} 
+		return null;
 	}
 	
 	public String getLabel() {

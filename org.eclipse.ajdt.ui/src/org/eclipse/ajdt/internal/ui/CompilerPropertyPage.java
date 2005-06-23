@@ -434,7 +434,6 @@ public class CompilerPropertyPage extends PropertyPage {
 						.getResourceString("CompilerConfigurationBlock.aj_advanced.description")); //$NON-NLS-1$
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
-		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 
 		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_no_weave.label"); //$NON-NLS-1$
@@ -513,8 +512,6 @@ public class CompilerPropertyPage extends PropertyPage {
 						.getResourceString("CompilerConfigurationBlock.ignore") //$NON-NLS-1$
 		};
 
-		String[] enableDisableValues = new String[]{AspectJPreferences.VALUE_ENABLED, AspectJPreferences.VALUE_DISABLED};
-
 		int nColumns = 3;
 
 		GridLayout layout = new GridLayout();
@@ -529,7 +526,6 @@ public class CompilerPropertyPage extends PropertyPage {
 						.getResourceString("CompilerConfigurationBlock.aj_5.description")); //$NON-NLS-1$
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
-		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 	
 		Label spacer = new Label(composite, SWT.NONE);
@@ -587,13 +583,6 @@ public class CompilerPropertyPage extends PropertyPage {
 
 		return composite;
 	}
-
-//	/**
-//	 * Get the preference store for AspectJ mode
-//	 */
-//	protected IPreferenceStore doGetPreferenceStore() {
-//		return AspectJUIPlugin.getDefault().getPreferenceStore();
-//	}
 	
 	/**
 	 * overriding performApply() for PreferencePaageBuilder.aj
@@ -644,23 +633,6 @@ public class CompilerPropertyPage extends PropertyPage {
 		return true;
 	}
 	
-//	/**
-//	 * Checks whether any of the settings have changed since the 
-//	 * property page was initialized.
-//	 */
-//	private boolean settingsHaveChanged() {
-//	    // If have switched between using project and workbench settings, just
-//	    // return true. If originally chose to use the workbench settings and still are, 
-//	    // then return no changes. If have switched between using project and workbench
-//	    // settings just return true. Otherwise, go through each setting and check
-//	    // whether there have been any changes.
-//	    if (AspectJPreferences.isUsingProjectSettings(thisProject) != useProjectSettings()) {
-//            return true;
-//        } else if (!AspectJPreferences.isUsingProjectSettings(thisProject) && !useProjectSettings()){
-//            return false;
-//        }
-//        return projectSettingsHaveChanged(false);
-//	}
 	
 	private void setPrefValue(IProject project, String key, String value) {
 	    	IScopeContext projectScope = new ProjectScope(project);

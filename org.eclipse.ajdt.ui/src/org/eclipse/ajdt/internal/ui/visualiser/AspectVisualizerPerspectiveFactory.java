@@ -42,10 +42,7 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 	}
 
 	public void createInitialLayout(IPageLayout layout) {
-		//		if (AppearancePreferencePage.stackBrowsingViewsHorizontally())
 		createHorizontalLayout(layout);
-		//		else
-		//			createVerticalLayout(layout);
 
 		// action sets
 		layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
@@ -56,7 +53,6 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 		layout.addShowViewShortcut(JavaUI.ID_TYPE_HIERARCHY);
 
 		// views - search
-		//layout.addShowViewShortcut(SearchUI.SEARCH_RESULT_VIEW_ID);
 		layout.addShowViewShortcut(NewSearchUI.SEARCH_VIEW_ID);
 
 		// views - standard workbench
@@ -88,14 +84,6 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 	}
 
 	private void createHorizontalLayout(IPageLayout layout) {
-		String relativePartId = IPageLayout.ID_EDITOR_AREA;
-		int relativePos = IPageLayout.TOP;
-
-		//		layout.addView(JavaUI.ID_PROJECTS_VIEW, IPageLayout.TOP, (float)0.25,
-		// IPageLayout.ID_EDITOR_AREA);
-		//		relativePartId= JavaUI.ID_PROJECTS_VIEW;
-		//		relativePos= IPageLayout.RIGHT;
-
 		layout.addView(JavaUI.ID_PROJECTS_VIEW, IPageLayout.TOP, (float) 0.75,
 				IPageLayout.ID_EDITOR_AREA);
 		layout.addView(JavaUI.ID_PACKAGES_VIEW, IPageLayout.RIGHT,
@@ -118,7 +106,6 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 				.createPlaceholderFolder(
 						"bottom", IPageLayout.BOTTOM, (float) 0.75, IPageLayout.ID_EDITOR_AREA); //$NON-NLS-1$
 		placeHolderBottom.addPlaceholder(IPageLayout.ID_TASK_LIST);
-		//placeHolderBottom.addPlaceholder(SearchUI.SEARCH_RESULT_VIEW_ID);
 		placeHolderBottom.addPlaceholder(NewSearchUI.SEARCH_VIEW_ID);
 		placeHolderBottom.addPlaceholder(IPageLayout.ID_BOOKMARKS);
 	}

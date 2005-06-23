@@ -63,9 +63,8 @@ public class XReferenceContentProvider
 			return new Object[0];
 		if (parent.equals(input)) {
 			return getChildren(invisibleRoot);
-		} else {
-			return getChildren(parent);
-		}
+		}  
+		return getChildren(parent);
 	}
 
 	public Object getParent(Object child) {
@@ -95,7 +94,7 @@ public class XReferenceContentProvider
 			createXRefTree(xreferenceAdapter);
 		} else if (input != null && (input instanceof List)) {
 			for (Iterator iter = ((List)input).iterator(); iter.hasNext();) {
-				Object o = (Object) iter.next();
+				Object o = iter.next();
 				if (o instanceof IXReferenceAdapter) {
 					createXRefTree((IXReferenceAdapter)o);
 				}
@@ -144,7 +143,7 @@ public class XReferenceContentProvider
 			children = (IJavaElement[])l.toArray(new IJavaElement[]{});
 			for (int i = 0; i < children.length; i++) {
 				IJavaElement child = children[i];
-				IAdaptable a = (IAdaptable) child;
+				IAdaptable a = child;
 				IXReferenceAdapter xrefAdapterChild = null;
 				if (a != null) {
 					xrefAdapterChild =

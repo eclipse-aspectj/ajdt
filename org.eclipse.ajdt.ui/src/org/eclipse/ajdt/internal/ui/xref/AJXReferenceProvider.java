@@ -17,19 +17,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.javaelements.AspectJMemberElement;
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.Member;
 
 /**
  * @author hawkinsh
@@ -64,20 +59,6 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	    List l = AJModel.getInstance().getExtraChildren(je);
 	    if (l == null) {
 			return null;
-		// commenting this out for now - see bug 91105
-		// (still see the ClassCastException)	
-//		} else {
-//			// this is to stop ClassCastException's when a child
-//			// is contained in a jar file which we can't open
-//			for (Iterator iter = l.iterator(); iter.hasNext();) {
-//				Object o = (Object) iter.next();
-//				if (o instanceof AJCodeElement) {
-//					AJCodeElement element = (AJCodeElement)o;
-//					if (element.getOpenable() == null) {
-//						l.remove(o);
-//					}
-//				}			
-//			}
 		}
 	    // ensuring that the children are sorted 
 	    Collections.sort(l,new AJComparator());
@@ -148,68 +129,5 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		}
 	}
 
-	/**
-	 * Get the line number for the given offset in the given
-	 * AspectJMemberElement
-	 */
-	private int getLineNumFromOffset(AspectJMemberElement ajelement, int offSet) {
-		try {
-			IJavaElement je = ajelement.getParent().getParent();
-			ICompilationUnit cu = null;
-			if (je instanceof ICompilationUnit) {
-				cu = (ICompilationUnit) je;
-			}
-			if (cu != null) {
-				return getLineFromOffset(cu.getSource(), ajelement
-						.getDeclaringType(), offSet);
-			}
-		} catch (JavaModelException jme) {
-		}
-		return 0;
-	}
-
-	/**
-	 * Get the line number for the given offset in the given Member
-	 */
-	private int getLineNumFromOffset(Member m, int offSet) {
-		try {
-			IJavaElement je = m.getParent();
-			ICompilationUnit cu = null;
-			if (je instanceof ICompilationUnit) {
-				cu = (ICompilationUnit) je;
-			} else {
-				IJavaElement j = je.getParent();
-				if (j instanceof ICompilationUnit) {
-					cu = (ICompilationUnit) j;
-				}
-			}
-			if (cu != null) {
-				return getLineFromOffset(cu.getSource(), m.getDeclaringType(),
-						offSet);
-			}
-		} catch (JavaModelException jme) {
-		}
-		return 0;
-	}
-
-	/**
-	 * Get the line number for the given offset in the given Source and type
-	 */
-	private int getLineFromOffset(String source, IType type, int offSet) {
-		if (type != null) {
-			String sourcetodeclaration = source.substring(0, offSet);
-			int lines = 0;
-			char[] chars = new char[sourcetodeclaration.length()];
-			sourcetodeclaration.getChars(0, sourcetodeclaration.length(),
-					chars, 0);
-			for (int i = 0; i < chars.length; i++) {
-				if (chars[i] == '\n') {
-					lines++;
-				}
-			}
-			return lines + 1;
-		}
-		return 0;
-	}
 
 }

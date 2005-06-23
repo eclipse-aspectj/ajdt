@@ -61,7 +61,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 	public static final String ID =
 		"org.eclipse.contribution.xref.ui.views.XReferenceView"; //$NON-NLS-1$
 	private static final String LINK_ID = ID + ".link"; //$NON-NLS-1$
-	private static final String SELECTION_ID = ID + ".selection"; //$NON-NLS-1$
 	private static final String XREFS_FOR_FILE_ID = ID + ".xrefsForFile"; //$NON-NLS-1$
 
 	private Action doubleClickAction;
@@ -174,7 +173,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 						IXReferenceAdapter currentXra = (IXReferenceAdapter)o;
 						
 						for (Iterator i2 = lastXRefAdapterList.iterator(); i2.hasNext();) {
-							Object o2 = (Object) i2.next();
+							Object o2 = i2.next();
 							if (o2 instanceof IXReferenceAdapter) {
 								IXReferenceAdapter lastXra = (IXReferenceAdapter)o2;
 								if (currentXra.getReferenceSource().equals(lastXra.getReferenceSource())) {
@@ -198,10 +197,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 				viewer.setInput(xraList);
 			} else if (changeDrivenByBuild){
 				Object o = viewer.getInput();
-				if (o instanceof IXReferenceAdapter) {
-					viewer.setInput((IXReferenceAdapter)o);					
-				} else if (o instanceof List) {
-					viewer.setInput((List)o);
+				if (o instanceof IXReferenceAdapter || o instanceof List) {
+					viewer.setInput(o);
 				}
 			}
 			XRefUIUtils.setSelection(part,selection,viewer);		
