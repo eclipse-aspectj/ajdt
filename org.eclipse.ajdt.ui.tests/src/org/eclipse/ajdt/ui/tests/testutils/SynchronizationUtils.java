@@ -12,11 +12,11 @@
 package org.eclipse.ajdt.ui.tests.testutils;
 
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.ITypeNameRequestor;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -36,8 +36,7 @@ public class SynchronizationUtils {
 		}
 	}
 		
-	public static void joinBackgroudActivities() throws CoreException {
-		//System.out.println("joinBackgroundActivities");
+	public static void joinBackgroudActivities()  {
 		// Join Building
 		boolean interrupted= true;
 		while (interrupted) {
@@ -48,17 +47,12 @@ public class SynchronizationUtils {
 				interrupted= true;
 			}
 		}
-		//System.out.println("joined building");
-
-		//joinIndexing();
-		//joinTypesCache();
 		
 		// Join jobs
 		joinJobs(0, 0, 500);
-		//System.out.println("joined jobs");
 	}
 
-	private static void joinIndexing() throws CoreException {
+	private static void joinIndexing() throws JavaModelException {
 		// Join indexing
 		new SearchEngine().searchAllTypeNames(
 			null,
@@ -102,7 +96,6 @@ public class SynchronizationUtils {
 		try {
 			Thread.sleep(intervalTime);
 		} catch (InterruptedException e) {
-			//e.printStackTrace();
 		}
 	}
 	

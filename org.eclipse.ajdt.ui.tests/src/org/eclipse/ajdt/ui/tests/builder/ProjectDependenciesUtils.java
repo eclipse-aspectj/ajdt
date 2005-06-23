@@ -129,7 +129,6 @@ public class ProjectDependenciesUtils {
 				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
 				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
 						"no message");
-				int lineNumber = marker.getAttribute(IMarker.LINE_NUMBER, -1);
 				if (markerSeverity == IMarker.SEVERITY_ERROR) {
 					if (errorMessage == null
 							|| markerMessage.equals(errorMessage)) {
@@ -147,7 +146,6 @@ public class ProjectDependenciesUtils {
 				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
 				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
 						"no message");
-				int lineNumber = marker.getAttribute(IMarker.LINE_NUMBER, -1);
 				if (markerSeverity == IMarker.SEVERITY_ERROR) {
 					if (errorMessage == null
 							|| markerMessage.equals(errorMessage)) {
@@ -233,9 +231,9 @@ public class ProjectDependenciesUtils {
 							if (entry1.isExported()) {
 								// don't want it to be exported
 								return false;
-							} else {
-								return true;
-							}
+							} 
+							return true;
+							
 						}
 					}
 					return false;

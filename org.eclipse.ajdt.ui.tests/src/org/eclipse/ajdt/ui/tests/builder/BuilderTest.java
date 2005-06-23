@@ -36,8 +36,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 
 /**
  * @author hawkinsh
@@ -68,11 +66,6 @@ public class BuilderTest extends TestCase {
 	public void testCopyAndRemoveNewNonSrcFile() throws CoreException {
 		// test setup.....
 		IProject simpleProject = Utils.createPredefinedProject("AnotherSimpleAJProject");
-		//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		//monitor.reset();
-		//simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-		//monitor.waitForCompletion();
-		//ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 		IJavaProject javaProject = JavaCore.create(simpleProject);		
 		Utils.waitForJobsToComplete();
 		String srcPath = javaProject.getUnderlyingResource().getLocation().toOSString() 
@@ -91,16 +84,13 @@ public class BuilderTest extends TestCase {
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
 			src.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		IFolder p1 = src.getFolder("p1");
 		if (!p1.exists()){
 			p1.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package p1 should not be null", p1);
-		IStructuredSelection selectedFolder = new StructuredSelection(p1);
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -111,42 +101,12 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 		
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception (copyAndRemoveNewNonSrcFile) - don't care");
-//			monitor.reset();
-//			simpleProject.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-//			monitor.waitForCompletion();
-//			try {
-//				Thread.sleep(5000);
-//			} catch (InterruptedException e2) {
-//				System.err.println("interrupted sleep - don't care");
-//			}
-//		}
-		
-//		if (newFile == null){
-		//BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-			IFile f = p1.getFile("newFile.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-//				bpm.reset();
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-//				bpm.waitForCompletion();
-			}
-			newFile = p1.getFile("newFile.txt");
-//		}
-			
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
+
+		IFile f = p1.getFile("newFile.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = p1.getFile("newFile.txt");
 
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
@@ -173,11 +133,6 @@ public class BuilderTest extends TestCase {
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -199,11 +154,6 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCreateAndRemoveNewNonSrcFileFromDefaultPackage() throws CoreException {
 		IProject simpleProject = Utils.createPredefinedProject("AnotherSimpleAJProject");
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-//		monitor.waitForCompletion();
-//		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
 
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();
@@ -221,11 +171,8 @@ public class BuilderTest extends TestCase {
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
 			src.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
-
-		IStructuredSelection selectedFolder = new StructuredSelection(src);
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -236,41 +183,15 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile2.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-//
-//		if (newFile == null){
-			IFile f = src.getFile("newFile2.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-				//monitor.waitForCompletion();
-			}
-			newFile = src.getFile("newFile2.txt");
-//		}
+		IFile f = src.getFile("newFile2.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = src.getFile("newFile2.txt");
 
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 		
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 
@@ -292,11 +213,6 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 		
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -316,12 +232,6 @@ public class BuilderTest extends TestCase {
 	 */
 	public void testCopyAndRemoveNewNonSrcFileWithMultipleSrcDirs() throws CoreException {
 		IProject simpleProject = Utils.createPredefinedProject("MultipleSourceFolders");
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		simpleProject.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
-//		monitor.waitForCompletion();
-//		ProjectDependenciesUtils.waitForJobsToComplete(simpleProject);
-
 		IJavaProject javaProject = JavaCore.create(simpleProject);
 		Utils.waitForJobsToComplete();
 		
@@ -338,16 +248,13 @@ public class BuilderTest extends TestCase {
 		IFolder src2 = simpleProject.getFolder("src2");
 		if (!src2.exists()){
 			src2.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		IFolder pack = src2.getFolder("pack");
 		if (!pack.exists()){
 			pack.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		assertNotNull("src2 folder should not be null", src2);
 		assertNotNull("package pack should not be null", pack);
-		IStructuredSelection selectedFolder = new StructuredSelection(pack);
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -358,31 +265,11 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-//
-//		if (newFile == null){
-			IFile f = pack.getFile("newFile.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-				//monitor.waitForCompletion();
-			}
-			newFile = pack.getFile("newFile.txt");
-//		}
+		IFile f = pack.getFile("newFile.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = pack.getFile("newFile.txt");
 
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
@@ -405,11 +292,6 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -446,16 +328,13 @@ public class BuilderTest extends TestCase {
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
 			src.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		IFolder pack = src.getFolder("pack");
 		if (!pack.exists()){
 			pack.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package pack should not be null", pack);
-		IStructuredSelection selectedFolder = new StructuredSelection(pack);
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -466,30 +345,11 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-//		if (newFile == null){
-			IFile f = pack.getFile("newFile.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-				//monitor.waitForCompletion();
-			}
-			newFile = pack.getFile("newFile.txt");
-//		}
+		IFile f = pack.getFile("newFile.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = pack.getFile("newFile.txt");
 
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
@@ -512,11 +372,6 @@ public class BuilderTest extends TestCase {
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -553,17 +408,13 @@ public class BuilderTest extends TestCase {
 		IFolder src = simpleProject.getFolder("src");
 		if (!src.exists()){
 			src.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		IFolder p1 = src.getFolder("p1");
 		if (!p1.exists()){
 			p1.create(true, true, null);
-			//monitor.waitForCompletion();
 		}
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package p1 should not be null", p1);
-		IStructuredSelection selectedFolder = new StructuredSelection(p1);
-		Utils.waitForJobsToComplete();
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -574,32 +425,11 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile4.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-//		
-//		if (newFile == null){
-			IFile f = p1.getFile("newFile4.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-				//monitor.waitForCompletion();
-			}
-			newFile = p1.getFile("newFile4.txt");
-//		}
+		IFile f = p1.getFile("newFile4.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = p1.getFile("newFile4.txt");
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 
@@ -677,12 +507,6 @@ public class BuilderTest extends TestCase {
 		// now delete the file for cleanup
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
-
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -710,7 +534,6 @@ public class BuilderTest extends TestCase {
 				
 		assertFalse("newFile.txt should not exist under src tree! (path=" + path + ")",new File(path).exists());
 		
-		IStructuredSelection selectedFolder = new StructuredSelection(project);
 		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
@@ -721,31 +544,11 @@ public class BuilderTest extends TestCase {
 		Utils.waitForJobsToComplete();
 
 		IFile newFile = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			newFile = makeNewFile("newFile.txt",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-//		if (newFile == null){
-			IFile f = project.getFile("newFile.txt");
-			if (!f.exists()) {
-//				System.err.println("trying again....");
-				f.create(new ByteArrayInputStream(new byte[0]), true, null);
-				//monitor.waitForCompletion();
-			}
-			newFile = project.getFile("newFile.txt");
-//		}
+		IFile f = project.getFile("newFile.txt");
+		if (!f.exists()) {
+			f.create(new ByteArrayInputStream(new byte[0]), true, null);
+		}
+		newFile = project.getFile("newFile.txt");
 
 		project.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
@@ -757,11 +560,6 @@ public class BuilderTest extends TestCase {
 		
 		newFile.delete(true,null);
 		Utils.waitForJobsToComplete();
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If this fails, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -807,8 +605,6 @@ public class BuilderTest extends TestCase {
 		IFolder newBinPackage = bin.getFolder("newPackage");
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage.exists());
 		
-		IStructuredSelection selectedFolder = new StructuredSelection(src);
-		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
@@ -816,36 +612,12 @@ public class BuilderTest extends TestCase {
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		Utils.waitForJobsToComplete();
-
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			makeNewPackage("newPackage",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//	
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		
 		String str= "AnotherSimpleAJProject" + File.separator + "src";
 		IPath path= new Path(str); 
         IResource res= ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 		IPackageFragmentRoot root = javaProject.getPackageFragmentRoot(res);
 		root.createPackageFragment("newPackage", true, null);
-		//monitor.waitForCompletion();
-//		IFolder p = src.getFolder("newPackage");
-//		if (!p.exists()) {
-//			monitor.reset();
-//			p.create(true, true, monitor);
-//			monitor.waitForCompletion();
-//		}
 
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
@@ -857,10 +629,6 @@ public class BuilderTest extends TestCase {
 		assertTrue("newPackage should exist under src tree! (path=" + srcPath + ")",newPackage2.exists());
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
-		//monitor.waitForCompletion();
-		//BlockingProgressMonitor m2 = new BlockingProgressMonitor();
-		//m2.reset();
-		//simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
 		IFolder newBinPackage2 = bin.getFolder("newPackage");
 		assertTrue("newPackage should exist under bin tree! (path=" + binPath + ")",newBinPackage2.exists());
@@ -869,11 +637,6 @@ public class BuilderTest extends TestCase {
 		newPackage.delete(true,null);
 		Utils.waitForJobsToComplete();
 
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -919,8 +682,6 @@ public class BuilderTest extends TestCase {
 		IFolder newBinFolder = bin.getFolder("newFolder");
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder.exists());
 		
-		IStructuredSelection selectedFolder = new StructuredSelection(src);
-		
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
@@ -929,31 +690,10 @@ public class BuilderTest extends TestCase {
 		pbc.requestFullBuild(false);
 		Utils.waitForJobsToComplete();
 
-		IFolder createdFolder = null;
-//		try {
-//			BlockingProgressMonitor bpm = new BlockingProgressMonitor();
-//			bpm.reset();
-//			createdFolder = makeNewFolder("newFolder",selectedFolder,bpm);
-//			bpm.waitForCompletion();
-//		} catch (SWTException e) {
-//			// don't care about this exception because it's down
-//			// in SWT and nothing to do with the test
-//			System.err.println(">>> caught swt exception - don't care");
-//		}
-//		
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
-
 		IFolder f = src.getFolder("newFolder");
 		if (!f.exists()) {
 			f.create(true, true, null);
-			//monitor.waitForCompletion();
-		}
-		createdFolder = src.getFolder("newFolder");
-		
+		}		
 		
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		Utils.waitForJobsToComplete();
@@ -973,13 +713,6 @@ public class BuilderTest extends TestCase {
 		newFolder.delete(true,null);
 		Utils.waitForJobsToComplete();
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
-		//monitor.waitForCompletion();
-
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			System.err.println("interrupted sleep - don't care");
-//		}
 		// If either of these fail, then it's more likely than not to be
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
@@ -994,72 +727,5 @@ public class BuilderTest extends TestCase {
 
 		Utils.deleteProject(simpleProject);
 	}
-
-	
-	/**
-	 * Invokes the wizard to create a new file, with the user input simulated
-	 */
-//	public IFile makeNewFile(String fileName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-//		BasicNewFileResourceWizardExtension testWizard = new BasicNewFileResourceWizardExtension();
-//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-//		testWizard.setNewFileName(fileName);
-//		testWizard.setBlockingProgressMonitor(monitor);
-//		WizardDialog dialog = new WizardDialog(shell, testWizard);
-//
-//		dialog.setBlockOnOpen(false);
-//		dialog.create();
-//		dialog.open();
-//
-//		WizardNewFileCreationPageForTesting curPage = (WizardNewFileCreationPageForTesting)dialog.getCurrentPage();
-//		
-//		curPage.getWizard().performFinish();
-//		dialog.close();
-//
-//		return testWizard.getNewFile();
-//	}
-
-	/**
-	 * Invokes the wizard to create a new package, with the user input simulated
-	 */
-//	public void makeNewPackage(String packageName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-//		NewPackageCreationWizardExtension testWizard = new NewPackageCreationWizardExtension();
-//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-//		testWizard.setNewPackageName(packageName);
-//		testWizard.setBlockingProgressMonitor(monitor);
-//		WizardDialog dialog = new WizardDialog(shell, testWizard);
-//
-//		dialog.setBlockOnOpen(false);
-//		dialog.create();
-//		dialog.open();
-//
-//		NewPackageWizardPageForTesting curPage = (NewPackageWizardPageForTesting)dialog.getCurrentPage();
-//		
-//		curPage.getWizard().performFinish();
-//		dialog.close();
-//	}
-
-	/**
-	 * Invokes the wizard to create a new package, with the user input simulated
-	 */
-//	public IFolder makeNewFolder(String folderName, IStructuredSelection selection, BlockingProgressMonitor monitor) {
-//		BasicNewFolderResourceWizardExtension testWizard = new BasicNewFolderResourceWizardExtension();
-//		Shell shell = JavaPlugin.getActiveWorkbenchShell();
-//		testWizard.init(JavaPlugin.getDefault().getWorkbench(),selection);
-//		testWizard.setNewFolderName(folderName);
-//		testWizard.setBlockingProgressMonitor(monitor);
-//		WizardDialog dialog = new WizardDialog(shell, testWizard);
-//
-//		dialog.setBlockOnOpen(false);
-//		dialog.create();
-//		dialog.open();
-//
-//		WizardNewFolderMainPageForTesting curPage = (WizardNewFolderMainPageForTesting)dialog.getCurrentPage();
-//		
-//		curPage.getWizard().performFinish();
-//		dialog.close();
-//		return testWizard.getNewFolder();
-//	}
 
 }

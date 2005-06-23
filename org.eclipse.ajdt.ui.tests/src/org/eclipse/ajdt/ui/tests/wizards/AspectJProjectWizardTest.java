@@ -244,44 +244,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		return wizardCreatedProject;
 	}
 
-	/**
-	 * Generates an ajdt project in the workspace with some test files
-	 */
-//	public JavaTestProject createTestProject(int ID) throws CoreException {
-//
-//		ID++;
-//		JavaTestProject testSrcProject = null;
-//
-//		// sets up the aj test project
-//		testSrcProject = new JavaTestProject("SourceProject" + ID);
-//		Utils.waitForJobsToComplete();
-//		AJDTUtils.addAspectJNature(testSrcProject.getProject());
-//		Utils.waitForJobsToComplete();
-//		IPackageFragment testPackage = testSrcProject
-//				.createPackage("TestPackage");
-//
-//		IType helloType = testSrcProject.createType(testPackage, "Hello.java",
-//				"public class Hello {\n"
-//						+ "  public static void main(String[] args) {\n"
-//						+ "    Hello.printMessage();\n" + "  }\n"
-//						+ "	 private static void printMessage() {\n"
-//						+ "    System.out.println(\"Hello\");\n" + "  }\n"
-//						+ "}");
-//
-//		testSrcProject
-//				.createFile(
-//						(IFolder) helloType.getPackageFragment()
-//								.getUnderlyingResource(),
-//						"Asp.aj",
-//						"package TestPackage;"
-//								+ "public aspect Asp {\n"
-//								+ "  pointcut extendMessage() : call(* Hello.printMessage(..));\n"
-//								+ "  before() : extendMessage() {\n"
-//								+ "    System.out.println(\"Pre Message\");\n"
-//								+ "  }\n" + "}");
-//
-//		return testSrcProject;
-//	}
 
 	/**
 	 * Copies a project from one location to another. Used instead of the
@@ -329,25 +291,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		fileSource.listFiles(new CopyFileFilter(fileDestination));
 	}
 
-	/**
-	 * Recursively deletes all the files in a directory. Used for tidying up.
-	 */
-	private void deleteDirectory(File dir) {
-		boolean x = dir.isDirectory();
-		boolean y = (dir == null);
-
-		if ((dir != null) && dir.isDirectory()) {
-			File[] files = dir.listFiles();
-			for (int i = 0; i < files.length; i++) {
-				if (files[i].isDirectory()) {
-					deleteDirectory(files[i]);
-				} else {
-					files[i].delete();
-				}
-			}
-			dir.delete();
-		}
-	}
 
 	private class MyWizardDialog extends WizardDialog {
 

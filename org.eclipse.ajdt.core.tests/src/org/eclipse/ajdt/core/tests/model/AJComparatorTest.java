@@ -26,7 +26,6 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
@@ -62,7 +61,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		deleteProject(project);
 	}
 
-	public void testCompareTwoAJCodeElements() throws CoreException {
+	public void testCompareTwoAJCodeElements() {
 
 		// get the class file and create the map for the file (the underlying one)		
 		IFile main = aspectjPackage.getFile("Main.java");
@@ -110,7 +109,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 		assertTrue("ajce1 should be equal to ajce1",comp.compare(ajce1,ajce1) == 0);
 	}
 
-	public void testCompareTwoIJavaElements() throws CoreException {
+	public void testCompareTwoIJavaElements() {
 
 		// get the aspect and create the map for the file (the underlying one)
 		IFile aspect = aspectjPackage.getFile("A.aj");

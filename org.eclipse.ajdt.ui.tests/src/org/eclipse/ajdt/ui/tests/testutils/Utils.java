@@ -45,15 +45,6 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
  */
 public class Utils{
 	
-//	public static void blockPreferencesConfigWizard() {
-//		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-//		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
-//	}
-//	
-//	public static void restoreBlockedSettings() {
-//		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-//		String version = (String)bundle.getHeaders().get(Constants.BUNDLE_VERSION);
-//	}
 	
 	public static final String TEST_PROJECTS_FOLDER = "/workspace";
 
@@ -79,7 +70,6 @@ public class Utils{
 		IOverwriteQuery oq = new IOverwriteQuery(){
 			public String queryOverwrite(String input){
 				return YES;
-				//return overwrite? YES: NO;
 			}
 		};
 		ImportOperation impop = new ImportOperation(destFolder.getFullPath(), sourceDir, FileSystemStructureProvider.INSTANCE, oq);
@@ -96,11 +86,7 @@ public class Utils{
 		IProject project = root.getProject(destFolder.getName());
 		// if project isn't open, then open it
 		if (project != null && !(project.isOpen())) {
-			//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-			//monitor.reset();
-			//project.open(monitor);
 			project.open(null);
-			//monitor.waitForCompletion();
 		}
 		
 		Utils.waitForJobsToComplete();
@@ -181,27 +167,10 @@ public class Utils{
 	}
 	
 	public static void waitForJobsToComplete(){
-		try {
-			SynchronizationUtils.joinBackgroudActivities();
-//		Job job = new Job("Dummy Job"){
-//			public IStatus run(IProgressMonitor m){
-//				return Status.OK_STATUS;
-//			}
-//		};
-//		job.setPriority(Job.DECORATE);
-//		job.setRule(pro);
-//	    job.schedule();
-//	    try {
-//			job.join();
-//		} catch (InterruptedException e) {
-//			// Do nothing
-//		}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
+		SynchronizationUtils.joinBackgroudActivities();
 	}
 
-	public static void setUpPluginEnvironment() throws CoreException {
+	public static void setUpPluginEnvironment() {
 		// set the project up so that when asked, the pde plugin
 		// is added automatically and the preference configurations
 		// have all been set up (therefore don't need user
