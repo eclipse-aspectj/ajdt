@@ -15,6 +15,7 @@ package org.eclipse.ajdt.ui.tests.testutils;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
@@ -126,12 +127,31 @@ public class Utils{
 	/**
 	 * Opens a file in its associated editor.
 	 */
-	public static IEditorPart openFileInEditor(IFile file, boolean activate){
+	public static IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
 		if (file != null) {
 			IWorkbenchPage p= JavaPlugin.getActivePage();
 			if (p != null) {
 				try {
 					IEditorPart editorPart= IDE.openEditor(p, file, activate);
+					initializeHighlightRange(editorPart);
+					return editorPart;
+				} catch (PartInitException e) {
+				}
+			}
+		}
+		return null;
+	}
+
+	
+	/**
+	 * Opens a file in its associated editor.
+	 */
+	public static IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
+		if (file != null) {
+			IWorkbenchPage p= JavaPlugin.getActivePage();
+			if (p != null) {
+				try {
+					IEditorPart editorPart= IDE.openEditor(p, file, AspectJEditor.ASPECTJ_EDITOR_ID, activate);
 					initializeHighlightRange(editorPart);
 					return editorPart;
 				} catch (PartInitException e) {

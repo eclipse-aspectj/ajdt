@@ -53,7 +53,7 @@ public class CodeFormatTest extends TestCase {
 		IFile sourceFile = (IFile)project.findMember(filename);
 		if(sourceFile==null) fail("Cannot open file:"+filename);
 
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInEditor(
+		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(
 				(IFile)sourceFile, true);
 		Utils.waitForJobsToComplete();
 		

@@ -15,7 +15,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -44,7 +43,6 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 	 * @see TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
-		AllUITests.setupAJDTPlugin();
 		super.setUp();
 		project = Utils.createPredefinedProject("Simple AJ Project");
 	}
@@ -73,7 +71,7 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 	
 	public void breakpointSetTest(IFile sourcefile){
 		
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInEditor(sourcefile, false);
+		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(sourcefile, false);
 
 		//wait for annotation model to be created
 		Utils.waitForJobsToComplete();
@@ -94,7 +92,7 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 	
 	private void setBreakpoint(int line, boolean hasEffect, IFile file, ITextEditor editor){
 		editor.setFocus();
-		gotoLine(line, editor);
+		VisualTestUtils.gotoLine(line);
 		int numOfMarkers = getNumMarkers(file, editor);
 		postCtrlShiftB(editor);
 		Utils.waitForJobsToComplete();		
@@ -139,44 +137,6 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 		display.post(event);		
 	}
 
-	private void gotoLine(int line, ITextEditor editor) {
-		Display display = Display.getCurrent();
-		
-		// Go to beginning of file
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = SWT.CTRL;
-		display.post(event);
-		
-		event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = SWT.HOME;
-		display.post(event);
-		
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.keyCode = SWT.HOME;
-		display.post(event);
-		
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.keyCode = SWT.CTRL;
-		display.post(event);
-		
-		for (int i = 1; i < line; i++) {
-			event = new Event();
-			event.type = SWT.KeyDown;
-			event.keyCode = SWT.ARROW_DOWN;
-			display.post(event);
-
-			event = new Event();
-			event.type = SWT.KeyUp;
-			event.keyCode = SWT.ARROW_DOWN;
-			display.post(event);
-		}
-	}
-
-	
 	protected AbstractMarkerAnnotationModel getAnnotationModel(ITextEditor editor) {
 		IDocumentProvider provider = editor.getDocumentProvider();
 		IAnnotationModel model = provider.getAnnotationModel(editor

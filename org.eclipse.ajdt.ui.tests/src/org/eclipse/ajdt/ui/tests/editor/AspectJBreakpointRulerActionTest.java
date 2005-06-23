@@ -91,7 +91,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	
 	public void BreakpointSetTest(IFile sourcefile){
 		
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInEditor(sourcefile, false);
+		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(sourcefile, false);
 
 		//wait for annotation model to be created
 		Utils.waitForJobsToComplete();

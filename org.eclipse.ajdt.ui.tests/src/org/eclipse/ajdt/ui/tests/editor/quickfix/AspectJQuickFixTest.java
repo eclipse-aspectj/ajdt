@@ -62,7 +62,7 @@ public class AspectJQuickFixTest extends TestCase {
 
 	public void QuickFixTest(IFile sourcefile) throws Exception {
 
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInEditor(
+		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
 				sourcefile, false);
 
 		//wait for annotation model to be created

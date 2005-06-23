@@ -48,7 +48,7 @@ public class AspectJEditorTest extends TestCase {
 	}
 	
 	private void openFileTest(IFile file, boolean shouldBeOpenedInAspectJEditor){
-		IEditorPart editor = Utils.openFileInEditor(file, false);
+		IEditorPart editor = Utils.openFileInDefaultEditor(file, false);
 		if (editor == null)
 			fail("Editor for file " + file.getName() + " could not be opened.");
 		if (shouldBeOpenedInAspectJEditor && !(editor instanceof AspectJEditor))

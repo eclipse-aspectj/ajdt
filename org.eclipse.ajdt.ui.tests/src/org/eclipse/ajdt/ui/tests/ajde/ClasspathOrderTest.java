@@ -67,7 +67,7 @@ public class ClasspathOrderTest extends TestCase {
 		if (res == null) {
 			fail("Required file not found: " + filename);
 		}
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInEditor(
+		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
 				(IFile) res, false);
 		Utils.waitForJobsToComplete();
 
