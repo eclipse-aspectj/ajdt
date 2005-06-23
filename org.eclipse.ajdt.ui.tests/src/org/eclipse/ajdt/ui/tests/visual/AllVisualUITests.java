@@ -26,6 +26,7 @@ public class AllVisualUITests {
 		
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
+		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		
 		return suite;
 	}

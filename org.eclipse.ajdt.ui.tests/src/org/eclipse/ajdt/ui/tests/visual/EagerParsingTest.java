@@ -34,15 +34,12 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Test s eager parsing support in the AspectJ editor
+ * Tests eager parsing support in the AspectJ editor
  */
 public class EagerParsingTest extends TestCase {
 
 	IProject project;
 	
-	/*
-	 * @see TestCase#setUp()
-	 */
 	protected void setUp() throws Exception {	
 		final IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
 		store.setValue(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS, true);		
@@ -50,9 +47,6 @@ public class EagerParsingTest extends TestCase {
 		project = Utils.createPredefinedProject("Simple AJ Project");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		Utils.deleteProject(project);
