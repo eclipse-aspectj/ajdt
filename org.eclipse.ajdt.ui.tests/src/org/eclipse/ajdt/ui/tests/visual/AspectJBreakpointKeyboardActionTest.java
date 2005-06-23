@@ -84,24 +84,29 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 		setBreakpoint(18, true, sourcefile, editorPart);		
 		Utils.waitForJobsToComplete();			
 		
-		//toggling breakpoint on line 100 should not be possible
-		//setBreakpoint(100, false, sourcefile, editorPart);
-		
 		editorPart.close(false);
 	}
 	
-	private void setBreakpoint(int line, boolean hasEffect, IFile file, ITextEditor editor){
+	private void setBreakpoint(int line, final boolean hasEffect, final IFile file, final ITextEditor editor){
 		editor.setFocus();
 		VisualTestUtils.gotoLine(line);
-		int numOfMarkers = getNumMarkers(file, editor);
-		postCtrlShiftB(editor);
-		Utils.waitForJobsToComplete();		
+		final int numOfMarkers = getNumMarkers(file, editor);
+		
+		postCtrlShiftB(editor, new DisplayHelper() {
+			protected boolean condition() {
+				int newNumOfMarkers = getNumMarkers(file, editor);
+				boolean ret = (numOfMarkers == newNumOfMarkers) != hasEffect;
+				return ret;
+			}
+		
+		});
+	
 		int newNumOfMarkers = getNumMarkers(file, editor);
 		if ((numOfMarkers == newNumOfMarkers) == hasEffect)
 			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position.");
 	}
 	
-	private void postCtrlShiftB(ITextEditor editor) {
+	private void postCtrlShiftB(ITextEditor editor, DisplayHelper dh) {
 		Display display = Display.getCurrent();
 		
 		Event event = new Event();
@@ -118,8 +123,8 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 		event.type = SWT.KeyDown;
 		event.character = 'b';
 		display.post(event);
-		
-		Utils.waitForJobsToComplete();
+
+		dh.waitForCondition(Display.getCurrent(), 5000);
 
 		event = new Event();
 		event.type = SWT.KeyUp;

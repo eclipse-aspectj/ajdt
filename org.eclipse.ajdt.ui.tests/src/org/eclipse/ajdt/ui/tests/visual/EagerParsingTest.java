@@ -34,7 +34,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Tests eager parsing support in the AspectJ editor
+ * Test s eager parsing support in the AspectJ editor
  */
 public class EagerParsingTest extends TestCase {
 

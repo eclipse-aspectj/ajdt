@@ -12,6 +12,7 @@
 
 package org.eclipse.ajdt.ui.tests.visual;
 
+import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -20,8 +21,7 @@ public class VisualTestUtils {
 
 	public static void gotoLine(int line) {
 		Display display = Display.getCurrent();
-		
-		// Go to beginning of file
+
 		Event event = new Event();
 		event.type = SWT.KeyDown;
 		event.keyCode = SWT.CTRL;
@@ -29,12 +29,12 @@ public class VisualTestUtils {
 		
 		event = new Event();
 		event.type = SWT.KeyDown;
-		event.keyCode = SWT.HOME;
+		event.character = 'l';
 		display.post(event);
 		
 		event = new Event();
 		event.type = SWT.KeyUp;
-		event.keyCode = SWT.HOME;
+		event.character = 'l';
 		display.post(event);
 		
 		event = new Event();
@@ -42,17 +42,65 @@ public class VisualTestUtils {
 		event.keyCode = SWT.CTRL;
 		display.post(event);
 		
-		for (int i = 1; i < line; i++) {
+//		Utils.waitForJobsToComplete();
+		
+		char[] chars = String.valueOf(line).toCharArray();
+		
+		for (int i = 0; i < chars.length; i++) {
+			char c = chars[i];
 			event = new Event();
 			event.type = SWT.KeyDown;
-			event.keyCode = SWT.ARROW_DOWN;
+			event.character = c;
 			display.post(event);
-	
-			event = new Event();
+			
 			event.type = SWT.KeyUp;
-			event.keyCode = SWT.ARROW_DOWN;
 			display.post(event);
 		}
+
+		event = new Event();
+		event.type = SWT.KeyDown;
+		event.character = SWT.CR;
+		display.post(event);
+		
+		event = new Event();
+		event.type = SWT.KeyUp;
+		event.character = SWT.CR;
+		display.post(event);
+
+		Utils.waitForJobsToComplete();		
+		
+		// Go to beginning of file
+//		Event event = new Event();
+//		event.type = SWT.KeyDown;
+//		event.keyCode = SWT.CTRL;
+//		display.post(event);
+//		
+//		event = new Event();
+//		event.type = SWT.KeyDown;
+//		event.keyCode = SWT.HOME;
+//		display.post(event);
+//		
+//		event = new Event();
+//		event.type = SWT.KeyUp;
+//		event.keyCode = SWT.HOME;
+//		display.post(event);
+//		
+//		event = new Event();
+//		event.type = SWT.KeyUp;
+//		event.keyCode = SWT.CTRL;
+//		display.post(event);
+//		
+//		for (int i = 1; i < line; i++) {
+//			event = new Event();
+//			event.type = SWT.KeyDown;
+//			event.keyCode = SWT.ARROW_DOWN;
+//			display.post(event);
+//	
+//			event = new Event();
+//			event.type = SWT.KeyUp;
+//			event.keyCode = SWT.ARROW_DOWN;
+//			display.post(event);
+//		}
 	}
 	
 	
