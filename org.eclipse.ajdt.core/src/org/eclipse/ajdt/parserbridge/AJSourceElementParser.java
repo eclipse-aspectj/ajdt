@@ -184,92 +184,8 @@ public AJSourceElementParser(
 }
 
 public void checkComment() {
-//	// discard obsolete comments while inside methods or fields initializer (see bug 74369)
-//	if (!(this.diet && this.dietInt==0) && this.scanner.commentPtr >= 0) {
-//		flushCommentsDefinedPriorTo(this.endStatementPosition);
-//	}
-//	
-//	int lastComment = this.scanner.commentPtr;
-//	
-//	if (this.modifiersSourceStart >= 0) {
-//		// eliminate comments located after modifierSourceStart if positionned
-//		while (lastComment >= 0 && Math.abs(this.scanner.commentStarts[lastComment]) > this.modifiersSourceStart) lastComment--;
-//	}
-//	if (lastComment >= 0) {
-//		// consider all remaining leading comments to be part of current declaration
-//		this.modifiersSourceStart = Math.abs(this.scanner.commentStarts[0]); 
-//	
-//		// check deprecation in last comment if javadoc (can be followed by non-javadoc comments which are simply ignored)	
-//		while (lastComment >= 0 && this.scanner.commentStops[lastComment] < 0) lastComment--; // non javadoc comment have negative end positions
-//		if (lastComment >= 0 && this.javadocParser != null) {
-//			int commentEnd = this.scanner.commentStops[lastComment] - 1; //stop is one over,
-//			// do not report problem before last parsed comment while recovering code...
-//			this.javadocParser.reportProblems = this.currentElement == null || commentEnd > this.lastJavadocEnd;
-//			if (this.javadocParser.checkDeprecation(this.scanner.commentStarts[lastComment], commentEnd)) {
-//				checkAndSetModifiers(AccDeprecated);
-//			}
-//			this.javadoc = this.javadocParser.docComment;	// null if check javadoc is not activated
-//			if (currentElement == null) this.lastJavadocEnd = commentEnd;
-//		}
-//	}
-//
-//	if (this.reportReferenceInfo && this.javadocParser.checkDocComment && this.javadoc != null) {
-//		// Report reference info in javadoc comment @throws/@exception tags
-//		TypeReference[] thrownExceptions = this.javadoc.exceptionReferences;
-//		int throwsTagsNbre = thrownExceptions == null ? 0 : thrownExceptions.length;
-//		for (int i = 0; i < throwsTagsNbre; i++) {
-//			TypeReference typeRef = thrownExceptions[i];
-//			if (typeRef instanceof JavadocSingleTypeReference) {
-//				JavadocSingleTypeReference singleRef = (JavadocSingleTypeReference) typeRef;
-//				this.requestor.acceptTypeReference(singleRef.token, singleRef.sourceStart);
-//			} else if (typeRef instanceof JavadocQualifiedTypeReference) {
-//				JavadocQualifiedTypeReference qualifiedRef = (JavadocQualifiedTypeReference) typeRef;
-//				this.requestor.acceptTypeReference(qualifiedRef.tokens, qualifiedRef.sourceStart, qualifiedRef.sourceEnd);
-//			}
-//		}
-//
-//		// Report reference info in javadoc comment @see tags
-//		Expression[] references = this.javadoc.seeReferences;
-//		int seeTagsNbre = references == null ? 0 : references.length;
-//		for (int i = 0; i < seeTagsNbre; i++) {
-//			Expression reference = references[i];
-//			acceptJavadocTypeReference(reference);
-//			if (reference instanceof JavadocFieldReference) {
-//				JavadocFieldReference fieldRef = (JavadocFieldReference) reference;
-//				this.requestor.acceptFieldReference(fieldRef.token, fieldRef.sourceStart);
-//				if (fieldRef.receiver != null && !fieldRef.receiver.isThis()) {
-//					acceptJavadocTypeReference(fieldRef.receiver);
-//				}
-//			} else if (reference instanceof JavadocMessageSend) {
-//				JavadocMessageSend messageSend = (JavadocMessageSend) reference;
-//				int argCount = messageSend.arguments == null ? 0 : messageSend.arguments.length;
-//				this.requestor.acceptMethodReference(messageSend.selector, argCount, messageSend.sourceStart);
-//				if (messageSend.receiver != null && !messageSend.receiver.isThis()) {
-//					acceptJavadocTypeReference(messageSend.receiver);
-//				}
-//			} else if (reference instanceof JavadocAllocationExpression) {
-//				JavadocAllocationExpression constructor = (JavadocAllocationExpression) reference;
-//				int argCount = constructor.arguments == null ? 0 : constructor.arguments.length;
-//				if (constructor.type != null) {
-//					char[][] compoundName = constructor.type.getParameterizedTypeName();
-//					this.requestor.acceptConstructorReference(compoundName[compoundName.length-1], argCount, constructor.sourceStart);
-//					if (!constructor.type.isThis()) {
-//						acceptJavadocTypeReference(constructor.type);
-//					}
-//				}
-//			}
-//		}
-//	}
 }
-//private void acceptJavadocTypeReference(Expression expression) {
-//	if (expression instanceof JavadocSingleTypeReference) {
-//		JavadocSingleTypeReference singleRef = (JavadocSingleTypeReference) expression;
-//		this.requestor.acceptTypeReference(singleRef.token, singleRef.sourceStart);
-//	} else if (expression instanceof JavadocQualifiedTypeReference) {
-//		JavadocQualifiedTypeReference qualifiedRef = (JavadocQualifiedTypeReference) expression;
-//		this.requestor.acceptTypeReference(qualifiedRef.tokens, qualifiedRef.sourceStart, qualifiedRef.sourceEnd);
-//	}
-//}
+
 protected void classInstanceCreation(boolean alwaysQualified) {
 
 	boolean previousFlag = reportReferenceInfo;
@@ -551,9 +467,8 @@ protected CompilationUnitDeclaration endParse(int act) {
 	if (compilationUnit != null) {
 		CompilationUnitDeclaration result = super.endParse(act);
 		return result;
-	} else {
-		return null;
-	}		
+	} 
+	return null;
 }
 public TypeReference getTypeReference(int dim) {
 	/* build a Reference on a variable that may be qualified or not
@@ -573,73 +488,71 @@ public TypeReference getTypeReference(int dim) {
 				requestor.acceptTypeReference(ref.getParameterizedTypeName(), ref.sourceStart, ref.sourceEnd);
 		}
 		return ref;
-	} else {
-		int numberOfIdentifiers = this.genericsIdentifiersLengthStack[this.genericsIdentifiersLengthPtr--];
-		if (length != numberOfIdentifiers || this.genericsLengthStack[this.genericsLengthPtr] != 0) {
-			// generic type
-			TypeReference ref = getTypeReferenceForGenericType(dim, length, numberOfIdentifiers);
-			if (reportReferenceInfo) {
-				if (length == 1 && numberOfIdentifiers == 1) {
-					ParameterizedSingleTypeReference parameterizedSingleTypeReference = (ParameterizedSingleTypeReference) ref;
-					requestor.acceptTypeReference(parameterizedSingleTypeReference.token, parameterizedSingleTypeReference.sourceStart);
-				} else {
-					ParameterizedQualifiedTypeReference parameterizedQualifiedTypeReference = (ParameterizedQualifiedTypeReference) ref;
-					requestor.acceptTypeReference(parameterizedQualifiedTypeReference.tokens, parameterizedQualifiedTypeReference.sourceStart, parameterizedQualifiedTypeReference.sourceEnd);
-				}
-			}
-			return ref;
-		} else if (length == 1) {
-			// single variable reference
-			this.genericsLengthPtr--; // pop the 0
-			if (dim == 0) {
-				SingleTypeReference ref = 
-					new SingleTypeReference(
-						identifierStack[identifierPtr], 
-						identifierPositionStack[identifierPtr--]);
-				if (reportReferenceInfo) {
-					requestor.acceptTypeReference(ref.token, ref.sourceStart);
-				}
-				return ref;
+	}
+	int numberOfIdentifiers = this.genericsIdentifiersLengthStack[this.genericsIdentifiersLengthPtr--];
+	if (length != numberOfIdentifiers || this.genericsLengthStack[this.genericsLengthPtr] != 0) {
+		// generic type
+		TypeReference ref = getTypeReferenceForGenericType(dim, length, numberOfIdentifiers);
+		if (reportReferenceInfo) {
+			if (length == 1 && numberOfIdentifiers == 1) {
+				ParameterizedSingleTypeReference parameterizedSingleTypeReference = (ParameterizedSingleTypeReference) ref;
+				requestor.acceptTypeReference(parameterizedSingleTypeReference.token, parameterizedSingleTypeReference.sourceStart);
 			} else {
-				ArrayTypeReference ref = 
-					new ArrayTypeReference(
-						identifierStack[identifierPtr], 
-						dim, 
-						identifierPositionStack[identifierPtr--]); 
-				ref.sourceEnd = endPosition;
-				if (reportReferenceInfo) {
-					requestor.acceptTypeReference(ref.token, ref.sourceStart);
-				}
-				return ref;
-			}
-		} else {//Qualified variable reference
-			this.genericsLengthPtr--;
-			char[][] tokens = new char[length][];
-			identifierPtr -= length;
-			long[] positions = new long[length];
-			System.arraycopy(identifierStack, identifierPtr + 1, tokens, 0, length);
-			System.arraycopy(
-				identifierPositionStack, 
-				identifierPtr + 1, 
-				positions, 
-				0, 
-				length); 
-			if (dim == 0) {
-				QualifiedTypeReference ref = new QualifiedTypeReference(tokens, positions);
-				if (reportReferenceInfo) {
-					requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
-				}
-				return ref;
-			} else {
-				ArrayQualifiedTypeReference ref = 
-					new ArrayQualifiedTypeReference(tokens, dim, positions); 
-				ref.sourceEnd = endPosition;					
-				if (reportReferenceInfo) {
-					requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
-				}
-				return ref;
+				ParameterizedQualifiedTypeReference parameterizedQualifiedTypeReference = (ParameterizedQualifiedTypeReference) ref;
+				requestor.acceptTypeReference(parameterizedQualifiedTypeReference.tokens, parameterizedQualifiedTypeReference.sourceStart, parameterizedQualifiedTypeReference.sourceEnd);
 			}
 		}
+		return ref;
+	} else if (length == 1) {
+		// single variable reference
+		this.genericsLengthPtr--; // pop the 0
+		if (dim == 0) {
+			SingleTypeReference ref = 
+				new SingleTypeReference(
+					identifierStack[identifierPtr], 
+					identifierPositionStack[identifierPtr--]);
+			if (reportReferenceInfo) {
+				requestor.acceptTypeReference(ref.token, ref.sourceStart);
+			}
+			return ref;
+		}
+		ArrayTypeReference ref = 
+			new ArrayTypeReference(
+				identifierStack[identifierPtr], 
+				dim, 
+				identifierPositionStack[identifierPtr--]); 
+		ref.sourceEnd = endPosition;
+		if (reportReferenceInfo) {
+			requestor.acceptTypeReference(ref.token, ref.sourceStart);
+		}
+		return ref;
+	
+	} else {//Qualified variable reference
+		this.genericsLengthPtr--;
+		char[][] tokens = new char[length][];
+		identifierPtr -= length;
+		long[] positions = new long[length];
+		System.arraycopy(identifierStack, identifierPtr + 1, tokens, 0, length);
+		System.arraycopy(
+			identifierPositionStack, 
+			identifierPtr + 1, 
+			positions, 
+			0, 
+			length); 
+		if (dim == 0) {
+			QualifiedTypeReference ref = new QualifiedTypeReference(tokens, positions);
+			if (reportReferenceInfo) {
+				requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
+			}
+			return ref;
+		} 
+		ArrayQualifiedTypeReference ref = 
+			new ArrayQualifiedTypeReference(tokens, dim, positions); 
+		ref.sourceEnd = endPosition;					
+		if (reportReferenceInfo) {
+			requestor.acceptTypeReference(ref.tokens, ref.sourceStart, ref.sourceEnd);
+		}
+		return ref;
 	}
 }
 public NameReference getUnspecifiedReference() {
@@ -656,24 +569,23 @@ public NameReference getUnspecifiedReference() {
 			this.addUnknownRef(ref);
 		}
 		return ref;
-	} else {
-		//Qualified variable reference
-		char[][] tokens = new char[length][];
-		identifierPtr -= length;
-		System.arraycopy(identifierStack, identifierPtr + 1, tokens, 0, length);
-		long[] positions = new long[length];
-		System.arraycopy(identifierPositionStack, identifierPtr + 1, positions, 0, length);
-		QualifiedNameReference ref = 
-			new QualifiedNameReference(
-				tokens, 
-				positions,
-				(int) (identifierPositionStack[identifierPtr + 1] >> 32), // sourceStart
-				(int) identifierPositionStack[identifierPtr + length]); // sourceEnd
-		if (reportReferenceInfo) {
-			this.addUnknownRef(ref);
-		}
-		return ref;
 	}
+	//Qualified variable reference
+	char[][] tokens = new char[length][];
+	identifierPtr -= length;
+	System.arraycopy(identifierStack, identifierPtr + 1, tokens, 0, length);
+	long[] positions = new long[length];
+	System.arraycopy(identifierPositionStack, identifierPtr + 1, positions, 0, length);
+	QualifiedNameReference ref = 
+		new QualifiedNameReference(
+			tokens, 
+			positions,
+			(int) (identifierPositionStack[identifierPtr + 1] >> 32), // sourceStart
+			(int) identifierPositionStack[identifierPtr + length]); // sourceEnd
+	if (reportReferenceInfo) {
+		this.addUnknownRef(ref);
+	}
+	return ref;
 }
 public NameReference getUnspecifiedReferenceOptimized() {
 	/* build a (unspecified) NameReference which may be qualified
@@ -1293,9 +1205,8 @@ private int sourceEnd(TypeDeclaration typeDeclaration) {
 		if (allocation.type == null) // case of enum constant body
 			return typeDeclaration.sourceEnd;
 		return allocation.type.sourceEnd;
-	} else {
-		return typeDeclaration.sourceEnd;
 	}
+	return typeDeclaration.sourceEnd;
 }
 public void parseCompilationUnit(
 	ICompilationUnit unit, 

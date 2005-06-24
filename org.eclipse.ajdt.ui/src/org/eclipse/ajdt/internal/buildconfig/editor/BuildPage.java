@@ -29,7 +29,6 @@ public class BuildPage extends PDEFormPage {
 
 	protected void createFormContent(IManagedForm mform) {
 		super.createFormContent(mform);
-		//FormToolkit toolkit = mform.getToolkit();
 		GridLayout layout = new GridLayout();
 		ScrolledForm form = mform.getForm();
 		form.setText(AspectJUIPlugin.getResourceString(FORM_TITLE));

@@ -628,7 +628,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
 		
-		GridData gd = new GridData();//HORIZONTAL_ALIGN_FILL);
+		GridData gd = new GridData();
 		if(fillGridVertically)
 			gd.verticalAlignment = GridData.FILL;
 		gd.horizontalSpan = 3;
@@ -639,7 +639,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 		checkBox.setText(optionname);
 		checkBox.setData(data);
 		checkBox.setLayoutData(gd);
-		//checkBox.addSelectionListener(getSelectionListener());
 		Label l = new Label(parent,SWT.WRAP);
 		l.setText(optiondesc);
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -671,8 +670,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		comboBox.setItems(valueLabels);
 		comboBox.setData(data);
 		comboBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-		//comboBox.addSelectionListener(getSelectionListener());
-
+		
 		Label placeHolder = new Label(parent, SWT.NONE);
 		placeHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 

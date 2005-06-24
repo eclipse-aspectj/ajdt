@@ -51,17 +51,12 @@ public class AJCTask extends JavacTask {
 			ajScript.printAttribute("verbose", verbose, false); //$NON-NLS-1$
 			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$
 			ajScript.printAttribute("debug", debug, false); //$NON-NLS-1$
-			//ajScript.printAttribute("includeAntRuntime", includeAntRuntime, false); //$NON-NLS-1$
 			ajScript.printAttribute("bootclasspath", bootclasspath, false); //$NON-NLS-1$
 			ajScript.printAttribute("source", source, false); //$NON-NLS-1$
 			ajScript.printAttribute("target", target, false); //$NON-NLS-1$
 			ajScript.println(">"); //$NON-NLS-1$
 	
 			ajScript.indent++;
-	
-//			if (compileArgs != null) {
-//				ajScript.println("<compilerarg line=\"" + compileArgs + "\"/>"); //$NON-NLS-1$//$NON-NLS-2$
-//			}
 	
 			ajScript.printStartTag("forkclasspath"); //$NON-NLS-1$
 			ajScript.indent++;

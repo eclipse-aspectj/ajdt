@@ -117,8 +117,6 @@ public class AJModelTest extends AJDTCoreTestCase {
 					continue;
 				}
 				String jaName = je.getElementName().intern();
-				//System.out.println("node="+peName);
-				//System.out.println("je="+jaName);
 				int index = toFind.indexOf(peName);
 				if (index == -1) {
 					fail("Unexpected additional IProgramElement name found: "+peName);

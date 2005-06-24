@@ -184,7 +184,6 @@ public class BuildProperties {
 			build.addWithoutNotify(srcExcl);
 		}
 		deleteEmptyEntries();
-		//writeFile();
 	}
 
 	//once build was initialized, it must never be set to null again
@@ -223,13 +222,6 @@ public class BuildProperties {
 		}
 		return contents;
 	}
-
-	/*
-	 * public void read() { List included = getFiles();
-	 * System.out.println("Included files: "); for (Iterator iter =
-	 * included.iterator(); iter.hasNext();) { IFile f = (IFile) iter.next();
-	 * System.out.println("f=" + f); } }
-	 */
 
 	private List determineIncludedFiles(final IBuildEntry includes,
 			final IBuildEntry excludes, final IProject fProject) {
@@ -278,21 +270,6 @@ public class BuildProperties {
 		}
 		if (fileExt.size() == 0)
 			return includedFiles;
-//		try {
-//			IResource[] members = fProject.members();
-//			for (int i = 0; i < members.length; i++) {
-//				if (!(members[i] instanceof IFolder)
-//						&& (fileExt.contains(members[i].getFileExtension()))) {
-//					//fTreeViewer.setChecked(members[i], includes.contains("*."
-//					// //$NON-NLS-1$
-//					//		+ members[i].getFileExtension()));
-//					System.out
-//							.println("BuildProperties.initializeCheckState: other");
-//				}
-//			}
-//		} catch (CoreException e) {
-//			AspectJPlugin.logException(e);
-//		}
 		return includedFiles;
 	}
 
@@ -307,26 +284,22 @@ public class BuildProperties {
 			}
 		}
 		
-		//	WriteThread.asyncExec(new Runnable() {
-		//		public void run() {
-					if (!myPropertiesFile.getWorkspace().isTreeLocked()) {
-						InputStream inputStream = new ByteArrayInputStream(buff
-								.toString().getBytes());
-						try {
-							if (!myPropertiesFile.exists()) {
-								myPropertiesFile.create(inputStream, false,
-										null);
-							} else {
-								myPropertiesFile.setContents(inputStream,
-										false, true, null);
-							}
-						} catch (CoreException e) {
-						}
-					} else {
-						AJDTEventTrace.generalEvent("BuildProperties: resource tree locked");
-					}
-		//		}
-	//		});
+		if (!myPropertiesFile.getWorkspace().isTreeLocked()) {
+			InputStream inputStream = new ByteArrayInputStream(buff
+					.toString().getBytes());
+			try {
+				if (!myPropertiesFile.exists()) {
+					myPropertiesFile.create(inputStream, false,
+							null);
+				} else {
+					myPropertiesFile.setContents(inputStream,
+							false, true, null);
+				}
+			} catch (CoreException e) {
+			}
+		} else {
+			AJDTEventTrace.generalEvent("BuildProperties: resource tree locked");
+		}
 	}
 
 	private void addTokenToBuildEntry(BuildEntry entry, String token) {
@@ -367,33 +340,6 @@ public class BuildProperties {
 		return isIncluded(res.getParent(), includes, excludes);
 	}
 	
-		
-//		private boolean isIncluded(IResource res, String name, IBuildEntry includes, IBuildEntry excludes) {
-//			
-//		List files = getFiles(false);
-//		if (res.getType() == IResource.FOLDER) {
-//			boolean allIncluded = true;
-//			IFolder folder = (IFolder) res;
-//			IResource[] children;
-//			try {
-//				children = folder.members();
-//				for (int i = 0; i < children.length; i++) {
-//					if ((children[i].getType() == IResource.FILE)
-//							&& ProjectProperties.ASPECTJ_SOURCE_FILTER
-//									.accept(children[i].getName())) {
-//						if (!files.contains(children[i])) {
-//							allIncluded = false;
-//						}
-//					}
-//				}
-//			} catch (CoreException e) {
-//				e.printStackTrace();
-//			}
-//			return allIncluded;
-//		} else {
-//			return files.contains(res);
-//		}
-//	}
 
 	// from BuildContentsSection
 	/**
@@ -427,7 +373,7 @@ public class BuildProperties {
 	}
 
 	protected String getResourceFolderName(String resourceName) {
-		return resourceName;// + Path.SEPARATOR;
+		return resourceName;
 	}
 
 	protected void removeChildren(IBuildEntry entry, String parentFolder) {
@@ -455,13 +401,6 @@ public class BuildProperties {
 		if ((excludes != null) && excludes.contains(resourceName)) {
 			excludes.removeTokenWithoutNotify(resourceName);
 		}
-		//change because project folder was not recognized before
-//		if (!includes.contains(resourceName)) {
-//			if (!containsPrefix(includes, resourceName)
-//					|| containsPrefix(excludes, resourceName)) {
-//				includes.addTokenWithoutNotify(resourceName);
-//			}
-//		}
 		if (!this.isIncluded(resource, includes, excludes)){
 			includes.addTokenWithoutNotify(resourceName);
 		}
@@ -522,12 +461,6 @@ public class BuildProperties {
 		
 		IBuildEntry srcIncl = build
 				.getEntry(IBuildPropertiesConstants.PROPERTY_SRC_INCLUDES);
-		//			System.out.println("old inclusion list: ");
-		//			String[] strs = srcIncl.getTokens();
-		//			for (int i = 0; i < strs.length; i++) {
-		//				System.out.println(strs[i]);
-		//			}
-
 		if (srcIncl != null) {
 			changed |= removeOldSourceFolders(sourcePathes, srcIncl);
 		} else {
@@ -541,12 +474,6 @@ public class BuildProperties {
 			changed |= removeOldSourceFolders(sourcePathes, srcExcl);
 		}
 		changed |= addNewSourceFolders(sourcePathes, srcIncl);
-
-		//			System.out.println("new inclusion list: ");
-		//			strs = srcIncl.getTokens();
-		//			for (int i = 0; i < strs.length; i++) {
-		//				System.out.println(strs[i]);
-		//			}
 
 		if (changed) {
 			writeFile();

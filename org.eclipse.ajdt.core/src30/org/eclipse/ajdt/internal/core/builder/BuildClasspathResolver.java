@@ -15,7 +15,6 @@ import java.util.ArrayList;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -118,11 +117,6 @@ public class BuildClasspathResolver {
 						outputFolder = javaProject.getProject();
 					} else {
 						outputFolder = root.getFolder(outputPath);
-						// AspectJ Change Begin
-						// This method can be executing on the wrong thread, where createFolder() will hang, so don't do it!
-						// if (!outputFolder.exists())
-						//	 createFolder(outputFolder);
-						// AspectJ Change End
 					}
 					sLocations.add(
 						ClasspathLocation.forSourceFolder((IContainer) target, outputFolder, entry.fullInclusionPatternChars(), entry.fullExclusionPatternChars()));
@@ -235,11 +229,5 @@ public class BuildClasspathResolver {
 			this.binaryLocations[index++] = (ClasspathLocation) bLocations.get(i);
 	}
 
-	private void createFolder(IContainer folder) throws CoreException {
-		if (!folder.exists()) {
-			createFolder(folder.getParent());
-			((IFolder) folder).create(true, true, null);
-		}
-	}
 
 }

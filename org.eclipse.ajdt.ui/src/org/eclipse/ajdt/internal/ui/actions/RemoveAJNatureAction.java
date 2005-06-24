@@ -35,7 +35,6 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class RemoveAJNatureAction implements IObjectActionDelegate {
 
-//	private IWorkbenchPart targetPart;
 	private Vector selected = new Vector();
 
 	/**
@@ -91,7 +90,6 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 	 * From IObjectActionDelegate
 	 */
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-//		this.targetPart = targetPart;
 	}
 
 }

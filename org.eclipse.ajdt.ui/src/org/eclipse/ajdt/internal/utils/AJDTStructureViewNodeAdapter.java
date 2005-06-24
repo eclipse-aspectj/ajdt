@@ -31,25 +31,6 @@ public class AJDTStructureViewNodeAdapter implements IWorkbenchAdapter {
 		super();
 	}
 
-//	/**
-//	 * @see IWorkbenchAdapter#getChildren(Object)
-//	 */
-//	public Object[] getChildren(Object o) {
-//		if ( o instanceof AJDTStructureViewNode ) {  
-//			AJDTStructureViewNode node = (AJDTStructureViewNode) o;	
-//			List acceptedChidren = new ArrayList();
-//			for (Iterator it = node.getChildren().iterator(); it.hasNext(); ) {
-//				AJDTStructureViewNode child = (AJDTStructureViewNode)it.next();
-//				if (StructureViewNodeFactory.acceptNode(node.getStructureNode(), child.getStructureNode())) {
-//					acceptedChidren.add(child);
-//				} 
-//			}  
-//			return acceptedChidren.toArray();
-//		} else { 
-//			return new Object[0];
-//		}
-//	}  
-
 	/**
 	 * @see IWorkbenchAdapter#getChildren(Object)
 	 */

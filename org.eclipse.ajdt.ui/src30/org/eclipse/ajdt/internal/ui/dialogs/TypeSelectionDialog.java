@@ -313,7 +313,7 @@ public class TypeSelectionDialog extends TwoPaneElementSelector {
 	private boolean isCacheUpToDate() throws InvocationTargetException, InterruptedException {
 		final boolean result[]= new boolean[1];
 		IRunnableWithProgress runnable= new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+			public void run(IProgressMonitor monitor) throws InterruptedException {
 				try {
 					result[0]= AllTypesCache.isCacheUpToDate(monitor);
 				} catch (OperationCanceledException e) {

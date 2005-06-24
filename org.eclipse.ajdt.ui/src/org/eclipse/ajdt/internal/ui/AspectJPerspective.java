@@ -37,15 +37,7 @@ public class AspectJPerspective implements IPerspectiveFactory {
     IFolderLayout folder =
       layout.createFolder("left", IPageLayout.LEFT, (float) 0.25, editorArea);
     folder.addView(JavaUI.ID_PACKAGES);
-
-	// now uses the the normal editor outline
-//    // Place the Aspect Navigator View on the right
-//    IFolderLayout aviewfolder =
-//      layout.createFolder("right", IPageLayout.RIGHT, (float) 0.80, editorArea);
-//    aviewfolder.addView( AspectJPlugin.ID_OUTLINE );
-  
-  
-  
+ 
     // Place the Task View at the bottom
     IFolderLayout outputfolder =
       layout.createFolder("bottom", IPageLayout.BOTTOM, (float) 0.75, editorArea);

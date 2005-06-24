@@ -298,10 +298,6 @@ public class AJProjectModel {
 						String t = (String) iterator2.next();
 						IProgramElement link = AsmManager.getDefault()
 								.getHierarchy().findElementForHandle(t);
-						// System.err.println("asmRelMap entry: "
-						// + ipe.toLinkLabelString() + ", relationship: "
-						// + rel.getName() + ", target: "
-						// + link.toLinkLabelString());
 						IJavaElement sourceEl = (IJavaElement) ipeToije
 								.get(ipe);
 						IJavaElement targetEl = (IJavaElement) ipeToije
@@ -332,11 +328,6 @@ public class AJProjectModel {
 						AJRelationshipType ajRel = (AJRelationshipType) kindMap
 								.get(rel.getName());
 						if (ajRel != null) {
-							// System.out.println("Rel: " + rel.getName()
-							// + " source: " + sourceEl + " hashcode: "
-							// + sourceEl.hashCode() + ", target: "
-							// + targetEl
-							// + " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
 								if(sourceEl instanceof AdviceElement) {
 									if (rel.hasRuntimeTest()) {
@@ -378,9 +369,7 @@ public class AJProjectModel {
 		// Copes with linked src folders.
 		String path = file.getRawLocation().toOSString();
 
-		// System.out.println("createMapForFile: " + path);
-
-		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
+				Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(path,
 				true, true);
 		if (annotationsMap == null) {
 			return;
@@ -415,18 +404,11 @@ public class AJProjectModel {
 		Set keys = annotationsMap.keySet();
 		for (Iterator it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
-			// System.out.println("key="+key);
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				// System.out.println("node="+node.toLinkLabelString()+"("+node.hashCode()+")");
 				ISourceLocation sl = node.getSourceLocation();
-				// Integer os = (Integer) lineToOffset.get(new Integer(sl
-				// .getLine()));
-				// System.out.println("os="+os);
-				// int offset = os.intValue() + sl.getColumn() + 12;
-				// System.out.println("guessed offset="+offset);
-
+		
 				// the offset we get for declare statement marks the start of the word
 				// "declare", but the IJavaElement seems to start at the word after
 				// "declare", so we need to adjust the offset in this case.
@@ -439,17 +421,14 @@ public class AJProjectModel {
 				int offset = sl.getOffset();
 				if (offset == 0) {
 					subElement = true;
-					// System.out.println("0 offset, using parent");
 					offset = node.getParent().getSourceLocation().getOffset();
 				}
-				// System.out.println("queried offset="+offset);
 				try {
 					IJavaElement el = unit.getElementAt(offset + fff);
 					if (subElement) {
 						IJavaElement parent = el;
 						el = new AJCodeElement((JavaElement) parent, sl
 								.getLine(), node.toLabelString());
-						//System.out.println("extra child for "+parent+" is"+el+" hash="+el.hashCode());
 						List l = (List) extraChildren.get(parent);
 						if (l == null) {
 							l = new ArrayList();
@@ -458,8 +437,6 @@ public class AJProjectModel {
 						l.add(el);
 					}
 					if (el != null) {
-						// System.out.println("el=" + el + " (" +
-						// el.getClass() + ") "+el.hashCode()+")");
 						ipeToije.put(node, el);
 						jeLinkNames.put(el, node.toLinkLabelString());
 						lineNumbers.put(el, new Integer(sl.getLine()));
@@ -619,23 +596,16 @@ public class AJProjectModel {
 			idCount = 0;
 	
 			int numElements = lineNumbers.keySet().size();
-			//System.out.println("numElements: " + numElements);
 			oos.writeInt(numElements);
 			for (Iterator iter = lineNumbers.keySet().iterator(); iter
 					.hasNext();) {
 				IJavaElement element = (IJavaElement) iter.next();
-				// remember the id of each element so that we can refer to it
-				// later
 				idMap.put(element, new Integer(idCount++));
-				//System.out.println("element=" + element);
 				String handleIdentifier = element.getHandleIdentifier().intern();
-				//System.out.println("handle=" + handleIdentifier);
 				oos.writeObject(handleIdentifier);
 				String linkName = (String) jeLinkNames.get(element);
-				//System.out.println("linkName=" + linkName);
 				oos.writeObject(linkName);
 				Integer lineNum = (Integer) lineNumbers.get(element);
-				//System.out.println("lineNum=" + lineNum);
 				oos.writeInt(lineNum.intValue());
 			}
 		}
@@ -643,20 +613,15 @@ public class AJProjectModel {
 		void loadJavaElements(ObjectInputStream ois) throws IOException,
 				ClassNotFoundException {
 			int numElements = ois.readInt();
-			//System.out.println("numElements: " + numElements);
 			elementList = new ArrayList(numElements);
 			for (int i = 0; i < numElements; i++) {
 				String handleIdentifier = (String) ois.readObject();
-				//System.out.println("handle=" + handleIdentifier);
 				IJavaElement element = AspectJCore.create(handleIdentifier);
-				//System.out.println("element=" + element);
 				// remember the element as it will be referred to by id later
 				elementList.add(element);
 				String linkName = (String) ois.readObject();
-				//System.out.println("linkName=" + linkName);
 				jeLinkNames.put(element, linkName);
 				Integer lineNum = new Integer(ois.readInt());
-				//System.out.println("lineNum=" + lineNum);
 				lineNumbers.put(element, lineNum);
 			}
 		}
@@ -692,7 +657,6 @@ public class AJProjectModel {
 					}
 				}
 			}
-			//System.out.println("num rel types=" + numRelTypes);
 			oos.writeInt(numRelTypes);
 	
 			for (Iterator iter = kindMap.values().iterator(); iter.hasNext();) {
@@ -700,15 +664,11 @@ public class AJProjectModel {
 				for (int i = 0; i <= 1; i++) { // with and without runtime test
 					Map relMap = (Map) perRelMaps[i].get(rel);
 					if (relMap != null) {
-						//System.out.println("rel: " + rel.getInternalName());
 						oos.writeInt(encodeRelType(rel, (i == 0)));
 						oos.writeInt(relMap.size());
 						for (Iterator iter2 = relMap.keySet().iterator(); iter2
 								.hasNext();) {
 							IJavaElement source = (IJavaElement) iter2.next();
-							//System.out.println("source: "
-							//		+ source.getHandleIdentifier());
-							//System.out.println("source id=" + getID(source));
 							oos.writeInt(getID(source));
 							List targetList = (List) relMap.get(source);
 							oos.writeInt(targetList.size());
@@ -716,37 +676,22 @@ public class AJProjectModel {
 									.hasNext();) {
 								IJavaElement target = (IJavaElement) iter3
 										.next();
-								//System.out.println("target: "
-								//		+ target.getHandleIdentifier());
-								//System.out
-								//		.println("target id=" + getID(target));
-								
 								oos.writeInt(getID(target));
-								//oos.writeObject(target.getHandleIdentifier().intern());
 							}
 						}
-						//System.out.println();
 					}
 				}
 			}
-			//System.out.println();
-	
 		}
 	
-		void loadRelationships(ObjectInputStream ois) throws IOException,
-			ClassNotFoundException {
+		void loadRelationships(ObjectInputStream ois) throws IOException {
 			relsCount = 0;
 			int numRelTypes = ois.readInt();
-			//System.out.println("num rel types=" + numRelTypes);
 	
 			for (int i = 0; i < numRelTypes; i++) {
 				int relType = ois.readInt();
 				int numRels = ois.readInt();
-				//System.out.println("relType: " + relType);
 				AJRelationshipType ajRel = decodeRelType(relType);
-				//System.out.println("ajRel: " + ajRel);
-				//System.out.println("numRels: " + numRels);
-	
 				Map perRelMap = hasRuntimeTest(relType) ? perRelMaps[0]
 						: perRelMaps[1];
 				Map relMap = (Map) perRelMap.get(ajRel);
@@ -757,10 +702,8 @@ public class AJProjectModel {
 	
 				for (int j = 0; j < numRels; j++) {
 					int sourceID = ois.readInt();
-					//System.out.println("sourceID: " + sourceID);
 					IJavaElement sourceEl = (IJavaElement) elementList
 							.get(sourceID);
-					//System.out.println("source: " + sourceEl);
 					if (hasRuntimeTest(relType)) {
 						hasRuntime.add(sourceEl);
 					}
@@ -774,12 +717,8 @@ public class AJProjectModel {
 					int numTargets = ois.readInt();
 					for (int k = 0; k < numTargets; k++) {
 						int targetID = ois.readInt();
-						//String targetHandle = (String)ois.readObject();
-						//System.out.println("targetID: " + targetID);
 						IJavaElement targetEl = (IJavaElement) elementList
 								.get(targetID);
-						//IJavaElement targetEl = AspectJCore.create(targetHandle);
-						//System.out.println("target: " + targetEl);
 						l.add(targetEl);
 						relsCount++;
 					}
@@ -789,12 +728,10 @@ public class AJProjectModel {
 	
 		void saveExtraChildren(ObjectOutputStream oos) throws IOException {
 			int numParents = extraChildren.size();
-			//System.out.println("num parents: " + numParents);
 			oos.writeInt(numParents);
 			for (Iterator iter = extraChildren.keySet().iterator(); iter
 					.hasNext();) {
 				IJavaElement parent = (IJavaElement) iter.next();
-				//System.out.println("parent: " + parent);
 				// the parents is probably not one of our elements, so write out the handle
 				oos.writeObject(parent.getHandleIdentifier());
 				List children = (List) extraChildren.get(parent);
@@ -802,7 +739,6 @@ public class AJProjectModel {
 				for (Iterator iterator = children.iterator(); iterator
 						.hasNext();) {
 					IJavaElement child = (IJavaElement) iterator.next();
-					//System.out.println("child: " + child);
 					oos.writeInt(getID(child));
 				}
 			}
@@ -811,20 +747,14 @@ public class AJProjectModel {
 		void loadExtraChildren(ObjectInputStream ois) throws IOException,
 			ClassNotFoundException {
 			int numParents = ois.readInt();
-			//System.out.println("num parents: " + numParents);
 			for (int i = 0; i < numParents; i++) {
 				String parentHandle = (String)ois.readObject();
-				//System.out.println("parentHandle: " + parentHandle);
 				IJavaElement parent = AspectJCore.create(parentHandle);
-				//System.out.println("parent: " + parent);
 				int numChildren = ois.readInt();
 				List children = new ArrayList(numChildren);
-				//System.out.println("num children: " + numChildren);
 				for (int j = 0; j < numChildren; j++) {
 					int childID = ois.readInt();
-					//System.out.println("child ID: " + childID);
 					IJavaElement je = (IJavaElement) elementList.get(childID);
-					//System.out.println("child el: " + je);
 					children.add(je);
 				}
 				extraChildren.put(parent, children);

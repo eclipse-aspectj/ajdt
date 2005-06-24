@@ -92,9 +92,6 @@ public class CoreProjectProperties implements IProjectProperties {
 		String currentLstFile = AspectJPlugin
 				.getBuildConfigurationFile(AspectJPlugin.getDefault()
 						.getCurrentProject());
-		// System.err.println("AC_temp_debug:
-		// ProjectProperties.getLastActiveBuildConfigFile(): Returning
-		// "+currentLstFile);
 		return currentLstFile;
 	}
 
@@ -202,11 +199,10 @@ public class CoreProjectProperties implements IProjectProperties {
 		if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
 			// root
 			return jProject.getResource().getLocation().toOSString();
-		} else {
-			IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
-					workspaceRelativeOutputPath);
-			return out.getLocation().toOSString();
 		}
+		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
+				workspaceRelativeOutputPath);
+		return out.getLocation().toOSString();
 	}
 
 	/*
@@ -355,9 +351,6 @@ public class CoreProjectProperties implements IProjectProperties {
 				// entry not relative to workspace (it's fully qualifed)
 				resultBuffer.append(current);
 			} else {
-				//if
-				// (current.startsWith(AspectJUIPlugin.NON_OS_SPECIFIC_SEPARATOR))
-				// {
 				// Try to resolve path relative to the workspace. Need to
 				// replace part of the path string with a fully qualified
 				// equivalent.

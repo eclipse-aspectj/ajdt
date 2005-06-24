@@ -31,9 +31,8 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 		if (getParent() == null) {
 			// injar aspect, which has no parent
 			return null;
-		} else {
-			return super.getResource(); 
 		}
+		return super.getResource(); 
 	}
 	
 	public String getHandleMemento(){
@@ -47,8 +46,7 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 				buff.append(this.occurrenceCount);
 			}
 			return buff.toString();
-		} else {
-			return getHandleMemento();
-		}
+		} 
+		return getHandleMemento();
 	}
 }

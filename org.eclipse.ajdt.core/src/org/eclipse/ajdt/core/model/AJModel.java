@@ -250,7 +250,6 @@ public class AJModel {
 		try {
 			String fileString = ipe.getSourceLocation().getSourceFile()
 					.getCanonicalPath();
-			//System.out.println("f=" + fileString);
 			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 					.getProjects();
 			for (int i = 0; i < projects.length; i++) {
@@ -258,15 +257,10 @@ public class AJModel {
 						&& AspectJPlugin.isAJProject(projects[i])) {
 					String root = CoreUtils
 							.getProjectRootDirectory(projects[i]);
-					//System.out.println("project="+projects[i]);
-					//System.out.println("root="+root);
 					if (fileString.startsWith(root)) {
 						String path = fileString.substring(root.length());
-						//System.out.println("path="+path);
 						IPath ipath = new Path(path);
-						//System.out.println("ipath="+ipath);
 						IResource res = projects[i].findMember(ipath);
-						//System.out.println("res="+res);
 						return res;
 					}
 				}
@@ -276,24 +270,6 @@ public class AJModel {
 		return null;
 	}
 	
-	/*
-	private void fillLineToOffsetMap(Map map, ICompilationUnit unit) {
-		String source;
-		try {
-			source = unit.getSource();
-			int lines = 0;
-			map.put(new Integer(1), new Integer(0));
-			for (int i = 0; i < source.length(); i++) {
-				if (source.charAt(i) == '\n') {
-					lines++;
-					//System.out.println("line="+(lines+1)+" offset="+i);
-					map.put(new Integer(lines + 1), new Integer(i));
-				}
-			}
-		} catch (JavaModelException e) {
-		}
-	}
-*/
 	
 	// should be able to make this private, when all of AJDT uses the new model
 	/**
@@ -302,7 +278,6 @@ public class AJModel {
 	public static void initialiseAJDE(IProject withProject) {
 		String configFile = AspectJPlugin.getBuildConfigurationFile(withProject);
 		if (!configFile.equals(lastLoadedConfigFile)) {
-			//AJDTEventTrace.generalEvent("initialiseAJDE: switching configs - from:"+lastLoadedConfigFile+" to:"+configFile);
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
 				configFile);
 			lastLoadedConfigFile = configFile;

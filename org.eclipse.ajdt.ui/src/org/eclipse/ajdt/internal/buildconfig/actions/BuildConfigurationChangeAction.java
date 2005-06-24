@@ -191,7 +191,6 @@ public abstract class BuildConfigurationChangeAction implements
 		if (selection instanceof IStructuredSelection) {
 			strucSel = (IStructuredSelection) selection;
 			action.setEnabled(isApplicable(strucSel));
-			//action.setEnabled(true);
 		} else {
 			strucSel = null;
 			action.setEnabled(false);

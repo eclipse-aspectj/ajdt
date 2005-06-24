@@ -43,10 +43,7 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {
-//		AJCompilationUnit ajunit = (AJCompilationUnit)this.getCompilationUnit();
-//		ajunit.discardJavaParserCompatibilityMode();
 		IMethod result = super.createMethod(contents, sibling, force, monitor);
-//		ajunit.requestJavaParserCompatibilityMode();
 		return result;
 	}
 	public AspectElement(JavaElement parent, String name) {
@@ -129,9 +126,8 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			JavaElement advice = new AdviceElement(this, name, parameters);
 			if (token.charAt(0) == JavaElement.JEM_COUNT) {
 				return advice.getHandleFromMemento(token, memento, workingCopyOwner);
-			} else {
-				return advice.getHandleFromMemento(memento, workingCopyOwner);
-			}
+			} 
+			return advice.getHandleFromMemento(memento, workingCopyOwner);			
 		} else if (token.charAt(0) == AspectElement.JEM_ITD) {
 			String name = memento.nextToken();
 			ArrayList params = new ArrayList();
@@ -189,9 +185,8 @@ public class AspectElement extends SourceType implements IAspectJElement {
 			JavaElement itd = new DeclareElement(this, name, parameters);
 			if (token.charAt(0) == JavaElement.JEM_COUNT) {
 				return itd.getHandleFromMemento(token, memento, workingCopyOwner);
-			} else {
-				return itd.getHandleFromMemento(memento, workingCopyOwner);
 			}
+			return itd.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}

@@ -41,7 +41,7 @@ public abstract class PDESourcePage extends TextEditor implements IFormPage, IGo
 	/**
 	 * 
 	 */
-	public PDESourcePage(PDEFormEditor editor, String id, String title) {
+	public PDESourcePage(PDEFormEditor editor, String id) {
 		this.id = id;
 		initialize(editor);
 		setPreferenceStore(PDEPlugin.getDefault().getPreferenceStore());

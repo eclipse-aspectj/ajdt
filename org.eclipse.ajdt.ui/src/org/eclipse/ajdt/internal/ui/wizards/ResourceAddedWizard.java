@@ -63,7 +63,7 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
      * Standard wizard method - it adds the single page to the wizard.
      */
 	public void addPages() {
-		mainPage = new ResourceAddedPage(workbench, selection, newResourcesList);
+		mainPage = new ResourceAddedPage(newResourcesList);
 		addPage(mainPage);
 	}
 

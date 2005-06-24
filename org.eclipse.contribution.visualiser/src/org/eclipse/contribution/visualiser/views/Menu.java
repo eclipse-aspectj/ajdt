@@ -309,16 +309,15 @@ public class Menu extends ViewPart {
 	public boolean getActive(String kindName) {
 		if(kinds == null) {
 			return true;
-		} else {
-			IMarkupKind kind = (IMarkupKind)kinds.get(kindName);
-			if(kind == null) {
-				return true;
-			}
-			if(kindActive.get(kind) == null) {
-				return true;
-			}
-			return ((Boolean)kindActive.get(kind)).booleanValue();
 		}
+		IMarkupKind kind = (IMarkupKind)kinds.get(kindName);
+		if(kind == null) {
+			return true;
+		}
+		if(kindActive.get(kind) == null) {
+			return true;
+		}
+		return ((Boolean)kindActive.get(kind)).booleanValue();
 	}
 	
 	/**

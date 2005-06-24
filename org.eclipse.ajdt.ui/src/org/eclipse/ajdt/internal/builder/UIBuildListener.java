@@ -90,8 +90,6 @@ public class UIBuildListener implements IAJBuildListener {
 		
 		// checking to see if the current project has been marked as needing
 		// a required project to be rebuilt.
-		// IProject[] referencedProjects = getRequiredProjects(project);
-		//IProject[] referencedProjects = getRequiredProjects(project, true);
 		boolean haveClearedMarkers = false;
 		for (int i = 0; i < requiredProjects.length; i++) {
 			String referencedMessage = "The project cannot be built until its prerequisite "

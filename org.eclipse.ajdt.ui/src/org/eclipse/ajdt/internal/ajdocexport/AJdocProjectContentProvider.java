@@ -19,7 +19,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -36,17 +35,6 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	 * @see ITreeContentProvider#getChildren(Object)
 	 */
 	public Object[] getChildren(Object parentElement) {
-		// AspectJ Extension
-		/*try {
-			if (parentElement instanceof IJavaProject) {
-				IJavaProject project= (IJavaProject) parentElement;
-				return getPackageFragmentRoots(project);
-			} else if (parentElement instanceof IPackageFragmentRoot) {
-				return getPackageFragments((IPackageFragmentRoot) parentElement);
-			}
-		} catch (JavaModelException e) {
-			JavaPlugin.log(e);
-		}*/
 		return new Object[0];
 	}
 	/*
@@ -102,30 +90,4 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 	}
 
-	private Object[] getPackageFragmentRoots(IJavaProject project) throws JavaModelException {
-		ArrayList result= new ArrayList();
-
-		IPackageFragmentRoot[] roots= project.getPackageFragmentRoots();
-		for (int i= 0; i < roots.length; i++) {
-			IPackageFragmentRoot root= roots[i];
-			if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
-				if (root.getPath().equals(root.getJavaProject().getPath())) {
-					return getPackageFragments(root);
-				}
-				result.add(root);
-			}
-		}
-		return result.toArray();
-	}
-
-	private Object[] getPackageFragments(IPackageFragmentRoot root) throws JavaModelException {
-		ArrayList packageFragments= new ArrayList();
-
-		IJavaElement[] children= root.getChildren();
-		for (int i= 0; i < children.length; i++) {
-			if (((IPackageFragment) children[i]).containsJavaResources())
-				packageFragments.add(children[i]);
-		}
-		return packageFragments.toArray();
-	}
 }

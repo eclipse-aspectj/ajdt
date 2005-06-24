@@ -59,7 +59,7 @@ import org.eclipse.ui.texteditor.MarkerUtilities;
 import org.eclipse.ui.texteditor.ResourceMarkerAnnotationModel;
 
 /*
- * Sian - copied CompilationUnitAnnotationModel, ReverseMap, ProblemAnnotation
+  * Sian - copied CompilationUnitAnnotationModel, ReverseMap, ProblemAnnotation
  * and GlobalAnnotationModelListener static inner classes from CompilationUnitDocumentProvider.
  * 
  * Changes marked with "// AspectJ Change" 
@@ -349,6 +349,8 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 				fIsActive= isActive;
 				if (fIsActive) 
 					startCollectingProblems();
+			
+				
 				else
 					stopCollectingProblems();
 			}

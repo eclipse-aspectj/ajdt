@@ -43,13 +43,13 @@ public class PropertyPageManager {
 			PropertyPageContributorManager ppcm = PropertyPageContributorManager.getManager();
 			
 			// Get number of contributors prior to attempting the unregistering.
-			int beforeCount = getBuildPathContributorsCount(ppcm, buildPathsPageID);
+			int beforeCount = getBuildPathContributorsCount(ppcm);
 			
 			ppcm.unregisterContributor(jdtProjectPropertyPage, projectID);
 			ppcm.unregisterContributor(jdtJavaProjectPropertyPage, javaProjectID);
 			
 			// Get number of contributors after attempting the unregistering.
-			int afterCount = getBuildPathContributorsCount(ppcm, buildPathsPageID);
+			int afterCount = getBuildPathContributorsCount(ppcm);
 			
 			// If the unregistering was successful then the before and after 
 			// counts will differ by 2. If they don't then we got our "IJavaProject"
@@ -61,7 +61,7 @@ public class PropertyPageManager {
 			if (afterCount != (beforeCount - 2)) {
 				ppcm.unregisterContributor(jdtProjectPropertyPage, javaProjectID);
 				ppcm.unregisterContributor(jdtJavaProjectPropertyPage, projectID);
-				afterCount = getBuildPathContributorsCount(ppcm, buildPathsPageID);
+				afterCount = getBuildPathContributorsCount(ppcm);
 			}
 			
 			if (afterCount != (beforeCount - 2)) {
@@ -79,11 +79,10 @@ public class PropertyPageManager {
 	
 	/**
 	 * @param ppcm 
-	 * @param pageId
 	 * @return
 	 */
 	private static int getBuildPathContributorsCount(
-			PropertyPageContributorManager ppcm, String pageId) {
+			PropertyPageContributorManager ppcm) {
 		int count = 0;
 		Iterator iter = ppcm.getContributors().iterator();
 		while (iter.hasNext()) {

@@ -101,12 +101,10 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 			int nameC = name.compareTo(((SimpleMarkupKind)object).name);
 			if(nameC == 0) {
 				return fullName.compareTo(((SimpleMarkupKind)object).fullName);
-			} else {
-				return nameC;
 			}
-		} else {
-			return 0;
+			return nameC;
 		}
+		return 0;
 	}
 	
 	
@@ -138,9 +136,8 @@ public class SimpleMarkupKind implements IMarkupKind, Comparable {
 	public int hashCode() {
 		if(icon == null) {
 			return name.hashCode() + (37 * fullName.hashCode()); // multiply by arbitrary value of 37 to increase variation 
-		} else {
-			return name.hashCode() + (37 * fullName.hashCode()) + icon.hashCode();
-		}
+		} 
+		return name.hashCode() + (37 * fullName.hashCode()) + icon.hashCode();
 	}
 	
 	

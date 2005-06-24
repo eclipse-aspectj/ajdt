@@ -30,8 +30,6 @@ public class AspectJRTInitializer extends ClasspathVariableInitializer {
 		if (variable.equals("ASPECTJRT_LIB")) { //$NON-NLS-1$
 			// define it to point to aspectjrt.jar in ajde project.
 			String ajrtPath = CoreUtils.getAspectjrtClasspath();			
-// in M4, this next line causes a StackOverflowError!!
-//			JavaCore.removeClasspathVariable("ASPECTJRT_LIB",null);
 			try {
 				JavaCore.setClasspathVariable("ASPECTJRT_LIB", //$NON-NLS-1$
 						new Path(ajrtPath),null);

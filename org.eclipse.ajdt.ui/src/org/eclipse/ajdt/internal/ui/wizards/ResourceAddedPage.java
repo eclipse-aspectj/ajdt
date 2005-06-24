@@ -20,7 +20,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -33,7 +32,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.IWorkbench;
 
 /**
  * Simple wizard page, presents two lists to the user.  On the left is a list
@@ -49,8 +47,6 @@ public class ResourceAddedPage
 	extends WizardPage
 	implements SelectionListener {
 
-	private IWorkbench workbench;
-	private IStructuredSelection selection;
 
 	// The resources to display in the left hand window
 	private List newResourcesList;
@@ -71,14 +67,10 @@ public class ResourceAddedPage
 	 * sort out the data that will be displayed.
 	 */
 	public ResourceAddedPage(
-		IWorkbench workbench,
-		IStructuredSelection selection,
 		List newResources) {
 
 		super("ResourceAddedPage1", "", null);
 
-		//	AspectJPlugin.getResourceString("BuildConfig.createLstDesc"));
-		this.workbench = workbench;
 		this.newResourcesList = newResources;
 		if (newResources == null)
 			newResources = new ArrayList();
@@ -102,7 +94,6 @@ public class ResourceAddedPage
 		// Remove any of those config files if they are brand new and candidates in the newResources list!
 		for (int i = 0; i < buildConfigFiles.size(); i++) {
 			if (newResources.contains(buildConfigFiles.get(i))) {
-				//System.err.println("Removing entry "+((IResource)buildConfigFiles.get(i)).getName());
 				buildConfigFiles.remove(i);
 			}
 		}
@@ -155,7 +146,6 @@ public class ResourceAddedPage
 		ListIterator resIterator = newResourcesList.listIterator();
 		while (resIterator.hasNext()) {
 			IResource iresource = (IResource) resIterator.next();
-			//if (!iresource.getName().equals(".generated.lst")) {
 			String absolutePath = iresource.getLocation().toOSString();
 			TreeItem titem = new TreeItem(newResourcesTree, SWT.NULL);
 			titem.setText(absolutePath.substring(trimPathString.length()));
@@ -177,7 +167,6 @@ public class ResourceAddedPage
 		ListIterator iterator = buildConfigFiles.listIterator();
 		while (iterator.hasNext()) {
 			IResource iresource = (IResource) iterator.next();
-			//if (!iresource.getName().equals("default.lst")) {
 			String absolutePath = iresource.getLocation().toOSString();
 			TreeItem titem = new TreeItem(buildConfigFilesTree, SWT.NULL);
 			titem.setText(absolutePath.substring(trimPathString.length()));
@@ -271,7 +260,7 @@ public class ResourceAddedPage
 		TreeItem[] items = newResourcesTree.getItems();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i].getChecked())
-				results.add((IResource) items[i].getData());
+				results.add(items[i].getData());
 		}
 		return results;
 	}
@@ -285,7 +274,7 @@ public class ResourceAddedPage
 		TreeItem[] items = buildConfigFilesTree.getItems();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i].getChecked())
-				results.add((IResource) items[i].getData());
+				results.add(items[i].getData());
 		}
 		return results;
 	}

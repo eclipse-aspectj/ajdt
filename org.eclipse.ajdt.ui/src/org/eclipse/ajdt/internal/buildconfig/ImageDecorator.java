@@ -303,15 +303,6 @@ public class ImageDecorator implements ILabelDecorator {
 						return true;
 			}
 				
-//			Object[] children = pack.getNonJavaResources();
-//			for(int i=0; i<children.length; i++){
-//				if (children[i] instanceof IFile){
-//					IFile f = (IFile)children[i];
-//					if (("aj".equals(f.getFileExtension()))
-//						&& (bc.isIncluded(f)))
-//						return true;
-//				}
-//			}
 		} catch (JavaModelException e) {
 			//assume empty
 			// can be ignored
@@ -328,16 +319,6 @@ public class ImageDecorator implements ILabelDecorator {
 					if (!bc.isIncluded(res))
 						return true;
 			}
-//				
-//			Object[] children = pack.getNonJavaResources();
-//			for(int i=0; i<children.length; i++){
-//				if (children[i] instanceof IFile){
-//					IFile f = (IFile)children[i];
-//					if (("aj".equals(f.getFileExtension()))
-//						&& (!bc.isIncluded(f)))
-//						return true;
-//				}
-//			}
 		} catch (JavaModelException e) {
 			//assume empty
 			// can be ignored
@@ -357,16 +338,6 @@ public class ImageDecorator implements ILabelDecorator {
 		}
 		return fRegistry;
 	}
-	
-//	public ImageDescriptor getCUResourceImageDescriptor(IFile file, int flags) {
-//		Point size= useSmallSize(flags) ? JavaElementImageProvider.SMALL_SIZE : JavaElementImageProvider.BIG_SIZE;
-//		return new JavaElementImageDescriptor(JavaPluginImages.DESC_OBJS_CUNIT_RESOURCE, 0, size);
-//	}
-//	
-//	public ImageDescriptor getCUImageDescriptor(IFile file, int flags) {
-//		Point size= useSmallSize(flags) ? JavaElementImageProvider.SMALL_SIZE : JavaElementImageProvider.BIG_SIZE;
-//		return new JavaElementImageDescriptor(JavaPluginImages.DESC_OBJS_CUNIT, 0, size);
-//	}
 	
 	public ImageDescriptor getJavaImageDescriptor(ImageDescriptor descriptor, Rectangle rect, int adorflags) {
 		int flags = (rect.width == 16)?JavaElementImageProvider.SMALL_ICONS:0;

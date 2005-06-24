@@ -160,9 +160,8 @@ public class JDTSearchResultsMarkupProvider extends SimpleMarkupProvider {
 		}
 		if (kinds.size() > 0) {
 			return kinds;
-		} else {
-			return null;
 		}
+		return null;		
 	}
 
 	/**
@@ -182,9 +181,8 @@ public class JDTSearchResultsMarkupProvider extends SimpleMarkupProvider {
 				}
 			}
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	}
 
 

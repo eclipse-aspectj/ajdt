@@ -91,7 +91,6 @@ public class AJDTConfigSettings {
 	static public boolean isAspectJEditorDefault() {
 		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
 		IEditorDescriptor desc = editorRegistry.getDefaultEditor("*.java");
-		//return "AspectJ/Java Editor".equals(desc.getLabel());		
 		return AspectJUIPlugin.getResourceString("ajEditor").equals(desc.getLabel());
 	}
 	

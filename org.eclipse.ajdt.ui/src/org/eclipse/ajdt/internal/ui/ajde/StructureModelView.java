@@ -100,8 +100,6 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 
 		viewer.setContentProvider(new WorkbenchContentProvider());
 		viewer.setLabelProvider(new AspectJLabelProvider(parent));
-//		IAdaptable outline = getContentOutline(input,true);
-//		viewer.setInput(outline);
 		expandTreeView( );
 	}
 
@@ -142,7 +140,6 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 			if (target instanceof AJDTStructureViewNode) {
 				AJDTStructureViewNode ajdtNode = (AJDTStructureViewNode) target;
 				IMarker marker = ajdtNode.getMarker(input.getProject());
-				// System.out.println( "marker = " + marker );
 				if (ajdtNode.getStructureNode() != null) {
 					AJDTEventTrace.nodeClicked(ajdtNode.getStructureNode()
 							.getName(), marker);
@@ -166,10 +163,6 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 		manager.add(fLinkWithEditor);
 	}
 	
-	public void setFocus() {
-		// TODO Auto-generated method stub
-
-	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (!fDoLinkWithEditor || !(selection instanceof ITextSelection)) {
@@ -319,5 +312,12 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 				viewer.expandToLevel( node, 1 );
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
+	 */
+	public void setFocus() {
+		
 	}
 }

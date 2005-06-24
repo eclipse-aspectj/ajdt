@@ -10,12 +10,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor.model;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.text.*;
-import org.eclipse.pde.internal.core.*;
-import org.eclipse.pde.internal.ui.model.*;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.pde.internal.core.NLResourceHelper;
+import org.eclipse.pde.internal.ui.model.AbstractEditingModel;
 
 
 public class BuildModel extends AbstractEditingModel implements IBuildModel {
@@ -41,7 +41,7 @@ public class BuildModel extends AbstractEditingModel implements IBuildModel {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.IModel#load(java.io.InputStream, boolean)
 	 */
-	public void load(InputStream source, boolean outOfSync) throws CoreException {
+	public void load(InputStream source, boolean outOfSync) {
 		try {
 			fLoaded = true;
 			((Build)getBuild()).load(source);

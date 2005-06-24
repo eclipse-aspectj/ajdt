@@ -173,7 +173,7 @@ public class RenameFileExtensionsPage extends WizardPage {
 				monitor.worked(10);
 				if (updateBuildConfigs) {
 				    RenamingUtils.updateBuildConfigurations(oldToNewNames, project,
-				    		 new NullProgressMonitor(), false);
+				    		 new NullProgressMonitor());
 				}
 				monitor.worked(4);
 			} catch (JavaModelException e) {

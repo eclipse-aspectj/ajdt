@@ -89,8 +89,6 @@ public class CoreUtils {
 
 			String pluginLoc = null;
 			// 3.0 using bundles instead of plugin descriptors
-			// if (ajdePluginDesc != null) {
-			// URL installLoc = ajdePluginDesc.getInstallURL();
 			if (ajdeBundle != null) {
 				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
 				URL resolved = null;
@@ -169,7 +167,6 @@ public class CoreUtils {
 				IPath path = (IPath) iterator.next();
 				try {
 					IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-					//List newEntries = new ArrayList();
 					for (int j = 0; j < cpEntry.length; j++) {
 						IClasspathEntry entry = cpEntry[j];
 						int entryKind = entry.getEntryKind();
@@ -310,9 +307,7 @@ public class CoreUtils {
 			IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
 			for (int j = 0; j < cpEntry.length; j++) {
 				IClasspathEntry entry = cpEntry[j];
-				//int entryKind = entry.getEntryKind();
 				int contentKind = entry.getContentKind();
-				//if (entryKind == IClasspathEntry.CPE_SOURCE) {
 				if (contentKind == ClasspathEntry.K_OUTPUT) {
 					if (entry.getOutputLocation() != null) {
 						outputLocations.add(entry.getOutputLocation());

@@ -10,7 +10,6 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -29,7 +28,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
 public class AJDTStructureViewNode 
@@ -46,7 +44,6 @@ implements IStructureViewNode, IAdaptable {
 	private List children = new ArrayList();
 	private AJDTIcon icon;
 	private IProgramElement node;
-	private IRelationship relationship = null;
 	private AJDTStructureViewNode parent = null;
 	private IMarker marker = null;
 
@@ -64,8 +61,7 @@ implements IStructureViewNode, IAdaptable {
 		this.icon = (AJDTIcon) icon;
 		this.kind = Kind.RELATIONSHIP;
 		this.relationshipName = 
-			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");
-		this.relationship = relationship;
+			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");		
 	}
 
 
@@ -227,41 +223,40 @@ implements IStructureViewNode, IAdaptable {
 	public int category( ) {
 		if ( !computedCategory ) {
 			computedCategory = true;
-			if ( node instanceof IProgramElement ) {
-				IProgramElement pNode = (IProgramElement) node;
-				IProgramElement.Kind kind = pNode.getKind();
-				if ( kind.equals( IProgramElement.Kind.PACKAGE ) ) {
-					category = Category.PACKAGE;
-				} else if ( kind.equals( IProgramElement.Kind.CLASS ) ) {
-					category = Category.CLASS;
-				} else if ( kind.equals( IProgramElement.Kind.INTERFACE ) ) {
-					category = Category.INTERFACE;
-				} else if ( kind.equals( IProgramElement.Kind.ASPECT ) ) {
-					category = Category.ASPECT;
-				} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR ) ) {
-					category = Category.INTRODUCTION;
-				} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_FIELD ) ) {
-					category = Category.INTRODUCTION;
-				} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_METHOD ) ) {
-					category = Category.INTRODUCTION;
-				} else if ( kind.equals( IProgramElement.Kind.POINTCUT ) ) {
-					category = Category.POINTCUT;
-				} else if ( kind.equals( IProgramElement.Kind.DECLARE_ERROR ) ||
-							 kind.equals( IProgramElement.Kind.DECLARE_WARNING ) ||
-							 kind.equals( IProgramElement.Kind.DECLARE_PARENTS ) ||
-							 kind.equals( IProgramElement.Kind.DECLARE_SOFT )
-					 ) {
-						category = Category.DECLARATION;
-				} else if ( kind.equals( IProgramElement.Kind.ADVICE ) ) {
-					category = Category.ADVICE;
-				} else if ( kind.equals( IProgramElement.Kind.FIELD ) ) {
-					category = Category.FIELD;
-				} else if ( kind.equals( IProgramElement.Kind.CONSTRUCTOR ) ) {
-					category = Category.CONSTRUCTOR;
-				} else if ( kind.equals( IProgramElement.Kind.METHOD ) ) {
-					category = Category.METHOD;
-				}
-			}	
+			IProgramElement pNode =  node;
+			IProgramElement.Kind kind = pNode.getKind();
+			if ( kind.equals( IProgramElement.Kind.PACKAGE ) ) {
+				category = Category.PACKAGE;
+			} else if ( kind.equals( IProgramElement.Kind.CLASS ) ) {
+				category = Category.CLASS;
+			} else if ( kind.equals( IProgramElement.Kind.INTERFACE ) ) {
+				category = Category.INTERFACE;
+			} else if ( kind.equals( IProgramElement.Kind.ASPECT ) ) {
+				category = Category.ASPECT;
+			} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR ) ) {
+				category = Category.INTRODUCTION;
+			} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_FIELD ) ) {
+				category = Category.INTRODUCTION;
+			} else if ( kind.equals( IProgramElement.Kind.INTER_TYPE_METHOD ) ) {
+				category = Category.INTRODUCTION;
+			} else if ( kind.equals( IProgramElement.Kind.POINTCUT ) ) {
+				category = Category.POINTCUT;
+			} else if ( kind.equals( IProgramElement.Kind.DECLARE_ERROR ) ||
+						 kind.equals( IProgramElement.Kind.DECLARE_WARNING ) ||
+						 kind.equals( IProgramElement.Kind.DECLARE_PARENTS ) ||
+						 kind.equals( IProgramElement.Kind.DECLARE_SOFT )
+				 ) {
+					category = Category.DECLARATION;
+			} else if ( kind.equals( IProgramElement.Kind.ADVICE ) ) {
+				category = Category.ADVICE;
+			} else if ( kind.equals( IProgramElement.Kind.FIELD ) ) {
+				category = Category.FIELD;
+			} else if ( kind.equals( IProgramElement.Kind.CONSTRUCTOR ) ) {
+				category = Category.CONSTRUCTOR;
+			} else if ( kind.equals( IProgramElement.Kind.METHOD ) ) {
+				category = Category.METHOD;
+			}
+				
 			if ( getLabel( ).equals( JDT_IMPORTS_LABEL )) {
 				category = Category.IMPORTS;
 			}
@@ -272,15 +267,13 @@ implements IStructureViewNode, IAdaptable {
 
 	public boolean isPublic( ) {
 		boolean isPublic = true;
-		if ( node instanceof IProgramElement ) {
-			IProgramElement pNode = (IProgramElement) node;
-			IProgramElement.Accessibility acc = pNode.getAccessibility();
-			if ( acc != null ) {
-				if ( !acc.equals( IProgramElement.Accessibility.PUBLIC ) ) {
-					isPublic = false;
-				 }
-			}
+		IProgramElement.Accessibility acc = node.getAccessibility();
+		if ( acc != null ) {
+			if ( !acc.equals( IProgramElement.Accessibility.PUBLIC ) ) {
+				isPublic = false;
+			 }
 		}
+	
 		return isPublic;
 	}
 	
@@ -367,7 +360,7 @@ implements IStructureViewNode, IAdaptable {
 		/* (non-Javadoc)
 		 * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
 		 */
-		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+		public void run() {
 			// TODO Get pointcut matches
 			// Create a new BCELWorld.
 			// Add all the classes from this projects classpath and output 

@@ -221,7 +221,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		String version = getPreferenceStore().getString(SOURCE_VERSION);//JavaCore.getOptions().get(SOURCE_VERSION);
 		//if (version instanceof String) {
 		fVersionedWordRule =
-			new VersionedWordRule(new JavaWordDetector(), "1.4", true, (String) version); //$NON-NLS-1$
+			new VersionedWordRule(new JavaWordDetector(), "1.4", true, version); //$NON-NLS-1$
 
 		token = getToken(IJavaColorConstants.JAVA_KEYWORD);
 		for (int i = 0; i < fgNewKeywords.length; i++)

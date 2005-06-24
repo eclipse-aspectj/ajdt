@@ -120,15 +120,6 @@ public abstract class BuildContentsSection extends TableSection
 		
 		public Object[] getElements(Object parent) {
 			if (parent instanceof IContainer) {
-//				IProject proj = ((IProject)parent);
-//				IJavaProject jp =JavaCore.create(proj);
-//				if (jp != null){
-//					if (jp.isOnClasspath(proj)){
-//						Object[] obs = new Object[1];
-//						obs[0] = proj;
-//						return obs;
-//					}	
-//				}
 				return getFilteredChildren((IContainer)parent);
 			}
 			return new Object[0];
@@ -627,7 +618,7 @@ public abstract class BuildContentsSection extends TableSection
 		}
 	}
 
-	public boolean visit(IResourceDelta delta) throws CoreException {
+	public boolean visit(IResourceDelta delta) {
 		IResource resource = delta.getResource();
 		if ((resource instanceof IFile || resource instanceof IFolder)
 				&& resource.getProject().equals(

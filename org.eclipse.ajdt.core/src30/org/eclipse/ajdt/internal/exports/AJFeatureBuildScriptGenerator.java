@@ -143,9 +143,8 @@ import org.eclipse.update.core.model.URLEntryModel;
  			if (model == null) {
  				String message = Policy.bind("exception.missingPlugin", entry.getVersionedIdentifier().toString()); //$NON-NLS-1$
  				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_PLUGIN_MISSING, message, null));
- 			} else {
- 				result.add(model);
  			}
+ 			result.add(model); 			
  			collectElementToAssemble(pluginList[i]);
  			collectSourcePlugins(pluginList[i], model);
  		}
@@ -313,7 +312,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 * Method generateGatherSource. Used to enable the recursive call of
  	 * gathering the sources for the features
  	 */
- 	private void generateGatherSourcesTarget() throws CoreException {
+ 	private void generateGatherSourcesTarget() {
  		script.printTargetDeclaration(TARGET_GATHER_SOURCES, null, null, null, null);
  		Map params = new HashMap(2);
  		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, getPropertyFormat(PROPERTY_FEATURE_TEMP_FOLDER) + '/' + DEFAULT_PLUGIN_LOCATION + '/' + sourceFeatureFullNameVersionned + '/' + "src"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -375,7 +374,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 * @param source the directory name to read the files from
  	 * @throws CoreException
  	 */
- 	private void generateZipIndividualTarget(String zipName, String source) throws CoreException {
+ 	private void generateZipIndividualTarget(String zipName, String source) {
  		script.println();
  		script.printTargetDeclaration(zipName, TARGET_INIT, null, null, null);
  		script.printZipTask(getPropertyFormat(PROPERTY_BASEDIR) + '/' + zipName, getPropertyFormat(PROPERTY_BASEDIR) + '/' + source, false, false, null); //$NON-NLS-1$ //$NON-NLS-2$
@@ -387,7 +386,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 * 
  	 * @throws CoreException
  	 */
- 	private void generateCleanTarget() throws CoreException {
+ 	private void generateCleanTarget() {
  		script.println();
  		script.printTargetDeclaration(TARGET_CLEAN, TARGET_INIT, null, null, Policy.bind("build.feature.clean", featureIdentifier)); //$NON-NLS-1$
  		script.printDeleteTask(null, getPropertyFormat(PROPERTY_FEATURE_DESTINATION) + '/' + featureFullName + ".jar", null); //$NON-NLS-1$ //$NON-NLS-2$
@@ -847,7 +846,7 @@ import org.eclipse.update.core.model.URLEntryModel;
  	 * 
  	 * @throws CoreException
  	 */
- 	private void generateBuildJarsTarget() throws CoreException {
+ 	private void generateBuildJarsTarget() {
  		script.println();
  		script.printTargetDeclaration(TARGET_BUILD_JARS, TARGET_INIT, null, null, Policy.bind("build.feature.buildJars", featureIdentifier)); //$NON-NLS-1$
  		Map params = new HashMap(1);
@@ -918,13 +917,12 @@ import org.eclipse.update.core.model.URLEntryModel;
  			sourceFragment.setWS(configInfo.getWs());
  			sourceFragment.setArch(configInfo.getArch());
  			sourceFragment.isFragment(true);
- 			//sourceFeature.addPluginEntryModel(sourceFragment);
  			createSourceFragment(sourceFragment, sourcePlugin);
  		}
  	}
 
  	//Add the relevant source fragments to the source feature
- 	private void addSourceFragmentsToFeature() throws CoreException {
+ 	private void addSourceFragmentsToFeature() {
  		Map fragments = sourceToGather.getElementEntries();
  		for (Iterator iter = fragments.entrySet().iterator(); iter.hasNext();) {
  			Map.Entry fragmentInfo = (Map.Entry) iter.next();
@@ -943,7 +941,6 @@ import org.eclipse.update.core.model.URLEntryModel;
  			sourceFragment.setArch(configInfo.getArch());
  			sourceFragment.isFragment(true);
  			sourceFeature.addPluginEntryModel(sourceFragment);
- 			//createSourceFragment(sourceFragment, sourcePlugin);
  		}
  	}
 

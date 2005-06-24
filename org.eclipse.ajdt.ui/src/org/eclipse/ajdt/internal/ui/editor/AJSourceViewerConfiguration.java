@@ -33,7 +33,7 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 
 	AspectJTextTools ajtt = null;
 	
-	public AJSourceViewerConfiguration(AspectJTextTools textTools, AspectJEditor editor, String string) {
+	public AJSourceViewerConfiguration(AspectJTextTools textTools, AspectJEditor editor) {
 		super(textTools.getColorManager(), textTools.getPreferenceStore(), editor, EclipseEditorIsolation.JAVA_PARTITIONING);
 		ajtt = textTools;
 	}
@@ -91,13 +91,12 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	 * Returns the outline presenter control creator. The creator is a factory creating outline
 	 * presenter controls for the given source viewer. This implementation always returns a creator
 	 * for <code>JavaOutlineInformationControl</code> instances.
-	 * 
-	 * @param sourceViewer the source viewer to be configured by this configuration
 	 * @param commandId the ID of the command that opens this control
+	 * 
 	 * @return an information control creator
 	 * @since 2.1
 	 */
-	private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer, final String commandId) {
+	private IInformationControlCreator getOutlinePresenterControlCreator(final String commandId) {
 		return new IInformationControlCreator() {
 			public IInformationControl createInformationControl(Shell parent) {
 				int shellStyle= SWT.RESIZE;
@@ -122,9 +121,9 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
 		InformationPresenter presenter;
 		if (doCodeResolve)
-			presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.OPEN_STRUCTURE));
+			presenter= new InformationPresenter(getOutlinePresenterControlCreator(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE));
 		else
-			presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
+			presenter= new InformationPresenter(getOutlinePresenterControlCreator(IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
 		presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 		presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 		IInformationProvider provider= new JavaElementProvider(getEditor(), doCodeResolve);
@@ -135,7 +134,6 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_STRING);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_CHARACTER);
 		presenter.setSizeConstraints(20, 20, true, false);
-		//presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
 		return presenter;
 	}
 

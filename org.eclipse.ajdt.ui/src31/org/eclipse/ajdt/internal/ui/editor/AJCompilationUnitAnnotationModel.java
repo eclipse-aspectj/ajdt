@@ -218,6 +218,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 	 * Signals the end of problem reporting.
 	 */
 	private void reportProblems(List reportedProblems) {
+		System.out.println("annotation model reportine problems");
 		if (fProgressMonitor != null && fProgressMonitor.isCanceled())
 			return;
 			
@@ -233,6 +234,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 			if (fGeneratedAnnotations.size() > 0) {
 				temporaryProblemsChanged= true;	
 				removeAnnotations(fGeneratedAnnotations, false, true);
+				System.out.println("removing annotations");
 				fGeneratedAnnotations.clear();
 			}
 			
@@ -252,6 +254,7 @@ public class AJCompilationUnitAnnotationModel extends ResourceMarkerAnnotationMo
 						
 						try {
 							ProblemAnnotation annotation= new ProblemAnnotation(problem, fCompilationUnit);
+							System.out.println("adding problem annotation");
 							overlayMarkers(position, annotation);								
 							addAnnotation(annotation, position, false);
 							fGeneratedAnnotations.add(annotation);

@@ -130,7 +130,6 @@ public class AJDTUtils {
 		// "URLImageDescriptor(platform:/plugin/org.eclipse.ui_2.0.2/icons/full/obj16/fldr_obj.gif):::0:::Point
 		// {22, 16}"
 		if (imageDescriptorCache.get(key) != null) {
-			//System.err.println("IDCache hit for "+key);
 			return (ImageDescriptor) imageDescriptorCache.get(key);
 		}
 		ImageDescriptor imageDescriptor = new JavaElementImageDescriptor(
@@ -190,14 +189,6 @@ public class AJDTUtils {
 		// folder ones
 		// therefore, have commented out the following call.
 		// changeProjectDependencies(project);
-
-		// no longer need to verify the workbench config since now done
-		// in the migration wizard
-//		Display.getDefault().asyncExec(new Runnable() {
-//			public void run() {
-//				verifyWorkbenchConfiguration();
-//			}
-//		});
 
 		//Luzius: set up build configuration
 		BuildConfigurator.getBuildConfigurator().setup(project);
@@ -834,16 +825,12 @@ public class AJDTUtils {
 	}
 
 	public static void refreshPackageExplorer() {
-//		String callerName = (new RuntimeException()).getStackTrace()[1]
-//		                                             				.getClassName();
-//		System.out.println("refreshPackageExplorer called by "+callerName);
 		int delay = 5*previousExecutionTime;
 		if (delay < 250) {
 			delay = 250;
 		} else if (delay > 5000) {
 			delay = 5000;
 		}
-		//System.out.println("refresh explorer: delay="+delay);
 		getRefreshPackageExplorerJob().schedule(delay);
 	}
 

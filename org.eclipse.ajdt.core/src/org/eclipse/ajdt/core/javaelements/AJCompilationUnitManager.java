@@ -83,7 +83,7 @@ public class AJCompilationUnitManager {
 		if(folder != null) {
 			folder.accept(new IResourceVisitor(){
 	
-				public boolean visit(IResource resource) throws CoreException {
+				public boolean visit(IResource resource) {
 					if(resource instanceof IFile) {
 						if (((IFile)resource).getFileExtension().equals("aj")) {
 							ajcus.add(getAJCompilationUnit((IFile)resource));
@@ -100,7 +100,7 @@ public class AJCompilationUnitManager {
 		final List ajcus = new ArrayList();
 		jp.getProject().accept(new IResourceVisitor(){
 
-			public boolean visit(IResource resource) throws CoreException {
+			public boolean visit(IResource resource) {
 				if(resource instanceof IFile && "aj".equals(resource.getFileExtension())) {
 					AJCompilationUnit ajcu = getAJCompilationUnit((IFile)resource);
 					if(ajcu != null) {

@@ -216,7 +216,6 @@ public class BuildConfigurator implements ISelectionListener {
 			return pbc;
 		//if not, create:
 		pbc = new ProjectBuildConfigurator(proj);
-		//pbc.init();
 		projectConfigurators.put(proj.getProject().getName(), pbc);
 		return pbc;
 	}
@@ -399,6 +398,4 @@ public class BuildConfigurator implements ISelectionListener {
 		return counter==0 ? defaultFileName : defaultFileName+counter;
 	}
 
-
-	
 }

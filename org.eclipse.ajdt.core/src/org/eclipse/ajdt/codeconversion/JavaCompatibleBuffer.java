@@ -55,9 +55,8 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 
 	public void close() {
-		//fakeBuffer.close();
-		//realBuffer.close();
 	}
+	
 	public char getChar(int position) {
 		ensureUpToDate();
 		return fakeBuffer.getChar(position);
@@ -137,9 +136,7 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 	}
 	
 	private void ensureUpToDate(){
-		//System.out.println("Buffer requested...");
 		if (!upToDate){
-			//System.out.println("Converting...");
 			
 			fakeBuffer.setContents((char[])realBuffer.getCharacters().clone());
 			AspectsConvertingParser conv = new AspectsConvertingParser((char[])realBuffer.getCharacters().clone());
@@ -147,7 +144,6 @@ public class JavaCompatibleBuffer implements IBuffer, IBufferChangedListener{
 			fakeBuffer.setContents(conv.content);
 			upToDate = true;
 			
-			//System.out.println("Converted Buffer: " + fakeBuffer);
 		}
 	}
 	

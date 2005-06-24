@@ -67,7 +67,6 @@ public class PulldownBuildselectorMenu implements
 	/**
 	 * Project for which the pulldown menu instance is being built.
 	 */
-	//	private IProject project = null;
 	public void dispose() {
 	}
 
@@ -181,9 +180,6 @@ public class PulldownBuildselectorMenu implements
 					.getBuildConfigurator().getActiveProjectBuildConfigurator();
 			if (pbc != null) {
 				pbc.setActiveBuildConfiguration(bc);
-				//setting active build configuration already triggers build
-				//IProject project = pbc.getJavaProject().getProject();
-				//build(project);
 			}
 		}
 	}

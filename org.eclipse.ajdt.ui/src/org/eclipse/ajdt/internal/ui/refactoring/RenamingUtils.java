@@ -63,7 +63,7 @@ public class RenamingUtils {
 	}
 
 	public static void updateBuildConfigurations(Map oldNamesToNewNames,
-			IProject project, IProgressMonitor monitor, boolean showProgress) {
+			IProject project, IProgressMonitor monitor) {
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		IFile[] buildConfigs = pbc.getConfigurationFiles();
@@ -94,11 +94,7 @@ public class RenamingUtils {
 				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
 			} catch (IOException ioe) {
 			} catch (CoreException e) {
-			} finally {
-//			    if (showProgress) {
-//			        monitor.worked(10);
-//                }
-				
+			} finally {				
 				try {
 					br.close();
 				} catch (IOException ioe) {

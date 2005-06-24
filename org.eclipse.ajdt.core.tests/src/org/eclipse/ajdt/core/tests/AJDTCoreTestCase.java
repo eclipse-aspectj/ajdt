@@ -69,14 +69,7 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
-//		waitForAutoBuild();
-//		final IProject project = jp.getProject();
-//		IWorkspaceRunnable build = new IWorkspaceRunnable() {
-//			public void run(IProgressMonitor monitor) throws CoreException {
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
-//			}
-//		};
-//		getWorkspace().run(build, null);
 		return jp.getProject();
 	}
 	
@@ -91,9 +84,6 @@ public class AJDTCoreTestCase extends TestCase {
 		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();
 		copyDirectory(new File(sourceWorkspacePath, projectName), new File(targetWorkspacePath, projectName));
 		
-		// ensure variables are set
-		setUpJCLClasspathVariables(compliance);
-	
 		// create project
 		final IProject project = getWorkspaceRoot().getProject(projectName);
 		IWorkspaceRunnable populate = new IWorkspaceRunnable() {
@@ -104,57 +94,10 @@ public class AJDTCoreTestCase extends TestCase {
 		};
 		getWorkspace().run(populate, null);
 		IJavaProject javaProject = JavaCore.create(project);
-//		if ("1.5".equals(compliance)) {
-//			// set options
-//			Map options = new HashMap();
-//			options.put(CompilerOptions.OPTION_Compliance, CompilerOptions.VERSION_1_5);
-//			options.put(CompilerOptions.OPTION_Source, CompilerOptions.VERSION_1_5);	
-//			options.put(CompilerOptions.OPTION_TargetPlatform, CompilerOptions.VERSION_1_5);	
-//			javaProject.setOptions(options);
-//			
-//			// replace JCL_LIB with JCL15_LIB, and JCL_SRC with JCL15_SRC
-//			IClasspathEntry[] classpath = javaProject.getRawClasspath();
-//			IPath jclLib = new Path("JCL_LIB");
-//			for (int i = 0, length = classpath.length; i < length; i++) {
-//				IClasspathEntry entry = classpath[i];
-//				if (entry.getPath().equals(jclLib)) {
-//					classpath[i] = JavaCore.newVariableEntry(
-//							new Path("JCL15_LIB"), 
-//							new Path("JCL15_SRC"), 
-//							entry.getSourceAttachmentRootPath(), 
-//							entry.getAccessRules(), 
-//							new IClasspathAttribute[0], 
-//							entry.isExported());
-//					break;
-//				}
-//			}
-//			javaProject.setRawClasspath(classpath, null);
-//		}
 		return javaProject;
 	}
 	
-	public void setUpJCLClasspathVariables(String compliance) throws JavaModelException, IOException {
-/*
-		if ("1.5".equals(compliance)) {
-//			if (JavaCore.getClasspathVariable("JCL15_LIB") == null) {
-//				setupExternalJCL("jclMin1.5");
-//				JavaCore.setClasspathVariables(
-//					new String[] {"JCL15_LIB", "JCL15_SRC", "JCL_SRCROOT"},
-//					new IPath[] {getExternalJCLPath(compliance), getExternalJCLSourcePath(compliance), getExternalJCLRootSourcePath()},
-//					null);
-//			} 
-		} else {
-			if (JavaCore.getClasspathVariable("JCL_LIB") == null) {
-				setupExternalJCL("jclMin");
-				JavaCore.setClasspathVariables(
-					new String[] {"JCL_LIB", "JCL_SRC", "JCL_SRCROOT"},
-					new IPath[] {getExternalJCLPath(), getExternalJCLSourcePath(), getExternalJCLRootSourcePath()},
-					null);
-			} 
-		}
-		*/	
-	}
-	
+
 	/**
 	 * Wait for autobuild notification to occur
 	 */

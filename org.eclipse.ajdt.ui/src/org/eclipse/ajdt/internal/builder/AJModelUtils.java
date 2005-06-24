@@ -50,7 +50,6 @@ public class AJModelUtils {
 		} else if (delay > 5000) {
 			delay = 5000;
 		}
-		//System.out.println("refresh outline: delay="+delay);
 		getRefreshOutlinePagesJob().schedule(delay);
 	}
 

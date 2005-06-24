@@ -99,7 +99,6 @@ public class WorkingCopyManagerForCompletionProcessor implements
 
 		while (cont) {
 			int whatIndex = whereCopy.indexOf(what);
-			//int oneLineComment = whereCopy.indexOf("//");
 			int multiLineCommentStart = whereCopy.indexOf("/*");
 			int multiLineCommentEnd = whereCopy.indexOf("*/");
 			if (whatIndex==-1) {cont = false;break;}

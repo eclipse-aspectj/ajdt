@@ -329,8 +329,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 			ch = content[currentPos];
 			if (ch == '.')
 				return findInsertionPosition(--currentPos);
-			else
-				return pos;
+			return pos;
 		}
 
 		if (Character.isJavaIdentifierPart(ch)) {
@@ -371,56 +370,6 @@ public class AspectsConvertingParser implements TerminalTokens {
 			.toCharArray();
 
 	char[] tjpRefs = "".toCharArray();
-
-	//	Same as applyReplacements, but without creating new char[] all the time.
-	//	Seems to work, but surprisingly, it does not seem to be significantly
-	// faster
-	//	-> kept using the simple version
-	//	
-	//	private void applyReplacementsFast() {
-	//		Iterator iter = replacements.listIterator();
-	//		int totalLengthToAdd = 0;
-	//		while (iter.hasNext()) {
-	//			Replacement ins = (Replacement) iter.next();
-	//			totalLengthToAdd += ins.lengthAdded;
-	//		}
-	//		
-	//		iter = replacements.listIterator();
-	//		if (totalLengthToAdd == 0){
-	//			//content still has same length, we do not need
-	//			//to allocate a new char[]
-	//			while (iter.hasNext()) {
-	//				Replacement ins = (Replacement) iter.next();
-	//				System.arraycopy(ins.text, 0, content, ins.pos, ins.text.length);
-	//			}
-	//		} else {
-	//			char[] temp = new char[content.length + totalLengthToAdd];
-	//			//content gets longer -> new char[] necessary
-	//			int offset = 0;
-	//			int currentPosSource = 0;
-	//			int currentPosDest = 0;
-	//			while (iter.hasNext()) {
-	//				Replacement ins = (Replacement) iter.next();
-	//				int len = ins.pos - currentPosSource;
-	//				//copy piece between last replacement and this one
-	//				System.arraycopy(content, currentPosSource, temp, currentPosDest, len);
-	//				currentPosSource += len;
-	//				currentPosDest += len;
-	//				//insert replacement
-	//				System.arraycopy(ins.text, 0, temp, currentPosDest, ins.text.length);
-	//				currentPosDest += ins.text.length;
-	//				currentPosSource += ins.length;
-	//				
-	//				//convention: update position of edits to be relative to new content
-	//				ins.pos += offset;
-	//				offset += ins.lengthAdded;
-	//			}
-	//			//copy last piece of content
-	//			System.arraycopy(content, currentPosSource, temp, currentPosDest,
-	// content.length - currentPosSource);
-	//			content = temp;
-	//		}
-	//	}
 
 	private void applyReplacements() {
 		Iterator iter = replacements.listIterator();
@@ -535,10 +484,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 				addReplacement(spaceordot + 1, 0, "ajc$".toCharArray());
 			}
 
-		} //else {
-		//			System.out.println("skipped because of upper case rule: " + new
-		// String(content, space+1, pos-space-1));
-		//		}
+		}
 	}
 
 	public int findPrevious(char ch, int pos) {

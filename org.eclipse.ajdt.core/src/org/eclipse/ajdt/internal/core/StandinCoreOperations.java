@@ -38,15 +38,7 @@ public class StandinCoreOperations implements ICoreOperations {
 
 		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
 			// TODO: fix this - need build config support in core
-//			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
-//				.getProjectBuildConfigurator(project);
-//			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
-//			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
-//		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
                 return true;
-//            } else {
-//                return false;
-//            }
 		} else if (resname.endsWith(".lst") //$NON-NLS-1$
 				&& !resname.endsWith("/generated.lst")) { //$NON-NLS-1$
 			return true;

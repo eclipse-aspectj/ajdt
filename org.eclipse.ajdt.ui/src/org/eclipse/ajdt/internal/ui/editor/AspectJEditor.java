@@ -89,14 +89,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 		super();	
 		setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$	
-		//		activeEditorList.add(this);
-		//		//this.setSourceViewerConfiguration()
-		//		AspectJTextTools textTools =
-		//			AspectJPlugin.getDefault().getAspectJTextTools();
-		//		setSourceViewerConfiguration(
-		//			new JavaSourceViewerConfiguration(textTools, this));
-		//((PartSite)getSite()).getConfigurationElement()
-		
 		// Bug 78182
 		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
 	}
@@ -175,7 +167,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * </ol>
 	 */
 	public Object getAdapter(Class key) {
-		//System.err.println( "Asked for adapter: " + key.getName() );
 		if (key.equals(ITextOperationTarget.class)) {
 			// use our own wrapper around the one returned by the superclass
 			return new AJTextOperationTarget((ITextOperationTarget) super
@@ -279,8 +270,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 
 		} else {
-
-			//getStatusLineManager().setErrorMessage(""); //$NON-NLS-1$
 
 			IWorkingCopyManager manager = JavaPlugin.getDefault()
 					.getWorkingCopyManager();
@@ -452,8 +441,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		// in the editor - used to trigger a structured selection event, but now
 		// triggers a TextSelection event. TextSelection event does not give AJP
 		// enouhg info to determine project, so have to do from here instead.
-		//System.out.println( "Focus given to: " + getEditorInput( ).getName()
-		// );
 		IEditorInput input = getEditorInput();
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;
@@ -496,7 +483,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IPreferenceStore store = this.getPreferenceStore();
 		AspectJTextTools textTools = new AspectJTextTools(store);
 		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
-				textTools, this, EclipseEditorIsolation.JAVA_PARTITIONING);
+				textTools, this);
 		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
 	}
 
@@ -513,26 +500,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		super.editorContextMenuAboutToShow(menu);
 		if (isEditingAjFile) {
 			menu.remove("org.eclipse.jdt.ui.refactoring.menu");
-
-			//		//remove refactoring submenu
-			//		IMenuManager sourceMM =
-			// menu.findMenuUsingPath("org.eclipse.jdt.ui.source.menu");
-			//		
-			//		//remove all actions between import and codegroup in source
-			// submenu
-			//		IContributionItem[] items = sourceMM.getItems();
-			//		boolean shouldberemoved = false;
-			//		for (int i = 0; i < items.length; i++) {
-			//			IContributionItem item = items[i];
-			//			if(shouldberemoved){
-			//				if ("codeGroup".equals(item.getId()))
-			//					shouldberemoved = false;
-			//				else
-			//					sourceMM.remove(item);
-			//			} else {
-			//				shouldberemoved = "importGroup".equals(item.getId());
-			//			}
-			//		}
 
 			//remove open type & call hierarchy
 			IContributionItem[] items = menu.getItems();

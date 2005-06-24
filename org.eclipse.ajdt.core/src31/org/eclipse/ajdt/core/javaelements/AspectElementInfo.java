@@ -31,18 +31,7 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	public void setHandle(IType handle) {
 		this.handle = handle;
 	}
-	/**
-	 * Sets the name of the package this type is declared in.
-	 */
-//	public void setPackageName(char[] name) {
-//		this.packageName= name;
-//	}
-	/**
-	 * Sets the name of the source file this type is declared in.
-	 */
-//	public void setSourceFileName(char[] name) {
-//		this.sourceFileName= name;
-//	}
+	
 	/**
 	 * Sets the (unqualified) name of this type's superclass
 	 */
@@ -59,12 +48,7 @@ public class AspectElementInfo extends SourceTypeElementInfo implements IAspectJ
 	public void setFlags(int flags) {
 		this.flags = flags;
 	}
-	/**
-	 * Sets this member's name
-	 */
-	//public void setName(char[] name) {
-	//	this.name= name;
-	//}
+	
 	/**
 	 * Sets the last position of this member's name, relative
 	 * to its openable's source buffer.

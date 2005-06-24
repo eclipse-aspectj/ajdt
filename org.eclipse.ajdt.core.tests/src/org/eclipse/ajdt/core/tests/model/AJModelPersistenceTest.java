@@ -117,7 +117,6 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			compareAfterReloadingModel(rels, weaveMeProject);
 		} finally {
 			deleteProject(weaveMeProject);
-			//deleteProject(libProject);
 		}
 	}
 
@@ -269,10 +268,8 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
 			IJavaElement source = rel.getSource();
-			// System.out.println("source: " + source.getHandleIdentifier());
 			sourceList.add(source.getHandleIdentifier().intern());
 			IJavaElement target = rel.getTarget();
-			// System.out.println("target: " + target.getHandleIdentifier());
 			targetList.add(target.getHandleIdentifier().intern());
 			relationList.add(rel.getRelationship().getInternalName().intern());
 		}
@@ -318,7 +315,6 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			AJRelationship rel = (AJRelationship) iter.next();
 			String sourceHandle = rel.getSource().getHandleIdentifier()
 					.intern();
-			// System.out.println("source: " + sourceHandle);
 			String targetHandle = rel.getTarget().getHandleIdentifier()
 					.intern();
 			String relName = rel.getRelationship().getInternalName().intern();
@@ -329,12 +325,9 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 				if (obj != null) {
 					String s = (String) obj;
 					if (s.equals(sourceHandle)) {
-						// System.out.println("found sourceHandle at index: " +
-						// i);
 						String t = (String) targetList.get(i);
 						String r = (String) relationList.get(i);
 						if (t.equals(targetHandle) && (r.equals(relName))) {
-							// System.out.println("found match: "+t);
 							found = true;
 							// remove match from list
 							sourceList.set(i, null);

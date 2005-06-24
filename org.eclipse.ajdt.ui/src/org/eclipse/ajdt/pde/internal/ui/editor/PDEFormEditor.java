@@ -239,7 +239,7 @@ public abstract class PDEFormEditor extends FormEditor
 	 * @see org.eclipse.ui.ISaveablePart#doSave(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	public void doSave(IProgressMonitor monitor) {
-		commitFormPages(true);
+		commitFormPages();
 		inputContextManager.save(monitor);
 		editorDirtyStateChanged();
 	}
@@ -251,10 +251,7 @@ public abstract class PDEFormEditor extends FormEditor
 		for (int i = 0; i < pages.length; i++) {
 			if (pages[i] instanceof PDESourcePage) {
 				PDESourcePage page = (PDESourcePage) pages[i];
-			    InputContext context = inputContextManager.findContext(page.getId());
-			    //context.setBlocked(true);
-			    page.doRevertToSaved();
-			    //context.setBlocked(false);
+			     page.doRevertToSaved();
 			}
 		}
 		editorDirtyStateChanged();
@@ -271,7 +268,7 @@ public abstract class PDEFormEditor extends FormEditor
 		}
 		editorDirtyStateChanged();
 	}
-	private void commitFormPages(boolean onSave) {
+	private void commitFormPages() {
 		IFormPage[] pages = getPages();
 		for (int i = 0; i < pages.length; i++) {
 			IFormPage page = pages[i];
@@ -346,7 +343,6 @@ public abstract class PDEFormEditor extends FormEditor
 	}
 	public void dispose() {
 		storeDefaultPage();
-		//setSelection(new StructuredSelection());
 		PDEPlugin.getDefault().getLabelProvider().disconnect(this);
 		if (clipboard != null) {
 			clipboard.dispose();
@@ -420,21 +416,11 @@ public abstract class PDEFormEditor extends FormEditor
 		IFormPage page = setActivePage(context.getId());
 		IDE.gotoMarker(page, marker);
 	}
-	public void openTo(Object obj, IMarker marker) {
+	public void openTo(IMarker marker) {
 		//TODO hack until the move to the new search
 		PDESourcePage sourcePage = (PDESourcePage) setActivePage(PluginInputContext.CONTEXT_ID);
 		if (sourcePage != null)
 			sourcePage.selectReveal(marker);
-
-		/*
-		 * if (EditorPreferencePage.getUseSourcePage() || getEditorInput()
-		 * instanceof SystemFileEditorInput) { if (marker != null) { IResource
-		 * resource = marker.getResource(); InputContext context =
-		 * getContextManager() .findContext(resource); if (context != null) {
-		 * PDESourcePage sourcePage = (PDESourcePage) setActivePage(context
-		 * .getId()); sourcePage.selectReveal(marker); } } } else {
-		 * selectReveal(obj); }
-		 */
 	}
 	public void setSelection(ISelection selection) {
 		getSite().getSelectionProvider().setSelection(selection);

@@ -78,16 +78,12 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		IJavaElement je = (IJavaElement) o;
 		
 		AJModel model = AJModel.getInstance();
-		//System.out.println("je=" + je + " (" + je.hashCode() + ")");
 		for (int i = 0; i < showRels.length; i++) {
-			//System.out.println("relationship: " + showRels[i].getName());
 			List associates = new ArrayList();
 			List related = model.getRelatedElements(showRels[i], je);
 			if (related != null) {
 				for (Iterator iter = related.iterator(); iter.hasNext();) {
 					IJavaElement javaElement = (IJavaElement) iter.next();
-					//System.out.println("related: " + javaElement + " ("
-					//		+ javaElement.hashCode() + ")");
 					AJNode associate = new AJNode(javaElement, model
 							.getJavaElementLinkName(javaElement));
 					associates.add(associate);

@@ -10,14 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditorContributor;
-import org.eclipse.swt.dnd.Clipboard;
 
 public class BuildEditorContributor extends PDEFormEditorContributor {
 
 	public BuildEditorContributor() {
 		super("&Build"); //$NON-NLS-1$
 	}
-	protected boolean hasKnownTypes(Clipboard clipboard) {
-		return true;
-	}
+
 }

@@ -11,10 +11,6 @@ Sian January - updated for new style build configurations
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
 
-/*
- * (c) Copyright IBM Corp. 2000, 2001.
- * All Rights Reserved.
- */
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;

@@ -392,7 +392,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 * @param source
 	 * @throws CoreException
 	 */
-	private void generateZipIndividualTarget(String zipName, String source) throws CoreException {
+	private void generateZipIndividualTarget(String zipName, String source) {
 		script.println();
 		script.printTargetDeclaration(zipName, TARGET_INIT, null, null, null);
 		IPath root = new Path(getPropertyFormat(IXMLConstants.PROPERTY_BASEDIR));
@@ -548,7 +548,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 * 
 	 * @throws CoreException
 	 */
-	private void generateZipPluginTarget() throws CoreException {
+	private void generateZipPluginTarget() {
 		script.println();
 		script.printTargetDeclaration(TARGET_ZIP_PLUGIN, TARGET_INIT, null, null, Policy.bind("build.plugin.zipPlugin", model.getSymbolicName())); //$NON-NLS-1$
 		script.printDeleteTask(getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
@@ -782,7 +782,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 * @param entry
 	 * @throws CoreException
 	 */
-	private void generateCompilationTarget(List classpath, CompiledEntry entry) throws CoreException {
+	private void generateCompilationTarget(List classpath, CompiledEntry entry) {
 		script.println();
 		String name = entry.getName(false);
 		script.printTargetDeclaration(name, TARGET_INIT, null, entry.getName(true), Policy.bind("build.plugin.jar", name)); //$NON-NLS-1$
@@ -859,7 +859,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	 * @param jar
 	 * @throws CoreException
 	 */
-	private void generateSRCTarget(CompiledEntry jar) throws CoreException {
+	private void generateSRCTarget(CompiledEntry jar) {
 		script.println();
 		String name = jar.getName(false);
 		String srcName = getSRCName(name);

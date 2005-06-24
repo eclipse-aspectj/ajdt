@@ -284,9 +284,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 						.getFolder(workspaceRelativeOutputPath);
 				realOutputLocation = out.getLocation().toOSString();
 			}
-			// AJDTEventTrace.generalEvent("Project getOutputLocation path: " +
-			// realOutputLocation);
-
 			for (int i = 0; i < classpathEntries.length; i++) {
 				if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IClasspathEntry sourceEntry = classpathEntries[i];
@@ -312,8 +309,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 								&& !relPath.endsWith(".project") //$NON-NLS-1$
 								&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
 								&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
-							// AJDTEventTrace.generalEvent("Added to file list
-							// (full): " + fullPath);
 							File file = new File(fullPath);
 							map.put(relPath, file);
 						}
@@ -327,7 +322,6 @@ public class ProjectProperties extends CoreProjectProperties  {
 		}
 
 		return map;
-		// return new HashSet(list);
 	}
 	
 	private ArrayList getLinkedChildFolders(IResource resource) {

@@ -55,12 +55,10 @@ public class BuildEditor extends MultiSourceEditor {
 	}
 	
 	public void monitoredFileAdded(IFile file) {
-		//if (file.getName().equalsIgnoreCase("build.properties")) { //$NON-NLS-1$
-			if (!inputContextManager.hasContext(BuildInputContext.CONTEXT_ID)) {
-				IEditorInput in = new FileEditorInput(file);
-				inputContextManager.putContext(in, new BuildInputContext(this, in, false));
-			}
-		//}
+		if (!inputContextManager.hasContext(BuildInputContext.CONTEXT_ID)) {
+			IEditorInput in = new FileEditorInput(file);
+			inputContextManager.putContext(in, new BuildInputContext(this, in, false));
+		}
 	}
 
 	/*
@@ -71,16 +69,10 @@ public class BuildEditor extends MultiSourceEditor {
 	public void doSave(IProgressMonitor monitor) {
 		super.doSave(monitor);
 		// now perform a full rebuild if the file changed is the active configuration file
-//		IProject proj = getCommonProject();
 		IEditorInput in = inputContextManager.getPrimaryContext().getInput();
-//		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(proj);
 		if ((in instanceof IFileEditorInput)) { // && (pbc!=null)) {
 			IFile changedFile = ((IFileEditorInput)in).getFile();
 			AJDTEventTrace.buildConfigWrite(changedFile);
-//			IFile activeFile = pbc.getActiveBuildConfiguration().getFile();
-//			if (changedFile.equals(activeFile)) {
-//				BuildSelectorAction.doFullBuild(proj);
-//			}
 		}
 	}
 	

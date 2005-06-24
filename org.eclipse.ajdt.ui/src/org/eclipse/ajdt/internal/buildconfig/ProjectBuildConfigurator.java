@@ -51,11 +51,6 @@ public class ProjectBuildConfigurator{
 			activeBuildConfiguration = getStoredBuildConfiguration();
 			initialized = true;
 		}
-//		if (activeBuildConfiguration == null || !activeBuildConfiguration.exists()){
-//			makeSureThereIsAtLeastOneActiveConfiguration();	
-//		} else {
-//			buildConfigurator.notifyChangeListeners();
-//		}
 	}
 	
 	private IFile getStoredBuildConfiguration(){
@@ -72,9 +67,6 @@ public class ProjectBuildConfigurator{
 		AspectJPreferences.setActiveBuildConfigurationName(project,configName);
 	}
 
-	/**
-	 *  
-	 */
 	private void readBuildConfigurationsFromFileSystem() {
 		try {
 			IResource[] files = javaProject.getProject().members(IResource.FILE);
@@ -134,20 +126,18 @@ public class ProjectBuildConfigurator{
 			if (!buildconfigs.containsKey(bc.getFile())) {
 				buildconfigs.put(bc.getFile(), bc);
 			}
-			//if (buildConfigurator.getActiveProjectBuildConfigurator() == this) {
-				if (bc.getFile().equals(activeBuildConfiguration)) {
-					
-					//why do we need to do full builds after build configuration changes?
-					//when doing a normal build, .class files of classes that have been excluded
-					//do not get removed from the bin dir so we don't get errors if excluded classes
-					//are needed by others.
-					requestFullBuild(true);					
-					
-					//update package explorer view
-					AJDTUtils.refreshPackageExplorer();
-				}
-				buildConfigurator.notifyChangeListeners();
-			//}
+			if (bc.getFile().equals(activeBuildConfiguration)) {
+				
+				//why do we need to do full builds after build configuration changes?
+				//when doing a normal build, .class files of classes that have been excluded
+				//do not get removed from the bin dir so we don't get errors if excluded classes
+				//are needed by others.
+				requestFullBuild(true);					
+				
+				//update package explorer view
+				AJDTUtils.refreshPackageExplorer();
+			}
+			buildConfigurator.notifyChangeListeners();
 		}
 	}
 	
@@ -177,23 +167,10 @@ public class ProjectBuildConfigurator{
 		return buildconfigs.values();
 	}
 	public void addBuildConfiguration(BuildConfiguration bc) {
-		//bc.commit(false);
 		buildconfigs.put(bc.getFile(), bc);
 		buildConfigurator.notifyChangeListeners();
 	}
-	/**
-	 * @param file
-	 */
-//	public void signalFileDeletion(IFile file) {
-//		Object remBC = buildconfigs.remove(file);
-//		if ((remBC != null)
-//				&& !(this == buildConfigurator
-//						.getActiveProjectBuildConfigurator())) {
-//			//makeSureThereIsAtLeastOneActiveConfiguration();
-//			buildConfigurator
-//					.notifyChangeListeners();
-//		}
-//	}
+
 	/**
 	 *  
 	 */
@@ -239,18 +216,6 @@ public class ProjectBuildConfigurator{
 	}
 	
 	/**
-	 * 
-	 */
-	/*public void removeAllConfigurations() {
-		//delete files
-		Iterator iter = buildconfigs.values().iterator();
-		while (iter.hasNext()) {
-			((BuildConfiguration) iter.next()).deleteFile();
-		}
-		buildconfigs.clear();
-	}*/
-	
-	/**
 	 * Deletes the specified build configuration.
 	 * If it was the only one, it creates a standard build configuration.
 	 * If it was the active one, the next one gets activated.
@@ -260,20 +225,9 @@ public class ProjectBuildConfigurator{
 		if (bc.getFile().equals(activeBuildConfiguration))
 			activeBuildConfiguration = null;
 		buildconfigs.remove(bc.getFile());
-		//bc.deleteFile();
 		makeSureThereIsAtLeastOneActiveConfiguration();
 		this.buildConfigurator.notifyChangeListeners();
 	}
-
-	/**
-	 * @param folder
-	 */
-	/*public void notifyFolderRemoved(IFolder folder) {
-		Iterator iter = buildconfigs.values().iterator();
-		while (iter.hasNext()) {
-			((BuildConfiguration) iter.next()).removeFolder(folder);
-		}
-	}*/
 
 	/**
 	 * @param buildFile

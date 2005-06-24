@@ -138,9 +138,8 @@ public class ProviderDefinition {
 	public String getTitle() {
 		if(title!=null){
 			return title;
-		} else {
-			return getName();
-		}
+		} 
+		return getName();
 	}
 
 	/**

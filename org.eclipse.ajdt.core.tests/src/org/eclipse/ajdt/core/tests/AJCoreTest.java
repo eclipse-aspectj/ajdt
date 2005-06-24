@@ -257,8 +257,6 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
-			// System.out.println("rel:
-			// "+rel.getRelationship().getDisplayName());
 			compareElementWithRecreated(rel.getSource());
 			compareElementWithRecreated(rel.getTarget());
 		}
@@ -266,11 +264,9 @@ public class AJCoreTest extends AJDTCoreTestCase {
 
 	private void compareElementWithRecreated(IJavaElement element) {
 		String handle = element.getHandleIdentifier();
-		//System.out.println("element handle: " + handle);
 		IJavaElement recreated = AspectJCore.create(handle);
 		String recreatedHandle = recreated.getHandleIdentifier();
-		//System.out.println("recreated handle: " + recreatedHandle);
-
+		
 		assertEquals(
 				"Handle identifier of created element doesn't match original",
 				handle, recreatedHandle);

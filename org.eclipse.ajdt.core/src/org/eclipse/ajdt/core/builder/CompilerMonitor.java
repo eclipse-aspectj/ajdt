@@ -100,8 +100,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 			IProgressMonitor eclipseMonitor) {
 		monitor = eclipseMonitor;
 		if (monitor != null) {
-			// monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"),
-			// AspectJUIPlugin.PROGRESS_MONITOR_MAX);
 			monitor.beginTask("AJC build", 100);
 		}
 
@@ -109,11 +107,4 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 		compilationInProgress = true;
 	}
 
-	public static void clearOtherProjectMarkers(IProject p) {
-
-	}
-
-	public static void showOutstandingProblems() {
-
-	}
 }

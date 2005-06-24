@@ -60,7 +60,6 @@ public class CompilerPropertyPage extends PropertyPage {
 
 	// TODO - these need to be changed to booleans - bug 90174
 	// NB - if change these, then have to update the settign in the migration wizard
-	// BuilderMigrationPage2.useIncrementalCompilationAsDefault(..)
 	private static final String VALUE_TRUE = "true";
 	private static final String VALUE_FALSE = "false";
 
@@ -599,7 +598,6 @@ public class CompilerPropertyPage extends PropertyPage {
 			projectWorkspaceChanges = true;
 			// don't want to overwrite existing project settings
 			// because have just set them in the above call to 
-			// updateProjectSettings();
 			AspectJPreferences.setUsingProjectSettings(thisProject, useProjectSettings(),false);
 		}
 
@@ -772,7 +770,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
 		
-		GridData gd = new GridData();//HORIZONTAL_ALIGN_FILL);
+		GridData gd = new GridData();
 		if(fillGridVertically)
 			gd.verticalAlignment = GridData.FILL;
 		gd.horizontalSpan = 3;

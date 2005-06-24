@@ -182,7 +182,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		}
 		AJDTEventTrace.projectPropertiesChanged(thisProject);
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
-		//preserveSetting(BuildOptionsAdapter.CHAR_ENC,"");
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
 	}
@@ -196,20 +195,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		AJDTEventTrace.projectPropertiesDefaulted(thisProject);
 		outputJarEditor.setStringValue("");
 		nonStandardOptionsEditor.setStringValue("");
-	}
-	
-	/**
-	 * Convert the choice shown on the radio button group into a string
-	 * for storing as a persistent property.
-	 */
-	public String calculateStrictnessFromButtons() {
-//		if (compileMode_normalBtn.getSelection())
-//			return BuildOptionsAdapter.COMPILATION_STRICTNESS_NORMAL;
-//		if (compileMode_lenientBtn.getSelection())
-//			return BuildOptionsAdapter.COMPILATION_STRICTNESS_LENIENT;
-//		if (compileMode_strictBtn.getSelection())
-//			return BuildOptionsAdapter.COMPILATION_STRICTNESS_STRICT;
-		return null;
 	}
 
 	/**

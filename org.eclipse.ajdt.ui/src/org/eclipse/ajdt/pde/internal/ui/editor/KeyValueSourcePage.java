@@ -30,8 +30,8 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 			return reconciler;
 		}
 	}
-	public KeyValueSourcePage(PDEFormEditor editor, String id, String title) {
-		super(editor, id, title);
+	protected KeyValueSourcePage(PDEFormEditor editor, String id) {
+		super(editor, id);
 		setSourceViewerConfiguration(new KeyValueSourceViewerConfiguration());
 	}
 

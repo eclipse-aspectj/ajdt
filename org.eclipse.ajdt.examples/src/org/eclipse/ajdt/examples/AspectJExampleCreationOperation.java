@@ -320,8 +320,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		try {
 			URL starterURL = new URL(AspectJExamplePlugin.getDefault()
 					.getBundle().getEntry("/"), pluginRelativePath);
-//					AspectJExamplePlugin.getDefault()
-//					.getDescriptor().getInstallURL(), pluginRelativePath);
 			return new ZipFile(Platform.asLocalURL(starterURL).getFile());
 		} catch (IOException e) {
 			String message = pluginRelativePath + ": " + e.getMessage(); //$NON-NLS-1$

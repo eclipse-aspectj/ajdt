@@ -87,7 +87,6 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 					}
 					if ((lines+1)==targetLine) {
 						nameStart=i+1;
-						//System.out.println("start="+nameStart);
 						foundLine=true;
 					}
 				}
@@ -119,7 +118,7 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	 */
 	// Workaround for bug 94401 - JavaElement expects the parent
 	// to be an openable, but it is not for an AJCodeElement
-	public IJavaElement[] getChildren() throws JavaModelException {
+	public IJavaElement[] getChildren() {
 		return JavaElement.NO_ELEMENTS;
 	}
 	

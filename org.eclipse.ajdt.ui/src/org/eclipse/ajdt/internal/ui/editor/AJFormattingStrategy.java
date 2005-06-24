@@ -89,31 +89,12 @@ public class AJFormattingStrategy extends ContextBasedFormattingStrategy {
 							edit.removeChild(edit2);
 							continue;
 						}				
-//						int pos = AspectsConvertingParser
-//								.translatePositionToBeforeChanges(edit2.getOffset(),
-//										changes);
-//						if (pos == -1) {
-//							edit.removeChild(edit2);
-//							continue;
-//						}
-//						pos = AspectsConvertingParser.translatePositionToBeforeChanges(
-//								edit2.getInclusiveEnd(), changes);
-//						if (pos == -1)
-//							edit.removeChild(edit2);
 					}
 					}
 					//apply remaining edits
 					edit.apply(document);
 				}
 				
-				//original version:
-//				 final TextEdit edit=
-//				 CodeFormatterUtil.format2(CodeFormatter.K_COMPILATION_UNIT,
-//				 document.get(), partition.getOffset(), partition.getLength(),
-//				 0, TextUtilities.getDefaultLineDelimiter(document),
-//				 getPreferences());
-//				 if (edit != null)
-//				 edit.apply(document);
 				 //AJDT change stop
 
 			} catch (MalformedTreeException exception) {

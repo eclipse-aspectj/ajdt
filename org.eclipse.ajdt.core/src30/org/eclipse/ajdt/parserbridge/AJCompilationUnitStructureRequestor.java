@@ -94,54 +94,18 @@ public class AJCompilationUnitStructureRequestor extends
 			AbstractMethodDeclaration methodDeclaration) {
 
 				enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
-					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false, methodDeclaration);
+					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, methodDeclaration);
 		}
 	
 	public void enterMethod(MethodInfo mi) {
-		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,null);
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,null);
 	}
 	
 	public void enterMethod(MethodInfo mi,AbstractMethodDeclaration mdecl) {
-		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,mdecl);
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,mdecl);
 	}
 	
-	protected void enterMethod(
-			int declarationStart,
-			int modifiers,
-			char[] returnType,
-			char[] name,
-			int nameSourceStart,
-			int nameSourceEnd,
-			char[][] parameterTypes,
-			char[][] parameterNames,
-			char[][] exceptionTypes,
-			boolean isConstructor,
-			AbstractMethodDeclaration methodDeclaration) {
-		
-			if (methodDeclaration instanceof AdviceDeclaration){
-				enterAdvice(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (AdviceDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof PointcutDeclaration){
-				enterPointcut(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (PointcutDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof DeclareDeclaration){
-				enterDeclare(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (DeclareDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof InterTypeDeclaration){
-				enterInterTypeDeclaration(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (InterTypeDeclaration)methodDeclaration);
-				return;
-			}
-			
-			super.enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
-						nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false);
-		}
-	
+
 	/**
 	 * Common processing for classes and interfaces.
 	 */

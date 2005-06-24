@@ -203,7 +203,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 					}
 					if (updateBuildConfigs) {
 					    RenamingUtils.updateBuildConfigurations(oldToNewNames, project,
-								monitor,true);
+								monitor);
 					}
 				} catch (JavaModelException e) {
 				}
@@ -282,7 +282,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 					}
 					if (updateBuildConfigs) {
 					    RenamingUtils.updateBuildConfigurations(oldNamesToNewNames, project,
-								monitor,true);
+								monitor);
 					}
 				} catch (JavaModelException e) {
 				}

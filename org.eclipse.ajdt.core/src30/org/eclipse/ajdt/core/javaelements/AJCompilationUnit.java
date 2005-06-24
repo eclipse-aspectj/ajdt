@@ -101,19 +101,6 @@ public class AJCompilationUnit extends CompilationUnit{
 		originalContentMode--;
 	}
 
-	
-//	/**
-//	 * When creating, the name is converted from Aspect.aj into Aspect.java.
-//	 * This improves compatibility with jdt code that checks file extensions.
-//	 * Known locations where jdt fails without changing the extension:
-//	 *  - when trying to move an aj file, jdt code fails before we can display
-//	 *    our warning in org.eclipse.ajdt.internal.ui.actions.RefractoringMoveAction
-//	 * 
-//	 */
-//	public AJCompilationUnit(IFile ajFile){
-//		super(CompilationUnitTools.getParentPackage(ajFile), CompilationUnitTools.convertAJToJavaFileName(ajFile.getName()), DefaultWorkingCopyOwner.PRIMARY);
-//		this.ajFile = ajFile;
-//	}
 
 	public AJCompilationUnit(IFile ajFile){
 		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), DefaultWorkingCopyOwner.PRIMARY);
@@ -142,19 +129,6 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		elementName = elementName.substring(0, elementName.length() - 3);
 		return elementName.toCharArray();
 	}
-
-	/**
-	 * @see IJavaElement
-	 */	
-//	public int getElementType() {
-//	    WARNING: If you're going to implement this
-//               method, do not create a RuntimeException and
-//               walk up the stack, as this causes major delays
-//               when opening up a .aj file in the AspectJ 
-//               Editor. In particular, this action takes several
-//               minutes in RAD (since this method is called
-//               many many times)	
-//	}
 	
 	protected boolean isValidCompilationUnit() {
 		IPackageFragmentRoot root = getPackageFragmentRoot();
@@ -177,7 +151,7 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		return ajFile.getFullPath();
 	}
 	
-	public IResource getUnderlyingResource() throws JavaModelException {
+	public IResource getUnderlyingResource() {
 		return ajFile;
 	}
 	
@@ -331,30 +305,10 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 			org.eclipse.jdt.core.dom.CompilationUnit result = info.ast;
 			info.ast = null;
 			return result;
-		} else {
-			openWhenClosed(createElementInfo(), monitor);
-			return null;
 		}
+		openWhenClosed(createElementInfo(), monitor);
+		return null;
 	}
-	
-//	protected boolean buildStructureOld(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException{
-//		requestJavaParserCompatibilityMode();
-//		boolean result = super.buildStructure(info, pm, newElements, underlyingResource);
-//		discardJavaParserCompatibilityMode();
-//		Iterator iter = newElements.values().iterator();
-//		while (iter.hasNext()) {
-//			Object element = (Object) iter.next();
-//			System.out.println(element);
-//		}
-//
-//		IntertypeMiniParser miniParser = new IntertypeMiniParser(getBuffer());
-//		miniParser.cleanupJavaElements(newElements);
-//		
-//		test();
-//		
-//		return true;
-//	}
-	
 
 	/**
 	 * @see ICompilationUnit#getWorkingCopy(WorkingCopyOwner, IProblemRequestor, IProgressMonitor)
@@ -385,35 +339,9 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		return super.getTypes();
 	}
 	
-//	public String getElementName(){
-//		this.getResource()
-//		String name = super.getElementName();
-//		Exception e = new RuntimeException();
-//		if ((e.getStackTrace()[1]).getMethodName().equals("nameMatches")){
-//			return name.substring(0, name.lastIndexOf('.')).concat(".java");
-//		}
-//		return name;
-//	}
-	
 	public IBuffer getBuffer() throws JavaModelException {
 		return convertBuffer(super.getBuffer());
 	}
-	
-//	public IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelException{
-//		if (isInOriginalContentMode())
-//			return super.openBuffer(pm, info);
-//		else
-//			return convertBuffer(super.openBuffer(pm, info));
-//	}
-	
-//	public BufferManager getBufferManager(){
-//		if (isInOriginalContentMode())
-//			return super.getBufferManager();
-//		else
-//			return AJBufferManager.INSTANCE;
-//	}
-	
-	
 
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))

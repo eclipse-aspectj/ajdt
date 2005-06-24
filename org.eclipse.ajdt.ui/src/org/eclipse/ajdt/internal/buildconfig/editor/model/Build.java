@@ -10,13 +10,18 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor.model;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Properties;
 
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.text.*;
-import org.eclipse.pde.core.*;
-import org.eclipse.pde.internal.ui.model.*;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.pde.core.IModelChangedEvent;
+import org.eclipse.pde.core.ModelChangedEvent;
+import org.eclipse.pde.internal.ui.model.IDocumentKey;
 
 public class Build implements IBuild {
 	
@@ -30,7 +35,7 @@ public class Build implements IBuild {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.build.IBuild#add(org.eclipse.pde.core.build.IBuildEntry)
 	 */
-	public void add(IBuildEntry entry) throws CoreException {
+	public void add(IBuildEntry entry) {
 		fEntries.put(entry.getName(), entry);
 		fModel.fireModelChanged(new ModelChangedEvent(fModel,
 				IModelChangedEvent.INSERT, new Object[]{entry}, null));
@@ -54,7 +59,7 @@ public class Build implements IBuild {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.build.IBuild#remove(org.eclipse.pde.core.build.IBuildEntry)
 	 */
-	public void remove(IBuildEntry entry) throws CoreException {
+	public void remove(IBuildEntry entry) {
 		fEntries.remove(entry.getName());
 		fModel.fireModelChanged(new ModelChangedEvent(fModel,
 				IModelChangedEvent.REMOVE, new Object[]{entry}, null));

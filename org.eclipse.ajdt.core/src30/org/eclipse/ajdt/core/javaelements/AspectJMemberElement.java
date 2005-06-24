@@ -77,16 +77,13 @@ protected boolean equalsDOMNode(IDOMNode node) {
 				return 
 					(m.isConstructor() || m.getName().equals(this.getElementName()) /* case of a constructor that is being renamed */) 
 						&& signatureEquals(m);
-			} else {
-				return super.equalsDOMNode(node) && signatureEquals(m);
 			}
+			return super.equalsDOMNode(node) && signatureEquals(m);
 		} catch (JavaModelException e) {
 			return false;
 		}
-	} else {
-		return false;
-	}
-
+	} 
+	return false;
 }
 /**
  * @see IJavaElement
@@ -171,7 +168,7 @@ public String[] getParameterTypes() {
  * @see IMethod#getTypeParameterSignatures()
  * @since 3.0
  */
-public String[] getTypeParameterSignatures() throws JavaModelException {
+public String[] getTypeParameterSignatures() {
 	// TODO (jerome) - missing implementation
 	return new String[0];
 }

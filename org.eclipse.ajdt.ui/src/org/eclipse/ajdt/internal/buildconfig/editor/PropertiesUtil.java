@@ -10,8 +10,8 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.util.Enumeration;
 
 /**
  * @author dejan
@@ -82,14 +82,14 @@ public class PropertiesUtil {
 		return buf.toString();
 	}
 	
-	public static void writeKeyValuePair(String indent, String name, String value, PrintWriter writer) {
+	public static void writeKeyValuePair(String name, String value, PrintWriter writer) {
 		String writableName = createWritableName(name);
 		writer.print(writableName + " = "); //$NON-NLS-1$
 
 		writer.println(PropertiesUtil.createEscapedValue(value));
 	}
 
-	public static void writeKeyValuePair(String indent, String name, Enumeration tokens, PrintWriter writer) {
+	public static void writeKeyValuePair(String name, Enumeration tokens, PrintWriter writer) {
 		String writableName = createWritableName(name);
 		writer.print(writableName + " = "); //$NON-NLS-1$
 		if (!tokens.hasMoreElements()) {

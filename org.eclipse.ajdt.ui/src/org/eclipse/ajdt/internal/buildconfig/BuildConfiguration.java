@@ -658,7 +658,6 @@ public class BuildConfiguration implements Cloneable,
 	public void updateSourceFolders(List sourcePathes) {
 		propertiesFile.updateSourceFolders(sourcePathes);
 		fileList = null;
-		//pbc.configurationChanged(this);
 	}
 	
 	private class InputDialogWithCheck extends InputDialog {

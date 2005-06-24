@@ -45,45 +45,6 @@ public class CommentRecorderParser extends Parser {
 	// old javadoc style check which doesn't include all leading comments into declaration
 	// for backward compatibility with 2.1 DOM 
 	public void checkComment() {
-
-//		if (this.currentElement != null && this.scanner.commentPtr >= 0) {
-//			flushCommentsDefinedPriorTo(this.endStatementPosition); // discard obsolete comments
-//		}
-//		boolean deprecated = false;
-//		boolean checkDeprecated = false;
-//		int lastCommentIndex = -1;
-//		
-//		// 
-//		
-//		//since jdk1.2 look only in the last java doc comment...
-//		nextComment : for (lastCommentIndex = this.scanner.commentPtr; lastCommentIndex >= 0; lastCommentIndex--){
-//			//look for @deprecated into the first javadoc comment preceeding the declaration
-//			int commentSourceStart = this.scanner.commentStarts[lastCommentIndex];
-//			// javadoc only (non javadoc comment have negative end positions.)
-//			if ((commentSourceStart < 0) ||
-//				(this.modifiersSourceStart != -1 && this.modifiersSourceStart < commentSourceStart) ||
-//				(this.scanner.commentStops[lastCommentIndex] < 0))
-//			{
-//				continue nextComment;
-//			}
-//			checkDeprecated = true;
-//			int commentSourceEnd = this.scanner.commentStops[lastCommentIndex] - 1; //stop is one over
-//			
-//			deprecated = this.javadocParser.checkDeprecation(commentSourceStart, commentSourceEnd);
-//			this.javadoc = this.javadocParser.docComment;
-//			break nextComment;
-//		}
-//		if (deprecated) {
-//			checkAndSetModifiers(AccDeprecated);
-//		}
-//		// modify the modifier source start to point at the first comment
-//		if (lastCommentIndex >= 0 && checkDeprecated) {
-//			this.modifiersSourceStart = this.scanner.commentStarts[lastCommentIndex]; 
-//			if (this.modifiersSourceStart < 0) {
-//				this.modifiersSourceStart = -this.modifiersSourceStart;
-//			}
-//		}
-
 	}
 
 	/* (non-Javadoc)
@@ -214,22 +175,6 @@ public class CommentRecorderParser extends Parser {
 		this.commentPtr = -1;
 	}
 	
-	/* (non-Javadoc)
-	 * Create and store a specific comment recorder scanner.
-	 * @see org.eclipse.jdt.internal.compiler.parser.Parser#initializeScanner()
-	 */
-	public void initializeScanner() {
-		super.initializeScanner();
-//		this.scanner = new CommentRecorderScanner(
-//				false /*comment*/, 
-//				false /*whitespace*/, 
-//				this.options.getSeverity(CompilerOptions.NonExternalizedString) != ProblemSeverities.Ignore /*nls*/, 
-//				this.options.sourceLevel /*sourceLevel*/, 
-//				this.options.taskTags/*taskTags*/,
-//				this.options.taskPriorites/*taskPriorities*/,
-//				this.options.isTaskCaseSensitive/*taskCaseSensitive*/);
-	}
-
 	/*
 	 * Push all stored comments in stack.
 	 */

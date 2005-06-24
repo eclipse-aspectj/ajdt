@@ -19,8 +19,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
-//import org.aspectj.ajde.IErrorHandler;
-
 /**
  * ErrorHandler displays warnings and errors produced from the AJ Tools plugin
  */
@@ -123,7 +121,6 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 
 					}
 				} catch (Exception e) {
-					//ErrorHandler.handleError("Document Outline update failed", t);	
 				}
 			}
 		});

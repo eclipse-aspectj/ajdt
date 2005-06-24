@@ -37,8 +37,7 @@ public class AspectJImages extends AbstractIconRegistry {
 		AspectJUIPlugin.getDefault().getWorkbench().getSharedImages();
 		
 	private static final URL ajdeIconLocation = Platform.getBundle("org.aspectj.ajde").getEntry("/");
-		//Platform.getPluginRegistry().getPluginDescriptor( "org.aspectj.ajde" ).getInstallURL();
-
+		
 	private static final String AJDE_ICON_PATH_PREFIX = "org/aspectj/ajde/resources/";
 
 	// The following icons are private and should be accessed through the 
@@ -71,15 +70,6 @@ public class AspectJImages extends AbstractIconRegistry {
 	private final AbstractIcon JDT_DEFAULT_METHOD = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_DEFAULT ) );
 
-	// Not working - bug??
-//	private final AbstractIcon JDT_PRIVATE_FIELD = new AJDTIcon(
-//		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_FIELD_PRIVATE ) );
-//	private final AbstractIcon JDT_PROTECTED_FIELD = new AJDTIcon(
-//		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_FIELD_PROTECTED ) );
-//	private final AbstractIcon JDT_PUBLIC_FIELD = new AJDTIcon(
-//		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_FIELD_PUBLIC ) );
-//	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
-//		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_FIELD_DEFAULT ) );
 
 	private final AbstractIcon WKBENCH_FILE = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FILE ) );
@@ -424,7 +414,6 @@ public class AspectJImages extends AbstractIconRegistry {
 			} else return AJDTIcon.MISSING_ICON;
 			
 		} else if (kind == IProgramElement.Kind.ASPECT) {
-			//System.out.println("Aspect with accessibility: " + access);
 			if ( access == IProgramElement.Accessibility.PUBLIC ) {
 				return ASPECT_PUBLIC;
 			} else if ( access == IProgramElement.Accessibility.PROTECTED ) {
@@ -461,22 +450,5 @@ public class AspectJImages extends AbstractIconRegistry {
 			return super.getIcon(relationship);
 		}
 	}
-
-	
-//	/**
-//	 * Needs to provide imports icons in addition to those provided by
-//	 * superclass.
-//	 * @see AbstractIconRegistry#getRelationIcon(Relation)
-//	 */
-//	public AbstractIcon getIcon(Relation rel) {
-//		AbstractIcon retVal = null;
-//		if ( rel.getForwardNavigationName().equals( AJDE_IMPORT_RELATION ) ) {
-//			retVal = JDT_IMPORTS;
-//		} else {
-//			retVal = super.getIcon(rel);
-//		}
-//		if ( retVal == null ) { retVal = AJDTIcon.MISSING_ICON; }
-//		return retVal;
-//	}
 
 }

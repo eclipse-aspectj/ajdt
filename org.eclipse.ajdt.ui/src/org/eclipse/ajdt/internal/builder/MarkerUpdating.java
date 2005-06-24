@@ -170,19 +170,7 @@ public class MarkerUpdating {
 			marker.setAttribute(IMarker.PRIORITY,
 					IMarker.PRIORITY_HIGH);
 		} catch (CoreException e) {
-		}
-//		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
-//			AJRelationship relationship = (AJRelationship) iter.next();
-//			try {
-//				IMarker marker = resource.createMarker(markerType);
-//				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-//				String label = getMarkerLabel(relationship);			
-//				marker.setAttribute(IMarker.MESSAGE, label);
-//				marker.setAttribute(IMarker.PRIORITY,
-//						IMarker.PRIORITY_HIGH);
-//			} catch (CoreException e) {
-//			}
-//		}			
+		}		
 	}
 
 	private static String getMultipleMarkersLabel(int number) {

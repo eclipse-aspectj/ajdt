@@ -28,13 +28,6 @@ public class AspectJExamplePlugin extends AbstractUIPlugin {
 	// The shared instance.
 	private static AspectJExamplePlugin fgPlugin;
 	
-	/**
-	 * The constructor.
-	 */
-//	public AspectJExamplePlugin(IPluginDescriptor descriptor) {
-//		super(descriptor);
-//		fgPlugin= this;
-//	}
 
 	/**
 	 * The 3.0 compatible constructor.
@@ -69,7 +62,6 @@ public class AspectJExamplePlugin extends AbstractUIPlugin {
 	
 	public static String getPluginId() {
 		return getDefault().getBundle().getSymbolicName();
-		//return getDefault().getDescriptor().getUniqueIdentifier();
 	}	
 
 

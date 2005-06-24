@@ -103,20 +103,6 @@ public class AJCompilationUnit extends CompilationUnit{
 		originalContentMode--;
 	}
 
-	
-//	/**
-//	 * When creating, the name is converted from Aspect.aj into Aspect.java.
-//	 * This improves compatibility with jdt code that checks file extensions.
-//	 * Known locations where jdt fails without changing the extension:
-//	 *  - when trying to move an aj file, jdt code fails before we can display
-//	 *    our warning in org.eclipse.ajdt.internal.ui.actions.RefractoringMoveAction
-//	 * 
-//	 */
-//	public AJCompilationUnit(IFile ajFile){
-//		super(CompilationUnitTools.getParentPackage(ajFile), CompilationUnitTools.convertAJToJavaFileName(ajFile.getName()), DefaultWorkingCopyOwner.PRIMARY);
-//		this.ajFile = ajFile;
-//	}
-
 	public AJCompilationUnit(IFile ajFile){
 		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), DefaultWorkingCopyOwner.PRIMARY);
 		this.ajFile = ajFile;
@@ -144,19 +130,6 @@ public class AJCompilationUnit extends CompilationUnit{
 		elementName = elementName.substring(0, elementName.length() - 3);
 		return elementName.toCharArray();
 	}
-
-	/**
-	 * @see IJavaElement
-	 */	
-//	public int getElementType() {
-//	    WARNING: If you're going to implement this
-//               method, do not create a RuntimeException and
-//               walk up the stack, as this causes major delays
-//               when opening up a .aj file in the AspectJ 
-//               Editor. In particular, this action takes several
-//               minutes in RAD (since this method is called
-//               many many times)	
-//	}
 	
 	/* Eclispe 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
 	 * override validateCompilationUnit, otherwise the check for valid name will fail on
@@ -340,25 +313,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			return null;
 		}
 	}
-	
-//	protected boolean buildStructureOld(OpenableElementInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException{
-//		requestJavaParserCompatibilityMode();
-//		boolean result = super.buildStructure(info, pm, newElements, underlyingResource);
-//		discardJavaParserCompatibilityMode();
-//		Iterator iter = newElements.values().iterator();
-//		while (iter.hasNext()) {
-//			Object element = (Object) iter.next();
-//			System.out.println(element);
-//		}
-//
-//		IntertypeMiniParser miniParser = new IntertypeMiniParser(getBuffer());
-//		miniParser.cleanupJavaElements(newElements);
-//		
-//		test();
-//		
-//		return true;
-//	}
-	
+
 
 	/**
 	 * @see ICompilationUnit#getWorkingCopy(WorkingCopyOwner, IProblemRequestor, IProgressMonitor)
@@ -388,36 +343,10 @@ public class AJCompilationUnit extends CompilationUnit{
 	public IType[] getTypes() throws JavaModelException {
 		return super.getTypes();
 	}
-	
-//	public String getElementName(){
-//		this.getResource()
-//		String name = super.getElementName();
-//		Exception e = new RuntimeException();
-//		if ((e.getStackTrace()[1]).getMethodName().equals("nameMatches")){
-//			return name.substring(0, name.lastIndexOf('.')).concat(".java");
-//		}
-//		return name;
-//	}
-	
+
 	public IBuffer getBuffer() throws JavaModelException {
 		return convertBuffer(super.getBuffer());
 	}
-	
-//	public IBuffer openBuffer(IProgressMonitor pm, Object info) throws JavaModelException{
-//		if (isInOriginalContentMode())
-//			return super.openBuffer(pm, info);
-//		else
-//			return convertBuffer(super.openBuffer(pm, info));
-//	}
-	
-//	public BufferManager getBufferManager(){
-//		if (isInOriginalContentMode())
-//			return super.getBufferManager();
-//		else
-//			return AJBufferManager.INSTANCE;
-//	}
-	
-	
 
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))
@@ -434,16 +363,6 @@ public class AJCompilationUnit extends CompilationUnit{
 
 		return javaCompBuffer;
 	}	
-	
-//	//reconciling is not (yet?) supported for .aj files 
-//	public IMarker[] reconcile() throws JavaModelException {
-//		return null;
-//	}
-//	reconciling is not (yet?) supported for .aj files - disable problem detection 
-//	public void reconcile(boolean forceProblemDetection,
-//			IProgressMonitor monitor) throws JavaModelException {
-//		super.reconcile(forceProblemDetection, monitor);
-//	}
 
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,

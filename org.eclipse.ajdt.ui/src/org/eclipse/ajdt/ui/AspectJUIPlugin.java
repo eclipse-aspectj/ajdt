@@ -72,7 +72,6 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
 import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
@@ -165,9 +164,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
-	// public static final String ID_NATURE = PLUGIN_ID + ".ajnature";
-	// //$NON-NLS-1$
-
 	private static final String AJDE_VERSION_KEY_CURRENT = "ajde.version"; //$NON-NLS-1$
 
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
@@ -217,12 +213,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 */
 	private EditorAdapter ajdtEditorAdapter;
 
-	/**
-	 * Compiler monitor listens to AspectJ compilation events (build progress
-	 * and compilations errors/warnings)
-	 */
-	private CompilerMonitor ajdtCompilerMonitor;
-	
 	/**
 	 * Build options passed to AJDE
 	 */
@@ -356,65 +346,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	/**
 	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
-	 * tools. - deprecated in 3.0
-	 */
-	// public AspectJPlugin(IPluginDescriptor descriptor) {
-	// super(descriptor);
-	//
-	// PluginVersionIdentifier pvi = descriptor.getVersionIdentifier();
-	// VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." +
-	// pvi.getServiceComponent();
-	// initDebugging();
-	// plugin = this;
-	// ajdtProjectProperties = new ProjectProperties();
-	// ajdtCompilerMonitor = new CompilerMonitor();
-	// ajdtEditorAdapter = new EditorAdapter();
-	// ajdtErrorHandler = new ErrorHandler();
-	// ajdtBuildOptions = new BuildOptionsAdapter( );
-	// ajdtImages = AspectJImages.registry( );
-	// ajdtUIAdapter = new IdeUIAdapter( );
-	// ajdtStructureFactory = new AJDTStructureViewNodeFactory( ajdtImages );
-	//
-	// //System.err.println("AspectJPlugin.new: adding selection listener..");
-	// //System.err.println("Adding to selection service on workbench window:
-	// "+plugin.getWorkbench().getActiveWorkbenchWindow().toString());
-	//		
-	// Ajde.init(
-	// ajdtEditorAdapter
-	// ,ajdtCompilerMonitor // task list manager
-	// ,ajdtCompilerMonitor // build progress monitor
-	// ,ajdtProjectProperties
-	// ,ajdtBuildOptions
-	// ,ajdtStructureFactory
-	// ,ajdtUIAdapter
-	// ,ajdtErrorHandler
-	// );
-	//
-	// try {
-	// resourceBundle =
-	// ResourceBundle.getBundle(
-	// "org.eclipse.ajdt.internal.core.resources.AspectJPluginResources");
-	// } catch (MissingResourceException x) {
-	// resourceBundle = null;
-	// }
-	//		
-	// /* Moved to startup()
-	// // Create an register the resource change listener if necessary, it will
-	// be
-	// // notified if resources are added/deleted or their content changed.
-	// if (resourceChangeListener == null) {
-	// resourceChangeListener = new AspectJResourceChangeListener();
-	// getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
-	// }*/
-	//	    
-	//
-	// AJDTEventTrace.startup();
-	// new AspectVisualiserPlugin();
-	//	    
-	// checkAspectJVersion();
-	// }
-	/**
-	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
 	 * tools - Compatible with Eclipse 3.0. Note the rest of the contents of the
 	 * 2.x constructor now resides in the start(BundleContext) method.
 	 */
@@ -472,10 +403,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 			checkTemplatesInstalled();
 			checkProblemMarkersVisible();
-			// no! don't verify config here - it can be too early for
-			// the supporting ui bits and pieces to be in place (race
-			// condition)
-			// AJDTUtils.verifyWorkbenchConfiguration();
 			store.putValue(AJDE_VERSION_KEY_PREVIOUS, currentAjdeVersion);
 		}
 	}
@@ -483,8 +410,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private void checkProblemMarkersVisible() {
 		String TAG_DIALOG_SECTION = "org.eclipse.ui.views.problem";
 		String problemMarker = "org.eclipse.ajdt.ui.problemmarker:";
-		// AbstractUIPlugin plugin = (AbstractUIPlugin)
-		// Platform.getPlugin(PlatformUI.PLUGIN_ID);
 		AbstractUIPlugin plugin = UIPlugin.getDefault();
 		IDialogSettings workbenchSettings = plugin.getDialogSettings();
 		IDialogSettings settings = workbenchSettings
@@ -540,14 +465,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return ajdtErrorHandler;
 	}
 
-//	/**
-//	 * return the compiler monitor used for build progress monitoring and
-//	 * compilation errors/warnings
-//	 */
-//	public CompilerMonitor getCompilerMonitor() {
-//		return ajdtCompilerMonitor;
-//	}
-
 	/**
 	 * Access the ProjectPropertiesAdapter required by the AJDE tools
 	 */
@@ -569,40 +486,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return resourceBundle;
 	}
 
-	// At startup, remember the display for later use and register to receive
-	// information on part selection
-	// public void startup() throws CoreException {
-	// super.startup();
-	//		
-	// // BUG 23955. getCurrent() returned null if invoked from a menu.
-	// display = Display.getDefault();
-	//
-	// //System.err.println("AspectJPlugin.startup: Adding selection
-	// listener...");
-	//		
-	// // BUG 23955. getActiveWorkbenchWindow() returns null, and fails the
-	// plugin startup,
-	// // if this is set here. The method returns null if the active window
-	// isn't a workbench window.
-	// //plugin
-	// // .getWorkbench()
-	// // .getActiveWorkbenchWindow()
-	// // .getSelectionService()
-	// // .addSelectionListener(this);
-	//					
-	//			
-	// // Create and register the resource change listener if necessary, it will
-	// be
-	// // notified if resources are added/deleted or their content changed.
-	// if (resourceChangeListener == null) {
-	// resourceChangeListener = new AspectJResourceChangeListener();
-	// getWorkspace().addResourceChangeListener(resourceChangeListener,IResourceChangeEvent.POST_CHANGE);
-	// }
-	// }
-
-	// At startup, remember the display for later use and register to receive
-	// information on part selection - Eclipse 3.0 requires the use of start
-	// rather than startup.
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 
@@ -614,16 +497,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
-
-		// BUG 23955. getActiveWorkbenchWindow() returns null, and fails the
-		// plugin startup,
-		// if this is set here. The method returns null if the active window
-		// isn't a workbench window.
-		// plugin
-		// .getWorkbench()
-		// .getActiveWorkbenchWindow()
-		// .getSelectionService()
-		// .addSelectionListener(this);
 
 		// Create and register the resource change listener if necessary, it
 		// will be
@@ -781,26 +654,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return currentResource;
 	}
 
-//	/**
-//	 * set the current project by name
-//	 */
-//	public void setCurrentProject(String projectName) {
-//		boolean matched = false;
-//		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-//				.getProjects();
-//		for (int i = 0; i < projects.length; i++) {
-//			if (projects[i].getName().equals(projectName)) {
-//				currentProject = projects[i];
-//				matched = true;
-//				break;
-//			}
-//		}
-//		if (!matched) {
-//			getErrorHandler().handleWarning(
-//					getResourceString("bad.project") + " " + projectName);
-//		}
-//	}
-
 	/**
 	 * initialize the default preferences for this plugin
 	 */
@@ -866,8 +719,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			// with selection of the resources occurring anywhere, then we
 			// should always
 			// have the current project correct.
-			// System.out.println( "Selection changed: " +
-			// iwp.getTitle() + " " + is.toString() );
 
 			// AMC note: GM1 build is firing an ITextSelection event only
 			// clicking on the tab for an open file in the editor (to change
@@ -891,15 +742,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 							// null!
 							AspectJPlugin.getDefault().setCurrentProject(je.getJavaProject().getProject());
 						}
-
-						// } else {
-						// System.err.println("Unrecognized selection is a ]" +
-						// o.toString() + "[");
 					}
 				}
-			} else if (is instanceof ITextSelection) {
-				// ITextSelection ts = (ITextSelection) is;
-				// System.out.println( "Selected: " + ts.getText() );
 			}
 
 		} catch (JavaModelException jme) {
@@ -989,15 +833,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * @param project
 	 */
 	public static void addAjrtToBuildPath(IProject project) {
-		// Locate the aspectjrt.jar file.
-		// String ajrtPath =
-		//	AspectJPlugin.
-		//	getDefault().
-		//	getAjdtProjectProperties().
-		//	getAspectjrtClasspath();
-
-		//		if (ajrtPath != null)
-		//		{
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
@@ -1014,7 +849,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			javaProject.setRawClasspath(newCP, new NullProgressMonitor());
 		} catch (JavaModelException e) {
 		}
-		//		}
 	}
 
 	/**

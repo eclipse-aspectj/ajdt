@@ -110,7 +110,6 @@ public class AJCompilationUnitDeclarationWrapper extends
 			cr.problems = new IProblem[0];
 		}
 		cr.taskCount = delegate.compilationResult.taskCount;
-//		cr.tasks
 		return cr;
 	}
 	
@@ -164,7 +163,6 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 	 * emulation later on.
 	 */
 	public void record(LocalTypeBinding localType) {
-//		delegate.record(new org.aspectj.org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding()localType);
 	}
 
 	public void resolve() {
@@ -182,17 +180,6 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 		if (delegate.ignoreFurtherInvestigation)
 			return;
 		try {
-//			JavaProject project = (JavaProject)cUnit.getJavaProject();
-//			INameEnvironment nameEnv = new NameEnvironment(project);
-//			CompilerOptions options = new CompilerOptions(project.getOptions(true));
-//			AJCompilationUnitProblemFinder probFinder = new AJCompilationUnitProblemFinder(nameEnv,
-//					null,
-//					project.getOptions(true),
-//					null,
-//					null,
-//					cUnit);
-//			LookupEnvironment env = new LookupEnvironment(probFinder, options, new ProblemReporter(), nameEnv);
-//			CompilationUnitScope scope = new CompilationUnitScope(this, env);
 			if (visitor.visit(this, unitScope)) {
 				if (currentPackage != null) {
 					currentPackage.traverse(visitor, unitScope);
@@ -201,16 +188,12 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 					int importLength = delegate.imports.length;
 					for (int i = 0; i < importLength; i++) {
 						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing import: " + delegate.imports[i]);
-//						System.err.println("Not traversing import: " + delegate.imports[i]);
-//						delegate.imports[i].traverse(visitor, unitScope);
 					}
 				}
 				if (delegate.types != null) {
 					int typesLength = delegate.types.length;
 					for (int i = 0; i < typesLength; i++) {
 						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing type: " + delegate.types[i]);
-//						System.err.println("Not traversing type: " + delegate.types[i]);
-//						delegate.types[i].traverse(visitor, scope);
 					}
 				}
 			}
@@ -218,16 +201,8 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 		} catch (AbortCompilationUnit e) {
 			// ignore
 		}
-		
-//
-//		delegate.traverse(new org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor(){
-//			}, 
-//			new org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope(delegate, delegate.scope.environment));
 	}
 
-	/**
-	 * 
-	 */
 	public void reconcileVars() {
 		this.compilationResult = compilationResult();
 	}

@@ -843,14 +843,14 @@ public class UnresolvedElementsSubProcessor {
 					return; // only suggest for one method (avoid duplicated proposals)
 				}
 			} else if (diff > 0) {
-				doMoreParameters(context, problem, invocationNode, arguments, argTypes, elem, proposals);
+				doMoreParameters(context, invocationNode, argTypes, elem, proposals);
 			} else {
-				doMoreArguments(context, problem, invocationNode, arguments, argTypes, elem, proposals);
+				doMoreArguments(context, invocationNode, arguments, argTypes, elem, proposals);
 			}
 		}
 	}
 	
-	private static void doMoreParameters(IInvocationContext context, IProblemLocation problem, ASTNode invocationNode, List arguments, ITypeBinding[] argTypes, IMethodBinding methodBinding, Collection proposals) throws CoreException {
+	private static void doMoreParameters(IInvocationContext context, ASTNode invocationNode, ITypeBinding[] argTypes, IMethodBinding methodBinding, Collection proposals) throws CoreException {
 		ITypeBinding[] paramTypes= methodBinding.getParameterTypes();
 		int k= 0, nSkipped= 0;
 		int diff= paramTypes.length - argTypes.length;
@@ -930,7 +930,7 @@ public class UnresolvedElementsSubProcessor {
 		return buf.toString();
 	}
 	
-	private static String getArgumentName(ICompilationUnit cu, List arguments, int index) {
+	private static String getArgumentName(List arguments, int index) {
 		String def= String.valueOf(index + 1);
 		
 		ASTNode expr= (ASTNode) arguments.get(index);
@@ -946,7 +946,7 @@ public class UnresolvedElementsSubProcessor {
 		return '\'' + ASTNodes.asString(expr) + '\'';
 	}
 
-	private static void doMoreArguments(IInvocationContext context, IProblemLocation problem, ASTNode invocationNode, List arguments, ITypeBinding[] argTypes, IMethodBinding methodBinding, Collection proposals) throws CoreException {
+	private static void doMoreArguments(IInvocationContext context, ASTNode invocationNode, List arguments, ITypeBinding[] argTypes, IMethodBinding methodBinding, Collection proposals) throws CoreException {
 		ITypeBinding[] paramTypes= methodBinding.getParameterTypes();
 		int k= 0, nSkipped= 0;
 		int diff= argTypes.length - paramTypes.length;
@@ -1125,7 +1125,7 @@ public class UnresolvedElementsSubProcessor {
 			if (binding == null || TypeRules.canCast(castType, binding)) {
 				String castTypeName= castType.getQualifiedName();
 				ASTRewriteCorrectionProposal proposal= TypeMismatchSubProcessor.createCastProposal(context, castTypeName, nodeToCast, 6);
-				String[] arg= new String[] { getArgumentName(cu, arguments, idx), castTypeName};
+				String[] arg= new String[] { getArgumentName(arguments, idx), castTypeName};
 				proposal.setDisplayName(CorrectionMessages.getFormattedString("UnresolvedElementsSubProcessor.addargumentcast.description", arg)); //$NON-NLS-1$
 				proposals.add(proposal);
 			}
@@ -1143,7 +1143,7 @@ public class UnresolvedElementsSubProcessor {
 				rewrite.replace(arg1, rewrite.createCopyTarget(arg2), null);
 				rewrite.replace(arg2, rewrite.createCopyTarget(arg1), null);
 				{
-					String[] arg= new String[] { getArgumentName(cu, arguments, idx1), getArgumentName(cu, arguments, idx2) };
+					String[] arg= new String[] { getArgumentName(arguments, idx1), getArgumentName(arguments, idx2) };
 					String label= CorrectionMessages.getFormattedString("UnresolvedElementsSubProcessor.swaparguments.description", arg); //$NON-NLS-1$
 					Image image= JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE);
 					ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, context.getCompilationUnit(), rewrite, 8, image);

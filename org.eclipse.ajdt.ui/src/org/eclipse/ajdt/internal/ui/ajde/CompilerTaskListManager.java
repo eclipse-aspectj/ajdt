@@ -467,8 +467,6 @@ public class CompilerTaskListManager implements TaskListManager {
                 // returns only file name
                 // (unqualified)
                 ir = tryToFindResource(loc);
-                //ir =
-                // AspectJPlugin.getDefault().getCurrentProject();
             }
             // At least warn that you are going to
             // blow up

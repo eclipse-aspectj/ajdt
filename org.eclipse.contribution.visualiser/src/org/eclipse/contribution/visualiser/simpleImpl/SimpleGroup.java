@@ -92,9 +92,8 @@ public class SimpleGroup implements IGroup {
 	public String getToolTip() {
 		if(tooltip != null){
 			return tooltip;
-		} else {
-			return name;
 		}
+		return name;
 	}
 
 

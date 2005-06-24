@@ -104,7 +104,6 @@ public class AspectJCore {
 		MementoTokenizer memento = new AJMementoTokenizer(handleIdentifier);
 		while (memento.hasMoreTokens()) {
 			String token = memento.nextToken();
-			// System.out.println("token: " + token);
 			if ((token.charAt(0) == AspectElement.JEM_ASPECT_CU)
 					|| (token.charAt(0) == JavaElement.JEM_COMPILATIONUNIT)) {
 				int index1 = handleIdentifier
@@ -134,7 +133,6 @@ public class AspectJCore {
 						if (ind4 != -1) {
 							cuName = cuName.substring(0, ind4);
 						}
-						//System.out.println("cuName=" + cuName);
 						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(cuName)) {
 							JavaElement cu = new AJCompilationUnit(pf, cuName,
 									owner);
@@ -351,8 +349,7 @@ class AJMementoTokenizer extends MementoTokenizer {
 		if (buffer != null) {
 			buffer.append(this.memento, start, this.index - start);
 			return buffer.toString();
-		} else {
-			return new String(this.memento, start, this.index - start);
 		}
+		return new String(this.memento, start, this.index - start);		
 	}
 }

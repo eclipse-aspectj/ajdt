@@ -32,7 +32,7 @@ public class FormOutlinePage extends ContentOutlinePage
 			return getPages();
 		}
 		public Object[] getChildren(Object obj) {
-			return FormOutlinePage.this.getChildren(obj);
+			return new Object[0];
 		}
 		public boolean hasChildren(Object obj) {
 			return getChildren(obj).length > 0;
@@ -119,10 +119,6 @@ public class FormOutlinePage extends ContentOutlinePage
 		return null;
 	}
 	
-	protected Object[] getChildren(Object parent) {
-		return new Object[0];
-	}
-
 	public void selectionChanged(Object item) {
 		IFormPage page = editor.getActivePageInstance();
 		String id = getParentPageId(item);

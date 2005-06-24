@@ -51,29 +51,6 @@ public class AspectJTextTools extends JavaTextTools {
 
 		super.dispose();
 	}
-
-	// In 3.0 this has been replaced by 
-	// JavaSourceViewerConfiguration.affectsTextPresentation(PropertyChangeEvent event).
-	// Therefore, following the Java model, have moved this to
-	// AJSourceViewerConfiguration.affectsTextPresentation(PropertyChangeEvent event)
-//	public boolean affectsBehavior(PropertyChangeEvent event) {
-//		return  aspectjCodeScanner.affectsBehavior(event) ||
-//		  super.affectsBehavior(event);
-//	}
-	
-	/**
-	 * Adapts the behavior of the contained components to the change
-	 * encoded in the given event.
-	 * 
-	 * @param event the event to whch to adapt
-	 */
-	// This method is deprecated in 3.0 with no replacement
-//	protected void adaptToPreferenceChange(PropertyChangeEvent event) {
-//		if (aspectjCodeScanner.affectsBehavior(event))
-//			aspectjCodeScanner.adaptToPreferenceChange(event);
-//			
-//			super.adaptToPreferenceChange(event);
-//	}
 	
 	public IPreferenceStore getPreferenceStore() {
 		return super.getPreferenceStore();
@@ -95,7 +72,6 @@ public class AspectJTextTools extends JavaTextTools {
 		} else {
 			document.setDocumentPartitioner(partitioner);
 		}
-		//partitioner.connect(document);
 	}
 
 	/**

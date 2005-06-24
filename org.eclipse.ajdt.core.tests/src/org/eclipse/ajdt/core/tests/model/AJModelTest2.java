@@ -60,7 +60,6 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 					gotBinaryAdvice);
 		} finally {
 			deleteProject(weaveMeProject);
-			//deleteProject(libProject);
 		}
 	}
 

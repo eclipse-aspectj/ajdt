@@ -137,7 +137,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		IProject[] dependingProjects = getDependingProjects(project);
 		JavaProject javaProject = (JavaProject)JavaCore.create(project);
 		if (!javaProject.hasBuildState() && dependingProjects.length > 0) {
-			updateJavaCompilerPreferences(project,dependingProjects);
+			updateJavaCompilerPreferences(dependingProjects);
 		}
 		// end of workaround
 
@@ -149,30 +149,27 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(dta != null) {
 			copyResources(javaProject,dta);
 		}
-		
-		// int deltaSize = (dta==null?0:dta.getAffectedChildren().length);
-
 		if (kind != FULL_BUILD) {
-			// need to add check here for whether the classpath has changed
-			if (!coreOps.sourceFilesChanged(dta, project)){
-				AJLog.log("build: Examined delta - no source file changes for project " 
-								+ project.getName() );
-				
-				// if the source files of any projects which the current
-				// project depends on have changed, then need
-				// also to build the current project				
-				boolean continueToBuild = false;
-				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
-					IResourceDelta delta = getDelta(requiredProjects[i]);
-					continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
-				}
-				if (!continueToBuild) {
-					postCallListeners(true);
-					return requiredProjects;						
-				}
+		// need to add check here for whether the classpath has changed
+		if (!coreOps.sourceFilesChanged(dta, project)){
+			AJLog.log("build: Examined delta - no source file changes for project " 
+							+ project.getName() );
+			
+			// if the source files of any projects which the current
+			// project depends on have changed, then need
+			// also to build the current project				
+			boolean continueToBuild = false;
+			for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
+				IResourceDelta delta = getDelta(requiredProjects[i]);
+				continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
+			}
+			if (!continueToBuild) {
+				postCallListeners(true);
+				return requiredProjects;						
 			}
 		}
-	
+	}
+
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
 		
@@ -239,15 +236,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * Wait until compiler monitor indicates completion
 	 */
 	private void waitForBuildCompletion(IAJCompilerMonitor monitor) {
-		//System.out.println("waiting for build");
 		while (!monitor.finished()) {
 			try {
 				checkAndHandleCancelation();
 				Thread.sleep(100);
-				//System.out.println("still waiting");
 			} catch (Exception e) { }
 		}
-		//System.out.println("done waiting");
 	}
 
 	/**
@@ -646,7 +640,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * checked out from CVS, the AJ projects have no valid build state and projects
 	 * depend on them.
 	 */
-	private void updateJavaCompilerPreferences(IProject project, IProject[] dependingProjects) {
+	private void updateJavaCompilerPreferences(IProject[] dependingProjects) {
 		boolean setWorkbenchPref = false;
 		for (int i = 0; i < dependingProjects.length; i++) {
 			IProject dependingProject = dependingProjects[i];
@@ -720,7 +714,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	protected void clean(IProgressMonitor monitor) throws CoreException {
+	protected void clean(IProgressMonitor monitor) {
 		// this method is used for clearing the state of a project
 		// and all the problem markers, after which an IncrementalProjectBuilder.FULL_BUILD
 		// happens (called from BuildManager). Therefore, by providing an

@@ -42,16 +42,11 @@ public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
 		IResource myRes = delta.getResource();
 		if (myRes.getType() == IResource.FILE) {
 			switch (delta.getKind()) {
-//			case IResourceDelta.CHANGED:
-//				System.out.println("Changed: " + myRes);
-//				break;
 			case IResourceDelta.REMOVED:
-				//System.out.println("Removed: " + myRes);
 				AJCompilationUnitUtils.removeFileFromModelAndCloseEditors((IFile)myRes);
 				AJDTUtils.refreshPackageExplorer();
 				break;
 			case IResourceDelta.ADDED:
-				//System.out.println("Added: " + myRes);
 				AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)myRes);
 				AJDTUtils.refreshPackageExplorer();
 				break;

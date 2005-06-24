@@ -10,12 +10,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor.model;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.internal.buildconfig.editor.PropertiesUtil;
-import org.eclipse.core.runtime.*;
-import org.eclipse.pde.internal.ui.model.*;
+import org.eclipse.pde.internal.ui.model.IDocumentKey;
 
 public class BuildEntry implements IBuildEntry, IDocumentKey {
 
@@ -28,7 +28,7 @@ public class BuildEntry implements IBuildEntry, IDocumentKey {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.build.IBuildEntry#addToken(java.lang.String)
 	 */
-	public void addToken(String token) throws CoreException {
+	public void addToken(String token) {
 		fTokens.add(token);
 		getModel().fireModelObjectChanged(this, getName(), null, token);
 	}
@@ -61,7 +61,7 @@ public class BuildEntry implements IBuildEntry, IDocumentKey {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.build.IBuildEntry#removeToken(java.lang.String)
 	 */
-	public void removeToken(String token) throws CoreException {
+	public void removeToken(String token) {
 		fTokens.remove(token);
 		getModel().fireModelObjectChanged(this, getName(), token, null);
 	}
@@ -74,8 +74,7 @@ public class BuildEntry implements IBuildEntry, IDocumentKey {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.core.build.IBuildEntry#renameToken(java.lang.String, java.lang.String)
 	 */
-	public void renameToken(String oldToken, String newToken)
-			throws CoreException {
+	public void renameToken(String oldToken, String newToken) {
 		int index = fTokens.indexOf(oldToken);
 		if (index != -1) {
 			fTokens.set(index, newToken);

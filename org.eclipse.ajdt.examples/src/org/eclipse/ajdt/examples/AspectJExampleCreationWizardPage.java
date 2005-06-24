@@ -77,7 +77,6 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 		label.setText(fNameLabel);
 		label.setLayoutData(new GridData());
 		fTextControl= new Text(composite, SWT.SINGLE | SWT.BORDER);
-		//fTextControl.addModifyListener()
 		fTextControl.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				if (!fTextControl.isDisposed()) {
@@ -86,7 +85,6 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 			}
 		});
 		fTextControl.setText(fProjectName);
-		//validateText(fProjectName);
 		fTextControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		setControl(composite);
@@ -112,14 +110,6 @@ public class AspectJExampleCreationWizardPage extends WizardPage {
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		fPageVisible= visible;
-		// policy: wizards are not allowed to come up with an error message
-		if (visible && fCurrStatus.matches(IStatus.ERROR)) {
-			// keep the error state, but remove the message
-			
-			// Why?? I commented it away to make it impossible to create two
-			// example projects with same name
-			//fCurrStatus= createStatus(IStatus.ERROR, ""); //$NON-NLS-1$
-		} 
 		updateStatus(fCurrStatus);
 	}	
 
