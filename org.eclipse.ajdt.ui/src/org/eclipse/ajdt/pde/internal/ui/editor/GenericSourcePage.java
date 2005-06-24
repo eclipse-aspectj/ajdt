@@ -20,9 +20,10 @@ public class GenericSourcePage extends PDESourcePage {
 	/**
 	 * @param editor
 	 * @param id
+	 * @param title
 	 */
-	public GenericSourcePage(PDEFormEditor editor, String id) {
-		super(editor, id);
+	public GenericSourcePage(PDEFormEditor editor, String id, String title) {
+		super(editor, id, title);
 	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.neweditor.PDESourcePage#createOutlineLabelProvider()

@@ -10,18 +10,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.pde.internal.ui.editor;
 
-import java.util.ArrayList;
+import java.util.*;
 
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.part.PageBook;
-import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.eclipse.jface.action.*;
+import org.eclipse.jface.viewers.*;
+import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.*;
+import org.eclipse.ui.*;
+import org.eclipse.ui.part.*;
+import org.eclipse.ui.views.contentoutline.*;
 
 public class PDEMultiPageContentOutline
 	implements IContentOutlinePage, ISelectionProvider, ISelectionChangedListener {
@@ -36,7 +34,8 @@ public class PDEMultiPageContentOutline
 		listeners = new ArrayList();
 	}
 	
-
+	public void addFocusListener(FocusListener listener) {
+	}
 	public void addSelectionChangedListener(ISelectionChangedListener listener) {
 		listeners.add(listener);
 	}
@@ -68,7 +67,13 @@ public class PDEMultiPageContentOutline
 	public ISelection getSelection() {
 		return selection;
 	}
-
+	public void makeContributions(
+		IMenuManager menuManager,
+		IToolBarManager toolBarManager,
+		IStatusLineManager statusLineManager) {
+	}
+	public void removeFocusListener(FocusListener listener) {
+	}
 	public void removeSelectionChangedListener(ISelectionChangedListener listener) {
 		listeners.remove(listener);
 	}

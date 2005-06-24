@@ -19,7 +19,7 @@ import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
  */
 public class BuildSourcePage extends KeyValueSourcePage {
 	public BuildSourcePage(PDEFormEditor editor, String id, String title) {
-		super(editor, id);
+		super(editor, id, title);
 	}
 	
 	protected ILabelProvider createOutlineLabelProvider() {

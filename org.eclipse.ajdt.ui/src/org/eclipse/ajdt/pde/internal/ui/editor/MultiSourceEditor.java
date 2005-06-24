@@ -56,6 +56,6 @@ public abstract class MultiSourceEditor extends PDEFormEditor {
 	}
 	
 	protected PDESourcePage createSourcePage(PDEFormEditor editor, String title, String name, String contextId) {
-		return new GenericSourcePage(editor, title);
+		return new GenericSourcePage(editor, title, name);
 	}
 }

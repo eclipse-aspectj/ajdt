@@ -90,6 +90,7 @@ public class ModelDataTransfer extends ByteArrayTransfer {
 			super.javaToNative(bytes, transferData);
 		} catch (IOException e) {
 			//it's best to send nothing if there were problems
+			System.out.println(e);
 		}
 			
 	}

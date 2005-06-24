@@ -63,15 +63,18 @@ public abstract class InputContext {
 	private boolean primary;
 	protected ArrayList fEditOperations = new ArrayList();
 	private boolean fIsSourceMode;
+	private boolean mustSynchronize;
 
 	class ElementListener implements IElementStateListener {
 		public void elementContentAboutToBeReplaced(Object element) {
 		}
 		public void elementContentReplaced(Object element) {
+			doRevert();
 		}
 		public void elementDeleted(Object element) {
 		}
 		public void elementDirtyStateChanged(Object element, boolean isDirty) {
+			mustSynchronize=true;
 		}
 		public void elementMoved(Object originalElement, Object movedElement) {
 			editor.close(true);
@@ -188,6 +191,30 @@ public abstract class InputContext {
 		return true;
 	}
 	public void doSave(IProgressMonitor monitor) {
+		/*
+		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
+		public void execute(final IProgressMonitor monitor)
+				throws CoreException {
+			flushModel(documentProvider.getDocument(input));
+			documentProvider.saveDocument(
+					monitor,
+					input,
+					documentProvider.getDocument(input),
+					true);
+			}
+		};
+
+		try {
+			documentProvider.aboutToChange(input);
+			op.run(monitor);
+			documentProvider.changed(input);
+		} catch (InterruptedException x) {
+		} catch (InvocationTargetException x) {
+			PDEPlugin.logException(x);
+		}
+		*/
+		//Removed unnecessary usage of workspace modify operation
+		// as per defect #62225
 		try {
 			IDocument doc = documentProvider.getDocument(input);
 			documentProvider.aboutToChange(input);
@@ -292,6 +319,8 @@ public abstract class InputContext {
 		if (modelListener != null && model instanceof IModelChangeProvider) {
 			((IModelChangeProvider) model)
 					.removeModelChangedListener(modelListener);
+			//if (undoManager != null)
+			//undoManager.disconnect((IModelChangeProvider) model);
 		}
 		if (model!=null)
 			model.dispose();
@@ -318,8 +347,35 @@ public abstract class InputContext {
 			// are caused by reconciliation and should not be 
 			// fired to the world.
 			flushModel(documentProvider.getDocument(input));
+			mustSynchronize=true;
+			return true;
+		}
+		else {
+			// leaving source editing mode; if the document
+			// has been modified while in this mode,
+			// fire the 'world changed' event from the model
+			// to cause all the model listeners to become stale.
+			return synchronizeModelIfNeeded();
+		}
+	}
+	
+	private boolean synchronizeModelIfNeeded() {
+		if (mustSynchronize) {
+			boolean result = synchronizeModel(documentProvider.getDocument(input));
+			mustSynchronize=false;
+			return result;
 		}
 		return true;
+	}
+
+	public void doRevert() {
+		mustSynchronize=true;
+		synchronizeModelIfNeeded();
+		/*
+		if (model instanceof IEditable) {
+			((IEditable)model).setDirty(false);
+		}
+		*/
 	}
 
 	public boolean isInSourceMode() {
@@ -327,9 +383,13 @@ public abstract class InputContext {
 	}
 
 	public boolean isModelCorrect() {
+		synchronizeModelIfNeeded();
 		return model!=null ? model.isValid() : false;
 	}
-
+	
+	protected boolean synchronizeModel(IDocument doc) {
+		return true;
+	}
 	public boolean matches(IResource resource) {
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput finput = (IFileEditorInput)input;

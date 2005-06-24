@@ -53,9 +53,6 @@ public abstract class TableSection extends StructuredViewerSection {
 			String[] buttonLabels) {
 		super(formPage, parent, style, buttonLabels);
 	}
-
-	public void buttonSelected(int index) {
-	}
 	protected StructuredViewerPart createViewerPart(String[] buttonLabels) {
 		return new PartAdapter(buttonLabels);
 	}

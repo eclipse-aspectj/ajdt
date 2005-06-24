@@ -45,6 +45,7 @@ public abstract class PDESection extends SectionPart implements IModelChangedLis
 		initialize(page.getManagedForm());
 		getSection().clientVerticalSpacing = CLIENT_VSPACING;
 		getSection().setData("part", this); //$NON-NLS-1$
+		//createClient(getSection(), page.getManagedForm().getToolkit());
 	}
 	
 	protected abstract void createClient(Section section, FormToolkit toolkit);

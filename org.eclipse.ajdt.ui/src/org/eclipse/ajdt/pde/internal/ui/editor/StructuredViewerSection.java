@@ -33,12 +33,19 @@ public abstract class StructuredViewerSection extends PDESection {
 		viewerPart = createViewerPart(buttonLabels);
 		viewerPart.setMinimumSize(50, 50);
 		FormToolkit toolkit = formPage.getManagedForm().getToolkit();
+		//toolkit.createCompositeSeparator(getSection());
 		createClient(getSection(), toolkit);
 	}
 
 	protected void createViewerPartControl(Composite parent, int style, int span, FormToolkit toolkit) {
 		viewerPart.createControl(parent, style, span, toolkit);
 		MenuManager popupMenuManager = new MenuManager();
+		IMenuListener listener = new IMenuListener() {
+			public void menuAboutToShow(IMenuManager mng) {
+				fillContextMenu(mng);
+			}
+		};
+		popupMenuManager.addMenuListener(listener);
 		popupMenuManager.setRemoveAllWhenShown(true);
 		Control control = viewerPart.getControl();
 		Menu menu = popupMenuManager.createContextMenu(control);
@@ -56,17 +63,48 @@ public abstract class StructuredViewerSection extends PDESection {
 	
 	protected abstract StructuredViewerPart createViewerPart(String [] buttonLabels);
 	
-
-	protected void doPaste() {
+	protected void fillContextMenu(IMenuManager manager) {
+	}
+	
+	protected void buttonSelected(int index) {
 	}
 
+	protected void doPaste() {
+		ISelection selection = getViewerSelection();
+		IStructuredSelection ssel = (IStructuredSelection)selection;
+		if (ssel.size()>1) return;
+		
+		Object target = ssel.getFirstElement();
+		
+		Clipboard clipboard = getPage().getPDEEditor().getClipboard();
+		ModelDataTransfer modelTransfer = ModelDataTransfer.getInstance();
+		Object [] objects = (Object[])clipboard.getContents(modelTransfer);
+		if (objects!=null) {
+			doPaste(target, objects);
+		}
+	}
 	public boolean canPaste(Clipboard clipboard) {
-		return false;
+		ISelection selection = getViewerSelection();
+		IStructuredSelection ssel = (IStructuredSelection)selection;
+		if (ssel.size()>1) return false;
+			
+		Object target = ssel.getFirstElement();
+		ModelDataTransfer modelTransfer = ModelDataTransfer.getInstance();
+		Object [] objects = (Object[])clipboard.getContents(modelTransfer);
+		if (objects!=null && objects.length>0) {
+			return canPaste(target, objects);
+		}
+		else return false;
 	}
 	protected ISelection getViewerSelection() {
 		return viewerPart.getViewer().getSelection();
 	}
-
+	protected void doPaste(Object target, Object[] objects) {
+	}
+	
+	protected boolean canPaste(Object target, Object [] objects) {
+		return false;
+	}
 	public void setFocus() {
 		viewerPart.getControl().setFocus();
 	}
