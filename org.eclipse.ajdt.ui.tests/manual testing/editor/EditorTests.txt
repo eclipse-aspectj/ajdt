@@ -12,30 +12,9 @@ e.	Do the same check in a .java file (when opened in the AspectJ Editor)
     NB ignore red squiggles as this is a known limitation
 
 
-2. Toggle Breakpoints (bug 71718)
-
-a. Open an aspect that contains some advice.  
-b. Click somewhere in the advice body and press Ctrl+Shift+B on the keyboard.  A breakpoint
-should appear in the margin.  Press Ctrl+Shift+B again and the breakpoint should disappear. (EDITOR_2)
-c. Double click in the margin and a breakpoint should appear.  Double click again and
-the breakpoint should disappear. (EDITOR_3)
-
-
-3. Editor Ruler context menu (EDITOR_4)
+3. Editor Ruler context menu (EDITOR_2)
 
 a. Open a file with the AspectJ editor, and open another beside it with the java editor.
 b. Right click on the ruler in both files and ensure that the menus match. 
 c. Test all of the actions in the AspectJ editor to ensure they perform as expected.
 
-4. Eager parsing 
-
-a. Open an aspect
-b. Cause an error in the source and check that red squiggles are shown. (EDITOR_5)
-c. Turn off eager parsing (Window > preferences > Java > Editor > Typing - then 
-   either analyse annotations whilst typing (3.0) or equivalent for 3.1)
-   and check that the squiggles go away (EDITOR_6)
-
-
-5. Package Explorer link with editor (bug 77479)
-
-a. Check this works with aspects (EDITOR_7)
