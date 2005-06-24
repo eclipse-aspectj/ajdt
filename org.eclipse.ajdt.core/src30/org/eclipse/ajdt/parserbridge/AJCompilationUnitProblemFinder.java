@@ -44,7 +44,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
- *  Problem finder for AspectJ problems
+ * Problem finder for AspectJ problems
  * Mostly copied from CompilationUnitProblemFinder
  * Changes Marked "// AspectJ Change"
  */
@@ -62,7 +62,7 @@ public class AJCompilationUnitProblemFinder extends
 	 */
 	public AJCompilationUnitProblemFinder(INameEnvironment environment,
 			IErrorHandlingPolicy policy, Map settings,
-			ICompilerRequestor requestor, IProblemFactory problemFactory) {
+			ICompilerRequestor requestor, IProblemFactory problemFactory, AJCompilationUnit unit) {
 		super(environment, policy, settings, requestor, problemFactory);
 	}
 
@@ -75,7 +75,7 @@ public class AJCompilationUnitProblemFinder extends
 		 Map options = ajcu.getJavaProject().getOptions(true);
 		 CompilerOptions compilerOptions = new CompilerOptions(options);
          try {
-			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), compilerOptions, this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
+			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 		} catch (JavaModelException e) {
 		}
 		// AspectJ Change End
@@ -117,7 +117,8 @@ public class AJCompilationUnitProblemFinder extends
 					getHandlingPolicy(),
 					project.getOptions(true),
 					getRequestor(),
-					problemFactory);
+					problemFactory,
+					(AJCompilationUnit)unitElement);
 			// AspectJ Change End
 			if (parser != null) {
 				problemFinder.parser = parser;
