@@ -598,6 +598,7 @@ public class CompilerPropertyPage extends PropertyPage {
 			projectWorkspaceChanges = true;
 			// don't want to overwrite existing project settings
 			// because have just set them in the above call to 
+			// updateProjectSettings();
 			AspectJPreferences.setUsingProjectSettings(thisProject, useProjectSettings(),false);
 		}
 
