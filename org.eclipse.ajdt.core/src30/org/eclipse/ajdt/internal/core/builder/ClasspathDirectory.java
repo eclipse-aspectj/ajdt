@@ -71,7 +71,7 @@ String[] directoryList(String qualifiedPackageName) {
 	return null;
 }
 
-boolean doesFileExist(String fileName, String qualifiedPackageName) {
+boolean doesFileExist(String fileName, String qualifiedPackageName, String qualifiedFullName) {
 	String[] dirList = directoryList(qualifiedPackageName);
 	if (dirList == null) return false; // most common case
 
@@ -89,7 +89,7 @@ public boolean equals(Object o) {
 } 
 
 public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String qualifiedBinaryFileName) {
-	if (!doesFileExist(binaryFileName, qualifiedPackageName)) return null; // most common case
+	if (!doesFileExist(binaryFileName, qualifiedPackageName, qualifiedBinaryFileName)) return null; // most common case
 
 	try {
 		ClassFileReader reader = ClassFileReader.read(binaryLocation + qualifiedBinaryFileName);
