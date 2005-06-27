@@ -174,6 +174,10 @@ public class AJModel {
 	}
 	
 	public void clearMap(final IProject project) {
+		AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
+		if (pm != null) {
+			pm.deleteModelFile();
+		}
 		projectModelMap.remove(project);
 		AJLog.log("Cleared AJDT relationship map for project "+project.getName());
 	}

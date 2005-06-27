@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -122,7 +123,7 @@ public class AJProjectModel {
 	public void saveModel() {
 		getPersistence().saveModel(null);
 	}
-
+	
 	public void saveModel(IPath file) {
 		getPersistence().saveModel(file);
 	}
@@ -147,6 +148,10 @@ public class AJProjectModel {
 		if (!worked) {
 			AJLog.log("Loading model failed for file: "+file);
 		}
+	}
+	
+	public void deleteModelFile() {
+		getPersistence().deleteModelFile();
 	}
 	
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
@@ -572,6 +577,14 @@ public class AJProjectModel {
 			} catch (IOException e) {
 			}
 			return false;
+		}
+		
+		public void deleteModelFile() {
+			IPath path = getDefaultFile();
+			File modelFile = path.toFile();
+			if (modelFile.exists()) {
+				modelFile.delete();
+			}
 		}
 	
 		private int getID(IJavaElement el) {

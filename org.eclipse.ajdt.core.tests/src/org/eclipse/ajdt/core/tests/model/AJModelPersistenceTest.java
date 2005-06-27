@@ -181,6 +181,25 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		}
 	}
 	
+	public void testModelFileDeletion() throws Exception {
+		IProject project = createPredefinedProject("Bean Example");
+		try{
+			AJModel.getInstance().saveModel(project);
+			File modelFile = new File(getFileName(project));
+			assertTrue("File has not been saved", modelFile.exists());
+
+			AJModel.getInstance().getModelForProject(project).deleteModelFile();
+						
+			// Check that the file has been deleted
+			assertFalse("File has not been deleted", modelFile.exists());
+			
+		} finally {
+			if (project != null) {
+				deleteProject(project);
+			}			
+		}
+	}
+	
 	// can be used to read the contents of an element map file
 	public static void main(String[] args) {
 		new AJModelPersistenceTest().readModelFile(new File(args[0]));
@@ -283,7 +302,6 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		assertTrue("Serialized project model file should not be empty: "
 				+ modelFile, modelFile.length() > 0);
 
-		AJModel.getInstance().clearMap(project);
 
 		// we have to move the saved file out of the way, to make sure the
 		// model really is empty, otherwise the getAllRelationships call
@@ -292,6 +310,8 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		copy(modelFile, tmpFile);
 		modelFile.delete();
 
+		AJModel.getInstance().clearMap(project);
+		
 		assertTrue("Failed to create temporary model file", tmpFile.exists());
 		assertTrue("Failed to delete model file", !modelFile.exists());
 
