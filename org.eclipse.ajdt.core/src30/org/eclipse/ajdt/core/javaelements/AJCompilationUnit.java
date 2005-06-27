@@ -129,6 +129,19 @@ public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCo
 		elementName = elementName.substring(0, elementName.length() - 3);
 		return elementName.toCharArray();
 	}
+
+	/**
+	 * @see IJavaElement
+	 */	
+//	public int getElementType() {
+//	    WARNING: If you're going to implement this
+//               method, do not create a RuntimeException and
+//               walk up the stack, as this causes major delays
+//               when opening up a .aj file in the AspectJ 
+//               Editor. In particular, this action takes several
+//               minutes in RAD (since this method is called
+//               many many times)	
+//	}
 	
 	protected boolean isValidCompilationUnit() {
 		IPackageFragmentRoot root = getPackageFragmentRoot();
