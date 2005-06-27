@@ -517,6 +517,9 @@ public class XReferenceInplaceDialog {
 		viewMenu.add(new ResizeAction());
 		viewMenu.add(new RememberBoundsAction());
 		viewMenu.add(new Separator("SystemMenuEnd")); //$NON-NLS-1$
+		
+//		 leaving this in for enhancement 95724
+		//customFiltersActionGroup.fillViewMenu(viewMenu);
 	}
 
 	// --------------------- creating and filling the status field ---------------------------	
