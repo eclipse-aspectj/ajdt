@@ -253,7 +253,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 						.getResourceString("CompilerConfigurationBlock.aj_messages.description")); //$NON-NLS-1$
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
-		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 
 		String label = AspectJUIPlugin
@@ -328,7 +327,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 						.getResourceString("CompilerConfigurationBlock.aj_advanced.description")); //$NON-NLS-1$
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
-		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);
 
 		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_no_weave.label"); //$NON-NLS-1$

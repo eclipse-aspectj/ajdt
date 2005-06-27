@@ -170,7 +170,6 @@ public class XReferenceContentProvider
 			}
 		} catch (JavaModelException e) {
 			// don't care about this exception
-			//e.printStackTrace();
 		}
 		return hasChildren;		
 	}

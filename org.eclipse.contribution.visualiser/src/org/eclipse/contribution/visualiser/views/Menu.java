@@ -126,23 +126,6 @@ public class Menu extends ViewPart {
 		scrollpane.setContent(canvas);
 		canvas.setLayout(layout);
 
-// commented out because double clicking was giving NPEs from openAspectSource
-
-//		labelListener = new MouseListener() {
-//			public void mouseUp(MouseEvent e) {
-//			}
-//			public void mouseDown(MouseEvent e) {
-//			}
-//			public void mouseDoubleClick(MouseEvent e) {
-//				for (int i = 0; i < labels.length; i++) {
-//					if ((Label) e.getSource() == labels[i]) {
-//						VisualiserPlugin.visualiser.openAspectSource(i);
-//						return;
-//					}
-//				}
-//			}
-//		};
-
 		/* 
 		 * Listener for colour buttons - if clicked produces a ColorDialog
 		 * then redraws the square image with the chosen colour. 

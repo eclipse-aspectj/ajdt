@@ -68,8 +68,6 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 	public void loadMarkups(InputStream in) {
 		int scount = 0 ; // How many stripes added altogether
 		
-//		if (!debugLoading) System.err.print("Stripe loading >");
-		
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
 			String line = br.readLine();
@@ -114,7 +112,6 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 				}
 				line = br.readLine();
 			}
-//			if (!debugLoading) System.err.println("< "+scount+" stripes loaded");
 		} catch (FileNotFoundException e) {
 			System.err.println("Problem loading markup data");
 			e.printStackTrace();

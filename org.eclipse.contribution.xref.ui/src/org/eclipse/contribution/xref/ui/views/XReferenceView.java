@@ -304,20 +304,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 			pstore.setDefault(XREFS_FOR_FILE_ID, false);
 		}
 		pstore.setValue(XREFS_FOR_FILE_ID, showXRefsForFileEnabled);
-		// MPC: do we need this? doesn't work for some IJavaElements
-//		IXReferenceAdapter xra = (IXReferenceAdapter) viewer.getInput();
-//		if (xra != null) {
-//			Object input = xra.getReferenceSource();
-//			String handle = null;
-//			if (input instanceof IResource) {
-//				handle = "R" + ((IResource) input).getFullPath().toString(); //$NON-NLS-1$
-//			} else if (input instanceof IJavaElement) {
-//				handle = "J" + ((IJavaElement) input).getHandleIdentifier(); //$NON-NLS-1$
-//			}
-//			if (handle != null) {
-//				pstore.setValue(SELECTION_ID, handle);
-//			}
-//		}
 		XReferenceUIPlugin.getDefault().savePluginPreferences();
 	}
 
@@ -331,37 +317,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 		if (pstore.contains(XREFS_FOR_FILE_ID)) {
 			showXRefsForFileEnabled = pstore.getBoolean(XREFS_FOR_FILE_ID);
 		}
-//		if (pstore.contains(SELECTION_ID)) {
-//			String sel = pstore.getString(SELECTION_ID);
-//			String handle = sel.substring(1);
-//			IXReferenceAdapter xra = null;
-//			if (sel.startsWith("R")) { //$NON-NLS-1$
-//				// its an IResource, handle is a path
-//				IPath p = new Path(handle);
-//				IResource r =
-//					XReferenceUIPlugin.getWorkspace().getRoot().findMember(
-//						handle);
-//				if (r != null) {
-//					xra =
-//						(IXReferenceAdapter) r.getAdapter(
-//							IXReferenceAdapter.class);
-//				}
-//			} else if (sel.startsWith("J")) { //$NON-NLS-1$
-//				// its an IJavaElement
-//				IJavaElement j = JavaCore.create(handle);
-//				if (j != null) {
-//					xra =
-//						(IXReferenceAdapter) j.getAdapter(
-//							IXReferenceAdapter.class);
-//				}
-//			} else {
-//				// what the hell is it then?? - ignore
-//			}
-//			if (xra != null) {
-//				viewer.setInput(xra);
-//				lastSelection = xra;
-//			}
-//		}
 	}
 
 	private void contributeToActionBars() {

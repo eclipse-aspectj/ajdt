@@ -77,16 +77,6 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 									if(name == null) {
 										name = marker.getType();
 									}
-	//								if (marker.isSubtypeOf(IMarker.PROBLEM)) {
-	//									Integer severity = (Integer)marker.getAttribute(IMarker.SEVERITY);
-	//									if( severity != null) {
-	//										if (severity.intValue() == IMarker.SEVERITY_ERROR) {
-	//											name = name + ERROR_SUFFIX;
-	//										} else if (severity.intValue() == IMarker.SEVERITY_WARNING) {
-	//											name = name + WARNING_SUFFIX;
-	//										}
-	//									} 
-	//								}
 									IMarkupKind kind;
 									if (namesToKinds.get(name) instanceof IMarkupKind) {
 										kind = (IMarkupKind)namesToKinds.get(name);
@@ -166,13 +156,6 @@ public class MarkerMarkupProvider extends SimpleMarkupProvider {
 	 * @return the String found, or null if none is found
 	 */
 	private String getLabel(IMarker marker) {
-//		IWorkbenchAdapter adapter= (IWorkbenchAdapter)marker.getAdapter(IWorkbenchAdapter.class);
-//		if (adapter != null) {
-//		     String label = adapter.getLabel(marker);
-//		     if(label != null && !(label.trim().equals(""))) {
-//		         return label;
-//		     }		   
-//		}
 		Annotation annotation = new MarkerAnnotation(marker);
 		if (annotation != null) {
 			AnnotationPreferenceLookup lookup = EditorsPlugin.getDefault().getAnnotationPreferenceLookup();

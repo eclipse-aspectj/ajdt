@@ -92,11 +92,8 @@ public class FileContentProvider extends SimpleContentProvider {
     	try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
 			String line = br.readLine();
-			// log(IStatus.INFO,"File open!",null);
 			IGroup grp = null;
 			while (line!=null && line.length()!=0) {
-				//log(IStatus.INFO,"VisLine:"+line,null);
-				
 				if (line.startsWith("Group:")) { //$NON-NLS-1$
 					// Once a group tag is found, all following members are considered to be in that group
 					String grpname = retrieveKeyValue("Group:",line); //$NON-NLS-1$
@@ -121,10 +118,8 @@ public class FileContentProvider extends SimpleContentProvider {
 			}
 		} catch (FileNotFoundException e) {
 			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e);
-//			e.printStackTrace();
 		} catch (IOException e) {
 			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e);
-//			e.printStackTrace();
 		}
     }
     

@@ -66,8 +66,6 @@ public class Visualiser extends ViewPart {
 	// actions
 	private Action limitAction;
 
-//	private Action lockAction;
-
 	private Action preferencesAction;
 
 	private Action fitToViewAction;
@@ -83,8 +81,6 @@ public class Visualiser extends ViewPart {
 	private boolean inGroupView = false;
 
 	private boolean inLimitMode = false;
-
-//	private static boolean locked = false;
 
 	private boolean fitToView = false;
 
@@ -160,7 +156,6 @@ public class Visualiser extends ViewPart {
 		manager.add(zoomInAction);
 		manager.add(zoomOutAction);
 		manager.add(fitToViewAction);
-//		manager.add(lockAction);
 		manager.add(limitAction);
 		manager.add(new Separator());
 		manager.add(groupViewAction);
@@ -179,7 +174,6 @@ public class Visualiser extends ViewPart {
 		makeActionGroupView();
 		makeActionMemberView();
 		makeActionFitToView();
-//		makeActionLock();
 	}
 
 	/**
@@ -577,25 +571,6 @@ public class Visualiser extends ViewPart {
 	 */
 	public void setVisMarkupProvider(IMarkupProvider vmp) {
 		markupP = vmp;
-		//		if(markupP.hasMultipleModes()) {
-		//			if(changeStripeModeAction == null) {
-		//				makeActionChangeStripeMode();
-		//				if(getViewSite() != null) {
-		//					IActionBars bars = getViewSite().getActionBars();
-		//					bars.getToolBarManager().removeAll();
-		//					fillLocalToolBar(bars.getToolBarManager(), true);
-		//					bars.updateActionBars();
-		//				}
-		//			}
-		//		} else {
-		//			if(changeStripeModeAction != null){
-		//				IActionBars bars = getViewSite().getActionBars();
-		//				bars.getToolBarManager().removeAll();
-		//				fillLocalToolBar(bars.getToolBarManager(), false);
-		//				bars.updateActionBars();
-		//				changeStripeModeAction = null;
-		//			}
-		//		}
 	}
 
 	/**
@@ -679,24 +654,15 @@ public class Visualiser extends ViewPart {
 			if (buttonClicked != 3) { // Left hand or middle mouse button click
 				//stackContext();
 				if (inGroupView) {
-					//IGroup grp = member.getContainingGroup();
 					// IF
 					//   someone has clicked on a group
 					// THEN
 					//   Switch to subselect mode, and to the member view showing
 					// all the members of that group
 					activateMemberView();
-					//					activateSubSelectMode();
-					//					subselection = new ArrayList();
-					//					subselection.addAll(grp.getMembers());
 				} else {
-					//					activateSubSelectMode();
-					//					subselection = new ArrayList();
-					//					subselection.add(member);
 				}
 				updateDisplay(false);
-			} else { // Right hand button clicked
-				//unstackContext();
 			}
 		}
 

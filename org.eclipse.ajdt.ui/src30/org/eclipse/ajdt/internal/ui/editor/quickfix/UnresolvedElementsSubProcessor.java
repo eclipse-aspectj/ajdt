@@ -578,10 +578,6 @@ public class UnresolvedElementsSubProcessor {
 					// don't suggest member type, user can select it in wizard
 				} else {
 					Name qualifierName= ((QualifiedName) node).getQualifier();
-					// 24347
-					// IBinding binding= qualifierName.resolveBinding(); 
-					// if (binding instanceof ITypeBinding) {
-					//	enclosingType= Binding2JavaModel.find((ITypeBinding) binding, cu.getJavaProject());
 					
 					IJavaElement[] res= cu.codeSelect(qualifierName.getStartPosition(), qualifierName.getLength());
 					if (res!= null && res.length > 0 && res[0] instanceof IType) {

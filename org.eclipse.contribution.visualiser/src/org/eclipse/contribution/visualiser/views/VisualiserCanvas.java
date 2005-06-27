@@ -903,7 +903,6 @@ public class VisualiserCanvas extends Canvas {
 						stripeH = s.getDepth();
 					}
 					ypos = offsetY + soffset;
-					//soffset += stripeH - 1;
 					StripeGeom sg = new StripeGeom(b.index);
 					sg.parent = b;
 					sg.member = m;
@@ -917,9 +916,6 @@ public class VisualiserCanvas extends Canvas {
 						sg.bounds.height = b.bounds.y + b.bounds.height
 								- sg.bounds.y;
 					}
-					//					if (visualiser.isFitToView()) {
-					//						ypos = (int) (ypos / vScale);
-					//					}
 					for (int i = 0; i < s.getKinds().size(); i++) {
 						IMarkupKind kind = (IMarkupKind) s.getKinds().get(i);
 						if (VisualiserPlugin.menu == null
@@ -1027,7 +1023,6 @@ public class VisualiserCanvas extends Canvas {
 		Rectangle clientRect = getClientArea();
 		ScrollBar horiz = getHorizontalBar();
 		if (reqWidth > clientRect.width) {
-//			horiz.setVisible(true);
 			horiz.setEnabled(true);
 			horiz.setMaximum(reqWidth);
 			horiz.setThumb(clientRect.width);
@@ -1036,11 +1031,9 @@ public class VisualiserCanvas extends Canvas {
 			horiz.setMaximum(clientRect.width);
 			horiz.setThumb(clientRect.width);
 			horiz.setEnabled(false);
-//			horiz.setVisible(false);
 		}
 		ScrollBar vert = getVerticalBar();
 		if (reqHeight > clientRect.height) {
-//			vert.setVisible(true);
 			vert.setEnabled(true);
 			vert.setMaximum(reqHeight);
 			vert.setThumb(clientRect.height);
@@ -1049,7 +1042,6 @@ public class VisualiserCanvas extends Canvas {
 			vert.setMaximum(clientRect.width);
 			vert.setThumb(clientRect.width);
 			vert.setEnabled(false);
-//			vert.setVisible(false);
 		}
 	}
 
@@ -1313,8 +1305,6 @@ public class VisualiserCanvas extends Canvas {
 			for (int i = 0; i < sg.kindList.size(); i++) {
 				KindGeom kg = (KindGeom) sg.kindList.get(i);
 				gc.setBackground(kg.color);
-				//				gc.fillRectangle(kg.bounds.x + x - 1, kg.bounds.y,
-				//						kg.bounds.width, kg.bounds.height);
 				gc.fillRectangle(scale(kg.bounds.x) + x - 1, y,
 						scale(kg.bounds.width),
 						scaleStripeHeight(kg.bounds.height));
@@ -1326,7 +1316,6 @@ public class VisualiserCanvas extends Canvas {
 		gc.drawRectangle(outer);
 		gc.setForeground(ColorConstants.black);
 		gc.drawRectangle(x - 2 - n, y - 2, width + 4 + 2 * n, height + 2);
-		//gc.drawFocus(x - 2, y - 2, r.width + 3, r.height + 3);
 	}
 
 	private int scale(int v) {

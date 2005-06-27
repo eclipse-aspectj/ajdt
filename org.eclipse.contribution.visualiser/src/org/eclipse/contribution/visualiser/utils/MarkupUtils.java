@@ -26,7 +26,6 @@ public class MarkupUtils {
 	 * @param stripes
 	 */
 	public static void processStripes(List stripes) {
-//		long start = System.currentTimeMillis();
 		if (stripes == null)
 			return;
 
@@ -40,7 +39,6 @@ public class MarkupUtils {
 				VisualiserPlugin.log(
 					2,
 					"Stripe processing, iteration: " + (loop + 1));
-			//else System.err.print("("+(loop+1)+")");
 			splits = 0;
 			for (int j = 0; j < stripes.size(); j++) {
 				for (int i = 0; i < stripes.size(); i++) {
@@ -92,7 +90,6 @@ public class MarkupUtils {
 							stripe2.setDepth(
 								dep1 - dep2 - (stripe2start - stripe1start));
 							stripe2.setKinds(stripe1.getKinds());
-							// stripe2.setDepth(dep2-((off1+dep1)-off2));
 							if (debug) {
 								VisualiserPlugin.log(2, "Stripe1: " + stripe1);
 								VisualiserPlugin.log(2, "Stripe3: " + stripe3);
@@ -199,25 +196,15 @@ public class MarkupUtils {
 								} 
 
 								// Stripe1 finishes after Stripe2 starts
-								// Shorten stripe1 and stripe2 and build a stripe3 between them !
-								//	Stripe stripe3 = new Stripe();
 								stripe2.addKinds(stripe1.getKinds());
-								//stripe3.addKinds(stripe2.getKinds());
-								//stripe3.setOffset(stripe2start);
 								stripe2.setDepth(
 									(stripe1start + dep1) - stripe2start);
-								//stripes.add(i + 1, stripe3);
 								stripe1.setDepth(stripe2start - stripe1start);
-
-								//stripe2.setOffset(stripe1start + dep1);
-								//stripe2.setDepth(
-								//	dep2 - ((stripe1start + dep1) - stripe2start));
 								if (debug) {
 
 									VisualiserPlugin.log(
 										2,
 										"Stripe1: " + stripe1);
-									//														VisualiserPlugin.log(2,"Stripe3: " + stripe3);
 									VisualiserPlugin.log(
 										2,
 										"Stripe2: " + stripe2);
@@ -232,29 +219,5 @@ public class MarkupUtils {
 			if (debug)
 				VisualiserPlugin.log(2, "Splits on this iteration: " + splits);
 		}
-//		for (int j = 0; j < stripes.size() - 1; j++) {
-//			for (int i = 0; i < stripes.size() - 1; i++) {
-//				Stripe stripe1 = (Stripe) stripes.get(i);
-//				Stripe stripe2 = (Stripe) stripes.get(i + 1);
-//				// Special case, if the stripe1 has kinds 'A' 'B' and the updated stripe2 has kinds 'B' 'C' then swap the stripe2 ones round
-//				// so that the 'B's line up.
-//				List kinds1 = stripe1.getKinds();
-//				List kinds2 = stripe2.getKinds();
-//				if (kinds1.size() > 1 && kinds2.size() > 1) {
-//					if (kinds1.get(1).equals(kinds2.get(0))) {
-//						VisualiserPlugin.log(2, "----------------------");
-//						VisualiserPlugin.log(2, "Stripe swapping: Before:");
-//						VisualiserPlugin.log(2, "Stripe1:" + stripe1);
-//						VisualiserPlugin.log(2, "Stripe2:" + stripe2);
-//						String k = (String) kinds2.remove(0);
-//						kinds2.add(1, k);
-//						VisualiserPlugin.log(2, "Stripe swapping: After:");
-//						VisualiserPlugin.log(2, "Stripe1:" + stripe1);
-//						VisualiserPlugin.log(2, "Stripe2:" + stripe2);
-//						VisualiserPlugin.log(2, "----------------------");
-//					}
-//				}
-//			}
-//		}
 	}
 }

@@ -49,7 +49,6 @@ public class JDTContentProvider
 	protected IJavaProject currentProject;
 	private IResource currentlySelectedResource;
 	protected IJavaElement currentlySelectedJE;
-//	private boolean listenerRegistered = false;
 
 
 	/**
@@ -196,13 +195,10 @@ public class JDTContentProvider
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#initialise()
 	 */
 	public void initialise() {
-//		if (!listenerRegistered) {
 		if (VisualiserPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow() != null) {
 			VisualiserPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 				.getSelectionService().addSelectionListener(this);
 		}	
-//			listenerRegistered = true;
-//		}
 	}
 
 	/**
