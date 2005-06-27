@@ -298,6 +298,10 @@ public class AJProjectModel {
 						String t = (String) iterator2.next();
 						IProgramElement link = AsmManager.getDefault()
 								.getHierarchy().findElementForHandle(t);
+						// System.err.println("asmRelMap entry: "
+						// + ipe.toLinkLabelString() + ", relationship: "
+						// + rel.getName() + ", target: "
+						// + link.toLinkLabelString());
 						IJavaElement sourceEl = (IJavaElement) ipeToije
 								.get(ipe);
 						IJavaElement targetEl = (IJavaElement) ipeToije
@@ -328,6 +332,11 @@ public class AJProjectModel {
 						AJRelationshipType ajRel = (AJRelationshipType) kindMap
 								.get(rel.getName());
 						if (ajRel != null) {
+							// System.out.println("Rel: " + rel.getName()
+							// + " source: " + sourceEl + " hashcode: "
+							// + sourceEl.hashCode() + ", target: "
+							// + targetEl
+							// + " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
 								if(sourceEl instanceof AdviceElement) {
 									if (rel.hasRuntimeTest()) {
@@ -489,17 +498,7 @@ public class AJProjectModel {
 	
 		private List elementList;
 	
-		private AJRelationshipType[] relTypes = new AJRelationshipType[] {
-				AJRelationshipManager.ADVISES,
-				AJRelationshipManager.ADVISED_BY,
-				AJRelationshipManager.DECLARED_ON,
-				AJRelationshipManager.ASPECT_DECLARATIONS,
-				AJRelationshipManager.MATCHED_BY,
-				AJRelationshipManager.MATCHES_DECLARE,
-				AJRelationshipManager.ANNOTATES,
-				AJRelationshipManager.ANNOTATED_BY,
-				AJRelationshipManager.SOFTENS,
-				AJRelationshipManager.SOFTENED_BY };
+		private AJRelationshipType[] relTypes = AJRelationshipManager.allRelationshipTypes;
 	
 		private Map relIDs;
 	
@@ -600,6 +599,8 @@ public class AJProjectModel {
 			for (Iterator iter = lineNumbers.keySet().iterator(); iter
 					.hasNext();) {
 				IJavaElement element = (IJavaElement) iter.next();
+				// remember the id of each element so that we can refer to it
+				// later
 				idMap.put(element, new Integer(idCount++));
 				String handleIdentifier = element.getHandleIdentifier().intern();
 				oos.writeObject(handleIdentifier);

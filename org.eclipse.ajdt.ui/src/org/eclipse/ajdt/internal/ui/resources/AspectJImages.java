@@ -217,6 +217,13 @@ public class AspectJImages extends AbstractIconRegistry {
 	public static final AJDTIcon RESET_COLOURS = new AJDTIcon(
 				"icons/actions/reset_colours.gif");
 	
+	// icons for crosscutting changes view
+	public static final AJDTIcon CHANGES_ADDED = new AJDTIcon(
+				"icons/diff/added.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CHANGES_REMOVED = new AJDTIcon(
+				"icons/diff/removed.gif"); //$NON-NLS-1$
+	
+	
 	public static AspectJImages registry( ) {
 		if ( instance == null ) {
 			instance = new AspectJImages( );

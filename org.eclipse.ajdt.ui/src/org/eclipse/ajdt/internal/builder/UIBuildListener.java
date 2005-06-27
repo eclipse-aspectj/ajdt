@@ -29,6 +29,7 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -240,23 +241,24 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
-			AJLog.log("Not updating vis or xref view, display is disposed!");
+			AJLog.log("Not updating vis, xref, or changes views as display is disposed!");
 		} else {
 			AspectJUIPlugin.getDefault().getDisplay().syncExec(
 				new Runnable() {
 					public void run() {
+						// refresh Cross References
+						XReferenceUIPlugin.refresh();
+						
+						// refresh Crosscutting Changes
+						ChangesView.refresh();
+						
+						// refresh Visualiser
 						if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 							AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
 									.getContentProvider();
 							provider.reset();
 							VisualiserPlugin.refresh();
 						}
-					}
-				});
-			AspectJUIPlugin.getDefault().getDisplay().syncExec(
-				new Runnable() {
-					public void run() {
-						XReferenceUIPlugin.refresh();
 					}
 				});
 		}

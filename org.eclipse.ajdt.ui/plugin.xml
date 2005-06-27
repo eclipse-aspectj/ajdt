@@ -1775,8 +1775,71 @@
     </extension>
 
 
-<!-- EXPERIMENTAL
-
+  <!-- extensions relating to Crosscutting Comparison view -->
+  <extension point="org.eclipse.ui.views">
+    <view name="%CompareCrosscutting.view" 
+    	icon="icons/diff/compare_view.gif" 
+    	category="org.eclipse.ajdt.ui.cat" 
+    	class="org.eclipse.ajdt.internal.ui.diff.ChangesView" 
+    	id="org.eclipse.ajdt.ui.diff.ChangesView" /> 
+  </extension>
+  <extension point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="%SaveCrosscuttingMapActionGroup"
+            visible="true"
+            id="org.eclipse.ajdt.diff.actionSet">
+         <action
+               label="%SaveCrosscuttingMapAction"
+               class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
+               menubarPath="project/additions"
+               id="org.eclipse.ajdt.diff.saveMap">
+         </action>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+         <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            nameFilter="*.ajmap"
+            id="ajmap">
+         <menu
+               label="%CompareCrosscutting.menu"
+               path="additions"
+               id="compareCrosscuttingWithMenu">
+            <separator
+                  name="compareWithGroup">
+            </separator>
+         </menu>
+         <action
+               label="%CompareCrosscutting.submenu.eachOther"
+               class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
+               menubarPath="compareCrosscuttingWithMenu/compareWithGroup"
+               enablesFor="2"
+               id="ajmappopup">
+         </action>
+         <action
+               label="%CompareCrosscutting.submenu.currentBuild"
+               class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
+               menubarPath="compareCrosscuttingWithMenu/compareWithGroup"
+               enablesFor="1"
+               id="compareCrosscuttingWithCurrentBuild">
+         </action>
+      </objectContribution>
+    </extension>
+    <extension
+         id="editors"
+         point="org.eclipse.ui.editors">
+       <editor
+            name="%AJMapEditor"
+            icon="icons/diff/ajmap_file.gif"
+            extensions="ajmap"
+            class="org.eclipse.ajdt.internal.ui.diff.AJMapEditor"
+            id="AJMapEditor">
+      </editor>
+    </extension>      
+       
+       
+<!-- EXPERIMENTAL (for debugging purposes only)
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
     	icon="icons/editor.gif" 
@@ -1784,12 +1847,9 @@
     	class="org.eclipse.ajdt.internal.ui.ajde.StructureModelView" 
     	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
   </extension>
-  
 -->
 
-
 <!-- EXPERIMENTAL
-
   <extension point="org.eclipse.ui.views">
     <view name="Pointcut Navigator" 
     	icon="icons/structure/after_advice.gif" 
@@ -1797,7 +1857,7 @@
     	class="org.eclipse.ajdt.internal.ui.navigator.PointcutNavigatorView" 
     	id="org.eclipse.ajdt.ui.navigator.PointcutNavigatorView" /> 
   </extension>
-
 -->
+
 
 </plugin>
