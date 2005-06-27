@@ -117,6 +117,8 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			compareAfterReloadingModel(rels, weaveMeProject);
 		} finally {
 			deleteProject(weaveMeProject);
+			// TODO: reinstate the deletion when we can make it work reliably
+			//deleteProject(libProject);
 		}
 	}
 
