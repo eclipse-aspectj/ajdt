@@ -14,8 +14,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.Iterator;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
@@ -28,7 +26,6 @@ import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -36,7 +33,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * Tests eager parsing support in the AspectJ editor
  */
-public class EagerParsingTest extends TestCase {
+public class EagerParsingTest extends VisualTestCase {
 
 	IProject project;
 	
@@ -81,10 +78,10 @@ public class EagerParsingTest extends TestCase {
 			//wait for annotation model to be created
 			Utils.waitForJobsToComplete();
 			
-			createError(true, sourcefile, editorPart);		
+			createError(true, editorPart);		
 			Utils.waitForJobsToComplete();
 			
-			createError(false, sourcefile, editorPart);
+			createError(false,  editorPart);
 			Utils.waitForJobsToComplete();			
 
 		} finally {
@@ -92,15 +89,15 @@ public class EagerParsingTest extends TestCase {
 		}
 	}
 	
-	private void createError(final boolean addsError, final IFile file, final ITextEditor editor){
+	private void createError(final boolean addsError, final ITextEditor editor){
 		final int numAnnotations = getNumErrorAnnotations(editor);
 		if(addsError) {
 			editor.setFocus();		
-			VisualTestUtils.gotoLine(15);
-			VisualTestUtils.moveCursorRight(8);
-			addSpace();
+			gotoLine(15);
+			moveCursorRight(8);
+			postCharacterKey(' ');
 		} else {
-			removeSpace();
+			postCharacterKey(SWT.BS);
 		}
 		Utils.waitForJobsToComplete();		
 		new DisplayHelper() {
@@ -116,36 +113,6 @@ public class EagerParsingTest extends TestCase {
 		int newNumAnnotations = getNumErrorAnnotations(editor);
 		if (numAnnotations == newNumAnnotations)
 			fail(addsError?"Error did not appear.":"Error did not disappear.");
-	}
-	
-	private void removeSpace() {
-		Display display = Display.getCurrent(); 
-		
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.character = SWT.BS;
-		display.post(event);
-		
-
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.character = SWT.BS;
-		display.post(event);	
-	}
-
-	private void addSpace() {
-		Display display = Display.getCurrent(); 
-		
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.character = ' ';
-		display.post(event);
-		
-
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.character = ' ';
-		display.post(event);
 	}
 
 	/**

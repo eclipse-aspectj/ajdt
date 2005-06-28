@@ -12,8 +12,6 @@
 
 package org.eclipse.ajdt.ui.tests.visual;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
@@ -27,7 +25,6 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -35,7 +32,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * Tests setting breakpoints with the Ctrl+Shift+B keyboard action
  */
-public class AspectJBreakpointKeyboardActionTest extends TestCase {
+public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 
 	IProject project;
 	
@@ -89,57 +86,31 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 	
 	private void setBreakpoint(int line, final boolean hasEffect, final IFile file, final ITextEditor editor){
 		editor.setFocus();
-		VisualTestUtils.gotoLine(line);
-		final int numOfMarkers = getNumMarkers(file, editor);
+		gotoLine(line);
+		final int numOfMarkers = getNumMarkers(file);
 		
-		postCtrlShiftB(editor, new DisplayHelper() {
+		postCtrlShiftB(new DisplayHelper() {
 			protected boolean condition() {
-				int newNumOfMarkers = getNumMarkers(file, editor);
+				int newNumOfMarkers = getNumMarkers(file);
 				boolean ret = (numOfMarkers == newNumOfMarkers) != hasEffect;
 				return ret;
 			}
 		
 		});
 	
-		int newNumOfMarkers = getNumMarkers(file, editor);
+		int newNumOfMarkers = getNumMarkers(file);
 		if ((numOfMarkers == newNumOfMarkers) == hasEffect)
 			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position.");
 	}
 	
-	private void postCtrlShiftB(ITextEditor editor, DisplayHelper dh) {
-		Display display = Display.getCurrent();
-		
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = SWT.CTRL;
-		display.post(event);
-		
-		event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = SWT.SHIFT;
-		display.post(event);
-		
-		event = new Event();
-		event.type = SWT.KeyDown;
-		event.character = 'b';
-		display.post(event);
-
+	private void postCtrlShiftB(DisplayHelper dh) {
+		postKeyDown(SWT.CTRL);
+		postKeyDown(SWT.SHIFT);
+		postCharacterKeyDown('b');
 		dh.waitForCondition(Display.getCurrent(), 5000);
-
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.character = 'b';
-		display.post(event);
-						
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.keyCode = SWT.SHIFT;
-		display.post(event);
-				
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.keyCode = SWT.CTRL;
-		display.post(event);		
+		postCharacterKeyUp('b');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.CTRL);	
 	}
 
 	protected AbstractMarkerAnnotationModel getAnnotationModel(ITextEditor editor) {
@@ -152,7 +123,7 @@ public class AspectJBreakpointKeyboardActionTest extends TestCase {
 		return null;
 	}
 	
-	protected int getNumMarkers(IResource resource, ITextEditor editor) {
+	protected int getNumMarkers(IResource resource) {
 		
 			try {
 

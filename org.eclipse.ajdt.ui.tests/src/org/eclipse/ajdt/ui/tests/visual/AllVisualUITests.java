@@ -25,6 +25,7 @@ public class AllVisualUITests {
 		AllUITests.setupAJDTPlugin();
 		
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
+		suite.addTest(new TestSuite(BuildConfigurationTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		

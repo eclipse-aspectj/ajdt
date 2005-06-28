@@ -43,6 +43,8 @@
       <import plugin="org.eclipse.contribution.xref.core.tests"/>
       <import plugin="org.eclipse.contribution.xref.ui"/>
       <import plugin="org.eclipse.ltk.core.refactoring"/>
+      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="org.eclipse.debug.ui"/>
    </requires>
 
 </plugin>

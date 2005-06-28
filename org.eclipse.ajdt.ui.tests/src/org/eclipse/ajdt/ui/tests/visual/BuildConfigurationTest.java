@@ -1,0 +1,212 @@
+/*******************************************************************************
+ * Copyright (c) 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Sian January  - initial version
+ *******************************************************************************/
+package org.eclipse.ajdt.ui.tests.visual;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.ImageDecorator;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.internal.ui.views.console.ProcessConsolePage;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.JavaPluginImages;
+import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.internal.console.ConsoleView;
+
+/**
+ * Build configuration visual tests
+ */
+public class BuildConfigurationTest extends VisualTestCase {
+	
+	IConsole console;
+
+	/**
+	 * Build configuration test
+	 * @throws Exception
+	 */
+	public void test1() throws Exception {
+		
+		// Open the 'New' wizard
+		postKeyDown(SWT.CTRL);		
+		postCharacterKey('n');
+		postKeyUp(SWT.CTRL);
+
+		// Open the 'New AspectJ Project' wizard
+		postCharacterKey(SWT.CR);
+		
+		// Give the project name box focus
+		postCharacterKey('p');
+				
+		// Enter a name for the project
+		postString("Project1");
+
+		// Complete the wizard
+		postCharacterKey(SWT.CR);
+		
+		// Wait for the project to be created
+		Utils.waitForJobsToComplete();
+		
+		IWorkspace workspace= JavaPlugin.getWorkspace();		
+		IProject project = workspace.getRoot().getProject("Project1");;		
+		try {
+			assertTrue("Should have created a project", project.exists());	
+			
+			// Test that a build file has been created
+			IFile buildFile = checkBuildFileExists(project);
+			
+			// Test that the new build file has the correct contents
+			checkOriginalContents(buildFile);
+
+			// Create a source directory and check that the build file updates correctly
+			addNewSourceFolderAndCheckBuildFile(buildFile);
+			
+			// Create a package and a class and test that they are included in the build
+			addNewPackage();
+			IJavaProject jp = JavaCore.create(project);
+			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
+			PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
+			packageExplorer.setFocus();
+			packageExplorer.selectAndReveal(p1);
+			addNewClass();
+			DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
+			Image image = djlp.getImage(p1);
+			Image expected = JavaPlugin.getImageDescriptorRegistry().get(ImageDecorator.getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_PACKAGE, image.getBounds(), 0));
+			assertTrue("The new package should have a filled-in image", expected.equals(image));
+			
+			// Add a main method and run the class to test that it has been built
+			ICompilationUnit hello = p1.getCompilationUnit("Hello.java");
+			addMainMethod(hello);
+			packageExplorer.setFocus();
+			packageExplorer.selectAndReveal(hello);
+			postKeyDown(SWT.SHIFT);
+			postKey(SWT.F10);
+			postKeyUp(SWT.SHIFT);
+			postCharacterKey('r');	
+			postCharacterKey('r');
+			postKey(SWT.ARROW_RIGHT);
+			postKey(SWT.ARROW_DOWN);
+			postCharacterKey(SWT.CR);
+			Utils.waitForJobsToComplete();
+			ConsoleView cview = null;
+			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+			for (int i = 0; i < views.length; i++) {
+				if (views[i].getView(false) instanceof ConsoleView) {
+					cview = (ConsoleView)views[i].getView(false);
+				}
+			}
+			assertNotNull("Console view should be open", cview);
+			String output = ((ProcessConsolePage )cview.getCurrentPage()).getConsoleViewer().getDocument().get();	
+			assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
+		} finally {
+			Utils.deleteProject(project);
+		}
+	}
+
+	/**
+	 * @param hello
+	 * @throws CoreException
+	 */
+	private void addMainMethod(ICompilationUnit hello) throws CoreException {
+		IFile helloFile = (IFile)hello.getResource();
+		String s = "package p1; \n" +
+			"public class Hello { \n\n" +
+			"	public static void main(String[] args) { \n" +
+			"		System.out.println(\"Hello\"); \n" +				
+			"	} \n" + 	
+			"} \n";
+		InputStream stream = new ByteArrayInputStream(s.getBytes()); 
+		helloFile.setContents(stream, true, true, null);
+		Utils.waitForJobsToComplete();
+	}
+
+	private void addNewClass() {
+		postKey(SWT.ALT);
+		postCharacterKey('f');
+		postCharacterKey('n');
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(SWT.CR);
+		postString("Hello");
+		postCharacterKey(SWT.CR);
+		Utils.waitForJobsToComplete();	
+	}
+
+	private void addNewPackage() {
+		postKey(SWT.ALT);
+		postCharacterKey('f');
+		postCharacterKey('n');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(SWT.CR);
+		postCharacterKey('p');
+		postCharacterKey('1');
+		postCharacterKey(SWT.CR);
+		Utils.waitForJobsToComplete();
+	}
+
+	private void addNewSourceFolderAndCheckBuildFile(IFile buildFile) throws CoreException, IOException {
+		postKey(SWT.ALT);
+		postCharacterKey('f');
+		postCharacterKey('n');
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(SWT.CR);
+		postString("src");
+		postCharacterKey(SWT.CR);
+		
+		Utils.waitForJobsToComplete();
+	
+		InputStream stream = buildFile.getContents();
+		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+		String line1 = br.readLine();
+		br.close();
+		assertTrue("Contents of the build configuration file are wrong after adding a source folder", line1.trim().equals("src.includes = src/"));		
+	}
+
+	/**
+	 * Check that when the build file is first created it has the correct contents
+	 * @param buildFile
+	 */
+	private void checkOriginalContents(IFile buildFile) throws CoreException, IOException {
+		InputStream stream = buildFile.getContents();
+		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+		String line1 = br.readLine();
+		br.close();
+		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = /"));
+	}
+
+	private IFile checkBuildFileExists(IProject project) {
+		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
+		assertTrue("Should have created a build configuration file", buildFile.exists());
+		return buildFile;
+	}
+	
+}
