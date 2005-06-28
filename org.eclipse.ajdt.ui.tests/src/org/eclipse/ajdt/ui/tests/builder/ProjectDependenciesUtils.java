@@ -44,22 +44,6 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
  */
 public class ProjectDependenciesUtils {
 
-//	public static void waitForJobsToComplete(IProject pro) {
-//		Job job = new Job("Dummy Job") {
-//			public IStatus run(IProgressMonitor m) {
-//				return Status.OK_STATUS;
-//			}
-//		};
-//		job.setPriority(Job.DECORATE);
-//		job.setRule(pro);
-//		job.schedule();
-//		try {
-//			job.join();
-//		} catch (InterruptedException e) {
-//			// Do nothing
-//		}
-//	}
-
 	public static boolean projectHasProjectDependency(IProject project,
 			IProject projectDependedOn) throws JavaModelException {
 		IJavaProject javaProject = JavaCore.create(project);

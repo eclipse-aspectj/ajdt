@@ -124,13 +124,6 @@ public class ProjectDependenciesTest extends TestCase {
 
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
 	}
 
 	/**
@@ -284,13 +277,6 @@ public class ProjectDependenciesTest extends TestCase {
 		
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
 	}
 
 

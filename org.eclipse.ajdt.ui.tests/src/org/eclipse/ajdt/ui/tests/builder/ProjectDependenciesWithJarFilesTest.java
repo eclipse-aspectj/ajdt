@@ -520,10 +520,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		// build the project so it picks up the outjar and sends 
 		// output there
-		//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		//monitor.reset();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		//monitor.waitForCompletion();
 		Utils.waitForJobsToComplete();
 
 		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists());
@@ -597,35 +594,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-		// DONT know why trying to delete causes problems - maybe we're holding
-		// onto a reference somewhere - this doesn't happen when test this manually.
-		// this only happens when both projects are AJ projects
-//		monitor.reset();
-//		projectY.refreshLocal(IResource.DEPTH_INFINITE,monitor);
-//		monitor.waitForCompletion();
-//		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
-//		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-//		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
-//		
-//		StringBuffer sb = new StringBuffer(outJar);
-//		IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
-//		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());	
-//		monitor.reset();
-//		jarFile.delete(true,monitor);
-//		monitor.waitForCompletion();
-//		ProjectDependenciesUtils.waitForJobsToComplete(projectY);
-//		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
-
-		
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
-		
 	}
 
 	/**
@@ -772,14 +740,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
 		
 	}
 	
@@ -817,7 +777,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 
 		// build the project so it picks up the outjar and sends 
 		// output there
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
 //		monitor.reset();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
 		Utils.waitForJobsToComplete();
@@ -868,15 +827,6 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		
 		Utils.deleteProject(projectX);
 		Utils.deleteProject(projectY);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
-		
 	}	
 
 	/**
@@ -993,88 +943,5 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		Utils.deleteProject(jarDependentProject);
 		Utils.deleteProject(jarCreatingProject);
 	}
-	
-
-//	private int numberOfTimesOutJarOnAspectPath(IProject projectWhichHasDependency,
-//			IProject projectDependedOn,
-//			String outJar) throws CoreException {
-//		IClasspathEntry[] aspectPathEntries = 
-//			getInitialAspectpathValue(projectWhichHasDependency);		
-//		int counter = 0;
-//		IPath newPath = getRelativePath(projectDependedOn,outJar);
-//		if (newPath == null) {
-//			return counter;
-//		}
-//		IClasspathEntry cpEntry = JavaCore.newLibraryEntry(newPath
-//				.makeAbsolute(), null, null);
-//		
-//		if (aspectPathEntries != null) {
-//			for (int i = 0; i < aspectPathEntries.length; i++) {
-//				if (aspectPathEntries[i].getPath().equals(cpEntry.getPath())
-//						&& aspectPathEntries[i].getContentKind() == cpEntry.getContentKind()
-//						&& aspectPathEntries[i].getEntryKind() == cpEntry.getEntryKind()){
-//					counter++;
-//				}
-//			}
-//		}
-//		return counter;
-//	}
-
-//	private IClasspathEntry[] getInitialAspectpathValue(IProject project)
-//			throws CoreException {
-//		List result = new ArrayList();
-//		String paths = project
-//				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH);
-//		String cKinds = project
-//				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_CON_KINDS);
-//		String eKinds = project
-//				.getPersistentProperty(BuildOptionsAdapter.ASPECTPATH_ENT_KINDS);
-//
-//		if ((paths != null && paths.length() > 0)
-//				&& (cKinds != null && cKinds.length() > 0)
-//				&& (eKinds != null && eKinds.length() > 0)) {
-//			StringTokenizer sTokPaths = new StringTokenizer(paths,
-//					File.pathSeparator);
-//			StringTokenizer sTokCKinds = new StringTokenizer(cKinds,
-//					File.pathSeparator);
-//			StringTokenizer sTokEKinds = new StringTokenizer(eKinds,
-//					File.pathSeparator);
-//
-//			if ((sTokPaths.countTokens() == sTokCKinds.countTokens())
-//					&& (sTokPaths.countTokens() == sTokEKinds.countTokens())) {
-//				while (sTokPaths.hasMoreTokens()) {
-//					IClasspathEntry entry = new ClasspathEntry(Integer
-//							.parseInt(sTokCKinds.nextToken()), // content kind
-//							Integer.parseInt(sTokEKinds.nextToken()), // entrykind
-//							new Path(sTokPaths.nextToken()), // path
-//							new IPath[] {}, // inclusion patterns
-//							new IPath[] {}, // exclusion patterns
-//							null, // src attachment path
-//							null, // src attachment root path
-//							null, // output location
-//							false); // is exported ?
-//					result.add(entry);
-//				}
-//			}
-//		}
-//		if (result.size() > 0) {
-//			return (IClasspathEntry[]) result.toArray(new IClasspathEntry[0]);
-//		} else {
-//			return null;
-//		}
-//	}
-//
-//	
-//	private IPath getRelativePath(IProject project, String outJar) {
-//		StringBuffer sb = new StringBuffer(outJar);
-//		int index = sb.lastIndexOf(project.getName());
-//		if (index > 0) {
-//			IPath path = new Path(sb.substring(sb.lastIndexOf(project.getName())));
-//			return path.makeAbsolute();
-//		} else {
-//			return null;
-//		}
-//	}
-	
 }
 
