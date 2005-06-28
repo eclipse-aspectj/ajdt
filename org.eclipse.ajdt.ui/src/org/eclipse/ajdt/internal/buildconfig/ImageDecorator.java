@@ -339,7 +339,7 @@ public class ImageDecorator implements ILabelDecorator {
 		return fRegistry;
 	}
 	
-	public ImageDescriptor getJavaImageDescriptor(ImageDescriptor descriptor, Rectangle rect, int adorflags) {
+	public static ImageDescriptor getJavaImageDescriptor(ImageDescriptor descriptor, Rectangle rect, int adorflags) {
 		int flags = (rect.width == 16)?JavaElementImageProvider.SMALL_ICONS:0;
 		Point size= useSmallSize(flags) ? JavaElementImageProvider.SMALL_SIZE : JavaElementImageProvider.BIG_SIZE;
 		return new JavaElementImageDescriptor(descriptor, adorflags, size);
