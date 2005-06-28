@@ -89,22 +89,14 @@ Test for bug 74401 - External jars on inpath not found
 
 (10) Rebuild project and check it builds okay (BUILD_6)
 
+Test for bug 101481 - classes not appearing in output folder
+------------------------------------------------------------
 
-Test for bug 86941 - "clean" build doesn't work
------------------------------------------------
-
-setup....
 (1) Check out "Simple AJ Project"
-(2) Turn off "build automatically" (Project > Build automatically)
-(3) add the following to p1/Main.java before the main method:
+(2) Open the navigator view
+(3) delete all the .class files from the output dir	
+(4) Build the project by pressing the build button
+(5) Under bin in the navigator view you should see the classes appear
+    without having to refresh.                (BUILD_7)
 
-	twtretwer
-	
-(4) Save the file and Build the project by pressing the build button
-(5) There should be a compiler error in the problem view
-test...
-(6) remove the error you inserted in step (3)
-(7) Save the file
-(8) Clean the project Project > Clean > Clean selected project
-(9) There should be no compiler errors in the problems view	(BUILD_7)
 				

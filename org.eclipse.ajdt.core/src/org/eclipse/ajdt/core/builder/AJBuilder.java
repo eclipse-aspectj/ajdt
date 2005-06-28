@@ -237,7 +237,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			if (javaDep) {
 				project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			} else {
-				project.refreshLocal(IResource.DEPTH_ONE, null);
+			    // bug 101481 - need to refresh the output directory
+			    // so that the compiled classes can be found
+				IPath workspaceRelativeOutputPath = javaProject.getOutputLocation();
+
+				if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+					// root
+					project.refreshLocal(IResource.DEPTH_INFINITE, null);
+				} else {
+					IFolder out = ResourcesPlugin.getWorkspace().getRoot()
+							.getFolder(workspaceRelativeOutputPath);
+					out.refreshLocal(IResource.DEPTH_INFINITE, null);
+					project.refreshLocal(IResource.DEPTH_ONE, null);
+				}
+			    
 			}
 		} catch (CoreException e) {
 		}
@@ -294,11 +307,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				IProject p = null;
 				switch (entry.getEntryKind()) {
 				case IClasspathEntry.CPE_PROJECT:
-					p = workspaceRoot.getProject(path.lastSegment()); // missing
-					// projects
-					// are
-					// considered
-					// too
+					// missing projects are considered too
+					p = workspaceRoot.getProject(path.lastSegment());
 					break;
 				case IClasspathEntry.CPE_LIBRARY:
 					if (includeBinaryPrerequisites && path.segmentCount() > 1) {
@@ -629,7 +639,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 									+ ")" : ""));
 		}
 	}
-
+	
 	/**
 	 * Recursively calling function. Given some set of files (which might be
 	 * dirs) it deletes any class files from the filesystem and then for any
