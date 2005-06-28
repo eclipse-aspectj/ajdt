@@ -78,8 +78,7 @@ public class UIBuildListener implements IAJBuildListener {
 			mode = "Incremental AspectJ compilation";
 		else
 			mode = "Full AspectJ compilation";
-		AJLog.log("===========================================================================================");
-		AJLog.log("build: Kind=" + kindS + " Project="
+		AJLog.log("Project="
 				+ project.getName() + "         kind of build requested =" + mode);
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
