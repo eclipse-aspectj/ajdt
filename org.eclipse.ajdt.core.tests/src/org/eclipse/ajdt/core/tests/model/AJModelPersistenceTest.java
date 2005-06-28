@@ -308,9 +308,8 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		// would cause the model to be loaded
 		File tmpFile = new File(modelFile.getPath() + ".tmp");
 		copy(modelFile, tmpFile);
-		modelFile.delete();
 
-		AJModel.getInstance().clearMap(project);
+		AJModel.getInstance().clearMap(project, true);
 		
 		assertTrue("Failed to create temporary model file", tmpFile.exists());
 		assertTrue("Failed to delete model file", !modelFile.exists());
@@ -319,7 +318,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		assertTrue("Model should be empty after saving and clearing",
 				(allRels == null) || (allRels.size() == 0));
 
-		AJModel.getInstance().clearMap(project);
+		AJModel.getInstance().clearMap(project, true);
 
 		// copy back to model file
 		copy(tmpFile, modelFile);

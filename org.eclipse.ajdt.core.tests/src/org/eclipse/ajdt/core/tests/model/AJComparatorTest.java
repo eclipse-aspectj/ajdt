@@ -57,7 +57,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		model.clearMap(project);
+		model.clearMap(project, true);
 		deleteProject(project);
 	}
 

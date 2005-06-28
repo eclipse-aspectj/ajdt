@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig;
 
+import java.io.File;
+
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
@@ -51,7 +53,13 @@ public class BCResourceChangeListener implements IResourceChangeListener {
 			if (res.getType() == IResource.PROJECT) {
 				IProject project = (IProject) res;
 				myBCor.closeProject(project);
-				AJModel.getInstance().clearMap(project);
+				boolean delete = (event.getType() == IResourceChangeEvent.PRE_DELETE);
+				String lstFileName = AspectJPlugin.getBuildConfigurationFile(project);
+				File lstFile = new File(lstFileName);
+				if (delete && lstFile.exists()) {
+					lstFile.delete();
+				}
+				AJModel.getInstance().clearMap(project, delete);
 				IncrementalStateManager
 						.removeIncrementalStateInformationFor(AspectJPlugin
 								.getBuildConfigurationFile(project));

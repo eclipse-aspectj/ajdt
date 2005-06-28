@@ -173,9 +173,14 @@ public class AJModel {
 		}
 	}
 	
-	public void clearMap(final IProject project) {
+	/**
+	 * Clears the map and delete the model file if required
+	 * @param project
+	 * @param delete
+	 */
+	public void clearMap(final IProject project, boolean delete) {
 		AJProjectModel pm = (AJProjectModel) projectModelMap.get(project);
-		if (pm != null) {
+		if (pm != null && delete) {
 			pm.deleteModelFile();
 		}
 		projectModelMap.remove(project);
