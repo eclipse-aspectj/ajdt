@@ -23,6 +23,7 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -42,6 +43,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -116,6 +118,18 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
 		this.progressMonitor = progressMonitor;
 		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
+		String kindS = null;
+		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
+			kindS = "AUTOBUILD";  //$NON-NLS-1$
+		if (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD)
+			kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
+		if (kind == IncrementalProjectBuilder.FULL_BUILD)
+			kindS = "FULLBUILD";  //$NON-NLS-1$
+		if (kind == IncrementalProjectBuilder.CLEAN_BUILD)
+			kindS = "CLEANBUILD";  //$NON-NLS-1$
+		AJLog.log("===========================================================================================");
+		AJLog.log("Build kind = " + kindS);
+		
 		IProject project = getProject();
 		AspectJPlugin.getDefault().setCurrentProject(project);
 		buildCancelled = false;
@@ -125,6 +139,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		ICoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
 		if (coreOps.isFullBuildRequested(project)) {
 			kind = IncrementalProjectBuilder.FULL_BUILD;
+		} else if(IncrementalStateManager.retrieveStateFor(AspectJPlugin
+			.getBuildConfigurationFile(project)) == null ) {
+		    kind = IncrementalProjectBuilder.FULL_BUILD;
 		}
 
 		// must call this after checking whether a full build has been requested,
@@ -150,25 +167,25 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			copyResources(javaProject,dta);
 		}
 		if (kind != FULL_BUILD) {
-		// need to add check here for whether the classpath has changed
-		if (!coreOps.sourceFilesChanged(dta, project)){
-			AJLog.log("build: Examined delta - no source file changes for project " 
-							+ project.getName() );
-			
-			// if the source files of any projects which the current
-			// project depends on have changed, then need
-			// also to build the current project				
-			boolean continueToBuild = false;
-			for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
-				IResourceDelta delta = getDelta(requiredProjects[i]);
-				continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
-			}
-			if (!continueToBuild) {
-				postCallListeners(true);
-				return requiredProjects;						
+		    // need to add check here for whether the classpath has changed
+		    if (!coreOps.sourceFilesChanged(dta, project)){
+				AJLog.log("build: Examined delta - no source file changes for project " 
+								+ project.getName() );
+				
+				// if the source files of any projects which the current
+				// project depends on have changed, then need
+				// also to build the current project				
+				boolean continueToBuild = false;
+				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
+					IResourceDelta delta = getDelta(requiredProjects[i]);
+					continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
+				}
+				if (!continueToBuild) {
+					postCallListeners(true);
+					return requiredProjects;						
+				}
 			}
 		}
-	}
 
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
@@ -715,11 +732,23 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		// this method is used for clearing the state of a project
-		// and all the problem markers, after which an IncrementalProjectBuilder.FULL_BUILD
-		// happens (called from BuildManager). Therefore, by providing an
-		// empty implementation we still get the full build, which in our case 
-		// removes all the problem markers. When we have a state.dat file, we need
-		// to clear it here.
+	    IProject project = getProject();
+		IncrementalStateManager
+				.removeIncrementalStateInformationFor(AspectJPlugin
+						.getBuildConfigurationFile(project));
+	    
+	    removeProblemsAndTasksFor(project);
+		cleanOutputFolders(JavaCore.create(project));
+	}
+	
+	private void removeProblemsAndTasksFor(IResource resource) {
+		try {
+			if (resource != null && resource.exists()) {
+				resource.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false, IResource.DEPTH_INFINITE);
+				resource.deleteMarkers(IJavaModelMarker.TASK_MARKER, false, IResource.DEPTH_INFINITE);
+			}
+		} catch (CoreException e) {
+		}
+		AJLog.log("Removed problems and tasks for project "+resource.getName());
 	}
 }

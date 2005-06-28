@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * Mainly copied from AbstractJavaModelTests in org.eclipse.jdt.core.tests.model

@@ -4,7 +4,8 @@
    id="org.eclipse.ajdt.core.tests"
    name="AJDT Core Tests Plug-in"
    version="92.2.29"
-   provider-name="Eclipse.org">
+   provider-name="Eclipse.org"
+   class="org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin">
 
    <runtime>
       <library name="ajdtcoretests.jar">
