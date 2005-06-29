@@ -20,6 +20,7 @@
       <import plugin="org.aspectj.ajde"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.team.core" optional="true"/>
    </requires>
 
    <!-- ASPECTJRT_LIB classpath variable -->
@@ -27,6 +28,12 @@
      <classpathVariableInitializer variable="ASPECTJRT_LIB"
        class="org.eclipse.ajdt.internal.core.AspectJRTInitializer"/>
    </extension>
+
+	<!-- FIX for 75052 -->
+	<extension point="org.eclipse.team.core.fileTypes">
+   		<fileTypes extension="ajmap" type="binary"/>
+   		<fileTypes extension="aj" type="text"/>
+	</extension>
 
    <!-- Define AspectJ Builder -->
    <extension
