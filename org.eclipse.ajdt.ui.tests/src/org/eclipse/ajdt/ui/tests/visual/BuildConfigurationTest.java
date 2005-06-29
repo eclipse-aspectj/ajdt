@@ -111,7 +111,9 @@ public class BuildConfigurationTest extends VisualTestCase {
 			postKey(SWT.F10);
 			postKeyUp(SWT.SHIFT);
 			postCharacterKey('r');	
-			postCharacterKey('r');
+			if(!runningEclipse31) {
+				postCharacterKey('r');
+			}
 			postKey(SWT.ARROW_RIGHT);
 			postKey(SWT.ARROW_DOWN);
 			postCharacterKey(SWT.CR);

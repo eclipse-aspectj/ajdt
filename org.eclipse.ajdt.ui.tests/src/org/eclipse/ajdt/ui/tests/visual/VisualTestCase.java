@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
+import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -24,6 +25,9 @@ import junit.framework.TestCase;
 public abstract class VisualTestCase extends TestCase {
 	
 	protected Display display = Display.getCurrent();
+	
+	protected boolean runningEclipse31 = EclipseVersion.MINOR_VERSION == 1
+		&& EclipseVersion.MAJOR_VERSION == 3;
 
 	protected void gotoLine(int line) {
 		Event event = new Event();
