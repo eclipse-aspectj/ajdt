@@ -7,7 +7,7 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Ben Dalziel - initial version
+ *     Ben Dalziel     - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.buildconfig;
 
