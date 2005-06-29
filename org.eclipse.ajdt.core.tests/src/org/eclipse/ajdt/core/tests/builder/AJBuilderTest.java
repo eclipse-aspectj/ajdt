@@ -54,6 +54,12 @@ public class AJBuilderTest extends AJDTCoreTestCase {
         deleteProject(project);		
     }
     
+    /**
+     * Test for bug 101481 - "clean" build doesn't work
+     * and refreshing of output directory
+     * 
+     * @throws Exception
+     */
     public void testCleanBuild() throws Exception {
         assertFalse("autobuilding should be set to false",Utils.isAutobuilding());
         assertFalse("project should have no errors",testLog.containsMessage("error"));
@@ -70,9 +76,21 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertNotNull("src folder should not be null", src);
 		assertNotNull("package pack should not be null", pack);
 		assertNotNull("class c should not be null", c);
+		assertTrue("java file should exist", c.exists());
+		
+        IFolder bin = project.getFolder("bin");
+		if (!bin.exists()){
+		    bin.create(true, true, null);
+		}
+		IFolder binPack = bin.getFolder("pack");
+		if (!binPack.exists()){
+		    binPack.create(true, true, null);
+		}
+		IFile binC = binPack.getFile("C.class");
 		
 		assertTrue("bin directory should contain class file",outputDirContainsFile("C.class"));
-		
+		// testing the refresh output directory part of bug 101481
+		assertTrue("class file should exist",binC.exists());
 		
 		StringBuffer origContents = new StringBuffer("package pack; ");
 		origContents.append(System.getProperty("line.separator"));
@@ -90,13 +108,22 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		assertTrue("bin directory should contain class file",outputDirContainsFile("C.class"));
         assertFalse("should not have cleaned the output folder",testLog.containsMessage("Cleared AJDT relationship map for project bug101481"));
 		int n = testLog.numberOfEntriesForMessage("Builder: Tidied output folder, deleted 1 .class files from");
-        
+		
+		binC = binPack.getFile("C.class");
+		assertTrue("class file should exist",binC.exists());
+		
         project.build(IncrementalProjectBuilder.CLEAN_BUILD,null);
+        // testing the same steps are taken during a clean as they
+        // are in the javaBuilder part of bug 101481
         assertTrue("should have deleted 1 class file from the output dir",testLog.containsMessage("Builder: Tidied output folder, deleted 1 .class files from"));        
         assertTrue("should have removed problems and tasks for the project",testLog.containsMessage("Removed problems and tasks for project"));        
-        assertEquals("should have cleaned output folder twice now",n+1,testLog.numberOfEntriesForMessage("Builder: Tidied output folder, deleted 1 .class files from"));
-
+        assertEquals("should have cleaned output folder " + (n+1) + "times",n+1,testLog.numberOfEntriesForMessage("Builder: Tidied output folder, deleted 1 .class files from"));
         assertFalse("bin directory should not contain class file",outputDirContainsFile("C.class"));
+        
+        // testing the refresh output dir after a clean (without doing
+        // a build) part of bug 101481
+        binC = binPack.getFile("C.class");
+		assertFalse("class file should not exist",binC.exists());
     }
     
     private boolean outputDirContainsFile(String fileName) throws JavaModelException  {

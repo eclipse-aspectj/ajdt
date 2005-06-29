@@ -141,6 +141,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			kind = IncrementalProjectBuilder.FULL_BUILD;
 		} else if(IncrementalStateManager.retrieveStateFor(AspectJPlugin
 			.getBuildConfigurationFile(project)) == null ) {
+		    // bug 101481 - if there is no incremental state then
+		    // next build should be a full one.
 		    kind = IncrementalProjectBuilder.FULL_BUILD;
 		}
 
@@ -201,7 +203,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (kind == FULL_BUILD) {
 			IJavaProject ijp = JavaCore.create(project);
 			if (ijp != null)
-				cleanOutputFolders(ijp);
+				cleanOutputFolders(ijp,false);
 			else
 				AJLog.log("Unable to empty output folder on build all - why cant we find the IJavaProject?");
 			compilerMonitor.prepare(project, null/*projectFiles*/, progressMonitor);
@@ -601,7 +603,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * dereferencing. if the IPath is a 'linked folder' then the helper method
 	 * returns the dereferenced value.
 	 */
-	protected void cleanOutputFolders(IJavaProject project)
+	protected void cleanOutputFolders(IJavaProject project, boolean refresh)
 			throws CoreException {
 		// Check the project property
 		boolean deleteAll = JavaCore.CLEAN.equals(project.getOption(
@@ -610,7 +612,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (deleteAll) {
 			boolean linked = false;
 			String realOutputLocation = null;
-
+			IResource output = project.getProject();
+			
 			// Retrieve the output location: e.g. /Proj2/bin
 			IPath workspaceRelativeOutputPath = project.getOutputLocation();
 
@@ -623,6 +626,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 						.getFolder(workspaceRelativeOutputPath);
 				linked = out.isLinked();
 				realOutputLocation = out.getLocation().toOSString();
+				output = out;
 			}
 
 			File outputDir = new File(realOutputLocation);
@@ -637,6 +641,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							+ (linked ? " (Linked output folder from "
 									+ workspaceRelativeOutputPath.toOSString()
 									+ ")" : ""));
+			if (refresh) {
+                output.refreshLocal(IResource.DEPTH_INFINITE, null);
+            }
 		}
 	}
 	
@@ -742,13 +749,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-	    IProject project = getProject();
+	    // implemented as part of bug 101481
+		IProject project = getProject();
 		IncrementalStateManager
 				.removeIncrementalStateInformationFor(AspectJPlugin
 						.getBuildConfigurationFile(project));
 	    
 	    removeProblemsAndTasksFor(project);
-		cleanOutputFolders(JavaCore.create(project));
+	    // clean the output folders and do a refresh if not
+	    // automatically building (so that output dir reflects the
+	    // changes)
+	    if (AspectJPlugin.getWorkspace().getDescription().isAutoBuilding()) {
+	        cleanOutputFolders(JavaCore.create(project),false);
+        } else {
+            cleanOutputFolders(JavaCore.create(project),true);
+        }
 	}
 	
 	private void removeProblemsAndTasksFor(IResource resource) {
