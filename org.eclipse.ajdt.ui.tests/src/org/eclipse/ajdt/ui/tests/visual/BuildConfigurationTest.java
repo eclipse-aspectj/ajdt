@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.ImageDecorator;
@@ -33,6 +34,7 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IViewReference;
@@ -122,15 +124,23 @@ public class BuildConfigurationTest extends VisualTestCase {
 				}
 			}
 			assertNotNull("Console view should be open", cview);
+			String output = null;
 			IPage page = cview.getCurrentPage();
-//			Class cl = page.getClass();
-//			Method m = cl.getMethod("getConsoleViewer", new Class[0]);
-//			if(m != null) {
-//				Object o = m.invoke(page, new Object[0]);
-//				ConsoleViewer c = (C)
-//			}
-//			String output = ((ProcessConsolePage )cview.getCurrentPage()).getConsoleViewer().getDocument().get();	
-//			assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
+			Class cl = page.getClass();
+			try {
+				Method m = cl.getMethod("getConsoleViewer", new Class[0]);
+				Object o = m.invoke(page, new Object[0]);
+				TextViewer viewer = (TextViewer)o;
+				output = viewer.getDocument().get();
+			} catch (NoSuchMethodException nsme) {
+				// We are on Eclipse 3.1
+				Method m = cl.getMethod("getViewer", new Class[0]);
+				Object o = m.invoke(page, new Object[0]);
+				TextViewer viewer = (TextViewer)o;
+				output = viewer.getDocument().get();
+			}
+			assertNotNull(output);
+			assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
 		} finally {
 			Utils.deleteProject(project);
 		}
@@ -185,6 +195,10 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
+		if (runningEclipse31) {
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);			
+		}
 		postCharacterKey(SWT.CR);
 		postString("src");
 		postCharacterKey(SWT.CR);
