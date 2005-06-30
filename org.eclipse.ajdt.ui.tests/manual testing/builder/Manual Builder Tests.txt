@@ -100,3 +100,23 @@ Test for bug 101481 - classes not appearing in output folder
     without having to refresh.                (BUILD_7)
 
 				
+Test for temporary workaround for bug 46665
+-------------------------------------------
+  (this test needs to to be replaced/removed when 46665 is fixed
+   properly - it requires AspectJ changes)
+
+(1) Create a Java project with two source folders: src1 and src2
+    (and a default output "bin" folder)
+(2) Go to Properties > Java Build Path, tick "Allow output folders
+    for source folders", then edit the output folder for src1 to
+    be "src1-bin"
+(3) Create a new class under src1 and src2
+(4) Open the Navigator view and check for the appropriate class files
+    under src1-bin and bin
+(5) Right-click on the project and select convert to AspectJ project
+(6) You should see a dialog saying that separate output folders are
+    not supposed by AspectJ, and be asked to clean the separate output
+    folder                                                 (BUILD_8)
+(7) Answer Yes to the dialog, and check in the Navigator view that
+    the class file under src1-bin has been removed         (BUILD_9)
+   

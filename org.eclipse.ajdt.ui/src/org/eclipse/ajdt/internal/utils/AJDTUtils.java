@@ -21,6 +21,7 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.builder.MarkerUpdating;
@@ -153,6 +154,8 @@ public class AJDTUtils {
 	 * @throws CoreException
 	 */
 	public static void addAspectJNature(IProject project) throws CoreException {
+		checkSeparateOutputFolders(project);
+		
 		// add the AspectJ Nature
 		IProjectDescription description = project.getDescription();
 		String[] prevNatures = description.getNatureIds();
@@ -201,6 +204,41 @@ public class AJDTUtils {
 		refreshPackageExplorer();
 	}
 
+	/**
+	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
+	 * source folders so we prompt the user and clean these to prevent old class
+	 * files remaining, from before the project was converted to an AJ project.
+	 */
+	private static void checkSeparateOutputFolders(IProject project)
+			throws CoreException {
+		IJavaProject jp = JavaCore.create(project);
+		if (jp == null) {
+			return;
+		}
+		IClasspathEntry[] cpe = jp.getRawClasspath();
+		for (int i = 0; i < cpe.length; i++) {
+			if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				IPath output = cpe[i].getOutputLocation();
+				if (output != null) {
+					// not using default output, need to show dialog
+					IWorkbenchWindow window = AspectJUIPlugin.getDefault()
+							.getWorkbench().getActiveWorkbenchWindow();
+					boolean remove = MessageDialog
+							.openQuestion(
+									window.getShell(),
+									AspectJUIPlugin
+											.getResourceString("MultipleOutputDirs.title"), //$NON-NLS-1$
+									AspectJUIPlugin
+											.getFormattedResourceString(
+													"MultipleOutputDirs.message", cpe[i].getPath().lastSegment())); //$NON-NLS-1$
+					if (remove) {
+						AJBuilder.cleanSeparateOutputFolder(output);
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * (Bug 71540) Detect if user is working with MyEclipse plugin and if yes,
 	 * pop up a message box that tells to add aspectjrt.jar to the classpath of

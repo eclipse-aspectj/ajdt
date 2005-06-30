@@ -631,9 +631,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 			File outputDir = new File(realOutputLocation);
 
-			// Recurse through the
 			int numberDeleted = wipeClasses(outputDir.listFiles());
-
 			AJLog.log("Builder: Tidied output folder, deleted "
 							+ numberDeleted
 							+ " .class files from "
@@ -648,11 +646,32 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 	
 	/**
+	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
+	 * source folders, so we clean these to prevent old class files remaining,
+	 * from before the project was converted to an AJ project.
+	 */
+	public static void cleanSeparateOutputFolder(
+			IPath workspaceRelativeOutputPath) throws CoreException {
+		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
+				workspaceRelativeOutputPath);
+		String realOutputLocation = out.getLocation().toOSString();
+		File outputDir = new File(realOutputLocation);
+		int numberDeleted = wipeClasses(outputDir.listFiles());
+		out.refreshLocal(IResource.DEPTH_INFINITE, null);
+		AJLog.log("Builder: Tidied separate output folder, deleted "
+				+ numberDeleted
+				+ " .class files from "
+				+ realOutputLocation
+				+ (out.isLinked() ? " (Linked output folder from "
+						+ workspaceRelativeOutputPath.toOSString() + ")" : ""));
+	}
+	
+	/**
 	 * Recursively calling function. Given some set of files (which might be
 	 * dirs) it deletes any class files from the filesystem and then for any
 	 * directories, recursively calls itself.
 	 */
-	private int wipeClasses(File[] fs) {
+	private static int wipeClasses(File[] fs) {
 		int count = 0;
 		if (fs != null) {
 			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
