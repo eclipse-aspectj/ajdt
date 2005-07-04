@@ -34,6 +34,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJCoreTest.class));
 
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
+		
+		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));
 	
 		// model tests
 		suite.addTest(new TestSuite(AJCodeElementTest.class));

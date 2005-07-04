@@ -1,0 +1,9 @@
+#Mon Jul 04 08:51:02 BST 2005
+eclipse.preferences.version=1
+org.eclipse.ajdt.ui.aspectPath.contentKind1=BINARY
+org.eclipse.ajdt.ui.aspectPath.entryKind1=LIBRARY
+org.eclipse.ajdt.ui.aspectPath1=/CorePreferencesTestProject/hello.jar
+org.eclipse.ajdt.ui.inPath.contentKind1=BINARY
+org.eclipse.ajdt.ui.inPath.entryKind1=LIBRARY
+org.eclipse.ajdt.ui.inPath1=/CorePreferencesTestProject/test.jar
+org.eclipse.ajdt.ui.outJar=outjar.jar
