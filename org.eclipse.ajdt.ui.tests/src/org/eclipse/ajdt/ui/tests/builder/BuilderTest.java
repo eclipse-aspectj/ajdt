@@ -388,7 +388,7 @@ public class BuilderTest extends TestCase {
 	 * 
 	 * @throws CoreException
 	 */
-	public void xtestUpdateNonSrcFile() throws CoreException, IOException {
+	public void testUpdateNonSrcFile() throws CoreException, IOException {
 		// create the project and the new file
 		IProject simpleProject = Utils.createPredefinedProject("AnotherSimpleAJProject");
 
