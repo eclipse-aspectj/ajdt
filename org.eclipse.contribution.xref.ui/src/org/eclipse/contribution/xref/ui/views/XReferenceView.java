@@ -161,7 +161,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 			xraList = XRefUIUtils.getXRefAdapterForSelection(part,selection,false);
 		}
 
-		if (xraList != null) {
+		// bug 92895 - add extra check for empty list (which means the compilation
+		// unit doesn't exist anymore).
+		if (xraList != null && !xraList.isEmpty()) {
 			// if we've selected the same element then don't want the xref view
 			// to flicker, therefore we return without updating the view.
 			if (lastXRefAdapterList != null && !changeDrivenByBuild) { 
@@ -192,8 +194,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 				}
 			}
 
-			lastXRefAdapterList = xraList;
-			if (linkingEnabled && !changeDrivenByBuild) {
+			
+			if ((linkingEnabled && !changeDrivenByBuild ) || lastXRefAdapterList == null) {
 				viewer.setInput(xraList);
 			} else if (changeDrivenByBuild){
 				Object o = viewer.getInput();
@@ -201,7 +203,12 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 					viewer.setInput(o);
 				}
 			}
+			lastXRefAdapterList = xraList;
 			XRefUIUtils.setSelection(part,selection,viewer);		
+		} else {
+			// bug 92895 - want to clear the view (and all settings) if
+			// have a compilation error in current selection
+			clearView();
 		}
 	}
 	
@@ -389,18 +396,23 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
             	    if (openEditors.length == 0) {
             	    	// if there are no editors open, then want to clear the
             	        // contents of the xref view and all the records             	    	
-            	    	if (viewer != null && viewer.getContentProvider() != null) {
-            	        	viewer.setInput(null);
-            	    	}
-                        lastXRefAdapterList = null;
-                        lastLinkedSelection = null;
-                        lastLinkedWorkbenchPart = null;            
+            	    	clearView();           
             	    }
                 }
             }
         }
         
     }
+    
+    private void clearView() {
+    	if (viewer != null && viewer.getContentProvider() != null) {
+        	viewer.setInput(null);
+    	}
+        lastXRefAdapterList = null;
+        lastLinkedSelection = null;
+        lastLinkedWorkbenchPart = null;  
+    }
+    
 
     /* (non-Javadoc)
      * @see org.eclipse.ui.IPartListener#partDeactivated(org.eclipse.ui.IWorkbenchPart)
@@ -441,6 +453,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
         public void setSelection(ISelection selection) {            
         }
         
+    }
+    
+    public TreeViewer getTreeViewer() {
+    	return viewer;
     }
     
 }
