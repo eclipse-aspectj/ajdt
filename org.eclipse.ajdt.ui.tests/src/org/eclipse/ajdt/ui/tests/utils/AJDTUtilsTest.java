@@ -157,6 +157,8 @@ public class AJDTUtilsTest extends TestCase {
 		Utils.resetPluginEnvironment();
 	}
 
+	// Do not delete this test - if we ever change the way we deal with 
+	// project dependencies, then need this test
 	// We now longer change project dependencies in this way, so test removed
 //	public void testChangeProjectToClassDependencies() throws Exception {
 //		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
