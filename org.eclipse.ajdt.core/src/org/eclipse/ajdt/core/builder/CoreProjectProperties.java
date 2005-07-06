@@ -108,8 +108,8 @@ public class CoreProjectProperties implements IProjectProperties {
 					IPath path = cpes[i].getPath();
 					IResource res = project.findMember(path
 							.removeFirstSegments(1));
-					if ((res != null) && (res.getType() == IResource.FOLDER)) {
-						List l = allFiles((IFolder) res);
+					if ((res != null) && (res instanceof IContainer)) {
+						List l = allFiles((IContainer) res);
 						sourceFiles.addAll(l);
 					}
 				}

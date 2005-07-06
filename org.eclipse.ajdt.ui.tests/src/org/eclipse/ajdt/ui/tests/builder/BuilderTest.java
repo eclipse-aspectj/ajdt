@@ -21,9 +21,11 @@ import java.io.StringReader;
 
 import junit.framework.TestCase;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
+import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -728,4 +730,103 @@ public class BuilderTest extends TestCase {
 		Utils.deleteProject(simpleProject);
 	}
 
+	public void testIncrementalBuildWithSrcFolder() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = Utils.createPredefinedProject("TJP Example");
+		try {
+			assertFalse("project should have no errors", testLog
+					.containsMessage("error"));
+			
+			IFolder src = project.getFolder("src");
+			if (!src.exists()) {
+				src.create(true, true, null);
+			}
+			IFolder pack = src.getFolder("tjp");
+			if (!pack.exists()) {
+				pack.create(true, true, null);
+			}
+			IFile c = pack.getFile("Demo.java");
+			assertNotNull("src folder should not be null", src);
+			assertNotNull("package tjp should not be null", pack);
+			assertNotNull("class Demo should not be null", c);
+			assertTrue("java file should exist", c.exists());
+
+			IFolder bin = project.getFolder("bin");
+			if (!bin.exists()) {
+				bin.create(true, true, null);
+			}
+			IFolder binPack = bin.getFolder("tjp");
+			if (!binPack.exists()) {
+				binPack.create(true, true, null);
+			}
+			IFile binC = binPack.getFile("Demo.class");
+			assertTrue("class file should exist", binC.exists());
+						
+			String rep = testLog.getMostRecentMatchingMessage("AspectJ reports build successful");
+			System.out.println("rep: "+rep);
+			
+			// add a comment to the class
+			StringReader sr = new StringReader("/* blah blah blah */");
+			c.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+
+			Utils.waitForJobsToComplete();
+			
+			assertTrue("Successful build should have occurred", testLog
+					.containsMessage("AspectJ reports build successful"));
+			
+			rep = testLog.getMostRecentMatchingMessage("AspectJ reports build successful");
+			assertNotNull("Successful build should have been reported",rep);
+			
+			assertTrue("The build should have been an incremental one",wasIncrementalBuild(rep));
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			Utils.deleteProject(project);
+		}
+	}
+	
+	public void testIncrementalBuildWithoutSrcFolder() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = Utils.createPredefinedProject("bug102652");
+		try {
+			assertFalse("project should have no errors", testLog
+					.containsMessage("error"));
+			
+			IFolder pack = project.getFolder("tjp");
+			if (!pack.exists()) {
+				pack.create(true, true, null);
+			}
+			IFile c = pack.getFile("Demo.java");
+			assertNotNull("package tjp should not be null", pack);
+			assertNotNull("class Demo should not be null", c);
+			assertTrue("java file should exist", c.exists());
+
+			IFile binC = pack.getFile("Demo.class");
+			assertTrue("class file should exist", binC.exists());
+			
+			// add a comment to the class
+			StringReader sr = new StringReader("/* blah blah blah */");
+			c.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+
+			Utils.waitForJobsToComplete();
+
+			assertFalse("Source file changes should have been detected", testLog
+					.containsMessage("no source file changes for project bug102652"));
+
+			assertTrue("Successful build should have occurred", testLog
+					.containsMessage("AspectJ reports build successful"));
+			
+			String rep = testLog.getMostRecentMatchingMessage("AspectJ reports build successful");
+			assertNotNull("Successful build should have been reported",rep);
+			assertTrue("The build should have been an incremental one",wasIncrementalBuild(rep));
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			Utils.deleteProject(project);
+		}
+	}
+		
+	private boolean wasIncrementalBuild(String msg) {
+		return msg.toLowerCase().indexOf("was: incremental") != -1;
+	}
 }

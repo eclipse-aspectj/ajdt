@@ -43,7 +43,7 @@ public class CoreBuildOptions implements BuildOptionsAdapter {
 	}
 
 	public boolean getIncrementalMode() {
-		return false;
+		return true;
 	}
 
 	public boolean getLenientSpecMode() {

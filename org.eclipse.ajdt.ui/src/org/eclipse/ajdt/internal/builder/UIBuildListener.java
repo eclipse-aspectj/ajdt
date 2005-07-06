@@ -64,27 +64,6 @@ public class UIBuildListener implements IAJBuildListener {
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
 	 */
 	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
-		String kindS = null;
-		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
-			kindS = "AUTOBUILD";  //$NON-NLS-1$
-		if (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD)
-			kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
-		if (kind == IncrementalProjectBuilder.FULL_BUILD)
-			kindS = "FULLBUILD";  //$NON-NLS-1$
-
-		String mode = "";  //$NON-NLS-1$
-		if (AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getIncrementalMode() && kind!=IncrementalProjectBuilder.FULL_BUILD)
-			mode = "Incremental AspectJ compilation";
-		else
-			mode = "Full AspectJ compilation";
-		AJLog.log("Project="
-				+ project.getName() + "         kind of build requested =" + mode);
-
-		// if using incremental compiilation, then attempt the incremental model repairs.
-		boolean inc = AspectJPreferences.getIncrementalOption(project);
-		AsmManager.attemptIncrementalModelRepairs = inc;		
-
 		ProjectProperties props = AspectJUIPlugin.getDefault().getAjdtProjectProperties();
 		ensureBuildConfigFileIsValid(props, project);
 		

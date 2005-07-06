@@ -7,7 +7,7 @@
  * Contributors: IBM Corporation - initial API and implementation 
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
-package org.eclipse.ajdt.core.tests.testutils;
+package org.eclipse.ajdt.ui.tests.testutils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,7 +26,7 @@ public class TestLogger implements IAJLogger {
      * @see org.eclipse.ajdt.core.IAJLogger#log(java.lang.String)
      */
     public void log(String msg) {
-         if (log == null) {
+        if (log == null) {
             log = new ArrayList();
         }
         log.add(msg);

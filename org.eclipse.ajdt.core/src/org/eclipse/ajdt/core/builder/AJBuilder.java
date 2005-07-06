@@ -24,6 +24,7 @@ import org.aspectj.ajde.BuildManager;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
+import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -152,6 +153,32 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// the markers may not be cleared properly.
 		preCallListeners(kind, project, requiredProjects);		
 		
+		buildManager = Ajde.getDefault().getBuildManager();
+		buildManager.setBuildModelMode(true);
+
+//		String kindS = null;
+//		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
+//			kindS = "AUTOBUILD";  //$NON-NLS-1$
+//		if (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD)
+//			kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
+//		if (kind == IncrementalProjectBuilder.FULL_BUILD)
+//			kindS = "FULLBUILD";  //$NON-NLS-1$
+
+		String mode = "";  //$NON-NLS-1$
+		boolean incremental = buildManager.getBuildOptions().getIncrementalMode();
+		if (incremental && kind!=IncrementalProjectBuilder.FULL_BUILD) {
+			mode = "Incremental AspectJ compilation";
+		} else {
+			mode = "Full AspectJ compilation";
+		}
+		AJLog.log("Project="
+				+ project.getName() + "         kind of build requested =" + mode);
+
+		// if using incremental compiilation, then attempt the incremental model repairs.
+		AsmManager.attemptIncrementalModelRepairs = incremental;		
+
+		
+		
 		// workaround for bug 73435
 		IProject[] dependingProjects = getDependingProjects(project);
 		JavaProject javaProject = (JavaProject)JavaCore.create(project);
@@ -189,9 +216,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		}
 
-		buildManager = Ajde.getDefault().getBuildManager();
-		buildManager.setBuildModelMode(true);
-		
 		IAJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
 		//TODO!!! For auto builds lets not pass the progress monitor
 		// through - something 'funny' happens and although there 

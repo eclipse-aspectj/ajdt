@@ -67,7 +67,11 @@ public class UICoreOperations implements ICoreOperations {
 			}
 			
 			try {
-				if (sourceFilesChanged(delta, includedFileNames,ijp.getOutputLocation())) {
+				IPath outputPath = ijp.getOutputLocation();
+				if (project.getFullPath().equals(outputPath)) {
+					outputPath = null;
+				}
+				if (sourceFilesChanged(delta, includedFileNames,outputPath)) {
 					AJLog.log("build: Examined delta - source file changes in "
 							+ "required project " + project.getName() );
 					return true;
@@ -84,7 +88,7 @@ public class UICoreOperations implements ICoreOperations {
 		
 		String resname = dta.getFullPath().toString();
 
-		if ( outputLocation.equals(dta.getFullPath()) ) {
+		if (outputLocation!=null && outputLocation.equals(dta.getFullPath()) ) {
 			return false;
 		}
 		
