@@ -56,9 +56,9 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     public void testGetProjectAspectPath() {
     	String[] aspectPath = AspectJCorePreferences.getProjectAspectPath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length);
-    	assertEquals("hello.jar should be on the aspectpath","/CorePreferencesTestProject/hello.jar;",aspectPath[0]);
-    	assertEquals("Content kind should be BINARY","2;",aspectPath[1]);
-    	assertEquals("Entry kind should be LIBRARY","1;",aspectPath[2]);   	
+    	assertTrue("hello.jar should be on the aspectpath",aspectPath[0].startsWith("/CorePreferencesTestProject/hello.jar"));
+    	assertTrue("Content kind should be BINARY",aspectPath[1].startsWith("2"));
+    	assertTrue("Entry kind should be LIBRARY", aspectPath[2].startsWith("1"));
     }
 
     public void testSetProjectAspectPath() {
@@ -71,32 +71,33 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     	AspectJCorePreferences.setProjectAspectPath(project,"/CorePreferencesTestProject/hello.jar","2","1");
     	aspectPath = AspectJCorePreferences.getProjectAspectPath(project);   	   	
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length);
-    	assertEquals("hello.jar should be on the aspectpath","/CorePreferencesTestProject/hello.jar;",aspectPath[0]);
-    	assertEquals("Content kind should be BINARY","2;",aspectPath[1]);
-    	assertEquals("Entry kind should be LIBRARY","1;",aspectPath[2]);   	
+    	assertTrue("hello.jar should be on the aspectpath",aspectPath[0].startsWith("/CorePreferencesTestProject/hello.jar"));
+    	assertTrue("Content kind should be BINARY",aspectPath[1].startsWith("2"));
+    	assertTrue("Entry kind should be LIBRARY", aspectPath[2].startsWith("1"));
     }
 
     public void testGetProjectInPath() {
     	String[] inPath = AspectJCorePreferences.getProjectInPath(project);
-    	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);
-    	assertEquals("test.jar should be on the aspectpath","/CorePreferencesTestProject/test.jar;",inPath[0]);
-    	assertEquals("Content kind should be BINARY","2;",inPath[1]);
-    	assertEquals("Entry kind should be LIBRARY","1;",inPath[2]);     
+    	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);  
+    	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar"));
+    	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2"));
+    	assertTrue("Entry kind should be LIBRARY", inPath[2].startsWith("1"));
+
     }
 
     public void testSetProjectInPath() {
     	AspectJCorePreferences.setProjectInPath(project,"","","");
     	String[] inPath = AspectJCorePreferences.getProjectInPath(project);
-    	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);
+    	assertEquals("there should be 3 entries on the inpath",3,inPath.length);
     	for (int i = 0; i < inPath.length; i++) {
-			assertEquals("should be empty string on aspectpath","",inPath[i]);
+			assertEquals("should be empty string on inpath","",inPath[i]);
 		}
     	AspectJCorePreferences.setProjectInPath(project,"/CorePreferencesTestProject/test.jar","2","1");
     	inPath = AspectJCorePreferences.getProjectInPath(project);   	   	
-    	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);
-    	assertEquals("test.jar should be on the aspectpath","/CorePreferencesTestProject/test.jar;",inPath[0]);
-    	assertEquals("Content kind should be BINARY","2;",inPath[1]);
-    	assertEquals("Entry kind should be LIBRARY","1;",inPath[2]);  
+    	assertEquals("there should be 3 entries on the inpath",3,inPath.length);
+    	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar"));
+    	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2"));
+    	assertTrue("Entry kind should be LIBRARY", inPath[2].startsWith("1")); 
     }
 
 }
