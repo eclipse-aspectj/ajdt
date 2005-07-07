@@ -41,18 +41,21 @@ public class DoubleClickAction extends Action {
 		if (selection instanceof IStructuredSelection) {
 			Object sel =
 				((IStructuredSelection) selection).getFirstElement();
-			Object data = ((TreeObject) sel).getData();
-			if (data != null) {
-			    if (data instanceof IXReferenceNode) {
-			        XRefUIUtils.revealInEditor(((IXReferenceNode)data).getJavaElement());  
-			    } else if (data instanceof IJavaElement) {
-			    	XRefUIUtils.revealInEditor((IJavaElement) data);
-				} else if (data instanceof IDeferredXReference) {
-					XRefUIUtils.evaluateXReferences((IDeferredXReference) data, viewer, shell);
-				} else if (data instanceof IResource) {
-					XRefUIUtils.revealInEditor((IResource) data);
+			if (sel instanceof TreeObject) {
+				Object data = ((TreeObject) sel).getData();
+				if (data != null) {
+				    if (data instanceof IXReferenceNode) {
+				        XRefUIUtils.revealInEditor(((IXReferenceNode)data).getJavaElement());  
+				    } else if (data instanceof IJavaElement) {
+				    	XRefUIUtils.revealInEditor((IJavaElement) data);
+					} else if (data instanceof IDeferredXReference) {
+						XRefUIUtils.evaluateXReferences((IDeferredXReference) data, viewer, shell);
+					} else if (data instanceof IResource) {
+						XRefUIUtils.revealInEditor((IResource) data);
+					}
 				}
 			}
+			
 		}
 	}
 	

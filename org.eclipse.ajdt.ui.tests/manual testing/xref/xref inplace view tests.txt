@@ -4,15 +4,23 @@ Setup:
 - activate the debug.ajproperties
 
 
-Test1 - pressing escape removes the view
+Test1 - bug 102865 - NPE
 ----------------------------------------
 
+- have the error log view visible
 - open spacewar/debug.aj in the editor
-- position the cursor somewhere in the editor
-- press Ctrl+Alt+X and the inplace view appears
-					(XREF_INPLACE_1)
-- press Esc and the inplace view should disappear
+- position the cursor below "aspect Debug"
+- press Ctrl+Alt+X and the inplace view appears				
+- type 'f' into the text filter box at the top
+- there should be nothing matching this and the view
+  shouldn't contain anything
+  					(XREF_INPLACE_1)
+- press the "tab" key
+- press "return"  					
+- the view should stay up and there should be no new
+  errors in the error log
 					(XREF_INPLACE_2)
+- to close the view, press "esc".					
 
 
 Test2 - can move, resize etc. and remembers the settings
