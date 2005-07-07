@@ -9,7 +9,6 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
