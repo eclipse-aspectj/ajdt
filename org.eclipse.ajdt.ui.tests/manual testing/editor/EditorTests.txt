@@ -12,9 +12,53 @@ e.	Do the same check in a .java file (when opened in the AspectJ Editor)
     NB ignore red squiggles as this is a known limitation
 
 
-3. Editor Ruler context menu (EDITOR_2)
+2. Editor Ruler context menu (EDITOR_2)
 
 a. Open a file with the AspectJ editor, and open another beside it with the java editor.
 b. Right click on the ruler in both files and ensure that the menus match. 
 c. Test all of the actions in the AspectJ editor to ensure they perform as expected.
 
+3. Bug 80239 - Outline view in AspectJ Editor doesn't remember size
+
+- install the spacewar example
+- open spacewar/debug.aj in the editor
+- position the cursor somewhere in the editor
+- press Ctrl+O and the inplace outline view appears
+- the view contains the aspectj icons for the different
+  entries
+  					(EDITOR_3)
+- click the blue arrow in the top right hand corner of the
+  inplace view
+- ensure that "remember size and location" is ticked
+- click move and move the inplace view (test is that
+  you can move the inplace view)
+					(EDITOR_4)
+- click resize and resize the inplace view (test is that
+  you can resize the inplace view)
+					(EDITOR_5)
+- shutdown the inplace view (via pressing escape or clicking
+  the editor outside of the view)
+- press Ctrl+O and the inplace view appears
+- the view should have the size and position that you set 
+  in tests 4 and 5 (provided you didn't set it to be too small)
+					(EDITOR_6)
+- click the blue arrow in the top right hand corner of the
+  inplace view
+- uncheck "remember size and loation"
+- shut down the inplace view
+- bring up the inplace view
+- the view should have the default size and position and
+  not the ones you set in tests 4 and 5
+					(EDITOR_7) 	
+- click the blue arrow in the top right hand corner of the
+  inplace view
+- ensure that "remember size and location" is ticked
+- click move and move the inplace view
+- click resize and resize the inplace view (make it larger rather
+  than smaller to ensure you don't hit the minimum size)
+- close the inplace view
+- open Bullet.java in the Java Editor
+- open the inplace outline view 
+- the view should be in the same position and have the same
+  size as you have just set.
+					(EDITOR_8) 						

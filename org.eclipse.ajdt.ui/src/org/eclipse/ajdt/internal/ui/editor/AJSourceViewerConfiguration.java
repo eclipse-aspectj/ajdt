@@ -6,11 +6,13 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
@@ -134,7 +136,26 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_STRING);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_CHARACTER);
 		presenter.setSizeConstraints(20, 20, true, false);
+		// bug 80239 - the following line was missing
+		presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
 		return presenter;
+	}
+	
+	
+	// copied from superclass for fix to bug 80239
+	/**
+	 * Returns the settings for the given section.
+	 *
+	 * @param sectionName the section name
+	 * @return the settings
+	 * @since 3.0
+	 */
+	private IDialogSettings getSettings(String sectionName) {
+		IDialogSettings settings= JavaPlugin.getDefault().getDialogSettings().getSection(sectionName);
+		if (settings == null)
+			settings= JavaPlugin.getDefault().getDialogSettings().addNewSection(sectionName);
+
+		return settings;
 	}
 
 }
