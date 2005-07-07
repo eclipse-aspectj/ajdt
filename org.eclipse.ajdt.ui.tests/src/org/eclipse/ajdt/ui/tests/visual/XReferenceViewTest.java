@@ -45,9 +45,9 @@ public class XReferenceViewTest extends VisualTestCase {
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
-		IResource res = project.findMember("src" + File.separator + "pack" + File.separator + "A.aj");
+		IResource res = project.findMember("src/pack/A.aj");
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.j file not found.");
+			fail("src/pack/A.aj file not found.");
 		} 
 		IFile ajFile = (IFile)res;
 

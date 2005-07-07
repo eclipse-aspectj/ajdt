@@ -30,7 +30,8 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		
 		// xref view tests
-		suite.addTest(new TestSuite(XReferenceViewTest.class));		
+		suite.addTest(new TestSuite(XReferenceViewTest.class));
+		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));	
 
 		return suite;
 	}
