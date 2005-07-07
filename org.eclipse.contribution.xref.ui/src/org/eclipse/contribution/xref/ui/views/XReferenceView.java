@@ -17,7 +17,6 @@ import java.util.List;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.actions.CollapseAllAction;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
-import org.eclipse.contribution.xref.internal.ui.actions.NavigationHistoryActionGroup;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileAction;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
@@ -72,7 +71,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 	private List /*IXReferenceAdapter*/ lastXRefAdapterList;
 	private ISelection lastSelection, lastLinkedSelection;
 	private IWorkbenchPart lastWorkbenchPart, lastLinkedWorkbenchPart;
-	private NavigationHistoryActionGroup navigationHistoryGroup;
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
 
@@ -101,7 +99,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 	public void createPartControl(Composite parent) {
 		viewer =
 			new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		navigationHistoryGroup = new NavigationHistoryActionGroup(viewer);
 		contentProvider = new XReferenceContentProvider();
 		viewer.setContentProvider(contentProvider);
 		viewer.setLabelProvider(new XReferenceLabelProvider());
@@ -290,10 +287,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 			XRefUIUtils.setSelection(part,sel,viewer);
 		}		
 	}
-
-	public NavigationHistoryActionGroup getNavigationHistoryActionGroup() {
-		return navigationHistoryGroup;
-	}
 	
 	public void collapseAll() {
 		viewer.collapseAll();
@@ -339,7 +332,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
 	}
 	
 	private void fillLocalToolBar(IToolBarManager manager) {
-		navigationHistoryGroup.addNavigationActions(manager);
 		manager.add(new Separator());
 		manager.add(collapseAllAction);
 		manager.add(toggleLinkingAction);

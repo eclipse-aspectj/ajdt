@@ -211,3 +211,11 @@ Test for clicking around Package Explorer
   i.e. it should not freeze up.
   
   							(XREF_VIEW_30)	
+  							
+Test for bug 103001
+-------------------
+
+- open the cross references view
+- check that there are no "go back" and "go forward" buttons
+  on the taskbar
+  							(XREF_VIEW_31)  							

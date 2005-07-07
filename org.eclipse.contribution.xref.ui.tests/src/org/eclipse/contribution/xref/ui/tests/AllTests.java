@@ -11,11 +11,10 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.ui.tests;
 
-import org.eclipse.contribution.xref.ui.tests.views.NavigationHistoryManagerTest;
-import org.eclipse.contribution.xref.ui.tests.views.XReferenceViewTest;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
+
+import org.eclipse.contribution.xref.ui.tests.views.XReferenceViewTest;
 
 /**
  * @author hawkinsh
@@ -28,7 +27,6 @@ public class AllTests {
 			new TestSuite("Test for org.eclipse.contribution.xref.ui");
 		//$JUnit-BEGIN$
 		suite.addTestSuite(XReferenceViewTest.class);
-		suite.addTestSuite(NavigationHistoryManagerTest.class);
 		//$JUnit-END$
 		return suite;
 	}
