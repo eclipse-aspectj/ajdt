@@ -75,6 +75,8 @@ import org.eclipse.ui.keys.SWTKeySupport;
 // to allow use of a decorating label provider which will make use of our registered
 // decorator - so that we get the right icons in the in-place outline view.
 // not needed if/when eclipse bug 79489 is fixed
+// Note also that changes have been made to enable us to test this 
+// programatically
 // Changes marked with // AspectJ Change
 /**
  * Show outline in light-weight control.
@@ -642,6 +644,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 */
 	public AJOutlineInformationControl(Shell parent, int shellStyle, int treeStyle, String commandId) {
 		super(parent, shellStyle, treeStyle, commandId, true);
+		// AspectJ Change begin
+		// adding this for testing purposes (bug 80239)
+		infoControl = this;
+		// AspectJ Change end	
 	}
 
 	/**
@@ -657,6 +663,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 * {@inheritDoc}
 	 */
 	protected TreeViewer createTreeViewer(Composite parent, int style) {
+		// AspectJ Change begin
+		// adding this for testing purposes (bug 80239)
+		testParentComp = parent;
+		// AspectJ Change end
 		Tree tree= new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
 		tree.setLayoutData(new GridData(GridData.FILL_BOTH));
 	
@@ -814,4 +824,21 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		
 		return editor.getEditorSite().getActionBars().getStatusLineManager().getProgressMonitor();			
 	}
+	
+	// AspectJ Change begin
+	// adding this for testing purposes (bug 80239)
+	private static AJOutlineInformationControl infoControl;
+	private Composite testParentComp;
+	
+	public static AJOutlineInformationControl getInfoControl() {
+		return infoControl;
+	}
+	
+	public Shell getShell() {
+		if (testParentComp != null && testParentComp.getParent() != null) {
+			return testParentComp.getParent().getShell();
+		} 
+		return null;
+	}
+	// AspectJ Change end
 }

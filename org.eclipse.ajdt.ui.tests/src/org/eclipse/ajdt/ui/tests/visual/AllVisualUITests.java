@@ -33,6 +33,9 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(XReferenceViewTest.class));
 		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));	
 
+		// AspectJ Outline view tests
+		suite.addTest(new TestSuite(AJInplaceOutlineTest.class));
+		
 		return suite;
 	}
 }
