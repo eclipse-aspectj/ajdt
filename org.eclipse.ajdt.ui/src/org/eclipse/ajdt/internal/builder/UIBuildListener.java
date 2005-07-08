@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
-import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
