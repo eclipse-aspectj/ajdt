@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jdt.core.IJavaElement;
+
 /**
  * Compares two structure models
  */
@@ -45,10 +47,10 @@ public class ModelComparison {
 		for (Iterator iter = fromRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
 			if (!removeMatchingRel(toRels, rel)) {
-				String sourceName = fromModel.getJavaElementLinkName(rel
-						.getSource());
-				String targetName = fromModel.getJavaElementLinkName(rel
-						.getTarget());
+				//String sourceName = fromModel.getJavaElementLinkName(rel
+				//		.getSource());
+				//String targetName = fromModel.getJavaElementLinkName(rel
+				//		.getTarget());
 				//System.out.println("---"+sourceName+"
 				// "+rel.getRelationship().getDisplayName()
 				//		+" "+targetName);
@@ -60,8 +62,8 @@ public class ModelComparison {
 		//System.out.println("to model:");
 		for (Iterator iter = toRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
-			String sourceName = toModel.getJavaElementLinkName(rel.getSource());
-			String targetName = toModel.getJavaElementLinkName(rel.getTarget());
+			//String sourceName = toModel.getJavaElementLinkName(rel.getSource());
+			//String targetName = toModel.getJavaElementLinkName(rel.getTarget());
 			//System.out.println("+++"+sourceName+"
 			// "+rel.getRelationship().getDisplayName()
 			//		+" "+targetName);
@@ -71,12 +73,16 @@ public class ModelComparison {
 		return new List[] { addedList, removedList };
 	}
 
+	private static boolean matchJavaElements(IJavaElement je1, IJavaElement je2) {
+		return je1.getHandleIdentifier().equals(je2.getHandleIdentifier());
+	}
+	
 	private static boolean removeMatchingRel(List list, AJRelationship match) {
 		for (Iterator iter = list.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
 			if (rel.getRelationship().equals(match.getRelationship())
-					&& (rel.getSource().equals(match.getSource()))
-					&& (rel.getTarget().equals(match.getTarget()))) {
+					&& matchJavaElements(rel.getSource(), match.getSource())
+					&& matchJavaElements(rel.getTarget(), match.getTarget())) {
 				list.remove(rel);
 				return true;
 			}
