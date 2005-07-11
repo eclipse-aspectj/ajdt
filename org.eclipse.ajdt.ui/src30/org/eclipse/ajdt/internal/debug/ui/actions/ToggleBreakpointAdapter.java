@@ -17,10 +17,10 @@ import java.util.List;
 import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -123,7 +123,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 					}
 					qualifiedName += res.getName().substring(0, res.getName().lastIndexOf('.'));
 					
-					AJDTEventTrace.generalEvent("creating breakpoint in " + qualifiedName);
+					AJLog.log("creating breakpoint in " + qualifiedName);
 					JDIDebugModel.createLineBreakpoint(getResource(editor),
 							qualifiedName, lineNumber, -1, -1, 0, true,
 							new HashMap(10));

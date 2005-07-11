@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.launching;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -106,7 +106,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 					.createClasspathModel(configuration);
 			updateClassPathWithAspectPath(configuration);
 		} catch (CoreException e) {
-			AJDTEventTrace.generalEvent(e.getMessage());
+			AJLog.log(e.getMessage());
 		}
 
 	}
@@ -188,12 +188,12 @@ public class AJClasspathTab extends JavaClasspathTab {
 							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 							mementos);
 				} catch (CoreException e) {
-					AJDTEventTrace.generalEvent(e.getMessage());
+					AJLog.log(e.getMessage());
 				}
 				wc.doSave();
 			}
 		} catch (CoreException e1) {
-			AJDTEventTrace.generalEvent(e1.getMessage());
+			AJLog.log(e1.getMessage());
 		}
 	}
 
@@ -209,7 +209,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 					IJavaLaunchConfigurationConstants.ATTR_DEFAULT_CLASSPATH,
 					true);
 		} catch (CoreException e) {
-			AJDTEventTrace.generalEvent(e.getMessage());
+			AJLog.log(e.getMessage());
 		}
 
 		if (configuration == getLaunchConfiguration()) {
@@ -269,7 +269,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 							mementos);
 				} catch (CoreException e) {
-					AJDTEventTrace.generalEvent(e.getMessage());
+					AJLog.log(e.getMessage());
 				}
 			}
 		}
