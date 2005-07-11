@@ -15,13 +15,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -366,7 +366,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 			}
 
-			AJDTEventTrace.editorOpened(fInput.getFile());
+			AJLog.log("Editor opened on " + fInput.getFile().getName());
 			// Ensure any advice markers are created since they are not
 			// persisted.
 			updateActiveConfig(fInput);
@@ -397,21 +397,21 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IProject project = fInput.getFile().getProject();
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
-			AJDTEventTrace.buildConfigSelected( configFile, project );
+			AJLog.log("Configuration file " + configFile + " selected for " + project.getName());
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
 		}				
 	}
 
 
 	public void dispose() {
-		AJDTEventTrace.generalEvent("Disposing editor for:" + getTitle());
+		AJLog.log("Disposing editor for:" + getTitle());
 		IEditorInput input = getEditorInput();
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;			
 			// Fix for bug 79633 - editor buffer is not refreshed
 			JavaPlugin.getDefault().getWorkingCopyManager().disconnect(input);
 			
-			AJDTEventTrace.editorClosed(fInput.getFile());
+			AJLog.log("Editor closed - " + fInput.getFile().getName());
 			synchronized(activeEditorList) {
 				activeEditorList.remove(this);
 			}

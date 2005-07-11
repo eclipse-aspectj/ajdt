@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -86,7 +86,7 @@ public class LaunchConfigurationManagementUtils {
 				updateConfigurationClasspath(configuration, updatedEntries);
 			}
 		} catch (CoreException cEx) {
-			AJDTEventTrace.generalEvent(cEx.getMessage());
+			AJLog.log(cEx.getMessage());
 		}
 
 	}
@@ -117,11 +117,11 @@ public class LaunchConfigurationManagementUtils {
 						IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 						mementos);
 			} catch (CoreException e) {
-				AJDTEventTrace.generalEvent(e.getMessage());
+				AJLog.log(e.getMessage());
 			}
 			wc.doSave();
 		} catch (CoreException e1) {
-			AJDTEventTrace.generalEvent(e1.getMessage());
+			AJLog.log(e1.getMessage());
 		}
 	}
 
@@ -148,7 +148,7 @@ public class LaunchConfigurationManagementUtils {
 				}
 			}
 		} catch (CoreException cEx) {
-			AJDTEventTrace.generalEvent(cEx.getMessage());
+			AJLog.log(cEx.getMessage());
 		}
 		return candidateConfigs;
 	}

@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.AJBuilder;
@@ -719,7 +720,7 @@ public class AJDTUtils {
 							);
 					tempCP.add(ajrtCP);
 					changed = true;
-					AJDTEventTrace.generalEvent("In project "
+					AJLog.log("In project "
 							+ current.getName() + " - replacing "
 							+ originalCP[i].getPath() + " with "
 							+ ajrtCP.getPath());

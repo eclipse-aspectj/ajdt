@@ -11,11 +11,11 @@ Sian January - updated for new style build configurations
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -160,7 +160,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		} catch (PartInitException e) {
 			return false;
 		} 
-		AJDTEventTrace.newConfigFileCreated( newFile );
+		AJLog.log("New config file created: " + newFile.getName());
 		return true;
 	}
 	

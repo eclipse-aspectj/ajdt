@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.Build;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.BuildEntry;
@@ -26,7 +27,6 @@ import org.eclipse.ajdt.internal.buildconfig.editor.model.BuildModel;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuild;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuildEntry;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuildModel;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -192,7 +192,7 @@ public class BuildProperties {
 	private void initBuild(boolean forceInit) {
 		if (build == null || forceInit) {
 			BuildEditor be = new BuildEditor();
-			AJDTEventTrace.buildConfigRead(myPropertiesFile);
+			AJLog.log("Build configuration file read: " + myPropertiesFile.getName());
 			be.monitoredFileAdded(myPropertiesFile);
 			IBaseModel ibm = be.getContextManager().findContext(
 					myPropertiesFile).getModel();
@@ -274,7 +274,7 @@ public class BuildProperties {
 	}
 
 	public void writeFile() {
-		AJDTEventTrace.buildConfigWrite(myPropertiesFile);
+		AJLog.log("Build configuration file written: " + myPropertiesFile.getName());
 		IBuildEntry[] entries = build.getBuildEntries();
 		final StringBuffer buff = new StringBuffer();
 		for (int i = 0; i < entries.length; i++) {
@@ -298,7 +298,7 @@ public class BuildProperties {
 			} catch (CoreException e) {
 			}
 		} else {
-			AJDTEventTrace.generalEvent("BuildProperties: resource tree locked");
+			AJLog.log("BuildProperties: resource tree locked");
 		}
 	}
 

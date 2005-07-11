@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ui.internal.dialogs.PropertyPageContributorManager;
 import org.eclipse.ui.internal.dialogs.RegistryPageContributor;
 
@@ -65,12 +65,10 @@ public class PropertyPageManager {
 			}
 			
 			if (afterCount != (beforeCount - 2)) {
-				AJDTEventTrace
-						.generalEvent("Failed to unregister Java Build Path property pages");
+				AJLog.log("Failed to unregister Java Build Path property pages");
 			}
 			else {
-				AJDTEventTrace
-						.generalEvent("Successfully unregistered Java Build Path property pages");
+				AJLog.log("Successfully unregistered Java Build Path property pages");
 			}
 			
 			jdtPropertyPageActive = false;

@@ -16,7 +16,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -236,12 +236,12 @@ public class AJClasspathTab extends JavaClasspathTab {
 							IJavaLaunchConfigurationConstants.ATTR_CLASSPATH,
 							mementos);
 				} catch (CoreException e) {
-					AJDTEventTrace.generalEvent(e.getMessage());
+					AJLog.log(e.getMessage());
 				}
 				wc.doSave();
 			}
 		} catch (CoreException e1) {
-			AJDTEventTrace.generalEvent(e1.getMessage());
+			AJLog.log(e1.getMessage());
 		}
 	}
 

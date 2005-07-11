@@ -21,6 +21,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
@@ -331,7 +332,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		String cfg = AspectJPlugin.getBuildConfigurationFile(project);
 		Ajde.getDefault().getConfigurationManager().setActiveConfigFile(cfg);
-		AJDTEventTrace.buildConfigSelected(cfg, project);
+		AJLog.log("Configuration file " + cfg + " selected for " + project.getName());
 	}
 
 	public static void setBuildConfigurationFile(IProject project,
@@ -386,7 +387,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
 		if (previousAjdeVersion == null
 				|| !currentAjdeVersion.equals(previousAjdeVersion)) {
-			AJDTEventTrace.generalEvent("New version of AJDE detected (now:"
+			AJLog.log("New version of AJDE detected (now:"
 					+ currentAjdeVersion
 					+ ") - checking aspectjrt.jar for each project.");
 
@@ -442,7 +443,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				TemplatePersistenceData[] templates = trw.read(
 						loc.openStream(), null);
 				if ((templates == null) || (templates.length == 0)) {
-					AJDTEventTrace.generalEvent(AspectJUIPlugin
+					AJLog.log(AspectJUIPlugin
 							.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
 				} else {
 					for (int i = 0; i < templates.length; i++) {
@@ -451,7 +452,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 					codeTemplates.save();
 				}
 			} catch (IOException fnf) {
-				AJDTEventTrace.generalEvent(AspectJUIPlugin
+				AJLog.log(AspectJUIPlugin
 						.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
 			}
 		}

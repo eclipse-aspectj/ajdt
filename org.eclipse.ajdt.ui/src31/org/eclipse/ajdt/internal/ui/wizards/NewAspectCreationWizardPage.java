@@ -16,8 +16,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -1089,7 +1089,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		BasicNewResourceWizard.selectAndReveal(newFile, workbench
 				.getActiveWorkbenchWindow());
-		AJDTEventTrace.newAspectCreated(newFile);
+		AJLog.log("New aspect file created: " + newFile.getName());
 
 		return true;
 	}
@@ -1201,7 +1201,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				manager.disconnect(input);
 			}
 
-			AJDTEventTrace.newAspectCreated(enclosingFile);
+			AJLog.log("New aspect file created: " + enclosingFile.getName());
 		} catch (CoreException e) {
 		}
 

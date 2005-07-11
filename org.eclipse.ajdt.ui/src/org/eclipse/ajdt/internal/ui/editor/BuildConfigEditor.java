@@ -20,10 +20,10 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.ui.BuildConfigModel;
 import org.aspectj.ajde.ui.BuildConfigNode;
 import org.aspectj.bridge.IMessage;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
@@ -197,7 +197,7 @@ public class BuildConfigEditor
 		buildModel( fileInput );
 		CompilerTaskListManager.showOutstandingProblems( );
 		
-		AJDTEventTrace.editorOpened( fileInput.getFile() );
+		AJLog.log("Editor opened on " + fileInput.getFile().getName());
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class BuildConfigEditor
 
 
 	public void dispose( ) {
-		AJDTEventTrace.editorClosed( fileInput.getFile() );
+		AJLog.log("Editor closed - " + fileInput.getFile().getName());
 		super.dispose();	
 	}
 	

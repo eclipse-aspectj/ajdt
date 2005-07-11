@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
@@ -100,7 +100,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 			}
 		}
 		if (updateRequired) {
-			AJDTEventTrace.generalEvent("AJDTContentProvider.selectionChanged(): Marking visualiser content as out of date");
+			AJLog.log("AJDTContentProvider.selectionChanged(): Marking visualiser content as out of date");
 			currentGroups = null;
 			currentMembers = null;
 			VisualiserPlugin.refresh();
@@ -204,7 +204,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 		}
 		long etime = System.currentTimeMillis();
 
-		AJDTEventTrace.generalEvent("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms");
+		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms");
 	}
 
 	

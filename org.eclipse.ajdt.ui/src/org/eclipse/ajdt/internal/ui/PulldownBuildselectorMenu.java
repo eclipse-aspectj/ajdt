@@ -18,13 +18,13 @@ package org.eclipse.ajdt.internal.ui;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -210,11 +210,10 @@ public class PulldownBuildselectorMenu implements
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 							"Build pulldown error", cEx);
 				} catch (NullPointerException npe) {
-					AJDTEventTrace
-							.generalEvent("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:"
+					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:"
 									+ npe);
 				} catch (OperationCanceledException e) {
-					AJDTEventTrace.generalEvent("Build was cancelled.");
+					AJLog.log("Build was cancelled.");
 				}
 			}
 		};

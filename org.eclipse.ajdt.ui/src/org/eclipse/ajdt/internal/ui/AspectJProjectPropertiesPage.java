@@ -12,10 +12,10 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.io.File;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -180,7 +180,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 			}
 		
 		}
-		AJDTEventTrace.projectPropertiesChanged(thisProject);
+		AJLog.log("Compiler properties changed for project: " + thisProject.getName());
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
@@ -192,7 +192,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * is clicked. This now behaves like the jdt pages.
 	 */
 	public void performDefaults() {
-		AJDTEventTrace.projectPropertiesDefaulted(thisProject);
+		AJLog.log("Compiler properties reset to default for project: " + thisProject.getName());
 		outputJarEditor.setStringValue("");
 		nonStandardOptionsEditor.setStringValue("");
 	}

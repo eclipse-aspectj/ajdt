@@ -16,10 +16,10 @@ package org.eclipse.ajdt.internal.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -160,7 +160,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		project = thisProject;
 		AspectJPlugin.getDefault().setCurrentProject( project );
 		selectAndReveal(project);
-		AJDTEventTrace.newProjectCreated( project );
+		AJLog.log("New project created: " + project.getName());
 		return true;
 	}
 

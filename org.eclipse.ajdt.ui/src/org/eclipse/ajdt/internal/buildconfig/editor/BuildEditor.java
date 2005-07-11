@@ -10,13 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.pde.core.build.IBuildModel;
-import org.eclipse.pde.internal.core.build.IBuildObject;
-import org.eclipse.pde.internal.ui.PDEPlugin;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.pde.internal.ui.editor.MultiSourceEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
@@ -24,6 +18,12 @@ import org.eclipse.ajdt.pde.internal.ui.editor.PDESourcePage;
 import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileEditorInput;
 import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContext;
 import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContextManager;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.pde.core.build.IBuildModel;
+import org.eclipse.pde.internal.core.build.IBuildObject;
+import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.dnd.RTFTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -72,7 +72,7 @@ public class BuildEditor extends MultiSourceEditor {
 		IEditorInput in = inputContextManager.getPrimaryContext().getInput();
 		if ((in instanceof IFileEditorInput)) { // && (pbc!=null)) {
 			IFile changedFile = ((IFileEditorInput)in).getFile();
-			AJDTEventTrace.buildConfigWrite(changedFile);
+			AJLog.log("Build configuration file written: " + changedFile.getName());
 		}
 	}
 	

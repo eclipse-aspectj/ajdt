@@ -10,7 +10,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.jdt.ui.text.JavaTextTools;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -30,7 +30,7 @@ public class AspectJTextTools extends JavaTextTools {
 	 */
 	public AspectJTextTools(IPreferenceStore ips) {
 		super(ips);
-		AJDTEventTrace.generalEvent("Building AJ code scanner");
+		AJLog.log("Building AJ code scanner");
 		aspectjCodeScanner = new AspectJCodeScanner(getColorManager(), ips);
 	} 
 	

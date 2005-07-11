@@ -24,10 +24,10 @@ import java.util.StringTokenizer;
 import org.aspectj.ajde.TaskListManager;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.ISourceLocation;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.internal.resources.ResourceException;
@@ -201,7 +201,7 @@ public class CompilerTaskListManager implements TaskListManager {
                     Iterator affectedResourceIterator = affectedResources
                             .iterator();
                     //boolean wipedProjectLevelMarkers = false;
-                    AJDTEventTrace.generalEvent("Types affected during build = "+affectedResources.size());
+                    AJLog.log("Types affected during build = "+affectedResources.size());
                     IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
                         ir = (IResource) affectedResourceIterator.next();
@@ -215,8 +215,7 @@ public class CompilerTaskListManager implements TaskListManager {
                                         IResource.DEPTH_INFINITE);
                             }
                         } catch (ResourceException re) {
-                            AJDTEventTrace
-                                    .generalEvent("Failed marker deletion: resource="
+                        	AJLog.log("Failed marker deletion: resource="
                                             + ir.getLocation());
                             throw re;
                         }
@@ -299,8 +298,7 @@ public class CompilerTaskListManager implements TaskListManager {
                             
                             setMessage(marker, p.message);
                         } catch (ResourceException re) {
-                            AJDTEventTrace
-                                    .generalEvent("Failed marker creation: resource="
+                        	AJLog.log("Failed marker creation: resource="
                                             + p.location.getSourceFile()
                                                     .getPath()
                                             + " line="
@@ -472,8 +470,7 @@ public class CompilerTaskListManager implements TaskListManager {
             // blow up
             // with an event trace ...
             if (ir == null)
-                AJDTEventTrace
-                        .generalEvent("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file "
+            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file "
                                 + loc);
         }
 

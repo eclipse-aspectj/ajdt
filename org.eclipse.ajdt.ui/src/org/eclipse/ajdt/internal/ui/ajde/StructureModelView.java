@@ -21,10 +21,10 @@ import org.aspectj.ajde.ui.StructureViewManager;
 import org.aspectj.ajde.ui.StructureViewProperties;
 import org.aspectj.ajde.ui.StructureViewRenderer;
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.editor.AspectJLabelProvider;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTStructureViewNode;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -141,8 +141,8 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 				AJDTStructureViewNode ajdtNode = (AJDTStructureViewNode) target;
 				IMarker marker = ajdtNode.getMarker(input.getProject());
 				if (ajdtNode.getStructureNode() != null) {
-					AJDTEventTrace.nodeClicked(ajdtNode.getStructureNode()
-							.getName(), marker);
+					AJLog.log(getLogMessage(ajdtNode.getStructureNode()
+							.getName(), marker));
 					if (marker != null) {
 						try {
 							IDE.openEditor(AspectJUIPlugin
@@ -152,8 +152,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 						}
 					}
 				} else {
-					AJDTEventTrace
-							.generalEvent("Problem in outline view: Editor input is not a file");
+					AJLog.log("Problem in outline view: Editor input is not a file");
 				}
 			}
 		}
@@ -163,6 +162,25 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 		manager.add(fLinkWithEditor);
 	}
 	
+	private String getLogMessage(String label, IMarker marker) {
+		StringBuffer buff = new StringBuffer( );
+		buff.append( "Tree node selected: " );
+		buff.append( label );
+		buff.append( ". Navigation target: " );
+		if ( marker != null ) {
+			buff.append( marker.getResource().getName( ) );
+			buff.append( " line " );
+			try {
+				Integer lineNo = (Integer) marker.getAttribute( IMarker.LINE_NUMBER );
+				buff.append( lineNo.intValue() );
+			} catch ( Exception ex ) {
+				buff.append( "ERR" );	
+			}
+		} else {
+			buff.append( "<None>" );
+		}
+		return buff.toString();
+	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (!fDoLinkWithEditor || !(selection instanceof ITextSelection)) {
@@ -187,7 +205,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 */
 	private IAdaptable getContentOutline(IFile input, boolean registerForUpdates) {
 		String filePath = AJDTUtils.getResourcePath( input );
-		AJDTEventTrace.structureViewRequested( input.getName() );
+		AJLog.log("Structure view requested for " + input.getName());
 		// Memory leak fix, we must delete the view we currently have
 		// so that we don't leak storage over time in the List of structure views maintained
 		// inside the svManager
@@ -229,7 +247,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 * @see StructureViewRenderer#updateView(StructureView)
 	 */
 	public void updateView(StructureView view) {
-		AJDTEventTrace.generalEvent("outline updateview called (file:"+input.getName()+"): "+view.toString());
+		AJLog.log("outline updateview called (file:"+input.getName()+"): "+view.toString());
 		final StructureView fView = view;
 		AspectJUIPlugin.getDefault( ).getDisplay().asyncExec( new Runnable( ) {
 			public void run( ) {
@@ -247,7 +265,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 * @see AspectJEditor#doSave(IProgressMonitor)
 	 */
 	public void update() {
-		AJDTEventTrace.generalEvent("Editor Update called: "+input.getName());
+		AJLog.log("Editor Update called: "+input.getName());
 		getControl().setRedraw(false);
 				IAdaptable outline = getContentOutline(input,true);
 		getTreeViewer().setInput(outline);
@@ -270,14 +288,13 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 			// register as the renderer for the new view.  We cant do that in this function as it would alter
 			// the set of registered renderers whilst the AspectJ code is calling back renderers with updates.
 			// YUCK.  Maybe it can't happen, but I've put this kind of 'almost' assertion in here for now ...
-			AJDTEventTrace.generalEvent("Assumption Not True: Old view object:"+view.toString()+
+			AJLog.log("Assumption Not True: Old view object:"+view.toString()+
 										"  New view object:"+view.toString());
 		}
 		// add this extra text to stop us geting empty view structure updates
 		// caused by builds from other projects.
 		if ( input.getProject().equals( AJBuilder.getLastBuildTarget() )  ) {
-			AJDTEventTrace.modelUpdated( input );
-
+			AJLog.log("Model update notification for " + input.getName());
 			this.view = view;
 
 			getControl().setRedraw(false);

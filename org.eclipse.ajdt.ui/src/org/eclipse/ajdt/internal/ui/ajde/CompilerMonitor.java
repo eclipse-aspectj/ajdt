@@ -20,7 +20,6 @@ import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -221,8 +220,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
             } else {
                 IFile file = workspaceRoot.getFileForLocation(resourcePath);
                 if (file == null) {
-                    AJDTEventTrace
-                            .generalEvent("Processing progress message: Can't find eclipse resource for file with path "
+                	AJLog.log("Processing progress message: Can't find eclipse resource for file with path "
                                     + text);
                 } else {
                     CompilerTaskListManager.getInstance().addAffectedResource(file);
