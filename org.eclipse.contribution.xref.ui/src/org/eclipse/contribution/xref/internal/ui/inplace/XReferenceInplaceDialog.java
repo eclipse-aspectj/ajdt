@@ -107,8 +107,8 @@ public class XReferenceInplaceDialog {
 	/**
 	 * Dialog constants telling whether this control can be resized or move.
 	 */
-	private static final String STORE_DISABLE_RESTORE_SIZE = "DISABLE_RESTORE_SIZE"; //$NON-NLS-1$
-	private static final String STORE_DISABLE_RESTORE_LOCATION = "DISABLE_RESTORE_LOCATION"; //$NON-NLS-1$
+	public static final String STORE_DISABLE_RESTORE_SIZE = "DISABLE_RESTORE_SIZE"; //$NON-NLS-1$
+	public static final String STORE_DISABLE_RESTORE_LOCATION = "DISABLE_RESTORE_LOCATION"; //$NON-NLS-1$
 
 	/**
 	 * Dialog store constant for the location's x-coordinate, location's
@@ -176,11 +176,18 @@ public class XReferenceInplaceDialog {
 	private XReferenceLabelProvider labelProvider;
 	
 	/**
+	 * For testing purposes need to be able to get hold 
+	 * of the XReferenceInplaceDialog instance
+	 */
+	private static XReferenceInplaceDialog dialog;
+	
+	/**
 	 * Constructor which takes the parent shell
 	 */
 	public XReferenceInplaceDialog(Shell parent) {
 		parentShell = parent;
 		shellStyle = SWT.RESIZE;
+		dialog = this;
 	}
 
 	/**
@@ -189,7 +196,7 @@ public class XReferenceInplaceDialog {
 	public void open() {
 		// If the dialog is already open, dispose the shell and recreate it
 		if (dialogShell != null) {
-				close();
+			close();
 		}
 		
 		if (invokingCommandId != null) {
@@ -638,7 +645,11 @@ public class XReferenceInplaceDialog {
 		if (oldBounds != null) {
 			dialogShell.setBounds(oldBounds);
 			return;
-		}
+		} 
+		dialogShell.setBounds(getDefaultBounds());
+	}
+	
+	public Rectangle getDefaultBounds() {
 		GC gc = new GC(composite);
 		gc.setFont(composite.getFont());
 		int width = gc.getFontMetrics().getAverageCharWidth();
@@ -647,8 +658,7 @@ public class XReferenceInplaceDialog {
 		
 		Point size = new Point (60 * width, 10 * height);
 		Point location = getDefaultLocation(size);
-		dialogShell.setBounds(new Rectangle(location.x, location.y, size.x,
-				size.y));
+		return new Rectangle(location.x, location.y, size.x,size.y);
 	}
 
 	private Point getDefaultLocation(Point initialSize) {
@@ -729,8 +739,9 @@ public class XReferenceInplaceDialog {
 		}
 		
 		// sanity check
-		if (bounds.x == -1 && bounds.y == -1 && bounds.width == -1 && bounds.height == -1)
-			return null;
+		if (bounds.x == -1 && bounds.y == -1 && bounds.width == -1 && bounds.height == -1) {
+			return null;			
+		}
 		
 		Rectangle maxBounds= null;
 		if (dialogShell != null && !dialogShell.isDisposed())
@@ -1062,8 +1073,7 @@ public class XReferenceInplaceDialog {
 		toolBar = null;
 		viewMenuManager = null;
 		labelProvider.dispose();
-		contentProvider.dispose();
-		
+		contentProvider.dispose();		
 	}
 	
 	public void dispose() {
@@ -1075,6 +1085,7 @@ public class XReferenceInplaceDialog {
 			parentShell = null;
 			viewer = null;
 			composite = null;
+			dialog = null;
 		}
 	}
 
@@ -1198,4 +1209,15 @@ public class XReferenceInplaceDialog {
 	public boolean isOpen() {
 		return dialogShell != null;
 	}
+	
+	// -------- the following methods are all for testing purposes --------
+	
+	public static XReferenceInplaceDialog getInplaceDialog() {
+		return dialog;
+	}
+	
+	public Shell getShell() {
+		return dialogShell;
+	}
+	
 }

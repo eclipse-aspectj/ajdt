@@ -23,40 +23,6 @@ Test1 - bug 102865 - NPE
 - to close the view, press "esc".					
 
 
-Test2 - can move, resize etc. and remembers the settings
---------------------------------------------------------
-
-- open spacewar/debug.aj in the editor
-- position the cursor somewhere in the editor
-- press Ctrl+Alt+X and the inplace view appears
-- click the blue arrow in the top right hand corner of the
-  inplace view
-- this brings down a menu with three options:
-	move, resize and remember size and location
-					(XREF_INPLACE_3)
-
-- ensure that "remember size and location" is ticked
-- click move and move the inplace view (test is that
-  you can move the inplace view)
-					(XREF_INPLACE_4)
-- click resize and resize the inplace view (test is that
-  you can resize the inplace view)
-					(XREF_INPLACE_5)
-- shutdown the inplace view (via pressing escape or clicking
-  the editor outside of the view)
-- press Ctrl+Alt+X and the inplace view appears
-- the view should have the size and position that you set 
-  in tests 4 and 5
-					(XREF_INPLACE_6)
-- click the blue arrow in the top right hand corner of the
-  inplace view
-- uncheck "remember size and loation"
-- shut down the inplace view
-- bring up the inplace view
-- the view should have the default size and position and
-  not the ones you set in tests 4 and 5
-					(XREF_INPLACE_7)
-
 Test3 - Ctrl+Alt+X twice shows xrefs for entire file
 ----------------------------------------------------
 
@@ -64,25 +30,25 @@ Test3 - Ctrl+Alt+X twice shows xrefs for entire file
 - position the cursor somewhere in the editor
 - press Ctrl+Alt+X and the inplace view appears showing
   the xrefs for the current selection
-					(XREF_INPLACE_8)
+					(XREF_INPLACE_3)
 
 - there is a message at the bottom of the inplace view
 	"Press 'Ctrl+Alt+X' to show cross references
 	 for entire file"
-					(XREF_INPLACE_9)
+					(XREF_INPLACE_4)
 
 - press Ctrl+Alt+x again
 - the view now shows xrefs for the entire file
-					(XREF_INPLACE_10)
+					(XREF_INPLACE_5)
 - there is a message at the bottom of the inplace view
 	"Press 'Ctrl+Alt+X' to hide cross references
 	 for entire file"
-					(XREF_INPLACE_11)
+					(XREF_INPLACE_6)
 
 - press Ctrl+Alt+x again
 - the view now shows the xrefs for the original selection
   (provided you haven't changed selection in the view)
-					(XREF_INPLACE_12)
+					(XREF_INPLACE_7)
 
 Test4 - Scroll bar - should show current selection
 --------------------------------------------------
@@ -92,17 +58,17 @@ Test4 - Scroll bar - should show current selection
 - press Ctrl+Alt+X and the inplace view appears showing
   the xrefs for the current selection with the current 
   selection highlighted in the view
-					(XREF_INPLACE_13)
+					(XREF_INPLACE_8)
 - press Ctrl+Alt+x again
 - the view now shows xrefs for the entire file with the 
   selection from test 13 highlighted and showing
-					(XREF_INPLACE_14)
+					(XREF_INPLACE_9)
 
 - press Ctrl+Alt+x again
 - the view now shows the xrefs for the original selection
   (provided you haven't changed selection in the view) 
   and this is highlighted in the view
-					(XREF_INPLACE_15)
+					(XREF_INPLACE_10)
 
 Test5 - navigation from the view
 --------------------------------
@@ -113,10 +79,10 @@ Test5 - navigation from the view
 - move the cursor around to select something
 - press return
 - the corresponding place should be opened in the editor
-					(XREF_INPLACE_16)
+					(XREF_INPLACE_11)
 - repeat for several different types of selection 
   navigation should always work	
-					(XREF_INPLACE_17)
+					(XREF_INPLACE_12)
 
 
 Test6 - text filtering should keep children
@@ -131,11 +97,11 @@ Test6 - text filtering should keep children
   of the view
 - you should see some "afterReturning" nodes with "advises"
   then the places they advice below them
-					(XREF_INPLACE_18)
+					(XREF_INPLACE_13)
 
 - try some more text filtering - should always show
   children
-					(XREF_INPLACE_19)
+					(XREF_INPLACE_14)
 
 Test 7 - bug 95726: Quick XRef Navigate menu entry
 --------------------------------------------------
@@ -146,7 +112,7 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
 - go to the Navigate menu and there should be a menu item
   "Quick Cross References" in the same section as "Quick Outline"
   
-  					(XREF_INPLACE_20)				
+  					(XREF_INPLACE_15)				
 
 - bring up the inplace cross references view via
 
@@ -154,16 +120,16 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
 	
 - the inplace xref view should appear with the current
   selection 
-  					(XREF_INPLACE_21)
+  					(XREF_INPLACE_16)
   					
 - select a project, package or file in the package explorer 
 - open the Navigate menu
 - the "Quick Cross References" entry should be disabled 
   (greyed out)			
-                    (XREF_INPLACE_22)
+                    (XREF_INPLACE_17)
                     		
 - select something in the outline view
 - open the "Navigate" menu
 - the "Quick Cross References" entry should be activated  
 
-				     (XREF_INPLACE_23)
+				     (XREF_INPLACE_18)
