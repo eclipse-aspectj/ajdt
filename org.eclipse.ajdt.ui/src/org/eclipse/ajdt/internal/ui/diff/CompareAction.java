@@ -73,6 +73,15 @@ public class CompareAction implements IWorkbenchWindowActionDelegate {
 									(elements[1] instanceof IFile)) {
 								IFile fromFile = (IFile)elements[0];
 								IFile toFile = (IFile)elements[1];
+								
+								// we want to compare the older file with the newer one
+								if (fromFile.getLocalTimeStamp() > toFile.getLocalTimeStamp()) {
+									// swap files
+									IFile tmp = fromFile;
+									fromFile = toFile;
+									toFile = tmp;
+								}
+								
 								IProject fromProject = fromFile.getProject();
 								IProject toProject = toFile.getProject();
 								String fromName = fromFile.getName();
