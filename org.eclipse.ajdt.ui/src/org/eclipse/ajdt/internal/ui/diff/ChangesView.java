@@ -29,7 +29,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
@@ -65,12 +64,6 @@ public class ChangesView extends ViewPart {
 
 	public static final String CURRENT_BUILD = AspectJUIPlugin
 			.getResourceString("changesView.currentBuild"); //$NON-NLS-1$
-
-	private Action action1;
-
-	private Action action2;
-
-	private Action doubleClickAction;
 
 	private Table table;
 
@@ -223,8 +216,6 @@ public class ChangesView extends ViewPart {
 				}
 			}
 		});
-
-		//setContentDescription("hello");
 	}
 
 	private void navigateTo(int row, int column) {
@@ -241,7 +232,6 @@ public class ChangesView extends ViewPart {
 	}
 
 	public void dispose() {
-		//getSite().getPage().removeSelectionListener(this);
 		sourceElements = null;
 		targetElements = null;
 		currFromProject = null;
