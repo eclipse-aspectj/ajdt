@@ -56,11 +56,13 @@ public class ResourceChangeListener implements IResourceChangeListener {
 								cd[i].accept(myDeltaVisitor);
 							} else {
 								IProject proj = res.getProject();
-								if ((proj == null) || (!proj.isAccessible())
+								// if we don't know the project, or it is
+								// no longer accessible, we'd better process
+								// the delta. Otherwise we only process it
+								// if it is an AspectJ project.
+								if ((proj == null) || !proj.isAccessible()
 										|| AspectJPlugin.isAJProject(proj)) {
 									cd[i].accept(myDeltaVisitor);
-								} else {
-									System.out.println("not processing: res="+res+" in project "+proj);
 								}
 							}
 						} catch (CoreException e) {
