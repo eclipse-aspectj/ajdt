@@ -33,8 +33,14 @@ public class ResourceChangeListener implements IResourceChangeListener {
 	
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE){
-			// avoid processing deltas for non-AspectJ projects,
 			IResourceDelta delta = event.getDelta();
+//			if (delta != null){
+//				try {
+//					delta.accept(myDeltaVisitor);
+//				} catch (CoreException e) {
+//				}
+//			}
+			// avoid processing deltas for non-AspectJ projects,
 			if (delta != null) {
 				IResourceDelta[] cd = delta.getAffectedChildren();
 				if (cd == null) {
@@ -50,9 +56,11 @@ public class ResourceChangeListener implements IResourceChangeListener {
 								cd[i].accept(myDeltaVisitor);
 							} else {
 								IProject proj = res.getProject();
-								if ((proj == null)
+								if ((proj == null) || (!proj.isAccessible())
 										|| AspectJPlugin.isAJProject(proj)) {
 									cd[i].accept(myDeltaVisitor);
+								} else {
+									System.out.println("not processing: res="+res+" in project "+proj);
 								}
 							}
 						} catch (CoreException e) {
