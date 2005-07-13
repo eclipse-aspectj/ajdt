@@ -447,6 +447,11 @@ public class XReferenceView extends ViewPart implements ISelectionListener, IPar
         
     }
     
+    /**
+     * Returns the tree viewer for the xref view - this
+     * method is for testing purposes and not part of the
+     * published API. 
+     */
     public TreeViewer getTreeViewer() {
     	return viewer;
     }

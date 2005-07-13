@@ -831,10 +831,20 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	private static AJOutlineInformationControl infoControl;
 	private Composite testParentComp;
 	
+	/**
+	 * Returns the instance of this class - this method
+	 * is for testing purposes and is not part of the published
+	 * API.
+	 */
 	public static AJOutlineInformationControl getInfoControl() {
 		return infoControl;
 	}
 	
+	/**
+	 * Returns the shell which contains the inplace outline
+	 * view - this method is for testing purposes and is not
+	 * part of the published API.
+	 */
 	public Shell getShell() {
 		if (testParentComp != null && testParentComp.getParent() != null) {
 			return testParentComp.getParent().getShell();
