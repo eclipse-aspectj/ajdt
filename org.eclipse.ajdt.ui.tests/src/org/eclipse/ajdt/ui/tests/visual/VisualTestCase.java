@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.EclipseVersion;
+import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -23,6 +24,11 @@ import junit.framework.TestCase;
  * Abstract superclass for Visual tests
  */
 public abstract class VisualTestCase extends TestCase {
+	
+	protected void setUp() throws Exception {
+		super.setUp();
+		AllUITests.setupAJDTPlugin();
+	}
 	
 	protected Display display = Display.getCurrent();
 	

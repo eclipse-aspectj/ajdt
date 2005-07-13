@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -31,7 +30,6 @@ import org.eclipse.ui.PlatformUI;
 public class Bug100018Test extends VisualTestCase {
 
 	public void testBug100018() throws Exception {
-		AllUITests.setupAJDTPlugin();
 		// must be a Java project
 		IProject project = Utils.createPredefinedProject("project.java.Y");
 		try {
