@@ -333,7 +333,6 @@ public ITypeParameter[] getTypeParameters() throws JavaModelException {
  * @see org.eclipse.jdt.core.IMethod#getTypeParameter(java.lang.String)
  */
 public ITypeParameter getTypeParameter(String name) {
-	// TODO Auto-generated method stub
 	return null;
 }
 

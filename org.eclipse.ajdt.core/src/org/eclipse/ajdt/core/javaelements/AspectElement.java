@@ -60,7 +60,6 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		return info.getAJKind();
 	}
 
-	//TODO
 	public Accessibility getAJAccessibility() throws JavaModelException {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
 		return info.getAJAccessibility();

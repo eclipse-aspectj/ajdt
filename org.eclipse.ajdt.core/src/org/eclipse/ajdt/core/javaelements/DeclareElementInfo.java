@@ -13,13 +13,6 @@ package org.eclipse.ajdt.core.javaelements;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.internal.core.SourceRange;
 
-
-/**
- * @author User
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 public class DeclareElementInfo extends AspectJMemberElementInfo {
 
 	public ISourceRange getSourceRange() {
