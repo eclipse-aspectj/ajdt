@@ -9,9 +9,6 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.util.Iterator;
-
-import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
@@ -19,14 +16,10 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceInplaceDialogTest extends VisualTestCase {
@@ -63,71 +56,43 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postCharacterKey('x');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
+
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
+				boolean ret = (i != null);
+				return ret;
+			}
 		
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		}.waitForCondition(Display.getCurrent(), 5000);
+
+		final XReferenceInplaceDialog dialog = XReferenceInplaceDialog.getInplaceDialog();		
+		
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = dialog.isOpen();
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertTrue("xref inplace view should be open",dialog.isOpen());
 		
 		// press esc
 		postKey(SWT.ESC);
 		
-		// introduce compilation errror
-		postCharacterKey('p');
-
-		// save file by using "Ctrl+S"
-		postKeyDown(SWT.CTRL);
-		postCharacterKey('s');
-		postKeyUp(SWT.CTRL);
-
-		// check that there is an error (if esc not implemented
-		// then there will be no error because still in xref view)
-		final int numAnnotations = getNumErrorAnnotations(editorPart);
 		new DisplayHelper() {
 
 			protected boolean condition() {
-				int n = getNumErrorAnnotations(editorPart);
-				boolean ret = numAnnotations != n;
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-			
-		int newNumAnnotations = getNumErrorAnnotations(editorPart);
-
-		assertTrue("should have more syntax errors now", newNumAnnotations > numAnnotations);
-		
-		// remove compilation error
-		postCharacterKey(SWT.BS);
-		
-		// save file by using "Ctrl+S"
-		postKeyDown(SWT.CTRL);
-		postCharacterKey('s');
-		postKeyUp(SWT.CTRL);
-		
-		// check that there is an error (if esc not implemented
-		// then there will be no error because still in xref view)
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				int n = getNumErrorAnnotations(editorPart);
-				boolean ret = numAnnotations == n;
+				boolean ret = !dialog.isOpen();
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
-        newNumAnnotations = getNumErrorAnnotations(editorPart);
-		assertEquals("should have same number of sytax errors now",numAnnotations,newNumAnnotations );
-
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		assertFalse("xref inplace view should not be open",dialog.isOpen());
 		
 		editorPart.close(false);
 		Utils.waitForJobsToComplete();
@@ -326,43 +291,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	/**
-	 * Get the number of error annotations in an editor
-	 */
-	private int getNumErrorAnnotations(ITextEditor editor) {
-		
-		IAnnotationModel model = getAnnotationModel(editor);
-		int num = 0;
-		for (Iterator iter = model.getAnnotationIterator(); iter.hasNext();) {
-			Annotation a = (Annotation)iter.next();
-			String message = a.getText();
-			if(message != null && message.startsWith("Syntax error")) {
-				num++;
-			}
-			
-		}
-		return num;		
-	}
-	
-	/**
-	 * Get the annotation model for an editor
-	 * @param editor
-	 * @return
-	 */
-	private IAnnotationModel getAnnotationModel(ITextEditor editor) {
-		if (editor instanceof AspectJEditor) {
-			IAnnotationModel annotationModel = ((AspectJEditor)editor).getViewer().getAnnotationModel();
-			return annotationModel;
-		}
-		IDocumentProvider provider = editor.getDocumentProvider();
-		IAnnotationModel model = provider.getAnnotationModel(editor
-				.getEditorInput());
-		if (model instanceof AbstractMarkerAnnotationModel) {
-			return (AbstractMarkerAnnotationModel) model;
-		}
-		return null;
 	}
 	
 	private void moveShell(Shell s, int xCoord, int yCoord, int width, int height) {
