@@ -1882,24 +1882,29 @@
             nameFilter="*.ajmap"
             id="ajmap">
          <menu
-               label="%CompareCrosscutting.menu"
-               path="additions"
-               id="compareCrosscuttingWithMenu">
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
             <separator
-                  name="compareWithGroup">
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+            <separator
+                  name="group2">
             </separator>
          </menu>
          <action
                label="%CompareCrosscutting.submenu.eachOther"
                class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
-               menubarPath="compareCrosscuttingWithMenu/compareWithGroup"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                enablesFor="2"
                id="ajmappopup">
          </action>
          <action
                label="%CompareCrosscutting.submenu.currentBuild"
                class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
-               menubarPath="compareCrosscuttingWithMenu/compareWithGroup"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                enablesFor="1"
                id="compareCrosscuttingWithCurrentBuild">
          </action>

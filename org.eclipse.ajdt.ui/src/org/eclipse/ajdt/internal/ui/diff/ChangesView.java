@@ -362,6 +362,12 @@ public class ChangesView extends ViewPart {
 		for (int i = 0; i < table.getColumnCount(); i++) {
 			table.getColumn(i).pack();
 		}
+		// split available space between columns 1 and 3 (source and target
+		// elements)
+		int w = table.getClientArea().width - table.getColumn(0).getWidth()
+				- table.getColumn(2).getWidth();
+		table.getColumn(1).setWidth(w / 2);
+		table.getColumn(3).setWidth(w - w / 2);	
 	}
 
 }
