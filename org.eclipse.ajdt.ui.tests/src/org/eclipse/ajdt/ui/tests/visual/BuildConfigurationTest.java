@@ -63,14 +63,21 @@ public class BuildConfigurationTest extends VisualTestCase {
 		// Open the 'New AspectJ Project' wizard
 		postCharacterKey(SWT.CR);
 		
-		// Give the project name box focus
-		postCharacterKey('p');
-				
-		// Enter a name for the project
-		postString("Project1");
+		// give the wizard chance to pop up
+		Runnable r = new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+				}
+				// Enter a name for the project
+				postString("Project1");
 
-		// Complete the wizard
-		postCharacterKey(SWT.CR);
+				// Complete the wizard
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
 		
 		// Wait for the project to be created
 		Utils.waitForJobsToComplete();
