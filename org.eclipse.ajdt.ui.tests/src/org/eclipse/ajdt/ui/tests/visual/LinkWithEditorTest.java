@@ -38,6 +38,11 @@ public class LinkWithEditorTest extends TestCase {
 		project = Utils.createPredefinedProject("Simple AJ Project");
 	}
 	
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		Utils.deleteProject(project);
+	}
+	
 	public void testPackageExplorerSelection() {
 		IResource res = project.findMember("src/p2/Aspect.aj");
 		IResource res2 = project.findMember("src/ClassInDefaultPackage.java");
