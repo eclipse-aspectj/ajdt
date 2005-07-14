@@ -24,6 +24,7 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -115,7 +116,11 @@ public class BuildConfigurationTest extends VisualTestCase {
 			PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 			packageExplorer.setFocus();
 			packageExplorer.selectAndReveal(p1);
-			addNewClass();
+			Utils.waitForJobsToComplete();
+			addNewClass();				
+			IResource res = project.findMember("src/p1/Hello.java");
+			assertNotNull("New class Hello.java wan't created",res);
+			
 			DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
 			Image image = djlp.getImage(p1);
 			Image expected = JavaPlugin.getImageDescriptorRegistry().get(ImageDecorator.getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_PACKAGE, image.getBounds(), 0));
@@ -126,16 +131,19 @@ public class BuildConfigurationTest extends VisualTestCase {
 			addMainMethod(hello);
 			packageExplorer.setFocus();
 			packageExplorer.selectAndReveal(hello);
-			postKeyDown(SWT.SHIFT);
-			postKey(SWT.F10);
-			postKeyUp(SWT.SHIFT);
+
+			postKeyDown(SWT.ALT);
 			postCharacterKey('r');	
+			postKeyUp(SWT.ALT);
+			postCharacterKey('s');
 			if(!runningEclipse31) {
-				postCharacterKey('r');
-			}
-			postKey(SWT.ARROW_RIGHT);
+				postCharacterKey('s');
+				postKey(SWT.ARROW_RIGHT);
+				postKey(SWT.ARROW_DOWN);
+			}		
 			postKey(SWT.ARROW_DOWN);
 			postCharacterKey(SWT.CR);
+			
 			Utils.waitForJobsToComplete();
 			ConsoleView cview = null;
 			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
@@ -185,9 +193,13 @@ public class BuildConfigurationTest extends VisualTestCase {
 	}
 
 	private void addNewClass() {
-		postKey(SWT.ALT);
-		postCharacterKey('f');
+		postKeyDown(SWT.ALT);
+		postKeyDown(SWT.SHIFT);
 		postCharacterKey('n');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.ALT);
+
+		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postCharacterKey(SWT.CR);
@@ -197,9 +209,13 @@ public class BuildConfigurationTest extends VisualTestCase {
 	}
 
 	private void addNewPackage() {
-		postKey(SWT.ALT);
-		postCharacterKey('f');
+		postKeyDown(SWT.ALT);
+		postKeyDown(SWT.SHIFT);
 		postCharacterKey('n');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.ALT);
+		
+		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postCharacterKey(SWT.CR);
 		postCharacterKey('p');
@@ -209,9 +225,15 @@ public class BuildConfigurationTest extends VisualTestCase {
 	}
 
 	private void addNewSourceFolderAndCheckBuildFile(IFile buildFile) throws CoreException, IOException {
-		postKey(SWT.ALT);
-		postCharacterKey('f');
+		PackageExplorerPart.getFromActivePerspective().setFocus();
+		
+		postKeyDown(SWT.ALT);
+		postKeyDown(SWT.SHIFT);
 		postCharacterKey('n');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.ALT);
+		
+		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
