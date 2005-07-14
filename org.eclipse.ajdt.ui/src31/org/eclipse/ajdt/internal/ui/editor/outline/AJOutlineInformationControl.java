@@ -846,7 +846,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 * part of the published API.
 	 */
 	public Shell getShell() {
-		if (testParentComp != null && testParentComp.getParent() != null) {
+		if (testParentComp != null 
+				&& !testParentComp.isDisposed()
+				&& testParentComp.getParent() != null
+				&& !testParentComp.getParent().isDisposed()) {
 			return testParentComp.getParent().getShell();
 		} 
 		return null;

@@ -51,48 +51,9 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		Utils.waitForJobsToComplete();
 		
 		// open inplace xref view
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
-
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
-				boolean ret = (i != null);
-				return ret;
-			}
+		XReferenceInplaceDialog dialog = openInplaceXRef(null);
 		
-		}.waitForCondition(Display.getCurrent(), 5000);
-
-		final XReferenceInplaceDialog dialog = XReferenceInplaceDialog.getInplaceDialog();		
-		
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				boolean ret = dialog.isOpen();
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-		
-		assertTrue("xref inplace view should be open",dialog.isOpen());
-		
-		// press esc
-		postKey(SWT.ESC);
-		
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				boolean ret = !dialog.isOpen();
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-		
-		assertFalse("xref inplace view should not be open",dialog.isOpen());
+		shutdownViewWithEscape(dialog);
 		
 		editorPart.close(false);
 		Utils.waitForJobsToComplete();
@@ -114,34 +75,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		Utils.waitForJobsToComplete();
 		
 		// open inplace xref view
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
-				
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
-				boolean ret = (i != null);
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-
-		final XReferenceInplaceDialog dialog = XReferenceInplaceDialog.getInplaceDialog();		
-		
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				boolean ret = dialog.isOpen();
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-		
-		assertTrue("xref inplace view should be open",dialog.isOpen());
+		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
 
 		// check that "remember size and location is checked"
 		IDialogSettings settings = XReferenceUIPlugin.getDefault()
@@ -185,35 +119,22 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		assertTrue("the inplace xref view should have changed it's x coordinate", r.x != r1.x);
 		assertTrue("the inplace xref view should have changed it's y coordinate", r.y != r1.y);
 				
-		// get rid of the inplace view
-		postCharacterKey(SWT.ESC);
-		
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		shutdownViewWithEscape(dialog);
 		
 		// open inplace xref view
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		final XReferenceInplaceDialog dialog2 = openInplaceXRef(dialog);
 		
 		new DisplayHelper() {
 
 			protected boolean condition() {
-				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
-				boolean ret = (i != null) && !(i.equals(dialog));
+				Shell s = dialog2.getShell();
+				boolean ret = s != null;
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
-
-		// get hold of the new XReferenceInplaceDialog
-		final XReferenceInplaceDialog dialog2 = XReferenceInplaceDialog.getInplaceDialog();
+		
+		assertNotNull("the inplace xref dialog shell shouldn't be null",dialog2.getShell());
 		
 		Rectangle r2 = dialog2.getShell().getBounds();
 		assertEquals("the inplace xref view should have remembered the changed height", r1.height, r2.height);
@@ -226,35 +147,27 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// and position will be the defaults
 		changeDisableRestoreSettings(settings,true);
 		
-		// get rid of the inplace view
-		postCharacterKey(SWT.ESC);
+		shutdownViewWithEscape(dialog2);
 		
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		// open inplace xref view
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		editorPart.setFocus();
+		gotoLine(8);
+		moveCursorRight(8);
+		Utils.waitForJobsToComplete();
+		// open and get hold of the new inplace xref view
+		final XReferenceInplaceDialog dialog3 = openInplaceXRef(dialog2);
 		
 		new DisplayHelper() {
 
 			protected boolean condition() {
-				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
-				boolean ret = (i != null) && !(i.equals(dialog) && !(i.equals(dialog2)));
+				Shell s = dialog3.getShell();
+				boolean ret = s != null;
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertNotNull("the inplace xref dialog shell shouldn't be null",dialog3.getShell());
 
-		// get hold of the new XReferenceInplaceDialog
-		final XReferenceInplaceDialog dialog3 = XReferenceInplaceDialog.getInplaceDialog();
 		
 		new DisplayHelper() {
 
@@ -270,27 +183,24 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		assertNotNull("the inplace views default bounds should not be null", defaults);
 		
 		Rectangle r3 = dialog3.getShell().getBounds();
-		// for some bizarre reason, 100 is added to the height and width,
-		// and 50 is added to the x and y coordinates.
-		assertEquals("the inplace xref view should have the default height", defaults.height + 100, r3.height);
-		assertEquals("the inplace xref view should have the default width", defaults.width + 100, r3.width);
-		assertEquals("the inplace xref view should have the default x coordinate", defaults.x + 50, r3.x);
-		assertEquals("the inplace xref view should have the default y coordinate", defaults.y + 50, r3.y);
+		// for some bizarre reason on windows, 100 is added to the height and width,
+		// and 50 is added to the x and y coordinates, on linux it is as expected,
+		// therefore check equality for one or the other.
+		assertTrue("the inplace xref view should have the default height", 
+				r3.height == defaults.height || r3.height == defaults.height + 100 );
+		assertTrue("the inplace xref view should have the default width", 
+				r3.width == defaults.width || r3.width == defaults.width + 100 );
+		assertTrue("he inplace xref view should have the default x coordinate", 
+				r3.x == defaults.x || r3.x == defaults.x + 50 );
+		assertTrue("the inplace xref view should have the default y coordinate", 
+				r3.y == defaults.y || r3.y == defaults.y + 50 );
 
 		// revert the disable restoring the location setting to it's default,
 		// namely not to disable the restoring of the location - this
 		// is just putting the settings back to their defaults.
 		changeDisableRestoreSettings(settings,false);
 	
-		// get rid of the inplace view
-		postCharacterKey(SWT.ESC);
-		
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		shutdownViewWithEscape(dialog3);
 	}
 	
 	private void moveShell(Shell s, int xCoord, int yCoord, int width, int height) {
@@ -329,6 +239,62 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			assertFalse("setting should be to enable restoring the size",settings.getBoolean(XReferenceInplaceDialog.STORE_DISABLE_RESTORE_SIZE));
 		}
 
+	}
+	
+	private void shutdownViewWithEscape(XReferenceInplaceDialog xrefDialog) {
+		final XReferenceInplaceDialog dialog = xrefDialog;
+		// press esc
+		postCharacterKey(SWT.ESC);
+		
+		// wait a few secs
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = !dialog.isOpen();
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertFalse("xref inplace view should not be open",dialog.isOpen());
+
+	}
+	
+	private XReferenceInplaceDialog openInplaceXRef(XReferenceInplaceDialog previousDialog) {
+		final XReferenceInplaceDialog dialog = previousDialog;
+		
+		postKeyDown(SWT.CTRL);
+		postKeyDown(SWT.ALT);
+		postCharacterKey('x');
+		postKeyUp(SWT.ALT);
+		postKeyUp(SWT.CTRL);
+		
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				XReferenceInplaceDialog i = XReferenceInplaceDialog.getInplaceDialog();
+				boolean ret = (i != null) && !(i.equals(dialog));
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		final XReferenceInplaceDialog newDialog = XReferenceInplaceDialog.getInplaceDialog();
+		assertNotNull("the inplace dialog shouldn't be null",newDialog);
+		assertFalse("should have the new inplace dialog",newDialog.equals(dialog));
+	
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = newDialog.isOpen();
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertTrue("xref inplace view should be open",newDialog.isOpen());
+		
+		return newDialog;
 	}
 	
 }

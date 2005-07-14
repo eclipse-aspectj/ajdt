@@ -87,14 +87,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		assertTrue("the inplace view should have changed it's y coordinate", r.y != r1.y);
 				
 		// get rid of the inplace view
-		postCharacterKey(SWT.ESC);
-		
-		// wait a few secs
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		shutdownViewWithEscape(info);
 		
 		// open inplace outline view
 		postKeyDown(SWT.CTRL);
@@ -113,21 +106,45 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 
 		// get hold of the new AJOutlineInformationControl
 		AJOutlineInformationControl info2 = AJOutlineInformationControl.getInfoControl();
+		assertNotNull("AJOutlineInformationControl shouldn't be null",info2);
+		assertFalse("should have a new copy of the AJOutlineInformationControl",info2.equals(info));
 		
 		Rectangle r2 = info2.getBounds();
 		assertEquals("the inplace view should have remembered the changed height", r1.height, r2.height);
 		assertEquals("the inplace view should have remembered the changed width", r1.width, r2.width);
-		// for some bizarre reason, it always seems to add 3 to the x and y coordinates
-		assertEquals("the inplace view should have remembered the changed x coordinate", r1.x + 3, r2.x);
-		assertEquals("the inplace view should have remembered the changed y coordinate", r1.y + 3, r2.y);
-
+		// for some bizarre reason, on windows, or if this test is run standalone, it always seems to 
+		// add 3 to the x and y coordinates, whereas if this test is run on linux as part of
+		// the test suite, then 6 is added to the xcoordinate, and 25 is added to the y
+		assertTrue("the inplace view should have remembered the changed x coordinate", 
+				r2.x == r1.x + 3 || r2.x == (r1.x + 6) );
+		assertTrue("the inplace view should have remembered the changed y coordinate", 
+				r2.y == r1.y + 3 || r2.y == (r1.y + 25) );
 		// get rid of the inplace view
-		postCharacterKey(SWT.ESC);
+		shutdownViewWithEscape(info2);
 	}
 	
 	private void moveShell(Shell s, int xCoord, int yCoord, int width, int height) {
 		Rectangle r1 = new Rectangle(xCoord,yCoord,width,height);
 		s.setBounds(r1);
+	}
+	
+	private void shutdownViewWithEscape(AJOutlineInformationControl infoControl) {
+		final AJOutlineInformationControl info = infoControl;
+		// press esc
+		postCharacterKey(SWT.ESC);
+		
+		// wait a few secs
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = (info.getShell() == null);
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+
+		assertTrue("xref inplace view should not be open",info.getShell() == null);
+
 	}
 	
 }

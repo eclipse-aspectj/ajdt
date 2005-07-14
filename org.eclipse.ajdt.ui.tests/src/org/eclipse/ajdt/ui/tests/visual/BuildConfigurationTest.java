@@ -37,6 +37,7 @@ import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
@@ -82,8 +83,19 @@ public class BuildConfigurationTest extends VisualTestCase {
 		// Wait for the project to be created
 		Utils.waitForJobsToComplete();
 		
-		IWorkspace workspace= JavaPlugin.getWorkspace();		
-		IProject project = workspace.getRoot().getProject("Project1");;		
+		final IWorkspace workspace= JavaPlugin.getWorkspace();		
+		
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = workspace.getRoot().getProject("Project1").exists();
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+
+		IProject project = workspace.getRoot().getProject("Project1");
+
 		try {
 			assertTrue("Should have created a project", project.exists());	
 			
