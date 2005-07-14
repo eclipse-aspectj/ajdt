@@ -48,19 +48,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		Utils.waitForJobsToComplete();
 		
 		// open inplace outline view
-		postKeyDown(SWT.CTRL);
-		postCharacterKey('o');
-		postKeyUp(SWT.CTRL);
-				
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				AJOutlineInformationControl i = AJOutlineInformationControl.getInfoControl();
-				boolean ret = (i != null);
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
+		openInplaceDialog(null);
 
 		final AJOutlineInformationControl info = AJOutlineInformationControl.getInfoControl();
 
@@ -90,22 +78,19 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		shutdownViewWithEscape(info);
 		
 		// open inplace outline view
-		postKeyDown(SWT.CTRL);
-		postCharacterKey('o');
-		postKeyUp(SWT.CTRL);
+		openInplaceDialog(info);
 		
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				AJOutlineInformationControl i = AJOutlineInformationControl.getInfoControl();
-				boolean ret = (i != null) && !(i.equals(info));
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-
 		// get hold of the new AJOutlineInformationControl
 		AJOutlineInformationControl info2 = AJOutlineInformationControl.getInfoControl();
+		
+		// if the the info control is null or we haven't got 
+		// a new instance, then try again.
+		if (info2 == null || info.equals(info2) ) {
+			openInplaceDialog(info);
+		}
+		
+		info2 = AJOutlineInformationControl.getInfoControl();
+		
 		assertNotNull("AJOutlineInformationControl shouldn't be null",info2);
 		assertFalse("should have a new copy of the AJOutlineInformationControl",info2.equals(info));
 		
@@ -133,7 +118,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		// press esc
 		postCharacterKey(SWT.ESC);
 		
-		// wait a few secs
+		// wait until the shell is null
 		new DisplayHelper() {
 
 			protected boolean condition() {
@@ -144,7 +129,23 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 
 		assertTrue("xref inplace view should not be open",info.getShell() == null);
+	}
+	
+	private void openInplaceDialog(AJOutlineInformationControl previousDialog) {
+		final AJOutlineInformationControl info = previousDialog;
+		postKeyDown(SWT.CTRL);
+		postCharacterKey('o');
+		postKeyUp(SWT.CTRL);
+		
+		new DisplayHelper() {
 
+			protected boolean condition() {
+				AJOutlineInformationControl i = AJOutlineInformationControl.getInfoControl();
+				boolean ret = (i != null) && !(i.equals(info));
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
 	}
 	
 }

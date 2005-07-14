@@ -261,6 +261,36 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 	
 	private XReferenceInplaceDialog openInplaceXRef(XReferenceInplaceDialog previousDialog) {
+		
+		openDialog(previousDialog);
+		
+		XReferenceInplaceDialog dialog = XReferenceInplaceDialog.getInplaceDialog();
+		
+		// try again, in case the posted key events didn't
+		// get posted correctly the first time
+		if (dialog == null) {
+			openDialog(previousDialog);
+		}
+		
+		final XReferenceInplaceDialog newDialog = XReferenceInplaceDialog.getInplaceDialog();
+		assertNotNull("the inplace dialog shouldn't be null",newDialog);
+		assertFalse("should have the new inplace dialog",newDialog.equals(previousDialog));
+	
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				boolean ret = newDialog.isOpen();
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertTrue("xref inplace view should be open",newDialog.isOpen());
+		
+		return newDialog;
+	}
+	
+	private void openDialog(XReferenceInplaceDialog previousDialog) {
 		final XReferenceInplaceDialog dialog = previousDialog;
 		
 		postKeyDown(SWT.CTRL);
@@ -278,23 +308,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
-		
-		final XReferenceInplaceDialog newDialog = XReferenceInplaceDialog.getInplaceDialog();
-		assertNotNull("the inplace dialog shouldn't be null",newDialog);
-		assertFalse("should have the new inplace dialog",newDialog.equals(dialog));
-	
-		new DisplayHelper() {
-
-			protected boolean condition() {
-				boolean ret = newDialog.isOpen();
-				return ret;
-			}
-		
-		}.waitForCondition(Display.getCurrent(), 5000);
-		
-		assertTrue("xref inplace view should be open",newDialog.isOpen());
-		
-		return newDialog;
 	}
 	
 }
