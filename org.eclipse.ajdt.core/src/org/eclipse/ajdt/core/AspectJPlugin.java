@@ -60,11 +60,15 @@ public class AspectJPlugin extends Plugin {
 	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
 	private static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
+	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
+	
+	public static final String AJ_FILE_EXT = "aj"; //$NON-NLS-1$
+	
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
 	 * *nix.
 	 */
-	public static final String NON_OS_SPECIFIC_SEPARATOR = "/";
+	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
 
 	/**
 	 * Compiler monitor listens to AspectJ compilation events (build progress

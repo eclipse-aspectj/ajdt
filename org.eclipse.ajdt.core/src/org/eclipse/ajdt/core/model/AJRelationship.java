@@ -44,8 +44,8 @@ public class AJRelationship {
 	}
 
 	public String toString() {
-		return source.getElementName() + " --> " + relationship.getDisplayName()
-				+ " --> " + target.getElementName();
+		return source.getElementName() + " --> " + relationship.getDisplayName() //$NON-NLS-1$
+				+ " --> " + target.getElementName(); //$NON-NLS-1$
 	}
 
 	public boolean hasRuntimeTest() {

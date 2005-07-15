@@ -1023,7 +1023,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		// create the directory for the plugin
 		IPath sourcePluginDirURL = new Path(workingDirectory + '/' + DEFAULT_PLUGIN_LOCATION + '/' + getSourcePluginName(result, false) ); //$NON-NLS-1$
 		File sourcePluginDir = sourcePluginDirURL.toFile();
-		new File(sourcePluginDir, "META-INF").mkdirs();
+		new File(sourcePluginDir, "META-INF").mkdirs(); //$NON-NLS-1$
 
 		// Create the MANIFEST.MF
 		StringBuffer buffer;
@@ -1054,10 +1054,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		
 		//Copy the plugin.xml
 		try {
-			InputStream pluginXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/plugin/plugin.xml").openStream();
+			InputStream pluginXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/plugin/plugin.xml").openStream(); //$NON-NLS-1$
 			Utils.transferStreams(pluginXML, new FileOutputStream(sourcePluginDirURL.append(DEFAULT_PLUGIN_FILENAME_DESCRIPTOR).toOSString()));
 		} catch (IOException e1) {
-			String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/plugin/plugin.xml");
+			String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/plugin/plugin.xml"); //$NON-NLS-1$
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e1));
 		}
 
@@ -1164,7 +1164,7 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 		// create the directory for the plugin
 		Path sourceFragmentDirURL = new Path(workingDirectory + '/' + DEFAULT_PLUGIN_LOCATION + '/' + getSourcePluginName(fragment, false)); //$NON-NLS-1$ //$NON-NLS-2$
 		File sourceFragmentDir = new File(sourceFragmentDirURL.toOSString());
-		new File(sourceFragmentDir, "META-INF").mkdirs();
+		new File(sourceFragmentDir, "META-INF").mkdirs(); //$NON-NLS-1$
 		try {
 			// read the content of the template file
 			Path fragmentPath = new Path(TEMPLATE + "/30/fragment/" + DEFAULT_BUNDLE_FILENAME_DESCRIPTOR);//$NON-NLS-1$
@@ -1177,10 +1177,10 @@ public class AJFeatureBuildScriptGenerator extends FeatureBuildScriptGenerator {
 
 			//Copy the fragment.xml
 			try {
-				InputStream fragmentXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/fragment/fragment.xml").openStream();
+				InputStream fragmentXML = BundleHelper.getDefault().getBundle().getEntry(TEMPLATE + "/30/fragment/fragment.xml").openStream(); //$NON-NLS-1$
 				Utils.transferStreams(fragmentXML, new FileOutputStream(sourceFragmentDirURL.append(DEFAULT_FRAGMENT_FILENAME_DESCRIPTOR).toOSString()));
 			} catch (IOException e1) {
-				String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/fragment/fragment.xml");
+				String message = NLS.bind(Messages.exception_readingFile, TEMPLATE + "/30/fragment/fragment.xml"); //$NON-NLS-1$
 				throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e1));
 			}
 			

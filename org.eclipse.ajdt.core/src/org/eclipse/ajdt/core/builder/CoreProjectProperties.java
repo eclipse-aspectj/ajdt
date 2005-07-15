@@ -63,8 +63,7 @@ public class CoreProjectProperties implements IProjectProperties {
 	 * @see ProjectPropertiesAdapter#getClassToExecute()
 	 */
 	public String getClassToExecute() {
-		System.err
-				.println("*** AJ Plugin: ProjectProperties.getClassToExecute NOT IMPLEMENTED ***");
+		AJLog.log("*** AJ Plugin: ProjectProperties.getClassToExecute NOT IMPLEMENTED ***");
 		return null;
 	}
 
@@ -213,7 +212,7 @@ public class CoreProjectProperties implements IProjectProperties {
 	}
 
 	public String getExecutionArgs() {
-		return "";
+		return ""; //$NON-NLS-1$
 	}
 
 	/*
@@ -242,7 +241,7 @@ public class CoreProjectProperties implements IProjectProperties {
 		// If outputJar does not start with a slash, we might need to prepend
 		// the project work directory.
 		if (outputJar.trim().length() > 0
-				&& !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$
+				&& !(outputJar.startsWith("\\") || outputJar.startsWith("/"))) { //$NON-NLS-1$ //$NON-NLS-2$
 			String trimmedName = outputJar.trim();
 			boolean prependProject = true;
 
@@ -436,7 +435,7 @@ public class CoreProjectProperties implements IProjectProperties {
 				f = new File(projectBaseDirectory + java.io.File.separator
 						+ path);
 			if (validateFiles && !f.exists()) {
-				invalidEntries.append(f + "\n");
+				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
 				fileSet.add(f);
 			}
@@ -450,18 +449,17 @@ public class CoreProjectProperties implements IProjectProperties {
 				f = new File(projectBaseDirectory + java.io.File.separator
 						+ inputCopy);
 			if (validateFiles && !f.exists()) {
-				invalidEntries.append(f + "\n");
+				invalidEntries.append(f + "\n"); //$NON-NLS-1$
 			} else {
 				fileSet.add(f);
 			}
 
 		}
 
-		//ASCFIXME - Need to NLSify this string...
 		if (validateFiles && invalidEntries.length() != 0) {
 			Ajde.getDefault().getErrorHandler().handleWarning(
-					"The following jar files do not exist and are being ignored:\n"
-							+ invalidEntries.toString());
+					AspectJPlugin.getFormattedResourceString("missingJarsWarning", //$NON-NLS-1$
+							invalidEntries.toString()));
 		}
 		return fileSet;
 	}

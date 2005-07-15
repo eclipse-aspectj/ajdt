@@ -89,7 +89,7 @@ public class AspectJCore {
 		}
 
 		boolean isCodeElement = false;
-		String codeElementHandle = "";
+		String codeElementHandle = ""; //$NON-NLS-1$
 
 		int codeElementDelimPos = indexOfIgnoringEscapes(handleIdentifier,
 				AspectElement.JEM_CODEELEMENT);

@@ -154,7 +154,7 @@ public class CoreUtils {
 			try {
 				if (!(projectsInWorkspace[i].isOpen())
 						|| !projectsInWorkspace[i]
-								.hasNature("org.eclipse.jdt.core.javanature"))
+								.hasNature(AspectJPlugin.JAVA_NATURE_ID))
 					continue iterateOverProjects;
 			} catch (CoreException e1) {
 				// nature could not be checked, suppose non-java

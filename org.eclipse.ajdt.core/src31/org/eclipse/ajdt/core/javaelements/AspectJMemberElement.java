@@ -124,7 +124,7 @@ public String getKey() {
 		return getKey(this, true);
 	} catch (JavaModelException e) {
 	}
-	return "";
+	return ""; //$NON-NLS-1$
 }
 /**
  * @see IMethod

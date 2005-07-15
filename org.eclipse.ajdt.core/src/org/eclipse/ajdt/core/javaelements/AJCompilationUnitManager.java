@@ -85,7 +85,7 @@ public class AJCompilationUnitManager {
 	
 				public boolean visit(IResource resource) {
 					if(resource instanceof IFile) {
-						if (((IFile)resource).getFileExtension().equals("aj")) {
+						if (((IFile)resource).getFileExtension().equals(AspectJPlugin.AJ_FILE_EXT)) {
 							ajcus.add(getAJCompilationUnit((IFile)resource));
 						}
 					}
@@ -101,7 +101,7 @@ public class AJCompilationUnitManager {
 		jp.getProject().accept(new IResourceVisitor(){
 
 			public boolean visit(IResource resource) {
-				if(resource instanceof IFile && "aj".equals(resource.getFileExtension())) {
+				if(resource instanceof IFile && AspectJPlugin.AJ_FILE_EXT.equals(resource.getFileExtension())) {
 					AJCompilationUnit ajcu = getAJCompilationUnit((IFile)resource);
 					if(ajcu != null) {
 						ajcus.add(ajcu);

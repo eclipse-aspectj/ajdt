@@ -31,39 +31,39 @@ public class AJRelationshipManager {
 			"advises", AspectJPlugin.getResourceString("advises.displayName")); //$NON-NLS-1$ //$NON-NLS-2$
 
 	public static final AJRelationshipType ADVISED_BY = new AJRelationshipType(
-			"advised_by", AspectJPlugin
-					.getResourceString("advised_by.displayName"));
+			"advised_by", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("advised_by.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType DECLARED_ON = new AJRelationshipType(
-			"declared_on", AspectJPlugin
-					.getResourceString("declared_on.displayName"));
+			"declared_on", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("declared_on.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType ASPECT_DECLARATIONS = new AJRelationshipType(
-			"aspect_declarations", AspectJPlugin
-					.getResourceString("aspect_declarations.displayName"));
+			"aspect_declarations", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("aspect_declarations.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType MATCHED_BY = new AJRelationshipType(
-			"matched_by", AspectJPlugin
-					.getResourceString("matched_by.displayName"));
+			"matched_by", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("matched_by.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType MATCHES_DECLARE = new AJRelationshipType(
-			"matches_declare", AspectJPlugin
-					.getResourceString("matches_declare.displayName"));
+			"matches_declare", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("matches_declare.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType ANNOTATES = new AJRelationshipType(
-			"annotates", AspectJPlugin
-					.getResourceString("annotates.displayName"));
+			"annotates", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("annotates.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType ANNOTATED_BY = new AJRelationshipType(
-			"annotated_by", AspectJPlugin
-					.getResourceString("annotated_by.displayName"));
+			"annotated_by", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("annotated_by.displayName")); //$NON-NLS-1$
 
 	public static final AJRelationshipType SOFTENS = new AJRelationshipType(
-			"softens", AspectJPlugin.getResourceString("softens.displayName"));
+			"softens", AspectJPlugin.getResourceString("softens.displayName")); //$NON-NLS-1$ //$NON-NLS-2$
 
 	public static final AJRelationshipType SOFTENED_BY = new AJRelationshipType(
-			"softened_by", AspectJPlugin
-					.getResourceString("softened_by.displayName"));
+			"softened_by", AspectJPlugin //$NON-NLS-1$
+					.getResourceString("softened_by.displayName")); //$NON-NLS-1$
 
 	/**
 	 * Array of all known relationship types

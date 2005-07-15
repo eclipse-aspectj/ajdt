@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.core.PackageFragment;
 public class CompilationUnitTools {
 	
 	public static String convertAJToJavaFileName(String ajfile){
-		return ajfile.substring(0, ajfile.lastIndexOf('.')).concat(".java");
+		return ajfile.substring(0, ajfile.lastIndexOf('.')).concat(".java"); //$NON-NLS-1$
 	}
 	
 	

@@ -110,7 +110,7 @@ public abstract aspect PluginFFDC extends FFDC {
 				/* Omit static join point fields */
 				if (!sjpClass.isAssignableFrom(field.getType())) {
 					Object value = field.get(obj);
-					String fieldMessage = field.getName() + "=" + safeToString(value);
+					String fieldMessage = field.getName() + "=" + safeToString(value); //$NON-NLS-1$
 					fieldValues.add(new Status(IStatus.INFO,getPluginId(),IStatus.OK,fieldMessage,null));
 				}
 			}
@@ -127,9 +127,9 @@ public abstract aspect PluginFFDC extends FFDC {
 	}
 	
 	private static String safeToString (Object obj) {
-		if (obj == null) return "null";
-		else if (obj instanceof String) return "\"" + obj.toString() + "\"";
-		else return (obj.getClass() + "@" + obj.hashCode());
+		if (obj == null) return "null"; //$NON-NLS-1$
+		else if (obj instanceof String) return "\"" + obj.toString() + "\""; //$NON-NLS-1$ //$NON-NLS-2$
+		else return (obj.getClass() + "@" + obj.hashCode()); //$NON-NLS-1$
 	}
 
 }

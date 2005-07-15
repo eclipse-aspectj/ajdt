@@ -422,7 +422,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		super.closeBuffer();
 	}
 	
-	private static final String moveCuUpdateCreator = "org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator";
+	private static final String moveCuUpdateCreator = "org.eclipse.jdt.internal.corext.refactoring.reorg.MoveCuUpdateCreator"; //$NON-NLS-1$
 	private static final int lenOfMoveCuUpdateCreator = moveCuUpdateCreator.length();
 	
 	public IType[] getAllTypes() throws JavaModelException {

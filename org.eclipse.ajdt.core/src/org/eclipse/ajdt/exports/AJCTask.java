@@ -39,7 +39,7 @@ public class AJCTask extends JavacTask {
 			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">"); //$NON-NLS-1$
 			ajScript.printStartTag("classpath"); //$NON-NLS-1$
 			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.println("/>"); //$NON-NLS-1$
 			ajScript.printEndTag("classpath"); //$NON-NLS-1$
 			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
@@ -49,7 +49,7 @@ public class AJCTask extends JavacTask {
 			ajScript.printAttribute("destDir", destdir, false); //$NON-NLS-1$
 			ajScript.printAttribute("failonerror", failonerror, false); //$NON-NLS-1$
 			ajScript.printAttribute("verbose", verbose, false); //$NON-NLS-1$
-			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$
+			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.printAttribute("debug", debug, false); //$NON-NLS-1$
 			ajScript.printAttribute("bootclasspath", bootclasspath, false); //$NON-NLS-1$
 			ajScript.printAttribute("source", source, false); //$NON-NLS-1$
@@ -70,18 +70,18 @@ public class AJCTask extends JavacTask {
 			}
 			// Add ajde.jar to this classpath too because we have forked
 			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.println("/>"); //$NON-NLS-1$
 			
 			ajScript.indent--;
 			ajScript.printEndTag("forkclasspath"); //$NON-NLS-1$
 	
-			ajScript.printStartTag("srcdir"); 
+			ajScript.printStartTag("srcdir"); //$NON-NLS-1$
 			ajScript.indent++;
 			for (int i = 0; i < srcdir.length; i++) {
 				ajScript.printTab();
 				ajScript.print("<pathelement"); //$NON-NLS-1$
-				ajScript.printAttribute("path", srcdir[i], false);
+				ajScript.printAttribute("path", srcdir[i], false); //$NON-NLS-1$
 				ajScript.println("/>"); //$NON-NLS-1$
 			}
 			ajScript.indent--;

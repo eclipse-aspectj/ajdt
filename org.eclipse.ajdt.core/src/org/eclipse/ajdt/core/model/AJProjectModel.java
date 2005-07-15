@@ -61,7 +61,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 public class AJProjectModel {
 
 	private static final int MODEL_VERSION = 101;
-	private static final String MODEL_FILE = ".elementMap";
+	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
 
@@ -427,7 +427,7 @@ public class AJProjectModel {
 				// "declare", but the IJavaElement seems to start at the word after
 				// "declare", so we need to adjust the offset in this case.
 				int fff = 0;
-				String declare = "declare ";
+				String declare = "declare "; //$NON-NLS-1$
 				if (node.toLinkLabelString().indexOf(declare) != -1) {
 					fff = declare.length();
 				}

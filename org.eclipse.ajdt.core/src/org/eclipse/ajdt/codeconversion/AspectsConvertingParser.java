@@ -66,25 +66,25 @@ public class AspectsConvertingParser implements TerminalTokens {
 		replacements = new ArrayList(5);
 	}
 
-	private static final char[] throwing = "throwing".toCharArray();
+	private static final char[] throwing = "throwing".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] returning = "returning".toCharArray();
+	private static final char[] returning = "returning".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] percflow = "percflow".toCharArray();
+	private static final char[] percflow = "percflow".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] percflowbelow = "percflowbelow".toCharArray();
+	private static final char[] percflowbelow = "percflowbelow".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] perthis = "perthis".toCharArray();
+	private static final char[] perthis = "perthis".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] pertarget = "pertarget".toCharArray();
+	private static final char[] pertarget = "pertarget".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] issingleton = "issingleton".toCharArray();
+	private static final char[] issingleton = "issingleton".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] classs = "class ".toCharArray();
+	private static final char[] classs = "class ".toCharArray(); //$NON-NLS-1$
 
-	private static final char[] privileged = "          ".toCharArray();
+	private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
 
-	private static final String thizString = "thiz";
+	private static final String thizString = "thiz"; //$NON-NLS-1$
 
 	private boolean insidePointcutDesignator;
 
@@ -366,10 +366,10 @@ public class AspectsConvertingParser implements TerminalTokens {
 		return pos;
 	}
 
-	char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart;"
+	char[] tjpRefs2 = "org.aspectj.lang.JoinPoint thisJoinPoint; org.aspectj.lang.JoinPoint.StaticPart thisJoinPointStaticPart;" //$NON-NLS-1$
 			.toCharArray();
 
-	char[] tjpRefs = "".toCharArray();
+	char[] tjpRefs = "".toCharArray(); //$NON-NLS-1$
 
 	private void applyReplacements() {
 		Iterator iter = replacements.listIterator();
@@ -481,7 +481,7 @@ public class AspectsConvertingParser implements TerminalTokens {
 			//if requested, add ajc$ in front of intertype declaration
 			//e.g. "public int Circle$x;" -> "public int ajc$Circle$x;"
 			if (options.isAddAjcTagToIntertypesEnabled()) {
-				addReplacement(spaceordot + 1, 0, "ajc$".toCharArray());
+				addReplacement(spaceordot + 1, 0, "ajc$".toCharArray()); //$NON-NLS-1$
 			}
 
 		}

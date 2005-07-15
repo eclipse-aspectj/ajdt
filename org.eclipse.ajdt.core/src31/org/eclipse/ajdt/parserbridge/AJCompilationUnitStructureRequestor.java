@@ -324,7 +324,7 @@ public class AJCompilationUnitStructureRequestor extends
 					exceptionTypes= CharOperation.NO_CHAR_CHAR;
 				}
 				
-				String nameString = new String(decl.onType.getTypeName()[0]) + "." + new String(decl.getDeclaredSelector());
+				String nameString = new String(decl.onType.getTypeName()[0]) + "." + new String(decl.getDeclaredSelector()); //$NON-NLS-1$
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 				handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
 				
@@ -382,9 +382,9 @@ public class AJCompilationUnitStructureRequestor extends
 
 				DeclareElementInfo info = new DeclareElementInfo();
 				
-				String msg = "";
+				String msg = ""; //$NON-NLS-1$
 				if (decl.declareDecl instanceof DeclareErrorOrWarning){
-					msg = ": \"" + ((DeclareErrorOrWarning)decl.declareDecl).getMessage() + "\"";
+					msg = ": \"" + ((DeclareErrorOrWarning)decl.declareDecl).getMessage() + "\"";  //$NON-NLS-1$//$NON-NLS-2$
 					if (((DeclareErrorOrWarning)decl.declareDecl).isError()){
 						info.setAJKind(IProgramElement.Kind.DECLARE_ERROR);
 						nameSourceEnd += 4;

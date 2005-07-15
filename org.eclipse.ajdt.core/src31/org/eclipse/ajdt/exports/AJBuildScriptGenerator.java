@@ -179,7 +179,7 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 				if (features.size() == 1)
 					featureInfo = getNameAndVersion((String) features.get(0));
 				else
-					featureInfo = new String[] {"all"};
+					featureInfo = new String[] {"all"}; //$NON-NLS-1$
 
 //				 AspectJ Change
 				generateAssembleScripts(assemblageInformation, featureInfo,  ((AJFeatureBuildScriptGenerator)generator).getSiteFactory());
@@ -187,7 +187,7 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 				if (features.size() == 1)
 					featureInfo = getNameAndVersion((String) features.get(0));
 				else
-					featureInfo = new String[] {""};
+					featureInfo = new String[] {""}; //$NON-NLS-1$
 
 //				 AspectJ Change
 				generatePackageScripts(assemblageInformation, featureInfo,  ((AJFeatureBuildScriptGenerator)generator).getSiteFactory());
