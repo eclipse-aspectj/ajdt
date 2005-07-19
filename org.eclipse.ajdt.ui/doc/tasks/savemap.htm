@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+	   Saving crosscutting information
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Saving crosscutting information
+    </h1>
+    <p>
+      In order to compare the crosscutting information between different versions
+      of a project, you first need to save out the crosscutting information
+      from the current build into a file. This crosscutting information includes
+      details of those locations in the code for a project that are being affected
+      by advice or inter-type declarations. 
+    </p>
+    <p>To save the crosscutting information for a project:
+    </p>
+    <ol>
+      <li>Select the project in the Package Explorer.</li>
+      <li>Right click and select <b>AspectJ Tools &gt; Saving Crosscutting Map...</b>
+          from the context menu.</li>
+      <li>Enter a name for the crosscutting map file in the dialog, and click
+          <b>OK</b>.</li>
+    </ol>
+    <p>
+       A file is then created in the project and the crosscutting information
+       is written to it in binary form. Crosscutting map files have an
+       extension of ".ajmap" and as many such files as required can be created
+       for different versions or configurations of the project. These files then
+       serve as the basis for comparison, either with each other or with the
+       current build.
+    </p>
+
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159"><br>
+      <a href="comparetwo.htm">Comparing two builds</a><br>
+      <a href="compareone.htm">Comparing with the current build</a>      
+    </p>
+    <p>
+       <a href="../notices.html"><img src="../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
+    </p>
+  </body>
+</html>
+

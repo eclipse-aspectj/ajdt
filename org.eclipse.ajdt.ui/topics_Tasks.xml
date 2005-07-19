@@ -107,6 +107,12 @@
 		<topic label="Using the aspectpath" href="doc/tasks/aspectpath.htm"></topic>
 	</topic>
 	<anchor id="t_setups" />
-	<anchor id="t_setups" />
+
+	<topic label="Comparing crosscutting" href="doc/tasks/compare.htm">
+		<topic label="Saving crosscutting information" href="doc/tasks/savemap.htm"></topic>
+		<topic label="Comparing two builds" href="doc/tasks/comparetwo.htm"></topic>
+		<topic label="Comparing with the current build" href="doc/tasks/compareone.htm"></topic>
+	</topic>
+	<anchor id="t_compare" />
 	
 </toc>
