@@ -116,7 +116,6 @@ public class BuildConfigurationTest extends VisualTestCase {
 			PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 			packageExplorer.setFocus();
 			packageExplorer.selectAndReveal(p1);
-			Utils.waitForJobsToComplete();
 			addNewClass();				
 			IResource res = project.findMember("src/p1/Hello.java");
 			assertNotNull("New class Hello.java wan't created",res);
@@ -201,7 +200,8 @@ public class BuildConfigurationTest extends VisualTestCase {
 
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);			
+	
 		postCharacterKey(SWT.CR);
 		postString("Hello");
 		postCharacterKey(SWT.CR);
