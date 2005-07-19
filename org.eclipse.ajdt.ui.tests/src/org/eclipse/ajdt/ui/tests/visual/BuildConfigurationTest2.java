@@ -43,12 +43,14 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		postKeyDown(SWT.CTRL);		
 		postCharacterKey('n');
 		postKeyUp(SWT.CTRL);
-
-		// Open the 'New AspectJ Project' wizard
-		postCharacterKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
 			public void run() {
+				sleep();
+				
+				// Open the 'New AspectJ Project' wizard
+				postCharacterKey(SWT.CR);
+
 				sleep();
 				
 				// Enter a name for the project
@@ -262,13 +264,6 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
 		assertTrue("Should have created a build configuration file", buildFile.exists());
 		return buildFile;
-	}
-
-	private void sleep() {
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-		}
 	}
 	
 }

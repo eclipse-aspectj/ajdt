@@ -61,17 +61,17 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKeyDown(SWT.CTRL);		
 		postCharacterKey('n');
 		postKeyUp(SWT.CTRL);
-
-		// Open the 'New AspectJ Project' wizard
-		postCharacterKey(SWT.CR);
 		
 		// give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
+				sleep();
+				
+				// Open the 'New AspectJ Project' wizard
+				postCharacterKey(SWT.CR);
+
+				sleep();
+
 				// Enter a name for the project
 				postString("Project1");
 
@@ -218,9 +218,18 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postCharacterKey(SWT.CR);
-		postCharacterKey('p');
-		postCharacterKey('1');
-		postCharacterKey(SWT.CR);
+		
+		Runnable r = new Runnable() {
+			
+			public void run() {
+				sleep();
+				postCharacterKey('p');
+				postCharacterKey('1');
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		
 		Utils.waitForJobsToComplete();
 	}
 
@@ -243,8 +252,15 @@ public class BuildConfigurationTest extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);			
 		}
 		postCharacterKey(SWT.CR);
-		postString("src");
-		postCharacterKey(SWT.CR);
+		
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postString("src");
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
 		
 		Utils.waitForJobsToComplete();
 	
