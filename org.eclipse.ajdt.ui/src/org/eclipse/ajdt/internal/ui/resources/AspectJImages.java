@@ -81,11 +81,11 @@ public class AspectJImages extends AbstractIconRegistry {
 	
 	// Luzius - added aspect icons with visibility TODO: convert to gif?
 	private final AbstractIcon ASPECT_PRIVATE   = new AJDTIcon(
-	"icons/structure/aspect_pri.png");	
+		"icons/structure/aspect_pri.png");	
 	private final AbstractIcon ASPECT_PROTECTED = new AJDTIcon(
-	"icons/structure/aspect_pro.png");	
+		"icons/structure/aspect_pro.png");	
 	private final AbstractIcon ASPECT_PACKAGE   = new AJDTIcon(
-	"icons/structure/aspect_pac.png");
+		"icons/structure/aspect_pac.png");
 	private final AbstractIcon ASPECT_PUBLIC   = AJDT_ASPECT;
 
 	// These icons are publically available
@@ -188,6 +188,10 @@ public class AspectJImages extends AbstractIconRegistry {
 
 	public static final AJDTIcon AJ_CODE = new AJDTIcon(
 		"icons/structure/code.gif");
+	
+	public static final AJDTIcon ASPECTJ_FILE = new AJDTIcon(
+		"icons/structure/ajcu_obj.gif");	
+
 	
 	public static final AJDTIcon HIDE_ADVICE = new AJDTIcon("icons/actions/hide_advice.gif");
 	public static final AJDTIcon HIDE_ITDS = new AJDTIcon("icons/actions/hide_itds.gif");

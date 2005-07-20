@@ -9,9 +9,9 @@
 package org.eclipse.ajdt.internal.ui.editor;
 
 
+import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
-import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
+import org.eclipse.jdt.ui.ProblemsLabelDecorator;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
@@ -26,16 +26,16 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class AspectJEditorTitleImageUpdater {
 
+	private final Image baseImage = AspectJImages.ASPECTJ_FILE.getImageDescriptor().createImage();
+	private final ProblemsLabelDecorator problemsDecorator;
 	
-	private AppearanceAwareLabelProvider labelProvider;
 	private AspectJEditor editor;
 	
 
-	public AspectJEditorTitleImageUpdater(AspectJEditor editor) {
+	public AspectJEditorTitleImageUpdater(AspectJEditor editor) {		
 		Assert.isNotNull(editor);
 		this.editor = editor;
-		labelProvider=  new AppearanceAwareLabelProvider(0, JavaElementImageProvider.SMALL_ICONS);
-//		labelProvider.addLabelDecorator(new ImageDecorator());
+		problemsDecorator = new ProblemsLabelDecorator();
 	}
 
 			
@@ -44,7 +44,7 @@ public class AspectJEditorTitleImageUpdater {
 		if (titleImage == null) {
 			return;
 		}
-		Image newImage= labelProvider.getImage(jelement);
+		Image newImage = problemsDecorator.decorateImage(baseImage, jelement);
 		if (titleImage != newImage) {
 			postImageChange(newImage);
 		}
@@ -63,7 +63,8 @@ public class AspectJEditorTitleImageUpdater {
 	}	
 	
 	public void dispose() {
-		labelProvider.dispose();
+		problemsDecorator.dispose();
+		baseImage.dispose();
 	}
 
 }
