@@ -17,18 +17,17 @@
       locations the advice affects. Similiarly if you add a new method, it may
       become advised by existing advice, or if you rename a method or change its
       signature, advice that was previously affecting it may no longer match. You
-      can use the editor markers and Cross References view to detect
-      these events. But given larger projects, or a large number of changes, it
-      becomes impractical to record and then compare every single crosscutting
-      relationship in a project before and after every change.
+      may wish to use the Crosscutting Comparison view to compare the crosscutting
+      relationships in an AspectJ project before and after such a change.
     </p>
     
     <p>
-      This is where the crosscutting comparison functionality in AJDT comes in.
       The list of crosscutting relationships in an AspectJ project can be saved
-      out into a file, for a known reference state of the project. The relationships
+      out into a file. The relationships
       in this file can then be compared with a later version of the project, or with
-      a crosscutting file that was created at a different time.
+      a crosscutting file that was created at a different time. This crosscutting information 
+      includes details of those locations in a project that are being 
+      affected by advice or inter-type declarations.
     </p>
     
     <p>

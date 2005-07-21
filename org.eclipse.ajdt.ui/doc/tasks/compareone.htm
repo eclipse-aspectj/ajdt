@@ -13,10 +13,7 @@
       Comparing with the current build
     </h1>
     <p>
-      Once you have a ".ajmap" file containing crosscutting
-      information for a particular version or configuration of a project,
-      you can compare it against the crosscutting present in the
-      current build.
+      To compare a crosscutting map file with the current build:
     </p>
     <ol>
       <li>Select a file with the ".ajmap" extension in the Package Explorer.</li>
@@ -31,24 +28,10 @@
     </p>
     
     <p>
-       The crosscutting map file is compared with the crosscutting present
-       in the current build, and the
-       results are displayed in a table. The first column indicates whether
-       a given crosscutting relationship has been added or removed, i.e. whether it
-       exists in the current build but not in the map file, or vice versa. The remaining
-       three columns show the source element, name of the relationship, and target
-       element respectively. The cells of the table can be navigated with the
-       keyboard or mouse. Selecting a table cell containing a source or target element
-       causes that element to be opened in the editor (except where that element
-       is one which no longer exists).
-    </p>
-    
-    <p>
-       Whenever a full or incremental build of the project occurs the crosscutting
-       information may change. To keep the crosscutting comparison results up to date,
-       the comparison is redone automatically. This provides an ongoing view of
-       how the crosscutting relationships present in a project are changing in
-       response to code changes in the project, such as during refactoring.
+       When the Crosscutting Comparison view is used to compare a crosscutting map file
+       with the current build it will update automatically with every subsequent build.
+       This provides an ongoing view of how the crosscutting relationships present 
+       in a project are changing in response to code changes in the project.
     </p>
     
     <p>
