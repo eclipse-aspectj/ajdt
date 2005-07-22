@@ -12,6 +12,7 @@
 package org.eclipse.contribution.xref.core;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
@@ -67,8 +68,8 @@ public interface IXReferenceProvider {
 	 * are no cross references to be contributed, either an empty collection or
 	 * null is an acceptable return value.
 	 */
-	public Collection getXReferences(Object o);
-
+	public Collection getXReferences(Object o, List l);
+	
 	public IJavaElement[] getExtraChildren(IJavaElement je);
 
 	/**
@@ -76,6 +77,47 @@ public interface IXReferenceProvider {
 	 * in a user interface.
 	 */
 	public String getProviderDescription();
+	
+	/**
+	 * Enables the provider to handle the list of items to be filtered from the
+	 * Cross References View
+	 * 
+	 * @param List of Strings corresponding to the items checked by the user
+	 * to indicate the items to exclude in the Cross References View
+	 */
+	public void setCheckedFilters(List l);
+
+	/**
+	 * Enables the provider to handle the list of items to be filtered from the
+	 * Cross References Inplace View
+	 * 
+	 * @param List of Strings corresponding to the items checked by the user
+	 * to indicate the items to exclude in the Cross References Inplace View
+	 */
+	public void setCheckedInplaceFilters(List l);
+	
+	/**
+	 * Returns a List of Strings corresponding to the items previously checked
+	 * by the user to populate the Cross References View
+	 */
+	public List /* String */ getFilterCheckedList();
+	
+	/**
+	 * Returns a List of Strings corresponding to the items previously checked
+	 * by the user to populate the Cross References Inplace View
+	 */
+	public List /* String */ getFilterCheckedInplaceList();
+	
+	/**
+	 * Returns a List of Strings corresponding to the items used to populate the checkBox with
+	 */
+	public List /* String */ getFilterList();
+	
+	/**
+	 * Returns a List of Strings corresponding to the items specified to
+	 * be checked by default in the Cross References Views
+	 */
+	public List /* String */ getFilterDefaultList();
 	
 	/**
 	 * Providers are contributed by other plugins, and should be considered untrusted 
@@ -105,5 +147,4 @@ public interface IXReferenceProvider {
 			Object getResult();
 		}
 	}
-	
 }

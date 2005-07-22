@@ -41,7 +41,7 @@ public class TestXRefProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o) {
+	public Collection getXReferences(Object o, List checked) {
 		XReference e = new XReference("extends");
 		XReference i = new XReference("implements");
 		List l = new ArrayList();
@@ -58,6 +58,17 @@ public class TestXRefProvider implements IXReferenceProvider {
  		return "Definition of TestXRefProvider";
  		
  	}
+	
+	public void setCheckedFilters(List l) {	}
 
+	public void setCheckedInplaceFilters(List l) { }
+
+	public List getFilterCheckedList() { return null; }
+
+	public List getFilterCheckedInplaceList() { return null; }
+	
+	public List getFilterList() { return null; }
+
+	public List getFilterDefaultList() { return null; }
 	
 }

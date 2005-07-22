@@ -133,3 +133,27 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
 - the "Quick Cross References" entry should be activated  
 
 				     (XREF_INPLACE_18)
+
+				     
+Test8 - Applying XRef Filters should update tree, (Feature 95724)
+-------------------------------------------
+
+- create an example project, 'Spacewar Example'
+- open spacewar/display1.aj
+- go to line 110, (Ctrl-L, 110)
+- bring up the inplace cross reference view, (Ctrl-Alt-x)
+- bring up the view menu, either by clicking the button in the
+  top right of the dialog or by pressing Ctrl-F10
+- select 'Filters...'
+- In the presented dialog, click 'Deselect All' and then OK
+- The inplace cross reference view should now show three relationships:
+	One 'advises'
+	Two 'advised by'
+					(XREF_INPLACE_19)
+- bring up the view menu, either by clicking the button in the
+  top right of the dialog or by pressing Ctrl-F10
+- select 'Filters...'
+- In the presented dialog, check the 'advises' cross reference to exclude it
+
+
+

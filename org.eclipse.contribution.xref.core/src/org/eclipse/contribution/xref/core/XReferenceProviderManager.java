@@ -35,8 +35,13 @@ public class XReferenceProviderManager {
 	private List providerList;
 	private static final String PROVIDERS_EXTENSION_POINT =
 		"org.eclipse.contribution.xref.core.providers"; //$NON-NLS-1$
+	
+	// Identifies to the Provider which View requires its attention, (Inplace or View) (BUG 95724)
+	private boolean isInplace;
 
 	private XReferenceProviderManager() {
+		// By default assume the Cross Reference View requires its attention
+		isInplace = false;
 	};
 
 	public static XReferenceProviderManager getManager() {
@@ -44,6 +49,14 @@ public class XReferenceProviderManager {
 			theManager = new XReferenceProviderManager();
 		}
 		return theManager;
+	}
+	
+	public void setIsInplace(boolean isInplace) {
+		this.isInplace = isInplace;
+	}
+	
+	public boolean getIsInplace() {
+		return isInplace;
 	}
 
 	/**
@@ -120,5 +133,4 @@ public class XReferenceProviderManager {
 		}
 		return false;
 	}
-
 }

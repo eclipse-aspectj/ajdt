@@ -227,7 +227,7 @@ public class UIBuildListener implements IAJBuildListener {
 						XReferenceUIPlugin.refresh();
 						
 						// refresh Crosscutting Changes
-						ChangesView.refresh();
+						ChangesView.refresh(false);
 						
 						// refresh Visualiser
 						if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {

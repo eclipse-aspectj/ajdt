@@ -27,6 +27,7 @@ public class AllTests {
 			new TestSuite("Test for org.eclipse.contribution.xref.ui");
 		//$JUnit-BEGIN$
 		suite.addTestSuite(XReferenceViewTest.class);
+		suite.addTestSuite(AJXReferenceProviderTest.class);
 		//$JUnit-END$
 		return suite;
 	}

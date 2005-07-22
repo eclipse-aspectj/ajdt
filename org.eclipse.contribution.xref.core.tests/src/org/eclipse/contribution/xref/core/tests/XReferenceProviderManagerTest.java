@@ -91,4 +91,19 @@ public class XReferenceProviderManagerTest extends TestCase {
 		}
 		return contains;
 	}
+	
+	public void testSettingOfIsInplace() {
+		XReferenceProviderManager manager =
+			XReferenceProviderManager.getManager();
+		boolean currentValue = manager.getIsInplace();
+		if (currentValue == true) {
+			manager.setIsInplace(false);
+			assertFalse("isInplace has not been set correctly", manager.getIsInplace());
+		} else {
+			manager.setIsInplace(true);
+			assertTrue("isInplace has not been set correctly", manager.getIsInplace());
+		}
+		// Reset the value
+		manager.setIsInplace(currentValue);
+	}
 }

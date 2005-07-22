@@ -236,8 +236,16 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);			
 		}
 		postCharacterKey(SWT.CR);
-		postString("src2");
-		postCharacterKey(SWT.CR);
+		
+		Runnable r = new Runnable() {
+		
+			public void run() {
+				sleep();
+				postString("src2");
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
 		
 		Utils.waitForJobsToComplete();
 	

@@ -11,7 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.core;
 
-import org.eclipse.contribution.xref.core.IXReferenceProvider;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 
@@ -73,20 +74,62 @@ public class XReferenceProviderDefinition {
 	public String getDescription() {
 		return provider.getProviderDescription();
 	}
-
+	
 	/**
 	 * @return the IXReferenceProvider
 	 */
 	public IXReferenceProvider getProvider() {
 		return provider;
 	}
-	
 
 	/**
 	 * @return Returns the defaultEnablement.
 	 */
 	public boolean getDefaultEnablementValue() {
 		return defaultEnablement;
+	}
+	
+
+	/**
+	 * @return List of Strings
+	 */
+	public List /* String */ getCheckedInplaceFilters() {
+		return provider.getFilterCheckedInplaceList();
+	}
+
+	/**
+	 * @param List of Strings
+	 */
+	public void setCheckedInplaceFilters(List /* String */ checkedList) {
+		provider.setCheckedInplaceFilters(checkedList);
+	}
+
+	/**
+	 * @return List of Strings
+	 */
+	public List /* String */ getCheckedFilters() {
+		return provider.getFilterCheckedList();
+	}
+
+	/**
+	 * @param List of Strings
+	 */
+	public void setCheckedFilters(List /* String */ checkedList) {
+		provider.setCheckedFilters(checkedList);
+	}
+
+	/**
+	 * @return List of Strings
+	 */
+	public List /* String */ getAllFilters() {
+		return provider.getFilterList();
+	}
+
+	/**
+	 * @return List of Strings
+	 */
+	public List /* String */ getDefaultFilters() {
+		return provider.getFilterDefaultList();
 	}
 
 }

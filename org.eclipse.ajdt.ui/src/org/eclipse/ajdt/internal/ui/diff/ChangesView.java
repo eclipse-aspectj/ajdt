@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.internal.ui.diff;
 
 import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +20,8 @@ import java.util.Locale;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.ModelComparison;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -29,6 +32,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
@@ -47,6 +52,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.part.ViewPart;
 
@@ -55,6 +61,8 @@ import org.eclipse.ui.part.ViewPart;
  * models (one of which might be the one for the current build)
  */
 public class ChangesView extends ViewPart {
+
+	private ChangesViewFilterAction filterAction;
 
 	public static final String CROSSCUTTING_VIEW_ID = "org.eclipse.ajdt.ui.diff.ChangesView"; //$NON-NLS-1$
 
@@ -67,8 +75,6 @@ public class ChangesView extends ViewPart {
 
 	private Table table;
 
-	// store IJavaElements for navigation (only the string names are put in
-	// table)
 	private IJavaElement[] sourceElements;
 
 	private IJavaElement[] targetElements;
@@ -86,19 +92,19 @@ public class ChangesView extends ViewPart {
 	public ChangesView() {
 	}
 
-	public static void refresh() {
+	public static void refresh(boolean force) {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow().getActivePage().findView(
 						ChangesView.CROSSCUTTING_VIEW_ID);
 		if (view instanceof ChangesView) {
 			ChangesView changesView = (ChangesView) view;
-			changesView.refreshIfCurrentBuild();
+			changesView.refreshIfCurrentBuild(force);
 		}
 	}
 
-	private void refreshIfCurrentBuild() {
+	private void refreshIfCurrentBuild(boolean force) {
 		if ((currFromName != null) && (currToName != null)) {
-			if (currFromName.equals(CURRENT_BUILD)
+			if (force || currFromName.equals(CURRENT_BUILD)
 					|| currToName.equals(CURRENT_BUILD)) {
 				performComparison(currFromProject, currFromName, currToProject,
 						currToName);
@@ -216,6 +222,8 @@ public class ChangesView extends ViewPart {
 				}
 			}
 		});
+		makeActions();
+		contributeToActionBars();
 	}
 
 	private void navigateTo(int row, int column) {
@@ -256,9 +264,17 @@ public class ChangesView extends ViewPart {
 		table.setFocus();
 	}
 
-	private void updateDescription(String fromName, String toName) {
-		setContentDescription(AspectJUIPlugin.getFormattedResourceString(
-				"changesView.description", new String[] { fromName, toName })); //$NON-NLS-1$
+	private void updateDescription(String fromName, String toName, int remove,
+			int total) {
+		if (remove == total) {
+			setContentDescription(AspectJUIPlugin
+					.getFormattedResourceString(
+							"changesView.description", new String[] { fromName, toName })); //$NON-NLS-1$
+		} else {
+			setContentDescription(AspectJUIPlugin
+					.getFormattedResourceString(
+							"changesView.description", new String[] { fromName, toName }) + " " + AspectJUIPlugin.getFormattedResourceString("changesView.filter.dialog.showingXofY", new String[] { new Integer(remove).toString(), new Integer(total).toString() })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
 	}
 
 	private AJProjectModel getModelFromName(IProject project, String name) {
@@ -290,6 +306,18 @@ public class ChangesView extends ViewPart {
 		return outgoingImage;
 	}
 
+	private List filterRelationshipList(List relationshipList) {
+		List filteredList = new ArrayList();
+		for (Iterator iter = relationshipList.iterator(); iter.hasNext();) {
+			AJRelationship element = (AJRelationship) iter.next();
+			if (!filterAction.getCheckedList().contains(
+					element.getRelationship().getDisplayName())) {
+				filteredList.add(element);
+			}
+		}
+		return filteredList;
+	}
+
 	public void performComparison(IProject fromProject, String fromName,
 			IProject toProject, String toName) {
 		currFromProject = fromProject;
@@ -297,19 +325,21 @@ public class ChangesView extends ViewPart {
 		currToProject = toProject;
 		currToName = toName;
 
-		updateDescription(fromName, toName);
-
 		AJProjectModel fromModel = getModelFromName(fromProject, fromName);
 		AJProjectModel toModel = getModelFromName(toProject, toName);
 
 		List[] ret = ModelComparison.compare(fromModel, toModel);
-		List addedList = ret[0];
-		List removedList = ret[1];
+		List addedList = filterRelationshipList(ret[0]);
+		List removedList = filterRelationshipList(ret[1]);
 
 		int numEntries = addedList.size() + removedList.size();
 		sourceElements = new IJavaElement[numEntries];
 		targetElements = new IJavaElement[numEntries];
 		int rowCount = 0;
+
+		int totalNoRelationships = ret[0].size() + ret[1].size();
+		updateDescription(fromName, toName, (addedList.size() + removedList
+				.size()), totalNoRelationships);
 
 		// update table with results
 		table.removeAll();
@@ -367,7 +397,46 @@ public class ChangesView extends ViewPart {
 		int w = table.getClientArea().width - table.getColumn(0).getWidth()
 				- table.getColumn(2).getWidth();
 		table.getColumn(1).setWidth(w / 2);
-		table.getColumn(3).setWidth(w - w / 2);	
+		table.getColumn(3).setWidth(w - w / 2);
 	}
 
+	private void contributeToActionBars() {
+		IActionBars bars = getViewSite().getActionBars();
+		fillLocalToolBar(bars.getToolBarManager());
+	}
+
+	private void fillLocalToolBar(IToolBarManager manager) {
+		filterAction.fillActionBars(getViewSite().getActionBars());
+	}
+
+	private void makeActions() {
+		AJRelationshipType[] relationshipTypes = AJRelationshipManager.allRelationshipTypes;
+
+		List populatingList = new ArrayList();
+		for (int i = 0; i < relationshipTypes.length; i++) {
+			System.out.println(relationshipTypes[i].getDisplayName());
+			populatingList.add(relationshipTypes[i].getDisplayName());
+		}
+
+		List checkedList = new ArrayList();
+
+		List defaultCheckedList = new ArrayList();
+		for (int i = 1; i < relationshipTypes.length; i = i + 2) {
+			System.out.println(relationshipTypes[i].getDisplayName());
+			defaultCheckedList.add(relationshipTypes[i].getDisplayName());
+		}
+
+		String dlogTitle = AspectJUIPlugin
+				.getResourceString("changesView.filter.dialog.title"); //$NON-NLS-1$;
+		String dlogMessage = AspectJUIPlugin
+				.getResourceString("changesView.filter.dialog.message"); //$NON-NLS-1$;
+
+		if (checkedList.size() == 0) {
+			checkedList = new ArrayList(defaultCheckedList);
+		}
+		
+		filterAction = new ChangesViewFilterAction(getSite().getShell(),
+				populatingList, checkedList, defaultCheckedList, dlogTitle,
+				dlogMessage);
+	}
 }

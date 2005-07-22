@@ -69,8 +69,6 @@ public class XReferenceAdapterTest extends TestCase {
 		for (Iterator iter = providers.iterator(); iter.hasNext();) {
             XReferenceProviderDefinition def = (XReferenceProviderDefinition) iter.next();
     		def.setEnabled(true);
-        }
-
+        }		
 	}
-
 }

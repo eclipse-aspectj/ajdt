@@ -30,7 +30,9 @@ public class AllVisualUITests {
 		
 		// xref view tests
 		suite.addTest(new TestSuite(XReferenceViewTest.class));
-		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));	
+		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));
+		
+		suite.addTest(new TestSuite(CustomFilterDialogTest.class));	
 
 		// AspectJ Outline view tests
 		suite.addTest(new TestSuite(AJInplaceOutlineTest.class));

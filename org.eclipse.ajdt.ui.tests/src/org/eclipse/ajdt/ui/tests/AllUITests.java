@@ -41,6 +41,7 @@ import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
+import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
@@ -96,6 +97,7 @@ public class AllUITests {
 		// internal.ui.preferences tests
 		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
 		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
+		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
 
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));

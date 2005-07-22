@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
+ *     Ben Dalziel     - implementation of feature 95724 (Filter)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.xref;
 
@@ -16,35 +17,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.builder.AJNode;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jface.preference.IPreferenceStore;
 
-/**
- * @author hawkinsh
- *  
- */
 public class AJXReferenceProvider implements IXReferenceProvider {
 
 	private static final Class[] myClasses = new Class[] { IJavaElement.class };
 
-	// array of relationships to show
-	private AJRelationshipType[] showRels = new AJRelationshipType[] {
-			AJRelationshipManager.ADVISES,
-			AJRelationshipManager.ADVISED_BY,
-			AJRelationshipManager.ASPECT_DECLARATIONS,
-			AJRelationshipManager.DECLARED_ON,
-			AJRelationshipManager.MATCHED_BY,
-			AJRelationshipManager.MATCHES_DECLARE,
-			AJRelationshipManager.ANNOTATES,
-			AJRelationshipManager.ANNOTATED_BY
-	};
+	private AJRelationshipType[] relationshipTypes = AJRelationshipManager.allRelationshipTypes;
 
 	/*
 	 * (non-Javadoc)
@@ -56,31 +47,44 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	public IJavaElement[] getExtraChildren(IJavaElement je) {
-	    List l = AJModel.getInstance().getExtraChildren(je);
-	    if (l == null) {
+		List l = AJModel.getInstance().getExtraChildren(je);
+		if (l == null) {
 			return null;
 		}
-	    // ensuring that the children are sorted 
-	    Collections.sort(l,new AJComparator());
-	    return (IJavaElement[]) (l.toArray(new IJavaElement[] {}));
+		// ensuring that the children are sorted
+		Collections.sort(l, new AJComparator());
+		return (IJavaElement[]) (l.toArray(new IJavaElement[] {}));
 	}
-	
+
+	private List /* AJRelationshipType */getAJRelationshipTypes(List relNames) {
+		List visibleAJRelTypes = new ArrayList();
+		for (int i = 0; i < relationshipTypes.length; i++) {
+			String name = (String) relationshipTypes[i].getDisplayName();
+			if (!relNames.contains(name)) {
+				visibleAJRelTypes.add(relationshipTypes[i]);
+			}
+		}
+		return visibleAJRelTypes;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o) {
+	public Collection getXReferences(Object o, List checkedRelNames) {
 		if (!(o instanceof IJavaElement))
 			return Collections.EMPTY_SET;
 
+		List visibleAJRelTypes = getAJRelationshipTypes(checkedRelNames);
 		List xrefs = new ArrayList();
 		IJavaElement je = (IJavaElement) o;
-		
+
 		AJModel model = AJModel.getInstance();
-		for (int i = 0; i < showRels.length; i++) {
+		for (Iterator it = visibleAJRelTypes.iterator(); it.hasNext();) {
+			AJRelationshipType ajType = (AJRelationshipType) it.next();
 			List associates = new ArrayList();
-			List related = model.getRelatedElements(showRels[i], je);
+			List related = model.getRelatedElements(ajType, je);
 			if (related != null) {
 				for (Iterator iter = related.iterator(); iter.hasNext();) {
 					IJavaElement javaElement = (IJavaElement) iter.next();
@@ -88,8 +92,8 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 							.getJavaElementLinkName(javaElement));
 					associates.add(associate);
 				}
-				Collections.sort(associates,new AJComparator());
-				XRef xref = new XRef(showRels[i].getDisplayName(), associates);
+				Collections.sort(associates, new AJComparator());
+				XRef xref = new XRef(ajType.getDisplayName(), associates);
 				xrefs.add(xref);
 			}
 		}
@@ -125,5 +129,43 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 		}
 	}
 
+	public void setCheckedFilters(List l) {
+		AspectJPreferences.setCheckedFilters(l);
+	}
 
+	public List getFilterCheckedList() {
+		return AspectJPreferences.getFilterCheckedList();
+	}
+	
+	public void setCheckedInplaceFilters(List l) {
+		AspectJPreferences.setCheckedInplaceFilters(l);
+	}
+
+	public List getFilterCheckedInplaceList() {
+		return AspectJPreferences.getFilterCheckedInplaceList();
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getFilterList()
+	 */
+	public List getFilterList() {
+		List populatingList = new ArrayList();
+		for (int i = 0; i < relationshipTypes.length; i++) {
+			populatingList.add(relationshipTypes[i].getDisplayName());
+		}
+		return populatingList;
+	}
+
+	/*
+	 * Returns the List of items to be filtered from the view by default. At the
+	 * moment we do not wish to filter anything, (i.e. empty List). This may
+	 * change is more relationships are added. (non-Javadoc)
+	 * 
+	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getFilterDefaultList()
+	 */
+	public List getFilterDefaultList() {
+		return new ArrayList();
+	}
 }

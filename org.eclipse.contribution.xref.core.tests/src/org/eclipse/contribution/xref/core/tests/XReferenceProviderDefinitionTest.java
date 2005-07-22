@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.core.tests;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -83,4 +84,23 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 		TestProvider.beBad = false;
 	}
 
+	public void testSetCheckedFilters() {
+		List li = new ArrayList();
+		li.add("Item 1");
+		def.setCheckedFilters(li);
+		List returned = def.getCheckedFilters();
+		assertTrue("One item should be checked", returned.size()==1);
+		// Reset
+		def.setCheckedFilters(new ArrayList());		
+	}
+	
+	public void testSetCheckedInplaceFilters() {
+		List li = new ArrayList();
+		li.add("Item 1");
+		def.setCheckedInplaceFilters(li);
+		List returned = def.getCheckedInplaceFilters();
+		assertTrue("One item should be checked", returned.size()==1);
+		// Reset
+		def.setCheckedInplaceFilters(new ArrayList());		
+	}
 }

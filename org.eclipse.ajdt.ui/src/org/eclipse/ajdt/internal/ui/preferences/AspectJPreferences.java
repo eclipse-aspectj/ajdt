@@ -17,6 +17,10 @@ package org.eclipse.ajdt.internal.ui.preferences;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
@@ -187,6 +191,10 @@ public class AspectJPreferences {
 	 */
 	public static final String AJDOC_COMMAND = "ajdocCommand"; //$NON-NLS-1$
 
+	// XReference Provider
+	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters";
+	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace";
+	
 	// migration wizard options	
 	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
 	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
@@ -522,4 +530,59 @@ public class AspectJPreferences {
 	public static void setMigrationWizardIsRunning(boolean isRunning) {
 	    migrationWizardIsRunning = isRunning;
 	}
+	
+	public static void setCheckedFilters(List l) {
+
+		StringBuffer sb = new StringBuffer();
+		for (Iterator iter = l.iterator(); iter.hasNext();) {
+			String name = (String) iter.next();
+			sb.append(name);
+			if (iter.hasNext()) {
+				sb.append(",");
+			}
+		}
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		pstore.setValue(XREF_CHECKED_FILTERS, sb.toString());
+	}
+
+	public static List getFilterCheckedList() {
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		String xRefCheckedFilters = pstore.getString(XREF_CHECKED_FILTERS);
+		List checkedList = new ArrayList();
+		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ",");
+		while (tokenizer.hasMoreTokens()) {
+			checkedList.add(tokenizer.nextElement());
+		}
+		return checkedList;
+	}
+	
+	public static void setCheckedInplaceFilters(List l) {
+		StringBuffer sb = new StringBuffer();
+		for (Iterator iter = l.iterator(); iter.hasNext();) {
+			String name = (String) iter.next();
+			sb.append(name);
+			if (iter.hasNext()) {
+				sb.append(",");
+			}
+		}
+		IPreferenceStore pstoreInplace = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		pstoreInplace.setValue(XREF_CHECKED_FILTERS_INPLACE, sb.toString());
+	}
+
+	public static List getFilterCheckedInplaceList() {
+		IPreferenceStore pstoreInplace = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		String xRefCheckedFilters = pstoreInplace
+				.getString(XREF_CHECKED_FILTERS_INPLACE);
+		List checkedList = new ArrayList();
+		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ",");
+		while (tokenizer.hasMoreTokens()) {
+			checkedList.add(tokenizer.nextElement());
+		}
+		return checkedList;
+	}
+	
 }

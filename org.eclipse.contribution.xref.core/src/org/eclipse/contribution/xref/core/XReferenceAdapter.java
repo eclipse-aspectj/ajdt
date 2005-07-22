@@ -61,17 +61,27 @@ public class XReferenceAdapter implements IXReferenceAdapter {
 	 * 
 	 * @see org.eclipse.contributions.xref.core.IXReferenceAdapter#getXReferences()
 	 */
-	public Collection getXReferences() {
+	public Collection getXReferences() {		
 		XReferenceProviderManager manager =
 			XReferenceProviderManager.getManager();
 		List providers = manager.getProvidersFor(referenceSource);
 		List xrefs = new ArrayList();
 		for (Iterator iter = providers.iterator(); iter.hasNext();) {
 			IXReferenceProvider element = (IXReferenceProvider) iter.next();
-			Collection c = element.getXReferences(referenceSource);
-			if (c != null) {
-				xrefs.addAll(c);                
-            }
+			
+			// Establishes which view requires the cross references, (Inplace or View) and passes the corresponding
+			// checkedFilterList to the provider
+			if (manager.getIsInplace()) {
+				Collection c = element.getXReferences(referenceSource, element.getFilterCheckedInplaceList());
+				if (c != null) {
+						xrefs.addAll(c);                
+		          }
+			} else {
+				Collection c = element.getXReferences(referenceSource, element.getFilterCheckedList());
+				if (c != null) {
+						xrefs.addAll(c);                
+		          }
+			}
 		}
 		return xrefs;
 	}

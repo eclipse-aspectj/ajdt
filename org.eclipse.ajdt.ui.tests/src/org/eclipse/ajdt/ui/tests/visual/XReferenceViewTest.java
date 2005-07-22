@@ -10,14 +10,20 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
+import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
+import org.eclipse.contribution.xref.core.XReferenceProviderManager;
+import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -26,6 +32,8 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceViewTest extends VisualTestCase {
+	
+	private int inplaceSize;
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
@@ -150,5 +158,288 @@ public class XReferenceViewTest extends VisualTestCase {
 			boolean ret = (o == null);
 			return ret;
 		}		
+	}
+	
+	public void checkProvidersAgree(XReferenceCustomFilterAction xrefAction) {
+		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
+		XReferenceProviderDefinition contributingProviderDefinition = null;
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
+				if (contributingProviderDefinition == null){
+					contributingProviderDefinition = provider;
+//					inplaceSize = contributingProviderDefinition.getCheckedInplaceFilters().size();
+				} else {
+					assertTrue("Provider 'checked' Lists do not match",
+							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()));
+					assertTrue("Provider 'checkedInplace' Lists do not match",
+							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters())
+							&& provider.getCheckedInplaceFilters().size() == inplaceSize);
+				}
+			} else {
+				contributingProviderDefinition = provider;
+			}
+		}		
+	}
+
+	public void testSelectAll() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		xrefAction.run();
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+		
+
+		TreeViewer treeViewer = xrefView.getTreeViewer();
+//		assertTrue("xref view should have non null treeviewer",treeViewer.getInput());
+		Object obj = treeViewer.getInput();
+		//if (obj != null) {
+		//	assertTrue("IAspectJElement should exist",xrefSourceExists(xrefView));
+		assertNull("tree viewer shouldn't contain anything",obj);
+		
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
+				// in the populating list are removed in the constructor of the action
+				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedFilters().size());
+			}
+		}
+	}
+	
+	public void testDeselectAll() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		xrefAction.run();
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+		
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+			}
+		}
+		testSelectAll();
+	}
+	
+	public void testRestoreDefaults() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		xrefAction.run();
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+		
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+			}
+		}
+	}
+
+	// CheckedList should now be empty
+	public void testChecking() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+		
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		
+		xrefAction.run();
+		
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedFilters().size() == 3);
+			}
+		}
+	}
+	
+	// CheckedList should now have first three items checked.  Uncheck these...
+	public void testUnChecking() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+		
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		
+		xrefAction.run();
+		
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+			}
+		}
+	}
+	
+
+	// CheckedList should now be empty
+	public void testCancelDoesNotUpdate() throws CoreException {
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
+		Utils.waitForJobsToComplete();
+		
+		checkProvidersAgree(xrefAction);
+		
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+				postKey(SWT.ARROW_DOWN);
+				postCharacterKey(' ');
+
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.TAB);
+				postCharacterKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+		
+		xrefAction.run();
+		
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+			}
+		}
 	}
 }

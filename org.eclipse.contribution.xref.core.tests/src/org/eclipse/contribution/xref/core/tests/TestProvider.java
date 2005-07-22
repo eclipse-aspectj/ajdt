@@ -27,7 +27,15 @@ import org.eclipse.jdt.core.IJavaElement;
  */
 public class TestProvider implements IXReferenceProvider {
 
+	private List checkedFilterList;
+	private List checkedFilterInplaceList;
+	
 	public static boolean beBad = false; // for setting up test conditions
+	
+	public TestProvider() {
+		checkedFilterList = new ArrayList();
+		checkedFilterInplaceList = new ArrayList();
+	}
 	
 	/*
 	 * (non-Javadoc)
@@ -43,7 +51,7 @@ public class TestProvider implements IXReferenceProvider {
 	 * 
 	 * @see org.eclipse.contribution.xref.core.tests.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
-	public Collection getXReferences(Object o) {
+	public Collection getXReferences(Object o, List checked) {
 		String s = (String) o;
 		Set a = new HashSet();
 		a.add(s.toUpperCase());
@@ -71,4 +79,27 @@ public class TestProvider implements IXReferenceProvider {
 		return "My Description";
 	}
 
+	public void setCheckedFilters(List l) {
+		checkedFilterList = l;
+	}
+
+	public void setCheckedInplaceFilters(List l) {
+		checkedFilterInplaceList = l;
+	}
+
+	public List getFilterCheckedList() {
+		return checkedFilterList;
+	}
+
+	public List getFilterCheckedInplaceList() {
+		return checkedFilterInplaceList;
+	}
+	
+	public List getFilterList() {
+		return null;
+	}
+
+	public List getFilterDefaultList() {
+		return null;
+	}
 }

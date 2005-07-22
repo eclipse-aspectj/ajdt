@@ -9,22 +9,34 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
+import org.eclipse.contribution.xref.core.XReferenceProviderManager;
+import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
+import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceInplaceDialogTest extends VisualTestCase {
 
 	private IProject project;
+	private int viewSize;
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
@@ -34,6 +46,252 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		Utils.deleteProject(project);
+	}
+	
+	public void checkProvidersAgree(XReferenceCustomFilterActionInplace xrefAction) {
+		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
+		XReferenceProviderDefinition contributingProviderDefinition = null;
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
+				if (contributingProviderDefinition == null){
+					contributingProviderDefinition = provider;
+					viewSize = contributingProviderDefinition.getCheckedFilters().size();
+				} else {
+					assertTrue("Provider 'checked' Lists do not match",
+							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()) && provider.getCheckedFilters().size() == viewSize);
+					assertTrue("Provider 'checkedInplace' Lists do not match",
+							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters()));
+				}
+			} else {
+				contributingProviderDefinition = provider;
+			}
+		}		
+	}
+
+
+	public void testKeyDrivenMenuPopUp() throws CoreException {
+		IResource res = project.findMember("src/pack/A.aj");
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found.");
+		} 
+		IFile ajFile = (IFile)res;
+
+		// open Aspect.aj and select the pointcut
+		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(8);
+		moveCursorRight(8);
+		Utils.waitForJobsToComplete();
+
+		// open inplace xref view
+		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
+		Utils.waitForJobsToComplete();
+
+		//Opens the inplace view menu
+		postKeyDown(SWT.CTRL);
+		postKey(SWT.F10);
+		postKeyUp(SWT.CTRL);
+		
+		postKey(SWT.ESC);
+		
+		assertTrue("Menu has not been presented, as a result the ESC key did not close it it, and the dialog has been closed in it's place", dialog.isOpen());
+	}
+	
+	public XReferenceCustomFilterActionInplace setupDialog() {
+		IResource res = project.findMember("src/pack/A.aj");
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found.");
+		} 
+		IFile ajFile = (IFile)res;
+
+		// open Aspect.aj and select the pointcut
+		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(8);
+		moveCursorRight(8);
+		Utils.waitForJobsToComplete();
+
+		// open inplace xref view
+		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
+		Utils.waitForJobsToComplete();
+		XReferenceCustomFilterActionInplace xrefAction = (XReferenceCustomFilterActionInplace)dialog.getCustomFilterActionInplace();
+		Utils.waitForJobsToComplete();	
+		
+		checkProvidersAgree(xrefAction);
+
+		//Opens the inplace view menu
+		postKeyDown(SWT.CTRL);
+		postKey(SWT.F10);
+		postKeyUp(SWT.CTRL);
+
+		// Highlights the 'Filters...' menu item and selects it
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(SWT.CR);
+		
+		return xrefAction;
+	}
+	
+	public void testSelectAll() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+		
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+		
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
+				// in the populating list are removed in the constructor of the action
+				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedInplaceFilters().size());
+			}
+		}
+	}
+	
+	public void testDeselectAll() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+				
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
+				// in the populating list are removed in the constructor of the action
+				assertTrue("The number of checked Filtes be zero", provider.getCheckedInplaceFilters().size() == 0);
+			}
+		}
+		// Reset to have all filters selected
+	}
+	
+	public void testRestoreDefaults() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+						
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
+			}
+		}
+	}
+
+	// CheckedList should now be empty
+	public void testChecking() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+						
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedInplaceFilters().size() == 3);
+			}
+		}
+	}
+	
+	// CheckedList should now have first three items checked.  Uncheck these...
+	public void testUnChecking() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+						
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
+			}
+		}
+	}
+	
+
+	// CheckedList should now be empty
+	public void testCancelDoesNotUpdate() throws CoreException {
+		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+
+		// In the filter dialog
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(' ');
+
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		checkProvidersAgree(xrefAction);
+						
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			// Only concern ourselves with those providers dealing with the setting and checking of filters
+			if (provider.getAllFilters() != null){
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
+			}
+		}
 	}
 	
 	public void testEscape() {

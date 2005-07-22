@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IXReferenceNode;
+import org.eclipse.contribution.xref.core.XReferenceProviderManager;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
+import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
@@ -23,6 +25,7 @@ import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvid
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.util.StringMatcher;
 import org.eclipse.jdt.internal.ui.viewsupport.MemberFilter;
@@ -89,11 +92,17 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tracker;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ActionHandler;
+import org.eclipse.ui.commands.HandlerSubmission;
 import org.eclipse.ui.commands.ICommand;
 import org.eclipse.ui.commands.ICommandManager;
 import org.eclipse.ui.commands.IKeySequenceBinding;
+import org.eclipse.ui.commands.Priority;
+import org.eclipse.ui.contexts.IWorkbenchContextSupport;
 import org.eclipse.ui.keys.KeySequence;
 import org.eclipse.ui.keys.SWTKeySupport;
 
@@ -165,6 +174,7 @@ public class XReferenceInplaceDialog {
 	private List /*IXReferenceAdapter*/ previousXRefAdapterList;
 
 	private Action doubleClickAction;
+	private Action xReferenceActionInplace;
 	private boolean isDeactivateListenerActive= false;
 	private Composite composite, viewMenuButtonComposite;
 	private int shellStyle;
@@ -174,12 +184,19 @@ public class XReferenceInplaceDialog {
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
 	private XReferenceLabelProvider labelProvider;
-	
+
+	private IKeyBindingService fKeyBindingService;
+	private String[] fKeyBindingScopes;
+	private IAction fShowViewMenuAction;
+	private HandlerSubmission fShowViewMenuHandlerSubmission;
+	private KeySequence[] fInvokingCommandKeySequences;
+	private ICommand fInvokingCommand;
+
 	/**
 	 * For testing purposes need to be able to get hold 
 	 * of the XReferenceInplaceDialog instance
 	 */
-	private static XReferenceInplaceDialog dialog;
+	public static XReferenceInplaceDialog dialog;
 	
 	/**
 	 * Constructor which takes the parent shell
@@ -188,6 +205,7 @@ public class XReferenceInplaceDialog {
 		parentShell = parent;
 		shellStyle = SWT.RESIZE;
 		dialog = this;
+		xReferenceActionInplace = new XReferenceCustomFilterActionInplace(parentShell);
 	}
 
 	/**
@@ -198,6 +216,8 @@ public class XReferenceInplaceDialog {
 		if (dialogShell != null) {
 			close();
 		}
+		// set isInplace to true after calling close
+		XReferenceProviderManager.getManager().setIsInplace(true);
 		
 		if (invokingCommandId != null) {
 			ICommandManager commandManager= PlatformUI.getWorkbench().getCommandSupport().getCommandManager();
@@ -215,10 +235,6 @@ public class XReferenceInplaceDialog {
 		createViewMenu(viewMenuButtonComposite);
 		createHorizontalSeparator(composite);
 		viewer = createTreeViewer(composite, SWT.V_SCROLL | SWT.H_SCROLL);
-
-		// leaving this in for enhancement 95724
-//		customFiltersActionGroup = new CustomFiltersActionGroup(
-//				"org.eclipse.contribution.xref.QuickXRef", viewer);//$NON-NLS-1$
 
 		createStatusField(composite);		
 		addListenersToTree(viewer);
@@ -490,6 +506,33 @@ public class XReferenceInplaceDialog {
 		viewMenuButton.setDisabledImage(JavaPluginImages
 				.get(JavaPluginImages.IMG_DLCL_VIEW_MENU));
 		viewMenuButton.setToolTipText(XReferenceUIPlugin.getResourceString("XReferenceInplaceDialog.viewMenu.toolTipText")); //$NON-NLS-1$
+
+		//Used to enable the menu to be accessed from the keyboard
+		// Key binding service
+		IWorkbenchPart part= JavaPlugin.getActivePage().getActivePart();
+		IWorkbenchPartSite site= part.getSite();
+		fKeyBindingService=  site.getKeyBindingService();
+
+		// Remember current scope and then set window context.
+		fKeyBindingScopes= fKeyBindingService.getScopes();
+		fKeyBindingService.setScopes(new String[] {IWorkbenchContextSupport.CONTEXT_ID_WINDOW});
+
+		// Create show view menu action
+		fShowViewMenuAction= new Action("showViewMenu") { //$NON-NLS-1$
+			/*
+			 * @see org.eclipse.jface.action.Action#run()
+			 */
+			public void run() {
+				showViewMenu();
+			}
+		};
+		fShowViewMenuAction.setEnabled(true);
+		fShowViewMenuAction.setActionDefinitionId("org.eclipse.ui.window.showViewMenu"); //$NON-NLS-1$
+
+		// Register action with command support
+		fShowViewMenuHandlerSubmission= new HandlerSubmission(null, dialogShell, null, fShowViewMenuAction.getActionDefinitionId(), new ActionHandler(fShowViewMenuAction), Priority.MEDIUM);
+		PlatformUI.getWorkbench().getCommandSupport().addHandlerSubmission(fShowViewMenuHandlerSubmission);
+		
 		viewMenuButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				showViewMenu();
@@ -524,9 +567,7 @@ public class XReferenceInplaceDialog {
 		viewMenu.add(new ResizeAction());
 		viewMenu.add(new RememberBoundsAction());
 		viewMenu.add(new Separator("SystemMenuEnd")); //$NON-NLS-1$
-		
-//		 leaving this in for enhancement 95724
-		//customFiltersActionGroup.fillViewMenu(viewMenu);
+		viewMenu.add(xReferenceActionInplace);
 	}
 
 	// --------------------- creating and filling the status field ---------------------------	
@@ -604,6 +645,25 @@ public class XReferenceInplaceDialog {
 			};			
 		}
 		return keyAdapter;		
+	}
+	
+	public void refresh() {
+		if (lastSelection != null && workbenchPart != null) {
+			List xraList = null;
+			if (isShowingParentCrosscutting) {
+				xraList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,true);
+			} else {
+				xraList = XRefUIUtils.getXRefAdapterForSelection(workbenchPart,lastSelection,false);
+			}
+			if (xraList != null) {
+				ISelection sel = viewer.getSelection();
+				if (sel == null) {
+					sel = lastSelection;
+				}
+				viewer.setInput(xraList);
+				XRefUIUtils.setSelection(workbenchPart, sel,viewer);
+			}
+		}
 	}
 	
 	protected void toggleShowParentCrosscutting() {
@@ -740,7 +800,7 @@ public class XReferenceInplaceDialog {
 		
 		// sanity check
 		if (bounds.x == -1 && bounds.y == -1 && bounds.width == -1 && bounds.height == -1) {
-			return null;			
+			return null;
 		}
 		
 		Rectangle maxBounds= null;
@@ -1073,7 +1133,8 @@ public class XReferenceInplaceDialog {
 		toolBar = null;
 		viewMenuManager = null;
 		labelProvider.dispose();
-		contentProvider.dispose();		
+		contentProvider.dispose();
+		XReferenceProviderManager.getManager().setIsInplace(false);
 	}
 	
 	public void dispose() {
@@ -1087,8 +1148,18 @@ public class XReferenceInplaceDialog {
 			composite = null;
 			dialog = null;
 		}
-	}
+		// Remove handler submission
+		PlatformUI.getWorkbench().getCommandSupport().removeHandlerSubmission(fShowViewMenuHandlerSubmission);
 
+		// Restore editor's key binding scope
+		if (fKeyBindingScopes != null && fKeyBindingService != null) {
+			fKeyBindingService.setScopes(fKeyBindingScopes);
+			fKeyBindingScopes= null;
+			fKeyBindingService= null;
+		}
+		
+		XReferenceProviderManager.getManager().setIsInplace(false);
+	}
 
 	// ------------------ moving actions --------------------------
 	
@@ -1212,12 +1283,27 @@ public class XReferenceInplaceDialog {
 	
 	// -------- the following methods are all for testing purposes --------
 	
+	/**
+	 * Returns the dialog for the xref inplace view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
 	public static XReferenceInplaceDialog getInplaceDialog() {
 		return dialog;
 	}
 	
+	/**
+	 * Returns the shell for the xref inplace view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
 	public Shell getShell() {
 		return dialogShell;
 	}
 	
+	/**
+	 * Returns the action for the xref inplace view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
+	public Action getCustomFilterActionInplace() {
+		return xReferenceActionInplace;
+	}
 }

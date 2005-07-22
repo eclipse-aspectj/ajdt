@@ -220,6 +220,11 @@ class XReferenceViewUpdateJob extends UIJob {
 			monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
 	 		if (XReferenceUIPlugin.xrefView !=null) {
 	 			ISelection selection = XRefUIUtils.getCurrentSelection();
+	 			
+	 			// Required for enhancement 95724 when refreshing XRef views
+	 			if (selection == null) {
+	 				selection = XReferenceUIPlugin.xrefView.getLastSelection();
+	 			}
 	 			IWorkbenchPart workbenchPart = null;
 	 			if (XRefUIUtils.getActiveWorkbenchWindow() != null) {
 	 				workbenchPart = XRefUIUtils.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
