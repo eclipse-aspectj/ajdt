@@ -37,7 +37,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 		IProject project = Utils.createPredefinedProject("Spacewar Example");
 		try {
 			IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj");
-			assertTrue("The bean example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
+			assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
 			Utils.openFileInDefaultEditor(gameSynchronizationFile, true);
 			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
 			assertTrue("GameSynchronization.aj should start with one imports", cUnit.getImports().length == 1);
