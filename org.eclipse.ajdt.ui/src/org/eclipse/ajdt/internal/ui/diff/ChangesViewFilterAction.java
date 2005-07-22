@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.diff;
 
 import java.util.List;
 
+import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ui.filters.CustomFilterDialog;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.filters.FilterMessages;
@@ -68,7 +69,7 @@ public class ChangesViewFilterAction extends Action {
 
 	class ShowFilterDialogAction extends Action {
 		ShowFilterDialogAction() {
-			setText(FilterMessages.getString("OpenCustomFiltersDialogAction.text"));
+			setText(XReferenceUIPlugin.getResourceString("OpenCustomFiltersDialogAction.text"));
 			setImageDescriptor(JavaPluginImages.DESC_ELCL_FILTER);
 			setDisabledImageDescriptor(JavaPluginImages.DESC_DLCL_FILTER);
 		}
