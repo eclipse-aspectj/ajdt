@@ -11,6 +11,7 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.ProblemsLabelDecorator;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.swt.graphics.Image;
@@ -35,7 +36,7 @@ public class AspectJEditorTitleImageUpdater {
 	public AspectJEditorTitleImageUpdater(AspectJEditor editor) {		
 		Assert.isNotNull(editor);
 		this.editor = editor;
-		problemsDecorator = new ProblemsLabelDecorator();
+		problemsDecorator = new ProblemsLabelDecorator(JavaPlugin.getImageDescriptorRegistry());
 	}
 
 			
