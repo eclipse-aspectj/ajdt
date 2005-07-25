@@ -15,13 +15,18 @@ import java.io.File;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.launching.RuntimeClasspathEntry;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -164,22 +169,35 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * This method is also called if the user clicks 'Apply' on the property page.
 	 */
 	public boolean performOk() {
-		// check the output jar value and make relative to project output dir if 
-		// needed.
-		String outJar = outputJarEditor.getStringValue();
-		if (outJar != null) {
-			try{
-				if (!outJar.startsWith(File.separator)) {
-					IJavaProject jp = JavaCore.create(thisProject);
-					IPath workspaceRelativeOutpath = jp.getOutputLocation();
-					IPath full = AspectJPlugin.getWorkspace().getRoot().getLocation().append(workspaceRelativeOutpath);
-					outJar = full.toOSString();					
-				}
-			} catch (JavaModelException jme) {
-				// leave the outJar setting unchanged
-			}
-		
+		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);		
+		IClasspathEntry oldEntry = null;
+		if(oldOutJar != null && !oldOutJar.equals("")) {
+			oldEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(		
+				IPackageFragmentRoot.K_BINARY, // content kind
+				IClasspathEntry.CPE_LIBRARY, // entry kind
+				new Path(thisProject.getName() + '/' + oldOutJar).makeAbsolute(), // path
+				new IPath[] {}, // inclusion patterns
+				new IPath[] {}, // exclusion patterns
+				null, // src attachment path
+				null, // src attachment root path
+				null, // output location
+				false); // is exported ?
 		}
+		String outJar = outputJarEditor.getStringValue();
+		IClasspathEntry newEntry = null;
+		if(outJar != null && !outJar.equals("")) {
+			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(		
+				IPackageFragmentRoot.K_BINARY, // content kind
+				IClasspathEntry.CPE_LIBRARY, // entry kind
+				new Path(thisProject.getName() + '/' + outJar).makeAbsolute(), // path
+				new IPath[] {}, // inclusion patterns
+				new IPath[] {}, // exclusion patterns
+				null, // src attachment path
+				null, // src attachment root path
+				null, // output location
+				false); // is exported ?
+		}		
+		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
 		AJLog.log("Compiler properties changed for project: " + thisProject.getName());
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());

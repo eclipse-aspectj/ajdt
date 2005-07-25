@@ -36,8 +36,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.help.WorkbenchHelp;
 
 /**
- * A launch configuration tab that displays and edits the user, bootstrap and
- * aspect path classes comprising the classpath launch configuration attribute.
+ * A launch configuration tab that displays and edits the user, bootstrap, 
+ * aspect path and outjar classes comprising the classpath launch configuration attribute.
  * 
  * Mostly copied from
  * org.eclipse.jdt.debug.ui.launchConfigurations.JavaClasspathTab
@@ -104,7 +104,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 		try {
 			fModel = LaunchConfigurationClasspathUtils
 					.createClasspathModel(configuration);
-			updateClassPathWithAspectPath(configuration);
+			updateClassPathWithAspectPathAndOutJar(configuration);
 		} catch (CoreException e) {
 			AJLog.log(e.getMessage());
 		}
@@ -149,9 +149,9 @@ public class AJClasspathTab extends JavaClasspathTab {
 
 	/**
 	 * Update the launch configuration runtime classpath to contain the contents
-	 * of the aspect path, and save the configuration.
+	 * of the aspect path and the outjar, and save the configuration.
 	 */
-	private void updateClassPathWithAspectPath(
+	private void updateClassPathWithAspectPathAndOutJar(
 			ILaunchConfiguration configuration) {
 		ILaunchConfigurationWorkingCopy wc;
 		try {

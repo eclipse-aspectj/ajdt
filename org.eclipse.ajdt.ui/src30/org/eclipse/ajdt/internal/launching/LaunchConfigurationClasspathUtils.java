@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.internal.debug.ui.classpath.ClasspathEntry;
 import org.eclipse.jdt.internal.debug.ui.classpath.IClasspathEntry;
 import org.eclipse.jdt.internal.launching.RuntimeClasspathEntry;
@@ -45,6 +46,7 @@ public class LaunchConfigurationClasspathUtils {
 		IClasspathEntry[] user = fModel.getEntries(AJClasspathModel.USER);
 		IClasspathEntry[] aspectPath = fModel
 				.getEntries(AJClasspathModel.ASPECTPATH);
+		IClasspathEntry[] outJar = fModel.getEntries(AJClasspathModel.OUTJAR);
 		List entries = new ArrayList(boot.length + user.length
 				+ aspectPath.length);
 		IClasspathEntry bootEntry;
@@ -93,6 +95,20 @@ public class LaunchConfigurationClasspathUtils {
 				entries.add(entry);
 			}
 		}
+		IClasspathEntry outJarEntry;
+		for (int i = 0; i < outJar.length; i++) {
+			outJarEntry = outJar[i];
+			entry = null;
+			if (outJarEntry instanceof ClasspathEntry) {
+				entry = ((ClasspathEntry) outJarEntry).getDelegate();
+			} else if (outJarEntry instanceof IRuntimeClasspathEntry) {
+				entry = (IRuntimeClasspathEntry) aspectPath[i];
+			}
+			if (entry != null) {
+				entry.setClasspathProperty(IRuntimeClasspathEntry.USER_CLASSES);
+				entries.add(entry);
+			}			
+		}
 		return (IRuntimeClasspathEntry[]) entries
 				.toArray(new IRuntimeClasspathEntry[entries.size()]);
 	}
@@ -102,7 +118,6 @@ public class LaunchConfigurationClasspathUtils {
 	 */
 	public static AJClasspathModel createClasspathModel(
 			ILaunchConfiguration configuration) throws CoreException {
-		boolean configIsDirty = false;
 		AJClasspathModel fModel = new AJClasspathModel();
 		IRuntimeClasspathEntry[] entries = JavaRuntime
 				.computeUnresolvedRuntimeClasspath(configuration);
@@ -112,11 +127,13 @@ public class LaunchConfigurationClasspathUtils {
 				IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
 				(String) null);
 		IRuntimeClasspathEntry[] aspectEntries = null;
+		IRuntimeClasspathEntry outJar = null;
 		if (projectName != null && !projectName.trim().equals("")) {
 			IProject project = AspectJPlugin.getWorkspace().getRoot()
 					.getProject(projectName);
 			aspectEntries = LaunchConfigurationClasspathUtils
 					.getAspectpath(project);
+			outJar = LaunchConfigurationClasspathUtils.getOutJar(project);
 		}
 		if (aspectEntries != null) {
 			for (int i = 0; i < aspectEntries.length; i++) {
@@ -125,20 +142,25 @@ public class LaunchConfigurationClasspathUtils {
 		} else {
 			aspectEntries = new IRuntimeClasspathEntry[0];
 		}
-		boolean[] allAspectEntriesOnClasspath = new boolean[aspectEntries.length];
+		if (outJar != null) { // Add the outjar to the classpath model
+			fModel.addEntry(AJClasspathModel.OUTJAR, outJar);
+		}
 		for (int i = 0; i < entries.length; i++) {
 			entry = entries[i];
 			switch (entry.getClasspathProperty()) {
 			case IRuntimeClasspathEntry.USER_CLASSES:
 				boolean isAspectPathEntry = false;
+				boolean isOutJarEntry = false;
 				for (int j = 0; j < aspectEntries.length; j++) {
 					if (aspectEntries[j].equals(entry)) {
 						isAspectPathEntry = true;
-						allAspectEntriesOnClasspath[j] = true;
 						break;
 					}
 				}
-				if (!isAspectPathEntry) {
+				if(outJar != null && outJar.equals(entry)) {
+					isOutJarEntry = true;
+				}
+				if (!isAspectPathEntry && !isOutJarEntry) {
 					fModel.addEntry(AJClasspathModel.USER, entry);
 				}
 				break;
@@ -151,10 +173,31 @@ public class LaunchConfigurationClasspathUtils {
 	}
 
 	/**
+	 * @param project
+	 * @return
+	 */
+	private static IRuntimeClasspathEntry getOutJar(IProject project) {
+		String outjar = AspectJCorePreferences.getProjectOutJar(project);
+		if(outjar == null || outjar.equals("")) {
+			return null;
+		}
+		org.eclipse.jdt.core.IClasspathEntry entry = new org.eclipse.jdt.internal.core.ClasspathEntry(
+				IPackageFragmentRoot.K_BINARY, // content kind
+				org.eclipse.jdt.core.IClasspathEntry.CPE_LIBRARY, // entry kind
+				new Path(project.getName() + '/' + outjar).makeAbsolute(), // path
+				new IPath[] {}, // inclusion patterns
+				new IPath[] {}, // exclusion patterns
+				null, // src attachment path
+				null, // src attachment root path
+				null, // output location
+				false); // is exported ?
+		return new RuntimeClasspathEntry(entry);
+	}
+
+	/**
 	 * Get the AspectPath for a project
 	 */
-	public static IRuntimeClasspathEntry[] getAspectpath(IProject project)
-			throws CoreException {
+	public static IRuntimeClasspathEntry[] getAspectpath(IProject project) {
 		List result = new ArrayList();
         String[] v = AspectJCorePreferences.getProjectAspectPath(project);
         if (v==null) {
@@ -238,10 +281,10 @@ public class LaunchConfigurationClasspathUtils {
 
 	/**
 	 * Updates the classpath for a launch configuration to ensure that it
-	 * contains the aspectpath. NB. Will not add the aspect path a second time
-	 * if the classpath already contains it.
+	 * contains the aspectpath and the outjar. NB. Will not add the aspect path
+	 * or outjar a second time if the classpath already contains it.
 	 */
-	public static void addAspectPathToClasspath(
+	public static void addAspectPathAndOutJarToClasspath(
 			ILaunchConfiguration configuration) {
 		ILaunchConfigurationWorkingCopy wc;
 		try {

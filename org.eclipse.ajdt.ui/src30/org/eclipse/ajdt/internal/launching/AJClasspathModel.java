@@ -23,17 +23,21 @@ import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 
 /**
  * Mostly copied from ClasspathModel, but extends to include an 'Aspect Path'
- * node.
+ * and an 'Output Jar' node.
  */
 public class AJClasspathModel extends ClasspathModel {
 
 	public static final int ASPECTPATH = 2;
+	
+	public static final int OUTJAR = 3;
 
 	private ClasspathGroup bootstrapEntries;
 
 	private ClasspathGroup userEntries;
 
 	private ClasspathGroup aspectPathEntries;
+	
+	private ClasspathGroup outJarEntries;
 
 	/**
 	 * Constructs a new aj classpath model with root entries
@@ -43,6 +47,7 @@ public class AJClasspathModel extends ClasspathModel {
 		getBootstrapEntry();
 		getUserEntry();
 		getAspectPathEntry();
+		getOutJarEntry();
 	}
 
 	/**
@@ -59,6 +64,8 @@ public class AJClasspathModel extends ClasspathModel {
 			break;
 		case ASPECTPATH:
 			entryParent = getAspectPathEntry();
+		case OUTJAR:
+			entryParent = getOutJarEntry();
 		default:
 			break;
 		}
@@ -95,6 +102,9 @@ public class AJClasspathModel extends ClasspathModel {
 		}
 		if (aspectPathEntries != null) {
 			aspectPathEntries.removeAll();
+		}
+		if (outJarEntries != null) {
+			outJarEntries.removeAll();
 		}
 	}
 
@@ -152,6 +162,16 @@ public class AJClasspathModel extends ClasspathModel {
 		return aspectPathEntries;
 	}
 
+	private IClasspathEntry getOutJarEntry() {
+		if (outJarEntries == null) {
+			String name = AspectJUIPlugin
+					.getResourceString("Launcher.outJar"); //$NON-NLS-1$
+			outJarEntries = createGroupEntry(new IRuntimeClasspathEntry[0],
+					null, name, false, true);
+		}
+		return outJarEntries;
+	}
+	
 	public IClasspathEntry getBootstrapEntry() {
 		if (bootstrapEntries == null) {
 			String name = ClasspathMessages.getString("ClasspathModel.0"); //$NON-NLS-1$
@@ -211,6 +231,11 @@ public class AJClasspathModel extends ClasspathModel {
 		case ASPECTPATH:
 			if (aspectPathEntries != null) {
 				return aspectPathEntries.getEntries();
+			}
+			break;
+		case OUTJAR:
+			if(outJarEntries != null) {
+				return outJarEntries.getEntries();
 			}
 		}
 		return new IClasspathEntry[0];

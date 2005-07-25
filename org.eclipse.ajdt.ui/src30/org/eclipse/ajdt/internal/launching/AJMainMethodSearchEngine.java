@@ -69,7 +69,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		IProgressMonitor ajSearchMonitor = new SubProgressMonitor(pm, 100);
 		ajSearchMonitor.beginTask(LauncherMessages
 				.getString("MainMethodSearchEngine.1"), 100); //$NON-NLS-1$
-		double ticksPerProject = Math.floor(100F / (float) projects.length);
+		double ticksPerProject = Math.floor(100F / projects.length);
 		if (ticksPerProject < 1) {
 			ticksPerProject = 1;
 		}
@@ -173,7 +173,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 * @throws JavaModelException
 	 */
 	private List searchPackage(IJavaSearchScope scope,
-			IPackageFragment packageFragment) throws JavaModelException {
+			IPackageFragment packageFragment) {
 		List aspectsFound = new ArrayList();
 		if (scope.encloses(packageFragment)) {
 			Set aspects = getAllAspects(packageFragment);
@@ -192,10 +192,9 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 	 *            the search scope
 	 * @param packageFragment -
 	 *            the IPackageFragment
-	 * @throws JavaModelException
 	 */
 	private List searchUnitsInPackage(IJavaSearchScope scope,
-			IPackageFragment packageFragment) throws JavaModelException {
+			IPackageFragment packageFragment) {
 		List units = new ArrayList();
 		Set allAspects = getAllAspects(packageFragment);
 		for (Iterator iter = allAspects.iterator(); iter.hasNext();) {

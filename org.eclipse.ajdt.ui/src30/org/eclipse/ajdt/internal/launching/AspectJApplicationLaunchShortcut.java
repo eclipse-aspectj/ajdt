@@ -54,7 +54,9 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Shortcut to launching an AspectJ application. Extends
  * JavaApplicationLaunchShortcut to enable the launch of main methods in both
- * Java classes and Aspects. Methods are partly copied from the super class.
+ * Java classes and Aspects, and to enable correct
+ * launching if the project has an aspectpath or an outjar. 
+ * Methods are partly copied from the super class.
  */
 public class AspectJApplicationLaunchShortcut extends
 		JavaApplicationLaunchShortcut {
@@ -163,7 +165,7 @@ public class AspectJApplicationLaunchShortcut extends
 	protected void launch(Object type, String mode) {
 		ILaunchConfiguration config = findLaunchConfiguration(type, mode);
 		if (config != null) {
-			LaunchConfigurationClasspathUtils.addAspectPathToClasspath(config);
+			LaunchConfigurationClasspathUtils.addAspectPathAndOutJarToClasspath(config);
 			DebugUITools.launch(config, mode);
 		}
 	}
@@ -293,7 +295,7 @@ public class AspectJApplicationLaunchShortcut extends
 		}
 		dialog.setMultipleSelection(false);
 		if (dialog.open() == Window.OK) {
-			return (Object) dialog.getFirstResult();
+			return dialog.getFirstResult();
 		}
 		return null;
 	}
@@ -359,7 +361,7 @@ public class AspectJApplicationLaunchShortcut extends
 			IStructuredSelection struct = (IStructuredSelection) selection;
 			List elements = new ArrayList();
 			for (Iterator iter = struct.iterator(); iter.hasNext();) {
-				Object element = (Object) iter.next();
+				Object element = iter.next();
 				if (element instanceof IJavaElement) {
 					elements.add(element);
 				} else if (element instanceof IFile) {
