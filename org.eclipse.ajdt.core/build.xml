@@ -50,7 +50,7 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
 	<delete dir="bin"/>
 	<mkdir dir="bin"/>
 	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<property file="build${eclipse.build.id}.ajproperties"/>
+	<property file="build.ajproperties"/>
 	<iajc srcdir="." destdir="bin" classpath="${aspectjrt};${classpath.org.eclipse.ajdt.core}"
 	    debug="false" verbose="true" fork="true" maxmem="256m"
 	    includes="${src.includes}" excludes="${src.excludes}" />
