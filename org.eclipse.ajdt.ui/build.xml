@@ -95,7 +95,6 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
  description="The source jar file for ajdt, ajdtuisrc.jar">
   <zip destfile= "${build.dir}/ajdtuisrc.jar" >
     <fileset dir="src"/>
-    <fileset dir="src${eclipse.build.id}"/>
   </zip>
 </target>
 
