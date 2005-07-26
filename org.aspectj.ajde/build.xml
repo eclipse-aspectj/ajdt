@@ -32,12 +32,12 @@ Creates a packaged plug-in jar for AJDE
 				<exclude name="build.*" />
 				<exclude name=".*" />
 				<exclude name="*/*" />
-				<exclude name="plugin.*xml" />
+				<exclude name="META-INF/MANIFEST.MF" />
 				<exclude name="aspectjlib.properties" />
 				<depth max="0" />
 			</fileset>
 		</copy>
-		 <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+		 <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
 		 	<filterset begintoken="9" endtoken="9">
 		 		<filter token="2.2.2" value="${ajde.version}"/>
 		 	</filterset>
