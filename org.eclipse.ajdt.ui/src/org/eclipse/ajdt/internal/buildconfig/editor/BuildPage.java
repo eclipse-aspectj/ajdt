@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -19,19 +19,18 @@ import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 
 public class BuildPage extends PDEFormPage {
-	public static final String FORM_TITLE = "AJPropsEditor.BuildPage.title"; //$NON-NLS-1$
 	public static final String PAGE_ID = "build"; //$NON-NLS-1$
 	private BuildContentsSection srcSection;
 	
 	public BuildPage(FormEditor editor) {
-		super(editor, PAGE_ID, AspectJUIPlugin.getResourceString("BuildPage.name"));  //$NON-NLS-1$
+		super(editor, PAGE_ID, UIMessages.BuildPage_name);
 	}
 
 	protected void createFormContent(IManagedForm mform) {
 		super.createFormContent(mform);
 		GridLayout layout = new GridLayout();
 		ScrolledForm form = mform.getForm();
-		form.setText(AspectJUIPlugin.getResourceString(FORM_TITLE));
+		form.setText(UIMessages.AJPropsEditor_BuildPage_title);
 		layout.numColumns = 2;
 		layout.marginWidth = 10;
 		layout.horizontalSpacing = 15;

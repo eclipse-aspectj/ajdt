@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.ui.wizards.NewElementWizardPage;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -36,7 +36,7 @@ public abstract class AJdocWizardPage extends NewElementWizardPage {
 	protected AJdocWizardPage(String pageName) {
 		super(pageName);
 //		 AspectJ Extension - message
-		setTitle(AspectJUIPlugin.getResourceString("ajdocWizardPage.javadocwizardpage.description")); //$NON-NLS-1$
+		setTitle(UIMessages.ajdocWizardPage_javadocwizardpage_description);
 	}
 
 	protected Button createButton(Composite composite, int style, String message, GridData gd) {

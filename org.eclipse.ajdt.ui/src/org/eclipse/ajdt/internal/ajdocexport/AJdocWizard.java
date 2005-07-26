@@ -26,7 +26,7 @@ import java.util.Set;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -137,7 +137,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		super();
 		setDefaultPageImageDescriptor(AspectJImages.W_EXPORT_AJDOC.getImageDescriptor());
 //		 AspectJ Extension - message
-		setWindowTitle(AspectJUIPlugin.getResourceString("ajdocWizard.javadocwizard.title")); //$NON-NLS-1$
+		setWindowTitle(UIMessages.ajdocWizard_javadocwizard_title);
 		setDialogSettings(JavaPlugin.getDefault().getDialogSettings());
 
 		fRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -391,7 +391,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 							.newProcess(
 									newLaunch,
 									process,
-									AspectJUIPlugin.getResourceString("ajdocWizard.ajdocprocess.label")); //$NON-NLS-1$
+									UIMessages.ajdocWizard_ajdocprocess_label);
 					iprocess
 							.setAttribute(IProcess.ATTR_CMDLINE, buf.toString());
 					iprocess.setAttribute(IProcess.ATTR_PROCESS_TYPE,
@@ -402,8 +402,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 
 				} catch (CoreException e) {
 //					AspectJ Extension - message
-					String title = AspectJUIPlugin.getResourceString("ajdocWizard.error.title"); //$NON-NLS-1$
-					String message = AspectJUIPlugin.getResourceString("ajdocWizard.launch.error.message"); //$NON-NLS-1$
+					String title = UIMessages.ajdocWizard_error_title;
+					String message = UIMessages.ajdocWizard_launch_error_message;
 					ExceptionHandler.handle(e, getShell(), title, message);
 				}
 
@@ -412,8 +412,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 		} catch (IOException e) {
 //			 AspectJ Extension - message
-			String title = AspectJUIPlugin.getResourceString("ajdocWizard.error.title"); //$NON-NLS-1$
-			String message = AspectJUIPlugin.getResourceString("ajdocWizard.exec.error.message"); //$NON-NLS-1$
+			String title = UIMessages.ajdocWizard_error_title;
+			String message = UIMessages.ajdocWizard_exec_error_message;
 
 			IStatus status = new Status(IStatus.ERROR, JavaUI.ID_PLUGIN,
 					IStatus.ERROR, e.getMessage(), e);

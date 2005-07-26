@@ -18,6 +18,7 @@ import org.eclipse.ajdt.codeconversion.CodeChecker;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -75,8 +76,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 	 */
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
-		shell.setText(AspectJUIPlugin
-				.getResourceString("Refactoring.ConvertFileExtensions")); //$NON-NLS-1$
+		shell.setText(UIMessages.Refactoring_ConvertFileExtensions);
 	}
 
 	protected Control createDialogArea(Composite parent) {
@@ -91,27 +91,22 @@ public class RenameFileExtensionsDialog extends Dialog {
 
 		convertAspectsToAJButton = new Button(composite, SWT.RADIO);
 		convertAspectsToAJButton
-				.setText(AspectJUIPlugin
-						.getResourceString("Refactoring.ConvertAspectsToAJAndClassesToJava")); //$NON-NLS-1$
+				.setText(UIMessages.Refactoring_ConvertAspectsToAJAndClassesToJava);
 		convertAspectsToAJButton.setSelection(true);
 
 		convertAllToAJButton = new Button(composite, SWT.RADIO);
-		convertAllToAJButton.setText(AspectJUIPlugin
-				.getResourceString("Refactoring.ConvertAllToAJ")); //$NON-NLS-1$
+		convertAllToAJButton.setText(UIMessages.Refactoring_ConvertAllToAJ);
 
 		convertAllToJavaButton = new Button(composite, SWT.RADIO);
-		convertAllToJavaButton.setText(AspectJUIPlugin
-				.getResourceString("Refactoring.ConvertAllToJava")); //$NON-NLS-1$
+		convertAllToJavaButton.setText(UIMessages.Refactoring_ConvertAllToJava);
 
 		new Label(composite, SWT.NONE);
 
 		includeFilesNotInBuildButton = new Button(composite, SWT.CHECK);
-		includeFilesNotInBuildButton.setText(AspectJUIPlugin
-				.getResourceString("Refactoring.IncludeFilesNotInBuild")); //$NON-NLS-1$
+		includeFilesNotInBuildButton.setText(UIMessages.Refactoring_IncludeFilesNotInBuild);
 		includeFilesNotInBuildButton.setSelection(true);
 		updateBuildConfigsButton = new Button(composite, SWT.CHECK);
-		updateBuildConfigsButton.setText(AspectJUIPlugin
-				.getResourceString("Refactoring.UpdateBuildConfigs")); //$NON-NLS-1$
+		updateBuildConfigsButton.setText(UIMessages.Refactoring_UpdateBuildConfigs);
 		updateBuildConfigsButton.setSelection(true);
 		applyDialogFont(composite);
 		return composite;
@@ -159,9 +154,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 				try {
 					IPackageFragment[] packages = jp.getPackageFragments();
 					monitor
-							.beginTask(
-									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
+							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
 									packages.length + (10 * numBuildConfigs));
 					// map of old to new names - needed to update build config
 					// files.
@@ -244,9 +237,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 				try {
 					IPackageFragment[] packages = jp.getPackageFragments();
 					monitor
-							.beginTask(
-									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
+							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
 									packages.length + (10 * numBuildConfigs));
 
 					// Map of old to new names - needed to update build config

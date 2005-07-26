@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -92,12 +93,12 @@ public class InPathBlock {
         
         InPathAdapter adapter= new InPathAdapter();           
         String[] buttonLabels= new String[] {
-                /* 0 */ AspectJUIPlugin.getResourceString("InPathBlock.order.up.button"), //$NON-NLS-1$
-                /* 1 */ AspectJUIPlugin.getResourceString("InPathBlock.order.down.button")}; //$NON-NLS-1$
+                /* 0 */ UIMessages.InPathBlock_order_up_button,
+                /* 1 */ UIMessages.InPathBlock_order_down_button};
         
         fInPathList= new ListDialogField(null, buttonLabels, new CPListLabelProvider());
         fInPathList.setDialogFieldListener(adapter);
-        fInPathList.setLabelText(AspectJUIPlugin.getResourceString("InPathBlock.inpath.label"));  //$NON-NLS-1$
+        fInPathList.setLabelText(UIMessages.InPathBlock_inpath_label);
         fInPathList.setUpButtonIndex(0);
         fInPathList.setDownButtonIndex(1);
             
@@ -199,9 +200,9 @@ public class InPathBlock {
 
         if (nEntriesMissing > 0) {
             if (nEntriesMissing == 1) {
-                fInPathStatus.setWarning(AspectJUIPlugin.getResourceString("InPathBlock.warning.EntryMissing")); //$NON-NLS-1$
+                fInPathStatus.setWarning(UIMessages.InPathBlock_warning_EntryMissing); 
             } else {
-                fInPathStatus.setWarning(AspectJUIPlugin.getResourceString("InPathBlock.warning.EntriesMissing")); //$NON-NLS-1$
+                fInPathStatus.setWarning(UIMessages.InPathBlock_warning_EntriesMissing);
             }
         }
 
@@ -261,7 +262,7 @@ public class InPathBlock {
         if (monitor == null) {
             monitor = new NullProgressMonitor();
         }
-        monitor.setTaskName(AspectJUIPlugin.getResourceString("InPathBlock.operationdesc_java")); //$NON-NLS-1$
+        monitor.setTaskName(UIMessages.InPathBlock_operationdesc_java);
         monitor.beginTask("", 10); //$NON-NLS-1$
 
         try {
@@ -356,7 +357,7 @@ public class InPathBlock {
         fLibrariesPage =
             new InPathLibrariesWorkbookPage(fWorkspaceRoot, fInPathList);
         item = new TabItem(folder, SWT.NONE);
-        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.libraries")); //$NON-NLS-1$
+        item.setText(UIMessages.InPathBlock_tab_libraries);
         item.setImage(imageRegistry.get(JavaPluginImages.IMG_OBJS_LIBRARY));
         item.setData(fLibrariesPage);
         item.setControl(fLibrariesPage.getControl(folder));
@@ -369,7 +370,7 @@ public class InPathBlock {
         ClasspathOrderingWorkbookPage ordpage =
             new ClasspathOrderingWorkbookPage(fInPathList);
         item = new TabItem(folder, SWT.NONE);
-        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.inpath.order")); //$NON-NLS-1$
+        item.setText(UIMessages.InPathBlock_tab_inpath_order);
         item.setImage(cpoImage);
         item.setData(ordpage);
         item.setControl(ordpage.getControl(folder));

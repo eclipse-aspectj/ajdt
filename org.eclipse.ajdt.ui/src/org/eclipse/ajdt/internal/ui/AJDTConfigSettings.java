@@ -15,7 +15,7 @@ package org.eclipse.ajdt.internal.ui;
 import java.util.Hashtable;
 
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.JavaUI;
@@ -91,7 +91,7 @@ public class AJDTConfigSettings {
 	static public boolean isAspectJEditorDefault() {
 		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
 		IEditorDescriptor desc = editorRegistry.getDefaultEditor("*.java");
-		return AspectJUIPlugin.getResourceString("ajEditor").equals(desc.getLabel());
+		return UIMessages.ajEditor.equals(desc.getLabel());
 	}
 	
 	/*
@@ -134,7 +134,7 @@ public class AJDTConfigSettings {
 		IEditorDescriptor[] desc = editorRegistry.getEditors("*.java");
 		for (int i = 0; i < desc.length; i++) {
 			IEditorDescriptor descriptor = desc[i];
-			if (descriptor.getLabel().equals(AspectJUIPlugin.getResourceString("ajEditor"))) {
+			if (descriptor.getLabel().equals(UIMessages.ajEditor)) {
 				return true;
 			}
 		}

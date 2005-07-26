@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -32,7 +33,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 public class ExcludeAction extends BuildConfigurationChangeAction {
 	public ExcludeAction() {
 		super();
-		actionText = AspectJUIPlugin.getResourceString("BCLabels.ExcludeAction"); //$NON-NLS-1$
+		actionText = UIMessages.BCLabels_ExcludeAction;
 	}
 
 	protected Job getJob(final BuildConfiguration bc,
@@ -46,8 +47,7 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 							.getDefault()
 							.getErrorHandler()
 							.handleError(
-									AspectJUIPlugin
-											.getResourceString("buildConfig.exceptionExcluding"), //$NON-NLS-1$
+									UIMessages.buildConfig_exceptionIncluding,
 									e);
 				}
 				return Status.OK_STATUS;

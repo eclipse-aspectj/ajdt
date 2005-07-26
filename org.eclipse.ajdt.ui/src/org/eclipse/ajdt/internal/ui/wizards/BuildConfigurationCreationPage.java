@@ -16,6 +16,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -62,8 +63,8 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		IWorkbench workbench,
 		IStructuredSelection selection) {
 		super("CreateBuildConfigurationFilePage1", selection);
-		this.setTitle( AspectJUIPlugin.getResourceString( "BuildConfig.createLstFile" ) ); 
-		this.setDescription( AspectJUIPlugin.getResourceString( "BuildConfig.createLstDesc" ) );
+		this.setTitle(UIMessages.BuildConfig_createLstFile); 
+		this.setDescription(UIMessages.BuildConfig_createLstDesc);
 		this.workbench = workbench;
 		this.selection = selection;
 	}
@@ -83,11 +84,11 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 
 		// open file for editing checkbox
 		openFileCheckbox = new Button(composite, SWT.CHECK);
-		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) );
+		openFileCheckbox.setText(UIMessages.BuildConfig_openForEdit);
 		openFileCheckbox.setSelection(true);
 		
 		makeActiveCheckbox = new Button(composite, SWT.CHECK);
-		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) );
+		makeActiveCheckbox.setText(UIMessages.BuildConfig_activate);
 		makeActiveCheckbox.setSelection(true);
 
 		setPageComplete(validatePage());
@@ -171,7 +172,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	protected boolean validatePage() {
 		if(super.validatePage()) {
 			if(!isProjectSelected()) {
-				setErrorMessage(AspectJUIPlugin.getResourceString("BuildConfig.needToSelectProject"));
+				setErrorMessage(UIMessages.BuildConfig_needToSelectProject);
 				return false;
 			} else {
 				return true;
@@ -203,7 +204,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * Method declared on WizardNewFileCreationPage.
 	 */
 	protected String getNewFileLabel() {
-		return AspectJUIPlugin.getResourceString( "BuildConfig.newLstFile" );
+		return UIMessages.BuildConfig_newLstFile;
 	}
 
 }

@@ -11,8 +11,8 @@ Matt Chapman - initial version
 
 package org.eclipse.ajdt.internal.ui.wizards;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
@@ -42,8 +42,7 @@ public class NewAspectWizard
 		this.selection = selection;
 
 		setDefaultPageImageDescriptor(AspectJImages.W_NEW_ASPECT.getImageDescriptor());
-		setWindowTitle(
-			AspectJUIPlugin.getResourceString("NewAspectCreationWizard.title")); //$NON-NLS-1$
+		setWindowTitle(UIMessages.NewAspectCreationWizard_title);
 	}
 	/** 
 	 * Complete generation of the new file.

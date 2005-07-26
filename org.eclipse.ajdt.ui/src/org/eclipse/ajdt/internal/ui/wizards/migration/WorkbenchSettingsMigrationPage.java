@@ -21,6 +21,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -104,9 +105,9 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 
 	
 	protected WorkbenchSettingsMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("WorkbenchSettingsMigrationPage.name")); //$NON-NLS-1$
-		this.setTitle(AspectJUIPlugin.getResourceString("WorkbenchSettingsMigrationPage.title")); //$NON-NLS-1$		
-		this.setDescription( AspectJUIPlugin.getResourceString("WorkbenchSettingsMigrationPage.description")); //$NON-NLS-1$
+		super(UIMessages.WorkbenchSettingsMigrationPage_name);
+		this.setTitle(UIMessages.WorkbenchSettingsMigrationPage_title);	
+		this.setDescription(UIMessages.WorkbenchSettingsMigrationPage_description);
 	}
 	
 	public void createControl(Composite parent) {
@@ -121,40 +122,34 @@ public class WorkbenchSettingsMigrationPage extends WizardPage {
 		setControl(composite);
 				
 		Label label2 = new Label(composite, SWT.NONE);
-		label2.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.enableRedSquigglesButton.message")); //$NON-NLS-1$
+		label2.setText(UIMessages.WorkbenchSettingsMigrationPage_enableRedSquigglesButton_message);
 
 		Label spacer3 = new Label(composite, SWT.NONE);
 		
 		enableRedSquigglesButton = new Button(composite, SWT.CHECK);
-		enableRedSquigglesButton.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.enableRedSquigglesButton.label")); //$NON-NLS-1$
+		enableRedSquigglesButton.setText(UIMessages.WorkbenchSettingsMigrationPage_enableRedSquigglesButton_label);
 		enableRedSquigglesButton.setSelection(true);
 		
 		Label spacer4 = new Label(composite, SWT.NONE);
 		
 		Label label3 = new Label(composite, SWT.NONE);
-		label3.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.enableUnusedImportsButton.message")); //$NON-NLS-1$
+		label3.setText(UIMessages.WorkbenchSettingsMigrationPage_enableUnusedImportsButton_message);
 
 		Label spacer5 = new Label(composite, SWT.NONE);
 		
 		enableUnusedImportsButton = new Button(composite, SWT.CHECK);
-		enableUnusedImportsButton.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.enableUnusedImportsButton.label")); //$NON-NLS-1$
+		enableUnusedImportsButton.setText(UIMessages.WorkbenchSettingsMigrationPage_enableUnusedImportsButton_label);
 		enableUnusedImportsButton.setSelection(true);
 
 		Label spacer6 = new Label(composite, SWT.NONE);
 		
 		Label label4 = new Label(composite, SWT.NONE);
-		label4.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.updateFileAssociations.message")); //$NON-NLS-1$
+		label4.setText(UIMessages.WorkbenchSettingsMigrationPage_updateFileAssociations_message);
 
 		Label spacer8 = new Label(composite, SWT.NONE);
 		
 		fileAssociationsButton = new Button(composite, SWT.CHECK);
-		fileAssociationsButton.setText(AspectJUIPlugin
-				.getResourceString("WorkbenchSettingsMigrationPage.updateFileAssociations.label")); //$NON-NLS-1$
+		fileAssociationsButton.setText(UIMessages.WorkbenchSettingsMigrationPage_updateFileAssociations_label);
 		fileAssociationsButton.setSelection(true);
 		
 //		Label spacer9 = new Label(composite, SWT.NONE);

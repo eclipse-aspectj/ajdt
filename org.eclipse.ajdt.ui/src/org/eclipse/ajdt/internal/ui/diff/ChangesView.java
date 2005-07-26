@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.ModelComparison;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
@@ -32,9 +33,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
-import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
 import org.eclipse.swt.events.MouseAdapter;
@@ -70,8 +71,7 @@ public class ChangesView extends ViewPart {
 
 	public static final String DOT_MAP_FILE_EXT = "." + MAP_FILE_EXT; //$NON-NLS-1$
 
-	public static final String CURRENT_BUILD = AspectJUIPlugin
-			.getResourceString("changesView.currentBuild"); //$NON-NLS-1$
+	public static final String CURRENT_BUILD = UIMessages.changesView_currentBuild;
 
 	private Table table;
 
@@ -122,10 +122,10 @@ public class ChangesView extends ViewPart {
 		table.setLinesVisible(false);
 		table.setHeaderVisible(true);
 		String[] titles = {
-				AspectJUIPlugin.getResourceString("changesView.table.column1"), //$NON-NLS-1$
-				AspectJUIPlugin.getResourceString("changesView.table.column2"), //$NON-NLS-1$
-				AspectJUIPlugin.getResourceString("changesView.table.column3"), //$NON-NLS-1$
-				AspectJUIPlugin.getResourceString("changesView.table.column4") //$NON-NLS-1$
+				UIMessages.changesView_table_column1,
+				UIMessages.changesView_table_column2,
+				UIMessages.changesView_table_column3,
+				UIMessages.changesView_table_column4
 		};
 		for (int i = 0; i < titles.length; i++) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
@@ -267,13 +267,10 @@ public class ChangesView extends ViewPart {
 	private void updateDescription(String fromName, String toName, int remove,
 			int total) {
 		if (remove == total) {
-			setContentDescription(AspectJUIPlugin
-					.getFormattedResourceString(
-							"changesView.description", new String[] { fromName, toName })); //$NON-NLS-1$
+			setContentDescription(NLS.bind(UIMessages.changesView_description, new String[] { fromName, toName }));
 		} else {
-			setContentDescription(AspectJUIPlugin
-					.getFormattedResourceString(
-							"changesView.description", new String[] { fromName, toName }) + " " + AspectJUIPlugin.getFormattedResourceString("changesView.filter.dialog.showingXofY", new String[] { new Integer(remove).toString(), new Integer(total).toString() })); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			setContentDescription(NLS.bind(UIMessages.changesView_description, new String[] { fromName, toName } 
+					+ " " + UIMessages.changesView_filter_dialog_showingXofY, new String[] { new Integer(remove).toString(), new Integer(total).toString() })); //$NON-NLS-1$
 		}
 	}
 
@@ -349,8 +346,7 @@ public class ChangesView extends ViewPart {
 			String sourceName = toModel.getJavaElementLinkName(rel.getSource());
 			String targetName = toModel.getJavaElementLinkName(rel.getTarget());
 			TableItem item = new TableItem(table, SWT.NONE);
-			item.setText(0, AspectJUIPlugin
-					.getResourceString("changesView.table.added")); //$NON-NLS-1$
+			item.setText(0, UIMessages.changesView_table_added);
 			item.setImage(0, getIncomingImage());
 			item.setText(1, sourceName);
 			item.setImage(1, labelProvider.getImage(rel.getSource()));
@@ -372,8 +368,7 @@ public class ChangesView extends ViewPart {
 			String targetName = fromModel.getJavaElementLinkName(rel
 					.getTarget());
 			TableItem item = new TableItem(table, SWT.NONE);
-			item.setText(0, AspectJUIPlugin
-					.getResourceString("changesView.table.removed")); //$NON-NLS-1$
+			item.setText(0, UIMessages.changesView_table_removed);
 			item.setImage(0, getOutgoingImage());
 			item.setText(1, sourceName);
 			item.setImage(1, labelProvider.getImage(rel.getSource()));
@@ -426,10 +421,8 @@ public class ChangesView extends ViewPart {
 			defaultCheckedList.add(relationshipTypes[i].getDisplayName());
 		}
 
-		String dlogTitle = AspectJUIPlugin
-				.getResourceString("changesView.filter.dialog.title"); //$NON-NLS-1$;
-		String dlogMessage = AspectJUIPlugin
-				.getResourceString("changesView.filter.dialog.message"); //$NON-NLS-1$;
+		String dlogTitle = UIMessages.changesView_filter_dialog_title;
+		String dlogMessage = UIMessages.changesView_filter_dialog_message;
 
 		if (checkedList.size() == 0) {
 			checkedList = new ArrayList(defaultCheckedList);

@@ -15,7 +15,7 @@ import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurationCreationException;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jface.action.Action;
 
 /**
@@ -29,7 +29,7 @@ public class AddBuildConfigurationAction extends Action {
 	BuildConfigurator buildconf;
 	
 	AddBuildConfigurationAction(){
-		super(AspectJUIPlugin.getResourceString("BCLabels.SaveBCAs"));  //$NON-NLS-1$
+		super(UIMessages.BCLabels_SaveBCAs);
 		buildconf = BuildConfigurator.getBuildConfigurator();
 	}
 	

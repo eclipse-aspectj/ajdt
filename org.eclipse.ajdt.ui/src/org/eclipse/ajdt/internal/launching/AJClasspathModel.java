@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.launching;
 
 import java.util.Iterator;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.internal.debug.ui.classpath.ClasspathEntry;
 import org.eclipse.jdt.internal.debug.ui.classpath.ClasspathGroup;
 import org.eclipse.jdt.internal.debug.ui.classpath.ClasspathMessages;
@@ -154,8 +154,7 @@ public class AJClasspathModel extends ClasspathModel {
 
 	private IClasspathEntry getAspectPathEntry() {
 		if (aspectPathEntries == null) {
-			String name = AspectJUIPlugin
-					.getResourceString("Launcher.aspectPath"); //$NON-NLS-1$
+			String name = UIMessages.Launcher_aspectPath;
 			aspectPathEntries = createGroupEntry(new IRuntimeClasspathEntry[0],
 					null, name, false, true);
 		}
@@ -164,8 +163,7 @@ public class AJClasspathModel extends ClasspathModel {
 
 	private IClasspathEntry getOutJarEntry() {
 		if (outJarEntries == null) {
-			String name = AspectJUIPlugin
-					.getResourceString("Launcher.outJar"); //$NON-NLS-1$
+			String name = UIMessages.Launcher_outJar;
 			outJarEntries = createGroupEntry(new IRuntimeClasspathEntry[0],
 					null, name, false, true);
 		}

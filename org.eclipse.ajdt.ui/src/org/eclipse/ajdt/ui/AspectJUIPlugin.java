@@ -14,11 +14,8 @@ package org.eclipse.ajdt.ui;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AJLog;
@@ -45,6 +42,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -77,6 +75,7 @@ import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -164,8 +163,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
-	private static final String AJDE_VERSION_KEY_CURRENT = "ajde.version"; //$NON-NLS-1$
-
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
 
 	/**
@@ -196,11 +193,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * shared single instance of the plugin
 	 */
 	private static AspectJUIPlugin plugin;
-
-	/**
-	 * plugin resource bundle used for NLS
-	 */
-	private ResourceBundle resourceBundle;
 
 	/**
 	 * ProjectPropertiesAdapter is required by the AJDT tools to initialise the
@@ -272,40 +264,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return plugin;
 	}
 
-	/**
-	 * Returns the string from the plugin's resource bundle, or 'key' if not
-	 * found.
-	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle = AspectJUIPlugin.getDefault()
-				.getResourceBundle();
-		try {
-			return bundle.getString(key);
-		} catch (MissingResourceException e) {
-			return key;
-		}
-	}
-
-	/**
-	 * @param key
-	 * @param arg
-	 * @return string from plugin's resource bundle that includes the inserted
-	 *         argument.
-	 */
-	public static String getFormattedResourceString(String key, String arg) {
-		return getFormattedResourceString(key, new String[] { arg });
-	}
-
-	/**
-	 * @param key
-	 * @param arg
-	 * @return string from plugin's resource bundle that includes all of the
-	 *         inserted arguments.
-	 */
-	public static String getFormattedResourceString(String key, String[] args) {
-		return MessageFormat.format(getResourceString(key), args);
-	}
-
 	private final static String defaultLstShouldBeUsed = "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
 
 	public static final int PROGRESS_MONITOR_MAX = 100;
@@ -352,13 +310,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	public AspectJUIPlugin() {
 		super();
 		plugin = this;
-
-		try {
-			resourceBundle = ResourceBundle
-					.getBundle("org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources");
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
 	}
 
 	/**
@@ -378,8 +329,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				.getPreferenceStore();
 
 		// Version of AJDE now installed.
-		String currentAjdeVersion = AspectJUIPlugin
-				.getResourceString(AJDE_VERSION_KEY_CURRENT);
+		String currentAjdeVersion = UIMessages.ajde_version;
 
 		// Version that the projects in this workspace used on the previous
 		// execution of eclipse.
@@ -442,8 +392,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				TemplatePersistenceData[] templates = trw.read(
 						loc.openStream(), null);
 				if ((templates == null) || (templates.length == 0)) {
-					AJLog.log(AspectJUIPlugin
-							.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
+					AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 				} else {
 					for (int i = 0; i < templates.length; i++) {
 						codeTemplates.add(templates[i]);
@@ -451,8 +400,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 					codeTemplates.save();
 				}
 			} catch (IOException fnf) {
-				AJLog.log(AspectJUIPlugin
-						.getResourceString("codeTemplates.couldNotLoad")); //$NON-NLS-1$
+				AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 			}
 		}
 	}
@@ -477,13 +425,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 */
 	public BuildOptionsAdapter getAjdtBuildOptionsAdapter() {
 		return ajdtBuildOptions;
-	}
-
-	/**
-	 * Returns the plugin's resource bundle,
-	 */
-	public ResourceBundle getResourceBundle() {
-		return resourceBundle;
 	}
 
 	public void start(BundleContext context) throws Exception {
@@ -600,8 +541,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
 		if ((pvi.getMajorComponent() != EclipseVersion.MAJOR_VERSION)
 				|| (pvi.getMinorComponent() != EclipseVersion.MINOR_VERSION)) {
-			getErrorHandler().handleError(
-					getFormattedResourceString("wrong.eclipse.version", //$NON-NLS-1$
+			getErrorHandler().handleError(NLS.bind(UIMessages.wrong_eclipse_version,
 							new String[] {
 									EclipseVersion.MAJOR_VERSION + "."
 											+ EclipseVersion.MINOR_VERSION,

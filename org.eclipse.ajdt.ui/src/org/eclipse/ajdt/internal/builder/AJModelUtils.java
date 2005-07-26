@@ -14,7 +14,7 @@ package org.eclipse.ajdt.internal.builder;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -63,8 +63,7 @@ public class AJModelUtils {
 
 	private static class RefreshOutlinePagesJob extends UIJob {
 		RefreshOutlinePagesJob() {
-			super(AspectJUIPlugin
-					.getResourceString("utils.refresh.outline.job")); //$NON-NLS-1$
+			super(UIMessages.utils_refresh_outline_job);
 		}
 
 		public IStatus runInUIThread(IProgressMonitor monitor) {

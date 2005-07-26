@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.javamodel;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -87,7 +88,7 @@ public class FileFilter extends ViewerFilter {
 			if (!store.contains(FILTER_DIALOG_ID) || !store.getBoolean(FILTER_DIALOG_ID)){
 
 			//wrap into low priority job so it does not get displayed before package explorer is loaded
-			Job job = new Job(AspectJUIPlugin.getResourceString("FileFilterDialog.JobTitle")) { //$NON-NLS-1$
+			Job job = new Job(UIMessages.FileFilterDialog_JobTitle) {
 
 				public IStatus run(IProgressMonitor m) {
 					final Display display = AspectJUIPlugin.getDefault().getDisplay();
@@ -97,9 +98,9 @@ public class FileFilter extends ViewerFilter {
 							MessageDialogWithToggle md = MessageDialogWithToggle
 									.openInformation(
 											display.getActiveShell(),
-											AspectJUIPlugin.getResourceString("FileFilterDialog.Title"), //$NON-NLS-1$
-											AspectJUIPlugin.getResourceString("FileFilterDialog.Message"), //$NON-NLS-1$
-											AspectJUIPlugin.getResourceString("FileFilterDialog.CheckboxCaption"), //$NON-NLS-1$
+											UIMessages.FileFilterDialog_Title,
+											UIMessages.FileFilterDialog_Message,
+											UIMessages.FileFilterDialog_CheckboxCaption,
 											true, null,	null);
 							store.setValue(FILTER_DIALOG_ID, md.getToggleState());
 						}

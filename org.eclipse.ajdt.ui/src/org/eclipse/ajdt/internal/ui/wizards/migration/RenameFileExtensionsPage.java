@@ -20,6 +20,7 @@ import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.refactoring.RenamingUtils;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -57,9 +58,9 @@ public class RenameFileExtensionsPage extends WizardPage {
 	private List ajProjects;
 		
 	private RenameFileExtensionsPage() {
-		super(AspectJUIPlugin.getResourceString("RenameFileExtensionsPage.name")); //$NON-NLS-1$
-		this.setTitle(AspectJUIPlugin.getResourceString("RenameFileExtensionsPage.title"));	//$NON-NLS-1$	
-		this.setDescription( AspectJUIPlugin.getResourceString("RenameFileExtensionsPage.description")); //$NON-NLS-1$
+		super(UIMessages.RenameFileExtensionsPage_name);
+		this.setTitle(UIMessages.RenameFileExtensionsPage_title);
+		this.setDescription(UIMessages.RenameFileExtensionsPage_description);
 	}
 	
 	protected RenameFileExtensionsPage(List projects) {
@@ -80,8 +81,7 @@ public class RenameFileExtensionsPage extends WizardPage {
 		};
 
 		checkedListDialogField = new CheckedListDialogField(null, buttonLabels, new AJProjectListLabelProvider());
-		checkedListDialogField.setLabelText(AspectJUIPlugin
-				.getResourceString("RenameFileExtensionsMigrationPage.message")); //$NON-NLS-1$
+		checkedListDialogField.setLabelText(UIMessages.RenameFileExtensionsMigrationPage_message);
 		checkedListDialogField.setCheckAllButtonIndex(0);
 		checkedListDialogField.setUncheckAllButtonIndex(1);
 		checkedListDialogField.setElements(ajProjects);

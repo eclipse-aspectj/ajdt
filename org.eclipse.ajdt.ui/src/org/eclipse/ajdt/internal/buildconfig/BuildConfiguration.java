@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.editor.BuildProperties;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -57,7 +58,7 @@ public class BuildConfiguration implements Cloneable,
 		org.eclipse.jdt.internal.core.util.Util.Comparable {
 	public static final String EXTENSION = "ajproperties"; //$NON-NLS-1$
 
-	public static final String STANDARD_BUILD_CONFIGURATION_NAME = AspectJUIPlugin.getResourceString("buildConfig.standardFileName"); //$NON-NLS-1$
+	public static final String STANDARD_BUILD_CONFIGURATION_NAME = UIMessages.buildConfig_standardFileName;
 
 	public static final String STANDARD_BUILD_CONFIGURATION_FILE = STANDARD_BUILD_CONFIGURATION_NAME
 		+ "." + EXTENSION;
@@ -164,10 +165,9 @@ public class BuildConfiguration implements Cloneable,
 		name = lstFile2.getName();
 		name = name.substring(0, name.length() - 4);
 
-		String title = AspectJUIPlugin
-				.getResourceString("BCDialog.SaveLstAsAJProp.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin.getResourceString(
-				"BCDialog.SaveLstAsAJProp.message").replaceAll("%src", name); //$NON-NLS-1$ //$NON-NLS-2$
+
+		String title = UIMessages.BCDialog_SaveLstAsAJProp_title;
+		String msg = UIMessages.BCDialog_SaveLstAsAJProp_message.replaceAll("%src", name); //$NON-NLS-1$
 		InputDialogWithCheck md = new InputDialogWithCheck(shell, title, msg, name + "." //$NON-NLS-1$
 				+ BuildConfiguration.EXTENSION, null);
 		md.setBlockOnOpen(true);
@@ -309,10 +309,8 @@ public class BuildConfiguration implements Cloneable,
 			throws BuildConfigurationCreationException {
 		this.pbc = pbc;
 
-		String title = AspectJUIPlugin
-				.getResourceString("BCDialog.SaveBuildConfigurationAs.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin
-				.getResourceString("BCDialog.SaveBuildConfigurationAs.message"); //$NON-NLS-1$
+		String title = UIMessages.BCDialog_SaveBuildConfigurationAs_title;
+		String msg = UIMessages.BCDialog_SaveBuildConfigurationAs_message; 
 		String fileName = BuildConfigurator.getFreeFileName(pbc.getJavaProject().getProject());
 
 		BuildConfiguration origBC = pbc.getActiveBuildConfiguration();
@@ -325,8 +323,7 @@ public class BuildConfiguration implements Cloneable,
 					if (file.getName().equals(input)
 							|| file.getName()  //$NON-NLS-1$
 									.equals(input + "." + BuildConfiguration.EXTENSION)) {
-						return AspectJUIPlugin
-								.getResourceString("BCDialog.NameValidator.ExistsError"); //$NON-NLS-1$
+						return UIMessages.BCDialog_NameValidator_ExistsError;
 					}
 				}
 				return null;				
@@ -590,10 +587,8 @@ public class BuildConfiguration implements Cloneable,
 		update(false);
 		String lstFileContent = this.getLstContentFromData();
 
-		String title = AspectJUIPlugin
-				.getResourceString("BCDialog.SaveAJPropAsLst.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin.getResourceString(
-				"BCDialog.SaveAJPropAsLst.message").replaceAll("%name", name); //$NON-NLS-1$ //$NON-NLS-2$
+		String title = UIMessages.BCDialog_SaveAJPropAsLst_title;
+		String msg = UIMessages.BCDialog_SaveAJPropAsLst_message.replaceAll("%name", name); //$NON-NLS-1$
 
 		InputDialog md = new InputDialog(null, title, msg, name + ".lst", null); //$NON-NLS-1$
 		md.setBlockOnOpen(true);
@@ -622,9 +617,7 @@ public class BuildConfiguration implements Cloneable,
 				}
 			} catch (CoreException e) {
 				AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-						AspectJUIPlugin.getResourceString(
-								"buildConfig.exceptionWriting").replaceAll( //$NON-NLS-1$
-								"%fileName", fileName), e); //$NON-NLS-1$
+						UIMessages.buildConfig_exceptionWriting.replaceAll("%fileName", fileName), e); //$NON-NLS-1$
 			}
 
 		}
@@ -633,12 +626,10 @@ public class BuildConfiguration implements Cloneable,
 
 	private boolean askUserOverwrite(String fileName) {
 		String[] options = {
-				AspectJUIPlugin.getResourceString("BCDialog.Overwrite.yes"), //$NON-NLS-1$
-				AspectJUIPlugin.getResourceString("BCDialog.Overwrite.no") }; //$NON-NLS-1$
-		String title = AspectJUIPlugin
-				.getResourceString("BCDialog.Overwrite.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin.getResourceString(
-				"BCDialog.Overwrite.message").replaceAll("%fileName", fileName); //$NON-NLS-1$ //$NON-NLS-2$
+				UIMessages.BCDialog_Overwrite_yes,
+				UIMessages.BCDialog_Overwrite_no };
+		String title = UIMessages.BCDialog_Overwrite_title;
+		String msg = UIMessages.BCDialog_Overwrite_message.replaceAll("%fileName", fileName); //$NON-NLS-1$
 
 		MessageDialog mdiag = new MessageDialog(null, title, null, msg,
 				MessageDialog.QUESTION, options, 1);
@@ -681,12 +672,10 @@ public class BuildConfiguration implements Cloneable,
 			Composite composite = (Composite) super.createDialogArea(parent);
 			openInEditorCheckbox = new Button(composite, SWT.CHECK);
 			openInEditorCheckbox.setSelection(true);
-			openInEditorCheckbox.setText(AspectJUIPlugin
-					.getResourceString("BuildConfig.openForEdit")); //$NON-NLS-1$	
+			openInEditorCheckbox.setText(UIMessages.BuildConfig_openForEdit);
 			activateCheckbox = new Button(composite, SWT.CHECK);
 			activateCheckbox.setSelection(true);
-			activateCheckbox.setText(AspectJUIPlugin
-					.getResourceString("BuildConfig.activate")); //$NON-NLS-1$
+			activateCheckbox.setText(UIMessages.BuildConfig_activate);
 			return composite;
 		}
 		

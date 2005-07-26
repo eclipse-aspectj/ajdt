@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -48,7 +49,7 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.workbench = workbench;
 		this.selection = selection;
-		setWindowTitle(AspectJUIPlugin.getResourceString("newResourcesWizard.wizardTitle"));
+		setWindowTitle(UIMessages.newResourcesWizard_wizardTitle);
 		newResourcesList = null;
 	}
 
@@ -138,7 +139,7 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 				ifile.appendContents(bais, true, false, null);
 			} catch (Exception e) {
 				AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString("newResourcesWizard.exceptionAppendingToBuildConfigFile")+
+				UIMessages.newResourcesWizard_exceptionAppendingToBuildConfigFile +
 				  ifile.getFullPath().toOSString(),e);
 			}
 		}

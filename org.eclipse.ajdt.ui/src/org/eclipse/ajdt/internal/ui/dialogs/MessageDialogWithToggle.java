@@ -11,7 +11,6 @@
 
 package org.eclipse.ajdt.internal.ui.dialogs;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -107,9 +106,6 @@ public class MessageDialogWithToggle extends MessageDialog {
     protected Button createToggleButton(Composite parent) {
         final Button button = new Button(parent, SWT.CHECK | SWT.LEFT);
         String text = toggleMessage;
-        if (text == null) {
-            text = AspectJUIPlugin.getResourceString("%dialog.perspSwitchToggleMsg");
-        }
         button.setText(text);
         button.setSelection(toggleState);
 

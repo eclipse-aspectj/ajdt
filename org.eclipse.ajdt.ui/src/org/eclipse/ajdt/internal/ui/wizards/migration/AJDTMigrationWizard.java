@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -70,7 +70,7 @@ public class AJDTMigrationWizard extends Wizard {
 	 * Set-up the title.
 	 */
 	public void init() {
-		setWindowTitle(AspectJUIPlugin.getResourceString("AJDTMigrationWizard.title")); 
+		setWindowTitle(UIMessages.AJDTMigrationWizard_title); 
 	}
 	
 	/**
@@ -93,24 +93,24 @@ public class AJDTMigrationWizard extends Wizard {
 			     * In addition pluginDependencyPage gets 2 for each plug-in project
 			     * 
 			     */
-			    monitor.setTaskName(AspectJUIPlugin.getResourceString("MigratingSettings")); //$NON-NLS-1$
+			    monitor.setTaskName(UIMessages.MigratingSettings);
 			    monitor.beginTask("", total); //$NON-NLS-1$
-			    monitor.subTask(AspectJUIPlugin.getResourceString("MigratingBuilderDependencies")); //$NON-NLS-1$                            		
+			    monitor.subTask(UIMessages.MigratingBuilderDependencies);
 			    builderMigrationPage.finishPressed(monitor);
 			    if(monitor.isCanceled()) {
 			    	return;
 			    }
-				monitor.subTask(AspectJUIPlugin.getResourceString("MigratingPluginDependencies")); //$NON-NLS-1$                            		
+				monitor.subTask(UIMessages.MigratingPluginDependencies);                           		
 				pluginDependencyPage.finishPressed(monitor);
 				 if(monitor.isCanceled()) {
 			    	return;
 			    }
-				monitor.subTask(AspectJUIPlugin.getResourceString("MigratingWorkbenchSettings")); //$NON-NLS-1$
+				monitor.subTask(UIMessages.MigratingWorkbenchSettings);
 				workbenchSettingsPage.finishPressed(ajProjects,monitor);
 				 if(monitor.isCanceled()) {
 			    	return;
 			    }
-				monitor.subTask(AspectJUIPlugin.getResourceString("MigratingFileExtensions")); //$NON-NLS-1$
+				monitor.subTask(UIMessages.MigratingFileExtensions);
 				fileExtensionsPage.finishPressed(monitor);                            		
 				monitor.done();
 				// Do this last because it interferes with the progress monitor.

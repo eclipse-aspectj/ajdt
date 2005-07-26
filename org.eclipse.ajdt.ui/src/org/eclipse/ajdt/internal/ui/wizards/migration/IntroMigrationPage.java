@@ -9,7 +9,7 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.migration;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.Label;
 public class IntroMigrationPage extends WizardPage {
 	
 	protected IntroMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("IntroMigrationPage.name"));
-		this.setTitle(AspectJUIPlugin.getResourceString("IntroMigrationPage.title"));		
-		this.setDescription(AspectJUIPlugin.getResourceString("IntroMigrationPage.description"));
+		super(UIMessages.IntroMigrationPage_name);
+		this.setTitle(UIMessages.IntroMigrationPage_title);		
+		this.setDescription(UIMessages.IntroMigrationPage_description);
 	}
 
 	public void createControl(Composite parent) {
@@ -38,7 +38,7 @@ public class IntroMigrationPage extends WizardPage {
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Label label = new Label(composite, SWT.NONE);
-		label.setText(AspectJUIPlugin.getResourceString("IntroMigrationPage.message"));
+		label.setText(UIMessages.IntroMigrationPage_message);
 		setControl(composite);
 
 	}

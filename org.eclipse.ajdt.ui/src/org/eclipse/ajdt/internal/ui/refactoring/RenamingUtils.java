@@ -20,6 +20,7 @@ import java.util.Map;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -55,10 +56,7 @@ public class RenamingUtils {
 			AspectJUIPlugin
 					.getDefault()
 					.getErrorHandler()
-					.handleError(
-							AspectJUIPlugin
-									.getResourceString("Refactoring.ErrorRenamingResource") //$NON-NLS-1$
-							, e);
+					.handleError(UIMessages.Refactoring_ErrorRenamingResource, e);
 		}
 	}
 

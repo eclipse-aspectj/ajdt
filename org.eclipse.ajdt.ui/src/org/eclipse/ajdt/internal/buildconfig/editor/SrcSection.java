@@ -11,7 +11,7 @@ package org.eclipse.ajdt.internal.buildconfig.editor;
 
 import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuild;
 import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuildEntry;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.*;
 import org.eclipse.pde.core.IModelChangedListener;
 import org.eclipse.swt.widgets.Composite;
@@ -20,13 +20,10 @@ public class SrcSection extends BuildContentsSection
 		implements
 			IModelChangedListener {
 
-	private static String SECTION_TITLE = "AJPropsEditor.SrcSection.title"; //$NON-NLS-1$
-	private static String SECTION_DESC = "AJPropsEditor.SrcSection.desc"; //$NON-NLS-1$
-
 	public SrcSection(BuildPage page, Composite parent) {
 		super(page, parent);
-		getSection().setText(AspectJUIPlugin.getResourceString(SECTION_TITLE));
-		getSection().setDescription(AspectJUIPlugin.getResourceString(SECTION_DESC));
+		getSection().setText(UIMessages.AJPropsEditor_SrcSection_title);
+		getSection().setDescription(UIMessages.AJPropsEditor_SrcSection_desc);
 
 	}
 	

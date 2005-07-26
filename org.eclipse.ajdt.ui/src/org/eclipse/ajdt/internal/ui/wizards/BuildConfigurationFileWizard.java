@@ -10,7 +10,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
@@ -63,7 +63,7 @@ public class BuildConfigurationFileWizard
 		if(this.selection == null) {
 			this.selection = selection;
 		}
-		setWindowTitle( AspectJUIPlugin.getResourceString( "newConfig" ) ); 
+		setWindowTitle(UIMessages.newConfig); 
 		//setDefaultPageImageDescriptor( AspectJImages.getImageDescriptor( AspectJImages.FILE_LST ) );
 	}
 

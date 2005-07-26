@@ -20,6 +20,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
 import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -436,8 +437,7 @@ aspect PreferencePageBuilder {
                     monitor.beginTask("", 2); //$NON-NLS-1$
                     try {
                         monitor
-                                .setTaskName(AspectJUIPlugin
-                                        .getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
+                                .setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
                         project.build(IncrementalProjectBuilder.FULL_BUILD,
                                 AspectJPlugin.ID_BUILDER, null,
                                 new SubProgressMonitor(monitor, 2));
@@ -451,8 +451,7 @@ aspect PreferencePageBuilder {
         } catch (InterruptedException e) {
             // cancelled by user
         } catch (InvocationTargetException e) {
-            String message = AspectJUIPlugin
-                    .getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
+            String message = UIMessages.OptionsConfigurationBlock_builderror_message;
             AspectJUIPlugin.getDefault().getErrorHandler().handleError(message,
                     e);
         }

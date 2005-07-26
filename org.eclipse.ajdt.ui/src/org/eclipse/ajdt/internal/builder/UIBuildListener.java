@@ -30,6 +30,7 @@ import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
@@ -47,6 +48,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.osgi.util.NLS;
 
 /**
  * 
@@ -195,7 +197,7 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		
 		// The message to feature in the problems view of depending projects
-		String buildPrereqsMessage = AspectJUIPlugin.getFormattedResourceString("buildPrereqsMessage",
+		String buildPrereqsMessage = NLS.bind(UIMessages.buildPrereqsMessage,
 				project.getName());
 		if (buildCancelled) {
 			markReferencingProjects(project, buildPrereqsMessage);

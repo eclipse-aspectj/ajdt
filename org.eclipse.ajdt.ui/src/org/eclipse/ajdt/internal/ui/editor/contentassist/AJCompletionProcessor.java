@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ui.editor.contentassist;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jface.text.ITextViewer;
@@ -69,8 +69,8 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 
 			ICompletionProposal[] propsnew = new ICompletionProposal[props.length + 1];
 			System.arraycopy(props, 0, propsnew, 0, props.length);
-			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, AspectJUIPlugin.getResourceString("codeAssist.limited.title"),
-					null, AspectJUIPlugin.getResourceString("codeAssist.limited.message"));
+			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, UIMessages.codeAssist_limited_title,
+					null, UIMessages.codeAssist_limited_message);
 			props = propsnew;
 		}
 		return filterAjcElements(props);

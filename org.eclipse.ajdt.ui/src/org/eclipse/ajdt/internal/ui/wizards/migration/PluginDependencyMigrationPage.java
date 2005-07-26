@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui.wizards.migration;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -52,10 +53,9 @@ public class PluginDependencyMigrationPage extends WizardPage {
 	private List ajPluginProjects;
 	
 	private PluginDependencyMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("PluginDependencyMigrationPage.name")); //$NON-NLS-1$
-		this.setTitle(AspectJUIPlugin.getResourceString("PluginDependencyMigrationPage.title")); //$NON-NLS-1$		
-		this.setDescription( AspectJUIPlugin
-				.getResourceString("PluginDependencyMigrationPage.description")); //$NON-NLS-1$
+		super(UIMessages.PluginDependencyMigrationPage_name);
+		this.setTitle(UIMessages.PluginDependencyMigrationPage_title);		
+		this.setDescription(UIMessages.PluginDependencyMigrationPage_description);
 	}
 	
 	protected PluginDependencyMigrationPage(List projects) {
@@ -76,8 +76,7 @@ public class PluginDependencyMigrationPage extends WizardPage {
 		};
 
 		checkedListDialogField = new CheckedListDialogField(null, buttonLabels, new AJProjectListLabelProvider());
-		checkedListDialogField.setLabelText(AspectJUIPlugin
-				.getResourceString("PluginDependencyMigrationPage.updatePluginDependencyButton.message")); //$NON-NLS-1$
+		checkedListDialogField.setLabelText(UIMessages.PluginDependencyMigrationPage_updatePluginDependencyButton_message);
 		checkedListDialogField.setCheckAllButtonIndex(0);
 		checkedListDialogField.setUncheckAllButtonIndex(1);
 		checkedListDialogField.setElements(ajPluginProjects);
@@ -169,11 +168,8 @@ public class PluginDependencyMigrationPage extends WizardPage {
 				AspectJUIPlugin
 						.getDefault()
 						.getErrorHandler()
-						.handleError(
-								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.title"),
-								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.message"),
+						.handleError(UIMessages.AutoPluginRemoveErrorDialog_title,
+								UIMessages.AutoPluginRemoveErrorDialog_message,
 								e);
 			}
 		}// end if we got a reference to the manifest editor
@@ -182,10 +178,8 @@ public class PluginDependencyMigrationPage extends WizardPage {
 					.openError(
 							AspectJUIPlugin.getDefault().getWorkbench()
 									.getActiveWorkbenchWindow().getShell(),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
+									UIMessages.AutoPluginRemoveDialog_noEditor_title,
+									UIMessages.AutoPluginRemoveDialog_noEditor_message);
 		}
 	}
 }

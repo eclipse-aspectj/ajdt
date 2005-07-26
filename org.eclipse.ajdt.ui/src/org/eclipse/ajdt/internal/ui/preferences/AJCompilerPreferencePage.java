@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.EclipseVersion;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -195,22 +196,19 @@ public class AJCompilerPreferencePage extends PreferencePage
 		Composite aspectjComposite = createMessagesTabContent(folder);
 		TabItem item = new TabItem(folder, SWT.NONE);
 		item
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_messages.tabtitle")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_tabtitle);
 		item.setControl(aspectjComposite);
 
 		aspectjComposite = createAdvancedTabContent(folder);
 		item = new TabItem(folder, SWT.NONE);
 		item
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_advanced.tabtitle")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_advanced_tabtitle);
 		item.setControl(aspectjComposite);
 
 		aspectjComposite = createOtherTabContent(folder);
 		item = new TabItem(folder, SWT.NONE);
 		item
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_other.tabtitle")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_other_tabtitle);
 		item.setControl(aspectjComposite);
 
 		// AJ5 options do not apply to Eclipse 3.0
@@ -218,8 +216,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 			aspectjComposite = createAJ5TabContent(folder);
 			item = new TabItem(folder, SWT.NONE);
 			item
-					.setText(AspectJUIPlugin
-							.getResourceString("CompilerConfigurationBlock.aj_5.tabtitle")); //$NON-NLS-1$
+					.setText(UIMessages.CompilerConfigurationBlock_aj_5_tabtitle);
 			item.setControl(aspectjComposite);
 		}
 		
@@ -231,12 +228,9 @@ public class AJCompilerPreferencePage extends PreferencePage
 		String[] errorWarningIgnore = new String[]{ERROR, WARNING, IGNORE};
 
 		String[] errorWarningIgnoreLabels = new String[]{
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.error"), //$NON-NLS-1$
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.warning"), //$NON-NLS-1$
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.ignore") //$NON-NLS-1$
+				UIMessages.CompilerConfigurationBlock_error,
+				UIMessages.CompilerConfigurationBlock_warning,
+				UIMessages.CompilerConfigurationBlock_ignore
 		};
 
 		int nColumns = 3;
@@ -249,59 +243,48 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 		Label description = new Label(composite, SWT.WRAP);
 		description
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_messages.description")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_description);
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
 		description.setLayoutData(gd);
 
-		String label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_invalid_absolute_type_name.label"); //$NON-NLS-1$
+		String label = UIMessages.CompilerConfigurationBlock_aj_invalid_absolute_type_name_label;
 		addComboBox(composite, label, PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_invalid_wildcard_type_name.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_invalid_wildcard_type_name_label;
 		addComboBox(composite, label, PREF_AJ_INVALID_WILDCARD_TYPE_NAME,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_unresolvable_member.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_unresolvable_member_label;
 		addComboBox(composite, label, PREF_AJ_UNRESOLVABLE_MEMBER,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_type_not_exposed_to_weaver.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_type_not_exposed_to_weaver_label;
 		addComboBox(composite, label, PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_shadow_not_in_structure.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_shadow_not_in_structure_label;
 		addComboBox(composite, label, PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_unmatched_super_type_in_call.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_unmatched_super_type_in_call_label;
 		addComboBox(composite, label, PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_cannot_implement_lazy_tjp.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_cannot_implement_lazy_tjp_label;
 		addComboBox(composite, label, PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_need_serial_version_uid_field.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
 		addComboBox(composite, label, PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_incompatible_serial_version.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_incompatible_serial_version_label;
 		addComboBox(composite, label, PREF_AJ_INCOMPATIBLE_SERIAL_VERSION,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.aj_no_interface_ctor_joinpoint.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
 		addComboBox(composite, label, PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
@@ -323,30 +306,29 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 		Label description = new Label(composite, SWT.WRAP);
 		description
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_advanced.description")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_advanced_description);
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
 		description.setLayoutData(gd);
 
-		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_no_weave.label"); //$NON-NLS-1$
+		String label = UIMessages.CompilerConfigurationBlock_aj_no_weave_label;
 		noweaveButton = addCheckBox(composite, label, PREF_ENABLE_NO_WEAVE, enableDisableValues, 0);
 		noweaveButton.addSelectionListener(checkBoxListener);
 		
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_serializable_aspects.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_lazy_tjp.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_x_lazy_tjp_label;
 		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_LAZY_TJP,enableDisableValues, 0);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
 		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_x_reweavable_label;
 		reweaveButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE,enableDisableValues, 0);
 		reweaveButton.addSelectionListener(checkBoxListener);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable_compress.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_x_reweavable_compress_label;
 		reweaveCompressButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE_COMPRESS,enableDisableValues, 0);
 		reweaveCompressButton.addSelectionListener(checkBoxListener);
 
@@ -368,19 +350,18 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 		Label description = new Label(composite, SWT.WRAP);
 		description
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_other.description")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_other_description);
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
 		description.setLayoutData(gd);
 
-		String label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_incremental.label"); //$NON-NLS-1$
+		String label = UIMessages.CompilerConfigurationBlock_aj_enable_incremental_label;
 		addCheckBox(composite, label, PREF_ENABLE_INCREMENTAL, enableDisableValues, 0, false);
 		
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_build_asm.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_enable_build_asm_label;
 		addCheckBox(composite, label, PREF_ENABLE_BUILD_ASM,enableDisableValues, 0, false);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_enable_weave_messages.label"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
 		addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
 
 		checkNoWeaveSelection();
@@ -397,12 +378,9 @@ public class AJCompilerPreferencePage extends PreferencePage
 		String[] errorWarningIgnore = new String[]{ERROR, WARNING, IGNORE};
 
 		String[] errorWarningIgnoreLabels = new String[]{
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.error"), //$NON-NLS-1$
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.warning"), //$NON-NLS-1$
-				AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.ignore") //$NON-NLS-1$
+				UIMessages.CompilerConfigurationBlock_error, 
+				UIMessages.CompilerConfigurationBlock_warning,
+				UIMessages.CompilerConfigurationBlock_ignore
 		};
 
 		int nColumns = 3;
@@ -415,8 +393,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 		Label description = new Label(composite, SWT.WRAP);
 		description
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_5.description")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_5_description);
 		GridData gd = new GridData();
 		gd.horizontalSpan = nColumns;
 		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
@@ -429,49 +406,40 @@ public class AJCompilerPreferencePage extends PreferencePage
 		
 		Label description2 = new Label(composite, SWT.WRAP);
 		description2
-				.setText(AspectJUIPlugin
-						.getResourceString("CompilerConfigurationBlock.aj_messages.description")); //$NON-NLS-1$
+				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_description);
 		GridData gd2 = new GridData();
 		gd2.horizontalSpan = nColumns;
 		description2.setLayoutData(gd2);
 		
-		String label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.noJoinpointsForBridgeMethods"); //$NON-NLS-1$
+		String label = UIMessages.CompilerConfigurationBlock_noJoinpointsForBridgeMethods;
 		addComboBox(composite, label, AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.cantMatchArrayTypeOnVarargs"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_cantMatchArrayTypeOnVarargs;
 		addComboBox(composite, label, AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.enumAsTargetForDecpIgnored"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_enumAsTargetForDecpIgnored;
 		addComboBox(composite, label, AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.annotationAsTargetForDecpIgnored"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_annotationAsTargetForDecpIgnored;
 		addComboBox(composite, label, AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.invalidTargetForAnnotation"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_invalidTargetForAnnotation;
 		addComboBox(composite, label, AspectJPreferences.OPTION_invalidTargetForAnnotation,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.elementAlreadyAnnotated"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_elementAlreadyAnnotated;
 		addComboBox(composite, label, AspectJPreferences.OPTION_elementAlreadyAnnotated,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.runtimeExceptionNotSoftened"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_runtimeExceptionNotSoftened;
 		addComboBox(composite, label, AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.adviceDidNotMatch"); //$NON-NLS-1$
+		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
 		addComboBox(composite, label, AspectJPreferences.OPTION_adviceDidNotMatch,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
@@ -540,10 +508,8 @@ public class AJCompilerPreferencePage extends PreferencePage
 	}
 
 	protected String[] getFullBuildDialogStrings() {
-		String title = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.needsbuild.title"); //$NON-NLS-1$
-		String message = AspectJUIPlugin
-				.getResourceString("CompilerConfigurationBlock.needsfullbuild.message"); //$NON-NLS-1$
+		String title = UIMessages.CompilerConfigurationBlock_needsbuild_title;
+		String message = UIMessages.CompilerConfigurationBlock_needsfullbuild_message;
 		return new String[]{title, message};
 	}
 
@@ -556,8 +522,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 					monitor.beginTask("", 2); //$NON-NLS-1$
 					try {
 						monitor
-								.setTaskName(AspectJUIPlugin
-										.getResourceString("OptionsConfigurationBlock.buildall.taskname")); //$NON-NLS-1$
+								.setTaskName(UIMessages.OptionsConfigurationBlock_buildall_taskname);
 						ResourcesPlugin.getWorkspace().build(
 								IncrementalProjectBuilder.FULL_BUILD,
 								new SubProgressMonitor(monitor, 2));
@@ -571,8 +536,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		} catch (InterruptedException e) {
 			// cancelled by user
 		} catch (InvocationTargetException e) {
-			String message = AspectJUIPlugin
-					.getResourceString("OptionsConfigurationBlock.builderror.message"); //$NON-NLS-1$
+			String message = UIMessages.OptionsConfigurationBlock_builderror_message;
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
 		}
 	}

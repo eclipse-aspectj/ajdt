@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -56,11 +57,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Is this CompilerMonitor instance currently 'in use' ?
      */
     private boolean compilationInProgress = false;
-
-    /**
-     * Ratio of max value used by Ajde to MONITOR_MAX
-     */
-    private float ajdeMonitorMaxRatio = 1.0f;
 
     /**
      * Monitor progress against Ajde max
@@ -114,7 +110,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
         monitor = eclipseMonitor;
         if (monitor != null) {
-            monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"),
+            monitor.beginTask(UIMessages.ajCompilation,
                     AspectJUIPlugin.PROGRESS_MONITOR_MAX);
         }
 
@@ -263,8 +259,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         if (AspectJUIPlugin.DEBUG_COMPILER)
             System.err.println("AJDE Callback: setProgressBarMax(" + maxVal
                     + ")");
-        ajdeMonitorMaxRatio = ((float) maxVal)
-                / AspectJUIPlugin.PROGRESS_MONITOR_MAX;
     }
 
     public void incrementProgressBarVal() {

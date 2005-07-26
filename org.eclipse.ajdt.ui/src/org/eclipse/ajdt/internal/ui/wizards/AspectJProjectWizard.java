@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -52,7 +53,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     public AspectJProjectWizard() {
 		setDefaultPageImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		setDialogSettings(AspectJUIPlugin.getDefault().getDialogSettings());
-		setWindowTitle(AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.title"));
+		setWindowTitle(UIMessages.NewAspectjProjectCreationWizard_title);
    }
 
     /*
@@ -62,11 +63,11 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         super.addPages();
         fFirstPage= new JavaProjectWizardFirstPage();
         addPage(fFirstPage);
-        fFirstPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProject"));
-		fFirstPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription"));
+        fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
+		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
         fSecondPage= new AspectJProjectWizardSecondPage(fFirstPage);
-        fSecondPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettings"));
-        fSecondPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettingsDescription"));
+        fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
+        fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
         addPage(fSecondPage);
     }		
     
@@ -133,8 +134,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 						monitor.beginTask("", 2);
 						try {
 							monitor
-									.setTaskName(AspectJUIPlugin
-											.getResourceString("OptionsConfigurationBlock.buildproject.taskname"));
+									.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
 							thisProject.build(
 									IncrementalProjectBuilder.FULL_BUILD,
 									new SubProgressMonitor(monitor, 2));
@@ -150,9 +150,9 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 			return false;
 		} catch(InvocationTargetException e) {
 			String title =
-				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.title");
+				UIMessages.NewAspectjProjectCreationWizard_op_error_title;
 			String message =
-				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.message");
+				UIMessages.NewAspectjProjectCreationWizard_op_error_message;
 			ExceptionHandler.handle(e, getShell(), title, message);
 		} catch(CoreException e) {
 		}

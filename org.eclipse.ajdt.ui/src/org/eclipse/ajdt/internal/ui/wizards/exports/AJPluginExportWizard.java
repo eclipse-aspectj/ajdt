@@ -14,7 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.pde.internal.ui.build.FeatureExportInfo;
@@ -53,7 +53,7 @@ public class AJPluginExportWizard extends BaseExportWizard {
 		super.addPages();
 		fPage2 = new AdvancedPluginExportPage("plugin-sign"); //$NON-NLS-1$
 		// AspectJ Change
-		fPage1.setTitle(AspectJUIPlugin.getResourceString("PluginExportWizard.31Title")); //$NON-NLS-1$
+		fPage1.setTitle(UIMessages.PluginExportWizard_31Title);
 		addPage(fPage2);
 	}
 	

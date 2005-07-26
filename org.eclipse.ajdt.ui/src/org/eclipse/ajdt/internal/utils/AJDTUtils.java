@@ -29,6 +29,7 @@ import org.eclipse.ajdt.internal.builder.MarkerUpdating;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -61,6 +62,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.internal.PDE;
@@ -228,11 +230,8 @@ public class AJDTUtils {
 					boolean remove = MessageDialog
 							.openQuestion(
 									window.getShell(),
-									AspectJUIPlugin
-											.getResourceString("MultipleOutputDirs.title"), //$NON-NLS-1$
-									AspectJUIPlugin
-											.getFormattedResourceString(
-													"MultipleOutputDirs.message", cpe[i].getPath().lastSegment())); //$NON-NLS-1$
+									UIMessages.MultipleOutputDirs_title,
+									NLS.bind(UIMessages.MultipleOutputDirs_message, cpe[i].getPath().lastSegment()));
 					if (remove) {
 						AJBuilder.cleanSeparateOutputFolder(output);
 					}
@@ -264,10 +263,8 @@ public class AJDTUtils {
 					MessageDialog
 							.openInformation(
 									window.getShell(),
-									AspectJUIPlugin
-											.getResourceString("myEclipse.natureDetected.title"), //$NON-NLS-1$
-									AspectJUIPlugin
-											.getResourceString("myEclipse.natureDetected.message")); //$NON-NLS-1$
+									UIMessages.myEclipse_natureDetected_title,
+									UIMessages.myEclipse_natureDetected_message);
 				}
 			}
 		} catch (CoreException e) {
@@ -342,10 +339,8 @@ public class AJDTUtils {
 			MessageDialog
 					.openWarning(
 							window.getShell(),
-							AspectJUIPlugin
-									.getResourceString("NoAutoPluginImportDialog.title"),
-							AspectJUIPlugin
-									.getResourceString("NoAutoPluginImportDialog.message"));
+							UIMessages.NoAutoPluginImportDialog_title,
+							UIMessages.NoAutoPluginImportDialog_message);
 		}
 	}
 
@@ -380,10 +375,8 @@ public class AJDTUtils {
 					.openError(
 							AspectJUIPlugin.getDefault().getWorkbench()
 									.getActiveWorkbenchWindow().getShell(),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginImportDialog.noEditor.title"),
-							AspectJUIPlugin
-									.getResourceString("AutoPluginImportDialog.noEditor.message"));
+									UIMessages.AutoPluginImportDialog_noEditor_title,
+									UIMessages.AutoPluginImportDialog_noEditor_message);
 		}
 	}
 
@@ -483,7 +476,7 @@ public class AJDTUtils {
 	        AspectJPreferences.setMigrationWizardIsRunning(false);
             return;
         } 	    		
-		Job job = new UIJob(AspectJUIPlugin.getResourceString("MigrationWizard.JobTitle")) { //$NON-NLS-1$
+		Job job = new UIJob(UIMessages.MigrationWizard_JobTitle) {
 
 			public IStatus runInUIThread(IProgressMonitor m) {
 				AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
@@ -495,11 +488,11 @@ public class AJDTUtils {
 				} else {
 					new MessageDialog(
 							AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
-							AspectJUIPlugin.getResourceString("MigrationWizardCancelled"),  //$NON-NLS-1$
+							UIMessages.MigrationWizardCancelled,
 							MessageDialog.getDefaultImage(),
-							AspectJUIPlugin.getResourceString("MigrationWizardCancelledMessage"), //$NON-NLS-1$
+							UIMessages.MigrationWizardCancelledMessage,
 							MessageDialog.INFORMATION,
-							new String[] {AspectJUIPlugin.getResourceString("MigrationWizardOK")}, //$NON-NLS-1$
+							new String[] {UIMessages.MigrationWizardOK},
 							0).open();
 					// don't want the migration wizard to pop up again for this
 					// workspace and this running of eclipse. Therefore, set the 
@@ -648,10 +641,8 @@ public class AJDTUtils {
 							.getDefault()
 							.getErrorHandler()
 							.handleError(
-									AspectJUIPlugin
-											.getResourceString("AutoPluginRemoveErrorDialog.title"),
-									AspectJUIPlugin
-											.getResourceString("AutoPluginRemoveErrorDialog.message"),
+									UIMessages.AutoPluginRemoveErrorDialog_title,
+									UIMessages.AutoPluginRemoveErrorDialog_message,
 									e);
 				}
 			}// end if we got a reference to the manifest editor
@@ -660,10 +651,8 @@ public class AJDTUtils {
 						.openError(
 								AspectJUIPlugin.getDefault().getWorkbench()
 										.getActiveWorkbenchWindow().getShell(),
-								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
-								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
+										UIMessages.AutoPluginRemoveDialog_noEditor_title,
+										UIMessages.AutoPluginRemoveDialog_noEditor_message);
 			}
 		}
 	}
@@ -755,12 +744,9 @@ public class AJDTUtils {
 		MessageDialogWithToggle dialog = MessageDialogWithToggle
 				.openQuestion(
 						window.getShell(),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmTitle"),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmMsg"),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmToggleMsg"),
+						UIMessages.PluginImportDialog_importConfirmTitle,
+						UIMessages.PluginImportDialog_importConfirmMsg,
+						UIMessages.PluginImportDialog_importConfirmToggleMsg,
 						false); // toggle is initially unchecked
 
 		int result = dialog.getReturnCode();
@@ -791,12 +777,9 @@ public class AJDTUtils {
 		MessageDialogWithToggle dialog = MessageDialogWithToggle
 				.openQuestion(
 						window.getShell(),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmTitle"),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmMsg"),
-						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmToggleMsg"),
+						UIMessages.PluginImportDialog_removeImportConfirmTitle,
+						UIMessages.PluginImportDialog_removeImportConfirmMsg,
+						UIMessages.PluginImportDialog_removeImportConfirmToggleMsg,
 						false); // toggle is initially unchecked
 
 		int result = dialog.getReturnCode();
@@ -884,8 +867,7 @@ public class AJDTUtils {
 
 	private static class RefreshPackageExplorerJob extends UIJob {
 		RefreshPackageExplorerJob() {
-			super(AspectJUIPlugin
-					.getResourceString("utils.refresh.explorer.job"));
+			super(UIMessages.utils_refresh_explorer_job);
 		}
 
 		public IStatus runInUIThread(IProgressMonitor monitor) {

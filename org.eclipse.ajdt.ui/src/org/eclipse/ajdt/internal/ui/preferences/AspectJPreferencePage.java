@@ -12,6 +12,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 package org.eclipse.ajdt.internal.ui.preferences;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
@@ -87,19 +88,19 @@ public class AspectJPreferencePage
 
 		createLabel(
 				compilerOptionsComposite,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.description"));
+				UIMessages.aspectjPreferences_description);
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
 
 		createLabel(
 			compilerOptionsComposite,
-			AspectJUIPlugin.getResourceString("aspectjPreferences.compilerVersion")
+			UIMessages.aspectjPreferences_compilerVersion
 				+ " "
 				+ new String(Ajde.getDefault().getVersion()));
 
 		createLabel(
 			compilerOptionsComposite,
-			AspectJUIPlugin.getResourceString("aspectjPreferences.pluginVersion")
+			UIMessages.aspectjPreferences_pluginVersion
 				+ " "
 				+ new String(AspectJUIPlugin.VERSION));
 
@@ -184,7 +185,7 @@ public class AspectJPreferencePage
 		BooleanFieldEditor editor =
 			new BooleanFieldEditor(
 				AspectJPreferences.ADVICE_DECORATOR,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.adviceDec"),
+				UIMessages.aspectjPreferences_adviceDec,
 				parent);
 		return editor;
 	}

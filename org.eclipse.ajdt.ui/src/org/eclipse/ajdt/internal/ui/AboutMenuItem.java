@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui;
 
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -65,7 +66,7 @@ public class AboutMenuItem
 			Shell shell = iww.getShell();
 				MessageDialog.openInformation(
 							shell,
-							AspectJUIPlugin.getResourceString("ajAboutDialog"),
+							UIMessages.ajAboutDialog,
 							"AJDT version: " + ajdtVersion + 
 							"\nAJDE version: " + ajdeVersion );
 		}

@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -149,12 +150,8 @@ public class AspectPathPropertyPage extends PropertyPage implements
         	AspectJUIPlugin
 					.getDefault()
 					.getErrorHandler()
-					.handleError(
-							AspectJUIPlugin
-									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.title"),
-							AspectJUIPlugin
-									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.message"),
-							ce);
+					.handleError(UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
+							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message, ce);
         }
 
         fAspectPathBlock.init(JavaCore.create(project), null, initialAspectpath);

@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -48,6 +49,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorActionDelegate;
@@ -156,18 +158,14 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 String[] s = loc.split(":::");
                                 String resName = s[0].substring(s[0]
                                         .lastIndexOf(File.separator) + 1);
-                                String textLabel = AspectJUIPlugin
-                                        .getFormattedResourceString(
-                                                "EditorRulerContextMenu.relatedLocation.message",
+                                String textLabel = NLS.bind(UIMessages.EditorRulerContextMenu_relatedLocation_message,
                                                 new String[] { resName, s[1] });
                                 RelatedLocationMenuAction ama = new RelatedLocationMenuAction(
                                         textLabel, loc);
                                 // Initialize the submenu if we haven't done it
                                 // already.
                                 if (!problemSubmenuInitialized) {
-                                    problemSubmenu = new MenuManager(
-                                            AspectJUIPlugin
-                                                    .getResourceString("EditorRulerContextMenu.relatedLocations"));
+                                    problemSubmenu = new MenuManager(UIMessages.EditorRulerContextMenu_relatedLocations);
                                     if (!addedSeparator) {
                                         manager.add(new Separator());
                                     }

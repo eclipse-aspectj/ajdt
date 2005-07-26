@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -84,21 +85,21 @@ public class AspectPathLibrariesWorkbookPage extends
         fSWTControl= null;
         
         String[] buttonLabels= new String[] { 
-            /* IDX_ADDJAR*/ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addjar.button"),   //$NON-NLS-1$
-            /* IDX_ADDEXT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addextjar.button"), //$NON-NLS-1$
-            /* IDX_ADDVAR */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addvariable.button"), //$NON-NLS-1$
-            /* IDX_ADDLIB */ //AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
-            /* IDX_ADDFOL */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
+            /* IDX_ADDJAR*/ UIMessages.AspectPathLibrariesWorkbookPage_libraries_addjar_button,
+            /* IDX_ADDEXT */ UIMessages.AspectPathLibrariesWorkbookPage_libraries_addextjar_button,
+            /* IDX_ADDVAR */ UIMessages.AspectPathLibrariesWorkbookPage_libraries_addvariable_button,
+            /* IDX_ADDLIB */ //UIMessages.AspectPathLibrariesWorkbookPage_libraries_addlibrary_button,
+            /* IDX_ADDFOL */ UIMessages.AspectPathLibrariesWorkbookPage_libraries_addclassfolder_button,
             /* */ null,  
-            /* IDX_EDIT */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.edit.button"), //$NON-NLS-1$
-            /* IDX_REMOVE */ AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.remove.button") //$NON-NLS-1$
+            /* IDX_EDIT */ UIMessages.AspectPathLibrariesWorkbookPage_libraries_edit_button,
+            /* IDX_REMOVE */ UIMessages.AspectPathLibrariesWorkbookPage_libraries_remove_button
         };      
                 
         LibrariesAdapter adapter= new LibrariesAdapter();
                 
         fLibrariesList= new TreeListDialogField(adapter, buttonLabels, new CPListLabelProvider());
         fLibrariesList.setDialogFieldListener(adapter);
-        fLibrariesList.setLabelText(AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.libraries.aspectpath.label")); //$NON-NLS-1$
+        fLibrariesList.setLabelText(UIMessages.AspectPathLibrariesWorkbookPage_libraries_aspectpath_label);
 
         fLibrariesList.enableButton(IDX_REMOVE, false);
         fLibrariesList.enableButton(IDX_EDIT, false);
@@ -256,8 +257,8 @@ public class AspectPathLibrariesWorkbookPage extends
         HashSet modified= new HashSet();
         fixNestingConflicts(newEntries, fAspectPathList.getElements(), modified);
         if (!modified.isEmpty()) {
-            String title= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.title"); //$NON-NLS-1$
-            String message= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.message"); //$NON-NLS-1$
+            String title= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_title;
+            String message= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_message;
             MessageDialog.openInformation(getShell(), title, message);
         }
     }
@@ -355,8 +356,8 @@ public class AspectPathLibrariesWorkbookPage extends
                         PlatformUI.getWorkbench().getProgressService().run(true, true, runnable);
 
                     } catch (InvocationTargetException e) {
-                        String title= AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.configurecontainer.error.title"); //$NON-NLS-1$
-                        String message= AspectJUIPlugin.getResourceString("AspectPathLibrariesWorkbookPage.configurecontainer.error.message"); //$NON-NLS-1$
+                        String title= UIMessages.AspectPathLibrariesWorkbookPage_configurecontainer_error_title;
+                        String message= UIMessages.AspectPathLibrariesWorkbookPage_configurecontainer_error_message;
                         ExceptionHandler.handle(e, shell, title, message);
 
                     } catch (InterruptedException e) {

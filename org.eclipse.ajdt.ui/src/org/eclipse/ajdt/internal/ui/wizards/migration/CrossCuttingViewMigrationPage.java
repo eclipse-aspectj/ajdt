@@ -10,6 +10,7 @@
 package org.eclipse.ajdt.internal.ui.wizards.migration;
 
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -42,10 +43,9 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 	private Button useNewCrossCuttingViews;
 	
 	protected CrossCuttingViewMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.name"));
-		this.setTitle(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.title"));		
-		this.setDescription( AspectJUIPlugin
-				.getResourceString("CrossCuttingViewMigrationPage.description"));
+		super(UIMessages.CrossCuttingViewMigrationPage_name);
+		this.setTitle(UIMessages.CrossCuttingViewMigrationPage_title);		
+		this.setDescription(UIMessages.CrossCuttingViewMigrationPage_description);
 	}
 	
 	public void createControl(Composite parent) {
@@ -60,14 +60,12 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 		setControl(composite);
 		
 		Label label1 = new Label(composite, SWT.NONE);
-		label1.setText(AspectJUIPlugin
-				.getResourceString("CrossCuttingViewMigrationPage.useNewCrossCuttingViews.message")); //$NON-NLS-1$
+		label1.setText(UIMessages.CrossCuttingViewMigrationPage_useNewCrossCuttingViews_message);
 		
 		new Label(composite, SWT.NONE);
 		
 		useNewCrossCuttingViews = new Button(composite, SWT.CHECK);
-		useNewCrossCuttingViews.setText(AspectJUIPlugin
-				.getResourceString("CrossCuttingViewMigrationPage.useNewCrossCuttingViews.label")); //$NON-NLS-1$
+		useNewCrossCuttingViews.setText(UIMessages.CrossCuttingViewMigrationPage_useNewCrossCuttingViews_label);
 		useNewCrossCuttingViews.setSelection(true);
 		
 	}
@@ -98,7 +96,7 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 			activePage.showView(IPageLayout.ID_OUTLINE);
 		} catch (PartInitException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+					UIMessages.AJDTPrefConfigWizardPage_ErrorOpeningXRefView, e);
 		}		
 		store.setToDefault(AspectJPreferences.ADVICE_DECORATOR);
 	}
@@ -109,7 +107,7 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 				.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+					UIMessages.AJDTPrefConfigWizardPage_ErrorOpeningXRefView, e);
 		}
 	}
 }

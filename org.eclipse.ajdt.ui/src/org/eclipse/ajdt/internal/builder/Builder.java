@@ -16,6 +16,7 @@ import java.util.Map;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -27,6 +28,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 
 /**
@@ -73,14 +75,9 @@ public class Builder extends IncrementalProjectBuilder {
 					MessageDialogWithToggle dialog = MessageDialogWithToggle
 							.openYesNoCancelQuestion(
 									null,
-									AspectJUIPlugin
-											.getResourceString("Builder.migration.title"), //$NON-NLS-1$
-									AspectJUIPlugin.getFormattedResourceString(
-											"Builder.migration.message", //$NON-NLS-1$
-											project.getName()),
-									AspectJUIPlugin
-											.getResourceString("Builder.migration.toggle"), //$NON-NLS-1$
-									true, null, null);
+									UIMessages.Builder_migration_title,
+									NLS.bind(UIMessages.Builder_migration_message, project.getName()),
+										UIMessages.Builder_migration_toggle, true, null, null);
 //					System.out.println("ret: "+dialog.getReturnCode());
 					settings[0] = (dialog.getReturnCode() == IDialogConstants.YES_ID);
 					settings[1] = dialog.getToggleState();
@@ -108,10 +105,8 @@ public class Builder extends IncrementalProjectBuilder {
 					MessageDialog
 							.openError(
 									null,
-									AspectJUIPlugin
-											.getResourceString("Builder.migration.failed.title"), //$NON-NLS-1$
-									AspectJUIPlugin.getFormattedResourceString(
-											"Builder.migration.failed.message", //$NON-NLS-1$
+									UIMessages.Builder_migration_failed_title,
+									NLS.bind(UIMessages.Builder_migration_failed_message,
 											project.getName()));
 				}
 			});
@@ -127,8 +122,7 @@ public class Builder extends IncrementalProjectBuilder {
 		// eclipse build manager caches the build state against the builder,
 		// so it would cache the state from the new builder against this
 		// old builder.
-		String jobName = AspectJUIPlugin.getFormattedResourceString(
-				"Builder.migration.build", project.getName()); //$NON-NLS-1$
+		String jobName = NLS.bind(UIMessages.Builder_migration_build, project.getName());
 		Job buildJob = new Job(jobName) {
 			public IStatus run(IProgressMonitor monitor) {
 				try {

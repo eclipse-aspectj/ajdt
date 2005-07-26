@@ -22,6 +22,7 @@ import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -356,7 +357,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 			};
 			resetColorMemoryAction.setImageDescriptor(AspectJImages.RESET_COLOURS.getImageDescriptor());
-			resetColorMemoryAction.setText(AspectJUIPlugin.getResourceString("ResetColorMemory")); // $NON-NLS-1$
+			resetColorMemoryAction.setText(UIMessages.ResetColorMemory);
 			resetColorMemoryAction.setId(resetColorMemoryID);
 			hideErrorsAction = new Action() {
 				public int getStyle() {
@@ -368,7 +369,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 			};
 			hideErrorsAction.setImageDescriptor(AspectJImages.HIDE_ERRORS.getImageDescriptor());
-			hideErrorsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideErrors")); // $NON-NLS-1$
+			hideErrorsAction.setToolTipText(UIMessages.HideErrors);
 			hideWarningsAction = new Action() {
 				public int getStyle() {
 					return IAction.AS_CHECK_BOX;
@@ -379,7 +380,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				}
 			};
 			hideWarningsAction.setImageDescriptor(AspectJImages.HIDE_WARNINGS.getImageDescriptor());
-			hideWarningsAction.setToolTipText(AspectJUIPlugin.getResourceString("HideWarnings")); // $NON-NLS-1$
+			hideWarningsAction.setToolTipText(UIMessages.HideWarnings);
 			IActionBars menuActionBars = VisualiserPlugin.menu.getViewSite().getActionBars();
 			IToolBarManager toolBarManager = menuActionBars.getToolBarManager();
 			toolBarManager.add(hideErrorsAction);
@@ -444,9 +445,9 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 		public String toString() {
 			if (errorKind) {
-				return AspectJUIPlugin.getResourceString("AspectJError") + ": " + declaringAspect; // $NON-NLS-1$ // $NON-NLS-2$
-			} else {
-				return AspectJUIPlugin.getResourceString("AspectJWarning") + ": " + declaringAspect; // $NON-NLS-1$ // $NON-NLS-2$
+				return UIMessages.AspectJError + ": " + declaringAspect; // $NON-NLS-1$
+				} else {
+				return UIMessages.AspectJWarning + ": " + declaringAspect; // $NON-NLS-1$
 			}
 		}
 	}

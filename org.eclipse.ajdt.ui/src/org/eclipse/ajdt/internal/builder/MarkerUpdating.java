@@ -25,7 +25,7 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -174,7 +174,7 @@ public class MarkerUpdating {
 	}
 
 	private static String getMultipleMarkersLabel(int number) {
-		return number + " " + AspectJUIPlugin.getResourceString("AspectJMarkersAtLine"); //$NON-NLS-1$ //$NON-NLS-2$		
+		return number + " " + UIMessages.AspectJMarkersAtLine; //$NON-NLS-1$	
 	}
 
 	/**
@@ -188,7 +188,7 @@ public class MarkerUpdating {
 				+ AJModel.getInstance().getJavaElementLinkName(
 						relationship.getTarget()) 
 						+ (relationship.hasRuntimeTest() 
-								? " " + AspectJUIPlugin.getResourceString("AspectJEditor.runtimetest") 
+								? " " + UIMessages.AspectJEditor_runtimetest 
 										: "") ;
 	}
 

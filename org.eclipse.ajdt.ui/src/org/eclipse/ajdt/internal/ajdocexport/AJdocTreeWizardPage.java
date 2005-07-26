@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -113,7 +113,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 	protected AJdocTreeWizardPage(String pageName, AJdocOptionsManager store) {
 		super(pageName);
 //		 AspectJ Extension - message
-		setDescription(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.javadoctreewizardpage.description")); //$NON-NLS-1$
+		setDescription(UIMessages.ajdocTreeWizardPage_javadoctreewizardpage_description);
 		fStore= store;
 
 		// Status variables
@@ -159,7 +159,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 		group.setLayout(layout);
 
 //		 AspectJ Extension - message
-		createLabel(group, SWT.NONE, AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.ajdoccommand.label"), createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0)); //$NON-NLS-1$
+		createLabel(group, SWT.NONE, UIMessages.ajdocTreeWizardPage_ajdoccommand_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, numColumns, 0)); //$NON-NLS-1$
 		fAJdocCommandText= createCombo(group, SWT.NONE, null, createGridData(GridData.FILL_HORIZONTAL, numColumns - 1, 0));
 
 		fAJdocCommandText.addModifyListener(new ModifyListener() {
@@ -182,7 +182,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 	
 	protected void createInputGroup(Composite composite) {
 //		 AspectJ Extension - message
-		createLabel(composite, SWT.NONE, AspectJUIPlugin.getResourceString("ajdoc.info.projectselection"), createGridData(6)); //$NON-NLS-1$
+		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6)); //$NON-NLS-1$
 		Composite c= new Composite(composite, SWT.NONE);
 		GridLayout layout= new GridLayout();
 		layout.numColumns= 1;
@@ -222,7 +222,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 		visibilityGroup.setLayout(visibilityLayout);
 		
 //		 AspectJ Extension - message
-		createLabel(visibilityGroup, SWT.NONE, AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.visibilitygroup.label"), createGridData(GridData.FILL_HORIZONTAL, 4, 0)); //$NON-NLS-1$
+		createLabel(visibilityGroup, SWT.NONE, UIMessages.ajdocTreeWizardPage_visibilitygroup_label, createGridData(GridData.FILL_HORIZONTAL, 4, 0)); //$NON-NLS-1$
 		fPrivateVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_privatebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
 		fPackageVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_packagebutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
 		fProtectedVisibility= createButton(visibilityGroup, SWT.RADIO, JavadocExportMessages.JavadocTreeWizardPage_protectedbutton_label, createGridData(GridData.FILL_HORIZONTAL, 1, 0)); 
@@ -235,7 +235,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 			public void widgetSelected(SelectionEvent e) {
 				if (((Button) e.widget).getSelection()) {
 					fVisibilitySelection= fStore.PRIVATE;
-					fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.privatevisibilitydescription.label")); //$NON-NLS-1$
+					fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_privatevisibilitydescription_label);
 				}
 			}
 		});
@@ -243,7 +243,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 			public void widgetSelected(SelectionEvent e) {
 				if (((Button) e.widget).getSelection()) {
 					fVisibilitySelection= fStore.PACKAGE;
-					fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.packagevisibledescription.label")); //$NON-NLS-1$
+					fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_packagevisibledescription_label);
 				}
 			}
 		});
@@ -251,7 +251,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 			public void widgetSelected(SelectionEvent e) {
 				if (((Button) e.widget).getSelection()) {
 					fVisibilitySelection= fStore.PROTECTED;
-					fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.protectedvisibilitydescription.label")); //$NON-NLS-1$
+					fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_protectedvisibilitydescription_label);
 				}
 			}
 		});
@@ -260,7 +260,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 			public void widgetSelected(SelectionEvent e) {
 				if (((Button) e.widget).getSelection()) {
 					fVisibilitySelection= fStore.PUBLIC;
-					fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.publicvisibilitydescription.label")); //$NON-NLS-1$
+					fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_publicvisibilitydescription_label);
 				}
 			}
 		});
@@ -274,19 +274,19 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 		fVisibilitySelection= fStore.getAccess();
 		fPrivateVisibility.setSelection(fVisibilitySelection.equals(fStore.PRIVATE));
 		if (fPrivateVisibility.getSelection())
-			fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.privatevisibilitydescription.label")); //$NON-NLS-1$
+			fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_privatevisibilitydescription_label);
 		//$NON-NLS-1$
 		fProtectedVisibility.setSelection(fVisibilitySelection.equals(fStore.PROTECTED));
 		if (fProtectedVisibility.getSelection())
-			fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.protectedvisibilitydescription.label")); //$NON-NLS-1$
+			fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_protectedvisibilitydescription_label);
 		//$NON-NLS-1$
 		fPackageVisibility.setSelection(fVisibilitySelection.equals(fStore.PACKAGE));
 		if (fPackageVisibility.getSelection())
-			fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.packagevisibledescription.label")); //$NON-NLS-1$
+			fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_packagevisibledescription_label);
 		//$NON-NLS-1$
 		fPublicVisibility.setSelection(fVisibilitySelection.equals(fStore.PUBLIC));
 		if (fPublicVisibility.getSelection())
-			fDescriptionLabel.setText(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.publicvisibilitydescription.label")); //$NON-NLS-1$
+			fDescriptionLabel.setText(UIMessages.ajdocTreeWizardPage_publicvisibilitydescription_label);
 		//$NON-NLS-1$
 	}
 
@@ -626,7 +626,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 					}
 //					 AspectJ Extension - message
 					if ((path.append("package-list").toFile().exists()) || (path.append("index.html").toFile().exists())) //$NON-NLS-1$//$NON-NLS-2$
-						fDestinationStatus.setWarning(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.warning.mayoverwritefiles")); //$NON-NLS-1$
+						fDestinationStatus.setWarning(UIMessages.ajdocTreeWizardPage_warning_mayoverwritefiles);
 					updateStatus(findMostSevereStatus());
 				}
 				break;
@@ -636,7 +636,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 				fTreeStatus= new StatusInfo();
 //				 AspectJ Extension - message
 				if (fInputGroup.getCheckedElementCount() == 0){
-					fTreeStatus.setError(AspectJUIPlugin.getResourceString("ajdoc.error.noProjectSelected")); //$NON-NLS-1$
+					fTreeStatus.setError(UIMessages.ajdoc_error_noProjectSelected);
 				}
 				updateStatus(findMostSevereStatus());
 
@@ -647,11 +647,11 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 				String text= fAJdocCommandText.getText();
 //				 AspectJ Extension - message
 				if (text.length() == 0) {
-					fJavadocStatus.setError(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.ajdoccmd.error.enterpath"));  //$NON-NLS-1$
-				} else {
+					fJavadocStatus.setError(UIMessages.ajdocTreeWizardPage_ajdoccmd_error_enterpath);
+					} else {
 					File file= new File(text);
 					if (!file.isFile()) {
-						fJavadocStatus.setError(AspectJUIPlugin.getResourceString("ajdocTreeWizardPage.ajdoccmd.error.notexists"));  //$NON-NLS-1$
+						fJavadocStatus.setError(UIMessages.ajdocTreeWizardPage_ajdoccmd_error_notexists);
 					}
 				}
 				updateStatus(findMostSevereStatus());
@@ -665,7 +665,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage{
 	protected void browseForAJdocCommand() {
 		FileDialog dialog= new FileDialog(getShell());
 //		 AspectJ Extension - message
-		dialog.setText(AspectJUIPlugin.getResourceString("AJdocTreeWizardPage.ajdoccmd.dialog.title")); //$NON-NLS-1$
+		dialog.setText(UIMessages.AJdocTreeWizardPage_ajdoccmd_dialog_title);
 		String dirName= fAJdocCommandText.getText();
 		dialog.setFileName(dirName);
 		String selectedDirectory= dialog.open();

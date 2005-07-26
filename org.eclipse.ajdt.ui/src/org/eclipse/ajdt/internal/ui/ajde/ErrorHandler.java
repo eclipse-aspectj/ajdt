@@ -10,6 +10,7 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -43,7 +44,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						Shell shell = iww.getShell();
 						MessageDialog.openWarning(
 							shell,
-							AspectJUIPlugin.getResourceString("ajWarningDialogTitle"),
+							UIMessages.ajWarningDialogTitle,
 							message);
 					}
 				} catch (Exception t) {
@@ -65,7 +66,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						Shell shell = iww.getShell();
 						MessageDialog.openError(
 							shell,
-							AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+							UIMessages.ajErrorDialogTitle,
 							message);
 					}
 				} catch (Exception t) {
@@ -78,7 +79,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	 * Display an error dialog with exception
 	 */
 	public void handleError(String message, Throwable t) {
-		handleError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+		handleError(UIMessages.ajErrorDialogTitle,
 				message, t);
 	}
 	

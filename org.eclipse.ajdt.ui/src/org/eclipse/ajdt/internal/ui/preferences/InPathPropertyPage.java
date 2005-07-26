@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -148,12 +149,8 @@ public class InPathPropertyPage extends PropertyPage implements
         	AspectJUIPlugin
 					.getDefault()
 					.getErrorHandler()
-					.handleError(
-							AspectJUIPlugin
-									.getResourceString("InPathProp.exceptionInitializingInpath.title"), //$NON-NLS-1$
-							AspectJUIPlugin
-									.getResourceString("InPathProp.exceptionInitializingInpath.message"), //$NON-NLS-1$
-							ce);
+					.handleError(UIMessages.InPathProp_exceptionInitializingInpath_title,
+							UIMessages.InPathProp_exceptionInitializingInpath_message, ce);
         }
 
         fInPathBlock.init(JavaCore.create(project), null, initalInpath);

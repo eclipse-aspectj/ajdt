@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
@@ -151,7 +151,7 @@ public class Util {
             // Quick check that we have a bona fide file to work with
 			if (!lstFile.toFile().exists()) {
 				throw new FileNotFoundException(lstFile.toOSString()
-						+ " " + AspectJUIPlugin.getResourceString("buildConfig.notFound")); //$NON-NLS-1$ //$NON-NLS-2$
+						+ " " + UIMessages.buildConfig_notFound); //$NON-NLS-1$
 			}
             
 			// Quick check to see if file has a line starting with the

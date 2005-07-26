@@ -16,7 +16,7 @@ import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -62,8 +62,8 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 		IProject proj = jp.getProject();
 		String buildConfName = bc.getName();
 		
-		String title = AspectJUIPlugin.getResourceString("savemap.dialog.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin.getResourceString("savemap.dialog.message"); //$NON-NLS-1$
+		String title = UIMessages.savemap_dialog_title;
+		String msg = UIMessages.savemap_dialog_message;
 		String initial = buildConfName + ChangesView.DOT_MAP_FILE_EXT;
 		InputDialog input = new InputDialog(null, title, msg, initial, null);
 		input.setBlockOnOpen(true);
@@ -91,12 +91,10 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 
 	private boolean askUserOverwrite(String fileName) {
 		String[] options = {
-				AspectJUIPlugin.getResourceString("BCDialog.Overwrite.yes"), //$NON-NLS-1$
-				AspectJUIPlugin.getResourceString("BCDialog.Overwrite.no") }; //$NON-NLS-1$
-		String title = AspectJUIPlugin
-				.getResourceString("BCDialog.Overwrite.title"); //$NON-NLS-1$
-		String msg = AspectJUIPlugin.getResourceString(
-				"BCDialog.Overwrite.message").replaceAll("%fileName", fileName); //$NON-NLS-1$ //$NON-NLS-2$
+				UIMessages.BCDialog_Overwrite_yes,
+				UIMessages.BCDialog_Overwrite_no };
+		String title = UIMessages.BCDialog_Overwrite_title;
+		String msg = UIMessages.BCDialog_Overwrite_message.replaceAll("%fileName", fileName); //$NON-NLS-1$
 
 		MessageDialog mdiag = new MessageDialog(null, title, null, msg,
 				MessageDialog.QUESTION, options, 1);

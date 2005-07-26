@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -148,18 +148,18 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 		Composite composite= createComposite(fScrolledComposite);
 		composite.setLayout(new GridLayout());
 
-		createTitleLabel(composite, AspectJUIPlugin.getResourceString("ajmapEditor.title")); //$NON-NLS-1$
+		createTitleLabel(composite, UIMessages.ajmapEditor_title);
 		createLabel(composite, null);
 		createLabel(composite, null);
 
-		createHeadingLabel(composite, AspectJUIPlugin.getResourceString("ajmapEditor.heading")); //$NON-NLS-1$
+		createHeadingLabel(composite, UIMessages.ajmapEditor_heading);
 
 		Composite separator= createCompositeSeparator(composite);
 		GridData data= new GridData(GridData.FILL_HORIZONTAL);
 		data.heightHint= 2;
 		separator.setLayoutData(data);
 		
-		createLabel(composite, AspectJUIPlugin.getResourceString("ajmapEditor.description")); //$NON-NLS-1$
+		createLabel(composite, UIMessages.ajmapEditor_description);
 		
 		separator= createCompositeSeparator(composite);
 		data= new GridData(GridData.FILL_HORIZONTAL);

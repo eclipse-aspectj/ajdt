@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -79,9 +80,9 @@ public class ResourceAddedPage
 		AspectJPlugin.getDefault().setCurrentProject(project);
 
 		setDescription(
-			AspectJUIPlugin.getResourceString("newResourcesWizard.pageDescription"));
+			UIMessages.newResourcesWizard_pageDescription);
 		setTitle(
-			AspectJUIPlugin.getResourceString("newResourcesWizard.pageTitle")
+			UIMessages.newResourcesWizard_pageTitle
 				+ project.getName().toString());
 
 		// Retrieve a list of all the .lst files that exist in that project
@@ -118,7 +119,7 @@ public class ResourceAddedPage
 
 		// Inform the user what they have to do via a label
 		Label l = new Label(topLevel, SWT.NONE);
-		l.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.instructions"));
+		l.setText(UIMessages.newResourcesWizard_instructions);
 			
 		// Create a two column grid, left hand column is for resources, right hand column is for build config files
 		GridLayout glayout = new GridLayout();
@@ -178,25 +179,25 @@ public class ResourceAddedPage
 		// Add the four buttons
 		
 		Button resSelectAllButton = new Button(group, SWT.NONE);
-		resSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources"));
+		resSelectAllButton.setText(UIMessages.newResourcesWizard_selectAllResources);
 		resSelectAllButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		resSelectAllButton.addSelectionListener(this);
 
 		Button bcfgSelectAllButton = new Button(group, SWT.NONE);
-		bcfgSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations"));
+		bcfgSelectAllButton.setText(UIMessages.newResourcesWizard_selectAllConfigurations);
 		bcfgSelectAllButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		bcfgSelectAllButton.addSelectionListener(this);
 
 		Button resSelectNoneButton = new Button(group, SWT.NONE);
-		resSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources"));
+		resSelectNoneButton.setText(UIMessages.newResourcesWizard_deselectAllResources);
 		resSelectNoneButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		resSelectNoneButton.addSelectionListener(this);
 
 		Button bcfgSelectNoneButton = new Button(group, SWT.NONE);
-		bcfgSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations"));
+		bcfgSelectNoneButton.setText(UIMessages.newResourcesWizard_deselectAllConfigurations);
 		bcfgSelectNoneButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		bcfgSelectNoneButton.addSelectionListener(this);
@@ -228,16 +229,16 @@ public class ResourceAddedPage
 			// Depending on which button was clicked, update the appropriate tree
 			Button b = (Button) e.getSource();
 			String button_text = b.getText();
-			if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources"))) {
+			if (button_text.equals(UIMessages.newResourcesWizard_selectAllResources)) {
 				treeToAffect = newResourcesTree;
 				select = true;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations"))) {
+			} else if (button_text.equals(UIMessages.newResourcesWizard_selectAllConfigurations)) {
 				treeToAffect = buildConfigFilesTree;
 				select = true;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources"))) {
+			} else if (button_text.equals(UIMessages.newResourcesWizard_deselectAllResources)) {
 				treeToAffect = newResourcesTree;
 				select = false;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations"))) {
+			} else if (button_text.equals(UIMessages.newResourcesWizard_deselectAllConfigurations)) {
 				treeToAffect = buildConfigFilesTree;
 				select = false;
 			}

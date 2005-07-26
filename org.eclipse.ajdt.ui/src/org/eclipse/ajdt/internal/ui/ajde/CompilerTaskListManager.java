@@ -28,6 +28,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.internal.resources.ResourceException;
@@ -509,8 +510,8 @@ public class CompilerTaskListManager implements TaskListManager {
             }
         } catch (JavaModelException jmEx) {
         	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
-					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
+        			UIMessages.ajErrorDialogTitle,
+        			UIMessages.jmCoreException, jmEx);
         }
 
         if (ret == null)

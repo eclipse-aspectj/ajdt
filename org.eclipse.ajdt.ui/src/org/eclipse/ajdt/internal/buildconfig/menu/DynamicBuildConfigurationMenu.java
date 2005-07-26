@@ -16,7 +16,7 @@ import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -46,8 +46,7 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	private ImageDescriptor id;
 	
 	public DynamicBuildConfigurationMenu(String menuID) {
-		super(AspectJUIPlugin
-				.getResourceString("BCLabels.ConfigurationSelectionMenu"),menuID); //$NON-NLS-1$
+		super(UIMessages.BCLabels_ConfigurationSelectionMenu, menuID);
 		separator = new Separator();
 
 		id = AspectJImages.BC_TICK.getImageDescriptor();

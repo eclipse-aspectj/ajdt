@@ -10,9 +10,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor.codeformat;
 
+import java.util.ResourceBundle;
+
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -229,7 +231,7 @@ public class CodeFormatTest extends TestCase {
 	 */
 	private void formatEditor(ITextEditor editor) {
 		IAction act= new TextOperationAction(
-				AspectJUIPlugin.getDefault().getResourceBundle(),
+				ResourceBundle.getBundle(UIMessages.class.getName()),
 				"Format.", editor, ISourceViewer.FORMAT); //$NON-NLS-1$
 		act.run();
 	}

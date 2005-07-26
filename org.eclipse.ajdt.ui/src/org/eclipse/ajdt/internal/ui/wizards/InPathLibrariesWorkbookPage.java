@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -84,21 +85,21 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         fSWTControl= null;
         
         String[] buttonLabels= new String[] { 
-            /* IDX_ADDJAR*/ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addjar.button"),   //$NON-NLS-1$
-            /* IDX_ADDEXT */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addextjar.button"), //$NON-NLS-1$
-            /* IDX_ADDVAR */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addvariable.button"), //$NON-NLS-1$
-            /* IDX_ADDLIB */ //AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addlibrary.button"), //$NON-NLS-1$
-            /* IDX_ADDFOL */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.addclassfolder.button"), //$NON-NLS-1$
+            /* IDX_ADDJAR*/ UIMessages.InPathLibrariesWorkbookPage_libraries_addjar_button,
+            /* IDX_ADDEXT */ UIMessages.InPathLibrariesWorkbookPage_libraries_addextjar_button,
+            /* IDX_ADDVAR */ UIMessages.InPathLibrariesWorkbookPage_libraries_addvariable_button,
+            /* IDX_ADDLIB */ //UIMessages.InPathLibrariesWorkbookPage_libraries_addlibrary_button,
+            /* IDX_ADDFOL */ UIMessages.InPathLibrariesWorkbookPage_libraries_addclassfolder_button,
             /* */ null,  
-            /* IDX_EDIT */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.edit.button"), //$NON-NLS-1$
-            /* IDX_REMOVE */ AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.remove.button") //$NON-NLS-1$
+            /* IDX_EDIT */ UIMessages.InPathLibrariesWorkbookPage_libraries_edit_button,
+            /* IDX_REMOVE */ UIMessages.InPathLibrariesWorkbookPage_libraries_remove_button
         };      
                 
         LibrariesAdapter adapter= new LibrariesAdapter();
                 
         fLibrariesList= new TreeListDialogField(adapter, buttonLabels, new CPListLabelProvider());
         fLibrariesList.setDialogFieldListener(adapter);
-        fLibrariesList.setLabelText(AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.libraries.inpath.label")); //$NON-NLS-1$
+        fLibrariesList.setLabelText(UIMessages.InPathLibrariesWorkbookPage_libraries_inpath_label);
 
         fLibrariesList.enableButton(IDX_REMOVE, false);
         fLibrariesList.enableButton(IDX_EDIT, false);
@@ -256,8 +257,8 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         HashSet modified= new HashSet();
         fixNestingConflicts(newEntries, fInpathList.getElements(), modified);
         if (!modified.isEmpty()) {
-            String title= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.title"); //$NON-NLS-1$
-            String message= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.exclusion_added.message"); //$NON-NLS-1$
+            String title= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_title;
+            String message= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_message;
             MessageDialog.openInformation(getShell(), title, message);
         }
     }
@@ -355,8 +356,8 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
                         PlatformUI.getWorkbench().getProgressService().run(true, true, runnable);
 
                     } catch (InvocationTargetException e) {
-                        String title= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.configurecontainer.error.title"); //$NON-NLS-1$
-                        String message= AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.configurecontainer.error.message"); //$NON-NLS-1$
+                        String title= UIMessages.InPathLibrariesWorkbookPage_configurecontainer_error_title;
+                        String message= UIMessages.InPathLibrariesWorkbookPage_configurecontainer_error_message;
                         ExceptionHandler.handle(e, shell, title, message);
 
                     } catch (InterruptedException e) {
@@ -469,14 +470,14 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         
     private CPListElement[] openNewClassFolderDialog(CPListElement existing) {
         String title = (existing == null) ?
-                AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.new.title") :
-                    AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.edit.title");
+                UIMessages.InPathLibrariesWorkbookPage_NewClassFolderDialog_new_title :
+                    UIMessages.InPathLibrariesWorkbookPage_NewClassFolderDialog_edit_title;
         IProject currProject = fCurrJProject.getProject();
 
         NewContainerDialog dialog = new NewContainerDialog(getShell(), title,
                 currProject, getUsedContainers(existing), existing);
         IPath projpath = currProject.getFullPath();
-        dialog.setMessage(AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.description")); //$NON-NLS-1$
+        dialog.setMessage(UIMessages.InPathLibrariesWorkbookPage_NewClassFolderDialog_description);
         if (dialog.open() == Window.OK) {
             IFolder folder = dialog.getFolder();
             return new CPListElement[] { newCPLibraryElement(folder) };

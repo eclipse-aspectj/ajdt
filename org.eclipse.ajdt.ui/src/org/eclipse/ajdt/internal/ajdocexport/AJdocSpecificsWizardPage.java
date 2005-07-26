@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ajdocexport;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocExportMessages;
@@ -47,8 +47,6 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 	//private StatusInfo fOverviewStatus;
 	//private StatusInfo fAntStatus;
 	
-	private AJdocTreeWizardPage fFirstPage;
-
 	private AJdocOptionsManager fStore;
 
 	//private final int OVERVIEWSTATUS= 1;
@@ -56,13 +54,8 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 
 	protected AJdocSpecificsWizardPage(String pageName, AJdocTreeWizardPage firstPage, AJdocOptionsManager store) {
 		super(pageName);
-		setDescription(AspectJUIPlugin.getResourceString("ajdocSpecificsWizardPage.description")); //$NON-NLS-1$
+		setDescription(UIMessages.ajdocSpecificsWizardPage_description);
 		fStore= store;
-
-//		 AspectJ Extension - commenting out unused code
-		//fOverviewStatus= new StatusInfo();
-		//fAntStatus= new StatusInfo();
-		fFirstPage= firstPage;
 	}
 
 	/*
@@ -113,11 +106,11 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 //			fOverViewText.setText(str);
 //		}
 
-		createLabel(c, SWT.NONE, AspectJUIPlugin.getResourceString("ajdocSpecificsWizardPage.vmoptionsfield.label"), createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 3, 0)); //$NON-NLS-1$
+		createLabel(c, SWT.NONE, UIMessages.ajdocSpecificsWizardPage_vmoptionsfield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 3, 0));
 		fVMOptionsText= createText(composite, SWT.SINGLE | SWT.BORDER, null, createGridData(GridData.HORIZONTAL_ALIGN_FILL, 3, 0));
 		fVMOptionsText.setText(fStore.getVMParams());
 		
-		createLabel(composite, SWT.NONE, AspectJUIPlugin.getResourceString("ajdocSpecificsWizardPage.extraoptionsfield.label"), createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 3, 0)); //$NON-NLS-1$
+		createLabel(composite, SWT.NONE, UIMessages.ajdocSpecificsWizardPage_extraoptionsfield_label, createGridData(GridData.HORIZONTAL_ALIGN_BEGINNING, 3, 0));
 		fExtraOptionsText= createText(composite, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.H_SCROLL | SWT.V_SCROLL, null, createGridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_VERTICAL, 3, 0));
 		fExtraOptionsText.setSize(convertWidthInCharsToPixels(60), convertHeightInCharsToPixels(8));
 

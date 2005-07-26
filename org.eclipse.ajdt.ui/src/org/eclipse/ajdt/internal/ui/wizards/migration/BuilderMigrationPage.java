@@ -14,7 +14,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -28,6 +28,7 @@ import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -47,10 +48,9 @@ public class BuilderMigrationPage extends WizardPage {
 	private List ajProjects;
 
 	private BuilderMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("BuilderMigrationPage.name")); //$NON-NLS-1$
-		this.setTitle(AspectJUIPlugin.getResourceString("BuilderMigrationPage.title")); //$NON-NLS-1$		
-		this.setDescription( AspectJUIPlugin.
-				getResourceString("BuilderMigrationPage.description")); //$NON-NLS-1$
+		super(UIMessages.BuilderMigrationPage_name);
+		this.setTitle(UIMessages.BuilderMigrationPage_title);	
+		this.setDescription(UIMessages.BuilderMigrationPage_description);
 	}
 	
 	protected BuilderMigrationPage(List projects) {
@@ -71,8 +71,7 @@ public class BuilderMigrationPage extends WizardPage {
 		};
 
 		checkedListDialogField = new CheckedListDialogField(null, buttonLabels, new AJProjectListLabelProvider());
-		checkedListDialogField.setLabelText(AspectJUIPlugin
-				.getResourceString("BuilderMigrationPage.message")); //$NON-NLS-1$
+		checkedListDialogField.setLabelText(UIMessages.BuilderMigrationPage_message);
 		checkedListDialogField.setCheckAllButtonIndex(0);
 		checkedListDialogField.setUncheckAllButtonIndex(1);
 		checkedListDialogField.setElements(ajProjects);
@@ -122,11 +121,8 @@ public class BuilderMigrationPage extends WizardPage {
 						public void run() {
 							MessageDialog.openError(
 								null,
-								AspectJUIPlugin
-									.getResourceString("Builder.migration.failed.title"), //$NON-NLS-1$
-								AspectJUIPlugin.getFormattedResourceString(
-									"Builder.migration.failed.message", //$NON-NLS-1$
-									project.getName()));
+								UIMessages.Builder_migration_failed_title,
+								NLS.bind(UIMessages.Builder_migration_failed_message, project.getName()));
 						}
 					});
 				}

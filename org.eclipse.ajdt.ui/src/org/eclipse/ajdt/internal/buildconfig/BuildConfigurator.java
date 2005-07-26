@@ -18,6 +18,7 @@ import java.util.Vector;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
@@ -105,15 +106,14 @@ public class BuildConfigurator implements ISelectionListener {
 			        && !store.getBoolean(workspaceLocation)) {
 		        // open xref view in perspective if the migration wizard either isn't running 
 			    // or hasn't run and we haven't opened the xref view before.
-				Job job = new UIJob(AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.workbench.openXRefView")) { //$NON-NLS-1$
+				Job job = new UIJob(UIMessages.AJDTPrefConfigWizardPage_workbench_openXRefView) {
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {
 			                AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
 								.getActivePage().showView(XReferenceView.ID);
 			                return Status.OK_STATUS;
 				        } catch (PartInitException e) {
-				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-								AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e); //$NON-NLS-1$
+				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(UIMessages.AJDTPrefConfigWizardPage_ErrorOpeningXRefView, e);
 				            return Status.OK_STATUS;
 				        }
 					}
@@ -380,7 +380,7 @@ public class BuildConfigurator implements ISelectionListener {
 	 * @return a string that is NOT the name of a current build configuration in the project
 	 */
 	public static String getFreeFileName(IProject project) {
-		String defaultFileName = AspectJUIPlugin.getResourceString("BCDialog.SaveBuildConfigurationAs.default"); //$NON-NLS-1$
+		String defaultFileName = UIMessages.BCDialog_SaveBuildConfigurationAs_default;
 	
 		int counter = 0;
 		if(project != null) {

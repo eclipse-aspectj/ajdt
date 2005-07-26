@@ -18,9 +18,9 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardSecondPage;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -82,14 +82,10 @@ public class AspectJProjectWizardTest extends TestCase {
 		try {
 			AJTitleCorrect = firstPage
 					.getTitle()
-					.equals(
-							AspectJUIPlugin
-									.getResourceString("NewAspectJProject.CreateAnAspectJProject"));
+					.equals(UIMessages.NewAspectJProject_CreateAnAspectJProject);
 			AJDescriptionCorrect = firstPage
 					.getDescription()
-					.equals(
-							AspectJUIPlugin
-									.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription"));
+					.equals(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
 		} catch (NullPointerException e) {
 			fail("The title or description for the AJ page is incorrect.");
 		}

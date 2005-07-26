@@ -18,6 +18,7 @@ import java.util.Iterator;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -174,10 +175,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		setPageComplete(false);
 		this.currentSelection = selection;
 
-		setTitle(AspectJUIPlugin
-				.getResourceString("NewAspectCreationWizardPage.title")); //$NON-NLS-1$
-		setDescription(AspectJUIPlugin
-				.getResourceString("NewAspectCreationWizardPage.description")); //$NON-NLS-1$
+		setTitle(UIMessages.NewAspectCreationWizardPage_title);
+		setDescription(UIMessages.NewAspectCreationWizardPage_description);
 		this.workbench = workbench;
 		init();
 	}
@@ -270,8 +269,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		// create the widgets and their grid data objects
 
 		new Label(composite, SWT.NONE)
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.sourceFolder.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_sourceFolder_label);
 
 		sourceText = new Text(composite, SWT.BORDER);
 		sourceText.setText(initialSourceString);
@@ -286,8 +284,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		sourceBrowseButton = new Button(composite, SWT.PUSH);
 		sourceBrowseButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.sourceFolder.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_sourceFolder_button);
 		sourceBrowseButton.addListener(SWT.Selection, this);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.grabExcessHorizontalSpace = false;
@@ -296,8 +293,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		packageLabel = new Label(composite, SWT.NONE);
 		packageLabel
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.package.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_package_label);
 
 		packageText = new Text(composite, SWT.BORDER);
 		packageText.setText(initialPackageString);
@@ -310,8 +306,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		packageBrowseButton = new Button(composite, SWT.PUSH);
 		packageBrowseButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.package.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_package_button);
 		packageBrowseButton.addListener(SWT.Selection, this);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.grabExcessHorizontalSpace = false;
@@ -323,8 +318,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		enclosingTypeButton = new Button(composite, SWT.CHECK);
 		enclosingTypeButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.enclosingType.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_enclosingType_label);
 		enclosingTypeButton.addListener(SWT.Selection, this);
 
 		enclosingText = new Text(composite, SWT.BORDER);
@@ -338,8 +332,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		enclosingBrowseButton = new Button(composite, SWT.PUSH);
 		enclosingBrowseButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.enclosingType.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_enclosingType_button);
 		enclosingBrowseButton.addListener(SWT.Selection, this);
 		enclosingBrowseButton.setEnabled(false);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -350,8 +343,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		NewAspectUtils.createLine(composite, ncol);
 
 		new Label(composite, SWT.NONE)
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.typeName.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_typeName_label);
 
 		nameText = new Text(composite, SWT.BORDER);
 		updateNameStatus();
@@ -364,8 +356,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		NewAspectUtils.createBlank(composite);
 
 		new Label(composite, SWT.NONE)
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.modifiers.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_modifiers_label);
 
 		Composite modComposite = new Composite(composite, SWT.NONE);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -403,8 +394,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		// instantiation options		
 		instantiationButton = new Button(composite, SWT.CHECK);
-		instantiationButton.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.instantiation.label")); //$NON-NLS-1$
+		instantiationButton.setText(UIMessages.NewAspectCreationWizardPage_instantiation_label);
 		instantiationButton.setSelection(false);
 		instantiationButton.addListener(SWT.Selection, this);
 		
@@ -452,8 +442,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		NewAspectUtils.createBlank(composite);
 		
 		new Label(composite, SWT.NONE)
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.supertype.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_supertype_label);
 
 		extendsText = new Text(composite, SWT.BORDER);
 		extendsText.setText("java.lang.Object"); //$NON-NLS-1$
@@ -465,8 +454,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 //		NewAspectUtils.createBlank(composite);
 		supertypeBrowseButton = new Button(composite, SWT.PUSH);
 		supertypeBrowseButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.enclosingType.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_enclosingType_button);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.grabExcessHorizontalSpace = false;
 		gd.widthHint = NewAspectUtils.getButtonWidthHint(supertypeBrowseButton);
@@ -475,8 +463,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		Label interfaceLabel = new Label(composite, SWT.NONE);
 		interfaceLabel
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.interfaces.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_interfaces_label);
 		gd = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		interfaceLabel.setLayoutData(gd);
 
@@ -493,8 +480,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		addInterfaceButton = new Button(contents, SWT.PUSH);
 		addInterfaceButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.interfaces.add.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_interfaces_add_button);
 		addInterfaceButton.addListener(SWT.Selection, this);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = NewAspectUtils.getButtonWidthHint(addInterfaceButton);
@@ -504,8 +490,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		removeInterfaceButton = new Button(contents, SWT.PUSH);
 		removeInterfaceButton
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.interfaces.remove.button")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_interfaces_remove_button);
 		removeInterfaceButton.addListener(SWT.Selection, this);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.grabExcessHorizontalSpace = false;
@@ -516,8 +501,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		Label stubsLabel = new Label(composite, SWT.NONE);
 		stubsLabel
-				.setText(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.methodStubs.label")); //$NON-NLS-1$
+				.setText(UIMessages.NewAspectCreationWizardPage_methodStubs_label);
 		gd = new GridData();
 		gd.horizontalSpan = ncol;
 		stubsLabel.setLayoutData(gd);
@@ -589,8 +573,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
                         IStatus.ERROR,
                         AspectJUIPlugin.PLUGIN_ID,
                         0,
-                        AspectJUIPlugin
-                                .getResourceString("NewAspectCreationWizardPage.Name_field_cannot_be_qualified"),
+                        UIMessages.NewAspectCreationWizardPage_Name_field_cannot_be_qualified,
                         null);
             }// end if dot detected
             else {
@@ -608,8 +591,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
                     IStatus.ERROR,
                     AspectJUIPlugin.PLUGIN_ID,
                     0,
-                    AspectJUIPlugin
-                            .getResourceString("NewAspectCreationWizardPage.Name_field_cannot_be_empty"), null); //$NON-NLS-1$
+                    UIMessages.NewAspectCreationWizardPage_Name_field_cannot_be_empty, null);
         }
     }
 
@@ -620,8 +602,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					IStatus.ERROR,
 					AspectJUIPlugin.PLUGIN_ID,
 					0,
-					AspectJUIPlugin
-							.getResourceString("NewAspectCreationWizardPage.Source_folder_cannot_be_empty"), null); //$NON-NLS-1$
+					UIMessages.NewAspectCreationWizardPage_Source_folder_cannot_be_empty, null);
 		} else {
 			IPath path = new Path(sourceText.getText());
 			IResource res = ResourcesPlugin.getWorkspace().getRoot()
@@ -631,8 +612,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						IStatus.ERROR,
 						AspectJUIPlugin.PLUGIN_ID,
 						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.Source_folder_does_not_exist"), null); //$NON-NLS-1$
+						UIMessages.NewAspectCreationWizardPage_Source_folder_does_not_exist, null);
 			}
 		}
 	}
@@ -673,8 +653,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					IStatus.ERROR,
 					AspectJUIPlugin.PLUGIN_ID,
 					0,
-					AspectJUIPlugin
-							.getResourceString("NewAspectCreationWizardPage.error.EnclosingTypeEnterName"), null); //$NON-NLS-1$
+					UIMessages.NewAspectCreationWizardPage_error_EnclosingTypeEnterName, null);
 			return;
 		}
 		try {
@@ -684,8 +663,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						IStatus.ERROR,
 						AspectJUIPlugin.PLUGIN_ID,
 						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.error.EnclosingTypeNotExists"), null); //$NON-NLS-1$
+						UIMessages.NewAspectCreationWizardPage_error_EnclosingTypeNotExists, null);
 				return;
 			}
 
@@ -694,8 +672,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						IStatus.ERROR,
 						AspectJUIPlugin.PLUGIN_ID,
 						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.error.EnclosingNotInCU"), null); //$NON-NLS-1$
+						UIMessages.NewAspectCreationWizardPage_error_EnclosingNotInCU, null);
 				return;
 			}
 			if (!JavaModelUtil.isEditable(type.getCompilationUnit())) {
@@ -703,8 +680,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						IStatus.ERROR,
 						AspectJUIPlugin.PLUGIN_ID,
 						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.error.EnclosingNotEditable"), null); //$NON-NLS-1$
+						UIMessages.NewAspectCreationWizardPage_error_EnclosingNotEditable, null);
 				return;
 			}
 
@@ -716,8 +692,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						IStatus.WARNING,
 						AspectJUIPlugin.PLUGIN_ID,
 						0,
-						AspectJUIPlugin
-								.getResourceString("NewAspectCreationWizardPage.warning.EnclosingNotInSourceFolder"), null); //$NON-NLS-1$
+						UIMessages.NewAspectCreationWizardPage_warning_EnclosingNotInSourceFolder, null);
 			}
 			return;
 		} catch (JavaModelException e) {
@@ -725,8 +700,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					IStatus.ERROR,
 					AspectJUIPlugin.PLUGIN_ID,
 					0,
-					AspectJUIPlugin
-							.getResourceString("NewAspectCreationWizardPage.error.EnclosingTypeNotExists"), null); //$NON-NLS-1$
+					UIMessages.NewAspectCreationWizardPage_error_EnclosingTypeNotExists, null);
 			return;
 		}
 	}
@@ -792,10 +766,10 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 					jproject);
 			dialog
 					.setTitle(AspectJUIPlugin
-							.getResourceString("NewAspectCreationWizardPage.InterfacesDialog.class.title")); //$NON-NLS-1$
+							.getResourceString("NewAspectCreationWizardPage.InterfacesDialog.class.title);
 			dialog
 					.setMessage(AspectJUIPlugin
-							.getResourceString("NewAspectCreationWizardPage.InterfacesDialog.message")); //$NON-NLS-1$
+							.getResourceString("NewAspectCreationWizardPage.InterfacesDialog.message);
 			dialog.open();
 			*/
 		} else if (event.widget == removeInterfaceButton) {
@@ -912,10 +886,10 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				getWizard().getContainer(), IJavaSearchConstants.TYPE, scope);
 		dialog
 				.setTitle(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.ChooseEnclosingTypeDialog.title")); //$NON-NLS-1$
+						.getResourceString("NewAspectCreationWizardPage.ChooseEnclosingTypeDialog.title);
 		dialog
 				.setMessage(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.ChooseEnclosingTypeDialog.description")); //$NON-NLS-1$
+						.getResourceString("NewAspectCreationWizardPage.ChooseEnclosingTypeDialog.description);
 		//dialog.setFilter(Signature.getSimpleName(getEnclosingTypeText()));
 
 		if (dialog.open() == TypeSelectionDialog2.OK) {
@@ -948,11 +922,9 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		//dialog.setValidator(validator);
 		dialog.setSorter(new JavaElementSorter());
 		dialog
-				.setTitle(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.FolderSelectionDialog.title")); //$NON-NLS-1$
+				.setTitle(UIMessages.NewAspectCreationWizardPage_FolderSelectionDialog_title);
 		dialog
-				.setMessage(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.FolderSelectionDialog.message")); //$NON-NLS-1$
+				.setMessage(UIMessages.NewAspectCreationWizardPage_FolderSelectionDialog_message);
 		dialog.addFilter(filter);
 		dialog.setInput(JavaCore.create(ResourcesPlugin.getWorkspace()
 				.getRoot()));
@@ -989,14 +961,11 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 						JavaElementLabelProvider.SHOW_DEFAULT));
 		dialog.setIgnoreCase(false);
 		dialog
-				.setTitle(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.ChoosePackageDialog.title")); //$NON-NLS-1$
+				.setTitle(UIMessages.NewAspectCreationWizardPage_ChoosePackageDialog_title);
 		dialog
-				.setMessage(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.ChoosePackageDialog.message")); //$NON-NLS-1$
+				.setMessage(UIMessages.NewAspectCreationWizardPage_ChoosePackageDialog_message);
 		dialog
-				.setEmptyListMessage(AspectJUIPlugin
-						.getResourceString("NewAspectCreationWizardPage.ChoosePackageDialog.empty")); //$NON-NLS-1$
+				.setEmptyListMessage(UIMessages.NewAspectCreationWizardPage_ChoosePackageDialog_empty);
 		dialog.setElements(packages);
 		IPackageFragment pack = getPackageFragment();
 		if (pack != null) {
@@ -1020,10 +989,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog2 dialog = new org.eclipse.ajdt.internal.ui.dialogs.TypeSelectionDialog2(getShell(),
 				true, getWizard().getContainer(), scope, IJavaSearchConstants.CLASS);
-		dialog.setTitle(AspectJUIPlugin
-				.getResourceString("NewTypeWizardPage.SuperClassDialog.title")); //$NON-NLS-1$
-		dialog.setMessage(AspectJUIPlugin
-				.getResourceString("NewTypeWizardPage.SuperClassDialog.message")); //$NON-NLS-1$
+		dialog.setTitle(UIMessages.NewTypeWizardPage_SuperClassDialog_title);
+		dialog.setMessage(UIMessages.NewTypeWizardPage_SuperClassDialog_message);
 
 		if (dialog.open() == Window.OK) {
 			return (IType) dialog.getFirstResult();
@@ -1215,8 +1182,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				try {
 					monitor
 							.beginTask(
-									AspectJUIPlugin
-											.getResourceString("NewAspectCreationWizardPage.CreatingAspect.message"), 2000); //$NON-NLS-1$
+									UIMessages.NewAspectCreationWizardPage_CreatingAspect_message, 2000);
 					newFile.create(initialContents, false, monitor);
 				} catch (CoreException e) {
 				} finally {
