@@ -15,6 +15,7 @@ import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ajdt.ras.PluginFFDC;
+import java.io.File;
 
 /**
  * FFDC policy for org.eclipse.ajdt.ui plug-in
