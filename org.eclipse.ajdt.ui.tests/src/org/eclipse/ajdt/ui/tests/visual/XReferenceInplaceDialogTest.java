@@ -40,6 +40,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		project.refreshLocal(5, null);
 		Utils.deleteProject(project);
 	}
 	
