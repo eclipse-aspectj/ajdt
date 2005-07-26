@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -38,6 +39,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.osgi.util.NLS;
 
 /**
  * Core version of project properties - subclassed by UI version
@@ -457,9 +459,7 @@ public class CoreProjectProperties implements IProjectProperties {
 		}
 
 		if (validateFiles && invalidEntries.length() != 0) {
-			Ajde.getDefault().getErrorHandler().handleWarning(
-					AspectJPlugin.getFormattedResourceString("missingJarsWarning", //$NON-NLS-1$
-							invalidEntries.toString()));
+			Ajde.getDefault().getErrorHandler().handleWarning(NLS.bind(CoreMessages.missingJarsWarning, invalidEntries.toString()));
 		}
 		return fileSet;
 	}

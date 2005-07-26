@@ -2,9 +2,7 @@ package org.eclipse.ajdt.ui.tests.ras;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ras.PluginFFDC;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IStatus;
@@ -40,26 +38,28 @@ public class PluginFFDCTest extends TestCase {
 		
 		assertMessage(listener,message);
 	}
-	
-	public void testCoreFFDC () {
-		LogListener listener = new LogListener(AspectJPlugin.getDefault());
-		String key = "bogus.bogus";
 
-		String result = AspectJPlugin.getResourceString(key);
-
-		assertEquals("Resource should not be found",key,result);
-		assertMessage(listener,key);
-	}
-	
-	public void testUIFFDC () {
-		LogListener listener = new LogListener(AspectJUIPlugin.getDefault());
-		String key = "bogus.bogus";
-
-		String result = AspectJUIPlugin.getResourceString(key);
-
-		assertEquals("Resource should not be found",key,result);
-		assertMessage(listener,key);
-	}
+// TODO: AspectJPlugin.getResourceString() has been removed - need
+// to find another way of testing the FFDC aspect	
+//	public void testCoreFFDC () {
+//		LogListener listener = new LogListener(AspectJPlugin.getDefault());
+//		String key = "bogus.bogus";
+//
+//		String result = AspectJPlugin.getResourceString(key);
+//
+//		assertEquals("Resource should not be found",key,result);
+//		assertMessage(listener,key);
+//	}
+//	
+//	public void testUIFFDC () {
+//		LogListener listener = new LogListener(AspectJUIPlugin.getDefault());
+//		String key = "bogus.bogus";
+//
+//		String result = AspectJUIPlugin.getResourceString(key);
+//
+//		assertEquals("Resource should not be found",key,result);
+//		assertMessage(listener,key);
+//	}
 
 	public static class LogListener implements ILogListener {
 

@@ -12,7 +12,7 @@
 package org.eclipse.contribution.xref.internal.ui.actions;
 
 
-import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jface.action.Action;
@@ -25,9 +25,9 @@ public class CollapseAllAction extends Action {
 	private XReferenceView xrefView;
 	
 	public CollapseAllAction(XReferenceView v) {
-		super(XReferenceUIPlugin.getResourceString("CollapseAllAction.label")); //$NON-NLS-1$
-		setDescription(XReferenceUIPlugin.getResourceString("CollapseAllAction.description")); //$NON-NLS-1$
-		setToolTipText(XReferenceUIPlugin.getResourceString("CollapseAllAction.tooltip")); //$NON-NLS-1$
+		super(XRefMessages.CollapseAllAction_label);
+		setDescription(XRefMessages.CollapseAllAction_description);
+		setToolTipText(XRefMessages.CollapseAllAction_tooltip);
 		// TODO break dependence on internal api
 		JavaPluginImages.setLocalImageDescriptors(this, "collapseall.gif"); //$NON-NLS-1$
 		

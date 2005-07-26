@@ -11,10 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import java.text.MessageFormat;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
@@ -38,8 +34,6 @@ import org.osgi.framework.BundleContext;
 public class AspectJPlugin extends Plugin {
 	//The shared instance.
 	private static AspectJPlugin plugin;
-	//Resource bundle.
-	private ResourceBundle resourceBundle;
 
 	// id of this plugin
 	public static final String PLUGIN_ID = "org.eclipse.ajdt.core"; //$NON-NLS-1$
@@ -89,11 +83,6 @@ public class AspectJPlugin extends Plugin {
 	public AspectJPlugin() {
 		super();
 		plugin = this;
-		try {
-			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.resources.AspectJPluginResources"); //$NON-NLS-1$
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
 	}
 
 	/**
@@ -152,46 +141,6 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void setCurrentProject(IProject project) {
 		currentProject = project;
-	}
-
-	/**
-	 * Returns the string from the plugin's resource bundle,
-	 * or 'key' if not found.
-	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle = AspectJPlugin.getDefault().getResourceBundle();
-		try {
-			return (bundle != null) ? bundle.getString(key) : key;
-		} catch (MissingResourceException e) {
-			return key;
-		}
-	}
-
-	/**
-	 * @param key
-	 * @param arg
-	 * @return string from plugin's resource bundle that includes the inserted
-	 *         argument.
-	 */
-	public static String getFormattedResourceString(String key, String arg) {
-		return getFormattedResourceString(key, new String[] { arg });
-	}
-
-	/**
-	 * @param key
-	 * @param arg
-	 * @return string from plugin's resource bundle that includes all of the
-	 *         inserted arguments.
-	 */
-	public static String getFormattedResourceString(String key, String[] args) {
-		return MessageFormat.format(getResourceString(key), args);
-	}
-	
-	/**
-	 * Returns the plugin's resource bundle,
-	 */
-	public ResourceBundle getResourceBundle() {
-		return resourceBundle;
 	}
 	
 	/**

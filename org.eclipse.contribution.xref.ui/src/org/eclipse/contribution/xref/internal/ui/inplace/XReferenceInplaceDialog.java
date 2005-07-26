@@ -22,6 +22,7 @@ import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.core.IJavaElement;
@@ -49,6 +50,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -505,7 +507,7 @@ public class XReferenceInplaceDialog {
 				.get(JavaPluginImages.IMG_ELCL_VIEW_MENU));
 		viewMenuButton.setDisabledImage(JavaPluginImages
 				.get(JavaPluginImages.IMG_DLCL_VIEW_MENU));
-		viewMenuButton.setToolTipText(XReferenceUIPlugin.getResourceString("XReferenceInplaceDialog.viewMenu.toolTipText")); //$NON-NLS-1$
+		viewMenuButton.setToolTipText(XRefMessages.XReferenceInplaceDialog_viewMenu_toolTipText);
 
 		//Used to enable the menu to be accessed from the keyboard
 		// Key binding service
@@ -604,9 +606,8 @@ public class XReferenceInplaceDialog {
 		String keySequence= sequences[0].format();
 		
 		if (isShowingParentCrosscutting)
-			return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.hideParentCrosscutting", keySequence); //$NON-NLS-1$
-		
-		return XReferenceUIPlugin.getFormattedString("XReferenceInplaceDialog.statusFieldText.showParentCrosscutting", keySequence); //$NON-NLS-1$
+			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_hideParentCrosscutting, keySequence); //$NON-NLS-1$
+			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_showParentCrosscutting, keySequence); //$NON-NLS-1$
 	}
 	
 	private KeySequence[] getInvokingCommandKeySequences() {
@@ -1169,7 +1170,7 @@ public class XReferenceInplaceDialog {
 	private class MoveAction extends Action {
 
 		MoveAction() {
-			super(XReferenceUIPlugin.getResourceString("XReferenceInplaceDialog.viewMenu.move.label"), IAction.AS_PUSH_BUTTON); //$NON-NLS-1$
+			super(XRefMessages.XReferenceInplaceDialog_viewMenu_move_label, IAction.AS_PUSH_BUTTON);
 		}
 
 		/*
@@ -1190,7 +1191,7 @@ public class XReferenceInplaceDialog {
 	private class RememberBoundsAction extends Action {
 
 		RememberBoundsAction() {
-			super(XReferenceUIPlugin.getResourceString("XReferenceInplaceDialog.viewMenu.rememberBounds.label"), IAction.AS_CHECK_BOX); //$NON-NLS-1$
+			super(XRefMessages.XReferenceInplaceDialog_viewMenu_rememberBounds_label, IAction.AS_CHECK_BOX);
 			setChecked(!getDialogSettings().getBoolean(STORE_DISABLE_RESTORE_LOCATION));
 		}
 
@@ -1217,7 +1218,7 @@ public class XReferenceInplaceDialog {
 	private class ResizeAction extends Action {
 
 		ResizeAction() {
-			super(XReferenceUIPlugin.getResourceString("XReferenceInplaceDialog.viewMenu.resize.label"), IAction.AS_PUSH_BUTTON); //$NON-NLS-1$
+			super(XRefMessages.XReferenceInplaceDialog_viewMenu_resize_label, IAction.AS_PUSH_BUTTON);
 		}
 
 		/*

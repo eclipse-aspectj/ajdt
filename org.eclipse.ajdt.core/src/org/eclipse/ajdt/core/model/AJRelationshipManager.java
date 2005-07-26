@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.text.CoreMessages;
 
 /**
  * Defines the different relationships which can be present in the structure
@@ -28,42 +28,34 @@ public class AJRelationshipManager {
 	 */
 
 	public static final AJRelationshipType ADVISES = new AJRelationshipType(
-			"advises", AspectJPlugin.getResourceString("advises.displayName")); //$NON-NLS-1$ //$NON-NLS-2$
+			"advises", CoreMessages.advises_displayName, CoreMessages.advises_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType ADVISED_BY = new AJRelationshipType(
-			"advised_by", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("advised_by.displayName")); //$NON-NLS-1$
+			"advised_by", CoreMessages.advised_by_displayName, CoreMessages.advised_by_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType DECLARED_ON = new AJRelationshipType(
-			"declared_on", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("declared_on.displayName")); //$NON-NLS-1$
+			"declared_on", CoreMessages.declared_on_displayName, CoreMessages.declared_on_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType ASPECT_DECLARATIONS = new AJRelationshipType(
-			"aspect_declarations", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("aspect_declarations.displayName")); //$NON-NLS-1$
+			"aspect_declarations", CoreMessages.aspect_declarations_displayName, CoreMessages.aspect_declarations_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType MATCHED_BY = new AJRelationshipType(
-			"matched_by", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("matched_by.displayName")); //$NON-NLS-1$
+			"matched_by", CoreMessages.matched_by_displayName, CoreMessages.matched_by_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType MATCHES_DECLARE = new AJRelationshipType(
-			"matches_declare", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("matches_declare.displayName")); //$NON-NLS-1$
+			"matches_declare", CoreMessages.matches_declare_displayName, CoreMessages.matches_declare_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType ANNOTATES = new AJRelationshipType(
-			"annotates", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("annotates.displayName")); //$NON-NLS-1$
+			"annotates", CoreMessages.annotates_displayName, CoreMessages.annotates_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType ANNOTATED_BY = new AJRelationshipType(
-			"annotated_by", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("annotated_by.displayName")); //$NON-NLS-1$
+			"annotated_by", CoreMessages.annotated_by_displayName, CoreMessages.annotated_by_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType SOFTENS = new AJRelationshipType(
-			"softens", AspectJPlugin.getResourceString("softens.displayName")); //$NON-NLS-1$ //$NON-NLS-2$
+			"softens", CoreMessages.softens_displayName, CoreMessages.softens_menuName); //$NON-NLS-1$ //$NON-NLS-2$
 
 	public static final AJRelationshipType SOFTENED_BY = new AJRelationshipType(
-			"softened_by", AspectJPlugin //$NON-NLS-1$
-					.getResourceString("softened_by.displayName")); //$NON-NLS-1$
+			"softened_by", CoreMessages.softened_by_displayName, CoreMessages.softened_by_menuName); //$NON-NLS-1$
 
 	/**
 	 * Array of all known relationship types

@@ -13,12 +13,10 @@ package org.eclipse.contribution.xref.ui;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.MessageFormat;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.core.XReferenceAdapterFactory;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IResource;
@@ -48,8 +46,6 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.eclipse.contribution.xref.ui"; //$NON-NLS-1$
 	//The shared instance.
 	private static XReferenceUIPlugin plugin;
-	//Resource bundle.
-	private ResourceBundle resourceBundle;
 
 	public static XReferenceView xrefView;
 	
@@ -62,14 +58,7 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	public XReferenceUIPlugin() {
 		super();
 		plugin = this;
-		try {
-			resourceBundle =
-				ResourceBundle.getBundle(
-					"org.eclipse.contribution.xref.ui.XReferenceUIPluginResources"); //$NON-NLS-1$
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
-	}
+	} 
 	
 	/**
 	 * This method is called upon plug-in activation - process any 
@@ -118,35 +107,6 @@ public class XReferenceUIPlugin extends AbstractUIPlugin {
 	 */
 	public static IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
-	}
-
-	/**
-	 * Returns the string from the plugin's resource bundle, or 'key' if not
-	 * found.
-	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle =
-			XReferenceUIPlugin.getDefault().getResourceBundle();
-		try {
-			return (bundle != null ? bundle.getString(key) : key);
-		} catch (MissingResourceException e) {
-			return key;
-		}
-	}
-
-	public static String getFormattedString(String key, String arg) {
-		return getFormattedString(key, new String[] { arg });
-	}
-	
-	public static String getFormattedString(String key, String[] args) {
-		return MessageFormat.format(getResourceString(key), args);	
-	}
-	
-	/**
-	 * Returns the plugin's resource bundle,
-	 */
-	public ResourceBundle getResourceBundle() {
-		return resourceBundle;
 	}
 
 	/*
@@ -206,7 +166,7 @@ class XReferenceViewUpdateJob extends UIJob {
 		 
 		 public static XReferenceViewUpdateJob getInstance() {
 	 		 if(theJob == null) {
- 		 		 theJob = new XReferenceViewUpdateJob(XReferenceUIPlugin.getResourceString("Jobs.XRefViewUpdate")); //$NON-NLS-1$
+ 		 		 theJob = new XReferenceViewUpdateJob(XRefMessages.XRefUIPlugin_Jobs_XRefViewUpdate);
  		 		 theJob.setSystem(true);
  		 		 theJob.setPriority(Job.SHORT);
 	 		 }
@@ -217,7 +177,7 @@ class XReferenceViewUpdateJob extends UIJob {
 		 * @see org.eclipse.ui.progress.UIJob#runInUIThread(org.eclipse.core.runtime.IProgressMonitor)
 		 */
 		public IStatus runInUIThread(IProgressMonitor monitor) {
-			monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
+			monitor.beginTask(XRefMessages.XRefUIPlugin_Jobs_Update, 1);
 	 		if (XReferenceUIPlugin.xrefView !=null) {
 	 			ISelection selection = XRefUIUtils.getCurrentSelection();
 	 			

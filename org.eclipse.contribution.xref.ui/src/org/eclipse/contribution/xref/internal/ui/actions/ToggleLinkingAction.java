@@ -12,7 +12,7 @@
 
 package org.eclipse.contribution.xref.internal.ui.actions;
 
-import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jface.action.Action;
@@ -30,9 +30,9 @@ public class ToggleLinkingAction extends Action {
 	 * Constructs a new action.
 	 */
 	public ToggleLinkingAction(XReferenceView xrefView) {
-		super(XReferenceUIPlugin.getResourceString("ToggleLinkingAction.label")); //$NON-NLS-1$
-		setDescription(XReferenceUIPlugin.getResourceString("ToggleLinkingAction.description")); //$NON-NLS-1$
-		setToolTipText(XReferenceUIPlugin.getResourceString("ToggleLinkingAction.tooltip")); //$NON-NLS-1$
+		super(XRefMessages.ToggleLinkingAction_label);
+		setDescription(XRefMessages.ToggleLinkingAction_description);
+		setToolTipText(XRefMessages.ToggleLinkingAction_tooltip);
 		// TODO break dependency on internal api
 		JavaPluginImages.setLocalImageDescriptors(this, "synced.gif"); //$NON-NLS-1$		
 //		WorkbenchHelp.setHelp(this, IJavaHelpContextIds.LINK_EDITOR_ACTION);

@@ -42,6 +42,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -54,6 +55,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.osgi.util.NLS;
 
 /**
  * @author mchapman
@@ -322,10 +324,7 @@ public class AJProjectModel {
 								// if the problem element has no parent, then we
 								// have a binary/injar aspect, otherwise we
 								// don't know what it is, so we skip it
-								String name = AspectJPlugin
-										.getFormattedResourceString(
-												"injarElementLabel", link //$NON-NLS-1$
-														.getName());
+								String name = NLS.bind(CoreMessages.injarElementLabel, link.getName());
 								targetEl = new AJInjarElement(name);
 
 								// store this elements, so that it gets saved

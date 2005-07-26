@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.core.XReferenceProviderManager;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
@@ -66,7 +67,7 @@ public class XReferencePreferencePage
 		mainComposite.setLayout(layout);
 
 		Label topLabel = new Label(mainComposite, SWT.NONE);
-		topLabel.setText(XReferenceUIPlugin.getResourceString("XReferencePreferencePage.explanation")); //$NON-NLS-1$
+		topLabel.setText(XRefMessages.XReferencePreferencePage_explanation);
 		topLabel.setFont(font);
 
 		createProvidersArea(mainComposite);
@@ -90,7 +91,7 @@ public class XReferencePreferencePage
 		textComposite.setFont(mainFont);
 
 		Label descriptionLabel = new Label(textComposite, SWT.NONE);
-		descriptionLabel.setText(XReferenceUIPlugin.getResourceString("XReferencePreferencePage.description")); //$NON-NLS-1$
+		descriptionLabel.setText(XRefMessages.XReferencePreferencePage_description);
 		descriptionLabel.setFont(mainFont);
 
 		descriptionText =
@@ -119,7 +120,7 @@ public class XReferencePreferencePage
 		providersComposite.setFont(mainFont);
 
 		Label providersLabel = new Label(providersComposite, SWT.NONE);
-		providersLabel.setText(XReferenceUIPlugin.getResourceString("XReferencePreferencePage.providersLabel")); //$NON-NLS-1$
+		providersLabel.setText(XRefMessages.XReferencePreferencePage_providersLabel);
 		providersLabel.setFont(mainFont);
 
 		// Checkbox table viewer of providers
@@ -257,7 +258,8 @@ public class XReferencePreferencePage
 		}
 		String text = definition.getDescription();
 		if (text == null || text.length() == 0)
-			descriptionText.setText(XReferenceUIPlugin.getResourceString("PreferencePage.noDescription")); //$NON-NLS-1$
+			// TODO: Find out where this is used, and access it correctly through the XRefMessages
+			descriptionText.setText("PreferencePage.noDescription"); //$NON-NLS-1$
 		else
 			descriptionText.setText(text);
 	}

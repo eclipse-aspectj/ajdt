@@ -19,7 +19,6 @@ import java.util.List;
 import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
-import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
@@ -197,8 +196,8 @@ public class XReferenceContentProvider
 
 	private void addEvaluateChild(TreeParent parent, IDeferredXReference r) {
 		TreeObject t =
-			new TreeObject(
-				XReferenceUIPlugin.getResourceString("EvaluateLabel")); //$NON-NLS-1$
+			// TODO: Find out where this is used, and access it correctly through the XRefMessages
+			new TreeObject("EvaluateLabel"); //$NON-NLS-1$
 		t.setData(r);
 		parent.addChild(t);
 	}

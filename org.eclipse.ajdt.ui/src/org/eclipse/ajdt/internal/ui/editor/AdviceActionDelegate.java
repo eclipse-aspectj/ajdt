@@ -221,7 +221,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 						addedSeparator = true;
 					}
 					if(!menuInitialized) {
-						menu = new MenuManager(AspectJPlugin.getResourceString(relationshipType.getInternalName() + ".menuName")); //$NON-NLS-1$
+						menu = new MenuManager(relationshipType.getMenuName());
 						manager.add(new Separator());
 						manager.add(menu);			
 						menuInitialized = true; 

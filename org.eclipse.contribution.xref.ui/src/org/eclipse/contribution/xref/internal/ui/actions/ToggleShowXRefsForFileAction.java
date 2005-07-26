@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.actions;
 
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.internal.ui.utils.XReferenceImages;
-import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jface.action.Action;
 
@@ -29,9 +29,9 @@ public class ToggleShowXRefsForFileAction extends Action {
 	 * Constructs a new action.
 	 */
 	public ToggleShowXRefsForFileAction(XReferenceView xrefView) {
-		super(XReferenceUIPlugin.getResourceString("ToggleShowXRefsForFileAction.label")); //$NON-NLS-1$
-		setDescription(XReferenceUIPlugin.getResourceString("ToggleShowXRefsForFileAction.description")); //$NON-NLS-1$
-		setToolTipText(XReferenceUIPlugin.getResourceString("ToggleShowXRefsForFileAction.tooltip")); //$NON-NLS-1$
+		super(XRefMessages.ToggleShowXRefsForFileAction_label);
+		setDescription(XRefMessages.ToggleShowXRefsForFileAction_description);
+		setToolTipText(XRefMessages.ToggleShowXRefsForFileAction_tooltip);
 		setImageDescriptor(XReferenceImages.XREFS_FOR_ENTIRE_FILE);
 		setChecked(xrefView.isShowXRefsForFileEnabled());
 		this.xrefView = xrefView;

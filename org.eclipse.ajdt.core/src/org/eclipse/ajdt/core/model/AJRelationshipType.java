@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,10 +19,12 @@ public class AJRelationshipType {
 	
 	private String displayName;
 	private String internalName;
+	private String menuName;
 
-	public AJRelationshipType(String internalName, String displayName) {
+	public AJRelationshipType(String internalName, String displayName, String menuName) {
 		this.displayName = displayName;
 		this.internalName = internalName;
+		this.menuName = menuName;
 	}
 
 	public String getDisplayName() {
@@ -31,5 +33,9 @@ public class AJRelationshipType {
 	
 	public String getInternalName() {
 		return internalName;
+	}
+	
+	public String getMenuName() {
+		return menuName;
 	}
 }

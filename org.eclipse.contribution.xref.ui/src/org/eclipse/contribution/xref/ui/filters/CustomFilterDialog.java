@@ -15,9 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
-import org.eclipse.jdt.internal.ui.filters.FilterMessages;
+import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -37,7 +35,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 public class CustomFilterDialog {
@@ -192,7 +189,7 @@ public class CustomFilterDialog {
 			composite.setData(data);
 
 			// Select All button
-			String label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.SelectAllButton.label");
+			String label = XRefMessages.CustomFilterDialog_SelectAllButton_label;
 			Button selectButton = createButton(buttonComposite,
 					IDialogConstants.SELECT_ALL_ID, label, false);
 			SWTUtil.setButtonDimensionHint(selectButton);
@@ -204,7 +201,7 @@ public class CustomFilterDialog {
 			selectButton.addSelectionListener(listener);
 
 			// De-select All button
-			label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.DeselectAllButton.label");
+			label = XRefMessages.CustomFilterDialog_DeselectAllButton_label;
 			Button deselectButton = createButton(buttonComposite,
 					IDialogConstants.DESELECT_ALL_ID, label, false);
 			SWTUtil.setButtonDimensionHint(deselectButton);
@@ -216,7 +213,7 @@ public class CustomFilterDialog {
 			deselectButton.addSelectionListener(listener);
 
 			// Restore Defaults Button
-			label = XReferenceUIPlugin.getResourceString("FilterDialog.restoreDefaults"); //$NON-NLS-1$
+			label = XRefMessages.CustomFilterDialog_RestoreDefaultsButton_label;
 			Button restoreDefaultsButton = createButton(buttonComposite,
 					IDialogConstants.DESELECT_ALL_ID, label, false);
 			SWTUtil.setButtonDimensionHint(restoreDefaultsButton);
@@ -235,7 +232,6 @@ public class CustomFilterDialog {
 				}
 			};
 			restoreDefaultsButton.addSelectionListener(listener);
-
 		}
 
 		private void checkInitialSelections() {
