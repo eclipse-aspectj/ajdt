@@ -120,10 +120,10 @@ Create a packaged org.eclipse.ajdt.examples_version feature plugin distribution 
      <include name="*.xml"/>
      <exclude name="build.*"/>
      <include name="*.properties"/>
-     <exclude name="plugin.*xml" />
+     <exclude name="META-INF/MANIFEST.MF" />
    </fileset>
  </copy>  
- <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
  	<filterset begintoken="9" endtoken="9">
  		<filter token="2.2.2" value="${ajdt.version}"/>
  	</filterset>

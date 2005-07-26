@@ -1,26 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
-<plugin
-   id="org.eclipse.ajdt.examples"
-   name="AspectJ Examples"
-   version="92.2.29"
-   provider-name="Eclipse.org"
-   class="org.eclipse.ajdt.examples.AspectJExamplePlugin">
+<plugin>
 
-   <runtime>
-      <library name="ajdtExamples.jar"/>
-   </runtime>
-   <requires>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.jdt.core"/>
-      <import plugin="org.eclipse.ajdt.core"/>
-      <import plugin="org.eclipse.ajdt.ui"/>
-   </requires>
-
-   <extension-point id="projectsetup" name="Project setup" schema="schema/wizardconfig.exsd"/>
+     <extension-point id="projectsetup" name="Project setup" schema="schema/wizardconfig.exsd"/>
 
 <!-- Each example needs two extensions (with the same "id" for each):
      1. org.eclipse.ui.newWizards, to appear in the New wizard
