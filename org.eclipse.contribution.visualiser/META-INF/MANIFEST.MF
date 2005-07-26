@@ -8,8 +8,7 @@ Bundle-ClassPath: Visualiser.jar,
 Bundle-Activator: org.eclipse.contribution.visualiser.VisualiserPlugin
 Bundle-Vendor: Eclipse.org
 Bundle-Localization: plugin
-Export-Package: .,
- org.eclipse.contribution.visualiser,
+Export-Package: org.eclipse.contribution.visualiser,
  org.eclipse.contribution.visualiser.core,
  org.eclipse.contribution.visualiser.core.resources,
  org.eclipse.contribution.visualiser.interfaces,
@@ -20,14 +19,7 @@ Export-Package: .,
  org.eclipse.contribution.visualiser.renderers,
  org.eclipse.contribution.visualiser.simpleImpl,
  org.eclipse.contribution.visualiser.utils,
- org.eclipse.contribution.visualiser.views,
- org.eclipse.draw2d,
- org.eclipse.draw2d.doc-files,
- org.eclipse.draw2d.geometry,
- org.eclipse.draw2d.images,
- org.eclipse.draw2d.internal,
- org.eclipse.draw2d.parts,
- org.eclipse.draw2d.util
+ org.eclipse.contribution.visualiser.views
 Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.editors,
  org.eclipse.core.resources,
