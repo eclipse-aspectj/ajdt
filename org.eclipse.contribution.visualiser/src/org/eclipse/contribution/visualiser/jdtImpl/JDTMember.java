@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.jdtImpl;
 
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.jdt.core.IJavaElement;

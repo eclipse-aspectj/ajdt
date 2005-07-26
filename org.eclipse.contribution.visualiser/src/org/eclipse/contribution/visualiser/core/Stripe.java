@@ -15,7 +15,6 @@ package org.eclipse.contribution.visualiser.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 

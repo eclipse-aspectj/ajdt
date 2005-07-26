@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
-import org.eclipse.contribution.visualiser.interfaces.*;
+import org.eclipse.contribution.visualiser.interfaces.IGroup;
+import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 
 /**

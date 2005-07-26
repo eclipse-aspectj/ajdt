@@ -11,9 +11,6 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;

@@ -11,7 +11,6 @@
 
 package org.eclipse.contribution.visualiser.markerImpl;
 
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.resources.IResource;

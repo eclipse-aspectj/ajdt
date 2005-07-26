@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.contribution.visualiser.renderers;
 
-import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
