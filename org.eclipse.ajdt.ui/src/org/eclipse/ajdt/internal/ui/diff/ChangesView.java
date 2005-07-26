@@ -409,7 +409,6 @@ public class ChangesView extends ViewPart {
 
 		List populatingList = new ArrayList();
 		for (int i = 0; i < relationshipTypes.length; i++) {
-			System.out.println(relationshipTypes[i].getDisplayName());
 			populatingList.add(relationshipTypes[i].getDisplayName());
 		}
 
@@ -417,7 +416,6 @@ public class ChangesView extends ViewPart {
 
 		List defaultCheckedList = new ArrayList();
 		for (int i = 1; i < relationshipTypes.length; i = i + 2) {
-			System.out.println(relationshipTypes[i].getDisplayName());
 			defaultCheckedList.add(relationshipTypes[i].getDisplayName());
 		}
 
