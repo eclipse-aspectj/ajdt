@@ -18,6 +18,7 @@ Export-Package: org.eclipse.contribution.visualiser,
  org.eclipse.contribution.visualiser.palettes,
  org.eclipse.contribution.visualiser.renderers,
  org.eclipse.contribution.visualiser.simpleImpl,
+ org.eclipse.contribution.visualiser.text,
  org.eclipse.contribution.visualiser.utils,
  org.eclipse.contribution.visualiser.views
 Require-Bundle: org.eclipse.ui.workbench.texteditor,
