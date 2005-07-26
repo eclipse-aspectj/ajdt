@@ -153,7 +153,7 @@ public class AspectJApplicationLaunchShortcut extends
 	protected void launch(Object type, String mode) {
 		ILaunchConfiguration config = findLaunchConfiguration(type, mode);
 		if (config != null) {
-			LaunchConfigurationClasspathUtils.addAspectPathToClasspath(config);
+			LaunchConfigurationClasspathUtils.addAspectPathAndOutJarToClasspath(config);
 			DebugUITools.launch(config, mode);
 		}
 	}

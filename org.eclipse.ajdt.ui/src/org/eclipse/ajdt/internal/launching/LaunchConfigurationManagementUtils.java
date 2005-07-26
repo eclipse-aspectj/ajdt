@@ -92,6 +92,53 @@ public class LaunchConfigurationManagementUtils {
 	}
 
 	/**
+	 * Update the outjar for launch configurations relating to the given
+	 * project
+	 * 
+	 * @param project -
+	 *            the project
+	 * @param oldOutJar -
+	 *            current output jar, or null if none exists
+	 * @param newOutJar -
+	 *            new output jar or null if none exists
+	 */
+	public static void updateOutJar(IJavaProject project, IClasspathEntry oldOutJar, IClasspathEntry newOutJar) {
+		try {
+			String projectName = project.getElementName();
+			List configs = getLaunchConfigsForProject(projectName);
+			for (Iterator iter = configs.iterator(); iter.hasNext();) {
+				ILaunchConfiguration configuration = (ILaunchConfiguration) iter
+						.next();
+				IRuntimeClasspathEntry[] entries = JavaRuntime
+						.computeUnresolvedRuntimeClasspath(configuration);
+				List entriesAsList = new ArrayList(Arrays.asList(entries));
+	
+				if(oldOutJar != null) {
+					for (Iterator iterator2 = entriesAsList.iterator(); iterator2
+							.hasNext();) {
+						IRuntimeClasspathEntry entry = (IRuntimeClasspathEntry) iterator2
+								.next();
+						if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+							if (oldOutJar.equals(entry.getClasspathEntry())) {
+								iterator2.remove();
+								break;
+							}
+						}
+					}
+				}
+				if(newOutJar != null) {	
+					entriesAsList.add(new RuntimeClasspathEntry(newOutJar));
+				}
+				IRuntimeClasspathEntry[] updatedEntries = (IRuntimeClasspathEntry[]) entriesAsList
+						.toArray(new IRuntimeClasspathEntry[0]);
+				updateConfigurationClasspath(configuration, updatedEntries);
+			}
+		} catch (CoreException cEx) {
+			AJLog.log(cEx.getMessage());
+		}
+	}
+	
+	/**
 	 * Update and save a new classpath for the given launch configuration
 	 * 
 	 * @param configuration

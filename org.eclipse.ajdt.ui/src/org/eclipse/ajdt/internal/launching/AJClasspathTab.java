@@ -191,15 +191,15 @@ public class AJClasspathTab extends JavaClasspathTab {
 	 */
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		refresh(configuration);
-		updateClassPathWithAspectPath(configuration);
+		updateClassPathWithAspectPathAndOutJar(configuration);
 		fClasspathViewer.expandToLevel(2);
 	}
 
 	/**
 	 * Update the launch configuration runtime classpath to contain the contents
-	 * of the aspect path, and save the configuration.
+	 * of the aspect path and the outjar, and save the configuration.
 	 */
-	private void updateClassPathWithAspectPath(
+	private void updateClassPathWithAspectPathAndOutJar(
 			ILaunchConfiguration configuration) {
 		ILaunchConfigurationWorkingCopy wc;
 		try {
@@ -287,7 +287,9 @@ public class AJClasspathTab extends JavaClasspathTab {
 		
 		setLaunchConfiguration(configuration);
 		try {
-			createClasspathModel(configuration);
+			// AspectJ Change - use our own classpath model
+			fModel = LaunchConfigurationClasspathUtils
+					.createClasspathModel(configuration);
 		} catch (CoreException e) {
 			setErrorMessage(e.getMessage());
 		}
@@ -296,25 +298,10 @@ public class AJClasspathTab extends JavaClasspathTab {
 		fClasspathViewer.setInput(fModel);
 		setDirty(false);
 	}
-	
-	private void createClasspathModel(ILaunchConfiguration configuration) throws CoreException {
-		fModel= new AJClasspathModel();
-		IRuntimeClasspathEntry[] entries= JavaRuntime.computeUnresolvedRuntimeClasspath(configuration);
-		IRuntimeClasspathEntry entry;
-		for (int i = 0; i < entries.length; i++) {
-			entry= entries[i];
-			switch (entry.getClasspathProperty()) {
-				case IRuntimeClasspathEntry.USER_CLASSES:				
-					fModel.addEntry(ClasspathModel.USER, entry);
-					break;
-				default:
-					fModel.addEntry(ClasspathModel.BOOTSTRAP, entry);
-					break;
-			}
-		}	
-	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.debug.ui.ILaunchConfigurationTab#performApply(org.eclipse.debug.core.ILaunchConfigurationWorkingCopy)
 	 */
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {

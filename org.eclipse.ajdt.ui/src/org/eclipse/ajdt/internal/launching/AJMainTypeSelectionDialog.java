@@ -11,9 +11,6 @@
 
 package org.eclipse.ajdt.internal.launching;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
@@ -34,8 +31,6 @@ import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 
 	private Object[] types;
-
-	private static Map imgDescriptorsToImages = new HashMap();
 
 	private static class PackageRenderer extends JavaElementLabelProvider {
 		public PackageRenderer() {

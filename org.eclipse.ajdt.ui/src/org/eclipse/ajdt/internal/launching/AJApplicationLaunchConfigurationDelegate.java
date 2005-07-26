@@ -30,7 +30,7 @@ public class AJApplicationLaunchConfigurationDelegate extends
 	 */
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {		
-		LaunchConfigurationClasspathUtils.addAspectPathToClasspath(configuration);
+		LaunchConfigurationClasspathUtils.addAspectPathAndOutJarToClasspath(configuration);
 		super.launch(configuration, mode, launch, monitor);
 	}
 
