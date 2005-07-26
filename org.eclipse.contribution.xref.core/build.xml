@@ -92,10 +92,10 @@ Create a packaged org.eclipse.contribution.xref.core_version plugin distribution
      <exclude name="build.*"/>
      <include name="*.html"/>
      <include name="*.properties"/>
-     <exclude name="plugin.*xml" />
+     <exclude name="META-INF/MANIFEST.MF" />
    </fileset>
  </copy>
- <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
  	<filterset begintoken="9" endtoken="9">
  		<filter token="2.2.2" value="${xref.version}"/>
  	</filterset>

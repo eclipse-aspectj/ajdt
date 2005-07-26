@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %pluginName
+Bundle-SymbolicName: org.eclipse.contribution.xref.core; singleton:=true
+Bundle-Version: 92.2.29
+Bundle-ClassPath: xrefcore.jar
+Bundle-Activator: org.eclipse.contribution.xref.core.XReferencePlugin
+Bundle-Vendor: %providerName
+Bundle-Localization: plugin
+Export-Package: org.eclipse.contribution.xref.core,
+ org.eclipse.contribution.xref.internal.core.policy;x-internal:=true,
+ org.eclipse.contribution.xref.internal.core.ras;x-internal:=true,
+ org.eclipse.contribution.xref.ras
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.aspectj.runtime,
+ org.eclipse.jdt.core
+Eclipse-AutoStart: true
