@@ -12,7 +12,6 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -28,7 +27,7 @@ import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.internal.console.ConsoleView;
-import org.eclipse.ui.part.IPage;
+import org.eclipse.ui.internal.console.IOConsolePage;
 
 /**
  * Visual test for bug 103232 - run projects with outjars properly
@@ -72,11 +71,6 @@ public class OutjarLaunchingTest extends VisualTestCase {
 			postCharacterKey('r');	
 			postKeyUp(SWT.ALT);
 			postCharacterKey('s');
-			if(!runningEclipse31) {
-				postCharacterKey('s');
-				postKey(SWT.ARROW_RIGHT);
-				postKey(SWT.ARROW_DOWN);
-			}		
 			postCharacterKey(SWT.CR);
 			
 			Utils.waitForJobsToComplete();
@@ -89,20 +83,9 @@ public class OutjarLaunchingTest extends VisualTestCase {
 			}
 			assertNotNull("Console view should be open", cview);
 			String output = null;
-			IPage page = cview.getCurrentPage();
-			Class cl = page.getClass();
-			try {
-				Method m = cl.getMethod("getConsoleViewer", new Class[0]);
-				Object o = m.invoke(page, new Object[0]);
-				TextViewer viewer = (TextViewer)o;
-				output = viewer.getDocument().get();
-			} catch (NoSuchMethodException nsme) {
-				// We are on Eclipse 3.1
-				Method m = cl.getMethod("getViewer", new Class[0]);
-				Object o = m.invoke(page, new Object[0]);
-				TextViewer viewer = (TextViewer)o;
-				output = viewer.getDocument().get();
-			}
+			IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
+			TextViewer viewer = page.getViewer();
+			output = viewer.getDocument().get();
 			assertNotNull(output);
 			assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
 		} finally {
