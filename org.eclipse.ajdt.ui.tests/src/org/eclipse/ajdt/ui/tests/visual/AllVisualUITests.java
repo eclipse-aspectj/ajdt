@@ -27,6 +27,8 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		suite.addTest(new TestSuite(Bug100018Test.class));
+		suite.addTest(new TestSuite(OrganiseImportsTest.class));
+		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 		
 		// xref view tests
 		suite.addTest(new TestSuite(XReferenceViewTest.class));

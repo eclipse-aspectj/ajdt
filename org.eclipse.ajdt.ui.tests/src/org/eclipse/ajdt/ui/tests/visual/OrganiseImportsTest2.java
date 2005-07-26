@@ -61,7 +61,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 				}
 			
 			}.waitForCondition(display, 3000);
-			assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1);
+			assertTrue("GameSynchronization.aj should now have one import, has " + cUnit.getImports().length, cUnit.getImports().length == 1);
 			
 			// Post Ctrl+S to save the file
 			postKeyDown(SWT.CTRL);
@@ -81,7 +81,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			
 			}.waitForCondition(display, 3000);
 			IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-			assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
+			assertTrue("GameSynchronization.aj should not have any problems", problemMarkers.length == 0);
 
 		} finally {
 			Utils.waitForJobsToComplete();
