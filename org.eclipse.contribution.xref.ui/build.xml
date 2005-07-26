@@ -72,7 +72,7 @@ Create a packaged org.eclipse.contribution.xref.ui_version plugin distribution f
  -->
  <antcall target="buildproject" />
  <copy file="src/org/eclipse/contribution/xref/internal/ui/text/XRefMessages.properties" 
- 	 tofile="bin/org/eclipse/contribution/xref/ui/internal/ui/text/XRefMessages.properties"
+ 	 tofile="bin/org/eclipse/contribution/xref/internal/ui/text/XRefMessages.properties"
  	 overwrite="true"/>
   <zip destfile= "${build.dir}/xrefui.jar" >
   	<fileset dir="bin"/>
@@ -98,10 +98,10 @@ Create a packaged org.eclipse.contribution.xref.ui_version plugin distribution f
      <exclude name="build.*"/>
      <include name="*.html"/>
      <include name="*.properties"/>
-     <exclude name="plugin.*xml" />
+     <exclude name="META-INF/MANIFEST.MF" />
    </fileset>
  </copy>
- <copy file="plugin.xml" tofile="${build.dir}/plugin.xml">
+ <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
  	<filterset begintoken="9" endtoken="9">
  		<filter token="2.2.2" value="${xref.version}"/>
  	</filterset>
