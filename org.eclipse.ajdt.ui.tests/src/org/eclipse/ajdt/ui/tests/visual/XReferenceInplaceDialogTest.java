@@ -10,17 +10,12 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.Iterator;
-import java.util.List;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
-import org.eclipse.contribution.xref.core.XReferenceProviderManager;
-import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -30,13 +25,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceInplaceDialogTest extends VisualTestCase {
 
 	private IProject project;
 	private int viewSize;
+	private ITextEditor editor;
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
@@ -96,6 +91,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.ESC);
 		
 		assertTrue("Menu has not been presented, as a result the ESC key did not close it it, and the dialog has been closed in it's place", dialog.isOpen());
+		editorPart.close(false);
 	}
 	
 	public XReferenceCustomFilterActionInplace setupDialog() {
@@ -105,9 +101,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		} 
 		IFile ajFile = (IFile)res;
 
-		// open Aspect.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
-		editorPart.setFocus();
+		editor = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editor.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
 		Utils.waitForJobsToComplete();
@@ -136,6 +131,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 	
 	public void testSelectAll() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -159,9 +155,13 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedInplaceFilters().size());
 			}
 		}
+		if(editor != null) {
+			editor.close(false);
+		}
 	}
 	
 	public void testDeselectAll() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -186,9 +186,14 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			}
 		}
 		// Reset to have all filters selected
+		
+		if(editor != null) {
+			editor.close(false);
+		}
 	}
 	
 	public void testRestoreDefaults() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -209,11 +214,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
+		}		
+		if(editor != null) {
+			editor.close(false);
 		}
 	}
 
 	// CheckedList should now be empty
 	public void testChecking() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -235,10 +244,14 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedInplaceFilters().size() == 3);
 			}
 		}
+		if (editor != null) {
+			editor.close(false);
+		}
 	}
 	
 	// CheckedList should now have first three items checked.  Uncheck these...
 	public void testUnChecking() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -260,11 +273,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
 		}
+		if (editor != null) {
+			editor.close(false);
+		}
 	}
 	
 
 	// CheckedList should now be empty
 	public void testCancelDoesNotUpdate() throws CoreException {
+		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -291,6 +308,9 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
+		}
+		if (editor != null) {
+			editor.close(false);
 		}
 	}
 	

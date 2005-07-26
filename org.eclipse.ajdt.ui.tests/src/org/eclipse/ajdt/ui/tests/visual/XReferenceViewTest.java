@@ -11,13 +11,11 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
-import org.eclipse.contribution.xref.core.XReferenceProviderManager;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
