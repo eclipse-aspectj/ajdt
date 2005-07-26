@@ -10,11 +10,14 @@ Adrian Colyer - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
+import org.eclipse.ajdt.internal.ui.actions.ClearEventTraceAction;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace.Event;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.part.ViewPart;
 
 /**
@@ -24,6 +27,7 @@ public class AJDTEventTraceView extends ViewPart
 				implements AJDTEventTrace.EventListener {
 
 	Text text;
+	private ClearEventTraceAction clearEventTraceAction;
 	
 	/**
 	 * Constructor for AJDTEventTraceView.
@@ -42,6 +46,9 @@ public class AJDTEventTraceView extends ViewPart
 	public void createPartControl(Composite parent) {
 		text = new Text( parent, SWT.MULTI | SWT.READ_ONLY | SWT.VERTICAL | SWT.HORIZONTAL );		
 		AJDTEventTrace.addListener( this );
+
+		makeActions();
+		contributeToActionBars();
 	}
 
 	/**
@@ -59,4 +66,18 @@ public class AJDTEventTraceView extends ViewPart
 		text.append( "\n" );
 	}
 
+	// Implementing feature 99129
+	
+	private void makeActions() {
+		clearEventTraceAction = new ClearEventTraceAction(text);
+	}
+
+	private void contributeToActionBars() {
+		IActionBars bars = getViewSite().getActionBars();
+		fillLocalToolBar(bars.getToolBarManager());
+	}
+
+	private void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(clearEventTraceAction);
+	}
 }
