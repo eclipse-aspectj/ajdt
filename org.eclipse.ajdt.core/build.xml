@@ -75,8 +75,8 @@ Create a packaged org.eclipse.ajdt.core_version plugin distribution file
       run of Ant (e.g. in a Cruise Control environment).
  -->
  <antcall target="buildproject" />
- <copy file="src/org/eclipse/ajdt/core/resources/AspectJPluginResources.properties" 
- 	 tofile="bin/org/eclipse/ajdt/core/resources/AspectJPluginResources.properties"
+ <copy file="src/org/eclipse/ajdt/core/text/CoreMessages.properties" 
+ 	 tofile="bin/org/eclipse/ajdt/core/text/CoreMessages.properties"
  	 overwrite="true"/>
   <zip destfile= "${build.dir}/ajdtcore.jar" >
   	<fileset dir="bin"/>

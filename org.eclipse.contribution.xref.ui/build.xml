@@ -71,8 +71,8 @@ Create a packaged org.eclipse.contribution.xref.ui_version plugin distribution f
       run of Ant (e.g. in a Cruise Control environment).
  -->
  <antcall target="buildproject" />
- <copy file="src/org/eclipse/contribution/xref/ui/XReferenceUIPluginResources.properties" 
- 	 tofile="bin/org/eclipse/contribution/xref/ui/XReferenceUIPluginResources.properties"
+ <copy file="src/org/eclipse/contribution/xref/internal/ui/text/XRefMessages.properties" 
+ 	 tofile="bin/org/eclipse/contribution/xref/internal/ui/text/XRefMessages.properties"
  	 overwrite="true"/>
   <zip destfile= "${build.dir}/xrefui.jar" >
   	<fileset dir="bin"/>

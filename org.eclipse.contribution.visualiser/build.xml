@@ -71,8 +71,8 @@ Create a packaged org.eclipse.contribution.visualiser_version plugin distributio
       run of Ant (e.g. in a Cruise Control environment).
  -->
  <antcall target="buildproject" />
- <copy file="src/org/eclipse/contribution/visualiser/VisualiserPluginResources.properties" 
- 	 tofile="bin/org/eclipse/contribution/visualiser/VisualiserPluginResources.properties"
+ <copy file="src/org/eclipse/contribution/visualiser/text/VisualiserMessages.properties" 
+ 	 tofile="bin/org/eclipse/contribution/visualiser/text/VisualiserMessages.properties"
  	 overwrite="true"/>
   <zip destfile= "${build.dir}/Visualiser.jar" >
   	<fileset dir="bin"/>
