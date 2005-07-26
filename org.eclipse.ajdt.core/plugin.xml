@@ -1,29 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
-<plugin
-   id="org.eclipse.ajdt.core"
-   name="%pluginName"
-   version="92.2.29"
-   provider-name="Eclipse.org"
-   class="org.eclipse.ajdt.core.AspectJPlugin">
+<plugin>
 
-   <runtime>
-      <library name="ajdtcore.jar">
-         <export name="*"/>
-      </library>
-   </runtime>
-
-   <requires>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.pde.build"/>
-      <import plugin="org.eclipse.update.core"/>
-      <import plugin="org.aspectj.ajde"/>
-      <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.eclipse.jdt.core"/>
-      <import plugin="org.eclipse.team.core" optional="true"/>
-   </requires>
-
-   <!-- ASPECTJRT_LIB classpath variable -->
+     <!-- ASPECTJRT_LIB classpath variable -->
    <extension point="org.eclipse.jdt.core.classpathVariableInitializer">
      <classpathVariableInitializer variable="ASPECTJRT_LIB"
        class="org.eclipse.ajdt.internal.core.AspectJRTInitializer"/>
