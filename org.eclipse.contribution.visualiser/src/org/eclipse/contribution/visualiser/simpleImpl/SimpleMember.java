@@ -12,6 +12,7 @@ package org.eclipse.contribution.visualiser.simpleImpl;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.*;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 
 /**
  * Simple implementation of a member.  See the IMember interface for more information.
@@ -39,8 +40,8 @@ public class SimpleMember implements IMember {
 	 * name and size.
 	 */
 	public String toString() {
-		return VisualiserPlugin.getResourceString("SimpleMember") + ":[" //$NON-NLS-1$ //$NON-NLS-2$
-                + fullname + "] " + VisualiserPlugin.getResourceString("Size") //$NON-NLS-1$ //$NON-NLS-2$
+		return VisualiserMessages.SimpleMember + ":[" //$NON-NLS-1$
+                + fullname + "] " + VisualiserMessages.Size //$NON-NLS-1$
                 + ":[" + size.toString() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
     }
 	

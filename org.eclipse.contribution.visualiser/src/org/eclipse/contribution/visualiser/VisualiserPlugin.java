@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.contribution.visualiser.views.Menu;
 import org.eclipse.contribution.visualiser.views.Visualiser;
 import org.eclipse.core.resources.IWorkspace;
@@ -45,20 +46,13 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	
 	private static VisualiserPlugin plugin;
 	
-	private ResourceBundle resourceBundle;
-	
 	
 	/**
-	 * 3.0 compatible Plugin constructor - load the resource bundle 
+	 * 3.0 compatible Plugin constructor
 	 */
 	public VisualiserPlugin() {
 		super();
 		plugin = this;
-		try {
-			resourceBundle= ResourceBundle.getBundle("org.eclipse.contribution.visualiser.VisualiserPluginResources"); //$NON-NLS-1$
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}				
 	}
 
 	/**
@@ -103,38 +97,6 @@ public class VisualiserPlugin extends AbstractUIPlugin {
 	public static IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
 	}
-
-
-	/**
-	 * Returns the string from the plugin's resource bundle,
-	 * or 'key' if not found.
-	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle = VisualiserPlugin.getDefault().getResourceBundle();
-		if (bundle == null) return key;
-		try {
-			return bundle.getString(key);
-		} catch (MissingResourceException e) {
-			return key;
-		}
-	}
-
-
-	/**
-	 * Returns the plugin's resource bundle,
-	 */
-	public ResourceBundle getResourceBundle() {
-		return resourceBundle;
-	}
-
-
-	/**
-	 * Simple trace routine - we can turn trace on and off by commenting out the body.
-	 */
-	public static void trace(String string) {
-		System.err.println(string);
-	}
-
 
 	/**
 	 * Set the Visualiser view
@@ -245,7 +207,7 @@ class VisualiserUpdateJob extends Job {
 		 
 		 public static VisualiserUpdateJob getInstance() {
 		 		 if(theJob == null) {
-		 		 		 theJob = new VisualiserUpdateJob(VisualiserPlugin.getResourceString("Jobs.VisualiserUpdate")); //$NON-NLS-1$
+		 		 		 theJob = new VisualiserUpdateJob(VisualiserMessages.Jobs_VisualiserUpdate);
 		 		 		 theJob.setUser(true);
 		 		 		 theJob.setPriority(Job.INTERACTIVE);
 		 		 }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 
 /**
  * The stripe class represents a mark on a bar, stripes can be any depth and be
@@ -173,7 +174,7 @@ public class Stripe implements Comparable {
 	 * Get a String representation of this Stripe
 	 */
 	public String toString() {
-		return VisualiserPlugin.getResourceString("Stripe") + ": [" + offset + ":" + depth + ":" + (offset + depth) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		return VisualiserMessages.Stripe + ": [" + offset + ":" + depth + ":" + (offset + depth) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				+ ":" + stringifyKinds() + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 

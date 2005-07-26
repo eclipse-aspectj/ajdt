@@ -11,6 +11,7 @@
 package org.eclipse.contribution.visualiser.internal.preference;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.preference.IPreferencePageContainer;
@@ -79,7 +80,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 	 */
 	protected void configureShell(Shell shell) {
 	   super.configureShell(shell);
-	   shell.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.title")); //$NON-NLS-1$
+	   shell.setText(VisualiserMessages.VisualiserPreferencePage_title);
 	}
 
 	
@@ -260,7 +261,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 		result.setLayout(new FillLayout());
 		visPage = new VisualiserPreferencePage();
 		visPage.setContainer(this);
-		visPage.setTitle(VisualiserPlugin.getResourceString("VisualiserPreferencePage.title")); //$NON-NLS-1$
+		visPage.setTitle(VisualiserMessages.VisualiserPreferencePage_title);
 		if (visPage.getControl() == null) {
 			visPage.createControl(result);
 		}

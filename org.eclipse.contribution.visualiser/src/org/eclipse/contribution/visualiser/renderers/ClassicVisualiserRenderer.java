@@ -13,6 +13,7 @@ package org.eclipse.contribution.visualiser.renderers;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
@@ -55,8 +56,7 @@ public class ClassicVisualiserRenderer implements IVisualiserRenderer {
 			Image tmpImg = new Image(Display.getCurrent(), 1, 1);
 			GC gc = new GC(tmpImg);
 			gc.setFont(sysFont);
-			String s = VisualiserPlugin
-					.getResourceString("Visualiser.testString"); //$NON-NLS-1$
+			String s = VisualiserMessages.Visualiser_testString;
 			// determine string height, and scale up a little to increase
 			// padding
 			columnTitleHeight = (gc.stringExtent(s).y * 11) / 10 + 4;

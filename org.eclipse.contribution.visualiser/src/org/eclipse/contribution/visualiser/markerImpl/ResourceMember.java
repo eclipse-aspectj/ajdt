@@ -13,6 +13,7 @@ package org.eclipse.contribution.visualiser.markerImpl;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.resources.IResource;
 
 
@@ -57,6 +58,6 @@ public class ResourceMember extends SimpleMember {
 	}
 	
 	public String toString() {
-		return VisualiserPlugin.getResourceString("ResourceMember") + ":[" + resource.getFullPath() + "] " + VisualiserPlugin.getResourceString("Size") + ":[" + size.toString()+"]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		return VisualiserMessages.ResourceMember + ":[" + resource.getFullPath() + "] " + VisualiserMessages.Size + ":[" + size.toString()+"]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 }

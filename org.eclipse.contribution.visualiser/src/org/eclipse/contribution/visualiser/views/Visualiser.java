@@ -27,6 +27,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -188,10 +189,8 @@ public class Visualiser extends ViewPart {
 				vpd.open();
 			}
 		};
-		preferencesAction.setText(VisualiserPlugin
-				.getResourceString("Preferences_24")); //$NON-NLS-1$
-		preferencesAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Preferences_Tip_25")); //$NON-NLS-1$
+		preferencesAction.setText(VisualiserMessages.Preferences_24);
+		preferencesAction.setToolTipText(VisualiserMessages.Preferences_Tip_25);
 		preferencesAction.setImageDescriptor(VisualiserImages.PREFERENCES);
 	}
 
@@ -216,10 +215,9 @@ public class Visualiser extends ViewPart {
 									  // in_limit_mode);
 			}
 		};
-		limitAction.setText(VisualiserPlugin.getResourceString("Limit_view_9")); //$NON-NLS-1$
+		limitAction.setText(VisualiserMessages.Limit_view_9);
 		limitAction
-				.setToolTipText(VisualiserPlugin
-						.getResourceString("Limits_visualisation_to_affected_bars_only_10")); //$NON-NLS-1$
+				.setToolTipText(VisualiserMessages.Limits_visualisation_to_affected_bars_only_10);
 		limitAction.setImageDescriptor(VisualiserImages.LIMIT_MODE);
 	}
 
@@ -235,8 +233,7 @@ public class Visualiser extends ViewPart {
 				fitToView = !fitToView;
 				if (fitToView) {
 					zString = zoomString;
-					setZoomString(VisualiserPlugin
-							.getResourceString("Zoom.fittoview")); //$NON-NLS-1$
+					setZoomString(VisualiserMessages.Zoom_fittoview);
 				} else {
 					setZoomString(zString);
 				}
@@ -249,10 +246,8 @@ public class Visualiser extends ViewPart {
 				return IAction.AS_CHECK_BOX;
 			}
 		};
-		fitToViewAction.setText(VisualiserPlugin
-				.getResourceString("Absolute_Proportions")); //$NON-NLS-1$
-		fitToViewAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Absolute_Proportions")); //$NON-NLS-1$
+		fitToViewAction.setText(VisualiserMessages.Absolute_Proportions);
+		fitToViewAction.setToolTipText(VisualiserMessages.Absolute_Proportions);
 		fitToViewAction
 				.setImageDescriptor(VisualiserImages.FIT_TO_VIEW);
 	}
@@ -271,10 +266,8 @@ public class Visualiser extends ViewPart {
 				updateDisplay(false);
 			}
 		};
-		memberViewAction.setText(VisualiserPlugin
-				.getResourceString("Class_View_15")); //$NON-NLS-1$
-		memberViewAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Changes_to_member_view_16")); //$NON-NLS-1$
+		memberViewAction.setText(VisualiserMessages.Class_View_15);
+		memberViewAction.setToolTipText(VisualiserMessages.Changes_to_member_view_16);
 		memberViewAction.setImageDescriptor(memberViewImage);
 	}
 
@@ -300,10 +293,8 @@ public class Visualiser extends ViewPart {
 				updateDisplay(false);
 			}
 		};
-		groupViewAction.setText(VisualiserPlugin
-				.getResourceString("Package_View_12")); //$NON-NLS-1$
-		groupViewAction.setToolTipText(VisualiserPlugin
-				.getResourceString("Changes_to_group_view_13")); //$NON-NLS-1$
+		groupViewAction.setText(VisualiserMessages.Package_View_12);
+		groupViewAction.setToolTipText(VisualiserMessages.Changes_to_group_view_13);
 		groupViewAction.setImageDescriptor(groupViewImage);
 	}
 
@@ -317,8 +308,8 @@ public class Visualiser extends ViewPart {
 				visCanvas.zoomOut();
 			}
 		};
-		zoomOutAction.setText(VisualiserPlugin.getResourceString("Zoom_Out_6")); //$NON-NLS-1$
-		zoomOutAction.setToolTipText(VisualiserPlugin.getResourceString("Zooms_out_7")); //$NON-NLS-1$
+		zoomOutAction.setText(VisualiserMessages.Zoom_Out_6);
+		zoomOutAction.setToolTipText(VisualiserMessages.Zooms_out_7);
 		zoomOutAction.setImageDescriptor(VisualiserImages.ZOOM_OUT);
 	}
 		
@@ -332,8 +323,8 @@ public class Visualiser extends ViewPart {
 				visCanvas.zoomIn();
 			}
 		};
-		zoomInAction.setText(VisualiserPlugin.getResourceString("Zoom_In_3")); //$NON-NLS-1$
-		zoomInAction.setToolTipText(VisualiserPlugin.getResourceString("Zooms_in_on_visualisation_4")); //$NON-NLS-1$
+		zoomInAction.setText(VisualiserMessages.Zoom_In_3);
+		zoomInAction.setToolTipText(VisualiserMessages.Zooms_in_on_visualisation_4);
 		zoomInAction.setImageDescriptor(VisualiserImages.ZOOM_IN);
 	}
 
@@ -374,7 +365,7 @@ public class Visualiser extends ViewPart {
 	}
 
 	private void refreshTitle() {
-		String s = VisualiserPlugin.getResourceString("Visualiser") //$NON-NLS-1$
+		String s = VisualiserMessages.Visualiser
 				+ " - " + title; //$NON-NLS-1$
 		if ((zoomString != null) && (zoomString.length() > 0)) {
 			s += " (" + zoomString + ")"; //$NON-NLS-1$//$NON-NLS-2$
@@ -442,7 +433,7 @@ public class Visualiser extends ViewPart {
 
 	 private synchronized Job getVisualiserRedrawJob() {
  		 if (redrawJob == null) {
-	 		 redrawJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserRedraw")) { //$NON-NLS-1$
+	 		 redrawJob = new UIJob(VisualiserMessages.Jobs_VisualiserRedraw) {
 
  		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
  		 		 		if ((visCanvas!=null) && !visCanvas.isDisposed()) {
@@ -464,8 +455,8 @@ public class Visualiser extends ViewPart {
 	 * Update the display
 	 */
 	public void updateDisplay(final boolean updateMenu, IProgressMonitor monitor) {
-		monitor.beginTask(VisualiserPlugin.getResourceString("Jobs.Update"), 3); //$NON-NLS-1$
-		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.GettingData")); //$NON-NLS-1$
+		monitor.beginTask(VisualiserMessages.Jobs_Update, 3);
+		monitor.setTaskName(VisualiserMessages.Jobs_GettingData);
 		if (inGroupView) {
 			if (inLimitMode) {
 				data = limitData(contentP.getAllGroups());
@@ -480,13 +471,13 @@ public class Visualiser extends ViewPart {
 			}
 		}
 		monitor.worked(1);
-		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.UpdatingMenu")); //$NON-NLS-1$
+		monitor.setTaskName(VisualiserMessages.Jobs_UpdatingMenu);
 		if (VisualiserPlugin.menu != null && updateMenu) {
 			VisualiserPlugin.menu.reset();
 			VisualiserPlugin.menu.ensureUptodate();
 		}
 		monitor.worked(1);
-		monitor.setTaskName(VisualiserPlugin.getResourceString("Jobs.Drawing")); //$NON-NLS-1$
+		monitor.setTaskName(VisualiserMessages.Jobs_Drawing);
 		draw();	
 		monitor.done();
 	}

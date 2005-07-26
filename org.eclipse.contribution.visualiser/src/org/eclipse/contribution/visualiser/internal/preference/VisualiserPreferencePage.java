@@ -26,6 +26,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
@@ -97,11 +98,11 @@ public class VisualiserPreferencePage extends PreferencePage
 		Control drawingOptionsControl= createDrawingOptionsControl(folder);
 
 		TabItem item= new TabItem(folder, SWT.NONE);
-		item.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.providers")); //$NON-NLS-1$ 
+		item.setText(VisualiserMessages.VisualiserPreferencePage_providers);
 		item.setControl(providerControl);
 
 		item= new TabItem(folder, SWT.NONE);
-		item.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.drawingOptions")); //$NON-NLS-1$
+		item.setText(VisualiserMessages.VisualiserPreferencePage_drawingOptions);
 		item.setControl(drawingOptionsControl);
 		
 		populateProviders();
@@ -163,7 +164,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		Group styleGroup = new Group(drawingComposite, SWT.NONE);
 		styleGroup.setLayout (new GridLayout ());
 		styleGroup.setLayoutData (new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL));
-		styleGroup.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.drawingStyle")); //$NON-NLS-1$
+		styleGroup.setText(VisualiserMessages.VisualiserPreferencePage_drawingStyle);
 		
 		styleList = new List(styleGroup, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
@@ -180,7 +181,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		colourGroup.setLayout (new GridLayout ());
 		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		colourGroup.setLayoutData (gd);
-		colourGroup.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.colorSet")); //$NON-NLS-1$
+		colourGroup.setText(VisualiserMessages.VisualiserPreferencePage_colorSet);
 		
 		colourList = new List(colourGroup, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
@@ -193,7 +194,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		stripeHGroup.setLayout (new GridLayout ());
 		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		stripeHGroup.setLayoutData(gd);
-		stripeHGroup.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.stripeHeight")); //$NON-NLS-1$
+		stripeHGroup.setText(VisualiserMessages.VisualiserPreferencePage_stripeHeight);
 
 		stripeHeight = new Scale(stripeHGroup, SWT.HORIZONTAL);
 		stripeHeight.setMinimum(1);
@@ -207,7 +208,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		prefWidthGroup.setLayout (new GridLayout ());
 		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		prefWidthGroup.setLayoutData(gd);
-		prefWidthGroup.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.colWidth")); //$NON-NLS-1$
+		prefWidthGroup.setText(VisualiserMessages.VisualiserPreferencePage_colWidth);
 
 		prefWidth = new Scale(prefWidthGroup, SWT.HORIZONTAL);
 		prefWidth.setMinimum(VisualiserPreferences.getMinBarSize());
@@ -223,7 +224,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		gd.grabExcessVerticalSpace = true; 
 		gd.horizontalSpan=2;
 		canvasGroup.setLayoutData(gd);
-		canvasGroup.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.preview")); //$NON-NLS-1$
+		canvasGroup.setText(VisualiserMessages.VisualiserPreferencePage_preview);
 
 		preview = new VisualiserPreview(canvasGroup);
 		gd = new GridData(GridData.FILL_BOTH);
@@ -260,8 +261,8 @@ public class VisualiserPreferencePage extends PreferencePage
 	}
 
 	class VisualiserPreview extends Canvas {
-		private SimpleMember m = new SimpleMember(VisualiserPlugin.getResourceString("VisualiserPreferencePage.preview.col1")); //$NON-NLS-1$
-		private SimpleMember m2 = new SimpleMember(VisualiserPlugin.getResourceString("VisualiserPreferencePage.preview.col2")); //$NON-NLS-1$
+		private SimpleMember m = new SimpleMember(VisualiserMessages.VisualiserPreferencePage_preview_col1);
+		private SimpleMember m2 = new SimpleMember(VisualiserMessages.VisualiserPreferencePage_preview_col2);
 
 		private IVisualiserPalette ivp;
 		private Color[] cols;
@@ -382,8 +383,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		providersComposite.setFont(mainFont);
 		
 		Label providersLabel = new Label(providersComposite, SWT.NONE);
-		providersLabel.setText(
-		VisualiserPlugin.getResourceString("VisualiserPreferencePage.providersLabel")); //$NON-NLS-1$
+		providersLabel.setText(VisualiserMessages.VisualiserPreferencePage_providersLabel);
 		providersLabel.setFont(mainFont);
 		
 		// Checkbox table viewer of decorators
@@ -468,8 +468,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		textComposite.setFont(mainFont);
 		
 		Label descriptionLabel = new Label(textComposite, SWT.NONE);
-		descriptionLabel.setText(
-			VisualiserPlugin.getResourceString("VisualiserPreferencePage.description")); //$NON-NLS-1$
+		descriptionLabel.setText(VisualiserMessages.VisualiserPreferencePage_description);
 		descriptionLabel.setFont(mainFont);
 		
 		descriptionText =
@@ -503,9 +502,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		}
 		String text = definition.getDescription();
 		if (text == null || text.length() == 0)
-			descriptionText.setText(
-				VisualiserPlugin.getResourceString(
-					"VisualiserPreferencePage.noDescription")); //$NON-NLS-1$
+			descriptionText.setText(VisualiserMessages.VisualiserPreferencePage_noDescription);
 		else
 			descriptionText.setText(text);
 	}

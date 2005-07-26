@@ -22,6 +22,7 @@ import org.eclipse.contribution.visualiser.core.resources.VisualiserImages;
 import org.eclipse.contribution.visualiser.interfaces.IContentProvider;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.contribution.visualiser.utils.JDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -320,7 +321,7 @@ public class JDTContentProvider
 			if (ipf.getKind() != IPackageFragmentRoot.K_BINARY) {
 				if (ipf.isDefaultPackage()) {
 					if (ipf.containsJavaResources()) {
-						jdtg = new JDTGroup("[" + VisualiserPlugin.getResourceString("default") + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						jdtg = new JDTGroup("[" + VisualiserMessages.Default + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 				} else {
 					jdtg = new JDTGroup(ipf.getElementName()/*resource.getName()*/);

@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.*;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 
 /**
  * Simple implementation of a group, see IGroup/IMember for more information.
@@ -140,10 +141,10 @@ public class SimpleGroup implements IGroup {
 	 * the size and the number of members.
 	 */
 	public String toString() {
-		return VisualiserPlugin.getResourceString("SimpleGroup") + ":[" + name //$NON-NLS-1$ //$NON-NLS-2$
-                + "] " + VisualiserPlugin.getResourceString("Size") + ":["//$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		return VisualiserMessages.SimpleGroup + ":[" + name //$NON-NLS-1$
+                + "] " + VisualiserMessages.Size + ":["//$NON-NLS-1$ //$NON-NLS-2$
                 + getSize() + "]  "//$NON-NLS-1$
-                + VisualiserPlugin.getResourceString("Children") + ":["//$NON-NLS-1$ //$NON-NLS-2$
+                + VisualiserMessages.Children + ":["//$NON-NLS-1$
                 + kids.size() + "]";//$NON-NLS-1$
 	}
 

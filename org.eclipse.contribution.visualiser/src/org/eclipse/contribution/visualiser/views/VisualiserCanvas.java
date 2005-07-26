@@ -31,6 +31,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
@@ -244,7 +245,7 @@ public class VisualiserCanvas extends Canvas {
 				}
 			}
 		};
-		onlyShowAction.setText(VisualiserPlugin.getResourceString("OnlyShow")); //$NON-NLS-1$
+		onlyShowAction.setText(VisualiserMessages.OnlyShow);
 		// add the actions to the menu
 		menuMgr.add(onlyShowAction);
 		contextMenu = menuMgr.createContextMenu(this);
@@ -925,7 +926,7 @@ public class VisualiserCanvas extends Canvas {
 							kg.color = visualiser.getVisMarkupProvider()
 									.getColorFor(kind);
 							if(kg.color == null) {
-								throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
+								throw new NullPointerException(VisualiserMessages.getColorForError);
 							}
 							int nw = (((across + 1) * colWidth) / activeKinds)
 									- ((across * colWidth) / activeKinds);

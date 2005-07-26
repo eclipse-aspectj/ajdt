@@ -21,6 +21,7 @@ import java.util.Set;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -185,8 +186,8 @@ public class Menu extends ViewPart {
 				showAll();
 			}
 		};
-		selectAllAction.setText(VisualiserPlugin.getResourceString("Select_All_20")); //$NON-NLS-1$
-		selectAllAction.setToolTipText(VisualiserPlugin.getResourceString("Select_All_20")); //$NON-NLS-1$		
+		selectAllAction.setText(VisualiserMessages.Select_All_20);
+		selectAllAction.setToolTipText(VisualiserMessages.Select_All_20);
 		selectNoneAction = new Action() {
 			public int getStyle() {
 				return IAction.AS_PUSH_BUTTON;
@@ -195,8 +196,8 @@ public class Menu extends ViewPart {
 				showNone();
 			}
 		};
-		selectNoneAction.setText(VisualiserPlugin.getResourceString("Select_None_21")); //$NON-NLS-1$
-		selectNoneAction.setToolTipText(VisualiserPlugin.getResourceString("Select_None_21")); //$NON-NLS-1$	
+		selectNoneAction.setText(VisualiserMessages.Select_None_21);
+		selectNoneAction.setToolTipText(VisualiserMessages.Select_None_21);
 	}
 
 
@@ -332,7 +333,7 @@ public class Menu extends ViewPart {
 
 		 private synchronized Job getUpdateJob() {
 		 		 if (updateJob == null) {
-	 		 		 updateJob = new UIJob(VisualiserPlugin.getResourceString("Jobs.VisualiserMenuUpdate")){ //$NON-NLS-1$
+	 		 		 updateJob = new UIJob(VisualiserMessages.Jobs_VisualiserMenuUpdate){
  		 		 		 public IStatus runInUIThread(IProgressMonitor monitor) {
 	 		 		 		if ((canvas==null) || canvas.isDisposed()) {
 	 		 		 			return Status.OK_STATUS;
@@ -406,7 +407,7 @@ public class Menu extends ViewPart {
 		 		 		 int imageSize = 12;
 		 		 		 colors[i] = vmp.getColorFor(element);
 		 		 		 if(colors[i] == null) {
-		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
+		 		 		 		 throw new NullPointerException(VisualiserMessages.getColorForError);
 		 		 		 }
 		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
 		 		 		 shells[i] = buttons[i].getShell();
