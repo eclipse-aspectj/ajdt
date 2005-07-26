@@ -2,7 +2,7 @@ package org.eclipse.ajdt.internal.ui.dialogs;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.builder.BuilderUtils;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -53,7 +53,7 @@ public class AJCUTypeInfo extends IFileTypeInfo {
 
 				for (int i = 0; i < types.length; i++) {
 					if(types[i].getElementName().equals(getTypeName())) {
-						char[][] typesEnclosingTypes = BuilderUtils.getEnclosingTypes(types[i]);
+						char[][] typesEnclosingTypes = AJDTUtils.getEnclosingTypes(types[i]);
 						if(typesEnclosingTypes.length == enclosingTypes.length) {
 							return types[i] instanceof AspectElement;
 						}

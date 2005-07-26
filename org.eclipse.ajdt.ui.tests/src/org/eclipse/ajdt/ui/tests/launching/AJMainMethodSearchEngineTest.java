@@ -76,11 +76,11 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 	
 		int constraints = IJavaSearchScope.SOURCES;
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
-		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, constraints, true);
+		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be one result, found " + results.length, results.length == 1);
 		pbc.setActiveBuildConfiguration(tracev1);
 		Utils.waitForJobsToComplete();
-		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, constraints, true);
+		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
 		Utils.deleteProject(project);
 		if(field != null) {

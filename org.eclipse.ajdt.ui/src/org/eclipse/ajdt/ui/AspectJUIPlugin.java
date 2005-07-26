@@ -28,7 +28,6 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.buildconfig.BCResourceChangeListener;
 import org.eclipse.ajdt.internal.buildconfig.BCWorkbenchWindowInitializer;
-import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.javamodel.FileFilter;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
@@ -581,7 +580,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
-		BuilderUtils.initTypesCache();
 		
 		AJDTUtils.refreshPackageExplorer();
 	}

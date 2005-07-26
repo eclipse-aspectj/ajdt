@@ -239,7 +239,6 @@ public class UIBuildListener implements IAJBuildListener {
 					}
 				});
 		}
-		BuilderUtils.updateTypesCache(JavaCore.create(project));
 	}
 
 

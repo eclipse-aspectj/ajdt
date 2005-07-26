@@ -25,9 +25,9 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.builder.BuilderUtils;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -700,7 +700,7 @@ public class TypeInfoViewer {
 									IType[] types = unit.getAllTypes();
 									for (int j = 0; j < types.length; j++) {
 										IType type = types[j];
-										char[][] enclosingTypes = BuilderUtils.getEnclosingTypes(type);
+										char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
 										int kind = 0;
 										if (type.isClass()) {
 											kind = IGenericType.CLASS_DECL;

@@ -51,6 +51,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
@@ -898,5 +899,29 @@ public class AJDTUtils {
 			//System.out.println("refresh explorer: elapsed="+previousExecutionTime);
 			return Status.OK_STATUS;
 		}
+	}
+
+	/**
+	 * @param types
+	 * @param j
+	 * @return
+	 */
+	public static char[][] getEnclosingTypes(IType startType) {
+		char[][] enclosingTypes = new char[0][];
+		IType type = startType.getDeclaringType();
+		List enclosingTypeList = new ArrayList();
+		while(type != null) {
+			char[] typeName = type.getElementName().toCharArray();
+			enclosingTypeList.add(0, typeName);
+			type = type.getDeclaringType();
+		}
+		if(enclosingTypeList.size() > 0) {
+			enclosingTypes = new char[enclosingTypeList.size()][];
+			for (int k = 0; k < enclosingTypeList.size(); k++) {
+				char[] typeName = (char[]) enclosingTypeList.get(k);
+				enclosingTypes[k] = typeName;
+			}
+		}
+		return enclosingTypes;
 	}
 }
