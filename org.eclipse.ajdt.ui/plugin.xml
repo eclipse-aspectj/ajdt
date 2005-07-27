@@ -1410,7 +1410,12 @@
        <toc file="topics_Tasks.xml" />    
        <toc file="topics_Concepts.xml" />    
    </extension> 
-   
+  	
+  	<extension point="org.eclipse.help.contexts"> 
+		<contexts file="contexts_AJDT.xml" plugin="org.eclipse.ajdt.ui"/> 
+		<contexts file="contexts_XRef.xml" plugin="org.eclipse.contribution.xref.ui"/> 
+	</extension>
+	 
 <extension 
 	point="org.eclipse.ui.perspectives">
 	<perspective

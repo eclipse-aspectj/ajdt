@@ -28,6 +28,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor.contentassist;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor.outline;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor.quickfix;x-internal:=true,
+ org.eclipse.ajdt.internal.ui.help;x-internal:=true,
  org.eclipse.ajdt.internal.ui.navigator;x-internal:=true,
  org.eclipse.ajdt.internal.ui.preferences;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ras;x-internal:=true,
@@ -81,5 +82,6 @@ Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.ajdt.core,
  org.aspectj.runtime,
  org.eclipse.contribution.xref.core,
- org.eclipse.contribution.xref.ui
+ org.eclipse.contribution.xref.ui,
+ org.eclipse.help
 Eclipse-AutoStart: true

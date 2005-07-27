@@ -22,21 +22,26 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
+import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
+import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jdt.internal.ui.util.JavaUIHelp;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
@@ -158,14 +163,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		return super.getDocumentProvider();
 	}
 	
-	/**
-	 * Get an adapter - if they want an outliner, give them ours! Other adapters
-	 * we could consider providing:
-	 * <ol>
-	 * <li>ITextOperationTarget</li>
-	 * <li>IFindReplaceTarget</li>
-	 * </ol>
-	 */
 	public Object getAdapter(Class key) {
 		if (key.equals(ITextOperationTarget.class)) {
 			// use our own wrapper around the one returned by the superclass
@@ -184,6 +181,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 			return o;
 		}
+		if (key.equals(IContextProvider.class)) {
+			return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.ASPECTJ_EDITOR);
+		}
+
 		return super.getAdapter(key);
 	}
 

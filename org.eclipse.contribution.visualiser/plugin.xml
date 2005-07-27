@@ -112,6 +112,10 @@
             file="doc/toc_reference.xml">
       </toc>
    </extension>
+   
+ 	<extension point="org.eclipse.help.contexts"> 
+		<contexts file="contexts_Visualiser.xml" plugin="org.eclipse.contribution.visualiser"/>
+	</extension>
 
    <extension
          point="org.eclipse.contribution.visualiser.renderers">

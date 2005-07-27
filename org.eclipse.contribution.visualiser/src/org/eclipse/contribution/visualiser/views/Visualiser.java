@@ -25,6 +25,8 @@ import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextIds;
+import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
@@ -33,12 +35,16 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
@@ -123,6 +129,19 @@ public class Visualiser extends ViewPart {
 		memberViewAction.setChecked(true);
 		String title = ProviderManager.getCurrent().getTitle();
 		refreshTitle(title);
+		
+		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
+		getSite().setSelectionProvider(new ISelectionProvider() {
+			public void addSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public ISelection getSelection() {
+				return null;
+			}
+			public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public void setSelection(ISelection selection) {
+			}
+		});
 	}
 
 	public void setNeedsUpdating() {
@@ -673,4 +692,10 @@ public class Visualiser extends ViewPart {
 			System.err.println(string);
 	}
 
+	public Object getAdapter(Class key) {
+		if (key.equals(IContextProvider.class)) {
+			return VisualiserHelp.getHelpContextProvider(this, IVisualiserHelpContextIds.VISUALISER_VIEW);
+		}
+		return super.getAdapter(key);
+	}
 }

@@ -23,6 +23,8 @@ import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.ModelComparison;
+import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
+import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -30,11 +32,15 @@ import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
@@ -224,6 +230,19 @@ public class ChangesView extends ViewPart {
 		});
 		makeActions();
 		contributeToActionBars();
+
+		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
+		getSite().setSelectionProvider(new ISelectionProvider() {
+			public void addSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public ISelection getSelection() {
+				return null;
+			}
+			public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public void setSelection(ISelection selection) {
+			}
+		});
 	}
 
 	private void navigateTo(int row, int column) {
@@ -430,4 +449,12 @@ public class ChangesView extends ViewPart {
 				populatingList, checkedList, defaultCheckedList, dlogTitle,
 				dlogMessage);
 	}
+	
+	public Object getAdapter(Class key) {
+		if (key.equals(IContextProvider.class)) {
+			return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.CROSSCUTTING_COMPARISON_VIEW);
+		}
+		return super.getAdapter(key);
+	}
+
 }

@@ -8,6 +8,7 @@ Bundle-Activator: org.eclipse.contribution.xref.ui.XReferenceUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-internal:=true,
+ org.eclipse.contribution.xref.internal.ui.help;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.inplace;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.preference;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.providers;x-internal:=true,
@@ -28,5 +29,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.editors,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.ide,
- org.eclipse.ui.views
+ org.eclipse.ui.views,
+ org.eclipse.help
 Eclipse-AutoStart: true

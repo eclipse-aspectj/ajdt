@@ -11,9 +11,15 @@ Adrian Colyer - initial version
 package org.eclipse.ajdt.internal.ui;
 
 import org.eclipse.ajdt.internal.ui.actions.ClearEventTraceAction;
+import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
+import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace.Event;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -49,6 +55,19 @@ public class AJDTEventTraceView extends ViewPart
 
 		makeActions();
 		contributeToActionBars();
+		
+		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
+		getSite().setSelectionProvider(new ISelectionProvider() {
+			public void addSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public ISelection getSelection() {
+				return null;
+			}
+			public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public void setSelection(ISelection selection) {
+			}
+		});
 	}
 
 	/**
@@ -79,5 +98,12 @@ public class AJDTEventTraceView extends ViewPart
 
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(clearEventTraceAction);
+	}
+	
+	public Object getAdapter(Class key) {
+		if (key.equals(IContextProvider.class)) {
+			return AspectJUIHelp.getHelpContextProvider(this, IAJHelpContextIds.EVENT_TRACE_VIEW);
+		}
+		return super.getAdapter(key);
 	}
 }

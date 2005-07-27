@@ -21,14 +21,20 @@ import java.util.Set;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
+import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextIds;
+import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -171,6 +177,20 @@ public class Menu extends ViewPart {
 		makePullDownActions();
 		contributeToActionBars();
 		VisualiserPlugin.getDefault().setMenu(this);
+		
+		// Add an empty ISelectionProvider so that this view works with dynamic help (bug 104331)
+		getSite().setSelectionProvider(new ISelectionProvider() {
+			public void addSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public ISelection getSelection() {
+				return null;
+			}
+			public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+			}
+			public void setSelection(ISelection selection) {
+			}
+		});
+
 	}
 	
 
@@ -455,6 +475,13 @@ public class Menu extends ViewPart {
 	    canvas = null;
 		updateJob = null;
 		VisualiserPlugin.getDefault().removeMenu();
+	}
+
+	public Object getAdapter(Class key) {
+		if (key.equals(IContextProvider.class)) {
+			return VisualiserHelp.getHelpContextProvider(this, IVisualiserHelpContextIds.VISUALISER_MENU_VIEW);
+		}
+		return super.getAdapter(key);
 	}
 
 }

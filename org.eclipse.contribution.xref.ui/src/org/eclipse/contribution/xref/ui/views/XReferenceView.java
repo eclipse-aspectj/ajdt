@@ -21,10 +21,13 @@ import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileAction;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
+import org.eclipse.contribution.xref.internal.ui.help.IXRefHelpContextIds;
+import org.eclipse.contribution.xref.internal.ui.help.XRefUIHelp;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
@@ -114,6 +117,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		if (window != null) {
 			window.getSelectionService().addPostSelectionListener(this);
 		}
+		getSite().setSelectionProvider(viewer);
 	}
 
 	/**
@@ -459,6 +463,15 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	 */
 	public void partOpened(IWorkbenchPart part) {
 	}
+	
+	
+	public Object getAdapter(Class key) {
+		if (key.equals(IContextProvider.class)) {
+			return XRefUIHelp.getHelpContextProvider(this, IXRefHelpContextIds.XREF_VIEW);
+		}
+		return super.getAdapter(key);
+	}
+
 
 	// ----------------- This is for testing ----------------------
 
