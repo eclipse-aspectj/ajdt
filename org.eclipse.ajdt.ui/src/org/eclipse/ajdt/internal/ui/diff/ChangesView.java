@@ -267,10 +267,10 @@ public class ChangesView extends ViewPart {
 	private void updateDescription(String fromName, String toName, int remove,
 			int total) {
 		if (remove == total) {
-			setContentDescription(NLS.bind(UIMessages.changesView_description, new String[] { fromName, toName }));
+			setContentDescription(NLS.bind(UIMessages.changesView_description, fromName, toName));
 		} else {
-			setContentDescription(NLS.bind(UIMessages.changesView_description, new String[] { fromName, toName } 
-					+ " " + UIMessages.changesView_filter_dialog_showingXofY, new String[] { new Integer(remove).toString(), new Integer(total).toString() })); //$NON-NLS-1$
+			setContentDescription(NLS.bind(UIMessages.changesView_description, fromName, toName)
+					+ " " + NLS.bind(UIMessages.changesView_filter_dialog_showingXofY, new Integer(remove).toString(), new Integer(total).toString() )); //$NON-NLS-1$
 		}
 	}
 
