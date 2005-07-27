@@ -430,15 +430,16 @@ public class AJProjectModel {
 				if (node.toLinkLabelString().indexOf(declare) != -1) {
 					fff = declare.length();
 				}
-				boolean subElement = false;
 				int offset = sl.getOffset();
+				// in some versions of ajde, code elements have an offset of
+				// zero - in cases like this, we go with the offset of the
+				// parent instead
 				if (offset == 0) {
-					subElement = true;
 					offset = node.getParent().getSourceLocation().getOffset();
 				}
 				try {
 					IJavaElement el = unit.getElementAt(offset + fff);
-					if (subElement) {
+					if (node.getKind() == IProgramElement.Kind.CODE) {
 						IJavaElement parent = el;
 						el = new AJCodeElement((JavaElement) parent, sl
 								.getLine(), node.toLabelString());
