@@ -58,6 +58,7 @@ import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.util.IClassFileReader;
 import org.eclipse.jdt.core.util.ISourceAttribute;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.jarpackager.ConfirmSaveModifiedResourcesDialog;
@@ -105,6 +106,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	private Set fExportedClassContainers;
 	private MessageMultiStatus fStatus;
 	private StandardJavaElementContentProvider fJavaElementContentProvider;
+	private boolean fFilesSaved;
 	
 	/**
 	 * Creates an instance of this class.
@@ -139,9 +141,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		IStatus status= ex.getStatus();
 		String message= ex.getLocalizedMessage();
 		if (message == null || message.length() < 1) {
-			// AspectJ Change Begin
-			message= AJJarPackagerMessages.getString("JarFileExportOperation.coreErrorDuringExport"); //$NON-NLS-1$
-			// AspectJ Change End
+			message= JarPackagerMessages.JarFileExportOperation_coreErrorDuringExport; 
 			status= new Status(status.getSeverity(), status.getPlugin(), status.getCode(), message, ex);
 		}		
 		fStatus.add(status);
@@ -151,7 +151,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * Adds a new info to the list with the passed information.
 	 * Normally the export operation continues after a warning.
 	 * @param	message		the message
-	 * @param	exception	the throwable that caused the warning, or <code>null</code>
+	 * @param	error 	the throwable that caused the warning, or <code>null</code>
 	 */
 	protected void addInfo(String message, Throwable error) {
 		fStatus.add(new Status(IStatus.INFO, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, message, error));
@@ -161,7 +161,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * Adds a new warning to the list with the passed information.
 	 * Normally the export operation continues after a warning.
 	 * @param	message		the message
-	 * @param	exception	the throwable that caused the warning, or <code>null</code>
+	 * @param	error	the throwable that caused the warning, or <code>null</code>
 	 */
 	protected void addWarning(String message, Throwable error) {
 		fStatus.add(new Status(IStatus.WARNING, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, message, error));
@@ -171,7 +171,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * Adds a new error to the list with the passed information.
 	 * Normally an error terminates the export operation.
 	 * @param	message		the message
-	 * @param	exception	the throwable that caused the error, or <code>null</code>
+	 * @param	error 	the throwable that caused the error, or <code>null</code>
 	 */
 	protected void addError(String message, Throwable error) {
 		fStatus.add(new Status(IStatus.ERROR, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, message, error));
@@ -281,9 +281,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				try {
 					resource= je.getUnderlyingResource();
 				} catch (JavaModelException ex) {
-					// AspectJ Change Begin
-					addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.underlyingResourceNotFound", je.getElementName()), ex); //$NON-NLS-1$
-					// AspectJ Change End
+					addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_underlyingResourceNotFound, je.getElementName()), ex); 
 					return;
 				}
 				jProject= je.getJavaProject();
@@ -293,9 +291,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				resource= (IResource)element;
 	
 			if (!resource.isAccessible()) {
-				// AspectJ Change Begin
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.resourceNotFound", resource.getFullPath()), null); //$NON-NLS-1$
-				// AspectJ Change End
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotFound, resource.getFullPath()), null); 
 				return;
 			}
 	
@@ -304,9 +300,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 					try {
 						resource.setLocal(true , IResource.DEPTH_ZERO, progressMonitor);
 					} catch (CoreException ex) {
-						// AspectJ Change Begin
-						addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.resourceNotLocal", resource.getFullPath()), ex); //$NON-NLS-1$
-						// AspectJ Change End
+						addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotLocal, resource.getFullPath()), ex); 
 						return;
 					}
 				if (!isInJavaProject) {
@@ -314,9 +308,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 					try {
 						isInJavaProject= resource.getProject().hasNature(JavaCore.NATURE_ID);
 					} catch (CoreException ex) {
-						// AspectJ Change Begin
-						addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.projectNatureNotDeterminable", resource.getFullPath()), ex); //$NON-NLS-1$
-						//  AspectJ Change End
+						addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_projectNatureNotDeterminable, resource.getFullPath()), ex); 
 						return;
 					}
 					if (isInJavaProject) {
@@ -328,9 +320,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 							else
 								pkgRoot= findPackageFragmentRoot(jProject, resource.getFullPath().removeLastSegments(1));
 						} catch (JavaModelException ex) {
-							// AspectJ Change Begin
-							addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.javaPackageNotDeterminable", resource.getFullPath()), ex); //$NON-NLS-1$
-							// AspectJ Change End
+							addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_javaPackageNotDeterminable, resource.getFullPath()), ex); 
 							return;
 						}
 					}
@@ -383,9 +373,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				children= container.members();
 			} catch (CoreException e) {
 				// this should never happen because an #isAccessible check is done before #members is invoked
-				// AspectJ Change Begin
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.errorDuringExport", container.getFullPath()), e); //$NON-NLS-1$
-				// AspectJ Change End
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_errorDuringExport, container.getFullPath()), e); 
 				return;
 			}
 			for (int i= 0; i < children.length; i++)
@@ -393,9 +381,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		} else if (resource instanceof IFile) {
 			try {
 				IPath destinationPath= resource.getFullPath().removeFirstSegments(leadingSegmentsToRemove);
-				// AspectJ Change Begin
-				progressMonitor.subTask(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.exporting", destinationPath.toString())); //$NON-NLS-1$
-				//  AspectJ Change End
+				progressMonitor.subTask(Messages.format(JarPackagerMessages.JarFileExportOperation_exporting, destinationPath.toString())); 
 				fJarWriter.write((IFile)resource, destinationPath);
 			} catch (CoreException ex) {
 				Throwable realEx= ex.getStatus().getException();
@@ -419,9 +405,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			children= container.members();
 		} catch (CoreException e) {
 			// this should never happen because an #isAccessible check is done before #members is invoked
-			// AspectJ Change Begin
-			addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.errorDuringExport", container.getFullPath()), e); //$NON-NLS-1$
-			// AspectJ Change End
+			addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_errorDuringExport, container.getFullPath()), e); 
 		}
 		for (int i= 0; i < children.length; i++)
 			exportElement(children[i], progressMonitor);
@@ -442,9 +426,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		// Handle case where META-INF/MANIFEST.MF is part of the exported files
 		if (fJarPackage.areClassFilesExported() && destinationPath.toString().equals("META-INF/MANIFEST.MF")) {//$NON-NLS-1$
 			if (fJarPackage.isManifestGenerated())
-				// AspectJ Change Begin
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.didNotAddManifestToJar", resource.getFullPath()), null); //$NON-NLS-1$
-				// AspectJ Change End
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_didNotAddManifestToJar, resource.getFullPath()), null); 
 			return;
 		}
 
@@ -453,18 +435,14 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		try {
 			isInClassFolder= pkgRoot != null && !pkgRoot.isArchive() && pkgRoot.getKind() == IPackageFragmentRoot.K_BINARY;
 		} catch (JavaModelException ex) {
-			// AspectJ Change Begin
-			addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.cantGetRootKind", resource.getFullPath()), ex); //$NON-NLS-1$
-			// AspectJ Change End
+			addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_cantGetRootKind, resource.getFullPath()), ex); 
 		}
 		if ((fJarPackage.areClassFilesExported() &&
 					((isNonJavaResource || (pkgRoot != null && !isJavaFile(resource) && !isClassFile(resource)))
 					|| isInClassFolder && isClassFile(resource)))
 			|| (fJarPackage.areJavaFilesExported() && (isNonJavaResource || (pkgRoot != null && !isClassFile(resource)) || (isInClassFolder && isClassFile(resource) && !fJarPackage.areClassFilesExported())))) {
 			try {
-				// AspectJ Change Begin
-				progressMonitor.subTask(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.exporting", destinationPath.toString())); //$NON-NLS-1$
-				// AspectJ Change End
+				progressMonitor.subTask(Messages.format(JarPackagerMessages.JarFileExportOperation_exporting, destinationPath.toString())); 
 				fJarWriter.write((IFile) resource, destinationPath);
 			} catch (CoreException ex) {
 				Throwable realEx= ex.getStatus().getException();
@@ -505,9 +483,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 						if (!resource.isLocal(IResource.DEPTH_ZERO))						
 							file.setLocal(true , IResource.DEPTH_ZERO, progressMonitor);
 						IPath classFilePath= baseDestinationPath.append(file.getName());
-						// AspectJ Change Begin
-						progressMonitor.subTask(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.exporting", classFilePath.toString())); //$NON-NLS-1$
-						// AspectJ Change End
+						progressMonitor.subTask(Messages.format(JarPackagerMessages.JarFileExportOperation_exporting, classFilePath.toString())); 
 						fJarWriter.write(file, classFilePath);
 					}
 				} catch (CoreException ex) {
@@ -546,9 +522,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				if (project.hasNature(JavaCore.NATURE_ID))
 					return JavaCore.create(project);
 			} catch (CoreException ex) {
-				// AspectJ Change Begin
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.projectNatureNotDeterminable", project.getFullPath()), ex); //$NON-NLS-1$
-				// AspectJ Change End
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_projectNatureNotDeterminable, project.getFullPath()), ex); 
 			}
 		}
 		return null;
@@ -606,9 +580,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			else {
 				IFolder outputFolder= createFolderHandle(path);
 				if (outputFolder == null || !outputFolder.isAccessible()) {
-					// AspectJ Change Begin
-					String msg= AJJarPackagerMessages.getString("JarFileExportOperation.outputContainerNotAccessible"); //$NON-NLS-1$
-					// AspectJ Change End
+					String msg= JarPackagerMessages.JarFileExportOperation_outputContainerNotAccessible; 
 					addToStatus(new CoreException(new Status(IStatus.ERROR, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, msg, null)));
 				} else
 					outputContainers.add(outputFolder);
@@ -666,9 +638,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		else {
 			outputContainer= createFolderHandle(outputPath);
 			if (outputContainer == null || !outputContainer.isAccessible()) {
-				// AspectJ Change Begin
-				String msg= AJJarPackagerMessages.getString("JarFileExportOperation.outputContainerNotAccessible"); //$NON-NLS-1$
-				// AspectJ Change End
+				String msg= JarPackagerMessages.JarFileExportOperation_outputContainerNotAccessible; 
 				throw new CoreException(new Status(IStatus.ERROR, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, msg, null));
 			}
 		}
@@ -695,9 +665,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				String containerName= "";  //$NON-NLS-1$
 				if (location != null)
 					containerName= location.toFile().toString();
-				// AspectJ Change Begin
-				String msg= AJJarPackagerMessages.getFormattedString("JarFileExportOperation.missingSourceFileAttributeExportedAll", containerName); //$NON-NLS-1$
-				// AspectJ Change End
+				String msg= Messages.format(JarPackagerMessages.JarFileExportOperation_missingSourceFileAttributeExportedAll, containerName); 
 				addInfo(msg, null);
 				fExportedClassContainers.add(classContainer);
 				return getClassesIn(classContainer);
@@ -706,9 +674,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		}
 		ArrayList classFileList= (ArrayList)fJavaNameToClassFilesMap.get(file.getName());
 		if (classFileList == null || classFileList.isEmpty()) {
-			// AspectJ Change Begin
-			String msg= AJJarPackagerMessages.getFormattedString("JarFileExportOperation.classFileOnClasspathNotAccessible", file.getFullPath()); //$NON-NLS-1$
-			// AspectJ Change End
+			String msg= Messages.format(JarPackagerMessages.JarFileExportOperation_classFileOnClasspathNotAccessible, file.getFullPath()); 
 			throw new CoreException(new Status(IStatus.ERROR, JavaPlugin.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR, msg, null));
 		}
 		return classFileList.iterator();
@@ -780,9 +746,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 							 * class file does not contain the name of its 
 							 * source file.
 							 */
-							// AspectJ Change Begin
-							addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.classFileWithoutSourceFileAttribute", file), null); //$NON-NLS-1$
-							// AspectJ Change End
+							addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_classFileWithoutSourceFileAttribute, file), null); 
 							return null;
 						}
 						String javaName= new String(sourceAttribute.getSourceFileName());
@@ -841,24 +805,16 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				message= ""; //$NON-NLS-1$
 				break;
 			case IStatus.INFO:
-				// AspectJ Change Begin
-				message= AJJarPackagerMessages.getString("JarFileExportOperation.exportFinishedWithInfo"); //$NON-NLS-1$
-				// AspectJ Change End
+				message= JarPackagerMessages.JarFileExportOperation_exportFinishedWithInfo; 
 				break;
 			case IStatus.WARNING:
-				// AspectJ Change Begin
-				message= AJJarPackagerMessages.getString("JarFileExportOperation.exportFinishedWithWarnings"); //$NON-NLS-1$
-				// AspectJ Change End
+				message= JarPackagerMessages.JarFileExportOperation_exportFinishedWithWarnings; 
 				break;
 			case IStatus.ERROR:
 				if (fJarPackages.length > 1)
-					// AspectJ Change Begin
-					message= AJJarPackagerMessages.getString("JarFileExportOperation.creationOfSomeJARsFailed"); //$NON-NLS-1$
-					// AspectJ Change End
+					message= JarPackagerMessages.JarFileExportOperation_creationOfSomeJARsFailed; 
 				else
-					// AspectJ Change Begin
-					message= AJJarPackagerMessages.getString("JarFileExportOperation.jarCreationFailed"); //$NON-NLS-1$
-					// AspectJ Change End
+					message= JarPackagerMessages.JarFileExportOperation_jarCreationFailed; 
 				break;
 			default:
 				// defensive code in case new severity is defined
@@ -895,20 +851,18 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	}
 
 	protected void reportPossibleCompileProblems(IFile file, boolean hasErrors, boolean hasWarnings, boolean canBeExported) {
-		// AspectJ Change Begin		
 		if (hasErrors) {
 			if (canBeExported)
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.exportedWithCompileErrors", file.getFullPath()), null); //$NON-NLS-1$
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_exportedWithCompileErrors, file.getFullPath()), null); 
 			else
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.notExportedDueToCompileErrors", file.getFullPath()), null); //$NON-NLS-1$
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_notExportedDueToCompileErrors, file.getFullPath()), null); 
 		}
 		if (hasWarnings) {
 			if (canBeExported)
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.exportedWithCompileWarnings", file.getFullPath()), null); //$NON-NLS-1$
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_exportedWithCompileWarnings, file.getFullPath()), null); 
 			else
-				addWarning(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.notExportedDueToCompileWarnings", file.getFullPath()), null); //$NON-NLS-1$
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_notExportedDueToCompileWarnings, file.getFullPath()), null); 
 		}
-		// AspectJ Change End
 	}
 
 	/**
@@ -935,11 +889,11 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	public void singleRun(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
 		try {
 			if (!preconditionsOK())
-				// AspectJ Change Begin
-				throw new InvocationTargetException(null, AJJarPackagerMessages.getString("JarFileExportOperation.jarCreationFailedSeeDetails")); //$NON-NLS-1$
-				// AspectJ Change End
+				throw new InvocationTargetException(null, JarPackagerMessages.JarFileExportOperation_jarCreationFailedSeeDetails); 
 			int totalWork= countSelectedElements();
-			if (!isAutoBuilding() && fJarPackage.isBuildingIfNeeded() && fJarPackage.areGeneratedFilesExported()) {
+			if (fJarPackage.areGeneratedFilesExported() 
+				&& ((!isAutoBuilding() && fJarPackage.isBuildingIfNeeded())
+					|| (isAutoBuilding() && fFilesSaved))) {
 				int subMonitorTicks= totalWork/10;
 				totalWork += subMonitorTicks;
 				progressMonitor.beginTask("", totalWork); //$NON-NLS-1$
@@ -951,9 +905,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			fJarWriter= fJarPackage.createJarWriter(fParentShell);
 			exportSelectedElements(progressMonitor);
 			if (getStatus().getSeverity() != IStatus.ERROR) {
-				// AspectJ Change Begin
-				progressMonitor.subTask(AJJarPackagerMessages.getString("JarFileExportOperation.savingFiles")); //$NON-NLS-1$
-				// AspectJ Change End
+				progressMonitor.subTask(JarPackagerMessages.JarFileExportOperation_savingFiles); 
 				saveFiles();
 			}
 		} catch (CoreException ex) {
@@ -970,34 +922,32 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	}
 	
 	protected boolean preconditionsOK() {
-		// AspectJ Change Begin
 		if (!fJarPackage.areGeneratedFilesExported() && !fJarPackage.areJavaFilesExported()) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.noExportTypeChosen"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_noExportTypeChosen, null); 
 			return false;
 		}
 		if (fJarPackage.getElements() == null || fJarPackage.getElements().length == 0) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.noResourcesSelected"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_noResourcesSelected, null); 
 			return false;
 		}
 		if (fJarPackage.getAbsoluteJarLocation() == null) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.invalidJarLocation"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_invalidJarLocation, null); 
 			return false;
 		}
 		File targetFile= fJarPackage.getAbsoluteJarLocation().toFile();
 		if (targetFile.exists() && !targetFile.canWrite()) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.jarFileExistsAndNotWritable"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_jarFileExistsAndNotWritable, null); 
 			return false;
 		}
 		if (!fJarPackage.isManifestAccessible()) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.manifestDoesNotExist"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_manifestDoesNotExist, null); 
 			return false;
 		}
 		if (!fJarPackage.isMainClassValid(new BusyIndicatorRunnableContext())) {
-			addError(AJJarPackagerMessages.getString("JarFileExportOperation.invalidMainClass"), null); //$NON-NLS-1$
+			addError(JarPackagerMessages.JarFileExportOperation_invalidMainClass, null); 
 			return false;
 		}
-		// AspectJ Change End
-				
+		
 		if (fParentShell == null)
 			// no checking if shell is null
 			return true;
@@ -1019,15 +969,11 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		IEditorPart[] dirtyEditors= getDirtyEditors(fParentShell);
 		Set unsavedFiles= new HashSet(dirtyEditors.length);
 		if (dirtyEditors.length > 0) {
-			// AspectJ Change Begin			
 			List selection= AJJarPackagerUtil.asResources(fJarPackage.getElements());
-			// AspectJ Change End
 			for (int i= 0; i < dirtyEditors.length; i++) {
 				if (dirtyEditors[i].getEditorInput() instanceof IFileEditorInput) {
 					IFile dirtyFile= ((IFileEditorInput)dirtyEditors[i].getEditorInput()).getFile();
-					// AspectJ Change Begin
 					if (AJJarPackagerUtil.contains(selection, dirtyFile)) {
-					// AspectJ Change End
 						unsavedFiles.add(dirtyFile);
 					}
 				}
@@ -1075,9 +1021,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 
 		// Report unsaved files
 		for (int i= 0; i < dirtyFiles.length; i++)
-			// AspectJ Change Begin
-			addError(AJJarPackagerMessages.getFormattedString("JarFileExportOperation.fileUnsaved", dirtyFiles[i].getFullPath()), null); //$NON-NLS-1$
-			// AspectJ Change End
+			addError(Messages.format(JarPackagerMessages.JarFileExportOperation_fileUnsaved, dirtyFiles[i].getFullPath()), null); 
 		return false;
 	}
 
@@ -1102,9 +1046,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 						ResourcesPlugin.getWorkspace().getRoot());
 					retVal[0]= true;
 				} catch (InvocationTargetException ex) {
-					// AspectJ Change Begin
-					addError(AJJarPackagerMessages.getString("JarFileExportOperation.errorSavingModifiedResources"), ex); //$NON-NLS-1$
-					// AspectJ Change End
+					addError(JarPackagerMessages.JarFileExportOperation_errorSavingModifiedResources, ex); 
 					JavaPlugin.log(ex);
 					retVal[0]= false;
 				} catch (InterruptedException ex) {
@@ -1113,7 +1055,10 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				}
 	 		}
 		};
+		fFilesSaved= false;
 		display.syncExec(runnable);
+		if (retVal[0])
+			fFilesSaved= true;
 		return retVal[0];
 	}
 
@@ -1121,9 +1066,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		return new IRunnableWithProgress() {
 			public void run(final IProgressMonitor pm) {
 				IEditorPart[] editorsToSave= getDirtyEditors(fParentShell);
-				// AspectJ Change Begin
-				pm.beginTask(AJJarPackagerMessages.getString("JarFileExportOperation.savingModifiedResources"), editorsToSave.length); //$NON-NLS-1$
-				// AspectJ Change End
+				pm.beginTask(JarPackagerMessages.JarFileExportOperation_savingModifiedResources, editorsToSave.length); 
 				try {
 					List dirtyFilesList= Arrays.asList(dirtyFiles);
 					for (int i= 0; i < editorsToSave.length; i++) {
@@ -1147,13 +1090,9 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			try {
 				saveManifest();
 			} catch (CoreException ex) {
-				// AspectJ Change Begin
-				addError(AJJarPackagerMessages.getString("JarFileExportOperation.errorSavingManifest"), ex); //$NON-NLS-1$
-				// AspectJ Change End
+				addError(JarPackagerMessages.JarFileExportOperation_errorSavingManifest, ex); 
 			} catch (IOException ex) {
-				// AspectJ Change Begin
-				addError(AJJarPackagerMessages.getString("JarFileExportOperation.errorSavingManifest"), ex); //$NON-NLS-1$
-				// AspectJ Change End
+				addError(JarPackagerMessages.JarFileExportOperation_errorSavingManifest, ex); 
 			}
 		}
 		
@@ -1162,13 +1101,9 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			try {
 				saveDescription();
 			} catch (CoreException ex) {
-				// AspectJ Change Begin
-				addError(AJJarPackagerMessages.getString("JarFileExportOperation.errorSavingDescription"), ex); //$NON-NLS-1$
-				// AspectJ Change End
+				addError(JarPackagerMessages.JarFileExportOperation_errorSavingDescription, ex); 
 			} catch (IOException ex) {
-				// AspectJ Change Begin
-				addError(AJJarPackagerMessages.getString("JarFileExportOperation.errorSavingDescription"), ex); //$NON-NLS-1$
-				// AspectJ Change End
+				addError(JarPackagerMessages.JarFileExportOperation_errorSavingDescription, ex); 
 			}
 		}
 	}
@@ -1253,9 +1188,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 				try {
 					project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, progressMonitor);
 				} catch (CoreException ex) {
-					// AspectJ Change Begin
-					String message= AJJarPackagerMessages.getFormattedString("JarFileExportOperation.errorDuringProjectBuild", project.getFullPath()); //$NON-NLS-1$
-					// AspectJ Change End
+					String message= Messages.format(JarPackagerMessages.JarFileExportOperation_errorDuringProjectBuild, project.getFullPath()); 
 					addError(message, ex);
 				} finally {
 					// don't try to build same project a second time even if it failed
@@ -1271,7 +1204,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * 
 	 * @param resource the resource to check for errors
 	 * @return <code>true</code> if the resource (and its children) are error free
-	 * @throws import org.eclipse.core.runtime.CoreException if there's a marker problem
+	 * @throws CoreException import org.eclipse.core.runtime.CoreException if there's a marker problem
 	 */
 	private boolean hasCompileErrors(IResource resource) throws CoreException {
 		IMarker[] problemMarkers= resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
@@ -1288,7 +1221,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	 * 
 	 * @param resource the resource to check for errors
 	 * @return <code>true</code> if the resource (and its children) are error free
-	 * @throws import org.eclipse.core.runtime.CoreException if there's a marker problem
+	 * @throws CoreException import org.eclipse.core.runtime.CoreException if there's a marker problem
 	 */
 	private boolean hasCompileWarnings(IResource resource) throws CoreException {
 		IMarker[] problemMarkers= resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);

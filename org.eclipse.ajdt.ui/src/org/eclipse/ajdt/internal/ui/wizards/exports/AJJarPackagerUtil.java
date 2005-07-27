@@ -26,6 +26,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
@@ -48,9 +49,7 @@ public class AJJarPackagerUtil {
 	public static boolean askToCreateDirectory(final Shell parent, File directory) {
 		if (parent == null)
 			return false;
-		// AspectJ Change Begin
-		return queryDialog(parent, AJJarPackagerMessages.getString("JarPackage.confirmCreate.title"), AJJarPackagerMessages.getFormattedString("JarPackage.confirmCreate.message", directory.toString())); //$NON-NLS-2$ //$NON-NLS-1$
-		// AspectJ Change End
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmCreate_title, Messages.format(JarPackagerMessages.JarPackage_confirmCreate_message, directory.toString())); 
 	}
 
 	/**
@@ -77,9 +76,7 @@ public class AJJarPackagerUtil {
 	public static boolean askForOverwritePermission(final Shell parent, String filePath) {
 		if (parent == null)
 			return false;
-//		 AspectJ Change Begin
-		return queryDialog(parent, AJJarPackagerMessages.getString("JarPackage.confirmReplace.title"), AJJarPackagerMessages.getFormattedString("JarPackage.confirmReplace.message", filePath)); //$NON-NLS-2$ //$NON-NLS-1$
-//		 AspectJ Change End
+		return queryDialog(parent, JarPackagerMessages.JarPackage_confirmReplace_title, Messages.format(JarPackagerMessages.JarPackage_confirmReplace_message, filePath)); 
 	}
 
 	/**
@@ -179,7 +176,7 @@ public class AJJarPackagerUtil {
 				try {
 					children= Arrays.asList(((IContainer)resource).members());
 				} catch (CoreException ex) {
-					// can be ignored
+					// ignore this folder
 					continue;
 				}
 				if (children != null && contains(children, file))
