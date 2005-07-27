@@ -83,8 +83,8 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
  		<filter token="AJDEVERSION" value="${ajde.version}"/>
  	</filterset>
  </copy>   
-  <copy file="src/org/eclipse/ajdt/internal/ui/wizards/exports/AJJarPackagerMessages.properties"
-	tofile="bin/org/eclipse/ajdt/internal/ui/wizards/exports/AJJarPackagerMessages.properties"
+  <copy file="src/org/eclipse/ajdt/internal/ui/wizards/exports/JarPackagerMessages.properties"
+	tofile="bin/org/eclipse/ajdt/internal/ui/wizards/exports/JarPackagerMessages.properties"
 	overwrite="true"/>
   <zip destfile= "${build.dir}/ajdtui.jar" >
   	<fileset dir="bin"/>
