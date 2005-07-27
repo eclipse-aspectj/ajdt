@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
-<plugin
-   id="org.eclipse.contribution.visualiser.tests"
-   name="Visualser Tests"
-   version="92.2.29">
+<plugin>
 
-   <runtime>
-      <library name="visualisertests.jar">
-         <export name="*"/>
-      </library>
-   </runtime>
-   <requires>
-      <import plugin="org.eclipse.ui"/>
-      <import plugin="org.junit"/>
-      <import plugin="org.eclipse.contribution.visualiser"/>
-      <import plugin="org.eclipse.core.runtime"/>
-   </requires>
-
-
+    
 </plugin>

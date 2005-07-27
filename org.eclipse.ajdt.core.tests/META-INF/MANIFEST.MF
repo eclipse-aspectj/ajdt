@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AJDT Core Tests Plug-in
+Bundle-SymbolicName: org.eclipse.ajdt.core.tests
+Bundle-Version: 92.2.29
+Bundle-ClassPath: ajdtcoretests.jar
+Bundle-Activator: org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin
+Bundle-Vendor: Eclipse.org
+Bundle-Localization: plugin
+Export-Package: org.eclipse.ajdt.core.tests,
+ org.eclipse.ajdt.core.tests.builder,
+ org.eclipse.ajdt.core.tests.codeconversion,
+ org.eclipse.ajdt.core.tests.model,
+ org.eclipse.ajdt.core.tests.testutils
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.ajdt.core,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core,
+ org.junit,
+ org.aspectj.ajde
+Eclipse-AutoStart: true

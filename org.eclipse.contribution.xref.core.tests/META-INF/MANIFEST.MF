@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %pluginName
+Bundle-SymbolicName: org.eclipse.contribution.xref.core.tests; singleton:=true
+Bundle-Version: 92.2.29
+Bundle-ClassPath: xrefcoretest.jar
+Bundle-Vendor: %providerName
+Bundle-Localization: plugin
+Export-Package: org.eclipse.contribution.xref.core.tests
+Require-Bundle: org.eclipse.contribution.xref.core,
+ org.eclipse.core.runtime,
+ org.junit,
+ org.eclipse.jdt.core
+Eclipse-AutoStart: true
