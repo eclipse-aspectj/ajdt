@@ -198,72 +198,85 @@ public class MarkerUpdating {
 	 * @param runtimeTest
 	 * @return
 	 */
-	private static String getMarkerTypeForRelationship(AJRelationship relationship, boolean runtimeTest) {
+	private static String getMarkerTypeForRelationship(
+			AJRelationship relationship, boolean runtimeTest) {
 		IJavaElement source = relationship.getSource();
 		IJavaElement target = relationship.getTarget();
 		AJRelationshipType type = relationship.getRelationship();
-		if(type.equals(AJRelationshipManager.ADVISED_BY) &&  target instanceof AdviceElement) {
-			try {
-				IProgramElement.ExtraInformation extraInfo = ((AdviceElement)target).getAJExtraInformation();
-				if (extraInfo.getExtraAdviceInformation()!=null) {				
-					if(extraInfo.getExtraAdviceInformation().equals("before")) {
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
+		if (type.equals(AJRelationshipManager.ADVISED_BY)) {
+			if (target instanceof AdviceElement) {
+				try {
+					IProgramElement.ExtraInformation extraInfo = ((AdviceElement) target)
+							.getAJExtraInformation();
+					if (extraInfo.getExtraAdviceInformation() != null) {
+						if (extraInfo.getExtraAdviceInformation().equals(
+								"before")) {
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.BEFORE_ADVICE_MARKER;
+							}
+						} else if (extraInfo.getExtraAdviceInformation()
+								.equals("around")) {
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.AROUND_ADVICE_MARKER;
+							}
 						} else {
-							return IAJModelMarker.BEFORE_ADVICE_MARKER;
-						}
-					} else if (extraInfo.getExtraAdviceInformation().equals("around")) {
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.AROUND_ADVICE_MARKER;
-						}
-					} else {
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.AFTER_ADVICE_MARKER;	
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.AFTER_ADVICE_MARKER;
+							}
 						}
 					}
+				} catch (JavaModelException jme) {
 				}
-			} catch (JavaModelException jme){}
-			if(runtimeTest) {
+			}
+			if (runtimeTest) {
 				return IAJModelMarker.DYNAMIC_ADVICE_MARKER;
 			} else {
-				return IAJModelMarker.ADVICE_MARKER;				
+				return IAJModelMarker.ADVICE_MARKER;
 			}
-		} else if (type.equals(AJRelationshipManager.ADVISES) && source instanceof AdviceElement) {
-			try {
-				IProgramElement.ExtraInformation extraInfo = ((AdviceElement)source).getAJExtraInformation();
-				if (extraInfo.getExtraAdviceInformation()!=null) {				
-					if(extraInfo.getExtraAdviceInformation().equals("before")) {
-						if(runtimeTest) {
-							return IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
+		} else if (type.equals(AJRelationshipManager.ADVISES)) {
+			if (source instanceof AdviceElement) {
+				try {
+					IProgramElement.ExtraInformation extraInfo = ((AdviceElement) source)
+							.getAJExtraInformation();
+					if (extraInfo.getExtraAdviceInformation() != null) {
+						if (extraInfo.getExtraAdviceInformation().equals(
+								"before")) {
+							if (runtimeTest) {
+								return IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
+							}
+						} else if (extraInfo.getExtraAdviceInformation()
+								.equals("around")) {
+							if (runtimeTest) {
+								return IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
+							}
 						} else {
-							return IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
-						}
-					} else if (extraInfo.getExtraAdviceInformation().equals("around")) {
-						if(runtimeTest) {
-							return IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.SOURCE_AROUND_ADVICE_MARKER;
-						}
-					} else {
-						if(runtimeTest) {
-							return IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER;	
+							if (runtimeTest) {
+								return IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.SOURCE_AFTER_ADVICE_MARKER;
+							}
 						}
 					}
+				} catch (JavaModelException jme) {
 				}
-			} catch (JavaModelException jme){}
-			if(runtimeTest) {
+			}
+			if (runtimeTest) {
 				return IAJModelMarker.SOURCE_DYNAMIC_ADVICE_MARKER;
 			} else {
-				return IAJModelMarker.SOURCE_ADVICE_MARKER;				
+				return IAJModelMarker.SOURCE_ADVICE_MARKER;
 			}
 		} else if (type.equals(AJRelationshipManager.ASPECT_DECLARATIONS)
-				|| type.equals(AJRelationshipManager.ANNOTATED_BY) 
+				|| type.equals(AJRelationshipManager.ANNOTATED_BY)
 				|| type.equals(AJRelationshipManager.SOFTENED_BY)) {
 			return IAJModelMarker.ITD_MARKER;
 		} else if (type.equals(AJRelationshipManager.DECLARED_ON)
