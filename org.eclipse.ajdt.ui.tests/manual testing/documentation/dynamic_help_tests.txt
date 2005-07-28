@@ -1,0 +1,15 @@
+Tests for AJDT Dynamic Help
+------------------------------
+
+Open the dynamic help view (Help > Dynamic Help).
+Open each of the AJDT views in turn and check that the dynamic help shows
+some appropriate help topics. (HELP_1)
+Check that the links work. (HELP_2)
+
+Views to check:
+
+AJDT Event Trace
+Cross References
+Crosscutting Comparison 
+Visualiser
+Visualiser Menu
