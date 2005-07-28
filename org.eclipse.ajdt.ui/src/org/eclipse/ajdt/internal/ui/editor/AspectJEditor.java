@@ -62,6 +62,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -108,6 +109,8 @@ public class AspectJEditor extends CompilationUnitEditor {
 	private AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
 
 	private IAnnotationModel annotationModel;
+	
+	private boolean aboutToUpdateTitleImage;
 
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
@@ -386,7 +389,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
-			aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
+			resetTitleImage();
 		}
 	}
 
@@ -524,12 +527,20 @@ public class AspectJEditor extends CompilationUnitEditor {
 			return activeEditorList;
 		}
 	}
+	
+	public void updatedTitleImage(Image image) {
+		if(aboutToUpdateTitleImage) { // only let us update the image (fix for 105299)
+			super.updatedTitleImage(image);
+			aboutToUpdateTitleImage = false;
+		}
+	}
 
 	/**
 	 * Update the title image
 	 */
 	// Part of the fix for 89793 - editor icon is not always correct
-	public void resetTitleImage() {
+	public synchronized void resetTitleImage() {
+		aboutToUpdateTitleImage = true; // only let us update the image (fix for 105299) 
 		aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
 	}
 	
