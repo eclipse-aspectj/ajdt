@@ -15,7 +15,6 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.ui.ProblemsLabelDecorator;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Shell;
 
 /*
  * Sian - Added as part of the fix for bug 78182

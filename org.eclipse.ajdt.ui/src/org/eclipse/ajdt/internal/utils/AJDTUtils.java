@@ -30,7 +30,6 @@ import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.internal.ui.wizards.migration.AJDTMigrationWizard;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -38,9 +37,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,10 +55,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.window.Window;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
@@ -98,10 +92,6 @@ public class AJDTUtils {
 	
 	private static final String ID_NATURE = AspectJUIPlugin.PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
-	// for testing purposes only: set this to true to force the migration wizard
-	// to appear
-	public static boolean FORCE_MIGRATION =  false; // true;
-	
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
 	 * D:\eclipse\workspace
@@ -457,54 +447,6 @@ public class AJDTUtils {
 		return manEd;
 	}
 
-	
-	/**
-	 * Checks whether have run the migration wizard for this workspace and if not
-	 * then runs it
-	 */	
-	public static void migrateWorkbench() {
-		if (AspectJPreferences.migrationWizardIsRunning()) {
-			return;
-		}
-		AspectJPreferences.setMigrationWizardIsRunning(true);
-	    // only want the wizard to come up once per workspace
-	    final IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-	    IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
-	    final String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-	    boolean alreadyMigratedWorkspace = store.getBoolean(workspaceLocation);
-	    if (!FORCE_MIGRATION && alreadyMigratedWorkspace) {
-	        AspectJPreferences.setMigrationWizardIsRunning(false);
-            return;
-        } 	    		
-		Job job = new UIJob(UIMessages.MigrationWizard_JobTitle) {
-
-			public IStatus runInUIThread(IProgressMonitor m) {
-				AJDTMigrationWizard migWizard = new AJDTMigrationWizard();
-				migWizard.init();
-				WizardDialog migDialog = new WizardDialog(AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-									.getShell(), migWizard);
-				if(migDialog.open() == Window.OK) {
-					store.setValue(workspaceLocation,true);
-				} else {
-					new MessageDialog(
-							AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(), 
-							UIMessages.MigrationWizardCancelled,
-							MessageDialog.getDefaultImage(),
-							UIMessages.MigrationWizardCancelledMessage,
-							MessageDialog.INFORMATION,
-							new String[] {UIMessages.MigrationWizardOK},
-							0).open();
-					// don't want the migration wizard to pop up again for this
-					// workspace and this running of eclipse. Therefore, set the 
-					// boolean but not the PreferenceStore property
-				}
-				return Status.OK_STATUS;
-			}
-		};
-		job.setSystem(true);
-		job.setPriority(Job.LONG);
-		job.schedule();	
-	}
 	
 	/**
 	 * Removes the AspectJ Nature from an existing AspectJ project.

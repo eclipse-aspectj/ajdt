@@ -195,15 +195,9 @@ public class AspectJPreferences {
 	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters";
 	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace";
 	
-	// migration wizard options	
-	public static final String NEVER_RUN_MIGRATION_WIZARD = "neverRunMigrationWizard"; //$NON-NLS-1$
 	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
-	// have we run the migration wizard for this workspace or for this session?
-	private static boolean doNotRunMigrationWizard = false;
-	// is the migration wizard running? (to prevent multiple copies popping up)
-	private static boolean migrationWizardIsRunning = false;
-		
-	public static String getFileExt() {
+	
+		public static String getFileExt() {
 		return ".aj"; 
 	}
 
@@ -513,22 +507,6 @@ public class AspectJPreferences {
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 					.getPreferenceStore();
 		return store.getBoolean(key);
-	}
-	
-	public static boolean dontRunMigrationWizard() {
-	    return doNotRunMigrationWizard;
-	}
-	
-	public static void setDontRunMigrationWizard(boolean hasRun) {
-	    doNotRunMigrationWizard = hasRun;
-	}
-
-	public static boolean migrationWizardIsRunning() {
-	    return migrationWizardIsRunning;
-	}
-	
-	public static void setMigrationWizardIsRunning(boolean isRunning) {
-	    migrationWizardIsRunning = isRunning;
 	}
 	
 	public static void setCheckedFilters(List l) {

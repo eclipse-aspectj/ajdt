@@ -19,7 +19,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IContainer;
@@ -88,24 +87,12 @@ public class BuildConfigurator implements ISelectionListener {
 	public synchronized void selectionChanged(IWorkbenchPart action, ISelection selection) {
 		IResource res;
 		IProject selectedProj;
-		// Run migration wizard if we haven't before or if it's not running at the
-		// moment, if we have previously run the old preference wizard on this 
-		// workspace and if this is not a brand new workspace
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		if (AJDTUtils.FORCE_MIGRATION
-		        || (!AspectJPreferences.dontRunMigrationWizard() 
-				&& !store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD)
-		        && !AspectJUIPlugin.getDefault().workspaceIsEmpty(AspectJPlugin.getWorkspace().getRoot()))) {			
-		    AJDTUtils.migrateWorkbench();
-		    AJDTUtils.FORCE_MIGRATION = false;
-		} else if (!triedToOpenXRefView 
-		        && !AspectJPreferences.migrationWizardIsRunning()) { // only try this once
+		if (!triedToOpenXRefView) { // only try this once
 			String workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			if (!AspectJPreferences.migrationWizardIsRunning()
-			        && !store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)
+			if (!store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)
 			        && !store.getBoolean(workspaceLocation)) {
-		        // open xref view in perspective if the migration wizard either isn't running 
-			    // or hasn't run and we haven't opened the xref view before.
+		        // open xref view in perspective if we haven't opened the xref view before.
 				Job job = new UIJob(UIMessages.AJDTPrefConfigWizardPage_workbench_openXRefView) {
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {

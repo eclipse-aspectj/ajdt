@@ -166,8 +166,6 @@ public class AllUITests {
 		if (setupDone) {
 			return;
 		}
-		AspectJPreferences.setDontRunMigrationWizard(true);
-
 		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 
 		AspectJPreferences.setAutoBuilderMigrationEnabled(true);

@@ -55,12 +55,6 @@ public class Builder extends IncrementalProjectBuilder {
 			// build
 			return null;
 		}
-		
-		// adding this so we don't get the builder migration 
-		// dialog until after we have run the migration wizard
-		if(!AspectJPreferences.dontRunMigrationWizard()) {
-		    return null;
-		}
 
 		boolean removeOldBuilder = true;
 		if (AspectJPreferences.isAutoBuilderMigrationEnabled()) {

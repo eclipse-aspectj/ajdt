@@ -52,9 +52,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -492,32 +490,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		checkEclipseVersion();
 
 		AJDTEventTrace.startup();
-		// get the previous aj version before calling checkAspectJVersion() because
-		// this method sets the store value - need to know for migration wizard if this
-		// is the first time AJDT has been installed.
-		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-		String previousAJVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
 		
 		checkAspectJVersion();
 
 		// check on startup for .aj resource filter
 		FileFilter.checkIfFileFilterEnabledAndAsk();
-
-		// Find out whether or not we have migrated this workspace.		
-	    
-	    // If this is the first install of AJDT, then don't want to run
-	    // the migration wizard.
-	    if (previousAJVersion.equals("")) {  //$NON-NLS-1$
-	        store.setValue(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD,true); 
-            AspectJPreferences.setDontRunMigrationWizard(true);
-        } else {
-	        IWorkspace currentWorkspace = ResourcesPlugin.getWorkspace();
-    	    String workspaceLocation = currentWorkspace.getRoot().getLocation().toString();
-    	    AspectJPreferences.setDontRunMigrationWizard(
-    	    		store.getBoolean(workspaceLocation) || 
-					workspaceIsEmpty(currentWorkspace.getRoot()) ||
-					store.getBoolean(AspectJPreferences.NEVER_RUN_MIGRATION_WIZARD));
-        }
 
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
