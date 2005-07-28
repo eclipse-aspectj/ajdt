@@ -12,10 +12,8 @@ package org.eclipse.ajdt.internal.ui.editor;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.ui.ProblemsLabelDecorator;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Shell;
 
 /*
  * Sian - Added as part of the fix for bug 78182
@@ -40,28 +38,19 @@ public class AspectJEditorTitleImageUpdater {
 	}
 
 			
-	public void updateEditorImage(IJavaElement jelement) {
+	public boolean updateEditorImage(IJavaElement jelement) {
 		Image titleImage= editor.getTitleImage();
 		if (titleImage == null) {
-			return;
+			return false;
 		}
 		Image newImage = problemsDecorator.decorateImage(baseImage, jelement);
 		if (titleImage != newImage) {
-			postImageChange(newImage);
+			editor.updatedTitleImage(newImage);
+			return true;
 		}
+		return false;
 	}
 
-	
-	private void postImageChange(final Image newImage) {
-		Shell shell= editor.getEditorSite().getShell();
-		if (shell != null && !shell.isDisposed()) {
-			shell.getDisplay().syncExec(new Runnable() {
-				public void run() {
-					editor.updatedTitleImage(newImage);
-				}
-			});
-		}
-	}	
 	
 	public void dispose() {
 		problemsDecorator.dispose();

@@ -8,6 +8,7 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -114,7 +115,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 		if(delegate != null) {
 			return delegate.getAnnotationIterator();
 		} else {
-			return null;
+			return new ArrayList().iterator(); // empty iterator
 		}
 	}
 
