@@ -40,28 +40,19 @@ public class AspectJEditorTitleImageUpdater {
 	}
 
 			
-	public void updateEditorImage(IJavaElement jelement) {
+	public boolean updateEditorImage(IJavaElement jelement) {
 		Image titleImage= editor.getTitleImage();
 		if (titleImage == null) {
-			return;
+			return false;
 		}
 		Image newImage = problemsDecorator.decorateImage(baseImage, jelement);
 		if (titleImage != newImage) {
-			postImageChange(newImage);
+			editor.updatedTitleImage(newImage);
+			return true;
 		}
+		return false;
 	}
 
-	
-	private void postImageChange(final Image newImage) {
-		Shell shell= editor.getEditorSite().getShell();
-		if (shell != null && !shell.isDisposed()) {
-			shell.getDisplay().syncExec(new Runnable() {
-				public void run() {
-					editor.updatedTitleImage(newImage);
-				}
-			});
-		}
-	}	
 	
 	public void dispose() {
 		problemsDecorator.dispose();

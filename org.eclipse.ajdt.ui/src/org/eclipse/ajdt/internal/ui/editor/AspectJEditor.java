@@ -528,10 +528,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 	}
 	
-	public void updatedTitleImage(Image image) {
+	public synchronized void updatedTitleImage(Image image) {
 		if(aboutToUpdateTitleImage) { // only let us update the image (fix for 105299)
-			super.updatedTitleImage(image);
 			aboutToUpdateTitleImage = false;
+			super.updatedTitleImage(image);
 		}
 	}
 
@@ -539,9 +539,21 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 * Update the title image
 	 */
 	// Part of the fix for 89793 - editor icon is not always correct
-	public synchronized void resetTitleImage() {
-		aboutToUpdateTitleImage = true; // only let us update the image (fix for 105299) 
-		aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
+	public  void resetTitleImage() {
+		Shell shell= getEditorSite().getShell();
+		if (shell != null && !shell.isDisposed()) {
+			shell.getDisplay().syncExec(new Runnable() {
+				public void run() {
+					synchronized(AspectJEditor.this) {
+						aboutToUpdateTitleImage = true; // only let us update the image (fix for 105299) 
+						boolean updated = aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
+						if(!updated) {
+							aboutToUpdateTitleImage = false;
+						}
+					}
+				}
+			});
+		}
 	}
 	
 
