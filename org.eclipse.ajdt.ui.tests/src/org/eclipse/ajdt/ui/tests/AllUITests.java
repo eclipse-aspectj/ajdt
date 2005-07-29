@@ -32,6 +32,7 @@ import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
+import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
 import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTest;
@@ -102,6 +103,7 @@ public class AllUITests {
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
+		suite.addTest(new TestSuite(AspectJEditorIconTest.class));
 		
 		// code format tests
 		suite.addTest(new TestSuite(CodeFormatTest.class));
