@@ -68,7 +68,7 @@ public class ImageDecorator implements ILabelDecorator {
 	private ImageDescriptor activeConfigFileImage;
 	private BuildConfigurator buildConfor;
 	
-	private AspectJImages iconRegistry = AspectJImages.registry();
+	private AspectJImages iconRegistry = AspectJImages.instance();
 	
 	/**
 	 *

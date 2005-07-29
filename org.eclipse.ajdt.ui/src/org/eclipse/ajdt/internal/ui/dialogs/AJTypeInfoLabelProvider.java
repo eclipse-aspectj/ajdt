@@ -23,7 +23,7 @@ import org.eclipse.swt.graphics.Image;
  */
 public class AJTypeInfoLabelProvider extends TypeInfoLabelProvider {
 
-	private static final Image ASPECT_ICON = ((AJDTIcon)AspectJImages.registry().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor().createImage();
+	private static final Image ASPECT_ICON = ((AJDTIcon)AspectJImages.instance().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor().createImage();
 	private int flags;
 	
 	private boolean isSet(int flag) {

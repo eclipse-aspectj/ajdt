@@ -316,10 +316,10 @@ public class PointcutNavigatorView extends ViewPart {
 			        return AspectJImages.ADVICE.getImageDescriptor().createImage();
 			    } else if (element.getKind() == IProgramElement.Kind.ADVICE) {
 			        // TODO: implement proper advice icons 
-				    AJDTIcon icon = (AJDTIcon)AspectJImages.registry().getIcon(element.getKind());
+				    AJDTIcon icon = (AJDTIcon)AspectJImages.instance().getIcon(element.getKind());
 				    return icon.getImageDescriptor().createImage();
 			    } else {
-			        AJDTIcon icon = (AJDTIcon)AspectJImages.registry().getStructureIcon(element.getKind(), element.getAccessibility());
+			        AJDTIcon icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(element.getKind(), element.getAccessibility());
 				    return icon.getImageDescriptor().createImage();
 			    }
 			}

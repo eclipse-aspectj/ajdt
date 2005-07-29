@@ -209,7 +209,7 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/jdt/field_public_obj.gif");
 	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
 				"icons/jdt/field_default_obj.gif");
-	
+
 	// Luzius - added build configuration icons
 	public static final AJDTIcon BC_TICK = new AJDTIcon(
 				"icons/buildconfig/tick.gif");
@@ -228,7 +228,7 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/diff/removed.gif"); //$NON-NLS-1$
 	
 	
-	public static AspectJImages registry( ) {
+	public static AspectJImages instance( ) {
 		if ( instance == null ) {
 			instance = new AspectJImages( );
 		}

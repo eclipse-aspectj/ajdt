@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui.editor;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.ui.ProblemsLabelDecorator;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.swt.graphics.Image;
@@ -26,7 +27,8 @@ import org.eclipse.swt.graphics.Image;
  */
 public class AspectJEditorTitleImageUpdater {
 
-	private final Image baseImage = AspectJImages.ASPECTJ_FILE.getImageDescriptor().createImage();
+	private ImageDescriptorRegistry registry = JavaPlugin.getImageDescriptorRegistry();
+	private final Image baseImage = registry.get(AspectJImages.ASPECTJ_FILE.getImageDescriptor());
 	private final ProblemsLabelDecorator problemsDecorator;
 	
 	private AspectJEditor editor;
@@ -35,7 +37,7 @@ public class AspectJEditorTitleImageUpdater {
 	public AspectJEditorTitleImageUpdater(AspectJEditor editor) {		
 		Assert.isNotNull(editor);
 		this.editor = editor;
-		problemsDecorator = new ProblemsLabelDecorator(JavaPlugin.getImageDescriptorRegistry());
+		problemsDecorator = new ProblemsLabelDecorator(registry);
 	}
 
 			
@@ -55,7 +57,6 @@ public class AspectJEditorTitleImageUpdater {
 	
 	public void dispose() {
 		problemsDecorator.dispose();
-		baseImage.dispose();
 	}
 
 }

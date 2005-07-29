@@ -216,7 +216,7 @@ public class TypeInfoViewer {
 		private String[] fVMNames;
 		
 		// AspectJ Change
-		private static Image ASPECT_ICON = ((AJDTIcon)AspectJImages.registry().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor().createImage();
+		private static Image ASPECT_ICON = ((AJDTIcon)AspectJImages.instance().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor().createImage();
 
 		private boolean fFullyQualifyDuplicates;
 		
