@@ -473,7 +473,7 @@ public class BuildProperties {
 		if (srcExcl != null) {
 			changed |= removeOldSourceFolders(sourcePathes, srcExcl);
 		}
-		changed |= addNewSourceFolders(sourcePathes, srcIncl);
+		changed |= addNewSourceFolders(sourcePathes, srcIncl, srcExcl);
 
 		if (changed) {
 			writeFile();
@@ -503,9 +503,15 @@ public class BuildProperties {
 		return changed;
 	}
 
-	private boolean addNewSourceFolders(List sourcePathes, IBuildEntry srcIncl) {
+	private boolean addNewSourceFolders(List sourcePathes, IBuildEntry srcIncl, IBuildEntry srcExcl) {
 		boolean changed = false;
 		String[] entries = srcIncl.getTokens();
+		String[] excludedEntries;
+		if(srcExcl != null) {
+			excludedEntries = srcExcl.getTokens();
+		} else {
+			excludedEntries = new String[0];
+		}
 		Iterator iter;
 
 		iter = sourcePathes.iterator();
@@ -518,7 +524,13 @@ public class BuildProperties {
 					break;
 				}
 			}
-
+			// Part of the fix for bug 102493 - check excluded entries too
+			for (int i = 0; i < excludedEntries.length; i++) {
+				if (path.isPrefixOf(new Path(excludedEntries[i]))) {
+					isNewSrcPath = false;
+					break;
+				}
+			}
 			if (isNewSrcPath) {
 				srcIncl.addTokenWithoutNotify(path.addTrailingSeparator()
 						.toString());

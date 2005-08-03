@@ -484,6 +484,21 @@ public abstract class BuildContentsSection extends TableSection
 			if (includes != null) {
 				if (includes.contains(resourceName))
 					includes.removeToken(resourceName);
+					if(resource.getParent() instanceof IProject) {
+						// If we're removing a source folder add it to the excludes 
+						// list (part of the fix for bug 102493)
+						if (excludes == null) {
+							excludes = fBuildModel.getFactory().createEntry(
+									PROPERTY_EXCLUDES);
+							IBuild build = fBuildModel.getBuild();
+							build.add(excludes);
+						}
+						if (!excludes.contains(resourceName)
+								&& (includes != null
+										? !includes.contains(resourceName)
+										: true))
+							excludes.addToken(resourceName);
+					}
 				if (includes.contains("*." + resource.getFileExtension())) { //$NON-NLS-1$
 					IResource[] members = fProject.members();
 					for (int i = 0; i < members.length; i++) {
