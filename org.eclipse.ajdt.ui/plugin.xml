@@ -344,6 +344,25 @@
       </queryParticipant>
    </extension>-->
 
+	<extension
+		point="org.eclipse.ltk.core.refactoring.deleteParticipants">
+		<deleteParticipant
+		    id="ajdt.deleteParticipant"
+		    name="%DeleteParticipant.name" 
+		    class="org.eclipse.ajdt.internal.ui.refactoring.DeleteParticipant">
+		    <enablement> 
+	 	     <with variable="affectedNatures">
+		      <iterate operator="or">	
+			       <equals value="org.eclipse.ajdt.ui.ajnature"/>
+			  </iterate>
+		     </with>	
+		     <with variable="element">
+		     	<instanceof value="org.eclipse.jdt.core.IJavaElement"/>
+		     </with>
+			</enablement>			
+		</deleteParticipant>
+	</extension>
+
 
 <!-- Define AspectJ Builder -->
 <!-- Note: this is now the *OLD* builder, and is only here to migrate project settings
