@@ -14,7 +14,6 @@ package org.eclipse.ajdt.ui.tests.editor;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

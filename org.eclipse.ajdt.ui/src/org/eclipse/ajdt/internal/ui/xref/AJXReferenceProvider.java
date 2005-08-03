@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.model.AJComparator;
 import org.eclipse.ajdt.core.model.AJModel;
@@ -25,11 +24,9 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jface.preference.IPreferenceStore;
 
 public class AJXReferenceProvider implements IXReferenceProvider {
 
