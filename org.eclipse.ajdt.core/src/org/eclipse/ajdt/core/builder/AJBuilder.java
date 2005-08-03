@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -43,12 +44,15 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.core.util.Util;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * 
@@ -155,14 +159,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
-
-//		String kindS = null;
-//		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
-//			kindS = "AUTOBUILD";  //$NON-NLS-1$
-//		if (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD)
-//			kindS = "INCREMENTALBUILD";  //$NON-NLS-1$
-//		if (kind == IncrementalProjectBuilder.FULL_BUILD)
-//			kindS = "FULLBUILD";  //$NON-NLS-1$
 
 		String mode = "";  //$NON-NLS-1$
 		boolean incremental = buildManager.getBuildOptions().getIncrementalMode();
@@ -528,7 +524,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							createFolder(resourcePath.removeLastSegments(1), outputFolder); 
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
-							outputFile.setReadOnly(false); // just in case the original was read only
+							Util.setReadOnly(outputFile, false); // just in case the original was read only
 							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
 							return;
 						case IResourceDelta.REMOVED :
@@ -549,7 +545,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							createFolder(resourcePath.removeLastSegments(1), outputFolder);
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
-							outputFile.setReadOnly(false); // just in case the original was read only
+							Util.setReadOnly(outputFile, false); // just in case the original was read only
 							outputFile.refreshLocal(IResource.DEPTH_ZERO,null);
 					}					
 				}
@@ -736,11 +732,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				// the JavaCore.create() call appears to return a null. 
 				if (dependingProject.hasNature(JavaCore.NATURE_ID)) {
 					JavaProject jp = (JavaProject)JavaCore.create(dependingProject);
-					String[] names = jp.getPreferences().propertyNames();
-					if (names.length == 0 && !setWorkbenchPref) {
+					// Bug 91131 - In Eclipse 3.1 need to use IEclipsePreferences
+					IEclipsePreferences projectPreferences = jp.getEclipsePreferences();
+					String[] keys = projectPreferences.keys();
+
+					if (keys.length == 0 && !setWorkbenchPref) {
 						Hashtable options = JavaCore.getOptions();
 						String workbenchSetting = (String)options.get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
-						if (lastWorkbenchPreference.equals(JavaCore.ABORT) && workbenchSetting.equals(JavaCore.IGNORE)) {
+						if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
+								&& workbenchSetting.equals(JavaCore.IGNORE)) {
 							lastWorkbenchPreference = JavaCore.IGNORE;
 						} else if (lastWorkbenchPreference.equals(JavaCore.ABORT) 
 								&& workbenchSetting.equals(JavaCore.ABORT)){
@@ -752,16 +752,53 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							}
 						} else if (lastWorkbenchPreference.equals(JavaCore.IGNORE) 
 								&& workbenchSetting.equals(JavaCore.ABORT)){
-							lastWorkbenchPreference = JavaCore.ABORT;
+							if (!setWorkbenchPref) {
+								options.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+								JavaCore.setOptions(options);	
+								setWorkbenchPref = true;
+							} else {
+								lastWorkbenchPreference = JavaCore.ABORT;
+							}
 						}
-					} else if (names.length > 0) {
-						jp.setOption(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH,JavaCore.IGNORE);
+					} else if (keys.length > 0 && usingProjectBuildingOptions(keys)) {
+						projectPreferences.put(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH, JavaCore.IGNORE);
+						try {
+							projectPreferences.flush();
+						} catch (BackingStoreException e) {
+							// problem with pref store - quietly ignore
+						}
 						lastWorkbenchPreference = (String)JavaCore.getOptions().get(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH);
 					}
 				}// end if dependent has a Java nature
 			} catch (CoreException e) {
+			} catch (BackingStoreException e) {
 			}
 		}		
+	}
+	
+	/**
+	 * Bug 91131 - Checking to see if the user has selected to use project 
+	 * setting for building. Unfortunately, there is no way of checking 
+	 * whether the user has selected to use project settings other than to 
+	 * see whether the options contained on the building page are in the
+	 * IEclipsePreferences. There is also the need for this extra check,
+	 * rather than just whether there are any IEclipsePreferences, 
+	 * in Eclipse 3.1 because there are several property pages for the 
+	 * different compiler options.
+	 */
+	private boolean usingProjectBuildingOptions(String[] keys) {
+		List listOfKeys = Arrays.asList(keys);
+		if (listOfKeys.contains(JavaCore.COMPILER_PB_MAX_PER_UNIT)
+				|| listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_DUPLICATE_RESOURCE)
+				|| listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_INVALID_CLASSPATH)
+				|| listOfKeys.contains(JavaCore.CORE_JAVA_BUILD_RESOURCE_COPY_FILTER)
+				|| listOfKeys.contains(JavaCore.CORE_ENABLE_CLASSPATH_MULTIPLE_OUTPUT_LOCATIONS)
+				|| listOfKeys.contains(JavaCore.CORE_CIRCULAR_CLASSPATH)
+				|| listOfKeys.contains(JavaCore.CORE_INCOMPLETE_CLASSPATH)
+				|| listOfKeys.contains(JavaCore.CORE_INCOMPATIBLE_JDK_LEVEL)) {
+			return true;
+		}		
+		return false;
 	}
 	
 	public static void addAJBuildListener(IAJBuildListener listener) {
