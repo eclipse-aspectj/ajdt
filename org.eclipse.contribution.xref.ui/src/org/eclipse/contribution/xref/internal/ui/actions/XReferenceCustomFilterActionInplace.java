@@ -21,7 +21,6 @@ import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.contribution.xref.ui.filters.CustomFilterDialog;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.filters.FilterMessages;
 import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Shell;
 

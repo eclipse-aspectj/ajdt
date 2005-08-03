@@ -10,11 +10,8 @@ Adrian Colyer, Andy Clement - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
-import java.io.File;
-
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -22,11 +19,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.launching.RuntimeClasspathEntry;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

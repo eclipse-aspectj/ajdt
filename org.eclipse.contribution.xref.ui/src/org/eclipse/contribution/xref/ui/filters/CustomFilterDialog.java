@@ -16,8 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
-import org.eclipse.jdt.internal.ui.filters.FilterMessages;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -37,7 +35,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 public class CustomFilterDialog {
