@@ -69,76 +69,83 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 /**
  * The preference page for the Visualiser plugin
  */
-public class VisualiserPreferencePage extends PreferencePage 
-	implements IWorkbenchPreferencePage {
+public class VisualiserPreferencePage extends PreferencePage implements
+		IWorkbenchPreferencePage {
 
 	private Text descriptionText;
+
 	private CheckboxTableViewer checkboxViewer;
 
 	private List styleList;
+
 	private List colourList;
+
 	private Scale prefWidth;
+
 	private Scale stripeHeight;
+
 	private VisualiserPreview preview;
-	
+
 	/**
 	 * Create the contents of the page
+	 * 
 	 * @see PreferencePage#createContents(Composite)
 	 */
 	protected Control createContents(Composite parent) {
-		Composite composite= new Composite(parent, SWT.NONE);
-		GridLayout layout= new GridLayout();
+		Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
 		composite.setLayout(layout);
-		
-		TabFolder folder= new TabFolder(composite, SWT.NONE);
-		folder.setLayout(new TabFolderLayout());	
-		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		Control providerControl= createProviderControl(folder);
-		Control drawingOptionsControl= createDrawingOptionsControl(folder);
 
-		TabItem item= new TabItem(folder, SWT.NONE);
+		TabFolder folder = new TabFolder(composite, SWT.NONE);
+		folder.setLayout(new TabFolderLayout());
+		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		Control providerControl = createProviderControl(folder);
+		Control drawingOptionsControl = createDrawingOptionsControl(folder);
+
+		TabItem item = new TabItem(folder, SWT.NONE);
 		item.setText(VisualiserMessages.VisualiserPreferencePage_providers);
 		item.setControl(providerControl);
 
-		item= new TabItem(folder, SWT.NONE);
-		item.setText(VisualiserMessages.VisualiserPreferencePage_drawingOptions);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(VisualiserMessages.VisualiserPreferencePage_drawingOptions);
 		item.setControl(drawingOptionsControl);
-		
+
 		populateProviders();
 
 		return composite;
 	}
 
-
 	/**
-	 * Subsidiary method for createContents().
-	 * Creates the contents of the drawing options tab. 
+	 * Subsidiary method for createContents(). Creates the contents of the
+	 * drawing options tab.
+	 * 
 	 * @param parent
 	 * @return the created control
 	 */
 	private Control createDrawingOptionsControl(TabFolder parent) {
-		GridLayout layout= new GridLayout();
-		Composite composite= new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		composite.setLayout(layout);	
+		composite.setLayout(layout);
 		createDrawingStyleArea(composite);
 		return composite;
 	}
 
-
 	/**
-	 * Subsidiary method for createContents().
-	 * Creates the contents of the providers tab. 
+	 * Subsidiary method for createContents(). Creates the contents of the
+	 * providers tab.
+	 * 
 	 * @param parent
 	 * @return the created control
 	 */
 	private Control createProviderControl(TabFolder parent) {
-		GridLayout layout= new GridLayout();
-		Composite composite= new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(layout);
 		createProvidersArea(composite);
-		createDescriptionArea(composite);		
+		createDescriptionArea(composite);
 		return composite;
 	}
 
@@ -157,89 +164,106 @@ public class VisualiserPreferencePage extends PreferencePage
 		}
 
 		Composite drawingComposite = new Composite(mainComposite, SWT.NONE);
-		drawingComposite.setLayout((new GridLayout(2,true)));
-		GridData gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		drawingComposite.setLayout((new GridLayout(2, true)));
+		GridData gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		drawingComposite.setLayoutData(gd);
-		
+
 		Group styleGroup = new Group(drawingComposite, SWT.NONE);
-		styleGroup.setLayout (new GridLayout ());
-		styleGroup.setLayoutData (new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL));
-		styleGroup.setText(VisualiserMessages.VisualiserPreferencePage_drawingStyle);
-		
-		styleList = new List(styleGroup, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		styleGroup.setLayout(new GridLayout());
+		styleGroup
+				.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
+						| GridData.HORIZONTAL_ALIGN_FILL
+						| GridData.VERTICAL_ALIGN_FILL));
+		styleGroup
+				.setText(VisualiserMessages.VisualiserPreferencePage_drawingStyle);
+
+		styleList = new List(styleGroup, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL
+				| SWT.H_SCROLL);
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		gd.heightHint = 65;
 		styleList.setLayoutData(gd);
-		styleList.setItems((String[])rnames.toArray(new String[]{}));
+		styleList.setItems((String[]) rnames.toArray(new String[] {}));
 		String rname = VisualiserPreferences.getRendererName();
-		if ((rname==null) || (rname.length()==0)) {
+		if ((rname == null) || (rname.length() == 0)) {
 			// hasn't been set, use the default
 			rname = RendererManager.getDefaultRenderer().getName();
 		}
 
 		Group colourGroup = new Group(drawingComposite, SWT.NONE);
-		colourGroup.setLayout (new GridLayout ());
-		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
-		colourGroup.setLayoutData (gd);
-		colourGroup.setText(VisualiserMessages.VisualiserPreferencePage_colorSet);
-		
-		colourList = new List(colourGroup, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		gd = new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		colourGroup.setLayout(new GridLayout());
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		colourGroup.setLayoutData(gd);
+		colourGroup
+				.setText(VisualiserMessages.VisualiserPreferencePage_colorSet);
+
+		colourList = new List(colourGroup, SWT.SINGLE | SWT.BORDER
+				| SWT.V_SCROLL | SWT.H_SCROLL);
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		gd.heightHint = 65;
 		colourList.setLayoutData(gd);
-		colourList.setItems((String[])pnames.toArray(new String[]{}));
+		colourList.setItems((String[]) pnames.toArray(new String[] {}));
 		String pname = PaletteManager.getCurrentPalette().getName();
-		
+
 		Group stripeHGroup = new Group(drawingComposite, SWT.NONE);
-		stripeHGroup.setLayout (new GridLayout ());
-		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		stripeHGroup.setLayout(new GridLayout());
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		stripeHGroup.setLayoutData(gd);
-		stripeHGroup.setText(VisualiserMessages.VisualiserPreferencePage_stripeHeight);
+		stripeHGroup
+				.setText(VisualiserMessages.VisualiserPreferencePage_stripeHeight);
 
 		stripeHeight = new Scale(stripeHGroup, SWT.HORIZONTAL);
 		stripeHeight.setMinimum(1);
 		stripeHeight.setMaximum(20);
 		stripeHeight.setIncrement(1);
 		stripeHeight.setSelection(VisualiserPreferences.getStripeHeight());
-		gd = new GridData (GridData.FILL_HORIZONTAL);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
 		stripeHeight.setLayoutData(gd);
 
 		Group prefWidthGroup = new Group(drawingComposite, SWT.NONE);
-		prefWidthGroup.setLayout (new GridLayout ());
-		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		prefWidthGroup.setLayout(new GridLayout());
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
 		prefWidthGroup.setLayoutData(gd);
-		prefWidthGroup.setText(VisualiserMessages.VisualiserPreferencePage_colWidth);
+		prefWidthGroup
+				.setText(VisualiserMessages.VisualiserPreferencePage_colWidth);
 
 		prefWidth = new Scale(prefWidthGroup, SWT.HORIZONTAL);
 		prefWidth.setMinimum(VisualiserPreferences.getMinBarSize());
 		prefWidth.setMaximum(120);
 		prefWidth.setIncrement(5);
 		prefWidth.setSelection(VisualiserPreferences.getBarWidth());
-		gd = new GridData (GridData.FILL_HORIZONTAL);
+		gd = new GridData(GridData.FILL_HORIZONTAL);
 		prefWidth.setLayoutData(gd);
-		
+
 		Group canvasGroup = new Group(drawingComposite, SWT.NONE);
-		canvasGroup.setLayout (new GridLayout ());
-		gd = new GridData (GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
-		gd.grabExcessVerticalSpace = true; 
-		gd.horizontalSpan=2;
+		canvasGroup.setLayout(new GridLayout());
+		gd = new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+		gd.grabExcessVerticalSpace = true;
+		gd.horizontalSpan = 2;
 		canvasGroup.setLayoutData(gd);
-		canvasGroup.setText(VisualiserMessages.VisualiserPreferencePage_preview);
+		canvasGroup
+				.setText(VisualiserMessages.VisualiserPreferencePage_preview);
 
 		preview = new VisualiserPreview(canvasGroup);
 		gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint=300;
-		gd.heightHint=100;
+		gd.widthHint = 300;
+		gd.heightHint = 100;
 		preview.setLayoutData(gd);
-		
-		styleList.setSelection(new String[]{rname});
+
+		styleList.setSelection(new String[] { rname });
 		styleList.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				preview.redraw();
 			}
 		});
 
-		colourList.setSelection(new String[]{pname});
+		colourList.setSelection(new String[] { pname });
 		colourList.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				preview.redraw();
@@ -261,83 +285,85 @@ public class VisualiserPreferencePage extends PreferencePage
 	}
 
 	class VisualiserPreview extends Canvas {
-		private SimpleMember m = new SimpleMember(VisualiserMessages.VisualiserPreferencePage_preview_col1);
-		private SimpleMember m2 = new SimpleMember(VisualiserMessages.VisualiserPreferencePage_preview_col2);
+		private SimpleMember m = new SimpleMember(
+				VisualiserMessages.VisualiserPreferencePage_preview_col1);
+
+		private SimpleMember m2 = new SimpleMember(
+				VisualiserMessages.VisualiserPreferencePage_preview_col2);
 
 		private IVisualiserPalette ivp;
+
 		private Color[] cols;
-		
+
 		VisualiserPreview(Composite parent) {
 			super(parent, SWT.NO_BACKGROUND);
-			addPaintListener(new PaintListener () {
+			addPaintListener(new PaintListener() {
 				public void paintControl(PaintEvent e) {
 					paint(e.gc);
 				}
 			});
 		}
-		
+
 		private void paint(GC gc) {
 			String rname = styleList.getSelection()[0];
-			RendererDefinition rd =
-				RendererManager.getRendererByName(rname);
+			RendererDefinition rd = RendererManager.getRendererByName(rname);
 			String pname = colourList.getSelection()[0];
-			PaletteDefinition pd =
-				PaletteManager.getPaletteByName(pname);
+			PaletteDefinition pd = PaletteManager.getPaletteByName(pname);
 			if ((rd != null) && (pd != null)) {
 				Rectangle clientRect = getClientArea();
-				Image buffer = new Image(getDisplay(),clientRect.width,clientRect.height);
+				Image buffer = new Image(getDisplay(), clientRect.width,
+						clientRect.height);
 				GC sgc = new GC(buffer);
 				sgc.setBackground(ColorConstants.menuBackground);
 				sgc.fillRectangle(clientRect);
-				
+
 				IVisualiserRenderer r = rd.getRenderer();
 				int x = r.getMarginSize();
 				int y = r.getColumnHeaderHeight() + r.getMarginSize();
 				int width = prefWidth.getSelection();
-				int height=70;
-				r.paintColumnHeader(sgc,m,x,width);
-				r.paintColumn(sgc,m,x,y,width,height,true);
-				
+				int height = 70;
+				r.paintColumnHeader(sgc, m, x, width);
+				r.paintColumn(sgc, m, x, y, width, height, true);
+
 				// paint a couple of stripes
 				if (pd.getPalette() != ivp) {
 					disposeCols();
 				}
-				if (cols == null)  {
+				if (cols == null) {
 					RGB[] rgb = pd.getPalette().getRGBValues();
 					cols = new Color[] {
-							new Color(Display.getDefault(),rgb[0]),
-							new Color(Display.getDefault(),rgb[1]),
-							new Color(Display.getDefault(),rgb[2]),
-							new Color(Display.getDefault(),rgb[3])
-					};
+							new Color(Display.getDefault(), rgb[0]),
+							new Color(Display.getDefault(), rgb[1]),
+							new Color(Display.getDefault(), rgb[2]),
+							new Color(Display.getDefault(), rgb[3]) };
 				}
-				
+
 				int h = stripeHeight.getSelection();
 				sgc.setBackground(cols[0]);
-				sgc.fillRectangle(x+1,y+10,width-1,h);
+				sgc.fillRectangle(x + 1, y + 10, width - 1, h);
 
 				sgc.setBackground(cols[1]);
-				sgc.fillRectangle(x+1,y+32,width/2-1,h);
+				sgc.fillRectangle(x + 1, y + 32, width / 2 - 1, h);
 				sgc.setBackground(cols[2]);
-				sgc.fillRectangle(x+1+width/2,y+32,width/2-1,h);
-				
+				sgc.fillRectangle(x + 1 + width / 2, y + 32, width / 2 - 1, h);
+
 				sgc.setBackground(cols[3]);
-				int sy = y+54;
-				if (h > y+height-sy) {
-					h = y+height-sy;
+				int sy = y + 54;
+				if (h > y + height - sy) {
+					h = y + height - sy;
 				}
-				sgc.fillRectangle(x+1,sy,width-1,h);
-				
+				sgc.fillRectangle(x + 1, sy, width - 1, h);
+
 				x += r.getSpacing() + width;
-				r.paintColumnHeader(sgc,m2,x,width);
-				r.paintColumn(sgc,m2,x,y,width,height,false);
-				
-				gc.drawImage(buffer,0,0);
+				r.paintColumnHeader(sgc, m2, x, width);
+				r.paintColumn(sgc, m2, x, y, width, height, false);
+
+				gc.drawImage(buffer, 0, 0);
 				sgc.dispose();
 				buffer.dispose();
-			}			
+			}
 		}
-		
+
 		private void disposeCols() {
 			if (cols != null) {
 				for (int i = 0; i < cols.length; i++) {
@@ -346,7 +372,7 @@ public class VisualiserPreferencePage extends PreferencePage
 				cols = null;
 			}
 		}
-		
+
 		/**
 		 * Dispose the resources allocated by the preview
 		 */
@@ -356,7 +382,7 @@ public class VisualiserPreferencePage extends PreferencePage
 		}
 
 	}
-	
+
 	/**
 	 * Disposes the visualiser preview canvas
 	 */
@@ -366,98 +392,104 @@ public class VisualiserPreferencePage extends PreferencePage
 			preview.dispose();
 		}
 	}
-	
-	/** 
+
+	/**
 	 * Creates the widgets for the list of providers.
 	 */
 	private void createProvidersArea(Composite mainComposite) {
-		
+
 		Font mainFont = mainComposite.getFont();
 		Composite providersComposite = new Composite(mainComposite, SWT.NONE);
 		providersComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+
 		GridLayout providersLayout = new GridLayout();
 		providersLayout.marginWidth = 0;
 		providersLayout.marginHeight = 0;
 		providersComposite.setLayout(providersLayout);
 		providersComposite.setFont(mainFont);
-		
+
 		Label providersLabel = new Label(providersComposite, SWT.NONE);
-		providersLabel.setText(VisualiserMessages.VisualiserPreferencePage_providersLabel);
+		providersLabel
+				.setText(VisualiserMessages.VisualiserPreferencePage_providersLabel);
 		providersLabel.setFont(mainFont);
-		
+
 		// Checkbox table viewer of decorators
-		checkboxViewer =
-			CheckboxTableViewer.newCheckList(
-				providersComposite,
+		checkboxViewer = CheckboxTableViewer.newCheckList(providersComposite,
 				SWT.SINGLE | SWT.TOP | SWT.BORDER);
-		checkboxViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+		checkboxViewer.getTable().setLayoutData(
+				new GridData(GridData.FILL_BOTH));
 		checkboxViewer.getTable().setFont(providersComposite.getFont());
 		checkboxViewer.setLabelProvider(new LabelProvider() {
 			public String getText(Object element) {
-				 return ((ProviderDefinition) element).getName();
+				return ((ProviderDefinition) element).getName();
 			}
 		});
 		checkboxViewer.getTable().setFont(mainFont);
-		
+
 		checkboxViewer.setContentProvider(new IStructuredContentProvider() {
-			
+
 			public void dispose() {
-				//Nothing to do on dispose
+				// Nothing to do on dispose
 			}
-			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+
+			public void inputChanged(Viewer viewer, Object oldInput,
+					Object newInput) {
 			}
+
 			public Object[] getElements(Object inputElement) {
-				//Make an entry for each decorator definition
-				//return sorter.sort((Object[]) inputElement);
+				// Make an entry for each decorator definition
+				// return sorter.sort((Object[]) inputElement);
 				return (Object[]) inputElement;
 			}
-		
+
 		});
-		
-		checkboxViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				if (event.getSelection() instanceof IStructuredSelection) {
-					IStructuredSelection sel = (IStructuredSelection) event.getSelection();
-					ProviderDefinition definition = 
-						(ProviderDefinition) sel.getFirstElement();
-					if (definition == null)
-						clearDescription();
-					else
-						showDescription(definition);
-				}
-			}
-		});
-		
+
+		checkboxViewer
+				.addSelectionChangedListener(new ISelectionChangedListener() {
+					public void selectionChanged(SelectionChangedEvent event) {
+						if (event.getSelection() instanceof IStructuredSelection) {
+							IStructuredSelection sel = (IStructuredSelection) event
+									.getSelection();
+							ProviderDefinition definition = (ProviderDefinition) sel
+									.getFirstElement();
+							if (definition == null)
+								clearDescription();
+							else
+								showDescription(definition);
+						}
+					}
+				});
+
 		checkboxViewer.addCheckStateListener(new ICheckStateListener() {
 			public void checkStateChanged(CheckStateChangedEvent event) {
 				checkboxViewer.setAllChecked(false);
-				checkboxViewer.setChecked(event.getElement(),true);
-				checkboxViewer.setSelection(
-						new StructuredSelection(event.getElement()),true);
-		
+				checkboxViewer.setChecked(event.getElement(), true);
+				checkboxViewer.setSelection(new StructuredSelection(event
+						.getElement()), true);
+
 				// reset palette choice in drawing options tab
-				ProviderDefinition definition = 
-					(ProviderDefinition) event.getElement();
-				String pid = VisualiserPreferences.getPaletteIDForProvider(definition.getID());
+				ProviderDefinition definition = (ProviderDefinition) event
+						.getElement();
+				String pid = VisualiserPreferences
+						.getPaletteIDForProvider(definition.getID());
 				String pname = null;
 				if ((pid != null) && (pid.length() > 0)) {
 					pname = PaletteManager.getPaletteByID(pid).getName();
 				}
-				if ((pname==null) || (pname.length()==0)) {
-					pname = PaletteManager.getDefaultForProvider(definition).getName();
+				if ((pname == null) || (pname.length() == 0)) {
+					pname = PaletteManager.getDefaultForProvider(definition)
+							.getName();
 				}
-				colourList.setSelection(new String[]{pname});
+				colourList.setSelection(new String[] { pname });
 			}
 		});
 	}
 
-	
-	/** 
+	/**
 	 * Creates the widgets for the provider description.
 	 */
 	private void createDescriptionArea(Composite mainComposite) {
-		
+
 		Font mainFont = mainComposite.getFont();
 		Composite textComposite = new Composite(mainComposite, SWT.NONE);
 		textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -466,18 +498,18 @@ public class VisualiserPreferencePage extends PreferencePage
 		textLayout.marginHeight = 0;
 		textComposite.setLayout(textLayout);
 		textComposite.setFont(mainFont);
-		
+
 		Label descriptionLabel = new Label(textComposite, SWT.NONE);
-		descriptionLabel.setText(VisualiserMessages.VisualiserPreferencePage_description);
+		descriptionLabel
+				.setText(VisualiserMessages.VisualiserPreferencePage_description);
 		descriptionLabel.setFont(mainFont);
-		
-		descriptionText =
-			new Text(textComposite, SWT.MULTI | SWT.WRAP | SWT.READ_ONLY | SWT.BORDER | SWT.H_SCROLL);
+
+		descriptionText = new Text(textComposite, SWT.MULTI | SWT.WRAP
+				| SWT.READ_ONLY | SWT.BORDER | SWT.H_SCROLL);
 		descriptionText.setLayoutData(new GridData(GridData.FILL_BOTH));
 		descriptionText.setFont(mainFont);
 	}
 
-	
 	/**
 	 * Populates the list of providers.
 	 */
@@ -485,14 +517,14 @@ public class VisualiserPreferencePage extends PreferencePage
 		ProviderDefinition[] definitions = getAllDefinitions();
 		checkboxViewer.setInput(definitions);
 		for (int i = 0; i < definitions.length; i++) {
-			checkboxViewer.setChecked(definitions[i], definitions[i].isEnabled());
-			if(definitions[i].isEnabled()){
+			checkboxViewer.setChecked(definitions[i], definitions[i]
+					.isEnabled());
+			if (definitions[i].isEnabled()) {
 				showDescription(definitions[i]);
 			}
 		}
 	}
 
-	
 	/**
 	 * Show the selected description in the text.
 	 */
@@ -502,12 +534,12 @@ public class VisualiserPreferencePage extends PreferencePage
 		}
 		String text = definition.getDescription();
 		if (text == null || text.length() == 0)
-			descriptionText.setText(VisualiserMessages.VisualiserPreferencePage_noDescription);
+			descriptionText
+					.setText(VisualiserMessages.VisualiserPreferencePage_noDescription);
 		else
 			descriptionText.setText(text);
 	}
 
-	
 	/**
 	 * Clear the selected description in the text.
 	 */
@@ -518,65 +550,66 @@ public class VisualiserPreferencePage extends PreferencePage
 		descriptionText.setText(""); //$NON-NLS-1$
 	}
 
-	
 	/**
 	 * Restore defaults
+	 * 
 	 * @see PreferencePage#performDefaults()
 	 */
 	protected void performDefaults() {
 		super.performDefaults();
-		stripeHeight.setSelection(VisualiserPreferences.getDefaultStripeHeight());
+		stripeHeight.setSelection(VisualiserPreferences
+				.getDefaultStripeHeight());
 		prefWidth.setSelection(VisualiserPreferences.getDefaultBarWidth());
 		String rname = RendererManager.getDefaultRenderer().getName();
 		styleList.setSelection(styleList.indexOf(rname));
-		ProviderDefinition def =
-			(ProviderDefinition)checkboxViewer.getCheckedElements()[0];
+		ProviderDefinition def = (ProviderDefinition) checkboxViewer
+				.getCheckedElements()[0];
 		String pname = PaletteManager.getDefaultForProvider(def).getName();
 		colourList.setSelection(colourList.indexOf(pname));
 		preview.redraw();
 	}
 
-
 	/**
-	 * Called when the user presses OK.  
-	 * Updates the Visualiser with the selections chosen.
+	 * Called when the user presses OK. Updates the Visualiser with the
+	 * selections chosen.
+	 * 
 	 * @see PreferencePage#performOk()
 	 */
 	public boolean performOk() {
 		if (super.performOk()) {
-			ProviderDefinition[] definitions = ProviderManager.getAllProviderDefinitions();
+			ProviderDefinition[] definitions = ProviderManager
+					.getAllProviderDefinitions();
 			for (int i = 0; i < definitions.length; i++) {
 				boolean checked = checkboxViewer.getChecked(definitions[i]);
-				if (definitions[i].isEnabled()!=checked) {
+				if (definitions[i].isEnabled() != checked) {
 					definitions[i].setEnabled(checked);
-				}	
+				}
 			}
-			
+
 			VisualiserPreferences.setStripeHeight(stripeHeight.getSelection());
 			VisualiserPreferences.setBarWidth(prefWidth.getSelection());
-			
+
 			String rname = styleList.getSelection()[0];
 			VisualiserPreferences.setRendererName(rname);
 
-			String pname = colourList.getSelection()[0];			
+			String pname = colourList.getSelection()[0];
 			ProviderDefinition def = ProviderManager.getCurrent();
 			String defp = PaletteManager.getDefaultForProvider(def).getName();
 			if (defp.equals(pname)) {
 				// going with provider defintion, clear preference setting
-				VisualiserPreferences.setPaletteIDForProvider(def,""); //$NON-NLS-1$
+				VisualiserPreferences.setPaletteIDForProvider(def, ""); //$NON-NLS-1$
 			} else {
 				// update preference setting for this provider
 				String pid = PaletteManager.getPaletteByName(pname).getID();
-				VisualiserPreferences.setPaletteIDForProvider(def,pid);
+				VisualiserPreferences.setPaletteIDForProvider(def, pid);
 			}
 			PaletteManager.resetCurrent();
 
 			IMarkupProvider markupP = ProviderManager.getMarkupProvider();
 
-			
 			// if the Visualiser is showing, update to use the new settings
 			if (VisualiserPlugin.visualiser != null) {
-				if(VisualiserPlugin.menu != null) {
+				if (VisualiserPlugin.menu != null) {
 					VisualiserPlugin.menu.setVisMarkupProvider(markupP);
 				}
 				VisualiserPlugin.visualiser.updateDisplay(true);
@@ -586,13 +619,12 @@ public class VisualiserPreferencePage extends PreferencePage
 		return false;
 	}
 
-	
 	/**
 	 * @see IWorkbenchPreferencePage#init(IWorkbench)
 	 */
 	public void init(IWorkbench workbench) {
 	}
-	
+
 	/**
 	 * Get the Provider definitions for the workbench.
 	 */
