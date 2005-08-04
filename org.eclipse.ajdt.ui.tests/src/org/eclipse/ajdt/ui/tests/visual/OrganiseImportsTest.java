@@ -83,7 +83,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 			postKeyDown(SWT.SHIFT);
 			postString("98 ");
 			postKeyUp(SWT.SHIFT);
-			postString("File.");
+			postString("ByteArrayInputStream.");
 			postKeyDown(SWT.SHIFT);
 			postString("89");
 			postKeyUp(SWT.SHIFT);
