@@ -139,6 +139,18 @@ public class ProjectProperties extends CoreProjectProperties  {
 			return path;
 		}
 	}
+	
+	/**
+	 * On windows, returns whether or not we have a match regardless of
+	 * case - bug 82341
+	 */
+	private boolean caseInsensitiveMatch(String toMatch, IResource resource) {
+		if((toMatch.charAt(1) == ':')) {
+			return toMatch.toLowerCase().startsWith(resource.getLocation()
+					.toString().toLowerCase());
+		}
+		return false;
+	}
 
 	/**
 	 * Return the IResource within the project that maps to the given File
@@ -161,8 +173,10 @@ public class ProjectProperties extends CoreProjectProperties  {
 								.findMember(pe.removeFirstSegments(1));
 						if (ires instanceof IFolder) {
 							IFolder f = (IFolder) ires;
-							if (toMatch.startsWith(toCanonical(f.getLocation()
-									.toString()))) {
+							// bug 82341 - adding extra check for a match
+							// regardless of case on windows
+							if (toMatch.startsWith(toCanonical(f.getLocation().toString()))
+									|| caseInsensitiveMatch(toMatch,f)) {
 								// this is what it was all about!
 								// we have a possible symbolic link within our
 								// project to the file
@@ -172,13 +186,16 @@ public class ProjectProperties extends CoreProjectProperties  {
 								if (f.exists(postfixPath)) {
 									return f.findMember(postfixPath);
 								}
-							}
+							} 
 						} else if (ires instanceof IProject) {
 							// I think this is when the project has no src/bin
 							// dirs
 							IProject iproj = ((IProject) ires);
-							if (toMatch.startsWith(toCanonical(iproj
-									.getLocation().toString()))) {
+     						// bug 82341 - adding extra check for a match
+							// regardless of case on windows
+							if (toMatch.startsWith(toCanonical(iproj.getLocation()
+									.toString()))
+									|| caseInsensitiveMatch(toMatch,iproj)) {
 								// this is what it was all about!
 								// we have a possible symbolic link within our
 								// project to the file

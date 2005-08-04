@@ -63,4 +63,63 @@ public class ProjectPropertiesTest extends TestCase {
 
 		Utils.deleteProject(project);
 	}
+	
+	/**
+	 * Bug 82341  
+	 */
+	public void testCaseInsensitive() throws Exception {
+		IProject project = Utils.createPredefinedProject("Hello World Project");
+
+		// create two paths, one where the drive letter (if there is one) has a
+		// different case to the other
+		String fullpath1 = project.getLocation().toOSString() + File.separator
+				+ "src" + File.separator + "HelloWorld.java";
+		String fullpath2;
+		
+		// if on windows then change the case
+		if ((fullpath1.charAt(1) == ':')) {
+			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
+							+ "src" + File.separator + "HelloWorld.java";
+		} else {
+			fullpath2 = fullpath1;
+		}	
+		// now make sure both the resources can be found
+		IResource res1 = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().findResource(fullpath1, project);
+		assertNotNull("Regression of bug 82341",res1);
+		
+		IResource res2 = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().findResource(fullpath2, project);
+		assertNotNull("Regression of bug 82341",res2);
+		
+		Utils.deleteProject(project);
+	}
+	
+	public void testCaseInsensitiveNoSrcFolder() throws Exception {
+		IProject project = Utils.createPredefinedProject("WithoutSourceFolder");
+
+		// create two paths, one where the drive letter (if there is one) has a
+		// different case to the other
+		String fullpath1 = project.getLocation().toOSString() + File.separator
+				+ "C.java";
+		String fullpath2;
+		
+		// if on windows then change the case
+		if ((fullpath1.charAt(1) == ':')) {
+			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
+							+ "C.java";
+		} else {
+			fullpath2 = fullpath1;
+		}
+		// now make sure both the resources can be found
+		IResource res1 = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().findResource(fullpath1, project);
+		assertNotNull("Regression of bug 82341",res1);
+		
+		IResource res2 = AspectJUIPlugin.getDefault()
+				.getAjdtProjectProperties().findResource(fullpath2, project);
+		assertNotNull("Regression of bug 82341",res2);
+		
+		Utils.deleteProject(project);
+	}
 }
