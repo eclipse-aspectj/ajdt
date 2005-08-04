@@ -39,7 +39,9 @@ public class XRefMessages extends NLS {
 	public static String XReferencePreferencePage_explanation;
 	public static String XReferencePreferencePage_description;
 	public static String XReferencePreferencePage_providersLabel;
-	public static String XReferenePage_noDescription;
+	public static String XReferencePreferencePage_noDescription;
+	
+	public static String XReferenceContentProvider_evaluate;
 
 	// XReferenceInplaceDialog
 	public static String XReferenceInplaceDialog_viewMenu_rememberBounds_label;

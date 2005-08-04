@@ -258,8 +258,7 @@ public class XReferencePreferencePage
 		}
 		String text = definition.getDescription();
 		if (text == null || text.length() == 0)
-			// TODO: Find out where this is used, and access it correctly through the XRefMessages
-			descriptionText.setText("PreferencePage.noDescription"); //$NON-NLS-1$
+			descriptionText.setText(XRefMessages.XReferencePreferencePage_noDescription);
 		else
 			descriptionText.setText(text);
 	}
