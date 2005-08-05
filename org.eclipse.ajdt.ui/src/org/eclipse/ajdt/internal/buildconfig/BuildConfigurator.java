@@ -139,9 +139,9 @@ public class BuildConfigurator implements ISelectionListener {
 			boolean justOpened = currentProj.isOpen() && !isOpen;
 			if(justOpened) {
 				notifyChangeListeners();
-			}
-			isOpen = currentProj.isOpen();
+			}			
 		}
+		isOpen = currentProj.isOpen();
 	}
 	public void notifyChangeListeners() {
 		// this notificationType check is done to break infinite notifyChangeListeners loops
