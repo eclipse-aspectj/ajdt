@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -110,7 +111,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
 		Utils.waitForJobsToComplete();
-		XReferenceCustomFilterActionInplace xrefAction = (XReferenceCustomFilterActionInplace)dialog.getCustomFilterActionInplace();
+		// get the filter action
+		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
 		Utils.waitForJobsToComplete();	
 		
 		checkProvidersAgree(xrefAction);
@@ -588,4 +590,19 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 	}
 	
+	private XReferenceCustomFilterActionInplace getFilterAction(XReferenceInplaceDialog inplaceDialog) {
+		final XReferenceInplaceDialog dialog = inplaceDialog;
+		
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				Action a = dialog.getCustomFilterActionInplace();
+				boolean ret = (a != null);
+				return ret;
+			}
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		assertNotNull("Should have custom filter dialog action in inplace xref view",dialog.getCustomFilterActionInplace());
+		return (XReferenceCustomFilterActionInplace)dialog.getCustomFilterActionInplace();
+	}
 }
