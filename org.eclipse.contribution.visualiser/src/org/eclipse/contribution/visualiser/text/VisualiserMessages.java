@@ -34,6 +34,7 @@ public class VisualiserMessages extends NLS {
 	public static String VisualiserPreferencePage_colorSet;
 	public static String VisualiserPreferencePage_stripeHeight;
 	public static String VisualiserPreferencePage_colWidth;
+	public static String VisualiserPreferencePage_usePats;
 	public static String VisualiserPreferencePage_preview;
 	public static String VisualiserPreferencePage_preview_col1;
 	public static String VisualiserPreferencePage_preview_col2;

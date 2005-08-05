@@ -25,9 +25,11 @@ import org.eclipse.contribution.visualiser.core.RendererManager;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
+import org.eclipse.contribution.visualiser.palettes.PatternVisualiserPalette;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
+import org.eclipse.contribution.visualiser.views.VisualiserCanvas;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
@@ -87,12 +89,23 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 	private VisualiserPreview preview;
 
+	private static RGB[] rgb;
+
+	private static Color[] staticColsForPatterns;
+
 	/**
 	 * Create the contents of the page
 	 * 
 	 * @see PreferencePage#createContents(Composite)
 	 */
 	protected Control createContents(Composite parent) {
+		rgb = PaletteManager.getDefaultPalette().getPalette().getRGBValues();
+		staticColsForPatterns = new Color[] {
+				new Color(Display.getDefault(), rgb[0]),
+				new Color(Display.getDefault(), rgb[1]),
+				new Color(Display.getDefault(), rgb[2]),
+				new Color(Display.getDefault(), rgb[3]), };
+
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		composite.setLayout(layout);
@@ -267,6 +280,12 @@ public class VisualiserPreferencePage extends PreferencePage implements
 		colourList.setSelection(new String[] { pname });
 		colourList.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				String pname = colourList.getSelection()[0];
+				if (PaletteManager.getPaletteByName(pname).getPalette() instanceof PatternVisualiserPalette) {
+					preview.localUsePatterns = true;
+				} else {
+					preview.localUsePatterns = false;
+				}
 				preview.redraw();
 			}
 		});
@@ -295,6 +314,9 @@ public class VisualiserPreferencePage extends PreferencePage implements
 		private IVisualiserPalette ivp;
 
 		private Color[] cols;
+
+		private boolean localUsePatterns = VisualiserPreferences
+				.getUsePatterns();
 
 		VisualiserPreview(Composite parent) {
 			super(parent, SWT.NO_BACKGROUND);
@@ -340,15 +362,36 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				}
 
 				int h = stripeHeight.getSelection();
-				sgc.setBackground(cols[0]);
+				if (localUsePatterns) {
+					VisualiserCanvas.patternVisualiserRenderer
+							.setDitherPattern(sgc, staticColsForPatterns[0]);
+				} else {
+					sgc.setBackground(cols[0]);
+				}
 				sgc.fillRectangle(x + 1, y + 10, width - 1, h);
 
-				sgc.setBackground(cols[1]);
+				if (localUsePatterns) {
+					VisualiserCanvas.patternVisualiserRenderer
+							.setDitherPattern(sgc, staticColsForPatterns[1]);
+				} else {
+					sgc.setBackground(cols[1]);
+				}
 				sgc.fillRectangle(x + 1, y + 32, width / 2 - 1, h);
-				sgc.setBackground(cols[2]);
+
+				if (localUsePatterns) {
+					VisualiserCanvas.patternVisualiserRenderer
+							.setDitherPattern(sgc, staticColsForPatterns[2]);
+				} else {
+					sgc.setBackground(cols[2]);
+				}
 				sgc.fillRectangle(x + 1 + width / 2, y + 32, width / 2 - 1, h);
 
-				sgc.setBackground(cols[3]);
+				if (localUsePatterns) {
+					VisualiserCanvas.patternVisualiserRenderer
+							.setDitherPattern(sgc, staticColsForPatterns[3]);
+				} else {
+					sgc.setBackground(cols[3]);
+				}
 				int sy = y + 54;
 				if (h > y + height - sy) {
 					h = y + height - sy;
@@ -382,6 +425,9 @@ public class VisualiserPreferencePage extends PreferencePage implements
 			disposeCols();
 		}
 
+		public boolean getLocalUsePatterns() {
+			return localUsePatterns;
+		}
 	}
 
 	/**
@@ -596,13 +642,22 @@ public class VisualiserPreferencePage extends PreferencePage implements
 			String pname = colourList.getSelection()[0];
 			ProviderDefinition def = ProviderManager.getCurrent();
 			String defp = PaletteManager.getDefaultForProvider(def).getName();
-			if (defp.equals(pname)) {
-				// going with provider defintion, clear preference setting
-				VisualiserPreferences.setPaletteIDForProvider(def, ""); //$NON-NLS-1$
-			} else {
-				// update preference setting for this provider
+			if (PaletteManager.getPaletteByName(pname).getPalette() instanceof PatternVisualiserPalette) {
+				// We're using patterns
+				VisualiserPreferences.setUsePatterns(true);
 				String pid = PaletteManager.getPaletteByName(pname).getID();
 				VisualiserPreferences.setPaletteIDForProvider(def, pid);
+			} else {
+				// We're not using patterns
+				VisualiserPreferences.setUsePatterns(false);
+				if (defp.equals(pname)) {
+					// going with provider defintion, clear preference setting
+					VisualiserPreferences.setPaletteIDForProvider(def, ""); //$NON-NLS-1$
+				} else {
+					// update preference setting for this provider
+					String pid = PaletteManager.getPaletteByName(pname).getID();
+					VisualiserPreferences.setPaletteIDForProvider(def, pid);
+				}
 			}
 			PaletteManager.resetCurrent();
 
@@ -635,5 +690,4 @@ public class VisualiserPreferencePage extends PreferencePage implements
 	private ProviderDefinition[] getAllDefinitions() {
 		return ProviderManager.getAllProviderDefinitions();
 	}
-
 }

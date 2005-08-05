@@ -23,6 +23,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextIds;
 import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
+import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -110,7 +111,11 @@ public class Menu extends ViewPart {
 	 */
 	private void drawImage(Image image, Color color) {
 		GC gc = new GC(image);
-		gc.setBackground(color);
+		if (VisualiserPreferences.getUsePatterns()) {
+			VisualiserCanvas.patternVisualiserRenderer.setDitherPattern(gc, color);
+		} else {
+			gc.setBackground(color);
+		}
 		Rectangle bounds = image.getBounds();
 		gc.fillRectangle(0, 0, bounds.width, bounds.height);
 		gc.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
@@ -135,29 +140,32 @@ public class Menu extends ViewPart {
 
 		/* 
 		 * Listener for colour buttons - if clicked produces a ColorDialog
-		 * then redraws the square image with the chosen colour. 
+		 * then redraws the square image with the chosen colour.
 		 */
 		selectionListener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				if (e.getSource() instanceof Button) {
-					Button button = (Button) e.getSource();
-					int location = 0;
-					for (int j = 0; j < buttons.length; j++) {
-						if ((buttons[j]).equals(button)) {
-							location = j;
+				// Do nothing if viewing with Pattern Palette
+				if (!VisualiserPreferences.getUsePatterns()) {
+					if (e.getSource() instanceof Button) {
+						Button button = (Button) e.getSource();
+						int location = 0;
+						for (int j = 0; j < buttons.length; j++) {
+							if ((buttons[j]).equals(button)) {
+								location = j;
+							}
 						}
-					}
-					RGB rgb = colorDialogs[location].open();
-					if (rgb == null) {
-						return;
-					}
-					colors[location] = new Color(buttons[location].getDisplay(), rgb);
-					Image image = buttons[location].getImage();
-					drawImage(image, colors[location]);
-					buttons[location].setImage(image);
-					if (!(VisualiserPlugin.visualiser == null)) {
-						vmp.setColorFor((IMarkupKind)labels[location].getData(),colors[location]);
-						VisualiserPlugin.visualiser.draw();
+						RGB rgb = colorDialogs[location].open();
+						if (rgb == null) {
+							return;
+						}
+						colors[location] = new Color(buttons[location].getDisplay(), rgb);
+						Image image = buttons[location].getImage();
+						drawImage(image, colors[location]);
+						buttons[location].setImage(image);
+						if (!(VisualiserPlugin.visualiser == null)) {
+							vmp.setColorFor((IMarkupKind)labels[location].getData(),colors[location]);
+							VisualiserPlugin.visualiser.draw();
+						}
 					}
 				}
 			}
@@ -429,7 +437,13 @@ public class Menu extends ViewPart {
 		 		 		 if(colors[i] == null) {
 		 		 		 		 throw new NullPointerException(VisualiserMessages.getColorForError);
 		 		 		 }
-		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+		 		 		 // TODO: If we're using patterns, just want image, no button
+		 		 		 if (!VisualiserPreferences.getUsePatterns()) {
+			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+		 		 		 } else {
+		 		 		 // Just an image
+			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+		 		 		 }
 		 		 		 shells[i] = buttons[i].getShell();
 		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
 		 		 		 Display display = shells[i].getDisplay();

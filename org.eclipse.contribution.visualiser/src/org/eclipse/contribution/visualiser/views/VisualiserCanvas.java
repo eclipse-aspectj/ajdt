@@ -31,6 +31,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
 import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
+import org.eclipse.contribution.visualiser.renderers.PatternVisualiserRenderer;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.IFigure;
@@ -124,6 +125,8 @@ public class VisualiserCanvas extends Canvas {
 	private ToolTipHelper toolTipHelper;
 
 	private Menu contextMenu;
+	
+	public static PatternVisualiserRenderer patternVisualiserRenderer;
 
 		 
 	/**
@@ -216,6 +219,7 @@ public class VisualiserCanvas extends Canvas {
 				cancelToolTip();
 			}
 		});
+		patternVisualiserRenderer = new PatternVisualiserRenderer();
 		setupScrollbarListeners();
 		setupContextMenu();
 	}
@@ -1211,7 +1215,11 @@ public class VisualiserCanvas extends Canvas {
 					List kinds = ((StripeGeom) stripes.get(j)).kindList;
 					for (int k = 0; k < kinds.size(); k++) {
 						KindGeom kg = (KindGeom) kinds.get(k);
-						gc.setBackground(kg.color);
+						if (VisualiserPreferences.getUsePatterns()) {
+							patternVisualiserRenderer.setDitherPattern(gc, kg.color);
+						} else {
+							gc.setBackground(kg.color);
+						}
 						gc.fillRectangle((k == 0) ? kg.bounds.x
 								: scale(kg.bounds.x), scaleExH(kg.bounds.y),
 								scale(kg.bounds.width),
@@ -1305,7 +1313,11 @@ public class VisualiserCanvas extends Canvas {
 			StripeGeom sg = (StripeGeom) selectedItem;
 			for (int i = 0; i < sg.kindList.size(); i++) {
 				KindGeom kg = (KindGeom) sg.kindList.get(i);
-				gc.setBackground(kg.color);
+				if (VisualiserPreferences.getUsePatterns()) {
+					patternVisualiserRenderer.setDitherPattern(gc, kg.color);
+				} else {
+					gc.setBackground(kg.color);
+				}				
 				gc.fillRectangle(scale(kg.bounds.x) + x - 1, y,
 						scale(kg.bounds.width),
 						scaleStripeHeight(kg.bounds.height));
