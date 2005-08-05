@@ -25,6 +25,7 @@ import org.eclipse.contribution.visualiser.core.RendererManager;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
+import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.draw2d.ColorConstants;
@@ -606,6 +607,9 @@ public class VisualiserPreferencePage extends PreferencePage implements
 			PaletteManager.resetCurrent();
 
 			IMarkupProvider markupP = ProviderManager.getMarkupProvider();
+			if(markupP instanceof SimpleMarkupProvider) {
+				((SimpleMarkupProvider)markupP).resetColours();
+			}
 
 			// if the Visualiser is showing, update to use the new settings
 			if (VisualiserPlugin.visualiser != null) {
