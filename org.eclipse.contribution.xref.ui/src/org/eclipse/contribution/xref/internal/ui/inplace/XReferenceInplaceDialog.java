@@ -1311,4 +1311,12 @@ public class XReferenceInplaceDialog {
 	public Action getCustomFilterActionInplace() {
 		return xReferenceActionInplace;
 	}
+	
+	/**
+	 * Returns the tree viewer for the xref inplace view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
+	public TreeViewer getTreeViewer() {
+		return viewer;
+	}
 }

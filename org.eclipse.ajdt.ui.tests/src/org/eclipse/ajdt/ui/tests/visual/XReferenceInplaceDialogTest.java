@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceInplaceDialogTest extends VisualTestCase {
@@ -44,26 +45,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		Utils.deleteProject(project);
 	}
 	
-	public void checkProvidersAgree(XReferenceCustomFilterActionInplace xrefAction) {
-		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
-		XReferenceProviderDefinition contributingProviderDefinition = null;
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
-				if (contributingProviderDefinition == null){
-					contributingProviderDefinition = provider;
-					viewSize = contributingProviderDefinition.getCheckedFilters().size();
-				} else {
-					assertTrue("Provider 'checked' Lists do not match",
-							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()) && provider.getCheckedFilters().size() == viewSize);
-					assertTrue("Provider 'checkedInplace' Lists do not match",
-							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters()));
-				}
-			} else {
-				contributingProviderDefinition = provider;
-			}
-		}		
-	}
+
 
 
 	public void testKeyDrivenMenuPopUp() throws CoreException {
@@ -483,6 +465,70 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		shutdownViewWithEscape(dialog3);
 	}
 	
+	public void testBug102140() {
+		IResource res = project.findMember("src/pack/A.aj");
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found.");
+		} 
+		IFile ajFile = (IFile)res;
+
+		editor = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editor.setFocus();
+		gotoLine(8);
+		moveCursorRight(8);
+		Utils.waitForJobsToComplete();
+
+		// open inplace xref view
+		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
+		Utils.waitForJobsToComplete();
+		// get the filter action
+		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
+		Utils.waitForJobsToComplete();	
+		
+		checkProvidersAgree(xrefAction);
+
+		//Opens the inplace view menu
+		postKeyDown(SWT.CTRL);
+		postKey(SWT.F10);
+		postKeyUp(SWT.CTRL);
+
+		// Highlights the 'Filters...' menu item and selects it
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
+		postCharacterKey(SWT.CR);
+
+		// In the filter dialog navigate to the
+		// ok button and press return
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.TAB);
+		postCharacterKey(SWT.CR);
+				
+		Utils.waitForJobsToComplete();
+
+		// if the inplace dialog has the focus after the filter has been
+		// shutdown then posting an 'f' will filter out the contents of
+		// the inplace view and the number of items in the tree viewer
+		// will be zero. If the dialog doesn't have the focus (a regression
+		// of bug 102140 then the character will be posted to the editor.
+		assertEquals("inplace dialog should have one main tree node",1,dialog.getTreeViewer().getTree().getItemCount());
+		
+		postCharacterKey('f');
+		Utils.waitForJobsToComplete();
+
+		assertEquals("the contents of the inplace dialog should have been filtered out",0,dialog.getTreeViewer().getTree().getItemCount());
+		
+		shutdownViewWithEscape(dialog);
+		
+		if(editor != null) {
+			editor.close(true);
+		}
+	}
+	
+	
 	private void moveShell(Shell s, int xCoord, int yCoord, int width, int height) {
 		Rectangle r1 = new Rectangle(xCoord,yCoord,width,height);
 		s.setBounds(r1);
@@ -588,6 +634,27 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
+	}
+	
+	private void checkProvidersAgree(XReferenceCustomFilterActionInplace xrefAction) {
+		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
+		XReferenceProviderDefinition contributingProviderDefinition = null;
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
+			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
+				if (contributingProviderDefinition == null){
+					contributingProviderDefinition = provider;
+					viewSize = contributingProviderDefinition.getCheckedFilters().size();
+				} else {
+					assertTrue("Provider 'checked' Lists do not match",
+							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()) && provider.getCheckedFilters().size() == viewSize);
+					assertTrue("Provider 'checkedInplace' Lists do not match",
+							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters()));
+				}
+			} else {
+				contributingProviderDefinition = provider;
+			}
+		}		
 	}
 	
 	private XReferenceCustomFilterActionInplace getFilterAction(XReferenceInplaceDialog inplaceDialog) {
