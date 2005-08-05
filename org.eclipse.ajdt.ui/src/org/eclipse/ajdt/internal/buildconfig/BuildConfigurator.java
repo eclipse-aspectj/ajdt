@@ -69,6 +69,7 @@ public class BuildConfigurator implements ISelectionListener {
 	
 	private HashSet fileList;
 	private boolean triedToOpenXRefView;
+	private boolean isOpen;
 	
 	//make it singleton
 	private BuildConfigurator() {
@@ -146,6 +147,13 @@ public class BuildConfigurator implements ISelectionListener {
 					PropertyPageManager.registerJDTPropertyPage();
 			}
 			notifyChangeListeners();
+		} else if (selectedProj != null) {
+			// Fix for 79376 - re-activate the build button if a closed project is re-openened
+			boolean justOpened = currentProj.isOpen() && !isOpen;
+			if(justOpened) {
+				notifyChangeListeners();
+			}
+			isOpen = currentProj.isOpen();
 		}
 	}
 	public void notifyChangeListeners() {
