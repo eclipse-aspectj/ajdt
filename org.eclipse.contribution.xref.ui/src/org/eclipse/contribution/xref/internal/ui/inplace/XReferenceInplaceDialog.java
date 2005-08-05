@@ -205,7 +205,6 @@ public class XReferenceInplaceDialog {
 		parentShell = parent;
 		shellStyle = SWT.RESIZE;
 		dialog = this;
-		xReferenceActionInplace = new XReferenceCustomFilterActionInplace(parentShell);
 	}
 
 	/**
@@ -230,8 +229,13 @@ public class XReferenceInplaceDialog {
 		}
 		
 		createShell();
+		// bug 102140 - need to pass the action the shell of the inplace
+		// view so that focus is returned to the inplace view when the
+		// filter dialog is closed.
+		xReferenceActionInplace = new XReferenceCustomFilterActionInplace(dialogShell);
 		createComposites();
 		filterText = createFilterText(viewMenuButtonComposite);
+		// creates the drop down menu and creates the actions
 		createViewMenu(viewMenuButtonComposite);
 		createHorizontalSeparator(composite);
 		viewer = createTreeViewer(composite, SWT.V_SCROLL | SWT.H_SCROLL);
