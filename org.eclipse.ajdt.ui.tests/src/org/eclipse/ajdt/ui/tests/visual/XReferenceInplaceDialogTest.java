@@ -26,7 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceInplaceDialogTest extends VisualTestCase {
@@ -42,11 +41,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		if(editor != null) {
+			editor.close(false);
+		}
+		project.refreshLocal(5, null);
 		Utils.deleteProject(project);
 	}
-	
-
-
 
 	public void testKeyDrivenMenuPopUp() throws CoreException {
 		IResource res = project.findMember("src/pack/A.aj");
@@ -115,7 +115,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 	
 	public void testSelectAll() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -139,13 +138,9 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedInplaceFilters().size());
 			}
 		}
-		if(editor != null) {
-			editor.close(false);
-		}
 	}
 	
 	public void testDeselectAll() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -170,14 +165,9 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			}
 		}
 		// Reset to have all filters selected
-		
-		if(editor != null) {
-			editor.close(false);
-		}
 	}
 	
 	public void testRestoreDefaults() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -199,14 +189,10 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
 		}		
-		if(editor != null) {
-			editor.close(false);
-		}
 	}
 
 	// CheckedList should now be empty
 	public void testChecking() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -228,14 +214,10 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedInplaceFilters().size() == 3);
 			}
 		}
-		if (editor != null) {
-			editor.close(false);
-		}
 	}
 	
 	// CheckedList should now have first three items checked.  Uncheck these...
 	public void testUnChecking() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -257,15 +239,10 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
 		}
-		if (editor != null) {
-			editor.close(false);
-		}
 	}
-	
 
 	// CheckedList should now be empty
 	public void testCancelDoesNotUpdate() throws CoreException {
-		editor = null;
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
@@ -292,9 +269,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0);
 			}
-		}
-		if (editor != null) {
-			editor.close(false);
 		}
 	}
 	
@@ -463,6 +437,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		changeDisableRestoreSettings(settings,false);
 	
 		shutdownViewWithEscape(dialog3);
+		editorPart.close(false);
 	}
 	
 	public void testBug102140() {
@@ -522,10 +497,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		assertEquals("the contents of the inplace dialog should have been filtered out",0,dialog.getTreeViewer().getTree().getItemCount());
 		
 		shutdownViewWithEscape(dialog);
-		
-		if(editor != null) {
-			editor.close(true);
-		}
 	}
 	
 	
