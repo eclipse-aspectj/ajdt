@@ -75,7 +75,9 @@ public class AJCompilationUnitProblemFinder extends
 		 Map options = ajcu.getJavaProject().getOptions(true);
 		 CompilerOptions compilerOptions = new CompilerOptions(options);
          try {
-			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants);
+        	 if(ajcu.getElementInfo() instanceof AJCompilationUnitInfo) {
+        		 this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants);
+        	 }	 
 		} catch (JavaModelException e) {
 		}
 		// AspectJ Change End
@@ -122,6 +124,8 @@ public class AJCompilationUnitProblemFinder extends
 			// AspectJ Change End
 			if (parser != null) {
 				problemFinder.parser = parser;
+			} else {
+				return null;
 			}
 
 			try {
