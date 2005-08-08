@@ -37,23 +37,6 @@ public class OutjarLaunchingTest extends VisualTestCase {
 	private String outputStringStart = "p1 =";
 	
 	public void testLaunchingWithAnOutJar() throws Exception {
-		// This is a workaround to avoid an exception being thrown on Eclipse 3.1,
-		// but does not affect the test.
-		Field field = null;
-		try {
-			field = Util.class.getDeclaredField("JAVA_LIKE_EXTENSIONS");
-		} catch (NoSuchFieldException nsfe) {
-			System.out.println("no such field..");
-			// do nothing - we are on eclipse 3.0
-		}
-		if(field != null) {
-			char[][] extensions = new char[2][];
-			extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-			extensions[1] = new char[] {'.', 'a', 'j'};
-			field.setAccessible(true);
-			field.set(null, extensions);
-		}
-		
 		IProject project = Utils.createPredefinedProject("Outjar Example");
 		assertTrue("The Outjar Example project should have been created", project != null);
 		try {
@@ -90,12 +73,6 @@ public class OutjarLaunchingTest extends VisualTestCase {
 			assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
 		} finally {
 			Utils.deleteProject(project);
-			if(field != null) {
-				char[][] extensions = new char[2][];
-				extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-				extensions[1] = new char[] {'.', 'J', 'A', 'V', 'A'};
-				field.set(null, extensions);
-			}
 		}
 	}
 	

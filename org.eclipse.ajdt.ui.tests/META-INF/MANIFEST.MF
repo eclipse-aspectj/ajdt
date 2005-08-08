@@ -57,5 +57,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ui.console,
  org.eclipse.debug.ui,
- org.eclipse.contribution.xref.core
+ org.eclipse.contribution.xref.core,
+ org.eclipse.ui.views
 Eclipse-AutoStart: true

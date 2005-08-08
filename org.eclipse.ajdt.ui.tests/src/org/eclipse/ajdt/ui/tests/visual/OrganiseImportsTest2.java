@@ -40,7 +40,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
 			Utils.openFileInDefaultEditor(gameSynchronizationFile, true);
 			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
-			assertTrue("GameSynchronization.aj should start with one imports", cUnit.getImports().length == 1);
+			assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1);
 			Utils.waitForJobsToComplete();			
 			
 //			 Post Ctrl+Shift+O to organise imports

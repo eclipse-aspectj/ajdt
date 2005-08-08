@@ -10,7 +10,6 @@
  **********************************************************************/
 package org.eclipse.ajdt.ui.tests.launching;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -28,30 +27,12 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.internal.core.util.Util;
 
 public class AJMainMethodSearchEngineTest extends TestCase {
 
 	
 	
 	public void testWithTracingExample() throws Exception {
-		// This is a workaround to avoid an exception being thrown on Eclipse 3.1,
-		// but does not affect the test.
-		Field field = null;
-		try {
-			field = Util.class.getDeclaredField("JAVA_LIKE_EXTENSIONS");
-		} catch (NoSuchFieldException nsfe) {
-			System.out.println("no such field..");
-			// do nothing - we are on eclipse 3.0
-		}
-		if(field != null) {
-			char[][] extensions = new char[2][];
-			extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-			extensions[1] = new char[] {'.', 'a', 'j'};
-			field.setAccessible(true);
-			field.set(null, extensions);
-		}
-		
 		IProject project = Utils.createPredefinedProject("Tracing Example");
 		Utils.waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
@@ -83,12 +64,6 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
 		Utils.deleteProject(project);
-		if(field != null) {
-			char[][] extensions = new char[2][];
-			extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-			extensions[1] = new char[] {'.', 'J', 'A', 'V', 'A'};
-			field.set(null, extensions);
-		}
 	}
 	
 }

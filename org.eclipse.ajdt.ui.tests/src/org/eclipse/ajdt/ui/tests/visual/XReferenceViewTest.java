@@ -23,11 +23,14 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class XReferenceViewTest extends VisualTestCase {
 	
@@ -57,7 +60,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open A.aj and select the pointcut
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(4);
 		moveCursorRight(37);
@@ -89,10 +92,36 @@ public class XReferenceViewTest extends VisualTestCase {
 		assertNull("tree viewer shouldn't contain anything",obj);
 		
 		// put the ":" back
-		postKeyDown(SWT.SHIFT);
-		postCharacterKey(':');
-		postKeyUp(SWT.SHIFT);
+		// Use a Runnable due to problems introduced with the fix for 98547
+		Runnable r = new Runnable() {
+			public void run() {
+				postKeyDown(SWT.SHIFT);
+				postCharacterKey(':');
+				postKeyUp(SWT.SHIFT);
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException ie){}
+			}
+		};
+		new Thread(r).start();
+		Utils.waitForJobsToComplete();
 		
+		new DisplayHelper() {
+			public boolean condition() {
+		
+				IContentOutlinePage outlinePage = (IContentOutlinePage) editorPart.getAdapter(IContentOutlinePage.class);
+				if(outlinePage instanceof JavaOutlinePage) {
+					outlinePage.setFocus();
+					postKey(SWT.TAB);
+					postKey(SWT.TAB);
+					ISelection selection = ((JavaOutlinePage)outlinePage).getSelection();
+					return !selection.isEmpty();
+				} 
+				return false;
+			}
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		editorPart.setFocus();
 		// save file by using "Ctrl+S"
 		postKeyDown(SWT.CTRL);
 		postCharacterKey('s');
@@ -106,7 +135,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		editorPart.close(false);
 		Utils.deleteProject(project);
 	}
-	
+
 	private boolean xrefSourceExists(XReferenceView xrefView) {
 		TreeViewer treeViewer = xrefView.getTreeViewer();
 		assertNotNull("xref view should have non null treeviewer",treeViewer);
