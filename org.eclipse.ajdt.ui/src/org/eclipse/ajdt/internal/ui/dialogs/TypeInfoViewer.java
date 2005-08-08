@@ -38,7 +38,34 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.ProgressMonitorWrapper;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.SearchPattern;
+import org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.eclipse.jdt.internal.corext.Assert;
+import org.eclipse.jdt.internal.corext.util.Messages;
+import org.eclipse.jdt.internal.corext.util.Strings;
+import org.eclipse.jdt.internal.corext.util.TypeFilter;
+import org.eclipse.jdt.internal.corext.util.TypeInfo;
+import org.eclipse.jdt.internal.corext.util.TypeInfoFilter;
+import org.eclipse.jdt.internal.corext.util.UnresolvableTypeInfo;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.JavaPluginImages;
+import org.eclipse.jdt.internal.ui.JavaUIMessages;
+import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.IVMInstallType;
+import org.eclipse.jdt.launching.JavaRuntime;
+import org.eclipse.jdt.launching.LibraryLocation;
+import org.eclipse.jdt.ui.JavaElementLabels;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -63,43 +90,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.LabelProvider;
-
 import org.eclipse.ui.progress.UIJob;
-
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.WorkingCopyOwner;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchPattern;
-import org.eclipse.jdt.core.search.TypeNameRequestor;
-
-import org.eclipse.jdt.internal.compiler.env.IGenericType;
-import org.eclipse.jdt.internal.corext.Assert;
-import org.eclipse.jdt.internal.corext.util.Messages;
-import org.eclipse.jdt.internal.corext.util.Strings;
-import org.eclipse.jdt.internal.corext.util.TypeFilter;
-import org.eclipse.jdt.internal.corext.util.TypeInfo;
-import org.eclipse.jdt.internal.corext.util.TypeInfoFilter;
-import org.eclipse.jdt.internal.corext.util.UnresolvableTypeInfo;
-
-import org.eclipse.jdt.launching.IVMInstall;
-import org.eclipse.jdt.launching.IVMInstallType;
-import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.jdt.launching.LibraryLocation;
-
-import org.eclipse.jdt.ui.JavaElementLabels;
-
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.JavaUIMessages;
-import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 
 /**
  * A viewer to present type queried form the type history and form the
@@ -348,7 +339,7 @@ public class TypeInfoViewer {
 			if(type instanceof AJCUTypeInfo) {
 				if (((AJCUTypeInfo)type).isAspect()) {
 					return ASPECT_ICON;					
-				}
+				} 
 			}
 			// AspectJ Change End			
 			int modifiers= type.getModifiers();
@@ -700,30 +691,23 @@ public class TypeInfoViewer {
 									IType[] types = unit.getAllTypes();
 									for (int j = 0; j < types.length; j++) {
 										IType type = types[j];
-										char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
-										int kind = 0;
-										if (type.isClass()) {
-											kind = IGenericType.CLASS_DECL;
-										} else if (type.isInterface()) {
-											kind = IGenericType.INTERFACE_DECL;
-										} else if (type.isEnum()) {
-											kind = IGenericType.ENUM_DECL;
-										} else /*if (type.isAnnotation())*/ {
-											kind = IGenericType.ANNOTATION_TYPE_DECL;
+										if(type instanceof AspectElement) {
+											// Part of 103131 - only add aspects to avoid duplicates
+											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
+											int kind = type.getFlags(); // 103131 - pass in correct flags
+											AJCUTypeInfo info = new AJCUTypeInfo(
+													type.getPackageFragment().getElementName(),
+													type.getElementName(),
+													enclosingTypes,
+													kind,
+													type instanceof AspectElement,
+													jp.getElementName(),
+													unit.getPackageFragmentRoot().getElementName(),
+													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+													"aj", //$NON-NLS-1$
+													unit);							
+											ajTypes.add(info); 			
 										}
-										System.out.println("creating AJCU type info for: " + unit);
-										AJCUTypeInfo info = new AJCUTypeInfo(
-												type.getPackageFragment().getElementName(),
-												type.getElementName(),
-												enclosingTypes,
-												kind,
-												type instanceof AspectElement,
-												jp.getElementName(),
-												unit.getPackageFragmentRoot().getElementName(),
-												unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-												"aj", //$NON-NLS-1$
-												unit);							
-										ajTypes.add(info); 								
 									}
 								}
 							} 
