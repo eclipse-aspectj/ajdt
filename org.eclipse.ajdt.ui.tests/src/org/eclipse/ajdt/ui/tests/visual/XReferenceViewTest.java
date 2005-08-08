@@ -103,6 +103,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		// xref view should show the xreferences
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
 		
+		editorPart.close(false);
 		Utils.deleteProject(project);
 	}
 	
