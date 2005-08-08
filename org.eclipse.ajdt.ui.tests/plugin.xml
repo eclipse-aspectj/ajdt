@@ -46,6 +46,7 @@
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.contribution.xref.core"/>
+      <import plugin="org.eclipse.ui.views"/>
    </requires>
 
 </plugin>
