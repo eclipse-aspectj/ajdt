@@ -16,6 +16,7 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.tests.actions.AddAJNatureActionTest;
+import org.eclipse.ajdt.ui.tests.actions.ConvertToAJProjectTest;
 import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.ui.tests.ajde.ClasspathOrderTest;
@@ -94,6 +95,7 @@ public class AllUITests {
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
 		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
+		suite.addTest(new TestSuite(ConvertToAJProjectTest.class));
 
 		// internal.ui.preferences tests
 		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
