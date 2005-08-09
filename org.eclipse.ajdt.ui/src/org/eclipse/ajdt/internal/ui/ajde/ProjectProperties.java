@@ -333,9 +333,9 @@ public class ProjectProperties extends CoreProjectProperties  {
 				}
 			}
 		} catch (JavaModelException jmEx) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
-					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx); //$NON-NLS-1$
+			// bug 90094 - removed creating an AspectJ dialog here so
+			// that we behave like the jdt. The error is coming out in the
+			// problems view anyway (which is how jdt behaves)
 		}
 
 		return map;
