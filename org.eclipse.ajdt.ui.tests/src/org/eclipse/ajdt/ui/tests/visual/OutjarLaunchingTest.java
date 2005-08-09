@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.lang.reflect.Field;
-
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
@@ -21,7 +19,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
