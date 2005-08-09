@@ -141,8 +141,12 @@ public class BuildConfigurator implements ISelectionListener {
 				notifyChangeListeners();
 			}			
 		}
-		isOpen = currentProj.isOpen();
+		// adding null check since saw NPE when fixing bug 90094
+		if (currentProj != null) {
+			isOpen = currentProj.isOpen();
+		}		
 	}
+	
 	public void notifyChangeListeners() {
 		// this notificationType check is done to break infinite notifyChangeListeners loops
 		// TODO: implement a more elegant notification model

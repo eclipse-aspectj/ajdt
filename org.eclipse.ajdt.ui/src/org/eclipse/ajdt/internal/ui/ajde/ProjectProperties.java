@@ -31,7 +31,6 @@ import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IContainer;
@@ -334,9 +333,9 @@ public class ProjectProperties extends CoreProjectProperties  {
 				}
 			}
 		} catch (JavaModelException jmEx) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					UIMessages.ajErrorDialogTitle,
-					UIMessages.jmCoreException, jmEx);
+			// bug 90094 - removed creating an AspectJ dialog here so
+			// that we behave like the jdt. The error is coming out in the
+			// problems view anyway (which is how jdt behaves)
 		}
 
 		return map;

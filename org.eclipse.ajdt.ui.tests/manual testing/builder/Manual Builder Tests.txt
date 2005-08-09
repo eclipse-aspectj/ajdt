@@ -1,13 +1,3 @@
-Tests included in this file:
-
-(1) Test to ensure not constantly rebuilding (bug 74174)
-(2) Test to ensure don't rebuild if src file changes which isn't in active build config file
-(3) Test for bug 48518 - if contents of jar file changes, then want to force a 
-    build for dependent projects
-
-
-
-
 Test to ensure not constantly rebuilding (bug 74174)
 ----------------------------------------------------
 
@@ -120,3 +110,20 @@ Test for temporary workaround for bug 46665
 (7) Answer Yes to the dialog, and check in the Navigator view that
     the class file under src1-bin has been removed         (BUILD_9)
    
+   
+Test bug 90094
+--------------
+
+(1) Install the Bean example
+(2) open the .classpath file
+(3) add the following to the .classpath file:
+
+		<classpathentry kind="var" path="myjar.jar"/>   
+		
+(4) save the .classpath file
+(5) build the bean example by pressing the build button
+(6) There should be an error in the problems view saying:
+
+		Unbound classpath variable: 'myjar.jar' in project Bean Example
+		
+	and no AspectJ Error dialog should appear (BUILD_10)			
