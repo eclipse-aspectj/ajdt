@@ -254,6 +254,9 @@ public class AJDTUtils {
 			return;
 		}
 		IPath defaultOutputLocation = jp.getOutputLocation();
+		if(defaultOutputLocation.equals(project.getFullPath())) {
+			return;
+		}
 		boolean defaultOutputLocationIsSrcFolder = false;
 		List extraOutputLocations = new ArrayList();
 		List srcFolders = new ArrayList();
