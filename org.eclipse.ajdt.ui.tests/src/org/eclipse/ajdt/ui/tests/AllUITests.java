@@ -31,6 +31,7 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
+import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesWithJarFilesTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
@@ -133,7 +134,7 @@ public class AllUITests {
 				
 		// internal.builder tests
 		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
-		//suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
+		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
 		suite.addTest(new TestSuite(AdviceMarkerTest3.class));

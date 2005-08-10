@@ -12,6 +12,8 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -350,6 +352,33 @@ public class ProjectDependenciesUtils {
 			}
 			newEntries[cpEntry.length] = newProjectEntry;
 			projectToHaveDependency.setRawClasspath(newEntries, null);
+			Utils.waitForJobsToComplete();
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void removeProjectDependency(
+			IJavaProject projectWhichHasDependency, IProject projectDependedOn) {
+		try {
+			IClasspathEntry[] cpEntry = projectWhichHasDependency
+					.getRawClasspath();
+			List newEntries = new ArrayList();
+			
+			for (int j = 0; j < cpEntry.length; j++) {
+				IClasspathEntry entry = cpEntry[j];
+				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+					if (!entry.getPath().equals(projectDependedOn.getFullPath())
+							&& ! entry.getPath().equals(projectDependedOn.getFullPath().makeAbsolute())) {
+						newEntries.add(entry);
+					} 
+				} else {
+					newEntries.add(entry);
+				}
+			}
+			IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries.toArray(new IClasspathEntry[newEntries.size()]);
+			projectWhichHasDependency.setRawClasspath(newCP, null);
+			Utils.waitForJobsToComplete();
 			Utils.waitForJobsToComplete();
 		} catch (JavaModelException e) {
 			e.printStackTrace();
