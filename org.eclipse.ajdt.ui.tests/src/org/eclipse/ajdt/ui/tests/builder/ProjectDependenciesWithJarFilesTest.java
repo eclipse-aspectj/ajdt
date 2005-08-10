@@ -32,6 +32,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 /**
  * @author hawkinsh
@@ -62,66 +64,60 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
 		assertTrue("project B should have a project dependency on project A",
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB, projectA));
-		
-		// convert project A to be an aspectj project
-		AJDTUtils.addAspectJNature(projectA);
-		Utils.waitForJobsToComplete();
-		projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		// there should still not be build errors on project B, project A should still 
-		// export the jar file, project B should now have the exported jar file as an
-		// entry on it's classpath, and project B should have a classfolder dependency on
-		// project A
-		assertFalse("project B should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertTrue("project A should export a jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
-		// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertTrue("project B should have jar file on classpath (and not export it)",
-		//		projectHasJarOnClasspath(projectB,projectA));
-		//assertTrue("project B should have class folder dependency on project A", 
-		//		projectHasClassFolderDependency(projectB,projectA));
-		//assertFalse("project B should not have a project dependency on project A",
-		//		projectHasProjectDependency(projectB,projectA));
-		assertFalse("project B should NOT have jar file on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
-		assertFalse("project B should NOT have class folder dependency on project A", 
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
-		assertTrue("project B should still have a project dependency on project A",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
-		
-		
-		// remove AJ nature frrom project A
-		AJDTUtils.removeAspectJNature(projectA);
-		Utils.waitForJobsToComplete();
-		projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		// There should be no build errors on project B, project B should have a project dependency 
-		// on project A, project A should still export the jar file, project B should not include 
-		// the exported jar file on it's classpath
-		assertFalse("project B should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertTrue("project B should have a project dependency on project A",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
-		assertFalse("project B should not have a class folder dependency on project A",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
-		assertTrue("project A should export a jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
-		assertFalse("project B should not have jar file on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
 
-		Utils.deleteProject(projectA);
-		Utils.deleteProject(projectB);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		projectA.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectB.close(monitor);
-//		monitor.waitForCompletion();
-		
+		try {
+			checkForJDTBug84214(projectB,projectA);
+			// convert project A to be an aspectj project
+			AJDTUtils.addAspectJNature(projectA);
+			Utils.waitForJobsToComplete();
+			projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			// there should still not be build errors on project B, project A should still 
+			// export the jar file, project B should now have the exported jar file as an
+			// entry on it's classpath, and project B should have a classfolder dependency on
+			// project A
+			assertFalse("project B should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
+			assertTrue("project A should export a jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
+			// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertTrue("project B should have jar file on classpath (and not export it)",
+			//		projectHasJarOnClasspath(projectB,projectA));
+			//assertTrue("project B should have class folder dependency on project A", 
+			//		projectHasClassFolderDependency(projectB,projectA));
+			//assertFalse("project B should not have a project dependency on project A",
+			//		projectHasProjectDependency(projectB,projectA));
+			assertFalse("project B should NOT have jar file on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
+			assertFalse("project B should NOT have class folder dependency on project A", 
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
+			assertTrue("project B should still have a project dependency on project A",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
+			
+			
+			// remove AJ nature frrom project A
+			AJDTUtils.removeAspectJNature(projectA);
+			Utils.waitForJobsToComplete();
+			projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			// There should be no build errors on project B, project B should have a project dependency 
+			// on project A, project A should still export the jar file, project B should not include 
+			// the exported jar file on it's classpath
+			assertFalse("project B should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
+			assertTrue("project B should have a project dependency on project A",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
+			assertFalse("project B should not have a class folder dependency on project A",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
+			assertTrue("project A should export a jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
+			assertFalse("project B should not have jar file on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
+
+		} finally {
+			Utils.deleteProject(projectA);
+			Utils.deleteProject(projectB);			
+		}
 	}
 	
 	/**
@@ -160,71 +156,63 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertFalse("project C should not have a class dependency on project B",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
 
-		// convert project B to be an AspectJ project
-		AJDTUtils.addAspectJNature(projB);
-		Utils.waitForJobsToComplete();
-		projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-
-		assertFalse("project B should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
-		assertFalse("project C should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
-		assertTrue("project B should still export the jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
-		// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertTrue("project C should have jar file on classpath (and not export it)",
-		//		projectHasJarOnClasspath(projC,projB));		
-		//assertTrue("project C should have a class folder dependency on project B",
-		//		projectHasClassFolderDependency(projC,projB));
-		//assertFalse("project C should NOT have a project dependency on project B",
-		//		projectHasProjectDependency(projC,projB));
-		assertFalse("project C should NOT have jar file on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
-		assertFalse("project C should NOT have a class folder dependency on project B",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
-		assertTrue("project C should still have a project dependency on project B",
-				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
+		try {
+			checkForJDTBug84214(projC,projB);
 		
-		// remove AJ nature from project B
-		AJDTUtils.removeAspectJNature(projB);
-		Utils.waitForJobsToComplete();
-		projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		// the situation:
-		// - there should still not be build errors on project B or project C
-		// - project B should still export the jar file, 
-		// - project C should not have the exported jar file as an entry on it's classpath
-		// - project B should have a project dependency on project A
-		assertFalse("project B should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
-		assertFalse("project C should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
-		assertTrue("project B should still export the jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
-		assertFalse("project C should have jar file on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
-		assertFalse("project C should have a class folder dependency on project B",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
-		assertTrue("project C should NOT have a project dependency on project B",
-				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
+			// convert project B to be an AspectJ project
+			AJDTUtils.addAspectJNature(projB);
+			Utils.waitForJobsToComplete();
+			projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+	
+			assertFalse("project B should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
+			assertFalse("project C should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
+			assertTrue("project B should still export the jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
+			// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertTrue("project C should have jar file on classpath (and not export it)",
+			//		projectHasJarOnClasspath(projC,projB));		
+			//assertTrue("project C should have a class folder dependency on project B",
+			//		projectHasClassFolderDependency(projC,projB));
+			//assertFalse("project C should NOT have a project dependency on project B",
+			//		projectHasProjectDependency(projC,projB));
+			assertFalse("project C should NOT have jar file on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
+			assertFalse("project C should NOT have a class folder dependency on project B",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
+			assertTrue("project C should still have a project dependency on project B",
+					ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
+			
+			// remove AJ nature from project B
+			AJDTUtils.removeAspectJNature(projB);
+			Utils.waitForJobsToComplete();
+			projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			// the situation:
+			// - there should still not be build errors on project B or project C
+			// - project B should still export the jar file, 
+			// - project C should not have the exported jar file as an entry on it's classpath
+			// - project B should have a project dependency on project A
+			assertFalse("project B should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
+			assertFalse("project C should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
+			assertTrue("project B should still export the jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
+			assertFalse("project C should have jar file on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
+			assertFalse("project C should have a class folder dependency on project B",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
+			assertTrue("project C should NOT have a project dependency on project B",
+					ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
 		
-		Utils.deleteProject(projA);
-		Utils.deleteProject(projB);
-		Utils.deleteProject(projC);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		projA.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projB.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projC.close(monitor);
-//		monitor.waitForCompletion();
-		
+		} finally {		
+			Utils.deleteProject(projA);
+			Utils.deleteProject(projB);
+			Utils.deleteProject(projC);			
+		}
 	}
 
 	/**
@@ -254,62 +242,55 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertTrue("project B should contain no src directory", 
 				ProjectDependenciesUtils.projectHasNoSrc(projectB));
 		
-		// convert project A to be an aspectj project
-		AJDTUtils.addAspectJNature(projectB);
-		Utils.waitForJobsToComplete();
-		projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		// there should still not be build errors on project B, project A should still 
-		// export the jar file, project B should now have the exported jar file as an
-		// entry on it's classpath, and project B should have a classfolder dependency on
-		// project A
-		assertFalse("project B1 should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
-		assertTrue("project B should export a jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
-		assertFalse("project B1 should not have class folder dependency on project B", 
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
-		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertTrue("project B1 should have jar file on classpath (and not export it)",
-		//		projectHasJarOnClasspath(projectB1,projectB));
-		//assertFalse("project B1 should not have a project dependency on project B",
-		//		projectHasProjectDependency(projectB1,projectB));
-		assertFalse("project B1 should NOT have jar file added on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
-		assertTrue("project B1 should still have a project dependency on project B",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
-		
-		// remove AJ nature frrom project A
-		AJDTUtils.removeAspectJNature(projectB);
-		Utils.waitForJobsToComplete();
-		projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		// There should be no build errors on project B, project B should have a project dependency 
-		// on project A, project A should still export the jar file, project B should not include 
-		// the exported jar file on it's classpath
-		assertFalse("project B1 should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
-		assertTrue("project B1 should have a project dependency on project B",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
-		assertFalse("project B1 should not have a class folder dependency on project B",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
-		assertTrue("project B should export a jar file", 
-				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
-		assertFalse("project B1 should not have jar file on classpath (and not export it)",
-				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
-
-		Utils.deleteProject(projectB);
-		Utils.deleteProject(projectB1);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-//		monitor.reset();
-//		projectB.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectB1.close(monitor);
-//		monitor.waitForCompletion();
-		
+		try {
+			checkForJDTBug84214(projectB1,projectB);
+			// convert project A to be an aspectj project
+			AJDTUtils.addAspectJNature(projectB);
+			Utils.waitForJobsToComplete();
+			projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			// there should still not be build errors on project B, project A should still 
+			// export the jar file, project B should now have the exported jar file as an
+			// entry on it's classpath, and project B should have a classfolder dependency on
+			// project A
+			assertFalse("project B1 should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
+			assertTrue("project B should export a jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
+			assertFalse("project B1 should not have class folder dependency on project B", 
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
+			// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertTrue("project B1 should have jar file on classpath (and not export it)",
+			//		projectHasJarOnClasspath(projectB1,projectB));
+			//assertFalse("project B1 should not have a project dependency on project B",
+			//		projectHasProjectDependency(projectB1,projectB));
+			assertFalse("project B1 should NOT have jar file added on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
+			assertTrue("project B1 should still have a project dependency on project B",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
+			
+			// remove AJ nature frrom project A
+			AJDTUtils.removeAspectJNature(projectB);
+			Utils.waitForJobsToComplete();
+			projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			// There should be no build errors on project B, project B should have a project dependency 
+			// on project A, project A should still export the jar file, project B should not include 
+			// the exported jar file on it's classpath
+			assertFalse("project B1 should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
+			assertTrue("project B1 should have a project dependency on project B",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
+			assertFalse("project B1 should not have a class folder dependency on project B",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
+			assertTrue("project B should export a jar file", 
+					ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
+			assertFalse("project B1 should not have jar file on classpath (and not export it)",
+					ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
+		} finally {
+			Utils.deleteProject(projectB);
+			Utils.deleteProject(projectB1);			
+		}
 	}
 	
 	/**
@@ -345,105 +326,104 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertFalse("project X should not be an AJ project", 
 				AspectJPlugin.isAJProject(projectX));
 		
-		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertFalse("project X should not have a project dependency on project Y",
-		//		projectHasProjectDependency(projectX, projectY));
-		//assertTrue("project X should have a class folder dependency on project Y",
-		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-		
-		// set project Y to send output to jar file
-		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
-		Utils.waitForJobsToComplete();
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
-		Utils.waitForJobsToComplete();
-
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-
-		// PD: switching following assert because current thinking is not to change project dependencies to classfolder ones
-		//assertFalse("project X should not have a project dependency on project Y",
-		//		projectHasProjectDependency(projectX, projectY));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		
-		
-		assertFalse("project X should not have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		
-		StringBuffer sb = new StringBuffer(outJar);
-		IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
-		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
-		jarFile.delete(true,null);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
-		
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
-		
-		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectX));
-
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
-//		// close all the projects so that they don't hang around and hold
-//		// up the build for other tests
-//		monitor.reset();
-//		projectX.close(monitor);
-//		monitor.waitForCompletion();
-//		monitor.reset();
-//		projectY.close(monitor);
-//		monitor.waitForCompletion();
-		
+		try {
+			checkForJDTBug84214(projectX,projectY);
+			// convert project Y to be an AJ project and check setup is correct
+			AJDTUtils.addAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertFalse("project X should not have a project dependency on project Y",
+			//		projectHasProjectDependency(projectX, projectY));
+			//assertTrue("project X should have a class folder dependency on project Y",
+			//		projectHasClassFolderDependency(projectX,projectY));
+			assertTrue("project X should still have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project X should NOT have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+				
+			// set project Y to send output to jar file
+			// setup the outjar
+			String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
+			AspectJCorePreferences.setProjectOutJar(projectY,outJar);
+			Utils.waitForJobsToComplete();
+	
+			// build the project so it picks up the outjar and sends 
+			// output there
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
+			Utils.waitForJobsToComplete();
+	
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have project Y's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+	
+			// PD: switching following assert because current thinking is not to change project dependencies to classfolder ones
+			//assertFalse("project X should not have a project dependency on project Y",
+			//		projectHasProjectDependency(projectX, projectY));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			
+			
+			assertFalse("project X should not have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			AspectJCorePreferences.setProjectOutJar(projectY,"");
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			
+			StringBuffer sb = new StringBuffer(outJar);
+			IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
+			IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
+			jarFile.delete(true,null);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+			
+			projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertFalse("project X should not have outjar on classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
+			
+			// reset projects to their original state:
+			AJDTUtils.removeAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project Y should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectY));
+			assertFalse("project X should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectX));
+		} finally {
+			Utils.deleteProject(projectX);
+			Utils.deleteProject(projectY);
+		}
 	}
 
 	/**
@@ -463,6 +443,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		IProject projectY = Utils.createPredefinedProject("project.java.Y");
 		IProject projectX = Utils.createPredefinedProject("project.java.X");
 
+		
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
@@ -477,123 +458,132 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		assertFalse("project X should not be an AJ project", 
 				AspectJPlugin.isAJProject(projectX));
 		
-		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertFalse("project X should not have a project dependency on project Y",
-		//		projectHasProjectDependency(projectX, projectY));
-		//assertTrue("project X should have a class folder dependency on project Y",
-		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		// convert project X to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectX);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
-		//assertFalse("project X should not have a project dependency on project Y",
-		//		projectHasProjectDependency(projectX, projectY));
-		//assertTrue("project X should have a class folder dependency on project Y",
-		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		// set project Y to send output to jar file
-		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
-		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists());
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-
-		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		// don't want to add outjar to aspect path
-		assertNull("project X should have NOT have outjar on aspect path!",
-				AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectPath());
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		// now set the outjar option back to nothing and build projectY 
-		// to send output to bin directory rather than jar file
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
-
-				
-		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectX);
-		Utils.waitForJobsToComplete();
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-
-		projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		
-
-		
-		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();;
-		
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectX));
-
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
+		try {
+			checkForJDTBug84214(projectX,projectY);
+			
+			// convert project Y to be an AJ project and check setup is correct
+			AJDTUtils.addAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertFalse("project X should not have a project dependency on project Y",
+			//		projectHasProjectDependency(projectX, projectY));
+			//assertTrue("project X should have a class folder dependency on project Y",
+			//		projectHasClassFolderDependency(projectX,projectY));
+			assertTrue("project X should still have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project X should NOT have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			// convert project X to be an AJ project and check setup is correct
+			AJDTUtils.addAspectJNature(projectX);
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
+			//assertFalse("project X should not have a project dependency on project Y",
+			//		projectHasProjectDependency(projectX, projectY));
+			//assertTrue("project X should have a class folder dependency on project Y",
+			//		projectHasClassFolderDependency(projectX,projectY));
+			assertTrue("project X should still have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project X should NOT have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			// set project Y to send output to jar file
+			// setup the outjar
+			String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
+			AspectJCorePreferences.setProjectOutJar(projectY,outJar);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists());
+	
+			// build the project so it picks up the outjar and sends 
+			// output there
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have project Y's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+			// don't want to add outjar to aspect path
+			assertNull("project X should have NOT have outjar on aspect path!",
+					AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectPath());
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
+			assertFalse("project X should not have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			// now set the outjar option back to nothing and build projectY 
+			// to send output to bin directory rather than jar file
+			AspectJCorePreferences.setProjectOutJar(projectY,"");
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+	
+			projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertFalse("project X should not have outjar on classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
+	
+					
+			// reset projects to their original state:
+			AJDTUtils.removeAspectJNature(projectX);
+			Utils.waitForJobsToComplete();
+			projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+	
+			projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+					
+			AJDTUtils.removeAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project Y should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectY));
+			assertFalse("project X should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectX));
+		} finally {
+			Utils.deleteProject(projectX);
+			Utils.deleteProject(projectY);			
+		}
 	}
 
 	/**
@@ -613,6 +603,8 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 	public void testWithOutJarSwitch3() throws Exception {
 		IProject projectY = Utils.createPredefinedProject("project.java.Y");
 		IProject projectX = Utils.createPredefinedProject("project.java.X");
+		Utils.waitForJobsToComplete();
+		Utils.waitForJobsToComplete();
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
@@ -627,120 +619,127 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
 				AspectJPlugin.isAJProject(projectX));
-		
-		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should still have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-		
-		// set project Y to send output to jar file mainWork.jar
-		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY);
-		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
-		// build the project so it picks up the outjar and sends 
-		// output there
-		//BlockingProgressMonitor monitor = new BlockingProgressMonitor();
-		//monitor.reset();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		//monitor.waitForCompletion();
-		Utils.waitForJobsToComplete();
-
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-
-		// TODO
-		assertTrue("project X should have project Y's outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		// set project Y to send output to jar file newJar.jar
-		// setup the outjar
-		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY);
-		AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists());
-
-		// build the project so it picks up the outjar and sends 
-		// output there
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-
-		assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's NEW outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar2));
-		assertFalse("project X should NOT have project Y's old outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
-				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
-
-		StringBuffer sb = new StringBuffer(outJar);
-		IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
-		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
-		jarFile.delete(true,null);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
-
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-
-		StringBuffer sb2 = new StringBuffer(outJar2);
-		IPath path2 = new Path(sb2.substring(sb2.lastIndexOf(projectY.getName())));
-		IResource jarFile2 = projectY.getWorkspace().getRoot().findMember(path2.makeAbsolute());
-		jarFile2.delete(true,null);
-		Utils.waitForJobsToComplete();
-		assertFalse("Second Output jar should NOT exist! (path=" + outJar2 + ")"
-				,new File(outJar2).exists());
-		
-		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar2));
-		
-		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectX));
-		
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
-		
+		try {			
+			checkForJDTBug84214(projectX,projectY);
+			
+			// convert project Y to be an AJ project and check setup is correct
+			AJDTUtils.addAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should still have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project X should NOT have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+			
+			// set project Y to send output to jar file mainWork.jar
+			// setup the outjar
+			String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY);
+			AspectJCorePreferences.setProjectOutJar(projectY,outJar);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+	
+			// build the project so it picks up the outjar and sends 
+			// output there
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+	
+			// TODO
+			assertTrue("project X should have project Y's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
+			assertFalse("project X should not have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			// set project Y to send output to jar file newJar.jar
+			// setup the outjar
+			String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY);
+			AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists());
+	
+			// build the project so it picks up the outjar and sends 
+			// output there
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have project Y's NEW outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar2));
+			assertFalse("project X should NOT have project Y's old outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
+			assertFalse("project X should not have a class folder dependency on project Y",
+					ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
+	
+			StringBuffer sb = new StringBuffer(outJar);
+			IPath path = new Path(sb.substring(sb.lastIndexOf(projectY.getName())));
+			IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
+			jarFile.delete(true,null);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+	
+			AspectJCorePreferences.setProjectOutJar(projectY,"");
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			StringBuffer sb2 = new StringBuffer(outJar2);
+			IPath path2 = new Path(sb2.substring(sb2.lastIndexOf(projectY.getName())));
+			IResource jarFile2 = projectY.getWorkspace().getRoot().findMember(path2.makeAbsolute());
+			jarFile2.delete(true,null);
+			Utils.waitForJobsToComplete();
+			assertFalse("Second Output jar should NOT exist! (path=" + outJar2 + ")"
+					,new File(outJar2).exists());
+			
+			projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertFalse("project X should not have outjar on classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar2));
+			
+			// reset projects to their original state:
+			AJDTUtils.removeAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project Y should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectY));
+			assertFalse("project X should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectX));
+		} finally {		
+			Utils.deleteProject(projectX);
+			Utils.deleteProject(projectY);
+		}
 	}
 	
 	/**
@@ -765,68 +764,73 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 				AspectJPlugin.isAJProject(projectY));
 		assertFalse("project X should not be an AJ project", 
 				AspectJPlugin.isAJProject(projectX));
-		
-		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		
-		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY);
-		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
-		Utils.waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
 
-		// build the project so it picks up the outjar and sends 
-		// output there
-//		monitor.reset();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-		
-		// check that outjar exists etc, but that the jar only appears
-		// once on the classpath and aspect path
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-
-		// TODO
-//		assertTrue("project X should have project Y's outjar on it's classpath",
-//				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
-				projectY,outJar));
-		
-		// build again and check that the same still holds
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
-		Utils.waitForJobsToComplete();
-
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
-				projectY,outJar));
-		
-		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
-				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
-				AspectJPlugin.isAJProject(projectX));
-		
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
+		try {
+			// convert project Y to be an AJ project and check setup is correct
+			AJDTUtils.addAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			
+			checkForJDTBug84214(projectX,projectY);
+			
+			String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY);
+			AspectJCorePreferences.setProjectOutJar(projectY,outJar);
+			Utils.waitForJobsToComplete();
+			assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+	
+			// build the project so it picks up the outjar and sends 
+			// output there
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			
+			// check that outjar exists etc, but that the jar only appears
+			// once on the classpath and aspect path
+			assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+	
+			// TODO
+			assertTrue("project X should have project Y's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+			assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
+					projectY,outJar));
+			
+			// build again and check that the same still holds
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have project Y's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
+			assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
+					projectY,outJar));
+			
+			// reset projects to their original state:
+			AJDTUtils.removeAspectJNature(projectY);
+			Utils.waitForJobsToComplete();
+			projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			assertFalse("project Y should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
+			assertFalse("project X should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
+			assertTrue("project X should have a project dependency on project Y",
+					ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
+			assertFalse("project Y should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectY));
+			assertFalse("project X should not be an AJ project", 
+					AspectJPlugin.isAJProject(projectX));
+			
+		} finally {
+			Utils.deleteProject(projectX);
+			Utils.deleteProject(projectY);			
+		}
 	}	
 
 	/**
@@ -840,108 +844,137 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 		IProject jarCreatingProject = Utils.createPredefinedProject("jarCreatingProject");
 		IProject jarDependentProject = Utils.createPredefinedProject("jarDependentProject");
 
-		// sanity check on setup of projects....
-		
-		String outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
-		if(outjar == null || !outjar.equals("myJar.jar")) {			
-			AspectJCorePreferences.setProjectOutJar(jarCreatingProject,jar);
-		}
-		outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		assertEquals("the outjar should be called myjar.jar",jar,outjar);
-		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
-				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
-		assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath",
-				ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, outjar));
-		
-		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		jarDependentProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		
-		assertFalse("jarCreatingProject should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
-		assertFalse("jarDependentProject should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,null));
-		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
-				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
-		assertTrue("jarCreatingProject should be an AJ project", 
-				AspectJPlugin.isAJProject(jarCreatingProject));
-		assertTrue("jarDependentProject should be an AJ project", 
-				AspectJPlugin.isAJProject(jarDependentProject));
-		
-		// add new abstract pointcut to A.aj in jarCreatingProject
-		IFolder src = jarCreatingProject.getFolder("src");
-		if (!src.exists()){
-			src.create(true, true, null);
-		}
-		IFolder p1 = src.getFolder("p1");
-		if (!p1.exists()){
-			p1.create(true, true, null);
-		}
-				
-		IFile A = p1.getFile("A.aj");
-		assertNotNull("There should be an aspect called A",A);
-		
-		InputStream contentsOfA = A.getContents();	
-		StringBuffer sb = new StringBuffer();		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(contentsOfA));		
-		String line = reader.readLine();
-		while (line != null) {
-			sb.append(line);
-			if (line.indexOf("public abstract pointcut myPC();") != -1) {
-				sb.append("public abstract pointcut anotherPC();");
+		try {
+			// sanity check on setup of projects....
+			checkForJDTBug84214(jarDependentProject,jarCreatingProject);
+			
+			String outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
+			String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
+			if(outjar == null || !outjar.equals("myJar.jar")) {			
+				AspectJCorePreferences.setProjectOutJar(jarCreatingProject,jar);
 			}
-			line = reader.readLine();
-		}
-		StringReader sr = new StringReader(sb.toString());
-		A.setContents(new ReaderInputStream(sr),IResource.FORCE, null);
-		
-		sr.close();
-		reader.close();
-		contentsOfA.close();
-
-		// build jarCreatingProject which should trigger rebuild of 
-		// jarDependingProject which should then have an error marker against
-		// it saying "inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"
-		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-
-		assertFalse("jarCreatingProject should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
-		assertTrue("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
-
-		InputStream contentsOfA2 = A.getContents();	
-		StringBuffer sb2 = new StringBuffer();		
-		BufferedReader reader2 = new BufferedReader(new InputStreamReader(contentsOfA2));		
-		String line2 = reader2.readLine();
-		while (line2 != null) {
-			// comment out offending line
-			if (line2.indexOf("public abstract pointcut anotherPC();") != -1) {
-				sb2.append("// public abstract pointcut anotherPC();");
-			} else {
-				sb2.append(line2);
+			outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
+			assertEquals("the outjar should be called myjar.jar",jar,outjar);
+			assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+					ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
+			assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath",
+					ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, outjar));
+			
+			jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			jarDependentProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			
+			assertFalse("jarCreatingProject should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
+			assertFalse("jarDependentProject should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,null));
+			assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+					ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
+			assertTrue("jarCreatingProject should be an AJ project", 
+					AspectJPlugin.isAJProject(jarCreatingProject));
+			assertTrue("jarDependentProject should be an AJ project", 
+					AspectJPlugin.isAJProject(jarDependentProject));
+			
+			// add new abstract pointcut to A.aj in jarCreatingProject
+			IFolder src = jarCreatingProject.getFolder("src");
+			if (!src.exists()){
+				src.create(true, true, null);
 			}
-			line2 = reader2.readLine();
-		}
-		StringReader sr2 = new StringReader(sb2.toString());
-		A.setContents(new ReaderInputStream(sr2),IResource.FORCE, null);
-		
-		sr2.close();
-		reader2.close();
-		contentsOfA2.close();
-		
-		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+			IFolder p1 = src.getFolder("p1");
+			if (!p1.exists()){
+				p1.create(true, true, null);
+			}
+					
+			IFile A = p1.getFile("A.aj");
+			assertNotNull("There should be an aspect called A",A);
+			
+			InputStream contentsOfA = A.getContents();	
+			StringBuffer sb = new StringBuffer();		
+			BufferedReader reader = new BufferedReader(new InputStreamReader(contentsOfA));		
+			String line = reader.readLine();
+			while (line != null) {
+				sb.append(line);
+				if (line.indexOf("public abstract pointcut myPC();") != -1) {
+					sb.append("public abstract pointcut anotherPC();");
+				}
+				line = reader.readLine();
+			}
+			StringReader sr = new StringReader(sb.toString());
+			A.setContents(new ReaderInputStream(sr),IResource.FORCE, null);
+			
+			sr.close();
+			reader.close();
+			contentsOfA.close();
+	
+			// build jarCreatingProject which should trigger rebuild of 
+			// jarDependingProject which should then have an error marker against
+			// it saying "inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"
+			jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertTrue("jarCreatingProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+			assertTrue("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+	
+			InputStream contentsOfA2 = A.getContents();	
+			StringBuffer sb2 = new StringBuffer();		
+			BufferedReader reader2 = new BufferedReader(new InputStreamReader(contentsOfA2));		
+			String line2 = reader2.readLine();
+			while (line2 != null) {
+				// comment out offending line
+				if (line2.indexOf("public abstract pointcut anotherPC();") != -1) {
+					sb2.append("// public abstract pointcut anotherPC();");
+				} else {
+					sb2.append(line2);
+				}
+				line2 = reader2.readLine();
+			}
+			StringReader sr2 = new StringReader(sb2.toString());
+			A.setContents(new ReaderInputStream(sr2),IResource.FORCE, null);
+			
+			sr2.close();
+			reader2.close();
+			contentsOfA2.close();
+			
+			jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+	
+			assertFalse("jarCreatingProject should build with no errors",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
+			assertFalse("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
+					ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
 
-		assertFalse("jarCreatingProject should build with no errors",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
-		assertFalse("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
-		
-		Utils.deleteProject(jarDependentProject);
-		Utils.deleteProject(jarCreatingProject);
+		} finally {
+			Utils.deleteProject(jarDependentProject);
+			Utils.deleteProject(jarCreatingProject);			
+		}
 	}
+	
+	/**
+	 * There is JDT bug 84214 - sometimes project dependencies don't
+	 * get picked up properly. Therefore, to work around this, if
+	 * remove, then re-add the project dependency.
+	 */
+	private void checkForJDTBug84214(IProject projectWhichShouldHaveDependency, IProject projectDependedOn) {
+		if (projectDependedOn.getReferencingProjects().length == 0) {
+			IJavaProject jp = JavaCore.create(projectWhichShouldHaveDependency);
+			ProjectDependenciesUtils.removeProjectDependency(jp,projectDependedOn);
+			ProjectDependenciesUtils.addProjectDependency(jp,projectDependedOn);
+			Utils.waitForJobsToComplete();
+			Utils.waitForJobsToComplete();
+		}
+		assertEquals(" " + projectDependedOn  + " should have " 
+				+ projectWhichShouldHaveDependency 
+				+ " as it's list of referencing projects - if not, see JDT bug 84214",
+				1, projectDependedOn.getReferencingProjects().length);
+	}
+	
 }
 
