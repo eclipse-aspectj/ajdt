@@ -655,8 +655,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 			assertFalse("project X should build with no errors",
 					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-	
-			// TODO
+
 			assertTrue("project X should have project Y's outjar on it's classpath",
 					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 			assertTrue("project X should have a project dependency on project Y",
@@ -790,8 +789,7 @@ public class ProjectDependenciesWithJarFilesTest extends TestCase {
 					ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 			assertFalse("project X should build with no errors",
 					ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-	
-			// TODO
+
 			assertTrue("project X should have project Y's outjar on it's classpath",
 					ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 			assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
