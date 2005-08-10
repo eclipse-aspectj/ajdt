@@ -56,6 +56,11 @@ public class WorkingCopyManagerForCompletionProcessor implements
 	public ICompilationUnit getWorkingCopy(IEditorInput input) {
 		ICompilationUnit unit = wrapped.getWorkingCopy(input);
 		
+		// Added a null check to avoid an NPE - bug 91357
+		if(unit == null) {
+			return null;
+		}
+		
 		//in case of an AJCompilationUnit, we do not need to do anything
 		if (unit instanceof AJCompilationUnit){
 			return unit;
