@@ -46,7 +46,6 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
-import org.eclipse.ui.editors.text.FileDocumentProvider;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IElementStateListener;
 /**
@@ -102,6 +101,7 @@ public abstract class InputContext {
 	protected IDocumentProvider createDocumentProvider(IEditorInput input) {
 		IDocumentProvider documentProvider = null;
 		if (input instanceof IFileEditorInput) {
+			// Now using local FileDocumentProvider class to fix 86467
 			documentProvider = new FileDocumentProvider() {
 				public IDocument createDocument(Object element) throws CoreException {
 					IDocument document = super.createDocument(element);
