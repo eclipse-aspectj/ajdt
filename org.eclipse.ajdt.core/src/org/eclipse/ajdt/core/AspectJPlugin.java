@@ -209,11 +209,14 @@ public class AspectJPlugin extends Plugin {
 	 * @return
 	 */
 	public static boolean isAJProject(IProject project) {
-		try {
-			if ((project!=null) && project.hasNature(ID_NATURE)) {
-				return true;
+		// Fix for 106707 - check that project is open
+		if(project.isOpen()) {			
+			try {
+				if ((project!=null) && project.hasNature(ID_NATURE)) {
+					return true;
+				}
+			} catch (CoreException e) {
 			}
-		} catch (CoreException e) {
 		}
 		return false;
 	}
