@@ -130,7 +130,7 @@ public class Utils{
 
 	
 	/**
-	 * Opens a file in its associated editor.
+	 * Opens a file in the AspectJ editor
 	 */
 	public static IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
 		if (file != null) {
