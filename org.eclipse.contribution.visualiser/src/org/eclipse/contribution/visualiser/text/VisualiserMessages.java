@@ -39,6 +39,10 @@ public class VisualiserMessages extends NLS {
 	public static String VisualiserPreferencePage_preview_col1;
 	public static String VisualiserPreferencePage_preview_col2;
 
+	public static String VisualiserPreferencePage_stripeSizeDialog_title;
+	public static String VisualiserPreferencePage_stripeSizeDialog_message;
+	public static String VisualiserPreferencePage_stripeSizeDialog_togglemessage;
+
 	public static String OnlyShow;
 	public static String Stripe;
 	public static String Default;

@@ -32,12 +32,19 @@ public class VisualiserPreferences {
 	public static final String BAR_WIDTH = "org.eclipse.contribution.visualiser.preferences.barwidth"; //$NON-NLS-1$
 
 	public static final String STRIPE_HEIGHT = "org.eclipse.contribution.visualiser.preferences.stripeheight"; //$NON-NLS-1$
-
-	public static final String USE_PATTERNS = "org.eclipse.contribution.visualiser.preferences.patterns"; //$NON-NLS-1$
 	
 	public static final String RENDERER = "org.eclipse.contribution.visualiser.preferences.renderer"; //$NON-NLS-1$
 
 	public static final String PALETTE_PREFIX = "org.eclipse.contribution.visualiser.preferences.palette_"; //$NON-NLS-1$
+	
+	// Pattern Related
+	public static final String PATTERN_STRIPE_HEIGHT = "org.eclipse.contribution.visualiser.preferences.patternstripeheight"; //$NON-NLS-1$
+
+	public static final String USE_PATTERNS = "org.eclipse.contribution.visualiser.preferences.patterns"; //$NON-NLS-1$
+	
+	public static final String DO_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT = "org.eclipse.contribution.visualiser.preferences.doincreasestipeheight"; //$NON-NLS-1$
+	
+	public static final String DONT_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT = "org.eclipse.contribution.visualiser.preferences.dontincreasestipeheight"; //$NON-NLS-1$
 
 	// default values
 	public static final int STRIPE_SIZE_DEFAULT = 4;
@@ -46,7 +53,11 @@ public class VisualiserPreferences {
 
 	public static final int BAR_MIN_WIDTH = 18;
 	
+	public static final int PATTERN_STRIPE_SIZE_DEFAULT = 6;
+	
 	public static final boolean USE_PATTERNS_DEFAULT = false;
+	
+	public static final boolean INCREASE_VISUALISER_STRIPE_HEIGHT_AUTO_DEFAULT = false;
 	
 	/**
 	 * Set up default values for preferences
@@ -57,9 +68,10 @@ public class VisualiserPreferences {
 		store.setDefault(PROVIDER, ""); //$NON-NLS-1$
 		store.setDefault(BAR_WIDTH, BAR_WIDTH_DEFAULT);
 		store.setDefault(STRIPE_HEIGHT, STRIPE_SIZE_DEFAULT);
-		store.setDefault(USE_PATTERNS, USE_PATTERNS_DEFAULT);
 		store.setDefault(MIN_BAR, BAR_MIN_WIDTH);
 		store.setValue(MIN_BAR, BAR_MIN_WIDTH);
+		store.setDefault(PATTERN_STRIPE_HEIGHT, PATTERN_STRIPE_SIZE_DEFAULT);
+		store.setDefault(USE_PATTERNS, USE_PATTERNS_DEFAULT);
 	}
 
 	/**
@@ -171,6 +183,15 @@ public class VisualiserPreferences {
 	}
 
 	/**
+	 * Get the default stripe height for the visualiser viewed with patterns
+	 * 
+	 * @return the default stripe height for patterns
+	 */
+	public static int getDefaultPatternStripeHeight() {
+		return PATTERN_STRIPE_SIZE_DEFAULT;
+	}
+
+	/**
 	 * Get the default option for whether or not to use patterns
 	 * 
 	 * @return boolean - use patterns or not
@@ -193,6 +214,28 @@ public class VisualiserPreferences {
 		return store.getString(pref);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @return the id of the palette chosen by the given provider
+	 */
+	public static boolean getDoAutoIncreaseStripeHeight() {
+		IPreferenceStore store = VisualiserPlugin.getDefault()
+		.getPreferenceStore();
+		return store.getBoolean(DO_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @return the id of the palette chosen by the given provider
+	 */
+	public static boolean getDontAutoIncreaseStripeHeight() {
+		IPreferenceStore store = VisualiserPlugin.getDefault()
+		.getPreferenceStore();
+		return store.getBoolean(DONT_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT);
+	}
+	
 	/**
 	 * Store the given size as the chosen the bar width
 	 * 
@@ -243,5 +286,27 @@ public class VisualiserPreferences {
 				.getPreferenceStore();
 		String pref = PALETTE_PREFIX + def.getID();
 		store.setValue(pref, value);
+	}
+	
+	/**
+	 * Set the option for whether or not to use patterns
+	 * 
+	 * @param boolean value - use patterns or not
+	 */
+	public static void setDoIncreaseStripeHeight(boolean value) {
+		IPreferenceStore store = VisualiserPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(DO_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT, value);
+	}
+	
+	/**
+	 * Set the option for whether or not to use patterns
+	 * 
+	 * @param boolean value - use patterns or not
+	 */
+	public static void setDontIncreaseStripeHeight(boolean value) {
+		IPreferenceStore store = VisualiserPlugin.getDefault()
+				.getPreferenceStore();
+		store.setValue(DONT_AUTO_INCREASE_VISUALISER_STRIPE_HEIGHT, value);
 	}
 }

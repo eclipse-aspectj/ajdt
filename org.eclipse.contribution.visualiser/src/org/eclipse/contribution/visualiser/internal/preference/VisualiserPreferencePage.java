@@ -31,6 +31,9 @@ import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.contribution.visualiser.views.VisualiserCanvas;
 import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -633,9 +636,6 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				}
 			}
 
-			VisualiserPreferences.setStripeHeight(stripeHeight.getSelection());
-			VisualiserPreferences.setBarWidth(prefWidth.getSelection());
-
 			String rname = styleList.getSelection()[0];
 			VisualiserPreferences.setRendererName(rname);
 
@@ -643,12 +643,35 @@ public class VisualiserPreferencePage extends PreferencePage implements
 			ProviderDefinition def = ProviderManager.getCurrent();
 			String defp = PaletteManager.getDefaultForProvider(def).getName();
 			if (PaletteManager.getPaletteByName(pname).getPalette() instanceof PatternVisualiserPalette) {
-				// We're using patterns
+				// Using Patterns
+				if (stripeHeight.getSelection() <= 4 && !VisualiserPreferences.getUsePatterns() && !VisualiserPreferences.getDontAutoIncreaseStripeHeight()) {
+					if (VisualiserPreferences.getDoAutoIncreaseStripeHeight()) {
+						VisualiserPreferences.setStripeHeight(VisualiserPreferences.getDefaultPatternStripeHeight());						
+					} else {
+						MessageDialogWithToggle toggleDialog = new MessageDialogWithToggle(
+								null, VisualiserMessages.VisualiserPreferencePage_stripeSizeDialog_title,
+								null, VisualiserMessages.VisualiserPreferencePage_stripeSizeDialog_message,
+				                MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL },
+				                0, VisualiserMessages.VisualiserPreferencePage_stripeSizeDialog_togglemessage,
+				                VisualiserPreferences.getDoAutoIncreaseStripeHeight());
+						if (toggleDialog.getReturnCode() == 0) { // Yes pressed
+							VisualiserPreferences.setDoIncreaseStripeHeight(toggleDialog.getToggleState());
+							VisualiserPreferences.setStripeHeight(VisualiserPreferences.getDefaultPatternStripeHeight());
+						} else // No pressed
+							VisualiserPreferences.setDontIncreaseStripeHeight(toggleDialog.getToggleState());
+					}
+				} else
+					VisualiserPreferences.setStripeHeight(stripeHeight.getSelection());
+				
+				VisualiserPreferences.setBarWidth(prefWidth.getSelection());
 				VisualiserPreferences.setUsePatterns(true);
 				String pid = PaletteManager.getPaletteByName(pname).getID();
 				VisualiserPreferences.setPaletteIDForProvider(def, pid);
 			} else {
-				// We're not using patterns
+				// Not using patterns
+				VisualiserPreferences.setStripeHeight(stripeHeight.getSelection());
+				
+				VisualiserPreferences.setBarWidth(prefWidth.getSelection());
 				VisualiserPreferences.setUsePatterns(false);
 				if (defp.equals(pname)) {
 					// going with provider defintion, clear preference setting
