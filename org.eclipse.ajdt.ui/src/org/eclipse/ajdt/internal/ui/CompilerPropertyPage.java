@@ -59,7 +59,7 @@ import org.osgi.service.prefs.BackingStoreException;
 */
 public class CompilerPropertyPage extends PropertyPage {
 
-	// TODO - these need to be changed to booleans - bug 90174
+	// bug 90174 - leave these as strings to keep the code simple
 	private static final String VALUE_TRUE = "true";
 	private static final String VALUE_FALSE = "false";
 
