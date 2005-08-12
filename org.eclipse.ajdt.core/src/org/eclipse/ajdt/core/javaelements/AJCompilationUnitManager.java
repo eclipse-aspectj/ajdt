@@ -117,9 +117,12 @@ public class AJCompilationUnitManager {
 				.get(file);
 		if (unit != null) {
 			try {
-				OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
-						.getParent()).getElementInfo();
-				info.removeChild(unit);
+				// Fix for bug 106813 - check if the project is open first
+				if(file.getProject().isOpen()) {					
+					OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
+							.getParent()).getElementInfo();
+					info.removeChild(unit);
+				}
 				JavaModelManager.getJavaModelManager().removeInfoAndChildren(
 						unit);
 
