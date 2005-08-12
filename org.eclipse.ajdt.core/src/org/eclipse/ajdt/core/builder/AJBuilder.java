@@ -572,6 +572,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * from org.eclipse.jdt.internal.core.builder.AbstractImageBuilder.createFolder(..)
 	 */
 	private IContainer createFolder(IPath packagePath, IContainer outputFolder) throws CoreException {
+		// Fix for 98663 - create the bin folder if it doesn't exist
+		if(!outputFolder.exists() && outputFolder instanceof IFolder) {
+			((IFolder)outputFolder).create(true, true, null);
+		}
 		if (packagePath.isEmpty()) return outputFolder;
 		IFolder folder = outputFolder.getFolder(packagePath);
 		folder.refreshLocal(IResource.DEPTH_ZERO,null);
