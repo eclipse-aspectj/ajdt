@@ -106,7 +106,68 @@ public class XReferenceViewTest extends VisualTestCase {
 		editorPart.close(false);
 		Utils.deleteProject(project);
 	}
-	
+
+	public void testBug98319() throws Exception {
+		IProject project = Utils.createPredefinedProject("bug98319");
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		IResource res = project.findMember("src/pack/A.aj");
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found.");
+		} 
+		IFile ajFile = (IFile)res;
+		
+		IResource res2 = project.findMember("test.txt");
+		if (res2 == null || !(res2 instanceof IFile)) {
+			fail("test.txt file not found.");
+		} 
+		IFile textFile = (IFile)res2;
+		
+		// open the text file
+		ITextEditor defaultEditorPart = (ITextEditor)Utils.openFileInDefaultEditor(textFile,true);
+		defaultEditorPart.setFocus();
+		Utils.waitForJobsToComplete();
+		
+		// open A.aj and select the pointcut
+		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(4);
+		moveCursorRight(37);
+		Utils.waitForJobsToComplete();
+		
+		XRefContainsInputDisplayHelper ds = new XRefContainsInputDisplayHelper();
+		ds.waitForCondition(Display.getCurrent(), 5000);
+		
+		// The cross reference view should contain something
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		
+		// switch to the text file
+		ITextEditor defaultEditorPart2 = (ITextEditor)Utils.openFileInDefaultEditor(textFile,true);
+		defaultEditorPart2.setFocus();
+		Utils.waitForJobsToComplete();
+		
+		// the cross reference view should be cleared
+		XRefContainsNothingDisplayHelper ds2 = new XRefContainsNothingDisplayHelper();
+		ds2.waitForCondition(Display.getCurrent(), 5000);
+		// get hold of the xref view and check that it hasn't got
+		// any contents - if it does have contents then the corresponding
+		// source/resource should exist - this was the cause of bug 92895
+		TreeViewer treeViewer = xrefView.getTreeViewer();
+		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		Object obj = treeViewer.getInput();
+		assertNull("tree viewer shouldn't contain anything",obj);
+				
+		defaultEditorPart.close(false);
+		defaultEditorPart2.close(false);
+		editorPart.close(false);
+		Utils.deleteProject(project);
+	}
+
 	private boolean xrefSourceExists(XReferenceView xrefView) {
 		TreeViewer treeViewer = xrefView.getTreeViewer();
 		assertNotNull("xref view should have non null treeviewer",treeViewer);
