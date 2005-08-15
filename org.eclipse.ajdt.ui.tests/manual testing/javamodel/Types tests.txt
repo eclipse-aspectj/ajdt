@@ -15,3 +15,7 @@ two options in the option box at the bottom of the dialog. Press 'OK' (TYPES_6)
 the 'Browse' button next to the supertype box.  Type "GameSynchronization" and an aspect should 
 be shown. (TYPES_7).  Click "OK" and the supertypes box should be filled with 
 "spacewar.GameSynchronization" (TYPES_8)
+
+8. [Bug 103131] Convert Exclusion.java in the coordination package to have the .aj file extension.
+Now press Ctrl+Alt+T and type "Exclusion" into the text box.  Check that Exclusion
+appears and has the right icon. (TYPES_9)
