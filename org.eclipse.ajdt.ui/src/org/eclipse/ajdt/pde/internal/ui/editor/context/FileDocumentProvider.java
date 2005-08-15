@@ -370,36 +370,39 @@ public class FileDocumentProvider extends StorageDocumentProvider {
 	protected boolean setDocumentContent(IDocument document, IEditorInput editorInput, String encoding) throws CoreException {
 		if (editorInput instanceof IFileEditorInput) {
 			IFile file= ((IFileEditorInput) editorInput).getFile();
-			InputStream contentStream= file.getContents(false);
-			try {
-
-				FileInfo info= (FileInfo)getElementInfo(editorInput);
-
-				/*
-				 * XXX:
-				 * This is a workaround for a corresponding bug in Java readers and writer,
-				 * see: http://developer.java.sun.com/developer/bugParade/bugs/4508058.html
-				 */
-				if (info != null && info.fHasBOM && CHARSET_UTF_8.equals(encoding)) {
-					int n= 0;
-					do {
-						int bytes= contentStream.read(new byte[IContentDescription.BOM_UTF_8.length]);
-						if (bytes == -1)
-							throw new IOException();
-						n += bytes;
-					} while (n < IContentDescription.BOM_UTF_8.length);
-				}
-
-				setDocumentContent(document, contentStream, encoding);
-
-			} catch (IOException ex) {
-				String message= (ex.getMessage() != null ? ex.getMessage() : ""); //$NON-NLS-1$
-				IStatus s= new Status(IStatus.ERROR, PlatformUI.PLUGIN_ID, IStatus.OK, message, ex);
-				throw new CoreException(s);
-			} finally {
+			// AspectJ Change - stop errors in the log when a new project is created
+			if(file.exists()) {
+				InputStream contentStream= file.getContents(false);
 				try {
-					contentStream.close();
-				} catch (IOException e1) {
+	
+					FileInfo info= (FileInfo)getElementInfo(editorInput);
+	
+					/*
+					 * XXX:
+					 * This is a workaround for a corresponding bug in Java readers and writer,
+					 * see: http://developer.java.sun.com/developer/bugParade/bugs/4508058.html
+					 */
+					if (info != null && info.fHasBOM && CHARSET_UTF_8.equals(encoding)) {
+						int n= 0;
+						do {
+							int bytes= contentStream.read(new byte[IContentDescription.BOM_UTF_8.length]);
+							if (bytes == -1)
+								throw new IOException();
+							n += bytes;
+						} while (n < IContentDescription.BOM_UTF_8.length);
+					}
+	
+					setDocumentContent(document, contentStream, encoding);
+	
+				} catch (IOException ex) {
+					String message= (ex.getMessage() != null ? ex.getMessage() : ""); //$NON-NLS-1$
+					IStatus s= new Status(IStatus.ERROR, PlatformUI.PLUGIN_ID, IStatus.OK, message, ex);
+					throw new CoreException(s);
+				} finally {
+					try {
+						contentStream.close();
+					} catch (IOException e1) {
+					}
 				}
 			}
 			return true;
