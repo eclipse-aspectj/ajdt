@@ -125,8 +125,6 @@ public class VisualiserCanvas extends Canvas {
 	private ToolTipHelper toolTipHelper;
 
 	private Menu contextMenu;
-	
-	public static PatternVisualiserRenderer patternVisualiserRenderer;
 
 		 
 	/**
@@ -219,7 +217,6 @@ public class VisualiserCanvas extends Canvas {
 				cancelToolTip();
 			}
 		});
-		patternVisualiserRenderer = new PatternVisualiserRenderer();
 		setupScrollbarListeners();
 		setupContextMenu();
 	}
@@ -1216,7 +1213,7 @@ public class VisualiserCanvas extends Canvas {
 					for (int k = 0; k < kinds.size(); k++) {
 						KindGeom kg = (KindGeom) kinds.get(k);
 						if (VisualiserPreferences.getUsePatterns()) {
-							patternVisualiserRenderer.setDitherPattern(gc, kg.color);
+							PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color);
 						} else {
 							gc.setBackground(kg.color);
 						}
@@ -1314,7 +1311,7 @@ public class VisualiserCanvas extends Canvas {
 			for (int i = 0; i < sg.kindList.size(); i++) {
 				KindGeom kg = (KindGeom) sg.kindList.get(i);
 				if (VisualiserPreferences.getUsePatterns()) {
-					patternVisualiserRenderer.setDitherPattern(gc, kg.color);
+					PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color);
 				} else {
 					gc.setBackground(kg.color);
 				}				

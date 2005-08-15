@@ -24,6 +24,7 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextIds;
 import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
+import org.eclipse.contribution.visualiser.renderers.PatternVisualiserRenderer;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -112,7 +113,7 @@ public class Menu extends ViewPart {
 	private void drawImage(Image image, Color color) {
 		GC gc = new GC(image);
 		if (VisualiserPreferences.getUsePatterns()) {
-			VisualiserCanvas.patternVisualiserRenderer.setDitherPattern(gc, color);
+			PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, color);
 		} else {
 			gc.setBackground(color);
 		}

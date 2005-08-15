@@ -26,10 +26,10 @@ import org.eclipse.contribution.visualiser.interfaces.IMarkupProvider;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserPalette;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.palettes.PatternVisualiserPalette;
+import org.eclipse.contribution.visualiser.renderers.PatternVisualiserRenderer;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
-import org.eclipse.contribution.visualiser.views.VisualiserCanvas;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -366,7 +366,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 				int h = stripeHeight.getSelection();
 				if (localUsePatterns) {
-					VisualiserCanvas.patternVisualiserRenderer
+					PatternVisualiserRenderer.getPatternRenderer()
 							.setDitherPattern(sgc, staticColsForPatterns[0]);
 				} else {
 					sgc.setBackground(cols[0]);
@@ -374,7 +374,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				sgc.fillRectangle(x + 1, y + 10, width - 1, h);
 
 				if (localUsePatterns) {
-					VisualiserCanvas.patternVisualiserRenderer
+					PatternVisualiserRenderer.getPatternRenderer()
 							.setDitherPattern(sgc, staticColsForPatterns[1]);
 				} else {
 					sgc.setBackground(cols[1]);
@@ -382,7 +382,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				sgc.fillRectangle(x + 1, y + 32, width / 2 - 1, h);
 
 				if (localUsePatterns) {
-					VisualiserCanvas.patternVisualiserRenderer
+					PatternVisualiserRenderer.getPatternRenderer()
 							.setDitherPattern(sgc, staticColsForPatterns[2]);
 				} else {
 					sgc.setBackground(cols[2]);
@@ -390,7 +390,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				sgc.fillRectangle(x + 1 + width / 2, y + 32, width / 2 - 1, h);
 
 				if (localUsePatterns) {
-					VisualiserCanvas.patternVisualiserRenderer
+					PatternVisualiserRenderer.getPatternRenderer()
 							.setDitherPattern(sgc, staticColsForPatterns[3]);
 				} else {
 					sgc.setBackground(cols[3]);

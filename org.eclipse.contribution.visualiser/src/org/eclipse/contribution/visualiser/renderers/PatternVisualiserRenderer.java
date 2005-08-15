@@ -23,11 +23,24 @@ import org.eclipse.swt.widgets.Display;
 
 public class PatternVisualiserRenderer extends ClassicVisualiserRenderer {
 
+	private static PatternVisualiserRenderer pvr;
+	
 	PatternVisualiserPalette palette = new PatternVisualiserPalette();
 		
 	private static int nextAvailablePattern = 0;
 	
 	private Map patternMemory = new HashMap();
+	
+	private  PatternVisualiserRenderer() {
+		
+	}
+	
+	public static PatternVisualiserRenderer getPatternRenderer() {
+		if (pvr == null) {
+			pvr = new PatternVisualiserRenderer();
+		}
+		return pvr;
+	}
 	
 	/**
 	 * Get the next assignable pattern data and return it. If all the predefined patterns
