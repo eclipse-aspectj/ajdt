@@ -1,0 +1,83 @@
+Visualiser Plug-in Manual Tests
+
+Install the Visualiser from an update site (e.g. the latest AJDT update site).
+
+
+Views
+
+1.	Ensure that neither the Visualiser nor the Visualiser Menu is open.  
+Click ‘Window’ > ‘Show View’ > ‘Other’.  Select the Visualiser but not the Menu.
+  Both the Visualiser and the Menu should open in the current perspective.
+2.	Close the Menu and close down the workbench.  Re-start the workbench.  Both 
+the Visualiser and the Menu should open.
+
+
+Providers
+
+1.	Open both views and select the ‘File Content Provider’ from the Visualiser 
+preferences page. (Window > Preferences > Visualiser).  The Visualiser view 
+should show about 100 bars with various stripes.  The Menu should show three 
+‘kinds’ – Catch\blocks, Method and Throws.
+
+2.	Select the ‘Resources and Markers’ provider from the preferences page.  
+Select a project in the package explorer or the Navigator.  Ensure that the 
+project you have chosen has sufficient number and variety of markers (e.g 
+errors, warnings, breakpoints, tasks, bookmarks etc.). The Visualiser should 
+show a bar for each file in the project and should show stripes for any markers 
+present on a file.  The Menu should show appropriate icons, names and colours 
+for each Marker type.  Double clicking on a marker or bar should open that 
+resource in the editor.  Tooltips for each bar should be the project relative 
+path for the resource being represented.  
+
+3.	Select the ‘JDT search results’ provider from the preference page.  Run a 
+Java search that you know will produce results.  Select a project or package in 
+the Search view or the Package Explorer.  Classes contained in that project or 
+package should be displayed as bars in the Visualiser with stripes representing 
+the locations of search results.  Double clicking on a bar or a stripe should 
+open that file in the Java editor.
+
+
+Preferences
+
+1.	Using any of the content providers, make a selection that results in a view 
+with a small number of bars so that the bars do not fill the width of the 
+Visualiser window.  Using the ‘Drawing Options’ tab of the preference page 
+increase the maximum bar width.  Click OK and the Visualiser view should update 
+so that the bars either fill the width of the window, or are each the maximum 
+width.
+
+2.	Make a selection that results in a large number of bars in the view so that 
+a horizontal scroll bar is shown.  Using the preferences page decrease the 
+minimum bar width.  Click OK and the Visualiser should update so that the bars 
+are noticeably thinner.  If there is still a horizontal scrollbar the bars 
+should be the width that you specified.
+
+3.	Make a selection that contains some stripes.  Using the preference page 
+change the minimum stripe height (e.g. to 1 pixel).  Click OK and the Visualiser 
+should update so that the stripes are now the height you specified.  NB. If the 
+members lengths are less than (window height / minimum stripe height) then the 
+stripes will be larger.  You will need to decrease the window height or make a 
+different selection to see the results of this test.
+
+4.	Using the preference page select a different drawing style and a 
+different colour set.  Click OK and check that the Visualiser view updates to 
+use both the new style and the new colours.
+ 
+ 
+Actions
+
+1.	Check that the zoom in, zoom out, fit to view, limit, member 
+view and group view buttons work as expected.  If new to the Visualiser check 
+its on-line help for details (Help > Help Contents > Visualiser Guide).  
+
+2.	Check that the shortcut to the Visualiser preference page in the drop-down 
+menu works as expected.
+
+
+Help
+
+1.	Open the Visualiser’s on-line help (Help > Help Contents > Visualiser Guide).
+  Read through the ‘Using the Visualiser’ section and ensure that the hyperlinks 
+  work correctly and the images and descriptions accurately match the current 
+  operation of the Visualiser.
+
