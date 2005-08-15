@@ -58,5 +58,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console,
  org.eclipse.debug.ui,
  org.eclipse.contribution.xref.core,
- org.eclipse.ui.views
+ org.eclipse.ui.views,
+ org.eclipse.pde.runtime
 Eclipse-AutoStart: true

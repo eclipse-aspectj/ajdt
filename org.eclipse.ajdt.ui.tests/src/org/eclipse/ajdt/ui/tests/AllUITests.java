@@ -74,6 +74,7 @@ public class AllUITests {
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
 		
+		suite.addTest(new TestSuite(NLSWarningsTest.class));
 		suite.addTest(new TestSuite(VerificationTest.class));
 		
 		// test the predefined project tool
