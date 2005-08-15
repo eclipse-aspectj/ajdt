@@ -26,7 +26,6 @@ public class NLSWarningsTest extends TestCase {
 
 	
 	public void testNoWarningsOnStartup() throws Exception {
-		AllUITests.setupAJDTPlugin();
 		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
 		if(view instanceof LogView) {
 			LogView logView = (LogView)view;
