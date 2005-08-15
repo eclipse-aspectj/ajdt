@@ -137,7 +137,7 @@ public class Bug98663Test extends VisualTestCase {
 				IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
 				assertTrue("Should have created a package called p1", p1.exists());
 				
-				// Check that no more errors have appeared in the logLogView logView = (LogView)view;
+				// Check that no more errors have appeared in the error log
 				logs = logView.getLogs();
 				assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
 				

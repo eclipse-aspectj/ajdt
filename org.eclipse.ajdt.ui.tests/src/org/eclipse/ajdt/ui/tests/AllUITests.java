@@ -76,6 +76,8 @@ public class AllUITests {
 		
 		suite.addTest(new TestSuite(NLSWarningsTest.class));
 		suite.addTest(new TestSuite(VerificationTest.class));
+		suite.addTest(new TestSuite(Bug106813Test.class));
+		
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
