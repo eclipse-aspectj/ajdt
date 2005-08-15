@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
+import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
@@ -206,6 +207,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
 				}
 				if (!continueToBuild) {
+					// bug 107027
+					ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+					if (adapter instanceof CoreProjectProperties) {
+						((CoreProjectProperties)adapter).flushClasspathCache();
+					}
 					postCallListeners(true);
 					return requiredProjects;						
 				}
@@ -278,6 +284,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		
 		AJModel.getInstance().createMap(project);
+		// bug 107027
+		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+		if (adapter instanceof CoreProjectProperties) {
+			((CoreProjectProperties)adapter).flushClasspathCache();
+		}
 		postCallListeners(false);
 		
 		AJLog.logEnd(TimerLogEvent.TIME_IN_BUILD);
