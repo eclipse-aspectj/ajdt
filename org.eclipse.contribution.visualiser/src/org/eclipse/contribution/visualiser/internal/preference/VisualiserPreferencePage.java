@@ -92,22 +92,12 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 	private VisualiserPreview preview;
 
-	private static RGB[] rgb;
-
-	private static Color[] staticColsForPatterns;
-
 	/**
 	 * Create the contents of the page
 	 * 
 	 * @see PreferencePage#createContents(Composite)
 	 */
 	protected Control createContents(Composite parent) {
-		rgb = PaletteManager.getDefaultPalette().getPalette().getRGBValues();
-		staticColsForPatterns = new Color[] {
-				new Color(Display.getDefault(), rgb[0]),
-				new Color(Display.getDefault(), rgb[1]),
-				new Color(Display.getDefault(), rgb[2]),
-				new Color(Display.getDefault(), rgb[3]), };
 
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -317,6 +307,8 @@ public class VisualiserPreferencePage extends PreferencePage implements
 		private IVisualiserPalette ivp;
 
 		private Color[] cols;
+		
+		private RGB[] colsForPatterns;
 
 		private boolean localUsePatterns = VisualiserPreferences
 				.getUsePatterns();
@@ -357,6 +349,11 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				}
 				if (cols == null) {
 					RGB[] rgb = pd.getPalette().getRGBValues();
+					colsForPatterns = new RGB[] {
+							rgb[0],
+							rgb[1],
+							rgb[2],
+							rgb[3], };
 					cols = new Color[] {
 							new Color(Display.getDefault(), rgb[0]),
 							new Color(Display.getDefault(), rgb[1]),
@@ -367,7 +364,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				int h = stripeHeight.getSelection();
 				if (localUsePatterns) {
 					PatternVisualiserRenderer.getPatternRenderer()
-							.setDitherPattern(sgc, staticColsForPatterns[0]);
+							.setDitherPattern(sgc, colsForPatterns[0]);
 				} else {
 					sgc.setBackground(cols[0]);
 				}
@@ -375,7 +372,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 				if (localUsePatterns) {
 					PatternVisualiserRenderer.getPatternRenderer()
-							.setDitherPattern(sgc, staticColsForPatterns[1]);
+							.setDitherPattern(sgc, colsForPatterns[1]);
 				} else {
 					sgc.setBackground(cols[1]);
 				}
@@ -383,7 +380,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 				if (localUsePatterns) {
 					PatternVisualiserRenderer.getPatternRenderer()
-							.setDitherPattern(sgc, staticColsForPatterns[2]);
+							.setDitherPattern(sgc, colsForPatterns[2]);
 				} else {
 					sgc.setBackground(cols[2]);
 				}
@@ -391,7 +388,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 
 				if (localUsePatterns) {
 					PatternVisualiserRenderer.getPatternRenderer()
-							.setDitherPattern(sgc, staticColsForPatterns[3]);
+							.setDitherPattern(sgc, colsForPatterns[3]);
 				} else {
 					sgc.setBackground(cols[3]);
 				}
@@ -644,7 +641,7 @@ public class VisualiserPreferencePage extends PreferencePage implements
 			String defp = PaletteManager.getDefaultForProvider(def).getName();
 			if (PaletteManager.getPaletteByName(pname).getPalette() instanceof PatternVisualiserPalette) {
 				// Using Patterns
-				if (stripeHeight.getSelection() <= 4 && !VisualiserPreferences.getUsePatterns() && !VisualiserPreferences.getDontAutoIncreaseStripeHeight()) {
+				if (stripeHeight.getSelection() < VisualiserPreferences.getDefaultPatternStripeHeight() && !VisualiserPreferences.getUsePatterns() && !VisualiserPreferences.getDontAutoIncreaseStripeHeight()) {
 					if (VisualiserPreferences.getDoAutoIncreaseStripeHeight()) {
 						VisualiserPreferences.setStripeHeight(VisualiserPreferences.getDefaultPatternStripeHeight());						
 					} else {

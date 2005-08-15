@@ -15,10 +15,10 @@ import java.util.Map;
 
 import org.eclipse.contribution.visualiser.palettes.PatternVisualiserPalette;
 import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Pattern;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 public class PatternVisualiserRenderer extends ClassicVisualiserRenderer {
@@ -48,7 +48,7 @@ public class PatternVisualiserRenderer extends ClassicVisualiserRenderer {
 	 * @return byte[][] - pattern data
 	 */
 	protected byte[][] getNextPattern() {
-		byte[][][] pats = palette.getPaletteContence();
+		byte[][][] pats = palette.getPaletteContents();
 		if (nextAvailablePattern < pats.length) {
 			byte[][] patternData = pats[nextAvailablePattern++];
 			return patternData;
@@ -85,17 +85,17 @@ public class PatternVisualiserRenderer extends ClassicVisualiserRenderer {
 	/**
 	 * Returns pattern data from the patternMemory if the colour is recognised
 	 * or a new pattern if the colour is new to the renderer
-	 * @param colour
+	 * @param rgb
 	 * @return byte[][] - pattern data
 	 */
-	private byte[][] getPatternForColour(Color colour) {
+	private byte[][] getPatternForColour(RGB rgb, boolean isPrefDialog) {
 		
 		byte[][] stripePatternData = null;
-		if (patternMemory.containsKey(colour)) {
-			stripePatternData = (byte[][]) patternMemory.get(colour);
+		if (patternMemory.containsKey(rgb)) {
+			stripePatternData = (byte[][]) patternMemory.get(rgb);
 		} else {
 			stripePatternData = getNextPattern();
-			patternMemory.put(colour, stripePatternData);
+			patternMemory.put(rgb, stripePatternData);
 		}
 		return stripePatternData;
 	}
@@ -103,9 +103,9 @@ public class PatternVisualiserRenderer extends ClassicVisualiserRenderer {
 	/**
 	 * Uses a colour, associates a pattern with it and tiles it over the gc 
 	 * @param gc
-	 * @param colour - The colour assigned to the gc
+	 * @param rgb - The RGB assigned to the gc
 	 */
-	public void setDitherPattern(GC gc, Color colour) {
-		gc.setBackgroundPattern(createPattern(getPatternForColour(colour)));
+	public void setDitherPattern(GC gc, RGB rgb) {
+		gc.setBackgroundPattern(createPattern(getPatternForColour(rgb, false)));
 	}
 }

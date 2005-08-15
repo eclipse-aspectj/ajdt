@@ -113,7 +113,7 @@ public class Menu extends ViewPart {
 	private void drawImage(Image image, Color color) {
 		GC gc = new GC(image);
 		if (VisualiserPreferences.getUsePatterns()) {
-			PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, color);
+			PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, color.getRGB());
 		} else {
 			gc.setBackground(color);
 		}

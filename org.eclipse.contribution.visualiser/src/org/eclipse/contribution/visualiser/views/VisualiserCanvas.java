@@ -1213,7 +1213,7 @@ public class VisualiserCanvas extends Canvas {
 					for (int k = 0; k < kinds.size(); k++) {
 						KindGeom kg = (KindGeom) kinds.get(k);
 						if (VisualiserPreferences.getUsePatterns()) {
-							PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color);
+							PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color.getRGB());
 						} else {
 							gc.setBackground(kg.color);
 						}
@@ -1311,7 +1311,7 @@ public class VisualiserCanvas extends Canvas {
 			for (int i = 0; i < sg.kindList.size(); i++) {
 				KindGeom kg = (KindGeom) sg.kindList.get(i);
 				if (VisualiserPreferences.getUsePatterns()) {
-					PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color);
+					PatternVisualiserRenderer.getPatternRenderer().setDitherPattern(gc, kg.color.getRGB());
 				} else {
 					gc.setBackground(kg.color);
 				}				

@@ -53,7 +53,7 @@ public class VisualiserPreferences {
 
 	public static final int BAR_MIN_WIDTH = 18;
 	
-	public static final int PATTERN_STRIPE_SIZE_DEFAULT = 6;
+	public static final int PATTERN_STRIPE_SIZE_DEFAULT = 8;
 	
 	public static final boolean USE_PATTERNS_DEFAULT = false;
 	
