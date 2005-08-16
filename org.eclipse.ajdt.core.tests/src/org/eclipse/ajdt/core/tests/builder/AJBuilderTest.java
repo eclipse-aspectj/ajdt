@@ -9,7 +9,10 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
@@ -253,6 +256,90 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			String rep = testLog.getMostRecentMatchingMessage("AspectJ reports build successful");
 			assertNotNull("Successful build should have been reported",rep);
 			assertTrue("The build should have been an incremental one",wasIncrementalBuild(rep));
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(project);
+		}
+	}
+	
+	/**
+	 * Bug 74174 
+	 * changing a txt file inside a source folder triggers a build 
+	 * (either full or incremental) when it doesn't need to
+	 */
+	public void testBug74174() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = createPredefinedProject("bug99133b");
+		try {
+			assertFalse("project should have no errors", testLog
+					.containsMessage("error"));
+			IFile f = project.getFile("src/p/anotherTest.txt");
+			assertNotNull("file test.txt should not be null", f);
+			
+			if (!f.exists()) {
+				f.create(new ByteArrayInputStream(new byte[0]), true, null);
+			}
+			waitForAutoBuild();
+			waitForAutoBuild();
+			assertTrue("text file should exist", f.exists());
+			
+			IFile binF = project.getFile("bin/p/anotherTest.txt");
+			assertNotNull("file test.txt should not be null", binF);
+			assertTrue("text file should exist", binF.exists());
+						
+			int numberOfBuildsRun = testLog.getNumberOfBuildsRun();
+			
+			// add text to the file
+			StringReader sr = new StringReader("more blah blah blah");
+			f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+			
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			
+			// check that we have gone through the AJBuilder.build(..) method
+			// and that there are no errors reported
+			assertEquals("The number of builds should be " + (numberOfBuildsRun + 1),numberOfBuildsRun + 1,testLog.getNumberOfBuildsRun());
+			List buildLog = testLog.getPreviousBuildEntry(1);
+			
+			// This is the message AJDT put's out when it decides not
+			// to do a build. It thinks there are no src changes in the 
+			// current project. 
+			// NOTE: this will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			assertTrue("AJDT should have found no source file changes and decided not to build",
+					listContainsString(buildLog,"build: Examined delta - no " +
+							"source file changes for project bug99133b"));
+			assertFalse("There should be no errors in the build log",
+					listContainsString(buildLog,"error"));
+			
+			// by checking that we don't have the following messages in the
+			// log (and the previous checking for no errors) we know that
+			// AJDT has exited the build method before calling the compiler.
+			//NOTE: these will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			boolean inc = listContainsString(buildLog,
+					"AspectJ reports build successful, build was: INCREMENTAL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that an incremental build happened",inc);
+			boolean full = listContainsString(buildLog,
+					"AspectJ reports build successful, build was: FULL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that a full build happened",full);
+			
+			BufferedReader br1 = new BufferedReader(new InputStreamReader(binF
+					.getContents()));
+			
+			String line1 = br1.readLine();
+			assertEquals("file in bin directory should contain \"more blah blah blah\"",
+					"more blah blah blah", line1);
+			br1.close();
+			
 		} finally {
 			AspectJPlugin.getDefault().setAJLogger(null);
 			deleteProject(project);
