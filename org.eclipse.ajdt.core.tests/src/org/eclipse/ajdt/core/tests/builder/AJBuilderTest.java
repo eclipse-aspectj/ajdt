@@ -11,6 +11,8 @@ package org.eclipse.ajdt.core.tests.builder;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
@@ -257,7 +259,192 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		}
 	}
 	
+	/**
+	 * Bug 98215 - regression of bug 74174
+	 * changing a txt file outside of a source file triggers a build 
+	 * (either full or incremental) when it doesn't need to
+	 */
+	public void testBug98125() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = createPredefinedProject("bug99133b");
+		try {
+			assertFalse("project should have no errors", testLog
+					.containsMessage("error"));
+			IFile f = project.getFile("test.txt");
+			assertNotNull("file test.txt should not be null", f);
+			assertTrue("text file should exist", f.exists());
+			
+			int numberOfBuildsRun = testLog.getNumberOfBuildsRun();
+			
+			// add more text to the file
+			StringReader sr = new StringReader("more blah blah blah");
+			f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+			
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			
+			// check that we have gone through the AJBuilder.build(..) method
+			// and that there are no errors reported
+			assertEquals("The number of builds should be " + (numberOfBuildsRun + 1),numberOfBuildsRun + 1,testLog.getNumberOfBuildsRun());
+			List buildLog = testLog.getPreviousBuildEntry(1);
+			
+			// This is the message AJDT put's out when it decides not
+			// to do a build. It thinks there are no src changes in the 
+			// current project. 
+			// NOTE: this will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			assertTrue("AJDT should have found no source file changes and decided not to build",
+					listContainsString(buildLog,"build: Examined delta - no " +
+							"source file changes for project bug99133b"));
+			assertFalse("There should be no errors in the build log",
+					listContainsString(buildLog,"error"));
+			
+			// by checking that we don't have the following messages in the
+			// log (and the previous checking for no errors) we know that
+			// AJDT has exited the build method before calling the compiler.
+			//NOTE: these will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			boolean inc = listContainsString(buildLog,
+					"AspectJ reports build successful, build was: INCREMENTAL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that an incremental build happened",inc);
+			boolean full = listContainsString(buildLog,
+					"AspectJ reports build successful, build was: FULL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that a full build happened",full);
+			
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(project);
+		}
+	}
+	
+	/**
+	 * Differs from testBug98215 in that it has two depedent
+	 * projects A depending on B and the text file which changes
+	 * is in B. In this case, AJDT should return for project B
+	 * that there are no src folder changes and it doesn't do
+	 * a build. However, it should do an incremental build of
+	 * project A. (both A and B are aspectj projects)
+	 */
+	public void testBug98125WithDependingProjects() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject pB = createPredefinedProject("bug99133b");
+		waitForAutoBuild();
+		waitForAutoBuild();
+		IProject pA = createPredefinedProject("bug99133a");
+		waitForAutoBuild();
+		waitForAutoBuild();
+		try {
+			assertFalse("project should have no errors", testLog
+					.containsMessage("error"));
+			IFile f = pB.getFile("test.txt");
+			assertNotNull("file test.txt should not be null", f);
+			assertTrue("text file should exist", f.exists());
+			
+			int numberOfBuildsRun = testLog.getNumberOfBuildsRun();
+
+			// add more text to the file
+			StringReader sr = new StringReader("more blah blah blah");
+			f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+			
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+			waitForAutoBuild();
+					
+			// check that we have gone through the AJBuilder.build(..) method
+			// and that there are no errors reported
+			assertEquals("The number of builds should be " + (numberOfBuildsRun + 2),numberOfBuildsRun + 2,testLog.getNumberOfBuildsRun());
+			assertFalse("There should be no errors in the build log",
+					testLog.containsMessage("error"));
+			
+			
+			List buildLogB = testLog.getPreviousBuildEntry(2);
+			assertTrue("Should have tried to build project bug99133b",
+					listContainsString(buildLogB,"bug99133b"));
+
+			
+			// This is the message AJDT put's out when it decides not
+			// to do a build. It thinks there are no src changes in the 
+			// current project. 
+			// NOTE: this will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			assertTrue("AJDT should have found no source file changes and decided not to build",
+					listContainsString(buildLogB,"build: Examined delta - no " +
+							"source file changes for project bug99133b"));
+			
+			
+			// by checking that we don't have the following messages in the
+			// log (and the previous checking for no errors) we know that
+			// AJDT has exited the build method before calling the compiler.
+			//NOTE: these will fail if we decide that AJDT can't make these
+			// sorts of decisions and pass everything down to the compiler
+			// (who can).
+			boolean inc = listContainsString(buildLogB,
+					"AspectJ reports build successful, build was: INCREMENTAL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that an incremental build happened",inc);
+			boolean full = listContainsString(buildLogB,
+					"AspectJ reports build successful, build was: FULL");
+			assertFalse("AJDT should have returned from the build without " +
+					"going through the compiler, therefore AspectJ shouldn't " +
+					"report that a full build happened",full);
+			
+			
+			
+			List buildLogA = testLog.getPreviousBuildEntry(1);
+			assertTrue("Should have caused a build of project bug99133a",
+					listContainsString(buildLogA,"bug99133a"));
+			assertTrue("AJDT should have found no source file changes and decided not to build",
+					listContainsString(buildLogA,"build: Examined delta - no " +
+							"source file changes for project bug99133a"));
+
+			boolean incA = listContainsString(buildLogA,
+			"AspectJ reports build successful, build was: INCREMENTAL");
+			assertFalse(
+					"AJDT should have returned from the build without "
+							+ "going through the compiler, therefore AspectJ shouldn't "
+							+ "report that an incremental build happened", incA);
+			boolean fullA = listContainsString(buildLogA,
+					"AspectJ reports build successful, build was: FULL");
+			assertFalse(
+					"AJDT should have returned from the build without "
+							+ "going through the compiler, therefore AspectJ shouldn't "
+							+ "report that a full build happened", fullA);
+	
+			
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(pA);
+			deleteProject(pB);
+		}
+	}
+	
 	private boolean wasIncrementalBuild(String msg) {
 		return msg.toLowerCase().indexOf("was: incremental") != -1;
+	}
+	
+	private boolean listContainsString(List l, String msg) {
+        for (Iterator iter = l.iterator(); iter.hasNext();) {
+            String logEntry = (String) iter.next();
+            if (logEntry.indexOf(msg) != -1) {
+                return true;
+            }
+        }
+        return false;
 	}
 }

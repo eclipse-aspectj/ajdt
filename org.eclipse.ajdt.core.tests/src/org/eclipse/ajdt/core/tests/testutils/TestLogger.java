@@ -158,4 +158,9 @@ public class TestLogger implements IAJLogger {
 			counter++;
 		}
 	}
+	
+	
+	public int getNumberOfBuildsRun() {
+		return buildLog.size();
+	}
 }

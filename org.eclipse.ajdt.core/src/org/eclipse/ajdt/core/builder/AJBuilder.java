@@ -213,6 +213,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 						((CoreProjectProperties)adapter).flushClasspathCache();
 					}
 					postCallListeners(true);
+					// Adding this log call because we need to know that
+					// AJDT has definitely decided not to pass anything down
+					// to the compiler
+					AJLog.logEnd(TimerLogEvent.TIME_IN_BUILD);
 					return requiredProjects;						
 				}
 			}
