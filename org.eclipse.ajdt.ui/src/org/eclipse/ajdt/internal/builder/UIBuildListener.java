@@ -187,8 +187,6 @@ public class UIBuildListener implements IAJBuildListener {
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
 	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
-		AspectJUIPlugin.getDefault().getAjdtProjectProperties().flushClasspathCache();
-		
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);
 			return;
