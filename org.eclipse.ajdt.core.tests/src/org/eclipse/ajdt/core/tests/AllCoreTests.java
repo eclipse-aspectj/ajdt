@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.core.tests;
 
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
+import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
@@ -47,6 +48,7 @@ public class AllCoreTests {
 		
 		// builder tests
 		suite.addTest(new TestSuite(AJBuilderTest.class));	
+		suite.addTest(new TestSuite(Bug99133Test.class));	
 		
 		return suite;
 	}
