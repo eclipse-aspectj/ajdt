@@ -40,6 +40,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	
 	IProject pA,pB;
 	TestLogger testLog;
+	int numberOfBuilds;
 	
 	/*
 	 * @see TestCase#setUp()
@@ -61,6 +62,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		// test is run after others because we didn't flush the classpath
 		// in the core plugin
 		assertFalse("log should contain no errors",testLog.containsMessage("error"));
+		numberOfBuilds = testLog.getNumberOfBuildsRun();
 	}
 
 	/*
@@ -70,6 +72,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		super.tearDown();
 		AspectJPlugin.getDefault().setAJLogger(null);
 		testLog = null;
+		numberOfBuilds = 0;
 		deleteProject(pA);
 		deleteProject(pB);
 	}
@@ -107,6 +110,9 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
 		waitForAutoBuild();
 		waitForAutoBuild();
+		assertEquals("two more builds should have occured",
+				numberOfBuilds + 2,
+				testLog.getNumberOfBuildsRun());
 		
 		// At the moment, can at least check that the build of the
 		// dependent project is an incremental build.
@@ -170,6 +176,9 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 		waitForAutoBuild();
+		assertEquals("two more builds should have occured",
+				numberOfBuilds + 2,
+				testLog.getNumberOfBuildsRun());
 	
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
@@ -226,6 +235,10 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
 		waitForAutoBuild();
 		waitForAutoBuild();
+		
+		assertEquals("two more builds should have occured",
+				numberOfBuilds + 2,
+				testLog.getNumberOfBuildsRun());
 
 		// At the moment, can at least check that the build is an
 		// incremental build.
@@ -291,7 +304,10 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 
-
+		assertEquals("two more builds should have occured",
+				numberOfBuilds + 2,
+				testLog.getNumberOfBuildsRun());
+		
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
 				"AspectJ reports build successful, build was: INCREMENTAL");
@@ -353,6 +369,10 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 
+		assertEquals("two more builds should have occured",
+				numberOfBuilds + 2,
+				testLog.getNumberOfBuildsRun());
+		
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
 				"AspectJ reports build successful, build was: INCREMENTAL");
