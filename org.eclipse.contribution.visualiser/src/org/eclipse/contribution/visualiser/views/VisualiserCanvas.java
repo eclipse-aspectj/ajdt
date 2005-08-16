@@ -912,12 +912,6 @@ public class VisualiserCanvas extends Canvas {
 					b.stripeList.add(sg);
 					sg.bounds = new Rectangle(b.bounds.x + 1,
 							b.bounds.y + ypos, colWidth - 2, stripeH);
-					// make sure stripe is contained within bar
-					if (sg.bounds.y + sg.bounds.height > b.bounds.y
-							+ b.bounds.height) {
-						sg.bounds.height = b.bounds.y + b.bounds.height
-								- sg.bounds.y;
-					}
 					for (int i = 0; i < s.getKinds().size(); i++) {
 						IMarkupKind kind = (IMarkupKind) s.getKinds().get(i);
 						if (VisualiserPlugin.menu == null
@@ -942,12 +936,44 @@ public class VisualiserCanvas extends Canvas {
 			}
 			spaceOutStripes(b.stripeList);
 			spaceOutStripes(b.stripeList);
+			avoidOverspill(b.stripeList);
 		}
 	}
 
 	/**
+	 * Performs a single pass through the list of stripes looking for stripes
+	 * that spill off the bottom of the parent column. Any such stripes are
+	 * moved up to fit, or if the column is too small, they are moved up
+	 * as much as possible, then the height is reduced as required.
+	 * 
+	 * @param stripeList
+	 */
+	private void avoidOverspill(List /* StripeGeom */stripeList) {
+		for (int i = 0; i < stripeList.size(); i++) {
+			StripeGeom sg = (StripeGeom) stripeList.get(i);
+			// make sure stripe is contained within bar
+			int endStripeY = sg.bounds.y + sg.bounds.height;
+			int endBarY = sg.parent.bounds.y + sg.parent.bounds.height;
+			if (endStripeY > endBarY) {
+				int move = endStripeY - endBarY;
+				int maxMove = sg.bounds.y - sg.parent.bounds.y;
+				if (move <= maxMove) {
+					// we can safely move up without going off the top
+					sg.moveVertically(-move);
+				} else {
+					// we can only move so far, have to shrink height as well
+					sg.moveVertically(-maxMove);
+					// shrink height as required
+					sg.reduceHeight(move - maxMove);
+				}
+			}
+		}
+	}
+	
+	/**
 	 * Performs a single pass through the list of stripes, attempting to space
-	 * out overlapping stripes.
+	 * out overlapping stripes. Make sure we don't move a stripe off the top
+	 * or bottom of the parent column.
 	 * 
 	 * @param stripeList
 	 */
@@ -958,13 +984,18 @@ public class VisualiserCanvas extends Canvas {
 			if (i > 0) {
 				sg2 = (StripeGeom) stripeList.get(i - 1);
 				if (sg1.overlaps(sg2)) {
-					sg1.moveVertically(1);
+					if (sg1.bounds.y + sg1.bounds.height <
+							sg1.parent.bounds.y + sg1.parent.bounds.y) {
+						sg1.moveVertically(1);
+					}
 				}
 			}
 			if (i + 1 < stripeList.size()) {
 				sg2 = (StripeGeom) stripeList.get(i + 1);
 				if (sg1.overlaps(sg2)) {
-					sg1.moveVertically(-1);
+					if (sg1.bounds.y > sg1.parent.bounds.y) {
+						sg1.moveVertically(-1);
+					}
 				}
 			}
 		}
@@ -1347,8 +1378,8 @@ public class VisualiserCanvas extends Canvas {
 	}
 
 	/**
-	 * Calculate stripe height scaled to zoom factor, but only if that makes it
-	 * larger, as we don't want stripes to be too thin.
+	 * Calculate stripe height scaled to zoom factor, but make sure it ends
+	 * up at least 1 pixel high.
 	 * 
 	 * @param v
 	 * @return scaled height
@@ -1357,7 +1388,11 @@ public class VisualiserCanvas extends Canvas {
 		if (visualiser.isFitToView()) {
 			return v;
 		}
-		return Math.max(scale(v), VisualiserPreferences.getStripeHeight());
+		int scaledV = scale(v);
+		if (scaledV < 1) {
+			return 1;
+		}
+		return scaledV;
 	}
 
 	/**
@@ -1482,6 +1517,20 @@ public class VisualiserCanvas extends Canvas {
 			for (Iterator iter = kindList.iterator(); iter.hasNext();) {
 				KindGeom kg = (KindGeom) iter.next();
 				kg.bounds.y += ypos;
+			}
+		}
+
+		/**
+		 * Reduces the height of the stripe and all its kinds by the given
+		 * amount
+		 * 
+		 * @param h
+		 */
+		public void reduceHeight(int h) {
+			bounds.height -= h;
+			for (Iterator iter = kindList.iterator(); iter.hasNext();) {
+				KindGeom kg = (KindGeom) iter.next();
+				kg.bounds.height -= h;
 			}
 		}
 
