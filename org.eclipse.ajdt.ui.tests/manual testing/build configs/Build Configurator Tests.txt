@@ -122,6 +122,11 @@ that the new configuration is not activated or opened in the editor, but that it
 all source files. (BC_17)
 
 
+Bug 79376 Test
+Install the Tracing Example project. Select the project in the package explorer.
+Close the project and the build button should become disabled. Re-open the project
+and the build button should be re-enabled. (BC_18)
+
 Known issues:
 This is a list of problems a user might encounter. We did not fix them (yet), because they all are not straight forward to fix, do not cause much inconvenience and should only happen rarely. In some cases it is also not clear what behaviour is expected by the user so it might be best to wait for some feedback before we take further steps.
 
