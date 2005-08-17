@@ -28,27 +28,30 @@ public class Bug98911Test extends VisualTestCase {
 	public void testBug98911() throws Exception {
 		final IProject project = Utils.createPredefinedProject("Simple AJ Project");
 		assertTrue("The Simple AJ Project should have been created", project != null);
-		AJDTUtils.removeAspectJNature(project);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		IFolder outputDirectory = project.getFolder("bin");
-		assertTrue("Should have found the output directory", outputDirectory.exists());
-		IResource ajFile = outputDirectory.findMember("p2/Aspect.aj");
-		assertTrue(".aj files should have been copied to the output directory", ajFile != null);
-		
-		Runnable r = new Runnable() {
-			public void run() {
-				sleep();
-				postCharacterKey(SWT.CR);
-			}
-		};
-		new Thread(r).start();
-		AJDTUtils.addAspectJNature(project);
-		Utils.waitForJobsToComplete();
-		
-		IResource ajFile2 = outputDirectory.findMember("p2/Aspect.aj");
-		assertTrue(".aj files should have been deleted from the output directory", ajFile2 == null);
-		
+		try {
+			AJDTUtils.removeAspectJNature(project);
+			project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			IFolder outputDirectory = project.getFolder("bin");
+			assertTrue("Should have found the output directory", outputDirectory.exists());
+			IResource ajFile = outputDirectory.findMember("p2/Aspect.aj");
+			assertTrue(".aj files should have been copied to the output directory", ajFile != null);
+			
+			Runnable r = new Runnable() {
+				public void run() {
+					sleep();
+					postCharacterKey(SWT.CR);
+				}
+			};
+			new Thread(r).start();
+			AJDTUtils.addAspectJNature(project);
+			Utils.waitForJobsToComplete();
+			
+			IResource ajFile2 = outputDirectory.findMember("p2/Aspect.aj");
+			assertTrue(".aj files should have been deleted from the output directory", ajFile2 == null);
+		} finally {
+			Utils.deleteProject(project);
+		}
 	}
 	
 	/**
@@ -57,25 +60,28 @@ public class Bug98911Test extends VisualTestCase {
 	public void testBug98911again() throws Exception {
 		final IProject project = Utils.createPredefinedProject("Figures Demo");
 		assertTrue("The Figures Demo project should have been created", project != null);
-		AJDTUtils.removeAspectJNature(project);
-		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
-		IResource ajFile = project.findMember("figures/support/SaveAndRestore.aj");
-		assertTrue("Should have found file 'SaveAndRestore.aj'", ajFile != null);
-		
-		Runnable r = new Runnable() {
-			public void run() {
-				sleep();
-				postCharacterKey(SWT.CR);
-			}
-		};
-		new Thread(r).start();
-		AJDTUtils.addAspectJNature(project);
-		Utils.waitForJobsToComplete();
-		
-		IResource ajFile2 = project.findMember("figures/support/SaveAndRestore.aj");
-		assertTrue("Should not have deleted any .aj files", ajFile2 != null);
-		
+		try {
+			AJDTUtils.removeAspectJNature(project);		
+			project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+			Utils.waitForJobsToComplete();
+			IResource ajFile = project.findMember("figures/support/SaveAndRestore.aj");
+			assertTrue("Should have found file 'SaveAndRestore.aj'", ajFile != null);
+			
+			Runnable r = new Runnable() {
+				public void run() {
+					sleep();
+					postCharacterKey(SWT.CR);
+				}
+			};
+			new Thread(r).start();
+			AJDTUtils.addAspectJNature(project);
+			Utils.waitForJobsToComplete();
+			
+			IResource ajFile2 = project.findMember("figures/support/SaveAndRestore.aj");
+			assertTrue("Should not have deleted any .aj files", ajFile2 != null);
+		} finally {
+			Utils.deleteProject(project);
+		}
 	}
 }
 
