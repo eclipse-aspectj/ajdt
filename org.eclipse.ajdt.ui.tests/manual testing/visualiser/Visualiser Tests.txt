@@ -96,3 +96,6 @@ AJDT Visualiser Manual Tests
  d.	Rebuild with the ‘debug’ build configuration.  You should see an extra entry in
     the Visualiser Menu and a number of extra stripes appear on the bars, without
     having to click a different project then click back to Spacewar.  (VIS_19)
+ e. Look at the column for the Ship class, and check that none of the stripes
+    overlap the bottom border of the column, even if the view is zoomed in
+    and out (bug 81086)                                               (VIS_20)
