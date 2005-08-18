@@ -46,7 +46,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 //			 Post Ctrl+Shift+O to organise imports
 			postKeyDown(SWT.CTRL);
 			postKeyDown(SWT.SHIFT);
-			postCharacterKey('o');
+			postKey('o');
 			postKeyUp(SWT.SHIFT);
 			postKeyUp(SWT.CTRL);
 
@@ -65,7 +65,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			
 			// Post Ctrl+S to save the file
 			postKeyDown(SWT.CTRL);
-			postCharacterKey('s');
+			postKey('s');
 			postKeyUp(SWT.CTRL);
 
 			// Wait for an error condition to make sure it's caught if it does occur

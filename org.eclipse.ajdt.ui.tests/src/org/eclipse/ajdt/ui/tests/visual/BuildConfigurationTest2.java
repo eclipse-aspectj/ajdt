@@ -41,7 +41,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 	public void test2() throws Exception {
 		// Open the 'New' wizard
 		postKeyDown(SWT.CTRL);		
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.CTRL);
 		
 		Runnable r = new Runnable() {
@@ -49,7 +49,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 				sleep();
 				
 				// Open the 'New AspectJ Project' wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 
 				sleep();
 				
@@ -58,21 +58,21 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		
 				// Go to the next page
 				postKeyDown(SWT.ALT);
-				postCharacterKey('n');
+				postKey('n');
 				postKeyUp(SWT.ALT);	
 				sleep();
 				
 				// Add a source folder called src
-				postCharacterKey('a');
+				postKey('a');
 				postString("src");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
-				postCharacterKey(SWT.CR);		
+				postKey(SWT.CR);		
 				sleep();
 				
 				// Complete the wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -128,12 +128,12 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKeyDown(SWT.SHIFT);
 			postKey(SWT.F10);
 			postKeyUp(SWT.SHIFT);
-			postCharacterKey('b');
-			postCharacterKey(SWT.CR);
+			postKey('b');
+			postKey(SWT.CR);
 		} else {
 			packageExplorer.tryToReveal(project);
 			postKeyDown(SWT.ALT);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			postKeyUp(SWT.ALT);
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
@@ -148,16 +148,16 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 					postKey(SWT.ARROW_LEFT);
 					postKey(SWT.ARROW_LEFT);
 					postKey(SWT.ARROW_LEFT);
-					postCharacterKey('a');
+					postKey('a');
 					sleep();
-					postCharacterKey('s');
-					postCharacterKey('s');
-					postCharacterKey(' ');
-					postCharacterKey(SWT.CR);
+					postKey('s');
+					postKey('s');
+					postKey(' ');
+					postKey(SWT.CR);
 					sleep();
 					postKey(SWT.TAB);
 					postKey(SWT.TAB);
-					postCharacterKey(SWT.CR);
+					postKey(SWT.CR);
 					
 				}
 			};
@@ -189,12 +189,12 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKeyDown(SWT.SHIFT);
 			postKey(SWT.F10);
 			postKeyUp(SWT.SHIFT);
-			postCharacterKey('b');
-			postCharacterKey(SWT.CR);
+			postKey('b');
+			postKey(SWT.CR);
 		} else {
 			packageExplorer.tryToReveal(project);
 			postKeyDown(SWT.ALT);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			postKeyUp(SWT.ALT);
 			Runnable r = new Runnable() {
 				public void run() {
@@ -202,8 +202,8 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 					postKey(SWT.TAB);
 					postKey(SWT.TAB);
 					postKey(SWT.ARROW_DOWN);
-					postCharacterKey(SWT.DEL);
-					postCharacterKey(SWT.CR);					
+					postKey(SWT.DEL);
+					postKey(SWT.CR);					
 				}
 			};
 			new Thread(r).start();
@@ -221,7 +221,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
@@ -235,14 +235,14 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);			
 		}
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
 		
 			public void run() {
 				sleep();
 				postString("src2");
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();

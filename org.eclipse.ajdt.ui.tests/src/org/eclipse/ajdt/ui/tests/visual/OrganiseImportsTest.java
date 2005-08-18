@@ -45,11 +45,11 @@ public class OrganiseImportsTest extends VisualTestCase {
 			// Add an unused import
 			gotoLine(19);
 			postString("import java.io.File;");
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			
 			// Post Ctrl+S to save the file
 			postKeyDown(SWT.CTRL);
-			postCharacterKey('s');
+			postKey('s');
 			postKeyUp(SWT.CTRL);
 			
 			// Wait for the save to be processed
@@ -74,7 +74,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 
 			// Add an import requirement - pointcut p2(): call(* File.*(..));
 			gotoLine(65);
-			postCharacterKey(SWT.TAB);
+			postKey(SWT.TAB);
 			postString("pointcut p2");
 			postKeyDown(SWT.SHIFT);
 			postString("90; ");
@@ -92,12 +92,12 @@ public class OrganiseImportsTest extends VisualTestCase {
 			postString("00");
 			postKeyUp(SWT.SHIFT);	
 			postString(";");		
-			postCharacterKey(SWT.DEL); // delete the extra bracket eclipse added
-			postCharacterKey(SWT.CR);			
+			postKey(SWT.DEL); // delete the extra bracket eclipse added
+			postKey(SWT.CR);			
 			
 			// Post Ctrl+S to save the file
 			postKeyDown(SWT.CTRL);
-			postCharacterKey('s');
+			postKey('s');
 			postKeyUp(SWT.CTRL);
 			
 			// Wait for the save to be processed
@@ -125,7 +125,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		// Post Ctrl+Shift+O to organise imports
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('o');
+		postKey('o');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);
 
@@ -144,7 +144,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		
 		// Post Ctrl+S to save the file
 		postKeyDown(SWT.CTRL);
-		postCharacterKey('s');
+		postKey('s');
 		postKeyUp(SWT.CTRL);
 
 		// Wait for the build to remove any problem markers

@@ -106,9 +106,9 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	private void postCtrlShiftB(DisplayHelper dh) {
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKeyDown('b');
+		postKeyDown('b');
 		dh.waitForCondition(Display.getCurrent(), 5000);
-		postCharacterKeyUp('b');
+		postKeyUp('b');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);	
 	}

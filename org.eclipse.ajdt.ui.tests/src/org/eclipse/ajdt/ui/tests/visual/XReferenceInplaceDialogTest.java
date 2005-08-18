@@ -109,7 +109,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		return xrefAction;
 	}
@@ -118,12 +118,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 		
 		Utils.waitForJobsToComplete();
 
@@ -144,12 +144,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -171,12 +171,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -196,12 +196,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
-		postCharacterKey(SWT.CR);
+		postKey(' ');
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -221,12 +221,12 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
-		postCharacterKey(SWT.CR);
+		postKey(' ');
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -246,18 +246,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -472,15 +472,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 
 		// In the filter dialog navigate to the
 		// ok button and press return
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
 		Utils.waitForJobsToComplete();
 
@@ -491,7 +491,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// of bug 102140 then the character will be posted to the editor.
 		assertEquals("inplace dialog should have one main tree node",1,dialog.getTreeViewer().getTree().getItemCount());
 		
-		postCharacterKey('f');
+		postKey('f');
 		Utils.waitForJobsToComplete();
 
 		assertEquals("the contents of the inplace dialog should have been filtered out",0,dialog.getTreeViewer().getTree().getItemCount());
@@ -541,7 +541,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	private void shutdownViewWithEscape(XReferenceInplaceDialog xrefDialog) {
 		final XReferenceInplaceDialog dialog = xrefDialog;
 		// press esc
-		postCharacterKey(SWT.ESC);
+		postKey(SWT.ESC);
 		
 		// wait a few secs
 		new DisplayHelper() {
@@ -592,7 +592,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
+		postKey('x');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		

@@ -52,10 +52,10 @@ public class Bug102493Test extends VisualTestCase {
 					postKey(SWT.ARROW_DOWN);
 					postKey(SWT.ARROW_DOWN);
 					postKey(SWT.ARROW_DOWN);
-					postCharacterKey(' ');	
+					postKey(' ');	
 					sleep();		
 					postKeyDown(SWT.CTRL);
-					postCharacterKey('s');
+					postKey('s');
 					postKeyUp(SWT.CTRL);
 				}
 			};
@@ -75,7 +75,7 @@ public class Bug102493Test extends VisualTestCase {
 			// Add a third source folder		
 			postKeyDown(SWT.ALT);
 			postKeyDown(SWT.SHIFT);
-			postCharacterKey('n');
+			postKey('n');
 			postKeyUp(SWT.SHIFT);
 			postKeyUp(SWT.ALT);
 			
@@ -86,14 +86,14 @@ public class Bug102493Test extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			
 			r = new Runnable() {
 				
 				public void run() {
 					sleep();
 					postString("src3");
-					postCharacterKey(SWT.CR);
+					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();	

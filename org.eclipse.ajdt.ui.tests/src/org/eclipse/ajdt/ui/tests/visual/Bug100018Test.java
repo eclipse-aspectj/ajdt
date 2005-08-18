@@ -52,8 +52,8 @@ public class Bug100018Test extends VisualTestCase {
 					} catch (InterruptedException e) {
 					}
 					postKey(SWT.ARROW_RIGHT); // deselect hilighted text
-					postCharacterKey('2'); // new name should now be MyBuilder2
-					postCharacterKey(SWT.CR);
+					postKey('2'); // new name should now be MyBuilder2
+					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();

@@ -50,7 +50,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);
 		
@@ -60,7 +60,7 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("Display");
 				// Allow types to load
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -77,7 +77,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);
 		
@@ -86,11 +86,11 @@ public class OpenTypesTest extends VisualTestCase {
 				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
 				// If GameSynchronization wasn't found pressing enter will do nothing 
 				// so we now need to press escape to exit the dialog
-				postCharacterKey(SWT.ESC);
+				postKey(SWT.ESC);
 			}
 		};
 		new Thread(r).start();
@@ -105,7 +105,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -116,7 +116,7 @@ public class OpenTypesTest extends VisualTestCase {
 				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -132,7 +132,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -142,9 +142,9 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("Display");
 				sleep();
 				// Select the item under Display
-				postCharacterKey(SWT.TAB);
+				postKey(SWT.TAB);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -161,7 +161,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -171,9 +171,9 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("SpaceObjectPainting");
 				sleep();
 				// Select Display2 in the bottom box
-				postCharacterKey(SWT.TAB);
+				postKey(SWT.TAB);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -197,7 +197,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
@@ -215,28 +215,28 @@ public class OpenTypesTest extends VisualTestCase {
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
 				postString("A1");				
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(' ');
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(' ');
 				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();

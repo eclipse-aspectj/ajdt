@@ -43,7 +43,7 @@ public class Bug98663Test extends VisualTestCase {
 			// Add a new AspectJ project
 			postKeyDown(SWT.ALT);
 			postKeyDown(SWT.SHIFT);
-			postCharacterKey('n');
+			postKey('n');
 			postKeyUp(SWT.SHIFT);
 			postKeyUp(SWT.ALT);
 			
@@ -59,13 +59,13 @@ public class Bug98663Test extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			
 			Runnable r = new Runnable() {				
 				public void run() {
 					sleep();
 					postString("Project1");
-					postCharacterKey(SWT.CR);
+					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();	
@@ -88,7 +88,7 @@ public class Bug98663Test extends VisualTestCase {
 				// Add a source folder		
 				postKeyDown(SWT.ALT);
 				postKeyDown(SWT.SHIFT);
-				postCharacterKey('n');
+				postKey('n');
 				postKeyUp(SWT.SHIFT);
 				postKeyUp(SWT.ALT);
 				
@@ -99,13 +99,13 @@ public class Bug98663Test extends VisualTestCase {
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				
 				r = new Runnable() {					
 					public void run() {
 						sleep();
 						postString("src");
-						postCharacterKey(SWT.CR);
+						postKey(SWT.CR);
 					}
 				};
 				new Thread(r).start();	
@@ -116,19 +116,19 @@ public class Bug98663Test extends VisualTestCase {
 				// Add a package		
 				postKeyDown(SWT.ALT);
 				postKeyDown(SWT.SHIFT);
-				postCharacterKey('n');
+				postKey('n');
 				postKeyUp(SWT.SHIFT);
 				postKeyUp(SWT.ALT);
 				
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				
 				r = new Runnable() {					
 					public void run() {
 						sleep();
 						postString("p1");
-						postCharacterKey(SWT.CR);
+						postKey(SWT.CR);
 					}
 				};
 				new Thread(r).start();	

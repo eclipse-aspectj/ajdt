@@ -95,9 +95,9 @@ public class EagerParsingTest extends VisualTestCase {
 			editor.setFocus();		
 			gotoLine(15);
 			moveCursorRight(8);
-			postCharacterKey(' ');
+			postKey(' ');
 		} else {
-			postCharacterKey(SWT.BS);
+			postKey(SWT.BS);
 		}
 		Utils.waitForJobsToComplete();		
 		new DisplayHelper() {

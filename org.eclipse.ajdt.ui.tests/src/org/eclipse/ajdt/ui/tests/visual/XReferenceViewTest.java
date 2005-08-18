@@ -80,7 +80,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		postKey(SWT.DEL);
 		// save file by using "Ctrl+S"
 		postKeyDown(SWT.CTRL);
-		postCharacterKey('s');
+		postKey('s');
 		postKeyUp(SWT.CTRL);
 		
 		XRefContainsNothingDisplayHelper ds2 = new XRefContainsNothingDisplayHelper();
@@ -100,7 +100,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				postKeyDown(SWT.SHIFT);
-				postCharacterKey(':');
+				postKey(':');
 				postKeyUp(SWT.SHIFT);
 				try {
 					Thread.sleep(10000);
@@ -128,7 +128,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		editorPart.setFocus();
 		// save file by using "Ctrl+S"
 		postKeyDown(SWT.CTRL);
-		postCharacterKey('s');
+		postKey('s');
 		postKeyUp(SWT.CTRL);
 
 		ds.waitForCondition(Display.getCurrent(), 5000);
@@ -291,12 +291,12 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -340,12 +340,12 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -380,12 +380,12 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -420,12 +420,12 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
-				postCharacterKey(SWT.CR);
+				postKey(' ');
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -462,12 +462,12 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
-				postCharacterKey(SWT.CR);
+				postKey(' ');
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -505,18 +505,18 @@ public class XReferenceViewTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
+				postKey(' ');
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(' ');
+				postKey(' ');
 
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();

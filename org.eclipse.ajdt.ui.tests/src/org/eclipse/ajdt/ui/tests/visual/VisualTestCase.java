@@ -117,7 +117,7 @@ public abstract class VisualTestCase extends TestCase {
 	 * @param c -
 	 *            the character to post
 	 */
-	protected void postCharacterKey(char c) {
+	protected void postKey(char c) {
 		Event event = new Event();
 		event.type = SWT.KeyDown;
 		event.character = c;
@@ -133,7 +133,7 @@ public abstract class VisualTestCase extends TestCase {
 	 * @param c -
 	 *            the character to post
 	 */
-	protected void postCharacterKeyDown(char c) {
+	protected void postKeyDown(char c) {
 		Event event = new Event();
 		event.type = SWT.KeyDown;
 		event.character = c;
@@ -146,7 +146,7 @@ public abstract class VisualTestCase extends TestCase {
 	 * @param c -
 	 *            the character to post
 	 */
-	protected void postCharacterKeyUp(char c) {
+	protected void postKeyUp(char c) {
 		Event event = new Event();
 		event.type = SWT.KeyUp;
 		event.character = c;
@@ -209,10 +209,10 @@ public abstract class VisualTestCase extends TestCase {
 			if (Character.isUpperCase(c)) {
 				c = Character.toLowerCase(c);
 				postKeyDown(SWT.SHIFT);
-				postCharacterKey(c);
+				postKey(c);
 				postKeyUp(SWT.SHIFT);
 			} else {
-				postCharacterKey(c);
+				postKey(c);
 			}
 		}
 

@@ -48,10 +48,10 @@ public class OutjarLaunchingTest extends VisualTestCase {
 	
 			// Run as AspectJ/Java Application
 			postKeyDown(SWT.ALT);
-			postCharacterKey('r');	
+			postKey('r');	
 			postKeyUp(SWT.ALT);
-			postCharacterKey('s');
-			postCharacterKey(SWT.CR);
+			postKey('s');
+			postKey(SWT.CR);
 			
 			Utils.waitForJobsToComplete();
 			ConsoleView cview = null;

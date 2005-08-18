@@ -73,9 +73,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				postKey(SWT.ARROW_DOWN);
 				
 				// Create the Bean Example project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -105,9 +105,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the Introduction example
 				postKey(SWT.ARROW_DOWN);
 				// Create the Introduction Example project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -147,9 +147,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the Observer example
 				postKey(SWT.ARROW_DOWN);
 				// Create the Observer Example project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -178,9 +178,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the Spacewar example
 				postKey(SWT.ARROW_DOWN);
 				// Create the Spacewar Example project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -220,9 +220,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the Telecom example
 				postKey(SWT.ARROW_DOWN);
 				// Create the Spacewar Telecom project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -271,9 +271,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the TJP example
 				postKey(SWT.ARROW_DOWN);
 				// Create the TJP Example project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();	
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -302,9 +302,9 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 				// Navigate to the Telecom example
 				postKey(SWT.ARROW_DOWN);
 				// Create the Telecom project
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -353,7 +353,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 	 */
 	private void startNewWizard() {
 		postKeyDown(SWT.CTRL);		
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.CTRL);
 	}
 	

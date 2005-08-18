@@ -116,7 +116,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	private void shutdownViewWithEscape(AJOutlineInformationControl infoControl) {
 		final AJOutlineInformationControl info = infoControl;
 		// press esc
-		postCharacterKey(SWT.ESC);
+		postKey(SWT.ESC);
 		
 		// wait until the shell is null
 		new DisplayHelper() {
@@ -134,7 +134,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	private void openInplaceDialog(AJOutlineInformationControl previousDialog) {
 		final AJOutlineInformationControl info = previousDialog;
 		postKeyDown(SWT.CTRL);
-		postCharacterKey('o');
+		postKey('o');
 		postKeyUp(SWT.CTRL);
 		
 		new DisplayHelper() {

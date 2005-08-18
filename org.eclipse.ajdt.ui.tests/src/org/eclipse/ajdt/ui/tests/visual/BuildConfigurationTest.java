@@ -59,7 +59,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		
 		// Open the 'New' wizard
 		postKeyDown(SWT.CTRL);		
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.CTRL);
 		
 		// give the wizard chance to pop up
@@ -68,7 +68,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 				sleep();
 				
 				// Open the 'New AspectJ Project' wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 
 				sleep();
 
@@ -76,7 +76,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 				postString("Project1");
 
 				// Complete the wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -132,16 +132,16 @@ public class BuildConfigurationTest extends VisualTestCase {
 			packageExplorer.selectAndReveal(hello);
 
 			postKeyDown(SWT.ALT);
-			postCharacterKey('r');	
+			postKey('r');	
 			postKeyUp(SWT.ALT);
-			postCharacterKey('s');
+			postKey('s');
 			if(!runningEclipse31) {
-				postCharacterKey('s');
+				postKey('s');
 				postKey(SWT.ARROW_RIGHT);
 				postKey(SWT.ARROW_DOWN);
 			}		
 			postKey(SWT.ARROW_DOWN);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			
 			Utils.waitForJobsToComplete();
 			ConsoleView cview = null;
@@ -194,7 +194,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 	private void addNewClass() {
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 
@@ -202,30 +202,30 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);			
 	
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		postString("Hello");
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		Utils.waitForJobsToComplete();	
 	}
 
 	private void addNewPackage() {
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
 			
 			public void run() {
 				sleep();
-				postCharacterKey('p');
-				postCharacterKey('1');
-				postCharacterKey(SWT.CR);
+				postKey('p');
+				postKey('1');
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
@@ -238,7 +238,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
@@ -251,13 +251,13 @@ public class BuildConfigurationTest extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);			
 		}
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
 				postString("src");
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
