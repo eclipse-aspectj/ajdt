@@ -48,6 +48,8 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.TypeNameRequestor;
+import org.eclipse.jdt.internal.core.search.indexing.IIndexConstants;
+import org.eclipse.jdt.internal.core.search.matching.TypeDeclarationPattern;
 import org.eclipse.jdt.internal.corext.Assert;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
@@ -647,7 +649,8 @@ public class TypeInfoViewer {
 				System.out.println("Time needed until search has finished: " + (System.currentTimeMillis() - start)); //$NON-NLS-1$
 			TypeInfo[] result= fReqestor.getResult();
 			// AspectJ Change Begin	
-			List types = getAspectJTypes(fScope); 
+			List types = getAspectJTypes(fScope, packPattern == null ? null : packPattern.toCharArray(), 
+					fFilter.getNamePattern().toCharArray()); 
 			TypeInfo[] typesIncludingAspects = new TypeInfo[result.length + types.size()];			
 			System.arraycopy(result, 0, typesIncludingAspects, 0, result.length);
 			int index = result.length;
@@ -670,12 +673,14 @@ public class TypeInfoViewer {
 	// AspectJ Change Begin
 	/**
 	 * @param scope
+	 * @param string 
 	 * @return
 	 */
-	private static List getAspectJTypes(IJavaSearchScope scope) {
+	private static List getAspectJTypes(IJavaSearchScope scope, char[] packagePattern, char[] namePattern) {
 		List ajTypes = new ArrayList();
 		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 				.getProjects();
+		TypeDeclarationPattern pattern = new TypeDeclarationPattern(packagePattern, null, namePattern, IIndexConstants.TYPE_SUFFIX, SearchPattern.R_PATTERN_MATCH);
 		for (int i = 0; i < projects.length; i++) {
 			try {
 				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
@@ -692,21 +697,23 @@ public class TypeInfoViewer {
 									for (int j = 0; j < types.length; j++) {
 										IType type = types[j];
 										if(type instanceof AspectElement) {
-											// Part of 103131 - only add aspects to avoid duplicates
-											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
-											int kind = type.getFlags(); // 103131 - pass in correct flags
-											AJCUTypeInfo info = new AJCUTypeInfo(
-													type.getPackageFragment().getElementName(),
-													type.getElementName(),
-													enclosingTypes,
-													kind,
-													type instanceof AspectElement,
-													jp.getElementName(),
-													unit.getPackageFragmentRoot().getElementName(),
-													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-													"aj", //$NON-NLS-1$
-													unit);							
-											ajTypes.add(info); 			
+											if(pattern.matchesName(namePattern, type.getElementName().toCharArray())) {
+												// Part of 103131 - only add aspects to avoid duplicates
+												char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
+												int kind = type.getFlags(); // 103131 - pass in correct flags
+												AJCUTypeInfo info = new AJCUTypeInfo(
+														type.getPackageFragment().getElementName(),
+														type.getElementName(),
+														enclosingTypes,
+														kind,
+														type instanceof AspectElement,
+														jp.getElementName(),
+														unit.getPackageFragmentRoot().getElementName(),
+														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+														"aj", //$NON-NLS-1$
+														unit);							
+												ajTypes.add(info);
+											}
 										}
 									}
 								}
@@ -855,7 +862,7 @@ public class TypeInfoViewer {
 	
 	private static final char SEPARATOR= '-'; 
 	
-	private static final boolean DEBUG= true;	
+	private static final boolean DEBUG= false;	
 	private static final boolean VIRTUAL= false;
 	
 	private static final TypeInfo[] EMTPY_TYPE_INFO_ARRAY= new TypeInfo[0];

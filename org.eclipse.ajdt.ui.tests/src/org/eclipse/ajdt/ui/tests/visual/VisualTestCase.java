@@ -220,4 +220,5 @@ public abstract class VisualTestCase extends TestCase {
 		} catch (InterruptedException e) {
 		}
 	}
+
 }
