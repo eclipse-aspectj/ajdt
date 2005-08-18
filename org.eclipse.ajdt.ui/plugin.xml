@@ -1661,9 +1661,9 @@
             id="org.eclipse.ajdt.ui.editor.quickfix.QuickFixProcessor">
       </quickFixProcessor>
       <quickFixProcessor
-            name="%jToAJQuickFixProcessor"
-            class="org.eclipse.ajdt.internal.ui.editor.quickfix.JToAJQuickFixProcessor"
-            id="org.eclipse.ajdt.ui.editor.quickfix.JToAJQuickFixProcessor">
+            name="%ajQuickFixProcessor"
+            class="org.eclipse.ajdt.internal.ui.editor.quickfix.AJQuickFixProcessor"
+            id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
       </quickFixProcessor>
     </extension>
   

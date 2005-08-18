@@ -435,7 +435,8 @@ public class UIMessages extends NLS {
 	public static String changesView_filter_dialog_title;
 	public static String changesView_filter_dialog_message;
 	public static String changesView_filter_dialog_showingXofY;
-	public static String quickFix_JToAJQuickFixProcessor;
+	public static String quickFix_ConvertProjectToAspectJ;
+	public static String quickFix_OpenInAspectJEditor;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

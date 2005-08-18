@@ -37,3 +37,51 @@ Close TestJava.java and then reopen in by selecting Open With > Java Editor.
 
 Check for quick fixes as in test 1. Make sure the list of quick fixes is the same
 as before, and does not contain duplicates. (QFIX_6)
+
+Test 5
+------
+Create a new Java Project.  Right click on the project in the package explorer and select
+New > Aspect.  The editor should now show the code for the created Aspect.
+
+The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a light bulb error in the margin on the same line. (QFIX_7)
+
+The quick qix offered should be 'Convert to AspectJ Project'. (QFIX_8)
+
+Double clicking the quick fix should convert the Java project to an AJ project. In the package explorer, the project will have an AJ logo. (QFIX_9)
+
+A *.ajproperties file will be added to the project along with ASPECTJRT_LIB, (see the package explorer). (QFIX_10)
+
+Delete the project
+
+Test 6
+------
+Create a new Java Project.  Right click on the project in the package explorer and select
+New > Class.  The editor should now show the code for the created Class.
+
+Replace the word, 'class' with 'aspect.
+
+The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a lightbulb error in the margin on the same line. (QFIX_11)
+
+The quick qix offered should be 'Convert to AspectJ Project'. (QFIX_12)
+
+Double clicking the quick fix should convert the Java project to an AJ project. In the package explorer, the project will have an AJ logo. (QFIX_13)
+
+A *.ajproperties file will be added to the project along with ASPECTJRT_LIB. (QFIX_14)
+
+Example project used for next test in current state...
+
+Test 7
+------
+With the project left over from Test 6, turn your attention to the Java Editor window which should be open.
+
+Add a single space to the body of the aspect so that the file has changed.  There should now be a star next to the file name on the editor tab. (QFIX_15)
+
+The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a lightbulb error in the margin on the same line. (QFIX_16)
+
+The quick fix offered should be 'Open file in AspectJ Editor'. (QFIX_17)
+
+Double clicking the quick fix should reopen the file in the AspectJ editor. (QFIX_18)
+
+There should be no errors in the file now showing in the AspectJ editor. (QFIX_19)
+
+There should be no errors in the file now showing in the AspectJ editor, and the star should no long appear next to the file name on the editor tab. (QFIX_20)
