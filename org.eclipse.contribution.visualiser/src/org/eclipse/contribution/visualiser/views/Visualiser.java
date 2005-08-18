@@ -28,7 +28,6 @@ import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.internal.help.IVisualiserHelpContextIds;
 import org.eclipse.contribution.visualiser.internal.help.VisualiserHelp;
 import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferences;
-import org.eclipse.contribution.visualiser.internal.preference.VisualiserPreferencesDialog;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -50,6 +49,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
@@ -202,10 +202,9 @@ public class Visualiser extends ViewPart {
 	private void makeActionPreferences() {
 		preferencesAction = new Action() {
 			public void run() {
-				VisualiserPreferencesDialog vpd = new VisualiserPreferencesDialog(
-						Visualiser.this.getViewSite().getShell());
-				vpd.create();
-				vpd.open();
+				String id= "org.eclipse.contribution.visualiser.prefspage"; //$NON-NLS-1$
+				PreferencesUtil.createPreferenceDialogOn(Visualiser.this.getViewSite().getShell(),
+						id, new String[] { id }, null).open();
 			}
 		};
 		preferencesAction.setText(VisualiserMessages.Preferences_24);
