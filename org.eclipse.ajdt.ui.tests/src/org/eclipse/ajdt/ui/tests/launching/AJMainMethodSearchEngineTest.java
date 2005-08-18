@@ -13,13 +13,11 @@ package org.eclipse.ajdt.ui.tests.launching;
 import java.util.Collection;
 import java.util.Iterator;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.launching.AJMainMethodSearchEngine;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
@@ -28,13 +26,13 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 
-public class AJMainMethodSearchEngineTest extends TestCase {
+public class AJMainMethodSearchEngineTest extends UITestCase {
 
 	
 	
 	public void testWithTracingExample() throws Exception {
-		IProject project = Utils.createPredefinedProject("Tracing Example");
-		Utils.waitForJobsToComplete();
+		IProject project = createPredefinedProject("Tracing Example");
+		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
 		Collection bcs = pbc.getBuildConfigurations();
@@ -51,7 +49,7 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 		assertNotNull("Build configuration notrace should have been found", notrace);
 		assertNotNull("Build configuration tracev1 should have been found", tracev1);
 		pbc.setActiveBuildConfiguration(notrace);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
 		IJavaElement[] elements = new IJavaElement[]{jp};
 	
@@ -60,10 +58,10 @@ public class AJMainMethodSearchEngineTest extends TestCase {
 		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be one result, found " + results.length, results.length == 1);
 		pbc.setActiveBuildConfiguration(tracev1);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 }

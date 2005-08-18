@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -69,7 +69,7 @@ public class Bug98663Test extends VisualTestCase {
 				}
 			};
 			new Thread(r).start();	
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			
 			final IWorkspace workspace= JavaPlugin.getWorkspace();				
 			new DisplayHelper() {
@@ -109,7 +109,7 @@ public class Bug98663Test extends VisualTestCase {
 					}
 				};
 				new Thread(r).start();	
-				Utils.waitForJobsToComplete();
+				waitForJobsToComplete();
 				src = project.getFolder("src");
 				assertTrue("Should have found a folder called src", src.exists());
 				
@@ -132,7 +132,7 @@ public class Bug98663Test extends VisualTestCase {
 					}
 				};
 				new Thread(r).start();	
-				Utils.waitForJobsToComplete();
+				waitForJobsToComplete();
 				IJavaProject jp = JavaCore.create(project);
 				IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
 				assertTrue("Should have created a package called p1", p1.exists());
@@ -142,7 +142,7 @@ public class Bug98663Test extends VisualTestCase {
 				assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
 				
 			} finally {
-				Utils.deleteProject(project);
+				deleteProject(project);
 			}				
 		} else {
 			fail("Could not find the Error log.");

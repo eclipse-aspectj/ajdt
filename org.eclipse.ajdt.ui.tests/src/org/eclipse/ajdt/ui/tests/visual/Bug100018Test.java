@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
@@ -31,11 +31,11 @@ public class Bug100018Test extends VisualTestCase {
 
 	public void testBug100018() throws Exception {
 		// must be a Java project
-		IProject project = Utils.createPredefinedProject("project.java.Y");
+		IProject project = createPredefinedProject("project.java.Y");
 		try {
 			IFile javaFile = (IFile) project
 					.findMember("src/internal/stuff/MyBuilder.java");
-			IEditorPart editor = Utils.openFileInDefaultEditor(javaFile, true);
+			IEditorPart editor = openFileInDefaultEditor(javaFile, true);
 			int numEditors = countOpenEditors();
 			assertTrue("There should only be one open editor", numEditors == 1);
 
@@ -70,7 +70,7 @@ public class Bug100018Test extends VisualTestCase {
 			assertTrue("Wrong number of open editors: expected 1, found "
 					+ numEditors, numEditors == 1);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 

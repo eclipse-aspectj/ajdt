@@ -11,10 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -31,11 +29,11 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * Test for bug 105299 - editor image is sometimes wrong
  */
-public class AspectJEditorIconTest extends TestCase {
+public class AspectJEditorIconTest extends UITestCase {
 	
 	public void testEditorIcon() throws Exception {
 		// Create the project
-		IProject project = Utils.createPredefinedProject("bug105299");
+		IProject project = createPredefinedProject("bug105299");
 		assertTrue("The example project should have been created", project != null);
 		try {
 			// Find the files
@@ -60,19 +58,19 @@ public class AspectJEditorIconTest extends TestCase {
 			final Image errorAJEditorImage = registry.get(id);
 			
 			// Open each of the files in the editor and check that the title images are correct 
-			ITextEditor editor1 = (ITextEditor)Utils.openFileInAspectJEditor(boundPointFile, false);
-			Utils.waitForJobsToComplete();
+			ITextEditor editor1 = (ITextEditor)openFileInAspectJEditor(boundPointFile, false);
+			waitForJobsToComplete();
 			assertTrue("Boundpoint.aj should have the plain editor image", editor1.getTitleImage().equals(plainAJEditorImage));
-			ITextEditor editor2 = (ITextEditor)Utils.openFileInAspectJEditor(demoFile, false);
-			Utils.waitForJobsToComplete();
+			ITextEditor editor2 = (ITextEditor)openFileInAspectJEditor(demoFile, false);
+			waitForJobsToComplete();
 			assertTrue("Demo.java should have the error editor image", editor2.getTitleImage().equals(errorAJEditorImage));			
-			ITextEditor editor3 = (ITextEditor)Utils.openFileInAspectJEditor(pointFile, false);
-			Utils.waitForJobsToComplete();
+			ITextEditor editor3 = (ITextEditor)openFileInAspectJEditor(pointFile, false);
+			waitForJobsToComplete();
 			assertTrue("Point.java should have the warning editor image", editor3.getTitleImage().equals(warningAJEditorImage));
 			
 			// Do a full build
 			project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			
 			// Test the icons again
 			assertTrue("Boundpoint.aj should have the plain editor image after a build", editor1.getTitleImage().equals(plainAJEditorImage));
@@ -81,7 +79,7 @@ public class AspectJEditorIconTest extends TestCase {
 			
 		} finally {
 			// Delete the project
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 	

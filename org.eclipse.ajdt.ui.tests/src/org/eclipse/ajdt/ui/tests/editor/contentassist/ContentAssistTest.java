@@ -10,15 +10,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor.contentassist;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.ui.tests.AllUITests;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -32,7 +30,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
  * 
  * @author Luzius Meisser
  */
-public class ContentAssistTest extends TestCase {
+public class ContentAssistTest extends UITestCase {
 
 	IProject fProject;
 	
@@ -43,7 +41,7 @@ public class ContentAssistTest extends TestCase {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
-		fProject = Utils.createPredefinedProject("CodeCompletionTestArea");
+		fProject = createPredefinedProject("CodeCompletionTestArea");
 	}
 
 	/*
@@ -51,7 +49,7 @@ public class ContentAssistTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(fProject);
+		deleteProject(fProject);
 	}
 	
 	public void testContentAssistA() throws JavaModelException{
@@ -106,7 +104,7 @@ public class ContentAssistTest extends TestCase {
 	}
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
-		AspectJEditor editor = (AspectJEditor)Utils.openFileInDefaultEditor(file, false);
+		AspectJEditor editor = (AspectJEditor)openFileInDefaultEditor(file, false);
 		AJCompletionProcessor proc = new AJCompletionProcessor(editor);
 		AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		String content;

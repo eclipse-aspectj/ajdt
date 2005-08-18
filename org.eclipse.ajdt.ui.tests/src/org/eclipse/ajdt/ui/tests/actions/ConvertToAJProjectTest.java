@@ -11,18 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.actions;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.tests.AllUITests;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 
-public class ConvertToAJProjectTest extends TestCase {
+public class ConvertToAJProjectTest extends UITestCase {
 
 	/**
 	 * Test for bug 98911 - .aj files should not be copied to the output folder in a java
@@ -31,11 +29,11 @@ public class ConvertToAJProjectTest extends TestCase {
 	 */
 	public void testBug98911() throws Exception {
 		AllUITests.setupAJDTPlugin();
-		IProject project = Utils.createPredefinedProject("Simple AJ Project");
+		IProject project = createPredefinedProject("Simple AJ Project");
 		assertTrue("The Simple AJ Project should have been created", project != null);
 		AJDTUtils.removeAspectJNature(project);
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		IFolder outputDirectory = project.getFolder("bin");
 		assertTrue("Should have found the output directory", outputDirectory.exists());
 		IResource ajFile = outputDirectory.findMember("p2/Aspect.aj");

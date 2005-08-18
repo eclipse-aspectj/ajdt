@@ -15,7 +15,7 @@ import junit.framework.TestCase;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -31,7 +31,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * Tests for the package explorer's link with editor feature
  */
-public class LinkWithEditorTest extends TestCase {
+public class LinkWithEditorTest extends VisualTestCase {
 
 	private IProject project;
 	private PackageExplorerPart packageExplorer;
@@ -39,7 +39,7 @@ public class LinkWithEditorTest extends TestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 		packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		assertNotNull("The Package Explorer View should be open", packageExplorer);
 		linkWithEditorSet = PreferenceConstants.getPreferenceStore().getBoolean(PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
@@ -49,7 +49,7 @@ public class LinkWithEditorTest extends TestCase {
 		super.tearDown();
 		// reset link with editor to what it was when test started
 		packageExplorer.setLinkingEnabled(linkWithEditorSet);
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	public void testPackageExplorerSelection() {
@@ -59,8 +59,8 @@ public class LinkWithEditorTest extends TestCase {
 			fail("Required files not found.");
 		
 		// Open an aj file in the editor then open a java file on top
-		final ITextEditor editor1 = (ITextEditor)Utils.openFileInDefaultEditor((IFile)res, true);
-		Utils.openFileInDefaultEditor((IFile)res2, true);
+		final ITextEditor editor1 = (ITextEditor)openFileInDefaultEditor((IFile)res, true);
+		openFileInDefaultEditor((IFile)res2, true);
 		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1));
 				
 		packageExplorer.setFocus();
@@ -72,7 +72,7 @@ public class LinkWithEditorTest extends TestCase {
 		IFileEditorInput fInput = (IFileEditorInput) editor1.getEditorInput();
 		AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
 		packageExplorer.tryToReveal(ajc);	
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	
 		// Check that the editor for the aj file is now on top
 		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));
@@ -88,8 +88,8 @@ public class LinkWithEditorTest extends TestCase {
 			fail("Required files not found.");
 		
 		// Open an aj file in the editor then open a java file on top
-		final ITextEditor editor1 = (ITextEditor)Utils.openFileInDefaultEditor((IFile)res, true);
-		Utils.openFileInDefaultEditor((IFile)res2, true);
+		final ITextEditor editor1 = (ITextEditor)openFileInDefaultEditor((IFile)res, true);
+		openFileInDefaultEditor((IFile)res2, true);
 		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1));
 		IFileEditorInput fInput = (IFileEditorInput) editor1.getEditorInput();
 		AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());

@@ -11,11 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.javamodel.elements;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.tests.AllUITests;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,13 +29,12 @@ import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 /**
  * 
  */
-public class AJCompilationUnitTest2 extends TestCase {
+public class AJCompilationUnitTest2 extends UITestCase {
 
 	// bug 74426
 	public void testDeletingAJCompilationUnits() throws Exception {
 		AllUITests.setupAJDTPlugin();
-		IProject project = Utils
-				.createPredefinedProject("Introduction Example");
+		IProject project = createPredefinedProject("Introduction Example");
 
 		IFile file1 = (IFile) project
 				.findMember("src/introduction/CloneablePoint.aj");
@@ -56,7 +53,7 @@ public class AJCompilationUnitTest2 extends TestCase {
 				unit2);
 
 		// now try to delete these units
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		Object[] elements = new Object[] { unit1, unit2 };
 		JavaDeleteProcessor processor = new JavaDeleteProcessor(elements);
@@ -84,13 +81,13 @@ public class AJCompilationUnitTest2 extends TestCase {
 		Change change = processor.createChange(pm);
 		change.perform(pm);
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// check the corresponding files have gone
 		assertFalse("File should have been deleted: " + file1, file1.exists());
 		assertFalse("File should have been deleted: " + file2, file2.exists());
 
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 }

@@ -15,13 +15,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -40,7 +38,7 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
  * @author hawkinsh
  * 
  */
-public class AJDTUtilsTest extends TestCase {
+public class AJDTUtilsTest extends UITestCase {
 
 	/*
 	 * @see TestCase#setUp()
@@ -58,33 +56,33 @@ public class AJDTUtilsTest extends TestCase {
 
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
-		Utils.setUpPluginEnvironment();
-		IProject testPluginProject = Utils.createPredefinedProject("Hello World Java Plugin");
-		Utils.waitForJobsToComplete();
+		setUpPluginEnvironment();
+		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin");
+		waitForJobsToComplete();
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.addAspectJNature(testPluginProject.getProject());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("Plugin project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertTrue("Plugin should now import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.removeAspectJNature(testPluginProject.getProject());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		Utils.deleteProject(testPluginProject);
-		Utils.resetPluginEnvironment();
+		deleteProject(testPluginProject);
+		resetPluginEnvironment();
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
-		IProject testProject = Utils.createPredefinedProject("project.java.Y");
+		IProject testProject = createPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(testProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
@@ -99,8 +97,8 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();
+		deleteProject(testProject);
+		waitForJobsToComplete();
 	}
 	
 	/**
@@ -110,9 +108,9 @@ public class AJDTUtilsTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testBug93532() throws Exception {
-		IProject testProject = Utils.createPredefinedProject("bug93532");
+		IProject testProject = createPredefinedProject("bug93532");
 		IJavaProject jY = JavaCore.create(testProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
@@ -127,8 +125,8 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();	    
+		deleteProject(testProject);
+		waitForJobsToComplete();	    
 	}
 
 	/**
@@ -137,14 +135,14 @@ public class AJDTUtilsTest extends TestCase {
 	 * 
 	 */
 	public void testGetPDEManifestEditor() throws Exception {
-		Utils.setUpPluginEnvironment();
+		setUpPluginEnvironment();
 		// know that the plugin id of this is HelloWorld
-		IProject projectA1 = Utils.createPredefinedProject("Hello World Java Plugin");
-		Utils.waitForJobsToComplete();
+		IProject projectA1 = createPredefinedProject("Hello World Java Plugin");
+		waitForJobsToComplete();
 		
 		// know that the plugin id for this is PluginWithView
-		IProject projectA2 = Utils.createPredefinedProject("PluginWithView");
-		Utils.waitForJobsToComplete();
+		IProject projectA2 = createPredefinedProject("PluginWithView");
+		waitForJobsToComplete();
 
 		assertTrue("projectA1 should have manifest editor for project A1",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
@@ -152,9 +150,9 @@ public class AJDTUtilsTest extends TestCase {
 		assertTrue("projectA2 should have manifest editor for project A2",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
 						.getPartName().equals("PluginWithView"));
-		Utils.deleteProject(projectA1);
-		Utils.deleteProject(projectA2);
-		Utils.resetPluginEnvironment();
+		deleteProject(projectA1);
+		deleteProject(projectA2);
+		resetPluginEnvironment();
 	}
 
 	// Do not delete this test - if we ever change the way we deal with 
@@ -185,24 +183,24 @@ public class AJDTUtilsTest extends TestCase {
 //	}
 
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectY = createPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 		AspectJUIPlugin.addAjrtToBuildPath(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		assertTrue("project.java.Y should have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
 		AspectJUIPlugin.removeAjrtFromBuildPath(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
-		Utils.deleteProject(projectY);
+		deleteProject(projectY);
 	}
 
 	private String checkDependencyType(IJavaProject projectToHaveDependency,

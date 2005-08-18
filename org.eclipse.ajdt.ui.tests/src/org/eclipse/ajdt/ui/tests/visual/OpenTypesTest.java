@@ -13,7 +13,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -37,7 +37,7 @@ public class OpenTypesTest extends VisualTestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Spacewar Example");
+		project = createPredefinedProject("Spacewar Example");
 		assertTrue("The Spacewar Example project should have been created", project != null);
 	}
 	
@@ -64,7 +64,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1);
@@ -94,7 +94,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should still only be one editor open", editors.length == 1);
@@ -120,7 +120,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be two editors open", editors.length == 2);
@@ -148,7 +148,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be three editors open", editors.length == 3);
@@ -177,7 +177,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be four editors open", editors.length == 4);
@@ -240,7 +240,7 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1);
@@ -257,7 +257,7 @@ public class OpenTypesTest extends VisualTestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		closeAllEditors();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 }

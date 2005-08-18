@@ -14,7 +14,6 @@ import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -23,12 +22,10 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import junit.framework.TestCase;
-
 /**
  * This class tests CompilerPropertyPage. 
  */
-public class CompilerPropertyPageTest extends TestCase {
+public class CompilerPropertyPageTest extends UITestCase {
 
 	IProject project;
 	IJavaProject jp;
@@ -39,7 +36,7 @@ public class CompilerPropertyPageTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 		jp = JavaCore.create(project);
 		
 		IScopeContext projectScope = new ProjectScope(project);
@@ -53,7 +50,7 @@ public class CompilerPropertyPageTest extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		projectNode = null;
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	/**

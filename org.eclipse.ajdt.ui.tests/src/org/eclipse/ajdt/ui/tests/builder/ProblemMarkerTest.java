@@ -13,12 +13,10 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -31,13 +29,13 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 /**
  *  Test for bug 75373: problem-markers created by other builders on java-resources disappear
  */
-public class ProblemMarkerTest extends TestCase {
+public class ProblemMarkerTest extends UITestCase {
 
 	private IProject myProject;
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.createPredefinedProject("Simple AJ Project");
+		myProject = createPredefinedProject("Simple AJ Project");
 	}
 
 	/*
@@ -45,7 +43,7 @@ public class ProblemMarkerTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(myProject);
+		deleteProject(myProject);
 	}
 	
 	public void testMarkerIsNotRemoved() throws CoreException {
@@ -54,7 +52,7 @@ public class ProblemMarkerTest extends TestCase {
 		marker.setAttribute(IMarker.MESSAGE, "hello");
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,
 				new NullProgressMonitor());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("Marker we created should still exist after a build", marker
 				.exists());
 	}
@@ -87,13 +85,13 @@ public class ProblemMarkerTest extends TestCase {
 		newFiles.add(newAspect);
 		
 		buildConfig.excludeFiles(newFiles);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		assertFalse("new aspect shouldn't be included in active build configuration",
 				buildConfig.isIncluded(newAspect));
 		
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("new aspect shouldn't be included in active build configuration",
 				buildConfig.isIncluded(newAspect));
 		
@@ -103,7 +101,7 @@ public class ProblemMarkerTest extends TestCase {
 		buildConfig.includeFiles(newFiles);
 
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("problem markers should be against the project since file is included in the build config", 
 				ProjectDependenciesUtils.projectIsMarkedWithError(myProject,null));
 

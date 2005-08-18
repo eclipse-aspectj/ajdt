@@ -12,9 +12,7 @@
 
 package org.eclipse.ajdt.ui.tests.editor.quickfix;
 
-import junit.framework.TestCase;
-
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -32,7 +30,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author Matt Chapman
  */
-public class AspectJQuickFixTest extends TestCase {
+public class AspectJQuickFixTest extends UITestCase {
 
 	IProject project;
 
@@ -41,7 +39,7 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("QuickFix");
+		project = createPredefinedProject("QuickFix");
 	}
 
 	/*
@@ -49,7 +47,7 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	public void testJavaQuickFix() throws Exception {
@@ -62,11 +60,11 @@ public class AspectJQuickFixTest extends TestCase {
 
 	public void QuickFixTest(IFile sourcefile) throws Exception {
 
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
+		ITextEditor editorPart = (ITextEditor) openFileInDefaultEditor(
 				sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		IMarker[] markers = getMarkers(sourcefile, editorPart);
 

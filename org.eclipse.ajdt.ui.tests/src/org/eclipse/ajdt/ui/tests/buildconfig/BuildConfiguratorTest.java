@@ -13,11 +13,9 @@ package org.eclipse.ajdt.ui.tests.buildconfig;
 
 import java.io.ByteArrayInputStream;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -30,7 +28,7 @@ import org.eclipse.jdt.core.JavaCore;
  * @author hawkinsh
  *  
  */
-public class BuildConfiguratorTest extends TestCase {
+public class BuildConfiguratorTest extends UITestCase {
 
 	IProject ajProject = null;
 	IProject javaProject = null;
@@ -45,12 +43,12 @@ public class BuildConfiguratorTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		ajProject = Utils.createPredefinedProject("AJ Project For BuildConfigurationTest");
-		Utils.waitForJobsToComplete();
-		javaProject = Utils.createPredefinedProject("java.project.Y");
+		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		waitForJobsToComplete();
+		javaProject = createPredefinedProject("java.project.Y");
 		
 		setupSandboxSourceFolder();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 	}
 
@@ -60,12 +58,12 @@ public class BuildConfiguratorTest extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		if (ajProject != null) {
-			Utils.deleteProject(ajProject);			
+			deleteProject(ajProject);			
 		}
 		if (javaProject != null) {
-			Utils.deleteProject(javaProject);			
+			deleteProject(javaProject);			
 		}
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	private void setupSandboxSourceFolder() throws Exception {
@@ -131,17 +129,17 @@ public class BuildConfiguratorTest extends TestCase {
 		if (pbc != null)
 			fail("Could obtain a ProjectBuildConfigurator for non-aj project. This should not be possible.");
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		ajProject.close(null);
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc != null)
 			fail("Could obtain a ProjectBuildConfigurator for closed project. This should not be possible.");
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		ajProject.open(null);
 		pbc = conf.getProjectBuildConfigurator(ajProject);

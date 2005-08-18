@@ -12,12 +12,10 @@ package org.eclipse.ajdt.ui.tests.javamodel;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IBuffer;
@@ -26,7 +24,7 @@ import org.eclipse.jdt.core.IBuffer;
  * 
  * @author Luzius Meisser
  */
-public abstract class AbstractTestCase extends TestCase {
+public abstract class AbstractTestCase extends UITestCase {
 
 	protected AspectsConvertingParser myParser;
 	protected IProject myProject;
@@ -38,10 +36,10 @@ public abstract class AbstractTestCase extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.createPredefinedProject("javamodelEnhancementTesting");
+		myProject = createPredefinedProject("javamodelEnhancementTesting");
 		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	/*
@@ -49,7 +47,7 @@ public abstract class AbstractTestCase extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(myProject);
+		deleteProject(myProject);
 	}
 
 }

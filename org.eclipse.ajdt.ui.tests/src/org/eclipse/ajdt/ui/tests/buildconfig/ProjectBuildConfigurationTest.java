@@ -16,13 +16,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -37,7 +35,7 @@ import org.eclipse.jdt.core.JavaCore;
  * @author hawkinsh
  *  
  */
-public class ProjectBuildConfigurationTest extends TestCase {
+public class ProjectBuildConfigurationTest extends UITestCase {
 
 	IProject ajProject = null;
 	IFile fileA;
@@ -50,10 +48,10 @@ public class ProjectBuildConfigurationTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		ajProject = Utils.createPredefinedProject("AJ Project For BuildConfigurationTest");
-		Utils.waitForJobsToComplete();
+		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		waitForJobsToComplete();
 		setupSandboxSourceFolder();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	/*
@@ -61,7 +59,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(ajProject);
+		deleteProject(ajProject);
 	}
 
 	private void setupSandboxSourceFolder() throws Exception {
@@ -170,7 +168,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		ProjectBuildConfigurator pbc;
 		AJDTUtils.removeAspectJNature(ajProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc != null) {
@@ -199,7 +197,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 
 		AJDTUtils.addAspectJNature(ajProject);
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc == null) {
@@ -211,7 +209,7 @@ public class ProjectBuildConfigurationTest extends TestCase {
 			fail("No active build configuration was created when added aj nature to project.");
 		}
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		//this cannot be tested because the file writing thread may still not
 		// have written its file
 		if (bc.isIncluded(fileA)) {

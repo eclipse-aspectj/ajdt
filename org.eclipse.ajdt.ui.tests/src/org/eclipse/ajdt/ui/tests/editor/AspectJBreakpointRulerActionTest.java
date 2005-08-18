@@ -15,10 +15,8 @@ package org.eclipse.ajdt.ui.tests.editor;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -47,7 +45,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author Luzius Meisser
  */
-public class AspectJBreakpointRulerActionTest extends TestCase {
+public class AspectJBreakpointRulerActionTest extends UITestCase {
 
 	IProject project;
 	
@@ -56,7 +54,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 		
 	}
 
@@ -65,7 +63,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	public void testSetBreakpointA(){
@@ -91,20 +89,20 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 	
 	public void BreakpointSetTest(IFile sourcefile){
 		
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(sourcefile, false);
+		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		//toggling breakpoint on line 17 should add it
 		setBreakpoint(17, true, sourcefile, editorPart);
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		//toggling breakpoint on line 17 should remove it agin
 		setBreakpoint(17, true, sourcefile, editorPart);
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		//toggling breakpoint on line 100 should not be possible
 		setBreakpoint(100, false, sourcefile, editorPart);
@@ -117,7 +115,7 @@ public class AspectJBreakpointRulerActionTest extends TestCase {
 		clickLine(line, rulerInfo);
 		int numOfMarkers = getNumOfMarkers(file, editor);
 		(new AspectJBreakpointRulerAction(rulerInfo, editor, editor)).run();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		int newNumOfMarkers = getNumOfMarkers(file, editor);
 		//hasBreakpointOnCurrentLine(file, editor);

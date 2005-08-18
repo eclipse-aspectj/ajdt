@@ -16,11 +16,9 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 
-import junit.framework.TestCase;
-
 /**
  */
-public class VerificationTest extends TestCase {
+public class VerificationTest extends UITestCase {
 
 	/**
 	 * The Structure Model view is defined in the plugin.xml but it should be

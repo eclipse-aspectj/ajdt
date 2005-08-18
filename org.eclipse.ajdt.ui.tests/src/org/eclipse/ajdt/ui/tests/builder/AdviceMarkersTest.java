@@ -9,23 +9,21 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
 /**
  * Test advice markers are added correctly
  */
-public class AdviceMarkersTest extends TestCase {
+public class AdviceMarkersTest extends UITestCase {
 
 	private IProject myProject;
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.createPredefinedProject("Simple AJ Project");
+		myProject = createPredefinedProject("Simple AJ Project");
 	}
 	
 	public void testMarkersAreAdded() throws Exception {
@@ -37,7 +35,7 @@ public class AdviceMarkersTest extends TestCase {
 	
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(myProject);
+		deleteProject(myProject);
 	}
 	
 }

@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
-import junit.framework.TestCase;
-
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
 import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.ui.IViewPart;
@@ -22,7 +20,7 @@ import org.eclipse.ui.internal.Workbench;
  * Test that we don't get any spurious errors or warnings in the log on startup
  * (E.g. bug 106707)
  */
-public class NLSWarningsTest extends TestCase {
+public class NLSWarningsTest extends UITestCase {
 
 	
 	public void testNoWarningsOnStartup() throws Exception {

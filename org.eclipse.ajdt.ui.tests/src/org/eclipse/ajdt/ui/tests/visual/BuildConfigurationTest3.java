@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -81,13 +81,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		IProject project = getProject("Bean Example");
 		try {
 			testForDefaultBuildFile(project);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 
@@ -113,7 +113,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		final IWorkspace workspace= JavaPlugin.getWorkspace();		
 		
@@ -130,7 +130,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		try {
 			testForDefaultBuildFile(project);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}		
 	}
 	/**
@@ -155,13 +155,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		IProject project = getProject("Observer Example");
 		try {
 			testForDefaultBuildFile(project);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}	
 	}
 	
@@ -186,7 +186,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		IProject project = getProject("Spacewar Example");
 		try {
@@ -202,7 +202,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
 			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}	
 	}
 
@@ -228,7 +228,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		final IWorkspace workspace= JavaPlugin.getWorkspace();		
 		new DisplayHelper() {
@@ -253,7 +253,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
 			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}	
 	}
 
@@ -279,13 +279,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		IProject project = getProject("TJP Example");
 		try {
 			testForDefaultBuildFile(project);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}		
 	}
 
@@ -310,7 +310,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		new Thread(r).start();
 					
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		IProject project = getProject("Tracing Example");
 		try {
@@ -324,7 +324,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
 			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}	
 	}
 

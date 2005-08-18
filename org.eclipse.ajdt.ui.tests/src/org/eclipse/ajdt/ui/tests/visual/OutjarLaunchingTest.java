@@ -13,7 +13,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
@@ -34,7 +34,7 @@ public class OutjarLaunchingTest extends VisualTestCase {
 	private String outputStringStart = "p1 =";
 	
 	public void testLaunchingWithAnOutJar() throws Exception {
-		IProject project = Utils.createPredefinedProject("Outjar Example");
+		IProject project = createPredefinedProject("Outjar Example");
 		assertTrue("The Outjar Example project should have been created", project != null);
 		try {
 			IJavaProject jp = JavaCore.create(project);
@@ -53,7 +53,7 @@ public class OutjarLaunchingTest extends VisualTestCase {
 			postKey('s');
 			postKey(SWT.CR);
 			
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			ConsoleView cview = null;
 			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
 			for (int i = 0; i < views.length; i++) {
@@ -69,7 +69,7 @@ public class OutjarLaunchingTest extends VisualTestCase {
 			assertNotNull(output);
 			assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 	

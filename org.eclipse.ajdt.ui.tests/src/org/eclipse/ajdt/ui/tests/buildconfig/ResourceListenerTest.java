@@ -16,19 +16,17 @@ import java.io.File;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.ui.tests.AllUITests;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 
-import junit.framework.TestCase;
-
-public class ResourceListenerTest extends TestCase {
+public class ResourceListenerTest extends UITestCase {
 	
 	private static final String MODEL_FILE = ".elementMap";
 	private static final String LST_FILE = ".generated.lst";
 
 	public void testBug101214() throws Exception {
 		AllUITests.setupAJDTPlugin();
-		IProject project = Utils.createPredefinedProject("Simple AJ Project");
+		IProject project = createPredefinedProject("Simple AJ Project");
 		try{
 			File lstFile = new File(getFileName(project, LST_FILE));
 			assertTrue("LST file has not been created when project created", lstFile.exists());
@@ -37,9 +35,9 @@ public class ResourceListenerTest extends TestCase {
 			File modelFile = new File(getFileName(project, MODEL_FILE));
 			assertTrue("File has not been saved", modelFile.exists());
 
-			Utils.deleteProject(project);
+			deleteProject(project);
 			
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 						
 			// Check that the files have been deleted
 			assertFalse("LST File has not been deleted", lstFile.exists()); // Fix not implemented
@@ -47,7 +45,7 @@ public class ResourceListenerTest extends TestCase {
 			
 		} finally {
 			if (project != null) {
-				Utils.deleteProject(project);
+				deleteProject(project);
 			}			
 		}		
 	}

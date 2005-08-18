@@ -12,10 +12,8 @@ package org.eclipse.ajdt.ui.tests.ajde;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
@@ -24,11 +22,11 @@ import org.eclipse.core.resources.IResource;
  * 
  * @author mchapman
  */
-public class ProjectPropertiesTest extends TestCase {
+public class ProjectPropertiesTest extends UITestCase {
 
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
-		IProject project = Utils.createPredefinedProject("Hello World Project");
+		IProject project = createPredefinedProject("Hello World Project");
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
@@ -61,14 +59,14 @@ public class ProjectPropertiesTest extends TestCase {
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2);
 
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	/**
 	 * Bug 82341  
 	 */
 	public void testCaseInsensitive() throws Exception {
-		IProject project = Utils.createPredefinedProject("Hello World Project");
+		IProject project = createPredefinedProject("Hello World Project");
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
@@ -92,11 +90,11 @@ public class ProjectPropertiesTest extends TestCase {
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341",res2);
 		
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	public void testCaseInsensitiveNoSrcFolder() throws Exception {
-		IProject project = Utils.createPredefinedProject("WithoutSourceFolder");
+		IProject project = createPredefinedProject("WithoutSourceFolder");
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
@@ -120,6 +118,6 @@ public class ProjectPropertiesTest extends TestCase {
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341",res2);
 		
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 }

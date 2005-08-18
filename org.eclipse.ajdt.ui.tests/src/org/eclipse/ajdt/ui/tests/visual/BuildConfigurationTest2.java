@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -78,7 +78,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		new Thread(r).start();
 		
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		final IWorkspace workspace= JavaPlugin.getWorkspace();		
 		
@@ -112,7 +112,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
 
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 
@@ -164,7 +164,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			new Thread(r).start();
 			
 		}	
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		try {
@@ -208,7 +208,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			};
 			new Thread(r).start();
 		}	
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
@@ -247,7 +247,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		};
 		new Thread(r).start();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));

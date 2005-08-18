@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.ImageDecorator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -82,7 +82,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		new Thread(r).start();
 		
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		final IWorkspace workspace= JavaPlugin.getWorkspace();		
 		
@@ -143,7 +143,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.CR);
 			
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			ConsoleView cview = null;
 			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
 			for (int i = 0; i < views.length; i++) {
@@ -170,7 +170,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 			assertNotNull(output);
 			assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
 		} finally {
-			Utils.deleteProject(project);
+			deleteProject(project);
 		}
 	}
 
@@ -188,7 +188,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 			"} \n";
 		InputStream stream = new ByteArrayInputStream(s.getBytes()); 
 		helloFile.setContents(stream, true, true, null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	private void addNewClass() {
@@ -205,7 +205,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.CR);
 		postString("Hello");
 		postKey(SWT.CR);
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 	}
 
 	private void addNewPackage() {
@@ -230,7 +230,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	private void addNewSourceFolderAndCheckBuildFile(IFile buildFile) throws CoreException, IOException {
@@ -262,7 +262,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));

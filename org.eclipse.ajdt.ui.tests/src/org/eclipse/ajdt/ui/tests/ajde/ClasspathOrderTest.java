@@ -10,11 +10,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.ajde;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -37,7 +35,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author mchapman
  */
-public class ClasspathOrderTest extends TestCase {
+public class ClasspathOrderTest extends UITestCase {
 
 	IProject project;
 
@@ -46,7 +44,7 @@ public class ClasspathOrderTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("ClasspathOrdering");
+		project = createPredefinedProject("ClasspathOrdering");
 	}
 
 	/*
@@ -54,7 +52,7 @@ public class ClasspathOrderTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	public void testClasspathOrder() throws Exception {
@@ -67,9 +65,9 @@ public class ClasspathOrderTest extends TestCase {
 		if (res == null) {
 			fail("Required file not found: " + filename);
 		}
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
+		ITextEditor editorPart = (ITextEditor) openFileInDefaultEditor(
 				(IFile) res, false);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		boolean foundError = false;
 		IMarker[] markers = getMarkers(res, editorPart);
@@ -83,11 +81,11 @@ public class ClasspathOrderTest extends TestCase {
 		assertFalse("Java project has errors", foundError);
 
 		AJDTUtils.addAspectJNature(project);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("ClasspathOrdering project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(project));
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		foundError = false;
 		markers = getMarkers(res, editorPart);

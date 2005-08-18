@@ -12,17 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
-import junit.framework.TestCase;
-
 /**
  * Tests for source advice markers
  */
-public class AdviceMarkerTest3 extends TestCase {
+public class AdviceMarkerTest3 extends UITestCase {
 
 	private IProject project;
 
@@ -109,7 +107,7 @@ public class AdviceMarkerTest3 extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("MarkersTest");
+		project = createPredefinedProject("MarkersTest");
 	}
 
 	/*
@@ -117,7 +115,7 @@ public class AdviceMarkerTest3 extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	public void testMarkers() throws Exception {

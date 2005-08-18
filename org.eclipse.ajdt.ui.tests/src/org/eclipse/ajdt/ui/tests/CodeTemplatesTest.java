@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
-import junit.framework.TestCase;
-
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
@@ -20,7 +18,7 @@ import org.eclipse.jface.text.templates.persistence.TemplateStore;
 /**
  * @author Luzius Meisser
  */
-public class CodeTemplatesTest extends TestCase {
+public class CodeTemplatesTest extends UITestCase {
 	
 	/**
 	 * Checks if aj code templates are available.

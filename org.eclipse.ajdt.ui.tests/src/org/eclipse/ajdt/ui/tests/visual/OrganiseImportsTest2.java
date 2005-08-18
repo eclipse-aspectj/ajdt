@@ -12,7 +12,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -34,14 +34,14 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 	 * @throws Exception
 	 */
 	public void testOrganiseImports2() throws Exception {
-		IProject project = Utils.createPredefinedProject("Spacewar Example");
+		IProject project = createPredefinedProject("Spacewar Example");
 		try {
 			IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj");
 			assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
-			Utils.openFileInDefaultEditor(gameSynchronizationFile, true);
+			openFileInDefaultEditor(gameSynchronizationFile, true);
 			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
 			assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1);
-			Utils.waitForJobsToComplete();			
+			waitForJobsToComplete();			
 			
 //			 Post Ctrl+Shift+O to organise imports
 			postKeyDown(SWT.CTRL);
@@ -84,8 +84,8 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
 
 		} finally {
-			Utils.waitForJobsToComplete();
-			Utils.deleteProject(project);
+			waitForJobsToComplete();
+			deleteProject(project);
 		}
 	}
 

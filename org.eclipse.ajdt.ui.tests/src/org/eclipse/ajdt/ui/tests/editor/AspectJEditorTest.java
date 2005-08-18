@@ -12,10 +12,8 @@
 
 package org.eclipse.ajdt.ui.tests.editor;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,7 +25,7 @@ import org.eclipse.ui.IEditorPart;
  * 
  * @author Luzius Meisser
  */
-public class AspectJEditorTest extends TestCase {
+public class AspectJEditorTest extends UITestCase {
 
 	IProject project;
 	
@@ -36,7 +34,7 @@ public class AspectJEditorTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 	}
 
 	/*
@@ -44,11 +42,11 @@ public class AspectJEditorTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	private void openFileTest(IFile file, boolean shouldBeOpenedInAspectJEditor){
-		IEditorPart editor = Utils.openFileInDefaultEditor(file, false);
+		IEditorPart editor = openFileInDefaultEditor(file, false);
 		if (editor == null)
 			fail("Editor for file " + file.getName() + " could not be opened.");
 		if (shouldBeOpenedInAspectJEditor && !(editor instanceof AspectJEditor))

@@ -12,7 +12,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -29,15 +29,15 @@ public class OrganiseImportsTest extends VisualTestCase {
 
 	
 	public void testOrganiseImports() throws Exception {
-		IProject project = Utils.createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example");
 		assertTrue("The Bean Example project should have been created", project != null);
 		try {
 			IFile boundPoint = (IFile)project.findMember("src/bean/BoundPoint.aj");
 			assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null );
-			Utils.openFileInDefaultEditor(boundPoint, true);
+			openFileInDefaultEditor(boundPoint, true);
 			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(boundPoint);
 			assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2);
-			Utils.waitForJobsToComplete();			
+			waitForJobsToComplete();			
 			
 			// Organise imports and test that the file is correct
 			organiseImports(cUnit, 3);			
@@ -116,8 +116,8 @@ public class OrganiseImportsTest extends VisualTestCase {
 			organiseImports(cUnit, 4);
 			
 		} finally {
-			Utils.waitForJobsToComplete();
-			Utils.deleteProject(project);
+			waitForJobsToComplete();
+			deleteProject(project);
 		}
 	}
 

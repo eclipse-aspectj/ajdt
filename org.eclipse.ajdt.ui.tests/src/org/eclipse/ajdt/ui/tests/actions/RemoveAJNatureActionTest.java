@@ -11,12 +11,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.actions;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureAction;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
@@ -27,16 +25,16 @@ import org.eclipse.jface.viewers.StructuredSelection;
 /**
  *  
  */
-public class RemoveAJNatureActionTest extends TestCase {
+public class RemoveAJNatureActionTest extends UITestCase {
 
 	private IProject testProject = null;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		testProject = Utils.createPredefinedProject("project.java.Y");
-		Utils.waitForJobsToComplete();
+		testProject = createPredefinedProject("project.java.Y");
+		waitForJobsToComplete();
 		AJDTUtils.addAspectJNature(testProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 	/*
@@ -44,8 +42,8 @@ public class RemoveAJNatureActionTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();
+		deleteProject(testProject);
+		waitForJobsToComplete();
 	}
 
 	public void testRemovesAJNature() throws CoreException {

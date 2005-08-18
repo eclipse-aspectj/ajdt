@@ -16,10 +16,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.Util;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
@@ -28,7 +27,7 @@ import org.eclipse.core.runtime.Path;
  * @author gharley
  *  
  */
-public class UtilTests extends TestCase {
+public class UtilTests extends UITestCase {
 
     private String pwd;
 

@@ -11,16 +11,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
-import junit.framework.TestCase;
-
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
 import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.internal.Workbench;
 
-public class Bug106813Test extends TestCase {
+public class Bug106813Test extends UITestCase {
 
 	
 	public void testBug106813() throws Exception {
@@ -29,17 +26,17 @@ public class Bug106813Test extends TestCase {
 			LogView logView = (LogView)view;
 			LogEntry[] logs = logView.getLogs();
 			int originalNumberOfLogEntries = logs.length;
-			IProject project = Utils.createPredefinedProject("Bean Example");
+			IProject project = createPredefinedProject("Bean Example");
 			assertTrue("The Bean Example project should have been created", project != null);
 			try {
 				project.close(null);
-				Utils.waitForJobsToComplete();
+				waitForJobsToComplete();
 				assertFalse("The Bean Example project should be closed", project.isOpen());
 				// Check that no more errors have appeared in the error log
 				logs = logView.getLogs();
 				assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
 			} finally {
-				Utils.deleteProject(project);
+				deleteProject(project);
 			}
 		}	
 	}

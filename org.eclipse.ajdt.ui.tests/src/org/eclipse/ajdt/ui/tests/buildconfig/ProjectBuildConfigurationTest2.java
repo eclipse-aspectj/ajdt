@@ -14,19 +14,17 @@ package org.eclipse.ajdt.ui.tests.buildconfig;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
-
-import junit.framework.TestCase;
 
 /**
  * 
  */
-public class ProjectBuildConfigurationTest2 extends TestCase {
+public class ProjectBuildConfigurationTest2 extends UITestCase {
 
 	public void testBug84310a() throws Exception {
 		final String expected = "build";
-		IProject project = Utils.createPredefinedProject("bug84310a");
+		IProject project = createPredefinedProject("bug84310a");
 
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		ProjectBuildConfigurator pbc = conf
@@ -40,12 +38,12 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 					+ bc.getName());
 		}
 
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	public void testBug84310b() throws Exception {
 		final String expected = "aardvark";
-		IProject project = Utils.createPredefinedProject("bug84310b");
+		IProject project = createPredefinedProject("bug84310b");
 
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		ProjectBuildConfigurator pbc = conf
@@ -59,14 +57,14 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 					+ bc.getName());
 		}
 		
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	public void testGetActiveConfigFromSettings() throws Exception {
 		final String expected = "monkey";
 		// this project should have a preference value under the .settings
 		// directory indicating the active build configuration
-		IProject project = Utils.createPredefinedProject("DotSettings");
+		IProject project = createPredefinedProject("DotSettings");
 
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		ProjectBuildConfigurator pbc = conf
@@ -80,6 +78,6 @@ public class ProjectBuildConfigurationTest2 extends TestCase {
 					+ bc.getName());
 		}
 
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 }

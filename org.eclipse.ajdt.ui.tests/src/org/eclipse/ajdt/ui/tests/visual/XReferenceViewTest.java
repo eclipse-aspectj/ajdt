@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
@@ -49,7 +49,7 @@ public class XReferenceViewTest extends VisualTestCase {
 	}
 	
 	public void testBug92895() throws Exception {
-		IProject project = Utils.createPredefinedProject("bug92895");
+		IProject project = createPredefinedProject("bug92895");
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
@@ -64,11 +64,11 @@ public class XReferenceViewTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open A.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(4);
 		moveCursorRight(37);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		XRefContainsInputDisplayHelper ds = new XRefContainsInputDisplayHelper();
 		ds.waitForCondition(Display.getCurrent(), 5000);
@@ -108,7 +108,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		new DisplayHelper() {
 			public boolean condition() {
@@ -137,11 +137,11 @@ public class XReferenceViewTest extends VisualTestCase {
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
 		
 		editorPart.close(false);
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	public void testBug98319() throws Exception {
-		IProject project = Utils.createPredefinedProject("bug98319");
+		IProject project = createPredefinedProject("bug98319");
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
@@ -162,16 +162,16 @@ public class XReferenceViewTest extends VisualTestCase {
 		IFile textFile = (IFile)res2;
 		
 		// open the text file
-		ITextEditor defaultEditorPart = (ITextEditor)Utils.openFileInDefaultEditor(textFile,true);
+		ITextEditor defaultEditorPart = (ITextEditor)openFileInDefaultEditor(textFile,true);
 		defaultEditorPart.setFocus();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// open A.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(4);
 		moveCursorRight(37);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		XRefContainsInputDisplayHelper ds = new XRefContainsInputDisplayHelper();
 		ds.waitForCondition(Display.getCurrent(), 5000);
@@ -180,9 +180,9 @@ public class XReferenceViewTest extends VisualTestCase {
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
 		
 		// switch to the text file
-		ITextEditor defaultEditorPart2 = (ITextEditor)Utils.openFileInDefaultEditor(textFile,true);
+		ITextEditor defaultEditorPart2 = (ITextEditor)openFileInDefaultEditor(textFile,true);
 		defaultEditorPart2.setFocus();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// the cross reference view should be cleared
 		XRefContainsNothingDisplayHelper ds2 = new XRefContainsNothingDisplayHelper();
@@ -198,7 +198,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		defaultEditorPart.close(false);
 		defaultEditorPart2.close(false);
 		editorPart.close(false);
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 
 	private boolean xrefSourceExists(XReferenceView xrefView) {
@@ -284,7 +284,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 
@@ -301,7 +301,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		xrefAction.run();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 		
@@ -333,7 +333,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 
@@ -350,7 +350,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		xrefAction.run();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 		
@@ -373,7 +373,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 
@@ -390,7 +390,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		xrefAction.run();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 		
@@ -413,7 +413,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 		
@@ -432,7 +432,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		xrefAction.run();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 
@@ -455,7 +455,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 		
@@ -474,7 +474,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		xrefAction.run();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 
@@ -498,7 +498,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		checkProvidersAgree(xrefAction);
 		
@@ -523,7 +523,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		xrefAction.run();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 

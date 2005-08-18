@@ -15,7 +15,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -41,12 +41,12 @@ public class EagerParsingTest extends VisualTestCase {
 		final IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
 		store.setValue(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS, true);		
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 	}
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		Utils.deleteProject(project);
+		deleteProject(project);
 	}
 	
 	public void testIntroduceError(){
@@ -71,18 +71,18 @@ public class EagerParsingTest extends VisualTestCase {
 	}
 	
 	public void eagerParserTest(IFile sourcefile){
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(sourcefile, false);
+		ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(sourcefile, false);
 		
 		try {
 		
 			//wait for annotation model to be created
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			
 			createError(true, editorPart);		
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 			
 			createError(false,  editorPart);
-			Utils.waitForJobsToComplete();			
+			waitForJobsToComplete();			
 
 		} finally {
 			editorPart.close(false);
@@ -99,7 +99,7 @@ public class EagerParsingTest extends VisualTestCase {
 		} else {
 			postKey(SWT.BS);
 		}
-		Utils.waitForJobsToComplete();		
+		waitForJobsToComplete();		
 		new DisplayHelper() {
 
 			protected boolean condition() {
