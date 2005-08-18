@@ -12,11 +12,15 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.EclipseVersion;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import junit.framework.TestCase;
 
@@ -218,6 +222,19 @@ public abstract class VisualTestCase extends TestCase {
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
+		}
+	}
+
+	/**
+	 * Closes all open editors without saving
+	 */
+	protected void closeAllEditors() {
+		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+		for (int i = 0; i < editors.length; i++) {
+			IEditorPart editor = editors[i].getEditor(false);
+			if(editor instanceof ITextEditor) {
+				((ITextEditor)editor).close(false);
+			}
 		}
 	}
 }
