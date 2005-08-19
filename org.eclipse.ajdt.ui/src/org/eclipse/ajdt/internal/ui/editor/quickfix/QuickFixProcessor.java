@@ -20,7 +20,6 @@ import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
-import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.JavadocTagsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.LocalCorrectionsSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ModifierCorrectionSubProcessor;
@@ -29,6 +28,7 @@ import org.eclipse.jdt.internal.ui.text.correction.ReplaceCorrectionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.ReturnTypeSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.TaskMarkerProposal;
 import org.eclipse.jdt.internal.ui.text.correction.TypeMismatchSubProcessor;
+import org.eclipse.jdt.internal.ui.text.correction.UnresolvedElementsSubProcessor;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
@@ -60,12 +60,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.PublicClassMustMatchFileName:
 			case IProblem.PackageIsNotExpectedPackage:
 			case IProblem.UndefinedType:
-			case IProblem.FieldTypeNotFound:
-			case IProblem.ArgumentTypeNotFound:
-			case IProblem.ReturnTypeNotFound:
-			case IProblem.SuperclassNotFound:
-			case IProblem.ExceptionTypeNotFound:
-			case IProblem.InterfaceNotFound: 
 			case IProblem.TypeMismatch:
 			case IProblem.UnhandledException:
 			case IProblem.UnreachableCatch:
@@ -83,14 +77,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.NotVisibleMethod:
 			case IProblem.NotVisibleConstructor:
 			case IProblem.NotVisibleType:
-			case IProblem.SuperclassNotVisible:
-			case IProblem.InterfaceNotVisible:
-			case IProblem.FieldTypeNotVisible:
-			case IProblem.ArgumentTypeNotVisible:
-			case IProblem.ReturnTypeNotVisible:
-			case IProblem.ExceptionTypeNotVisible:
 			case IProblem.NotVisibleField:
-			case IProblem.ImportNotVisible:
 			case IProblem.BodyForAbstractMethod:
 			case IProblem.AbstractMethodInAbstractClass:
 			case IProblem.AbstractMethodMustBeImplemented:	
@@ -100,12 +87,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.UndefinedConstructorInDefaultConstructor:
 			case IProblem.UnhandledExceptionInDefaultConstructor:
 			case IProblem.NotVisibleConstructorInDefaultConstructor:
-			case IProblem.FieldTypeAmbiguous:
-			case IProblem.ArgumentTypeAmbiguous:
-			case IProblem.ExceptionTypeAmbiguous:
-			case IProblem.ReturnTypeAmbiguous:
-			case IProblem.SuperclassAmbiguous:
-			case IProblem.InterfaceAmbiguous:
 			case IProblem.AmbiguousType:
 			case IProblem.UnusedPrivateMethod:
 			case IProblem.UnusedPrivateConstructor:
@@ -176,6 +157,13 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.IncompatibleExceptionInThrowsClause:
 			case IProblem.NoMessageSendOnArrayType:
 			case IProblem.InvalidOperator:
+//			case IProblem.MissingSerialVersion:
+			case IProblem.UnnecessaryElse:
+			case IProblem.SuperclassMustBeAClass:
+			case IProblem.UseAssertAsAnIdentifier:
+//			case IProblem.UseEnumAsAnIdentifier:
+			case IProblem.RedefinedLocal:
+			case IProblem.RedefinedArgument:
 				return true;
 			default:
 				return false;
@@ -200,8 +188,11 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 	/* (non-Javadoc)
 	 * @see IAssistProcessor#getCorrections(org.eclipse.jdt.internal.ui.text.correction.IAssistContext, org.eclipse.jdt.internal.ui.text.correction.IProblemLocation[])
 	 */
-	public IJavaCompletionProposal[] getCorrections(IInvocationContext context,
-			IProblemLocation[] locations) throws CoreException {
+	public IJavaCompletionProposal[] getCorrections(IInvocationContext context, IProblemLocation[] locations) throws CoreException {
+		if (locations == null || locations.length == 0) {
+			return null;
+		}
+		
 		// AspectJ Change Begin
 		IEditorPart ed = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
 				.getActivePage().getActiveEditor();
@@ -212,22 +203,16 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 		}
 		// AspectJ Change End
 		
-		if (locations == null || locations.length == 0) {
-			return null;
-		}
-
-		HashSet handledProblems = new HashSet(locations.length);
-		ArrayList resultingCollections = new ArrayList();
-		for (int i = 0; i < locations.length; i++) {
-			IProblemLocation curr = locations[i];
-			Integer id = new Integer(curr.getProblemId());
+		HashSet handledProblems= new HashSet(locations.length);
+		ArrayList resultingCollections= new ArrayList();
+		for (int i= 0; i < locations.length; i++) {
+			IProblemLocation curr= locations[i];
+			Integer id= new Integer(curr.getProblemId());
 			if (handledProblems.add(id)) {
 				process(context, curr, resultingCollections);
 			}
 		}
-		return (IJavaCompletionProposal[]) resultingCollections
-				.toArray(new IJavaCompletionProposal[resultingCollections
-						.size()]);
+		return (IJavaCompletionProposal[]) resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 	}
 	
 	private void process(IInvocationContext context, IProblemLocation problem, Collection proposals) throws CoreException {
@@ -235,10 +220,9 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 		if (id == 0) { // no proposals for none-problem locations
 			return;
 		}
-		
 		switch (id) {
 			case IProblem.UnterminatedString:
-				String quoteLabel= CorrectionMessages.getString("JavaCorrectionProcessor.addquote.description"); //$NON-NLS-1$
+				String quoteLabel= CorrectionMessages.getString("JavaCorrectionProcessor.addquote.description");
 				int pos= moveBack(problem.getOffset() + problem.getLength(), problem.getOffset(), "\n\r", context.getCompilationUnit()); //$NON-NLS-1$
 				proposals.add(new ReplaceCorrectionProposal(quoteLabel, context.getCompilationUnit(), pos, 0, "\"", 0)); //$NON-NLS-1$ 
 				break;
@@ -268,12 +252,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.UndefinedName:
 				UnresolvedElementsSubProcessor.getVariableProposals(context, problem, proposals);
 				break;
-			case IProblem.FieldTypeAmbiguous:
-			case IProblem.ArgumentTypeAmbiguous:
-			case IProblem.ExceptionTypeAmbiguous:
-			case IProblem.ReturnTypeAmbiguous:
-			case IProblem.SuperclassAmbiguous:
-			case IProblem.InterfaceAmbiguous:
 			case IProblem.AmbiguousType:
 			case IProblem.JavadocAmbiguousType:
 				UnresolvedElementsSubProcessor.getAmbiguosTypeReferenceProposals(context, problem, proposals);
@@ -285,12 +263,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 				ReorgCorrectionsSubProcessor.getWrongPackageDeclNameProposals(context, problem, proposals);
 				break;
 			case IProblem.UndefinedType:
-			case IProblem.FieldTypeNotFound:
-			case IProblem.ArgumentTypeNotFound:
-			case IProblem.ReturnTypeNotFound:
-			case IProblem.SuperclassNotFound:
-			case IProblem.ExceptionTypeNotFound:
-			case IProblem.InterfaceNotFound: 
 			case IProblem.JavadocUndefinedType:
 				UnresolvedElementsSubProcessor.getTypeProposals(context, problem, proposals);
 				break;	
@@ -372,14 +344,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.NotVisibleMethod:
 			case IProblem.NotVisibleConstructor:
 			case IProblem.NotVisibleType:
-			case IProblem.SuperclassNotVisible:
-			case IProblem.InterfaceNotVisible:
-			case IProblem.FieldTypeNotVisible:
-			case IProblem.ArgumentTypeNotVisible:
-			case IProblem.ReturnTypeNotVisible:
-			case IProblem.ExceptionTypeNotVisible:
 			case IProblem.NotVisibleField:
-			case IProblem.ImportNotVisible:
 			case IProblem.JavadocNotVisibleType:
 				ModifierCorrectionSubProcessor.addNonAccessibleReferenceProposal(context, problem, proposals, ModifierCorrectionSubProcessor.TO_VISIBLE, 10); 
 				break;
@@ -472,10 +437,6 @@ public class QuickFixProcessor implements IQuickFixProcessor {
 			case IProblem.InvalidOperator:
 				LocalCorrectionsSubProcessor.getInvalidOperatorProposals(context, problem, proposals);
 				break;
-			default:
 		}
 	}
-
-
-
 }

@@ -21,7 +21,21 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
+import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
+import org.eclipse.jdt.internal.ui.text.correction.ChangeCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.ContributedProcessorDescriptor;
+import org.eclipse.jdt.internal.ui.text.correction.MarkerResolutionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.ProblemLocation;
+import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProposalComparator;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.text.java.IInvocationContext;
+import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
+import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
+import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -30,31 +44,11 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
-
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMarkerHelpRegistry;
 import org.eclipse.ui.IMarkerResolution;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
-
-import org.eclipse.jdt.core.ICompilationUnit;
-
-import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.text.java.IInvocationContext;
-import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
-import org.eclipse.jdt.ui.text.java.IProblemLocation;
-import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
-import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
-
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
-import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
-import org.eclipse.jdt.internal.ui.text.correction.ChangeCorrectionProposal;
-import org.eclipse.jdt.internal.ui.text.correction.ContributedProcessorDescriptor;
-import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
-import org.eclipse.jdt.internal.ui.text.correction.MarkerResolutionProposal;
-import org.eclipse.jdt.internal.ui.text.correction.ProblemLocation;
-import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProposalComparator;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.text.correction.JavaCorrectionProcessor
@@ -193,7 +187,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 			processAnnotations(context, model, proposals);
 		}
 		if (proposals.isEmpty()) {
-			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.getString("NoCorrectionProposal.description"), null, 0, null));  //$NON-NLS-1$
+			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.getString("NoCorrectionProposal.description"), null, 0, null));
 		}
 		
 		ICompletionProposal[] res= (ICompletionProposal[]) proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -261,7 +255,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}
 				}
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message"); //$NON-NLS-1$
+				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message");
 			}
 		}
 	}
@@ -280,7 +274,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}				
 				}				
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message"); //$NON-NLS-1$
+				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message");
 			}
 		}
 	}	

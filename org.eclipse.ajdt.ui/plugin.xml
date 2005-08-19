@@ -1771,6 +1771,11 @@
             class="org.eclipse.ajdt.internal.ui.editor.quickfix.QuickFixProcessor"
             id="org.eclipse.ajdt.ui.editor.quickfix.QuickFixProcessor">
       </quickFixProcessor>
+      <quickFixProcessor
+            name="%ajQuickFixProcessor"
+            class="org.eclipse.ajdt.internal.ui.editor.quickfix.AJQuickFixProcessor"
+            id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
+      </quickFixProcessor>
     </extension>
   
   <!-- Launching extensions -->  
