@@ -42,14 +42,6 @@ public class AspectJQuickFixTest extends UITestCase {
 		project = createPredefinedProject("QuickFix");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
-
 	public void testJavaQuickFix() throws Exception {
 		String filename = "src/test/TestJava.java";
 		IResource res = project.findMember(filename);

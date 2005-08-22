@@ -77,7 +77,6 @@ public class AspectJPreferencesTest extends UITestCase {
 		super.tearDown();
 		prefStore = null;
 		projectNode = null;
-		deleteProject(project);
 	}
 
 	public void testBuildConfigSetting() throws Exception {

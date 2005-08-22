@@ -57,14 +57,6 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 		project = createPredefinedProject("Simple AJ Project");
 		
 	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	public void testSetBreakpointA(){
 		IResource res = project.findMember("src/p1/Main.java");

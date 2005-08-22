@@ -110,14 +110,6 @@ public class AdviceMarkerTest3 extends UITestCase {
 		project = createPredefinedProject("MarkersTest");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
-
 	public void testMarkers() throws Exception {
 		String filename = "src/tjp/GetInfo.aj";
 		IResource file = project.findMember(filename);

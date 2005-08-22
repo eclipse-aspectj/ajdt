@@ -141,8 +141,6 @@ public class BuilderTest extends UITestCase {
 		simpleProject.refreshLocal(IResource.DEPTH_INFINITE,null);
 		waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-		
-		deleteProject(simpleProject);
 	}
 
 	/**
@@ -219,8 +217,6 @@ public class BuilderTest extends UITestCase {
 		assertFalse("newFile2.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		waitForJobsToComplete();
 		assertFalse("newFile2.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		deleteProject(simpleProject);
 	}
 
 	/**
@@ -298,8 +294,6 @@ public class BuilderTest extends UITestCase {
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		deleteProject(simpleProject);
 	}
 
 	/**
@@ -378,8 +372,6 @@ public class BuilderTest extends UITestCase {
 		assertFalse("newFile.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		waitForJobsToComplete();
 		assertFalse("newFile.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		deleteProject(simpleProject);
 	}
 
 	/**
@@ -513,8 +505,6 @@ public class BuilderTest extends UITestCase {
 		assertFalse("newFile4.txt should NOT exist under src tree! (path=" + srcPath + ")",new File(srcPath).exists());
 		waitForJobsToComplete();
 		assertFalse("newFile4.txt should NOT exist under bin tree! (path=" + binPath + ")",new File(binPath).exists());
-
-		deleteProject(simpleProject);
 	}
 
 	/**
@@ -564,8 +554,6 @@ public class BuilderTest extends UITestCase {
 		// down to the timings of driving this programatically (this is
 		// why there is a sleep above.
 		assertFalse("newFile.txt should NOT exist in the top dir(path=" + path + ")",new File(path).exists());
-
-		deleteProject(project);
 	}
 
 	
@@ -649,8 +637,6 @@ public class BuilderTest extends UITestCase {
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage3.exists());
 
 		waitForJobsToComplete();
-		
-		deleteProject(simpleProject);
 	}
 
 	
@@ -723,9 +709,6 @@ public class BuilderTest extends UITestCase {
 		//monitor.waitForCompletion();
 		IFolder newBinFolder3 = bin.getFolder("newFolder");
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder3.exists());
-		waitForJobsToComplete();
-
-		deleteProject(simpleProject);
 	}
 
 	public void testIncrementalBuildWithSrcFolder() throws Exception {
@@ -779,7 +762,6 @@ public class BuilderTest extends UITestCase {
 			assertTrue("The build should have been an incremental one",wasIncrementalBuild(rep));
 		} finally {
 			AspectJPlugin.getDefault().setAJLogger(null);
-			deleteProject(project);
 		}
 	}
 	
@@ -820,7 +802,6 @@ public class BuilderTest extends UITestCase {
 			assertTrue("The build should have been an incremental one",wasIncrementalBuild(rep));
 		} finally {
 			AspectJPlugin.getDefault().setAJLogger(null);
-			deleteProject(project);
 		}
 	}
 		

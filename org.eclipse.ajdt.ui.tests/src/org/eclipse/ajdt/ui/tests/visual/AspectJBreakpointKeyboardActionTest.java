@@ -43,14 +43,6 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 		super.setUp();
 		project = createPredefinedProject("Simple AJ Project");
 	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	public void testSetBreakpoint(){
 		IResource res = project.findMember("src/p2/Aspect.aj");

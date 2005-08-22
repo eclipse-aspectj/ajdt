@@ -65,7 +65,6 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		super.tearDown();
 		prefStore = null;
 		projectNode = null;
-		deleteProject(project);
 	}
 
 	public void testGetNonStandardOptionsViaWorkbenchPreferences()

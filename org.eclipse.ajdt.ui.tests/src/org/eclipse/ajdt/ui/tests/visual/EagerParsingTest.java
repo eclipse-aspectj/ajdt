@@ -43,11 +43,6 @@ public class EagerParsingTest extends VisualTestCase {
 		super.setUp();
 		project = createPredefinedProject("Simple AJ Project");
 	}
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	public void testIntroduceError(){
 		IResource res = project.findMember("src/p2/Aspect.aj");

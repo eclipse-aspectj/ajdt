@@ -36,14 +36,6 @@ public class AspectJEditorTest extends UITestCase {
 		super.setUp();
 		project = createPredefinedProject("Simple AJ Project");
 	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	private void openFileTest(IFile file, boolean shouldBeOpenedInAspectJEditor){
 		IEditorPart editor = openFileInDefaultEditor(file, false);

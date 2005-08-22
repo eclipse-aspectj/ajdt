@@ -120,8 +120,6 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(
 						projectX, projectY));
 
-		deleteProject(projectX);
-		deleteProject(projectY);
 	}
 
 	/**
@@ -163,8 +161,6 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
 						projectX, projectY));
 
-		deleteProject(projectX);
-		deleteProject(projectY);
 		resetPluginEnvironment();
 	}
 
@@ -272,9 +268,6 @@ public class ProjectDependenciesTest extends UITestCase {
 		assertFalse(
 				"project X should NOT have a class folder dependency on project Y",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
-		
-		deleteProject(projectX);
-		deleteProject(projectY);
 	}
 
 

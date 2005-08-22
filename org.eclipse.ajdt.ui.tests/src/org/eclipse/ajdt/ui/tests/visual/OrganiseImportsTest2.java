@@ -35,58 +35,53 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 	 */
 	public void testOrganiseImports2() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example");
-		try {
-			IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj");
-			assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
-			openFileInDefaultEditor(gameSynchronizationFile, true);
-			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
-			assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1);
-			waitForJobsToComplete();			
-			
+		IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj");
+		assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
+		openFileInDefaultEditor(gameSynchronizationFile, true);
+		final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
+		assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1);
+		waitForJobsToComplete();			
+		
 //			 Post Ctrl+Shift+O to organise imports
-			postKeyDown(SWT.CTRL);
-			postKeyDown(SWT.SHIFT);
-			postKey('o');
-			postKeyUp(SWT.SHIFT);
-			postKeyUp(SWT.CTRL);
+		postKeyDown(SWT.CTRL);
+		postKeyDown(SWT.SHIFT);
+		postKey('o');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.CTRL);
 
 //			 Wait for an error condition to make sure it's caught if it does occur
-			new DisplayHelper() {
-				protected boolean condition() {
-					try {
-						return  cUnit.getImports().length == 0;
-					} catch (JavaModelException e) {
-					}
-					return false;
+		new DisplayHelper() {
+			protected boolean condition() {
+				try {
+					return  cUnit.getImports().length == 0;
+				} catch (JavaModelException e) {
 				}
-			
-			}.waitForCondition(display, 3000);
-			assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1);
-			
-			// Post Ctrl+S to save the file
-			postKeyDown(SWT.CTRL);
-			postKey('s');
-			postKeyUp(SWT.CTRL);
+				return false;
+			}
+		
+		}.waitForCondition(display, 3000);
+		assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1);
+		
+		// Post Ctrl+S to save the file
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
 
-			// Wait for an error condition to make sure it's caught if it does occur
-			new DisplayHelper() {
-				protected boolean condition() {
-					try {					
-						IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-						return problemMarkers.length == 1;
-					} catch (CoreException e) {
-					}
-					return false;
+		// Wait for an error condition to make sure it's caught if it does occur
+		new DisplayHelper() {
+			protected boolean condition() {
+				try {					
+					IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+					return problemMarkers.length == 1;
+				} catch (CoreException e) {
 				}
-			
-			}.waitForCondition(display, 3000);
-			IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-			assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
+				return false;
+			}
+		
+		}.waitForCondition(display, 3000);
+		IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+		assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
 
-		} finally {
-			waitForJobsToComplete();
-			deleteProject(project);
-		}
 	}
 
 	

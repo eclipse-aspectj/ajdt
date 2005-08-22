@@ -27,27 +27,20 @@ public class ResourceListenerTest extends UITestCase {
 	public void testBug101214() throws Exception {
 		AllUITests.setupAJDTPlugin();
 		IProject project = createPredefinedProject("Simple AJ Project");
-		try{
-			File lstFile = new File(getFileName(project, LST_FILE));
-			assertTrue("LST file has not been created when project created", lstFile.exists());
-			
-			AJModel.getInstance().saveModel(project);
-			File modelFile = new File(getFileName(project, MODEL_FILE));
-			assertTrue("File has not been saved", modelFile.exists());
+		File lstFile = new File(getFileName(project, LST_FILE));
+		assertTrue("LST file has not been created when project created", lstFile.exists());
+		
+		AJModel.getInstance().saveModel(project);
+		File modelFile = new File(getFileName(project, MODEL_FILE));
+		assertTrue("File has not been saved", modelFile.exists());
 
-			deleteProject(project);
-			
-			waitForJobsToComplete();
-						
-			// Check that the files have been deleted
-			assertFalse("LST File has not been deleted", lstFile.exists()); // Fix not implemented
-			assertFalse("Model File has not been deleted", modelFile.exists());
-			
-		} finally {
-			if (project != null) {
-				deleteProject(project);
-			}			
-		}		
+		deleteProject(project);
+		
+		waitForJobsToComplete();
+					
+		// Check that the files have been deleted
+		assertFalse("LST File has not been deleted", lstFile.exists()); // Fix not implemented
+		assertFalse("Model File has not been deleted", modelFile.exists());
 	}
 	
 	private String getFileName(IProject project, String FILE) {

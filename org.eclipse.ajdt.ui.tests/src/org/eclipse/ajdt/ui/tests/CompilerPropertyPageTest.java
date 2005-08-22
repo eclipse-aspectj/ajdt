@@ -50,7 +50,6 @@ public class CompilerPropertyPageTest extends UITestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		projectNode = null;
-		deleteProject(project);
 	}
 	
 	/**

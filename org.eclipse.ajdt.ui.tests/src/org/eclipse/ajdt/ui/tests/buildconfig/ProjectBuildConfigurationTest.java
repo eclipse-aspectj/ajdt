@@ -54,13 +54,6 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 		waitForJobsToComplete();
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(ajProject);
-	}
 
 	private void setupSandboxSourceFolder() throws Exception {
 		IFolder src = ajProject.getFolder("testSrcPath");

@@ -158,12 +158,6 @@ public class AspectJProjectWizardTest extends UITestCase {
 		
 		assertTrue("An incorrect file has been created during the discovery of the project",
 				newlyFoundProject.findMember(wrongFile) == null);
-		
-		deleteProject(testSrcProject);
-		deleteProject(wizardCreatedProject);
-		deleteProject(newlyFoundProject);
-	
-		waitForJobsToComplete();
 	}
 
 	/**

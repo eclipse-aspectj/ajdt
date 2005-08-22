@@ -87,7 +87,6 @@ public class AJCompilationUnitTest2 extends UITestCase {
 		assertFalse("File should have been deleted: " + file1, file1.exists());
 		assertFalse("File should have been deleted: " + file2, file2.exists());
 
-		deleteProject(project);
 	}
 
 }

@@ -37,8 +37,6 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: "
 					+ bc.getName());
 		}
-
-		deleteProject(project);
 	}
 
 	public void testBug84310b() throws Exception {
@@ -56,8 +54,6 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: "
 					+ bc.getName());
 		}
-		
-		deleteProject(project);
 	}
 
 	public void testGetActiveConfigFromSettings() throws Exception {
@@ -77,7 +73,5 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 			fail("The active build configuration for project DotSettings should be \""+expected+"\". Instead it's: "
 					+ bc.getName());
 		}
-
-		deleteProject(project);
 	}
 }

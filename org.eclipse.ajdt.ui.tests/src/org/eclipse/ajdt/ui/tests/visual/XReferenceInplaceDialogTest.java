@@ -40,12 +40,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 
 	protected void tearDown() throws Exception {
-		super.tearDown();
-		if(editor != null) {
-			editor.close(false);
-		}
 		project.refreshLocal(5, null);
-		deleteProject(project);
+		super.tearDown();
 	}
 
 	public void testKeyDrivenMenuPopUp() throws CoreException {

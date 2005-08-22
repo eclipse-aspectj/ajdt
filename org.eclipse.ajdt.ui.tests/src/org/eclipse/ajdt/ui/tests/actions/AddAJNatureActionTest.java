@@ -40,15 +40,6 @@ public class AddAJNatureActionTest extends UITestCase {
 
     }
 
-    /*
-	 * @see TestCase#tearDown()
-	 */
-    protected void tearDown() throws Exception {
-        super.tearDown();
-		deleteProject(testProject);
-		waitForJobsToComplete();
-	}
-
     public void testAddsAJNature() throws CoreException {
         // Ensure that we are starting with a Java project.	
         assertTrue(testProject.hasNature("org.eclipse.jdt.core.javanature"));

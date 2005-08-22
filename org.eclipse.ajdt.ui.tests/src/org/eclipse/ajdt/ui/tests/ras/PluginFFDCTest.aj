@@ -1,9 +1,8 @@
 package org.eclipse.ajdt.ui.tests.ras;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
@@ -11,7 +10,7 @@ import org.eclipse.core.runtime.Plugin;
 /**
  * Test the FFDC aspect and its usage in AJDT
  */
-public class PluginFFDCTest extends TestCase {
+public class PluginFFDCTest extends UITestCase {
 	
 	public void testFFDC () {
 		LogListener listener = new LogListener(getPlugin());

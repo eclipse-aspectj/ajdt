@@ -59,7 +59,6 @@ public class ProjectPropertiesTest extends UITestCase {
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2);
 
-		deleteProject(project);
 	}
 	
 	/**
@@ -89,8 +88,6 @@ public class ProjectPropertiesTest extends UITestCase {
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341",res2);
-		
-		deleteProject(project);
 	}
 	
 	public void testCaseInsensitiveNoSrcFolder() throws Exception {
@@ -118,6 +115,5 @@ public class ProjectPropertiesTest extends UITestCase {
 				.getAjdtProjectProperties().findResource(fullpath2, project);
 		assertNotNull("Regression of bug 82341",res2);
 		
-		deleteProject(project);
 	}
 }

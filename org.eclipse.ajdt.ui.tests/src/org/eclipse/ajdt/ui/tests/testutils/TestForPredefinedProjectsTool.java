@@ -61,7 +61,6 @@ public class TestForPredefinedProjectsTool extends UITestCase {
 		IProject p2 = createPredefinedProject("Hello World Project");
 		assertTrue("project should now be open",p2.isOpen());
 
-		deleteProject(p2);
 	}
 	
 }

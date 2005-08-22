@@ -37,15 +37,6 @@ public class RemoveAJNatureActionTest extends UITestCase {
 		waitForJobsToComplete();
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(testProject);
-		waitForJobsToComplete();
-	}
-
 	public void testRemovesAJNature() throws CoreException {
 		// Ensure that we are starting with a project that has an AspectJ
 		// nature.

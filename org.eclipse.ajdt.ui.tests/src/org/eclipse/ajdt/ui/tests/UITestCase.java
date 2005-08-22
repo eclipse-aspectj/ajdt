@@ -15,6 +15,8 @@ package org.eclipse.ajdt.ui.tests;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -28,6 +30,7 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
@@ -37,8 +40,6 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
-
-import junit.framework.TestCase;
 
 
 /**
@@ -56,6 +57,22 @@ public abstract class UITestCase extends TestCase {
 		super();
 	}
 
+	protected void setUp() throws Exception {
+		super.setUp();
+		AllUITests.setupAJDTPlugin();
+	}
+	
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		waitForJobsToComplete();
+		closeAllEditors();
+		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < allProjects.length; i++) {
+			IProject project = allProjects[i];
+			deleteProject(project);
+		}
+	}
+	
 	/**
 	 * Imports a specified project from the "test projects" folder.
 	 * 
@@ -64,7 +81,7 @@ public abstract class UITestCase extends TestCase {
 	 * @return The requested project if successfully imported, null otherwise
 	 * @throws CoreException
 	 */
-	public IProject createPredefinedProject(String projectName) throws CoreException{
+	protected IProject createPredefinedProject(String projectName) throws CoreException{
 		waitForJobsToComplete();
 		
 		File sourceDir;
@@ -101,7 +118,7 @@ public abstract class UITestCase extends TestCase {
 		return project;
 	}
 
-	public void deleteProject(IProject project) {
+	protected void deleteProject(IProject project) {
 		// make sure nothing is still using the project
 		waitForJobsToComplete();
 		
@@ -121,7 +138,7 @@ public abstract class UITestCase extends TestCase {
 	/**
 	 * Opens a file in its associated editor.
 	 */
-	public IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
+	protected IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
 		if (file != null) {
 			IWorkbenchPage p= JavaPlugin.getActivePage();
 			if (p != null) {
@@ -139,7 +156,7 @@ public abstract class UITestCase extends TestCase {
 	/**
 	 * Opens a file in the AspectJ editor
 	 */
-	public IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
+	protected IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
 		if (file != null) {
 			IWorkbenchPage p= JavaPlugin.getActivePage();
 			if (p != null) {
@@ -173,11 +190,11 @@ public abstract class UITestCase extends TestCase {
 		}
 	}
 
-	public void waitForJobsToComplete(){
+	protected void waitForJobsToComplete(){
 		SynchronizationUtils.joinBackgroudActivities();
 	}
 
-	public void setUpPluginEnvironment() {
+	protected void setUpPluginEnvironment() {
 		// set the project up so that when asked, the pde plugin
 		// is added automatically and the preference configurations
 		// have all been set up (therefore don't need user
@@ -190,7 +207,7 @@ public abstract class UITestCase extends TestCase {
 		AspectJPreferences.setPDEAutoRemoveImportConfigDone(true);
 	}
 
-	public void resetPluginEnvironment() {
+	protected void resetPluginEnvironment() {
 		IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
@@ -198,6 +215,19 @@ public abstract class UITestCase extends TestCase {
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT);
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT);
+	}
+
+	/**
+	 * Closes all open editors without saving
+	 */
+	protected void closeAllEditors() {
+		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+		for (int i = 0; i < editors.length; i++) {
+			IEditorPart editor = editors[i].getEditor(false);
+			if(editor instanceof ITextEditor) {
+				((ITextEditor)editor).close(false);
+			}
+		}
 	}
 
 }

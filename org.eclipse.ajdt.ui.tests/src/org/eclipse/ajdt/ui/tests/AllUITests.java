@@ -69,8 +69,6 @@ public class AllUITests {
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
 		
-		setupAJDTPlugin();
-		
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
 		

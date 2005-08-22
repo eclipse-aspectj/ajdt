@@ -75,7 +75,6 @@ public class AJDTUtilsTest extends UITestCase {
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		deleteProject(testPluginProject);
 		resetPluginEnvironment();
 	}
 
@@ -97,8 +96,6 @@ public class AJDTUtilsTest extends UITestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		deleteProject(testProject);
-		waitForJobsToComplete();
 	}
 	
 	/**
@@ -125,8 +122,6 @@ public class AJDTUtilsTest extends UITestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		deleteProject(testProject);
-		waitForJobsToComplete();	    
 	}
 
 	/**
@@ -150,8 +145,6 @@ public class AJDTUtilsTest extends UITestCase {
 		assertTrue("projectA2 should have manifest editor for project A2",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
 						.getPartName().equals("PluginWithView"));
-		deleteProject(projectA1);
-		deleteProject(projectA2);
 		resetPluginEnvironment();
 	}
 
@@ -199,8 +192,6 @@ public class AJDTUtilsTest extends UITestCase {
 		waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
-
-		deleteProject(projectY);
 	}
 
 	private String checkDependencyType(IJavaProject projectToHaveDependency,

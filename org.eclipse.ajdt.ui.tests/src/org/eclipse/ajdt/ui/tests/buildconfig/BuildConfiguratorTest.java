@@ -52,20 +52,6 @@ public class BuildConfiguratorTest extends UITestCase {
 
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		if (ajProject != null) {
-			deleteProject(ajProject);			
-		}
-		if (javaProject != null) {
-			deleteProject(javaProject);			
-		}
-		waitForJobsToComplete();
-	}
-
 	private void setupSandboxSourceFolder() throws Exception {
 		IFolder src = ajProject.getFolder("testSrcPath");
 		if (!src.exists()) {

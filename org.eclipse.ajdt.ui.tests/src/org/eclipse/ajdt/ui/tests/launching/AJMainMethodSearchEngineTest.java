@@ -61,7 +61,6 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		waitForJobsToComplete();
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
-		deleteProject(project);
 	}
 	
 }

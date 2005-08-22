@@ -43,14 +43,6 @@ public class ContentAssistTest extends UITestCase {
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
 		fProject = createPredefinedProject("CodeCompletionTestArea");
 	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(fProject);
-	}
 	
 	public void testContentAssistA() throws JavaModelException{
 		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj");

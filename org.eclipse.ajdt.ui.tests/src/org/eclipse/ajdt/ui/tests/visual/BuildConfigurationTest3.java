@@ -84,11 +84,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Bean Example");
-		try {
-			testForDefaultBuildFile(project);
-		} finally {
-			deleteProject(project);
-		}
+		testForDefaultBuildFile(project);
 	}
 
 	/**
@@ -127,11 +123,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 
 		IProject project = getProject("Introduction Example");
-		try {
-			testForDefaultBuildFile(project);
-		} finally {
-			deleteProject(project);
-		}		
+		testForDefaultBuildFile(project);
 	}
 	/**
 	 * Test the Observer Example project
@@ -158,11 +150,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Observer Example");
-		try {
-			testForDefaultBuildFile(project);
-		} finally {
-			deleteProject(project);
-		}	
+		testForDefaultBuildFile(project);
 	}
 	
 	/**
@@ -189,21 +177,17 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Spacewar Example");
-		try {
-			assertTrue("Should have created a project", project.exists());	
-			
-			// Test that the correct build files have been created and the default build file has not been created
-			IFile buildFile = (IFile)project.findMember("debug." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'debug' build configuration file", buildFile.exists());
-			
-			buildFile = (IFile)project.findMember("demo." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'demo' build configuration file", buildFile.exists());
-			
-			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
-			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
-		} finally {
-			deleteProject(project);
-		}	
+		assertTrue("Should have created a project", project.exists());	
+		
+		// Test that the correct build files have been created and the default build file has not been created
+		IFile buildFile = (IFile)project.findMember("debug." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'debug' build configuration file", buildFile.exists());
+		
+		buildFile = (IFile)project.findMember("demo." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'demo' build configuration file", buildFile.exists());
+		
+		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 	}
 
 	/**
@@ -241,20 +225,15 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 
 		IProject project = getProject("Telecom Example");
-		try {
-			
-			// Test that the correct build files have been created and the default build file has not been created
-			IFile buildFile = (IFile)project.findMember("billing." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'billing' build configuration file", buildFile.exists());
-			
-			buildFile = (IFile)project.findMember("timing." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'timing' build configuration file", buildFile.exists());
-			
-			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
-			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
-		} finally {
-			deleteProject(project);
-		}	
+		// Test that the correct build files have been created and the default build file has not been created
+		IFile buildFile = (IFile)project.findMember("billing." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'billing' build configuration file", buildFile.exists());
+		
+		buildFile = (IFile)project.findMember("timing." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'timing' build configuration file", buildFile.exists());
+		
+		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 	}
 
 	/**
@@ -282,11 +261,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("TJP Example");
-		try {
-			testForDefaultBuildFile(project);
-		} finally {
-			deleteProject(project);
-		}		
+		testForDefaultBuildFile(project);
 	}
 
 	/**
@@ -313,19 +288,15 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Tracing Example");
-		try {
-			// Test that the correct build files have been created and the default build file has not been created
-			IFile buildFile = (IFile)project.findMember("notrace." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'notrace' build configuration file", buildFile.exists());
-			
-			buildFile = (IFile)project.findMember("tracev1." + BuildConfiguration.EXTENSION);		
-			assertTrue("Should have created a 'tracev1' build configuration file", buildFile.exists());
-			
-			IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
-			assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
-		} finally {
-			deleteProject(project);
-		}	
+		// Test that the correct build files have been created and the default build file has not been created
+		IFile buildFile = (IFile)project.findMember("notrace." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'notrace' build configuration file", buildFile.exists());
+		
+		buildFile = (IFile)project.findMember("tracev1." + BuildConfiguration.EXTENSION);		
+		assertTrue("Should have created a 'tracev1' build configuration file", buildFile.exists());
+		
+		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			
 	}
 
 	/**

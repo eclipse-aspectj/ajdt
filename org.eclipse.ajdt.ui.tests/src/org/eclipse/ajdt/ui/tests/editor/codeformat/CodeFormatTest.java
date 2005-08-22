@@ -40,14 +40,6 @@ public class CodeFormatTest extends UITestCase {
 		
 	}
 	
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
-	
 	public void testCodeFormat() {
 		String filename = "src/bean/BoundPoint.aj";
 		IFile sourceFile = (IFile)project.findMember(filename);

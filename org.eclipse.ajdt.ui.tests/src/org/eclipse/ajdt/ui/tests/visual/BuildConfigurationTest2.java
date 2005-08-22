@@ -93,27 +93,22 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 
 		IProject project = workspace.getRoot().getProject("Project1");
 
-		try {
-			assertTrue("Should have created a project", project.exists());	
-			
-			// Test that a build file has been created
-			IFile buildFile = checkBuildFileExists(project);
-			
-			// Test that the new build file has the correct contents
-			checkOriginalContents(buildFile);
+		assertTrue("Should have created a project", project.exists());	
+		
+		// Test that a build file has been created
+		IFile buildFile = checkBuildFileExists(project);
+		
+		// Test that the new build file has the correct contents
+		checkOriginalContents(buildFile);
 
-			// Test that adding a new folder (not source folder) does not alter the build file
-			addNewFolderAndCheckBuildFile(buildFile);
-			
-			// Test that when the new folder is added to the build path the build file updates correctly
-			addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile);
-			
-			// Test that when the new folder is removed from the build path the build file updates correctly
-			removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
-
-		} finally {
-			deleteProject(project);
-		}
+		// Test that adding a new folder (not source folder) does not alter the build file
+		addNewFolderAndCheckBuildFile(buildFile);
+		
+		// Test that when the new folder is added to the build path the build file updates correctly
+		addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile);
+		
+		// Test that when the new folder is removed from the build path the build file updates correctly
+		removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
 	}
 
 	private void addFolderToBuildPathAndCheckBuildFile(String folderName, IProject project,  IFile buildFile) throws CoreException, IOException {

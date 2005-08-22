@@ -109,8 +109,6 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(f);
 		if (unit == null)
 			fail("Compilation Unit for A.aj has not been created and inserted into the model.");
-	
-		deleteProject(project);
 	}
 
 }

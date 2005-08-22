@@ -28,16 +28,12 @@ public class Bug106813Test extends UITestCase {
 			int originalNumberOfLogEntries = logs.length;
 			IProject project = createPredefinedProject("Bean Example");
 			assertTrue("The Bean Example project should have been created", project != null);
-			try {
-				project.close(null);
-				waitForJobsToComplete();
-				assertFalse("The Bean Example project should be closed", project.isOpen());
-				// Check that no more errors have appeared in the error log
-				logs = logView.getLogs();
-				assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
-			} finally {
-				deleteProject(project);
-			}
+			project.close(null);
+			waitForJobsToComplete();
+			assertFalse("The Bean Example project should be closed", project.isOpen());
+			// Check that no more errors have appeared in the error log
+			logs = logView.getLogs();
+			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
 		}	
 	}
 	

@@ -50,7 +50,6 @@ public class BuildConfigurationFileWizardTest extends UITestCase {
 		dialog.finishPressed();
 		Collection newconfigs = pbc.getBuildConfigurations();
 		assertTrue("The new project should have two build configurations", configs.size() == 2);
-		deleteProject(testSrcProject);
 	}
 
 	

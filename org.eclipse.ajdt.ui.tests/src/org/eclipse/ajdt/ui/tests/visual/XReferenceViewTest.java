@@ -135,9 +135,6 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		// xref view should show the xreferences
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
-		
-		editorPart.close(false);
-		deleteProject(project);
 	}
 
 	public void testBug98319() throws Exception {
@@ -197,8 +194,6 @@ public class XReferenceViewTest extends VisualTestCase {
 				
 		defaultEditorPart.close(false);
 		defaultEditorPart2.close(false);
-		editorPart.close(false);
-		deleteProject(project);
 	}
 
 	private boolean xrefSourceExists(XReferenceView xrefView) {

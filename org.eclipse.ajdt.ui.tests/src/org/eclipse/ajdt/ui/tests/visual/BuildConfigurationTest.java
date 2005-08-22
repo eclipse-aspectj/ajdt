@@ -97,81 +97,77 @@ public class BuildConfigurationTest extends VisualTestCase {
 
 		IProject project = workspace.getRoot().getProject("Project1");
 
-		try {
-			assertTrue("Should have created a project", project.exists());	
-			
-			// Test that a build file has been created
-			IFile buildFile = checkBuildFileExists(project);
-			
-			// Test that the new build file has the correct contents
-			checkOriginalContents(buildFile);
+		assertTrue("Should have created a project", project.exists());	
+		
+		// Test that a build file has been created
+		IFile buildFile = checkBuildFileExists(project);
+		
+		// Test that the new build file has the correct contents
+		checkOriginalContents(buildFile);
 
-			// Create a source directory and check that the build file updates correctly
-			addNewSourceFolderAndCheckBuildFile(buildFile);
-			
-			// Create a package and a class and test that they are included in the build
-			addNewPackage();
-			IJavaProject jp = JavaCore.create(project);
-			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
-			PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
-			packageExplorer.setFocus();
-			packageExplorer.selectAndReveal(p1);
-			addNewClass();				
-			IResource res = project.findMember("src/p1/Hello.java");
-			assertNotNull("New class Hello.java wan't created",res);
-			
-			DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
-			Image image = djlp.getImage(p1);
-			Image expected = JavaPlugin.getImageDescriptorRegistry().get(ImageDecorator.getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_PACKAGE, image.getBounds(), 0));
-			assertTrue("The new package should have a filled-in image", expected.equals(image));
-			
-			// Add a main method and run the class to test that it has been built
-			ICompilationUnit hello = p1.getCompilationUnit("Hello.java");
-			addMainMethod(hello);
-			packageExplorer.setFocus();
-			packageExplorer.selectAndReveal(hello);
+		// Create a source directory and check that the build file updates correctly
+		addNewSourceFolderAndCheckBuildFile(buildFile);
+		
+		// Create a package and a class and test that they are included in the build
+		addNewPackage();
+		IJavaProject jp = JavaCore.create(project);
+		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
+		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
+		packageExplorer.setFocus();
+		packageExplorer.selectAndReveal(p1);
+		addNewClass();				
+		IResource res = project.findMember("src/p1/Hello.java");
+		assertNotNull("New class Hello.java wan't created",res);
+		
+		DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
+		Image image = djlp.getImage(p1);
+		Image expected = JavaPlugin.getImageDescriptorRegistry().get(ImageDecorator.getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_PACKAGE, image.getBounds(), 0));
+		assertTrue("The new package should have a filled-in image", expected.equals(image));
+		
+		// Add a main method and run the class to test that it has been built
+		ICompilationUnit hello = p1.getCompilationUnit("Hello.java");
+		addMainMethod(hello);
+		packageExplorer.setFocus();
+		packageExplorer.selectAndReveal(hello);
 
-			postKeyDown(SWT.ALT);
-			postKey('r');	
-			postKeyUp(SWT.ALT);
+		postKeyDown(SWT.ALT);
+		postKey('r');	
+		postKeyUp(SWT.ALT);
+		postKey('s');
+		if(!runningEclipse31) {
 			postKey('s');
-			if(!runningEclipse31) {
-				postKey('s');
-				postKey(SWT.ARROW_RIGHT);
-				postKey(SWT.ARROW_DOWN);
-			}		
+			postKey(SWT.ARROW_RIGHT);
 			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.CR);
-			
-			waitForJobsToComplete();
-			ConsoleView cview = null;
-			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
-			for (int i = 0; i < views.length; i++) {
-				if (views[i].getView(false) instanceof ConsoleView) {
-					cview = (ConsoleView)views[i].getView(false);
-				}
+		}		
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.CR);
+		
+		waitForJobsToComplete();
+		ConsoleView cview = null;
+		IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		for (int i = 0; i < views.length; i++) {
+			if (views[i].getView(false) instanceof ConsoleView) {
+				cview = (ConsoleView)views[i].getView(false);
 			}
-			assertNotNull("Console view should be open", cview);
-			String output = null;
-			IPage page = cview.getCurrentPage();
-			Class cl = page.getClass();
-			try {
-				Method m = cl.getMethod("getConsoleViewer", new Class[0]);
-				Object o = m.invoke(page, new Object[0]);
-				TextViewer viewer = (TextViewer)o;
-				output = viewer.getDocument().get();
-			} catch (NoSuchMethodException nsme) {
-				// We are on Eclipse 3.1
-				Method m = cl.getMethod("getViewer", new Class[0]);
-				Object o = m.invoke(page, new Object[0]);
-				TextViewer viewer = (TextViewer)o;
-				output = viewer.getDocument().get();
-			}
-			assertNotNull(output);
-			assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
-		} finally {
-			deleteProject(project);
 		}
+		assertNotNull("Console view should be open", cview);
+		String output = null;
+		IPage page = cview.getCurrentPage();
+		Class cl = page.getClass();
+		try {
+			Method m = cl.getMethod("getConsoleViewer", new Class[0]);
+			Object o = m.invoke(page, new Object[0]);
+			TextViewer viewer = (TextViewer)o;
+			output = viewer.getDocument().get();
+		} catch (NoSuchMethodException nsme) {
+			// We are on Eclipse 3.1
+			Method m = cl.getMethod("getViewer", new Class[0]);
+			Object o = m.invoke(page, new Object[0]);
+			TextViewer viewer = (TextViewer)o;
+			output = viewer.getDocument().get();
+		}
+		assertNotNull(output);
+		assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
 	}
 
 	/**

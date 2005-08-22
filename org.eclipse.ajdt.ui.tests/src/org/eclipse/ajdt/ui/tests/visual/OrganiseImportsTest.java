@@ -31,94 +31,89 @@ public class OrganiseImportsTest extends VisualTestCase {
 	public void testOrganiseImports() throws Exception {
 		IProject project = createPredefinedProject("Bean Example");
 		assertTrue("The Bean Example project should have been created", project != null);
-		try {
-			IFile boundPoint = (IFile)project.findMember("src/bean/BoundPoint.aj");
-			assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null );
-			openFileInDefaultEditor(boundPoint, true);
-			final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(boundPoint);
-			assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2);
-			waitForJobsToComplete();			
-			
-			// Organise imports and test that the file is correct
-			organiseImports(cUnit, 3);			
-			
-			// Add an unused import
-			gotoLine(19);
-			postString("import java.io.File;");
-			postKey(SWT.CR);
-			
-			// Post Ctrl+S to save the file
-			postKeyDown(SWT.CTRL);
-			postKey('s');
-			postKeyUp(SWT.CTRL);
-			
-			// Wait for the save to be processed
-			new DisplayHelper() {
-				protected boolean condition() {
-					try {					
-						IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-						return problemMarkers.length == 1;
-					} catch (CoreException e) {
-					}
-					return false;
+		IFile boundPoint = (IFile)project.findMember("src/bean/BoundPoint.aj");
+		assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null );
+		openFileInDefaultEditor(boundPoint, true);
+		final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(boundPoint);
+		assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2);
+		waitForJobsToComplete();			
+		
+		// Organise imports and test that the file is correct
+		organiseImports(cUnit, 3);			
+		
+		// Add an unused import
+		gotoLine(19);
+		postString("import java.io.File;");
+		postKey(SWT.CR);
+		
+		// Post Ctrl+S to save the file
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
+		
+		// Wait for the save to be processed
+		new DisplayHelper() {
+			protected boolean condition() {
+				try {					
+					IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+					return problemMarkers.length == 1;
+				} catch (CoreException e) {
 				}
-			
-			}.waitForCondition(display, 5000);
+				return false;
+			}
+		
+		}.waitForCondition(display, 5000);
 
-			// Check that there is an unused import in the file
-			IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-			assertTrue("BoundPoint.aj should have one problem", problemMarkers.length == 1);
-			assertTrue("BoundPoint.aj should have four imports", cUnit.getImports().length == 4);
-			
-			organiseImports(cUnit, 3);
+		// Check that there is an unused import in the file
+		IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+		assertTrue("BoundPoint.aj should have one problem", problemMarkers.length == 1);
+		assertTrue("BoundPoint.aj should have four imports", cUnit.getImports().length == 4);
+		
+		organiseImports(cUnit, 3);
 
-			// Add an import requirement - pointcut p2(): call(* File.*(..));
-			gotoLine(65);
-			postKey(SWT.TAB);
-			postString("pointcut p2");
-			postKeyDown(SWT.SHIFT);
-			postString("90; ");
-			postKeyUp(SWT.SHIFT);
-			postString("call");
-			postKeyDown(SWT.SHIFT);
-			postString("98 ");
-			postKeyUp(SWT.SHIFT);
-			postString("ByteArrayInputStream.");
-			postKeyDown(SWT.SHIFT);
-			postString("89");
-			postKeyUp(SWT.SHIFT);
-			postString("..");
-			postKeyDown(SWT.SHIFT);
-			postString("00");
-			postKeyUp(SWT.SHIFT);	
-			postString(";");		
-			postKey(SWT.DEL); // delete the extra bracket eclipse added
-			postKey(SWT.CR);			
-			
-			// Post Ctrl+S to save the file
-			postKeyDown(SWT.CTRL);
-			postKey('s');
-			postKeyUp(SWT.CTRL);
-			
-			// Wait for the save to be processed
-			new DisplayHelper() {
-				protected boolean condition() {
-					try {					
-						IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-						return problemMarkers.length == 1;
-					} catch (CoreException e) {
-					}
-					return false;
+		// Add an import requirement - pointcut p2(): call(* File.*(..));
+		gotoLine(65);
+		postKey(SWT.TAB);
+		postString("pointcut p2");
+		postKeyDown(SWT.SHIFT);
+		postString("90; ");
+		postKeyUp(SWT.SHIFT);
+		postString("call");
+		postKeyDown(SWT.SHIFT);
+		postString("98 ");
+		postKeyUp(SWT.SHIFT);
+		postString("ByteArrayInputStream.");
+		postKeyDown(SWT.SHIFT);
+		postString("89");
+		postKeyUp(SWT.SHIFT);
+		postString("..");
+		postKeyDown(SWT.SHIFT);
+		postString("00");
+		postKeyUp(SWT.SHIFT);	
+		postString(";");		
+		postKey(SWT.DEL); // delete the extra bracket eclipse added
+		postKey(SWT.CR);			
+		
+		// Post Ctrl+S to save the file
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
+		
+		// Wait for the save to be processed
+		new DisplayHelper() {
+			protected boolean condition() {
+				try {					
+					IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
+					return problemMarkers.length == 1;
+				} catch (CoreException e) {
 				}
-			
-			}.waitForCondition(display, 5000);
-			
-			organiseImports(cUnit, 4);
-			
-		} finally {
-			waitForJobsToComplete();
-			deleteProject(project);
-		}
+				return false;
+			}
+		
+		}.waitForCondition(display, 5000);
+		
+		organiseImports(cUnit, 4);
+
 	}
 
 	private void organiseImports(final ICompilationUnit cUnit, final int expectedImports) throws JavaModelException, CoreException {

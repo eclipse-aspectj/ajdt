@@ -42,12 +42,5 @@ public abstract class AbstractTestCase extends UITestCase {
 		waitForJobsToComplete();
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(myProject);
-	}
 
 }

@@ -31,11 +31,6 @@ public class AdviceMarkersTest extends UITestCase {
 		//Utils.waitForJobsToComplete();
 		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 2);
 	}
-	
-	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(myProject);
-	}
+
 	
 }

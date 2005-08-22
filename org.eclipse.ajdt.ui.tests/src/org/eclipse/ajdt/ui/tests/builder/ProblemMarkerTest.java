@@ -37,14 +37,6 @@ public class ProblemMarkerTest extends UITestCase {
 		super.setUp();
 		myProject = createPredefinedProject("Simple AJ Project");
 	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(myProject);
-	}
 	
 	public void testMarkerIsNotRemoved() throws CoreException {
 		IFile f = myProject.getFile("src/p1/Main.java");

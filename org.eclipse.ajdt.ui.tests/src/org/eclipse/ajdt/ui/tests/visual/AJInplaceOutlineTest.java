@@ -28,11 +28,6 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		super.setUp();
 		project = createPredefinedProject("Simple AJ Project");
 	}
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	public void testBug80239() {
 		IResource res = project.findMember("src/p2/Aspect.aj");

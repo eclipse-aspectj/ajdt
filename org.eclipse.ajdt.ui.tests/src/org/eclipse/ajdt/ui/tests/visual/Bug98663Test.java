@@ -84,66 +84,62 @@ public class Bug98663Test extends VisualTestCase {
 			IFolder src = project.getFolder("src");
 			assertFalse("Should not have found a folder called src", src.exists());
 			
-			try {
-				// Add a source folder		
-				postKeyDown(SWT.ALT);
-				postKeyDown(SWT.SHIFT);
-				postKey('n');
-				postKeyUp(SWT.SHIFT);
-				postKeyUp(SWT.ALT);
+			// Add a source folder		
+			postKeyDown(SWT.ALT);
+			postKeyDown(SWT.SHIFT);
+			postKey('n');
+			postKeyUp(SWT.SHIFT);
+			postKeyUp(SWT.ALT);
+			
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.CR);
+			
+			r = new Runnable() {					
+				public void run() {
+					sleep();
+					postString("src");
+					postKey(SWT.CR);
+				}
+			};
+			new Thread(r).start();	
+			waitForJobsToComplete();
+			src = project.getFolder("src");
+			assertTrue("Should have found a folder called src", src.exists());
+			
+			// Add a package		
+			postKeyDown(SWT.ALT);
+			postKeyDown(SWT.SHIFT);
+			postKey('n');
+			postKeyUp(SWT.SHIFT);
+			postKeyUp(SWT.ALT);
+			
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.ARROW_DOWN);
+			postKey(SWT.CR);
+			
+			r = new Runnable() {					
+				public void run() {
+					sleep();
+					postString("p1");
+					postKey(SWT.CR);
+				}
+			};
+			new Thread(r).start();	
+			waitForJobsToComplete();
+			IJavaProject jp = JavaCore.create(project);
+			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
+			assertTrue("Should have created a package called p1", p1.exists());
+			
+			// Check that no more errors have appeared in the error log
+			logs = logView.getLogs();
+			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
 				
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.CR);
-				
-				r = new Runnable() {					
-					public void run() {
-						sleep();
-						postString("src");
-						postKey(SWT.CR);
-					}
-				};
-				new Thread(r).start();	
-				waitForJobsToComplete();
-				src = project.getFolder("src");
-				assertTrue("Should have found a folder called src", src.exists());
-				
-				// Add a package		
-				postKeyDown(SWT.ALT);
-				postKeyDown(SWT.SHIFT);
-				postKey('n');
-				postKeyUp(SWT.SHIFT);
-				postKeyUp(SWT.ALT);
-				
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.CR);
-				
-				r = new Runnable() {					
-					public void run() {
-						sleep();
-						postString("p1");
-						postKey(SWT.CR);
-					}
-				};
-				new Thread(r).start();	
-				waitForJobsToComplete();
-				IJavaProject jp = JavaCore.create(project);
-				IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
-				assertTrue("Should have created a package called p1", p1.exists());
-				
-				// Check that no more errors have appeared in the error log
-				logs = logView.getLogs();
-				assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
-				
-			} finally {
-				deleteProject(project);
-			}				
 		} else {
 			fail("Could not find the Error log.");
 		}

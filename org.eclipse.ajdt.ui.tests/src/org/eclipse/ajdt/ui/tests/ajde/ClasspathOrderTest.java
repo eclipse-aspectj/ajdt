@@ -47,13 +47,6 @@ public class ClasspathOrderTest extends UITestCase {
 		project = createPredefinedProject("ClasspathOrdering");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
 	
 	public void testClasspathOrder() throws Exception {
 		assertFalse(

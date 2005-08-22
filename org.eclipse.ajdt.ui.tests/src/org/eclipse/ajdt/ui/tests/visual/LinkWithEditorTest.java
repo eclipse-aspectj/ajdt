@@ -49,7 +49,6 @@ public class LinkWithEditorTest extends VisualTestCase {
 		super.tearDown();
 		// reset link with editor to what it was when test started
 		packageExplorer.setLinkingEnabled(linkWithEditorSet);
-		deleteProject(project);
 	}
 	
 	public void testPackageExplorerSelection() {

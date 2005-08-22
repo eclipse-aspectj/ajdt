@@ -32,46 +32,43 @@ public class Bug100018Test extends VisualTestCase {
 	public void testBug100018() throws Exception {
 		// must be a Java project
 		IProject project = createPredefinedProject("project.java.Y");
-		try {
-			IFile javaFile = (IFile) project
-					.findMember("src/internal/stuff/MyBuilder.java");
-			IEditorPart editor = openFileInDefaultEditor(javaFile, true);
-			int numEditors = countOpenEditors();
-			assertTrue("There should only be one open editor", numEditors == 1);
+		IFile javaFile = (IFile) project
+				.findMember("src/internal/stuff/MyBuilder.java");
+		IEditorPart editor = openFileInDefaultEditor(javaFile, true);
+		int numEditors = countOpenEditors();
+		assertTrue("There should only be one open editor", numEditors == 1);
 
-			IJavaProject jp = JavaCore.create(project);
-			assertNotNull("Java project is null", jp);
-			IJavaElement elem = jp.findElement(new Path(
-					"internal/stuff/MyBuilder.java"), null);
-			assertNotNull("Couldn't find IJavaElement for MyBuilder.java", elem);
+		IJavaProject jp = JavaCore.create(project);
+		assertNotNull("Java project is null", jp);
+		IJavaElement elem = jp.findElement(new Path(
+				"internal/stuff/MyBuilder.java"), null);
+		assertNotNull("Couldn't find IJavaElement for MyBuilder.java", elem);
 
-			Runnable r = new Runnable() {
-				public void run() {
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException e) {
-					}
-					postKey(SWT.ARROW_RIGHT); // deselect hilighted text
-					postKey('2'); // new name should now be MyBuilder2
-					postKey(SWT.CR);
+		Runnable r = new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
 				}
-			};
-			new Thread(r).start();
+				postKey(SWT.ARROW_RIGHT); // deselect hilighted text
+				postKey('2'); // new name should now be MyBuilder2
+				postKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
 
-			// create the rename action, and pass it the IJavaElement
-			RenameAction rename = new RenameAction(editor.getSite());
-			StructuredSelection selection = new StructuredSelection(elem);
-			rename.run(selection);
+		// create the rename action, and pass it the IJavaElement
+		RenameAction rename = new RenameAction(editor.getSite());
+		StructuredSelection selection = new StructuredSelection(elem);
+		rename.run(selection);
 
-			// bug 100018: the rename operation caused the editor to close
-			numEditors = countOpenEditors();
-			assertFalse("Bug 100018: Rename operation caused editor to close",
-					numEditors == 0);
-			assertTrue("Wrong number of open editors: expected 1, found "
-					+ numEditors, numEditors == 1);
-		} finally {
-			deleteProject(project);
-		}
+		// bug 100018: the rename operation caused the editor to close
+		numEditors = countOpenEditors();
+		assertFalse("Bug 100018: Rename operation caused editor to close",
+				numEditors == 0);
+		assertTrue("Wrong number of open editors: expected 1, found "
+				+ numEditors, numEditors == 1);
+
 	}
 
 	private int countOpenEditors() {
