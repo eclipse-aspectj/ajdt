@@ -54,6 +54,20 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		return TYPE;
 	}
 
+	public PointcutElement[] getPointcuts() throws JavaModelException {
+		// pointcuts are implemented as methods
+		IMethod[] methods = getMethods();
+		List list = new ArrayList();
+		for (int i = 0; i < methods.length; i++) {
+			if (methods[i] instanceof PointcutElement) {
+				list.add(methods[i]);
+			}
+		}
+		PointcutElement[] array= new PointcutElement[list.size()];
+		list.toArray(array);
+		return array;
+	}
+	
 	//TODO: forward call to ElementInfo (only for cosmetical reasons)
 	public Kind getAJKind() throws JavaModelException  {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
