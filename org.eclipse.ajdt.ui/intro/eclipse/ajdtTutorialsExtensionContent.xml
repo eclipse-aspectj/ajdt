@@ -2,8 +2,8 @@
 <introContent>
   <!-- Extension to the Eclispe SDK Tutorials Page. -->
   <extensionContent 
-	alt-style="intro/eclipse/css/ajdt.properties" 
-	style="intro/eclipse/css/ajdtTutorials.css" 
+	alt-style="css/ajdt.properties" 
+	style="css/ajdtTutorials.css" 
 	path="tutorials/page-content/jdtAnchor">
     
 	<group 

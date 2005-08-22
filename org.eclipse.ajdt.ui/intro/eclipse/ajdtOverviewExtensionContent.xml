@@ -2,8 +2,8 @@
 <introContent>
   <!-- Extension to the Eclipse SDK Overview Page. -->
   <extensionContent 
-		alt-style="intro/eclipse/css/ajdt.properties" 
-		style="intro/eclipse/css/ajdtOverview.css" 
+		alt-style="css/ajdt.properties" 
+		style="css/ajdtOverview.css" 
 		path="overview/page-content/overview-links/jdtAnchor">
     
 		<link 

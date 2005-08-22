@@ -2,8 +2,8 @@
 <introContent>
   <!-- Extension to the Eclipse SDK Samples Page. -->
   <extensionContent 
-		alt-style="intro/eclipse/css/ajdt.properties" 
-		style="intro/eclipse/css/ajdtSamples.css" 
+		alt-style="css/ajdt.properties" 
+		style="css/ajdtSamples.css" 
 		path="samples/page-content/workbench/workbenchGroupAnchor">
     
 		<group label="AspectJ" id="aspectj" style-id="samples-group">
