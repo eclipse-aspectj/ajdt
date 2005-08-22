@@ -9,14 +9,16 @@
  ******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.ras;
 
+import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.contribution.xref.ras.PluginFFDC;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.contribution.xref.ras.PluginFFDC;
 
 public aspect XRefUIFFDC extends PluginFFDC {
 
 	public pointcut ffdcScope () :
-		within(org.eclipse.contribution.xref..*);
+		within(org.eclipse.contribution.xref..*)
+		&& !within(XReferenceInplaceDialog); // Ignore programming by exception cases to avoid spurious errors in the log
 		
     protected String getPluginId () {
     	return XReferenceUIPlugin.PLUGIN_ID;
