@@ -7,9 +7,9 @@
 	<topic label="Development Environment Guide">
 		<link toc="toc_ajdevguide.xml" />		
 	</topic>
-	<topic label="The AspectJ 5 Developer's Notebook">
+	<!--<topic label="The AspectJ 5 Developer's Notebook">
 		<link toc="toc_adk15notebook.xml" />		
-	</topic>
+	</topic>-->
 	<topic label="API Documentation" href="doc/api/index.html"/>
 	<topic label="README for v1.5.0" href="doc/README-150.html"/>
 	<topic label="FAQ" href="doc/faq.html"/>
