@@ -3,8 +3,23 @@ Welcome pages testing
 
 (1) Show the welcome pages (Help > Welcome)
 
-(2) for each of the four sections (Overview, samples, tutorial, whats new) follow
-    all the links and check that they still make sense. (WELCOME_1)
+(2) Open up the Overview section - check that the icons appear next to the 
+    AspectJ/AJDT entries, that the links work, that the links make sense
+    and that the wording is still correct (WELCOME_1)
     
+(2) Open up the Tutorials section - check that the icons appear next to the 
+    AspectJ/AJDT entries, that the links work, that the links make sense
+    and that the wording is still correct. (WELCOME_2)
+    
+(2) Open up the Samples section - check that the icons appear next to the 
+    AspectJ/AJDT entry, that the links work, that the links make sense
+    and that the wording is still correct. Clicking on the samples should
+    bring up the dialog to access the AspectJ Examples (WELCOME_3)
+
+(2) Open up the Whats new section - check that the icons appear next to the 
+    AspectJ/AJDT entry, that the links work, that the links make sense
+    and that the wording is still correct, in particular, that the whats
+    new is pointing to this release (WELCOME_4)
+
 NB - if the "what's new" link doesn't work, or doesn't reference the latest "New and Noteworthy"
 then need to change link in org.eclipse.ajdt.ui/intro/ajdtNewsExtensionContext.xml    
