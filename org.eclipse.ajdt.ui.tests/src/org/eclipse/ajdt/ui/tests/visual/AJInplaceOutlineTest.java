@@ -10,7 +10,6 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

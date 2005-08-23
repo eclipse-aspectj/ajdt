@@ -11,7 +11,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.Iterator;
 
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;

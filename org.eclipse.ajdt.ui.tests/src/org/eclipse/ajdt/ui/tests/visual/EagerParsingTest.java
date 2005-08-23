@@ -15,7 +15,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

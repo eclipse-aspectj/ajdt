@@ -11,11 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

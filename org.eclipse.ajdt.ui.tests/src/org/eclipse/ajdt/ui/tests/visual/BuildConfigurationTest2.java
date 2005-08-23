@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
