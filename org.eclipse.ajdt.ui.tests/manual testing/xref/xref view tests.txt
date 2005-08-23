@@ -218,4 +218,156 @@ Test for bug 103001
 - open the cross references view
 - check that there are no "go back" and "go forward" buttons
   on the taskbar
-  							(XREF_VIEW_31)  							
+  							(XREF_VIEW_31)
+
+Test Cross References Filter
+----------------------------
+
+Test Exclude
+------------
+
+- Open the Cross References View, ('Window > Show View > Other... > AspectJ > Cross References').
+- Open the Spacewar Example project
+- If it is not already, activate the demo build configuration
+- Open the Display1.aj file from within the spacewar package, in an editor window
+- Navigate to line 64, (some after advice)
+- If necessary, in the Cross References View, deselect the 'Show the cross references for the entire file'
+  button on the toolbar
+- The Cross References View should now have a tree like this:
+
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_VIEW_32)
+  							
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- A 'Cross References Filter' dialog should appear
+  							(XREF_VIEW_33)
+
+- In the presented dialog, de-select any relationships that are checked
+- Check the 'advises' relationship checkbox and click OK
+- The Cross References View should now have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_VIEW_34)
+
+Test Include
+------------
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, the 'advises' relationship checkbox should be checked
+  							(XREF_VIEW_36)
+  							
+- Uncheck the 'advises' relationship checkbox and click OK
+- The Cross References View should now have a tree like this:
+
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_VIEW_37)
+
+Test Persistence of Filters
+---------------------------
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, press 'Select All' and click OK
+- The Cross References View should now have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_VIEW_38)
+
+- Close and reopen Eclipse
+- Navigate to Display1.aj and line 64
+- The Cross References View should still have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_VIEW_39)
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, all filters checkboxes should be checked
+  							(XREF_VIEW_40)
+
+- Click de-select all and click OK
+
+- The Cross References View should now have a tree like this:
+
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_VIEW_41)
+
+Test Exclusion of single filter
+---------------------------
+
+- Navigate to Display1.aj and line 64
+- Select the 'Show the cross references for the entire file' button on the toolbar
+- The Cross References View should now have a tree like this:
+
+  (C) Display1
+   |- paintObjects(Graphics)
+   |   |- method-call(...
+   |	   |->> advised by
+   |		   |- Coordinator.before():...
+   |		   |- Coordinator.after():...
+   |- (A) SpaceObjectPainting
+	   |- SpaceObject.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) SpaceObject
+	   |- Ship.color
+	   |   |->> declared on
+	   |	   |- (C) Ship
+	   |- afterReturning(Pilot)
+	   |   |->>  advises
+	   |	   |- Game: ...
+	   |	   |- Game: ...
+	   |	   |- Game: ...
+	   |	   |- Robot: ...
+	   |- Ship.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) Ship
+	   |- Bullet.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) Bullet
+	   |- EnergyPacket.paint(Graphics)
+		   |->> declared on
+			   |- (C) EnergyPacket
+  							(XREF_VIEW_42)
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, check the 'declared on' checkbox and click OK
+- The Cross References View should now have a tree like this:
+
+  (C) Display1
+   |- paintObjects(Graphics)
+   |   |- method-call(...
+   |	   |->> advised by
+   |		   |- Coordinator.before():...
+   |		   |- Coordinator.after():...
+   |- (A) SpaceObjectPainting
+	   |- afterReturning(Pilot)
+	       |->>  advises
+	    	   |- Game: ...
+	    	   |- Game: ...
+	    	   |- Game: ...
+	    	   |- Robot: ...
+  							(XREF_VIEW_43)
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, uncheck the 'declared on' checkbox and click OK
+- The Cross References View should now have a tree like the one checked in (XREF_VIEW_42).
+  							(XREF_VIEW_44)
