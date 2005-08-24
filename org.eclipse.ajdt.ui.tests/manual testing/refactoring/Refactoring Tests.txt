@@ -1,27 +1,34 @@
 Refactoring Tests
 ---------------------
 
-1. Rename file extensions for individual files
+Test1 - Rename file extensions for individual files
+---------------------------------------------------
 
  a.	Right click on a .java file in one of your AspectJ projects and then click
     “Convert file extension to .aj”.  Check that the file extension changes
-    correctly. (REF_1)
+    correctly.
+				(REF_1)
  b.	Right click on a .aj file in one of your AspectJ projects and then click
     “Convert file extension to .java”.  Check that the extension changes correctly.
-    (REF_2)
+				(REF_2)
 
-2. Rename file extensions for multiple files
+Test2 - Rename file extensions for multiple files
+-------------------------------------------------
 
  a.	Right click on two or more .java files in one of your AspectJ projects and
     then click “Convert file extension to .aj”.  Check that the file extensions
-    change correctly. (REF_3)
+    change correctly.
+				(REF_3)
  b.	Right click on two or more .aj file in one of your AspectJ projects and then
     click “Convert file extension to .java”.  Check that the extensions change
-    correctly. (REF_4)
+    correctly.
+				(REF_4)
  c.	Right click on a selection of two or more files with different extensions and
-    ensure that you see neither of the above actions in the menu. (REF_5)
+    ensure that you see neither of the above actions in the menu.
+				(REF_5)
 
-3. Rename excluded files
+Test3 - Rename excluded files
+-----------------------------
 
  a.	Right click on a couple of files and click “Exclude from ‘…’ configuration”.
  b.	Open the active configuration in the editor and ensure that the files are
@@ -29,49 +36,72 @@ Refactoring Tests
  c.	Right click on the selection again and convert the file extensions.  Ensure
     that the build configuration updates correctly.  Repeat to change the
     extensions back and ensure that the configuration updates correctly again.
-    (REF_6)
+				(REF_6)
 
-4. Rename file extensions for a whole project.
+Test4 - Rename file extensions for a whole project
+--------------------------------------------------
 
- a.	Right click on one of your AspectJ projects, then click “Convert file
-    extensions…”.  
- b.	Select “Convert all extensions to .java” and click ‘OK’.  Ensure that all
-    source files in that project have their extensions changed correctly. (REF_7)
- c.	Repeat step a, then select “Convert all extensions to .aj” and click ‘OK’. 
-    Ensure that all source files in that project have their extensions changed
-    correctly. (REF_8)
- d.	Exclude some of your files from the build configuration.  (Right click on some
-    of the files and click ‘Exclude from current build configuration).  Repeat steps
-    a-c both with the “Include files not included in the active build
-    configuration” checkbox checked.  Ensure that all files are renamed as expected
-    and the build configurations update correctly. (REF_9)
- e.	Repeat step d with the “Include files not included in the active build
-    configuration” checkbox unchecked.  Ensure that all files are renamed as
-    expected. (REF_10)
- f.	Repeat step d with the “Update all build configurations” checkbox unchecked.
-    Ensure that the build configurations do not change. (REF_11)
-  
-5. bug 92482: Rename of .aj file fails in package explorer
+ a.	Import an example AJ project such as 'Spacewar Example'. Right click on the project
+	and select 'AspectJ Tools > Convert File Extensions...'
+ b.	In the presented dialog, select 'Convert all extensions to .java' - Click OK.
+	Ensure that all source files in that project have had their extensions changed to .java.
+				(REF_7)
+				
+ c.	Repeat step a, then select 'Convert all extensions to .aj - Click OK.
+	Ensure that all source files in that project have their extensions changed to .aj.
+				(REF_8)
+				
+ d.	Exclude some of your files from the build configuration, (Right click on a selection
+	of files and select 'AspectJ Tools > Exclude from ### Configuration').
+	Repeat steps a-c both with the:
+		"Include files not included in the active build configuration”
+		- Checkbox CHECKED in the "Convert File Extensions" dialog
+	Ensure that ALL file extensions are changed.
+    			(REF_9)
+    			
+	Ensure that the build configurations update correctly.
+    			(REF_10)
+    			
+ e.	Repeat step d with the:
+		"Include files not included in the active build configuration"
+		- Checkbox UNCHECKED in the "Convert File Extensions" dialog
+	Ensure that the files excluded from the build configuration remain unchanged but the
+	included files are renamed as expected.
+  				(REF_11)
+  				
+	Ensure that the build configurations update correctly.
+  				(REF_12)
+  				
+ f.	Repeat step d with the:
+		“Update all build configurations”
+		- Checkbox UNCHECKED in the "Convert File Extensions" dialog
+	Ensure that the build configurations do not change.
+  				(REF_13)
+
+Test5 - Bug 92482: Rename of .aj file fails in package explorer
+---------------------------------------------------------------
 
  a. Install the Bean Example
  b. Expand the Bean Example in the package explorer
- c. Right click on "BoundPoint.aj" to bring up the context menu
- d. Select "Rename..." which apppears under "Refactor" (not the rename
-    in the "Refactor > Rename..." menu)
- e. A "Rename Resource" dialog appears (REF_12)
- f. Choose to rename BoundPoint.aj to BoundPoint1.aj.
- g. Click "OK"
- h. The file should be renamed correctly (REF_13)
- i. Right click on Point.java
- j. There should be no "Rename..." option on the context menu
-    other thaan "Refactor > Rename...". (REF_14)
- k. Undo the .aj filter (click the drop down menu in the package
-    explorer and click filters. Uncheck .aj resource fitler).
- l. Click on the BoundPoint.aj node which doesn't have any
-    sub nodes (in the package explorer).
- m. There should be no "Rename..." option on the context menu
-    other thaan "Refactor > Rename...". (REF_15)         
-    
+ c. Right click on "BoundPoint.aj" to bring up the Context Menu
+ d. Select: 'Context Menu > Rename...' NOT 'Context Menu > Refactor > Rename...'
+ e. A "Rename Resource" dialog appears with “BoundPoint.aj” in the editable text field
+				(REF_14)
+				
+ f. Choose to rename “BoundPoint.aj” to “BoundPoint1.aj” and click "OK"
+ g. The file should be renamed correctly
+				(REF_15)
+				
+ h. Right click on Point.java
+ i. This should be the only rename option available - 'Context Menu > Refactor > Rename...'
+				(REF_16)
+				
+ j. Undo the .aj filter (click the drop down menu in the package explorer and click filters.
+	Uncheck .aj resource filter).
+ k. Click on the BoundPoint.aj node which doesn't have any sub nodes (in the package explorer).
+ l. There should be no "Rename..." option on the context menu other than "Refactor > Rename...".
+				(REF_17)
+
 NOTE: this is not a clever rename - it just renames the file. It doesn't
       rename any references etc. and if the file is excluded from the
       active build configuration then the .ajproperties file isn't 
