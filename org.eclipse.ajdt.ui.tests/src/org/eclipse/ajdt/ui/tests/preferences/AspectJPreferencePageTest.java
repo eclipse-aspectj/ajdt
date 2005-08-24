@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.preferences;
 
-import junit.framework.TestCase;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -36,7 +36,7 @@ class LocalAspectJPreferencePage extends AspectJPreferencePage {
  * @author gharley
  *  
  */
-public class AspectJPreferencePageTest extends TestCase {
+public class AspectJPreferencePageTest extends UITestCase {
 
     LocalAspectJPreferencePage prefPage;
 

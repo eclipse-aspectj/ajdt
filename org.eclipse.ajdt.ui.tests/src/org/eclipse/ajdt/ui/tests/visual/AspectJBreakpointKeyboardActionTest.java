@@ -13,7 +13,6 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -41,15 +40,7 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
-	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
+		project = createPredefinedProject("Simple AJ Project");
 	}
 	
 	public void testSetBreakpoint(){
@@ -68,18 +59,18 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	
 	public void breakpointSetTest(IFile sourcefile){
 		
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(sourcefile, false);
+		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		//toggling breakpoint on line 18 should add it
 		setBreakpoint(18, true, sourcefile, editorPart);		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		//toggling breakpoint on line 18 should remove it agin
 		setBreakpoint(18, true, sourcefile, editorPart);		
-		Utils.waitForJobsToComplete();			
+		waitForJobsToComplete();			
 		
 		editorPart.close(false);
 	}
@@ -106,9 +97,9 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	private void postCtrlShiftB(DisplayHelper dh) {
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKeyDown('b');
+		postKeyDown('b');
 		dh.waitForCondition(Display.getCurrent(), 5000);
-		postCharacterKeyUp('b');
+		postKeyUp('b');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);	
 	}

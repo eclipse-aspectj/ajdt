@@ -10,7 +10,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -26,12 +26,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
-	}
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
+		project = createPredefinedProject("Simple AJ Project");
 	}
 	
 	public void testBug80239() {
@@ -42,10 +37,10 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open Aspect.aj and select the pointcut
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(17);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// open inplace outline view
 		openInplaceDialog(null);
@@ -116,7 +111,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	private void shutdownViewWithEscape(AJOutlineInformationControl infoControl) {
 		final AJOutlineInformationControl info = infoControl;
 		// press esc
-		postCharacterKey(SWT.ESC);
+		postKey(SWT.ESC);
 		
 		// wait until the shell is null
 		new DisplayHelper() {
@@ -134,7 +129,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	private void openInplaceDialog(AJOutlineInformationControl previousDialog) {
 		final AJOutlineInformationControl info = previousDialog;
 		postKeyDown(SWT.CTRL);
-		postCharacterKey('o');
+		postKey('o');
 		postKeyUp(SWT.CTRL);
 		
 		new DisplayHelper() {

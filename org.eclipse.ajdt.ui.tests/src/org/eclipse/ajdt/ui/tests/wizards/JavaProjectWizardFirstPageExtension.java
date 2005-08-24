@@ -422,8 +422,7 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 
 	private String fInitialName;
 	
-	private static final String PAGE_NAME= NewWizardMessages.getString("JavaProjectWizardFirstPage.page.pageName"); //$NON-NLS-1$
-
+	
 	/**
 	 * Create a new <code>SimpleProjectFirstPage</code>.
 	 */

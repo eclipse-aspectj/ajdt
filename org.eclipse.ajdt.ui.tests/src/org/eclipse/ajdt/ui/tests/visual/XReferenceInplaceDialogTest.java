@@ -11,7 +11,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.Iterator;
 
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
@@ -19,7 +18,6 @@ import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
@@ -36,22 +34,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = Utils.createPredefinedProject("bug102865");
+		project = createPredefinedProject("bug102865");
 	}
 
 	protected void tearDown() throws Exception {
-		super.tearDown();
-		if(editor != null) {
-			editor.close(false);
-		}
 		project.refreshLocal(5, null);
-		Utils.deleteProject(project);
+		super.tearDown();
 	}
-	
 
-
-
-	public void testKeyDrivenMenuPopUp() throws CoreException {
+	public void testKeyDrivenMenuPopUp() {
 		IResource res = project.findMember("src/pack/A.aj");
 		if (res == null || !(res instanceof IFile)) {
 			fail("src/pack/A.aj file not found.");
@@ -59,15 +50,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open Aspect.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		//Opens the inplace view menu
 		postKeyDown(SWT.CTRL);
@@ -87,18 +78,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		} 
 		IFile ajFile = (IFile)res;
 
-		editor = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editor = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editor.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		// get the filter action
 		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		checkProvidersAgree(xrefAction);
 
@@ -112,23 +103,23 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		return xrefAction;
 	}
 	
-	public void testSelectAll() throws CoreException {
+	public void testSelectAll() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 		
@@ -143,18 +134,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		}
 	}
 	
-	public void testDeselectAll() throws CoreException {
+	public void testDeselectAll() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 				
@@ -170,18 +161,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// Reset to have all filters selected
 	}
 	
-	public void testRestoreDefaults() throws CoreException {
+	public void testRestoreDefaults() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 						
@@ -195,18 +186,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 
 	// CheckedList should now be empty
-	public void testChecking() throws CoreException {
+	public void testChecking() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
-		postCharacterKey(SWT.CR);
+		postKey(' ');
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 						
@@ -220,18 +211,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	}
 	
 	// CheckedList should now have first three items checked.  Uncheck these...
-	public void testUnChecking() throws CoreException {
+	public void testUnChecking() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
-		postCharacterKey(SWT.CR);
+		postKey(' ');
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 						
@@ -243,27 +234,26 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			}
 		}
 	}
-	
 
 	// CheckedList should now be empty
-	public void testCancelDoesNotUpdate() throws CoreException {
+	public void testCancelDoesNotUpdate() {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
 
 		// In the filter dialog
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(' ');
+		postKey(' ');
 
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		checkProvidersAgree(xrefAction);
 						
@@ -284,11 +274,11 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open Aspect.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// open inplace xref view
 		XReferenceInplaceDialog dialog = openInplaceXRef(null);
@@ -296,7 +286,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		shutdownViewWithEscape(dialog);
 		
 		editorPart.close(false);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 	}
 	
@@ -308,11 +298,11 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		IFile ajFile = (IFile)res;
 
 		// open Aspect.aj and select the pointcut
-		final ITextEditor editorPart = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editorPart.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
@@ -392,7 +382,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		editorPart.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		// open and get hold of the new inplace xref view
 		final XReferenceInplaceDialog dialog3 = openInplaceXRef(dialog2);
 		
@@ -451,18 +441,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		} 
 		IFile ajFile = (IFile)res;
 
-		editor = (ITextEditor)Utils.openFileInAspectJEditor(ajFile, false);
+		editor = (ITextEditor)openFileInAspectJEditor(ajFile, false);
 		editor.setFocus();
 		gotoLine(8);
 		moveCursorRight(8);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		// get the filter action
 		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
-		Utils.waitForJobsToComplete();	
+		waitForJobsToComplete();	
 		
 		checkProvidersAgree(xrefAction);
 
@@ -476,17 +466,17 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 
 		// In the filter dialog navigate to the
 		// ok button and press return
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.TAB);
-		postCharacterKey(SWT.CR);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.TAB);
+		postKey(SWT.CR);
 				
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// if the inplace dialog has the focus after the filter has been
 		// shutdown then posting an 'f' will filter out the contents of
@@ -495,8 +485,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// of bug 102140 then the character will be posted to the editor.
 		assertEquals("inplace dialog should have one main tree node",1,dialog.getTreeViewer().getTree().getItemCount());
 		
-		postCharacterKey('f');
-		Utils.waitForJobsToComplete();
+		postKey('f');
+		waitForJobsToComplete();
 
 		assertEquals("the contents of the inplace dialog should have been filtered out",0,dialog.getTreeViewer().getTree().getItemCount());
 		
@@ -545,7 +535,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	private void shutdownViewWithEscape(XReferenceInplaceDialog xrefDialog) {
 		final XReferenceInplaceDialog dialog = xrefDialog;
 		// press esc
-		postCharacterKey(SWT.ESC);
+		postKey(SWT.ESC);
 		
 		// wait a few secs
 		new DisplayHelper() {
@@ -596,7 +586,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('x');
+		postKey('x');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		

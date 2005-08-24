@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsolePage;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -34,46 +33,41 @@ public class OutjarLaunchingTest extends VisualTestCase {
 	private String outputStringStart = "p1 =";
 	
 	public void testLaunchingWithAnOutJar() throws Exception {
-		IProject project = Utils.createPredefinedProject("Outjar Example");
+		IProject project = createPredefinedProject("Outjar Example");
 		assertTrue("The Outjar Example project should have been created", project != null);
-		try {
-			IJavaProject jp = JavaCore.create(project);
-			String outJar = AspectJCorePreferences.getProjectOutJar(project);
-			assertTrue("The Outjar Example project should have an outjar", outJar != null && outJar.equals("bean.jar"));
-			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("bean");
-			ICompilationUnit demo = p1.getCompilationUnit("Demo.java");
-			PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
-			packageExplorer.setFocus();
-			packageExplorer.selectAndReveal(demo);
-	
-			// Run as AspectJ/Java Application
-			postKeyDown(SWT.ALT);
-			postCharacterKey('r');	
-			postKeyUp(SWT.ALT);
-			postCharacterKey('s');
-			postCharacterKey('s');
-			postKey(SWT.ARROW_RIGHT);
-			postCharacterKey(SWT.CR);
-			
-			Utils.waitForJobsToComplete();
-			ConsoleView cview = null;
-			IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
-			for (int i = 0; i < views.length; i++) {
-				if (views[i].getView(false) instanceof ConsoleView) {
-					cview = (ConsoleView)views[i].getView(false);
-				}
+		IJavaProject jp = JavaCore.create(project);
+		String outJar = AspectJCorePreferences.getProjectOutJar(project);
+		assertTrue("The Outjar Example project should have an outjar", outJar != null && outJar.equals("bean.jar"));
+		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("bean");
+		ICompilationUnit demo = p1.getCompilationUnit("Demo.java");
+		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
+		packageExplorer.setFocus();
+		packageExplorer.selectAndReveal(demo);
+
+		// Run as AspectJ/Java Application
+		postKeyDown(SWT.ALT);
+		postKey('r');	
+		postKeyUp(SWT.ALT);
+		postKey('s');
+		postKey('s');
+		postKey(SWT.ARROW_RIGHT);
+		postKey(SWT.CR);
+
+		waitForJobsToComplete();
+		ConsoleView cview = null;
+		IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		for (int i = 0; i < views.length; i++) {
+			if (views[i].getView(false) instanceof ConsoleView) {
+				cview = (ConsoleView)views[i].getView(false);
 			}
-			assertNotNull("Console view should be open", cview);
-			String output = null;
-			ProcessConsolePage page = (ProcessConsolePage) cview.getCurrentPage();
-			TextViewer viewer = page.getConsoleViewer();
-			output = viewer.getDocument().get();
-			assertNotNull(output);
-			assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
-		} finally {
-			project.refreshLocal(2, null);
-			Utils.deleteProject(project);			
 		}
+		assertNotNull("Console view should be open", cview);
+		String output = null;
+		ProcessConsolePage page = (ProcessConsolePage) cview.getCurrentPage();
+		TextViewer viewer = page.getConsoleViewer();
+		output = viewer.getDocument().get();
+		assertNotNull(output);
+		assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
 	}
 	
 }

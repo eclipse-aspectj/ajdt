@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,27 +7,33 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Luzius Meisser  - initial version
+ *     Sian January  - initial version
  *******************************************************************************/
 
-package org.eclipse.ajdt.ui.tests.testutils;
+package org.eclipse.ajdt.ui.tests;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import junit.framework.TestCase;
+
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
@@ -38,16 +44,38 @@ import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 
+
 /**
- * Provides useful utils when writing test cases.
- * 
- * @author Luzius Meisser
+ * Superclass for all the UI tests, with several utility methods
  */
-public class Utils{
-	
-	
+public abstract class UITestCase extends TestCase {
+
 	public static final String TEST_PROJECTS_FOLDER = "/workspace";
 
+	public UITestCase(String name) {
+		super(name);
+	}
+	
+	public UITestCase() {
+		super();
+	}
+
+	protected void setUp() throws Exception {
+		super.setUp();
+		AllUITests.setupAJDTPlugin();
+	}
+	
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		waitForJobsToComplete();
+		closeAllEditors();
+		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < allProjects.length; i++) {
+			IProject project = allProjects[i];
+			deleteProject(project);
+		}
+	}
+	
 	/**
 	 * Imports a specified project from the "test projects" folder.
 	 * 
@@ -56,8 +84,8 @@ public class Utils{
 	 * @return The requested project if successfully imported, null otherwise
 	 * @throws CoreException
 	 */
-	public static IProject createPredefinedProject(String projectName) throws CoreException{
-		Utils.waitForJobsToComplete();
+	protected IProject createPredefinedProject(String projectName) throws CoreException{
+		waitForJobsToComplete();
 		
 		File sourceDir;
 		sourceDir = new File(AspectJTestPlugin.getPluginDir() + TEST_PROJECTS_FOLDER + "/" + projectName);
@@ -89,13 +117,13 @@ public class Utils{
 			project.open(null);
 		}
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		return project;
 	}
 
-	public static void deleteProject(IProject project) {
+	protected void deleteProject(IProject project) {
 		// make sure nothing is still using the project
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		try {
 			// perform the delete
@@ -107,13 +135,13 @@ public class Utils{
 		}
 		
 		// make sure delete has finished
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
-	
+
 	/**
 	 * Opens a file in its associated editor.
 	 */
-	public static IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
+	protected IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
 		if (file != null) {
 			IWorkbenchPage p= JavaPlugin.getActivePage();
 			if (p != null) {
@@ -128,11 +156,10 @@ public class Utils{
 		return null;
 	}
 
-	
 	/**
-	 * Opens a file in its associated editor.
+	 * Opens a file in the AspectJ editor
 	 */
-	public static IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
+	protected IEditorPart openFileInAspectJEditor(IFile file, boolean activate){
 		if (file != null) {
 			IWorkbenchPage p= JavaPlugin.getActivePage();
 			if (p != null) {
@@ -146,8 +173,8 @@ public class Utils{
 		}
 		return null;
 	}
-	
-	private static void initializeHighlightRange(IEditorPart editorPart) {
+
+	private void initializeHighlightRange(IEditorPart editorPart) {
 		if (editorPart instanceof ITextEditor) {
 			IAction toggleAction= editorPart.getEditorSite().getActionBars().getGlobalActionHandler(ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY);
 			if (toggleAction != null && toggleAction.isEnabled() && toggleAction.isChecked()) {
@@ -165,12 +192,12 @@ public class Utils{
 			}
 		}
 	}
-	
-	public static void waitForJobsToComplete(){
+
+	protected void waitForJobsToComplete(){
 		SynchronizationUtils.joinBackgroudActivities();
 	}
 
-	public static void setUpPluginEnvironment() {
+	protected void setUpPluginEnvironment() {
 		// set the project up so that when asked, the pde plugin
 		// is added automatically and the preference configurations
 		// have all been set up (therefore don't need user
@@ -183,7 +210,7 @@ public class Utils{
 		AspectJPreferences.setPDEAutoRemoveImportConfigDone(true);
 	}
 
-	public static void resetPluginEnvironment() {
+	protected void resetPluginEnvironment() {
 		IPreferenceStore ps = AspectJUIPlugin.getDefault().getPreferenceStore();
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT);
@@ -191,6 +218,31 @@ public class Utils{
 		ps.setToDefault(AspectJPreferences.PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE);
 		ps.setToDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT);
 		ps.setToDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT);
+	}
+
+	/**
+	 * Closes all open editors without saving
+	 */
+	protected void closeAllEditors() {
+		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+		for (int i = 0; i < editors.length; i++) {
+			IEditorPart editor = editors[i].getEditor(false);
+			if(editor instanceof ITextEditor) {
+				((ITextEditor)editor).close(false);
+			}
+		}
+	}
+
+	protected IMarker[] getMarkers(IResource resource) throws Exception {
+		if (resource instanceof IFile)
+			return resource.findMarkers(
+					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
+					IResource.DEPTH_INFINITE);
+		else {
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+			return root.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+					true, IResource.DEPTH_INFINITE);
+		}
 	}
 
 }

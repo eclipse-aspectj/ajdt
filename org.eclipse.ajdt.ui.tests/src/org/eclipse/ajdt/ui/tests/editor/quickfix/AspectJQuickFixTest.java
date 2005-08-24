@@ -12,15 +12,11 @@
 
 package org.eclipse.ajdt.ui.tests.editor.quickfix;
 
-import junit.framework.TestCase;
-
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
@@ -32,7 +28,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author Matt Chapman
  */
-public class AspectJQuickFixTest extends TestCase {
+public class AspectJQuickFixTest extends UITestCase {
 
 	IProject project;
 
@@ -41,15 +37,7 @@ public class AspectJQuickFixTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("QuickFix");
-	}
-
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
+		project = createPredefinedProject("QuickFix");
 	}
 
 	public void testJavaQuickFix() throws Exception {
@@ -62,13 +50,13 @@ public class AspectJQuickFixTest extends TestCase {
 
 	public void QuickFixTest(IFile sourcefile) throws Exception {
 
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
+		ITextEditor editorPart = (ITextEditor) openFileInDefaultEditor(
 				sourcefile, false);
 
 		//wait for annotation model to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
-		IMarker[] markers = getMarkers(sourcefile, editorPart);
+		IMarker[] markers = getMarkers(sourcefile);
 
 		assertTrue("Didn't find any Java model markers", markers.length > 0);
 
@@ -110,19 +98,6 @@ public class AspectJQuickFixTest extends TestCase {
 			return (AbstractMarkerAnnotationModel) model;
 		}
 		return null;
-	}
-
-	protected IMarker[] getMarkers(IResource resource, ITextEditor editor)
-			throws Exception {
-		if (resource instanceof IFile)
-			return resource.findMarkers(
-					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
-					IResource.DEPTH_INFINITE);
-		else {
-			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-			return root.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-					true, IResource.DEPTH_INFINITE);
-		}
 	}
 
 }

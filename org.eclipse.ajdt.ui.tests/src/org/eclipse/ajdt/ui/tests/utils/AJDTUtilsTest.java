@@ -12,16 +12,12 @@
 package org.eclipse.ajdt.ui.tests.utils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -40,7 +36,7 @@ import org.eclipse.pde.internal.ui.editor.plugin.ManifestEditor;
  * @author hawkinsh
  * 
  */
-public class AJDTUtilsTest extends TestCase {
+public class AJDTUtilsTest extends UITestCase {
 
 	/*
 	 * @see TestCase#setUp()
@@ -58,33 +54,32 @@ public class AJDTUtilsTest extends TestCase {
 
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
-		Utils.setUpPluginEnvironment();
-		IProject testPluginProject = Utils.createPredefinedProject("Hello World Java Plugin");
-		Utils.waitForJobsToComplete();
+		setUpPluginEnvironment();
+		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin");
+		waitForJobsToComplete();
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.addAspectJNature(testPluginProject.getProject());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("Plugin project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertTrue("Plugin should now import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.removeAspectJNature(testPluginProject.getProject());
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("Plugin should not import AJDE plugin",
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature",
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		Utils.deleteProject(testPluginProject);
-		Utils.resetPluginEnvironment();
+		resetPluginEnvironment();
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
-		IProject testProject = Utils.createPredefinedProject("project.java.Y");
+		IProject testProject = createPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(testProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
@@ -99,8 +94,6 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();
 	}
 	
 	/**
@@ -110,9 +103,9 @@ public class AJDTUtilsTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testBug93532() throws Exception {
-		IProject testProject = Utils.createPredefinedProject("bug93532");
+		IProject testProject = createPredefinedProject("bug93532");
 		IJavaProject jY = JavaCore.create(testProject);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
@@ -127,8 +120,6 @@ public class AJDTUtilsTest extends TestCase {
 		assertFalse("Java project should not have AspectJ Nature",
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();	    
 	}
 
 	/**
@@ -137,14 +128,14 @@ public class AJDTUtilsTest extends TestCase {
 	 * 
 	 */
 	public void testGetPDEManifestEditor() throws Exception {
-		Utils.setUpPluginEnvironment();
+		setUpPluginEnvironment();
 		// know that the plugin id of this is HelloWorld
-		IProject projectA1 = Utils.createPredefinedProject("Hello World Java Plugin");
-		Utils.waitForJobsToComplete();
+		IProject projectA1 = createPredefinedProject("Hello World Java Plugin");
+		waitForJobsToComplete();
 		
 		// know that the plugin id for this is PluginWithView
-		IProject projectA2 = Utils.createPredefinedProject("PluginWithView");
-		Utils.waitForJobsToComplete();
+		IProject projectA2 = createPredefinedProject("PluginWithView");
+		waitForJobsToComplete();
 
 		assertTrue("projectA1 should have manifest editor for project A1",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
@@ -152,9 +143,7 @@ public class AJDTUtilsTest extends TestCase {
 		assertTrue("projectA2 should have manifest editor for project A2",
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
 						.getPartName().equals("PluginWithView"));
-		Utils.deleteProject(projectA1);
-		Utils.deleteProject(projectA2);
-		Utils.resetPluginEnvironment();
+		resetPluginEnvironment();
 	}
 
 	// Do not delete this test - if we ever change the way we deal with 
@@ -162,20 +151,20 @@ public class AJDTUtilsTest extends TestCase {
 	// We now longer change project dependencies in this way, so test removed
 //	public void testChangeProjectToClassDependencies() throws Exception {
 //		JavaTestProject jtp1 = new JavaTestProject("JavaTestProject1");
-//		Utils.waitForJobsToComplete();
+//		waitForJobsToComplete();
 //		JavaTestProject jtp2 = new JavaTestProject("JavaTestProject2");
-//		Utils.waitForJobsToComplete();
+//		waitForJobsToComplete();
 //		// this ensures a src folder is created.
 //		jtp2.getSourceFolder();
-//		Utils.waitForJobsToComplete();
-//		ProjectDependenciesUtils.addProjectDependency(jtp1.getJavaProject(),
+//		waitForJobsToComplete();
+//		ProjectDependenciesaddProjectDependency(jtp1.getJavaProject(),
 //				jtp2.getProject());
-//		Utils.waitForJobsToComplete();
+//		waitForJobsToComplete();
 //		assertTrue("test project 1 has a project dependency on test project 2",
 //				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
 //						.equals("project"));
-//		AJDTUtils.changeProjectDependencies(jtp2.getProject());
-//		Utils.waitForJobsToComplete();
+//		AJDTchangeProjectDependencies(jtp2.getProject());
+//		waitForJobsToComplete();
 //		assertTrue(
 //				"test project 1 has a class folder dependency on test project 2",
 //				checkDependencyType(jtp1.getJavaProject(), jtp2.getProject())
@@ -185,53 +174,22 @@ public class AJDTUtilsTest extends TestCase {
 //	}
 
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		IProject projectY = Utils.createPredefinedProject("project.java.Y");
+		IProject projectY = createPredefinedProject("project.java.Y");
 		IJavaProject jY = JavaCore.create(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 		AspectJUIPlugin.addAjrtToBuildPath(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		assertTrue("project.java.Y should have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
 
 		AspectJUIPlugin.removeAjrtFromBuildPath(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path",
 				hasAjrtOnBuildPath(jY));
-
-		Utils.deleteProject(projectY);
-	}
-
-	private String checkDependencyType(IJavaProject projectToHaveDependency,
-			IProject projectDependedOn) {
-		try {
-			IClasspathEntry[] cpEntry = projectToHaveDependency
-					.getRawClasspath();
-			for (int i = 0; i < cpEntry.length; i++) {
-				IClasspathEntry entry = cpEntry[i];
-				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT
-						&& entry.getPath().equals(
-								projectDependedOn.getFullPath())) {
-					return "project";
-				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					List outputLocationPaths = CoreUtils
-							.getOutputLocationPaths(projectDependedOn);
-					for (Iterator iterator = outputLocationPaths.iterator(); iterator
-							.hasNext();) {
-						IPath path = (IPath) iterator.next();
-						if (entry.getPath().equals(path)) {
-							return "classfolder";
-						}
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
-		return "none";
 	}
 
 	private boolean hasAjrtOnBuildPath(IJavaProject javaProject) {
@@ -249,19 +207,6 @@ public class AJDTUtilsTest extends TestCase {
 		}
 		return false;
 	}
-
-	// private void addImportToPDEModel(IPluginModel model, String importId)
-	// throws CoreException {
-	//
-	// IPluginImport importNode = model.getPluginFactory().createImport();
-	// importNode.setId(importId);
-	// model.getPluginBase().getImports();
-	// model.getPluginBase().add(importNode);
-	//
-	// IFile manifestFile = (IFile) model.getUnderlyingResource();
-	// manifestFile.refreshLocal(IResource.DEPTH_INFINITE, null);
-	// Utils.waitForJobsToComplete();
-	// }
 
 	private boolean hasDependencyOnAJDE(IProject project) {
 		ManifestEditor manEd = AJDTUtils

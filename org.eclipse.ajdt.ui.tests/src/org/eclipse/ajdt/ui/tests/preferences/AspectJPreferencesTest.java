@@ -17,8 +17,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
@@ -26,8 +24,8 @@ import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesUtils;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -49,7 +47,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
  * methods in BuildOptionsAdapter are tested when options are set in both
  * these ways.
  */
-public class AspectJPreferencesTest extends TestCase {
+public class AspectJPreferencesTest extends UITestCase {
 
 	IProject project;
 	IJavaProject jp;
@@ -61,7 +59,7 @@ public class AspectJPreferencesTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 		jp = JavaCore.create(project);
 
 		prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();
@@ -79,7 +77,6 @@ public class AspectJPreferencesTest extends TestCase {
 		super.tearDown();
 		prefStore = null;
 		projectNode = null;
-		Utils.deleteProject(project);
 	}
 
 	public void testBuildConfigSetting() throws Exception {
@@ -94,7 +91,7 @@ public class AspectJPreferencesTest extends TestCase {
 		pbc.addBuildConfiguration(bc);
 		pbc.setActiveBuildConfiguration(bc);
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		// active config should now have been written to .settings file
 		IResource res = project.findMember(".settings");
@@ -443,12 +440,12 @@ public class AspectJPreferencesTest extends TestCase {
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
 	    AspectJPreferences.setCompilerOptions(project,"blah");
 	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-	    Utils.waitForJobsToComplete();
+	    waitForJobsToComplete();
 	    assertTrue("build should fail because can't understand compiler options",
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
 	    AspectJPreferences.setCompilerOptions(project,"");
 	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-	    Utils.waitForJobsToComplete();
+	    waitForJobsToComplete();
 	    assertFalse("project shouldn't have any error markers",
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));    
 	}

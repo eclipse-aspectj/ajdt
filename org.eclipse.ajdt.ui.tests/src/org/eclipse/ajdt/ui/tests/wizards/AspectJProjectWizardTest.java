@@ -15,13 +15,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardSecondPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -36,7 +34,7 @@ import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 
-public class AspectJProjectWizardTest extends TestCase {
+public class AspectJProjectWizardTest extends UITestCase {
 
 	private File testDestinationFile;
 	private File testSrcFile;
@@ -108,7 +106,7 @@ public class AspectJProjectWizardTest extends TestCase {
 	 */
 	public void testProjectWizardPerformFinish() throws Exception {
 
-		IProject testSrcProject = Utils.createPredefinedProject("SourceProject1");
+		IProject testSrcProject = createPredefinedProject("SourceProject1");
 		IJavaProject javaProject = JavaCore.create(testSrcProject);
 		int ID = 1;
 		String pDestinationName = "NotVisible" + ID;
@@ -164,12 +162,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		
 		assertTrue("An incorrect file has been created during the discovery of the project",
 				newlyFoundProject.findMember(wrongFile) == null);
-		
-		Utils.deleteProject(testSrcProject);
-		Utils.deleteProject(wizardCreatedProject);
-		Utils.deleteProject(newlyFoundProject);
-	
-		Utils.waitForJobsToComplete();
 	}
 
 	/**
@@ -236,8 +228,6 @@ public class AspectJProjectWizardTest extends TestCase {
 		dialog.setBlockOnOpen(false);
 		dialog.create();
 		dialog.open();
-		JavaProjectWizardFirstPage curPage = (JavaProjectWizardFirstPage) dialog
-				.getCurrentPage();
 		dialog.finishPressed();
 		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);

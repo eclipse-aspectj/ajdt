@@ -11,11 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.actions;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
@@ -27,7 +25,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 /**
  * @author gharley
  */
-public class AddAJNatureActionTest extends TestCase {
+public class AddAJNatureActionTest extends UITestCase {
 
     // Lets create a new Java project, check its nature and then
     // convert it to an AspectJ project. Another check of its nature should
@@ -37,19 +35,10 @@ public class AddAJNatureActionTest extends TestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-		testProject = Utils.createPredefinedProject("project.java.Y");
-		Utils.waitForJobsToComplete();
+		testProject = createPredefinedProject("project.java.Y");
+		waitForJobsToComplete();
 
     }
-
-    /*
-	 * @see TestCase#tearDown()
-	 */
-    protected void tearDown() throws Exception {
-        super.tearDown();
-		Utils.deleteProject(testProject);
-		Utils.waitForJobsToComplete();
-	}
 
     public void testAddsAJNature() throws CoreException {
         // Ensure that we are starting with a Java project.	

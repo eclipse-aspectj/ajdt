@@ -13,13 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -34,7 +32,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
  * via right click > preferences. Where appropriate, the methods in
  * BuildOptionsAdapter are tested when options are set in both these ways.
  */
-public class BuildOptionsAdapterTest extends TestCase {
+public class BuildOptionsAdapterTest extends UITestCase {
 
 	IProject project;
 
@@ -49,7 +47,7 @@ public class BuildOptionsAdapterTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project");
 		jp = JavaCore.create(project);
 
 		prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();
@@ -67,7 +65,6 @@ public class BuildOptionsAdapterTest extends TestCase {
 		super.tearDown();
 		prefStore = null;
 		projectNode = null;
-		Utils.deleteProject(project);
 	}
 
 	public void testGetNonStandardOptionsViaWorkbenchPreferences()

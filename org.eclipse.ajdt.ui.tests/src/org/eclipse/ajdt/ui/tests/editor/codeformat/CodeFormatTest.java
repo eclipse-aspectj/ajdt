@@ -10,10 +10,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.editor.codeformat;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -28,7 +26,7 @@ import org.eclipse.ui.texteditor.TextOperationAction;
 /**
  * @author Linton Ye
  */
-public class CodeFormatTest extends TestCase {
+public class CodeFormatTest extends UITestCase {
 	IProject project;
 	
 	/*
@@ -36,16 +34,8 @@ public class CodeFormatTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("CodeFormat");
+		project = createPredefinedProject("CodeFormat");
 		
-	}
-	
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
 	}
 	
 	public void testCodeFormat() {
@@ -53,18 +43,17 @@ public class CodeFormatTest extends TestCase {
 		IFile sourceFile = (IFile)project.findMember(filename);
 		if(sourceFile==null) fail("Cannot open file:"+filename);
 
-		ITextEditor editorPart = (ITextEditor)Utils.openFileInDefaultEditor(
-				(IFile)sourceFile, true);
-		Utils.waitForJobsToComplete();
+		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(sourceFile, true);
+		waitForJobsToComplete();
 		
 		IDocument document = editorPart.getDocumentProvider().getDocument(
 				editorPart.getEditorInput());
 		formatEditor(editorPart);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// save the buffer		
 		editorPart.doSave(null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		verifyDoc1(document);
 		verifyDoc2(document);
@@ -78,7 +67,7 @@ public class CodeFormatTest extends TestCase {
 		} catch (CoreException e) {
 			fail("building failed.");
 		}
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	}
 
 

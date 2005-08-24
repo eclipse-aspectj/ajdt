@@ -20,7 +20,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 
 import org.eclipse.ajdt.exports.AJAntScript;
 import org.eclipse.ajdt.exports.AJCTask;
@@ -30,7 +30,7 @@ import org.eclipse.core.runtime.Platform;
  * Basic test for the AJC task to test that the xml produced contains the
  * correct tags
  */
-public class AJCTaskTest extends TestCase {
+public class AJCTaskTest extends UITestCase {
 
 	private static final String srcdirEntry = "srcdirectory";
 

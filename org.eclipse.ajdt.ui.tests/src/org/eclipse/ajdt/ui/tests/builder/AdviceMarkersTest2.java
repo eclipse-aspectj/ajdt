@@ -15,10 +15,8 @@ package org.eclipse.ajdt.ui.tests.builder;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -28,7 +26,7 @@ import org.eclipse.core.resources.IResource;
  * 
  * @author Matt Chapman
  */
-public class AdviceMarkersTest2 extends TestCase {
+public class AdviceMarkersTest2 extends UITestCase {
 
 	private IProject project;
 
@@ -126,16 +124,9 @@ public class AdviceMarkersTest2 extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("MarkersTest");
+		project = createPredefinedProject("MarkersTest");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
-	}
 
 	public void testMarkers() throws Exception {
 		String filename = "src/tjp/Demo.java";

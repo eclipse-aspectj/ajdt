@@ -10,20 +10,14 @@ Matt Chapman - initial version
 **********************************************************************/
 package org.eclipse.ajdt.ui.tests.utils;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.ui.wizards.NewAspectCreationWizardPage;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 
-public class NewAspectUtilsTest extends TestCase {
-
-	private IProject project;
-	private IResource resource;
+public class NewAspectUtilsTest extends UITestCase {
 
 
 	/**
-	 * Constructor for AJDTUtilsTest.
+	 * Constructor for AJDTest.
 	 * @param name
 	 */
 	public NewAspectUtilsTest(String name) {

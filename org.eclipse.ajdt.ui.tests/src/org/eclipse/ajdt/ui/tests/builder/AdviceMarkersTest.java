@@ -9,35 +9,28 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
 /**
  * Test advice markers are added correctly
  */
-public class AdviceMarkersTest extends TestCase {
+public class AdviceMarkersTest extends UITestCase {
 
 	private IProject myProject;
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = Utils.createPredefinedProject("Simple AJ Project");
+		myProject = createPredefinedProject("Simple AJ Project");
 	}
 	
 	public void testMarkersAreAdded() throws Exception {
 		//myProject.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
-		//Utils.waitForJobsToComplete();
+		//waitForJobsToComplete();
 		assertTrue("Simple AJ Project should contain 4 advice markers after building", myProject.findMarkers(IAJModelMarker.ADVICE_MARKER, true,IResource.DEPTH_INFINITE).length == 2);
 	}
-	
-	
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(myProject);
-	}
+
 	
 }

@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -41,7 +40,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 	public void test2() throws Exception {
 		// Open the 'New' wizard
 		postKeyDown(SWT.CTRL);		
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.CTRL);
 		
 		Runnable r = new Runnable() {
@@ -49,7 +48,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 				sleep();
 				
 				// Open the 'New AspectJ Project' wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 
 				sleep();
 				
@@ -58,27 +57,27 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		
 				// Go to the next page
 				postKeyDown(SWT.ALT);
-				postCharacterKey('n');
+				postKey('n');
 				postKeyUp(SWT.ALT);	
 				sleep();
 				
 				// Add a source folder called src
-				postCharacterKey('a');
+				postKey('a');
 				postString("src");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
-				postCharacterKey(SWT.CR);		
+				postKey(SWT.CR);		
 				sleep();
 				
 				// Complete the wizard
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
 		
 		// Wait for the project to be created
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		final IWorkspace workspace= JavaPlugin.getWorkspace();		
 		
@@ -93,27 +92,22 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 
 		IProject project = workspace.getRoot().getProject("Project1");
 
-		try {
-			assertTrue("Should have created a project", project.exists());	
-			
-			// Test that a build file has been created
-			IFile buildFile = checkBuildFileExists(project);
-			
-			// Test that the new build file has the correct contents
-			checkOriginalContents(buildFile);
+		assertTrue("Should have created a project", project.exists());	
+		
+		// Test that a build file has been created
+		IFile buildFile = checkBuildFileExists(project);
+		
+		// Test that the new build file has the correct contents
+		checkOriginalContents(buildFile);
 
-			// Test that adding a new folder (not source folder) does not alter the build file
-			addNewFolderAndCheckBuildFile(buildFile);
-			
-			// Test that when the new folder is added to the build path the build file updates correctly
-			addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile);
-			
-			// Test that when the new folder is removed from the build path the build file updates correctly
-			removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
-
-		} finally {
-			Utils.deleteProject(project);
-		}
+		// Test that adding a new folder (not source folder) does not alter the build file
+		addNewFolderAndCheckBuildFile(buildFile);
+		
+		// Test that when the new folder is added to the build path the build file updates correctly
+		addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile);
+		
+		// Test that when the new folder is removed from the build path the build file updates correctly
+		removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
 	}
 
 	private void addFolderToBuildPathAndCheckBuildFile(String folderName, IProject project,  IFile buildFile) throws CoreException, IOException {
@@ -128,12 +122,12 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKeyDown(SWT.SHIFT);
 			postKey(SWT.F10);
 			postKeyUp(SWT.SHIFT);
-			postCharacterKey('b');
-			postCharacterKey(SWT.CR);
+			postKey('b');
+			postKey(SWT.CR);
 		} else {
 			packageExplorer.tryToReveal(project);
 			postKeyDown(SWT.ALT);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			postKeyUp(SWT.ALT);
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);
@@ -148,23 +142,23 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 					postKey(SWT.ARROW_LEFT);
 					postKey(SWT.ARROW_LEFT);
 					postKey(SWT.ARROW_LEFT);
-					postCharacterKey('a');
+					postKey('a');
 					sleep();
-					postCharacterKey('s');
-					postCharacterKey('s');
-					postCharacterKey(' ');
-					postCharacterKey(SWT.CR);
+					postKey('s');
+					postKey('s');
+					postKey(' ');
+					postKey(SWT.CR);
 					sleep();
 					postKey(SWT.TAB);
 					postKey(SWT.TAB);
-					postCharacterKey(SWT.CR);
+					postKey(SWT.CR);
 					
 				}
 			};
 			new Thread(r).start();
 			
 		}	
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		try {
@@ -189,12 +183,12 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKeyDown(SWT.SHIFT);
 			postKey(SWT.F10);
 			postKeyUp(SWT.SHIFT);
-			postCharacterKey('b');
-			postCharacterKey(SWT.CR);
+			postKey('b');
+			postKey(SWT.CR);
 		} else {
 			packageExplorer.tryToReveal(project);
 			postKeyDown(SWT.ALT);
-			postCharacterKey(SWT.CR);
+			postKey(SWT.CR);
 			postKeyUp(SWT.ALT);
 			Runnable r = new Runnable() {
 				public void run() {
@@ -202,13 +196,13 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 					postKey(SWT.TAB);
 					postKey(SWT.TAB);
 					postKey(SWT.ARROW_DOWN);
-					postCharacterKey(SWT.DEL);
-					postCharacterKey(SWT.CR);					
+					postKey(SWT.DEL);
+					postKey(SWT.CR);					
 				}
 			};
 			new Thread(r).start();
 		}	
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
@@ -221,7 +215,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
@@ -235,19 +229,19 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 			postKey(SWT.ARROW_DOWN);
 			postKey(SWT.ARROW_DOWN);			
 		}
-		postCharacterKey(SWT.CR);
+		postKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
 		
 			public void run() {
 				sleep();
 				postString("src2");
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 	
 		InputStream stream = buildFile.getContents();
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));

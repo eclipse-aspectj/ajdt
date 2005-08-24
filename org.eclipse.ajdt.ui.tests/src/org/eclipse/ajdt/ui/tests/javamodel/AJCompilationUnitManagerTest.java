@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.ui.tests.javamodel;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -45,7 +44,7 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 			fail("AJCompilationUnit has not been created for Aspect.aj");
 		
 		myProject.close(null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
 			fail("AJCompilationUnit for Aspect.aj has not been disposed when project got closed.");
@@ -103,14 +102,12 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 	}
 	
 	public void testIfProjectWithoutSourceFolderWorks() throws CoreException{
-		IProject project = Utils.createPredefinedProject("WithoutSourceFolder");
-		Utils.waitForJobsToComplete();
+		IProject project = createPredefinedProject("WithoutSourceFolder");
+		waitForJobsToComplete();
 		IFile f = project.getFile("A.aj");
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(f);
 		if (unit == null)
 			fail("Compilation Unit for A.aj has not been created and inserted into the model.");
-	
-		Utils.deleteProject(project);
 	}
 
 }

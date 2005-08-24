@@ -19,7 +19,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -104,7 +104,7 @@ public class ProjectDependenciesUtils {
 
 	public static boolean projectIsMarkedWithError(IProject project,
 			String errorMessage) throws CoreException {
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		boolean projectIsMarked = false;
 
 		IMarker[] problemMarkers = project.findMarkers(IMarker.PROBLEM, false,
@@ -142,7 +142,7 @@ public class ProjectDependenciesUtils {
 			}
 		}
 
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		return projectIsMarked;
 	}
 
@@ -309,7 +309,7 @@ public class ProjectDependenciesUtils {
 	 */
 	public static boolean projectMarkedWithPrereqMessage(IProject project,
 			IProject prereqProject) {
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		try {
 			String errorMessage = "The project cannot be built until its prerequisite "
 					+ prereqProject.getName()
@@ -333,7 +333,7 @@ public class ProjectDependenciesUtils {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		} finally {
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 		}
 		return false;
 	}
@@ -352,7 +352,7 @@ public class ProjectDependenciesUtils {
 			}
 			newEntries[cpEntry.length] = newProjectEntry;
 			projectToHaveDependency.setRawClasspath(newEntries, null);
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -378,8 +378,8 @@ public class ProjectDependenciesUtils {
 			}
 			IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries.toArray(new IClasspathEntry[newEntries.size()]);
 			projectWhichHasDependency.setRawClasspath(newCP, null);
-			Utils.waitForJobsToComplete();
-			Utils.waitForJobsToComplete();
+			waitForJobsToComplete();
+			waitForJobsToComplete();
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -424,7 +424,7 @@ public class ProjectDependenciesUtils {
 	}
 	
 	public static boolean projectHasPluginDependency(IProject projectWhichHasDependency,
-			String pluginIdOfRequiredProject) throws JavaModelException {
+			String pluginIdOfRequiredProject) {
 		ManifestEditor manEd = AJDTUtils.getPDEManifestEditor(projectWhichHasDependency);
 		AJDTUtils.getAndPrepareToChangePDEModel(projectWhichHasDependency);
 		if (manEd != null) {
@@ -439,6 +439,10 @@ public class ProjectDependenciesUtils {
 		}
 
 		return false;
+	}
+	
+	private static void waitForJobsToComplete() {
+		SynchronizationUtils.joinBackgroudActivities();
 	}
 }
 

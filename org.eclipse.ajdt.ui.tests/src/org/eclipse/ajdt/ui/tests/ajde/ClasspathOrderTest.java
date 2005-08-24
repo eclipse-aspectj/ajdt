@@ -10,20 +10,14 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.ajde;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.jdt.core.IJavaModelMarker;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * This test checks that the order of entries on the classpath is preserved
@@ -37,7 +31,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author mchapman
  */
-public class ClasspathOrderTest extends TestCase {
+public class ClasspathOrderTest extends UITestCase {
 
 	IProject project;
 
@@ -46,16 +40,9 @@ public class ClasspathOrderTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("ClasspathOrdering");
+		project = createPredefinedProject("ClasspathOrdering");
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		Utils.deleteProject(project);
-	}
 	
 	public void testClasspathOrder() throws Exception {
 		assertFalse(
@@ -67,12 +54,11 @@ public class ClasspathOrderTest extends TestCase {
 		if (res == null) {
 			fail("Required file not found: " + filename);
 		}
-		ITextEditor editorPart = (ITextEditor) Utils.openFileInDefaultEditor(
-				(IFile) res, false);
-		Utils.waitForJobsToComplete();
+		openFileInDefaultEditor((IFile) res, false);
+		waitForJobsToComplete();
 
 		boolean foundError = false;
-		IMarker[] markers = getMarkers(res, editorPart);
+		IMarker[] markers = getMarkers(res);
 		for (int i = 0; !foundError && (i < markers.length); i++) {
 			IMarker m = markers[i];
 			Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
@@ -83,14 +69,14 @@ public class ClasspathOrderTest extends TestCase {
 		assertFalse("Java project has errors", foundError);
 
 		AJDTUtils.addAspectJNature(project);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("ClasspathOrdering project should now have AspectJ nature",
 				AspectJPlugin.isAJProject(project));
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 
 		foundError = false;
-		markers = getMarkers(res, editorPart);
+		markers = getMarkers(res);
 		for (int i = 0; !foundError && (i < markers.length); i++) {
 			IMarker m = markers[i];
 			Integer sev = (Integer) m.getAttribute(IMarker.SEVERITY);
@@ -100,19 +86,6 @@ public class ClasspathOrderTest extends TestCase {
 		}
 		assertFalse("AspectJ project has errors", foundError);
 
-	}
-
-	protected IMarker[] getMarkers(IResource resource, ITextEditor editor)
-			throws Exception {
-		if (resource instanceof IFile)
-			return resource.findMarkers(
-					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true,
-					IResource.DEPTH_INFINITE);
-		else {
-			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-			return root.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
-					true, IResource.DEPTH_INFINITE);
-		}
 	}
 
 }

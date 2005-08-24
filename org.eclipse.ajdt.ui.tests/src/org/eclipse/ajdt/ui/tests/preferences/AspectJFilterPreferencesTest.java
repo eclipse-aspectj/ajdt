@@ -14,11 +14,11 @@ package org.eclipse.ajdt.ui.tests.preferences;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 
-public class AspectJFilterPreferencesTest extends TestCase {
+public class AspectJFilterPreferencesTest extends UITestCase {
 
 	
 	public void setAndGetCheckedFilters(List listToSet, String identifier) {

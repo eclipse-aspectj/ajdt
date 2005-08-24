@@ -13,12 +13,10 @@ package org.eclipse.ajdt.ui.tests.wizards;
 
 import java.util.Collection;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizard;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -30,14 +28,14 @@ import org.eclipse.swt.widgets.Shell;
 /**
  * Tests for the new build configuration wizard 
  */
-public class BuildConfigurationFileWizardTest extends TestCase {
+public class BuildConfigurationFileWizardTest extends UITestCase {
 
 //	private JavaTestProject testSrcProject;
 	private IProject testSrcProject;
 	
 	public void testWizardPerformFinish() throws CoreException {
 		
-		testSrcProject = Utils.createPredefinedProject("AJ Project For BuildConfigurationTest");
+		testSrcProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(testSrcProject);
 		assertNotNull("The new project should have a build configurator", pbc);
 		Collection configs = pbc.getBuildConfigurations();
@@ -50,9 +48,7 @@ public class BuildConfigurationFileWizardTest extends TestCase {
 		dialog.create();
 		dialog.open();
 		dialog.finishPressed();
-		Collection newconfigs = pbc.getBuildConfigurations();
 		assertTrue("The new project should have two build configurations", configs.size() == 2);
-		Utils.deleteProject(testSrcProject);
 	}
 
 	
@@ -65,9 +61,9 @@ public class BuildConfigurationFileWizardTest extends TestCase {
 //
 //		// sets up the aj test project
 //		testSrcProject = new JavaTestProject("SourceProject1");
-//		Utils.waitForJobsToComplete();
-//		AJDTUtils.addAspectJNature(testSrcProject.getProject());
-//		Utils.waitForJobsToComplete();
+//		waitForJobsToComplete();
+//		AJDTaddAspectJNature(testSrcProject.getProject());
+//		waitForJobsToComplete();
 //		IPackageFragment testPackage = testSrcProject
 //				.createPackage("TestPackage");
 //

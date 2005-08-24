@@ -15,12 +15,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.search.IJavaSearchConstants;
-import org.eclipse.jdt.core.search.ITypeNameRequestor;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -29,12 +23,6 @@ import org.eclipse.ui.PlatformUI;
 // Adapted from org.eclipse.jdt.ui.tests.performance.JdtPerformanceTestCase
 public class SynchronizationUtils {
 
-	private static class Requestor implements ITypeNameRequestor {
-		public void acceptClass(char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path) {
-		}
-		public void acceptInterface(char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path) {
-		}
-	}
 		
 	public static void joinBackgroudActivities()  {
 		// Join Building
@@ -52,31 +40,6 @@ public class SynchronizationUtils {
 		joinJobs(0, 0, 500);
 	}
 
-	private static void joinIndexing() throws JavaModelException {
-		// Join indexing
-		new SearchEngine().searchAllTypeNames(
-			null,
-			null,
-			SearchPattern.R_EXACT_MATCH,
-			IJavaSearchConstants.CLASS,
-			SearchEngine.createJavaSearchScope(new IJavaElement[0]),
-			new Requestor(),
-			IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
-			null);
-	}
-
-	/* not currently used, doesn't work with 3.1M7
-	private static void joinTypesCache() {
-		// Join all types cache
-		try {
-		AllTypesCache.getTypes(SearchEngine.createJavaSearchScope(new IJavaElement[0]), 
-			IJavaSearchConstants.CLASS, new NullProgressMonitor(), new ArrayList());
-		} catch (NullPointerException e) {
-			// sometimes this NPEs, don't know why. let's ignore it
-		}		
-	}
-	*/
-	
 	private static boolean joinJobs(long minTime, long maxTime, long intervalTime) {
 		long startTime= System.currentTimeMillis() + minTime;
 		runEventQueue();

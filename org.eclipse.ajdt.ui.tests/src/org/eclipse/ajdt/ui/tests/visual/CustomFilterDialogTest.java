@@ -40,7 +40,7 @@ public class CustomFilterDialogTest extends VisualTestCase {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 
@@ -72,7 +72,7 @@ public class CustomFilterDialogTest extends VisualTestCase {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 
@@ -108,7 +108,7 @@ public class CustomFilterDialogTest extends VisualTestCase {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 
@@ -246,8 +246,8 @@ public class CustomFilterDialogTest extends VisualTestCase {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				postCharacterKey(' ');
-				postCharacterKey(SWT.CR);
+				postKey(' ');
+				postKey(SWT.CR);
 			}
 		};
 
@@ -286,8 +286,8 @@ public class CustomFilterDialogTest extends VisualTestCase {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				postCharacterKey(' ');
-				postCharacterKey(SWT.CR);
+				postKey(' ');
+				postKey(SWT.CR);
 			}
 		};
 
@@ -321,12 +321,12 @@ public class CustomFilterDialogTest extends VisualTestCase {
 					e.printStackTrace();
 				}
 //				postCharacterKey((char) SWT.ARROW_DOWN);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 
@@ -370,12 +370,12 @@ public class CustomFilterDialogTest extends VisualTestCase {
 					e.printStackTrace();
 				}
 //				postCharacterKey((char) SWT.ARROW_DOWN);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 
@@ -410,12 +410,12 @@ public class CustomFilterDialogTest extends VisualTestCase {
 					e.printStackTrace();
 				}
 //				postCharacterKey((char) SWT.ARROW_DOWN);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 

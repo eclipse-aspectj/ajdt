@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -37,7 +36,7 @@ public class OpenTypesTest extends VisualTestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = Utils.createPredefinedProject("Spacewar Example");
+		project = createPredefinedProject("Spacewar Example");
 		assertTrue("The Spacewar Example project should have been created", project != null);
 	}
 	
@@ -50,7 +49,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);
 		
@@ -60,11 +59,11 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("Display");
 				// Allow types to load
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1);
@@ -77,7 +76,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.CTRL);
 		
@@ -86,15 +85,15 @@ public class OpenTypesTest extends VisualTestCase {
 				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
 				// If GameSynchronization wasn't found pressing enter will do nothing 
 				// so we now need to press escape to exit the dialog
-				postCharacterKey(SWT.ESC);
+				postKey(SWT.ESC);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should still only be one editor open", editors.length == 1);
@@ -105,7 +104,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -114,13 +113,14 @@ public class OpenTypesTest extends VisualTestCase {
 				sleep();
 				// wait for searching
 				sleep();
+				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be two editors open", editors.length == 2);
@@ -132,7 +132,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -142,13 +142,13 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("Display");
 				sleep();
 				// Select the item under Display
-				postCharacterKey(SWT.TAB);
+				postKey(SWT.TAB);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be three editors open", editors.length == 3);
@@ -161,7 +161,7 @@ public class OpenTypesTest extends VisualTestCase {
 		// Press Ctrl+Alt+T
 		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postCharacterKey('t');
+		postKey('t');
 		postKeyUp(SWT.ALT);
 		postKeyUp(SWT.CTRL);
 		
@@ -171,14 +171,14 @@ public class OpenTypesTest extends VisualTestCase {
 				postString("SpaceObjectPainting");
 				sleep();
 				// Select Display2 in the bottom box
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be four editors open", editors.length == 4);
@@ -198,7 +198,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		postKeyDown(SWT.ALT);
 		postKeyDown(SWT.SHIFT);
-		postCharacterKey('n');
+		postKey('n');
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 		
@@ -213,32 +213,32 @@ public class OpenTypesTest extends VisualTestCase {
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.ARROW_DOWN);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
 				postString("A1");				
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(' ');
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(' ');
 				sleep();
 				postString("GameSynchronization");
 				sleep();
-				postCharacterKey(SWT.CR);
+				postKey(SWT.CR);
 				sleep();
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.TAB);
-				postCharacterKey(SWT.CR);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.TAB);
+				postKey(SWT.CR);
 			}
 		};
 		new Thread(r).start();
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1);
@@ -247,15 +247,6 @@ public class OpenTypesTest extends VisualTestCase {
 		assertTrue("There should be one import in the new file", imports.length == 1);
 		assertTrue("Should have imported GameSynchronization", imports[0].getElementName().equals("spacewar.GameSynchronization"));
 		
-	}
-	
-	/* (non-Javadoc)
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		closeAllEditors();
-		Utils.deleteProject(project);
 	}
 	
 }

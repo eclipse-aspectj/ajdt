@@ -11,11 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest.MyJobChangeListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -25,7 +23,7 @@ import org.eclipse.core.runtime.Platform;
  * @author hawkinsh
  *  
  */
-public class ProjectDependenciesTest extends TestCase {
+public class ProjectDependenciesTest extends UITestCase {
 
 	BlockingProgressMonitor monitor;
 
@@ -50,8 +48,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 * marked with a PD in the comment).
 	 */
 	public void testHowDealingWithProjectDependencies() throws Exception {
-		IProject projectY = Utils.createPredefinedProject("project.java.Y");
-		IProject projectX = Utils.createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y");
+		IProject projectX = createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
@@ -68,7 +66,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
@@ -106,7 +104,7 @@ public class ProjectDependenciesTest extends TestCase {
 		// remove AJ nature from Y and the following asserts should always be
 		// true
 		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
@@ -122,8 +120,6 @@ public class ProjectDependenciesTest extends TestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(
 						projectX, projectY));
 
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
 	}
 
 	/**
@@ -135,20 +131,20 @@ public class ProjectDependenciesTest extends TestCase {
 	 * 70288)
 	 */
 	public void testProjectDependenciesWithPluginProjects() throws Exception {
-		Utils.setUpPluginEnvironment();
+		setUpPluginEnvironment();
 		MyJobChangeListener listener = new MyJobChangeListener();
 		Platform.getJobManager().addJobChangeListener(listener);
 
 		// create two plugin projects (java)
-		IProject projectY = Utils.createPredefinedProject("java.plugin.project.Y");
-		Utils.waitForJobsToComplete();
-		IProject projectX = Utils.createPredefinedProject("java.plugin.project.X");
-		Utils.waitForJobsToComplete();
+		IProject projectY = createPredefinedProject("java.plugin.project.Y");
+		waitForJobsToComplete();
+		IProject projectX = createPredefinedProject("java.plugin.project.X");
+		waitForJobsToComplete();
 		
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD,null);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		// NB it has been setup such that java.plugin.project.X has a plugin
 		// dependency on java.plugin.project.Y
@@ -160,14 +156,12 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project ==> still no build errors
 		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project X should still not have any IJavaModelMarkers",
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
 						projectX, projectY));
 
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
-		Utils.resetPluginEnvironment();
+		resetPluginEnvironment();
 	}
 
 	/**
@@ -175,8 +169,8 @@ public class ProjectDependenciesTest extends TestCase {
 	 * various sequences - ensuring that the dependencies remain as they should
 	 */
 	public void testProjectDependencies1() throws Exception {
-		IProject projectY = Utils.createPredefinedProject("project.java.Y");
-		IProject projectX = Utils.createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y");
+		IProject projectX = createPredefinedProject("project.java.X");
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
@@ -193,7 +187,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -207,7 +201,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project X to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectX);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -221,7 +215,7 @@ public class ProjectDependenciesTest extends TestCase {
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -235,7 +229,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -249,7 +243,7 @@ public class ProjectDependenciesTest extends TestCase {
 
 		// remove AJ nature from project X		
 		AJDTUtils.removeAspectJNature(projectX);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -263,7 +257,7 @@ public class ProjectDependenciesTest extends TestCase {
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors",
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 		assertFalse("project X should build with no errors",
@@ -274,9 +268,6 @@ public class ProjectDependenciesTest extends TestCase {
 		assertFalse(
 				"project X should NOT have a class folder dependency on project Y",
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
-		
-		Utils.deleteProject(projectX);
-		Utils.deleteProject(projectY);
 	}
 
 

@@ -16,10 +16,9 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.ajdt.internal.buildconfig.Util;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
@@ -28,7 +27,7 @@ import org.eclipse.core.runtime.Path;
  * @author gharley
  *  
  */
-public class UtilTests extends TestCase {
+public class UtilTests extends UITestCase {
 
     private String pwd;
 
@@ -328,7 +327,7 @@ public class UtilTests extends TestCase {
         IPath lstFile = new Path(new File(pwd, "doesnotexist.lst")
                 .getAbsolutePath());
         try {
-            IPath result = Util.getInlinedLstFile(lstFile);
+            Util.getInlinedLstFile(lstFile);
             fail("Preceeding call should have thrown FileNotFoundException");
         } catch (FileNotFoundException e) {
             // NO OP

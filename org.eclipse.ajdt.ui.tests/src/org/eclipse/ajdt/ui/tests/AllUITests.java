@@ -47,8 +47,8 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
+import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
-import org.eclipse.ajdt.ui.tests.testutils.Utils;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.utils.NewAspectUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
@@ -73,10 +73,10 @@ public class AllUITests {
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
 		
-		// TODO: Put these back when the build machine sorts itself out
-		//suite.addTest(new TestSuite(NLSWarningsTest.class));
-		//suite.addTest(new TestSuite(Bug106813Test.class));
+		suite.addTest(new TestSuite(NLSWarningsTest.class));
+		suite.addTest(new TestSuite(Bug106813Test.class));
 		suite.addTest(new TestSuite(VerificationTest.class));
+		suite.addTest(new TestSuite(Bug106813Test.class));
 		
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
@@ -202,8 +202,12 @@ public class AllUITests {
 		} catch (PartInitException e1) {
 		}
 		
-		Utils.waitForJobsToComplete();
+		waitForJobsToComplete();
 		setupDone = true;
+	}
+
+	private static void waitForJobsToComplete() {
+		SynchronizationUtils.joinBackgroudActivities();
 	}
 
 	private static boolean setupDone = false;
