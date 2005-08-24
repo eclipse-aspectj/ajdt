@@ -134,26 +134,166 @@ Test 7 - bug 95726: Quick XRef Navigate menu entry
 
 				     (XREF_INPLACE_18)
 
-				     
 Test8 - Applying XRef Filters should update tree, (Feature 95724)
--------------------------------------------
+----------------------------
 
-- create an example project, 'Spacewar Example'
-- open spacewar/display1.aj
-- go to line 110, (Ctrl-L, 110)
-- bring up the inplace cross reference view, (Ctrl-Alt-x)
-- bring up the view menu, either by clicking the button in the
-  top right of the dialog or by pressing Ctrl-F10
-- select 'Filters...'
-- In the presented dialog, click 'Deselect All' and then OK
-- The inplace cross reference view should now show three relationships:
-	One 'advises'
-	Two 'advised by'
-					(XREF_INPLACE_19)
-- bring up the view menu, either by clicking the button in the
-  top right of the dialog or by pressing Ctrl-F10
-- select 'Filters...'
-- In the presented dialog, check the 'advises' cross reference to exclude it
+Test Exclude, (Not for whole document)
+--------------------------------------
 
+- Open the Spacewar Example project
+- If it is not already, activate the demo build configuration
+- Open the Display1.aj file from within the spacewar package, in an editor window
+- Navigate to line 85, (some after advice)
+- press Ctrl+Alt+X and the inplace cross reference view appears showing
+  the xrefs for the current selection
+- The inplace cross reference view should now have a tree like this:
 
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_INPLACE_19)
+  							
+- Bring up the View Menu from the drop down button in the inplace cross reference view
+- Select the 'Filters...' button
+- A 'Cross References Filter' dialog should appear
+  							(XREF_INPLACE_20)
 
+- In the presented dialog, de-select any relationships that are checked
+- Check the 'advises' relationship checkbox and click OK
+- The inplace cross reference view should now have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_INPLACE_21)
+
+- Close the inplace cross reference view
+- press Ctrl+Alt+X and the inplace cross reference view appears showing
+  the xrefs for the current selection
+- Make sure the inplace cross reference view still has a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_INPLACE_22)
+
+Test Include, (Not for whole document)
+--------------------------------------
+
+- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- Bring up the View Menu from the drop down button in the inplace cross reference view
+- Select the 'Filters...' button
+- In the presented dialog, the 'advises' relationship checkbox should be checked
+  							(XREF_INPLACE_23)
+  							
+- Uncheck the 'advises' relationship checkbox and click OK
+- The inplace cross reference view should now have a tree like this:
+
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_INPLACE_24)
+
+Test Persistence of Filters, (Not for whole document)
+-----------------------------------------------------
+
+- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- Bring up the View Menu from the drop down button in the inplace cross reference view
+- Select the 'Filters...' button
+- In the presented dialog, press 'Select All' and click OK
+- The inplace cross reference view should now have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_INPLACE_25)
+
+- Close and reopen Eclipse
+- Navigate to Display1.aj and line 85
+- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- The inplace cross reference view should still have a tree like this:
+
+	- afterReturning(Pilot)
+  							(XREF_INPLACE_26)
+
+- Bring up the View Menu from the drop down button in the Cross References toolbar
+- Select the 'Filters...' button
+- In the presented dialog, all filter checkboxes should be checked
+  							(XREF_INPLACE_27)
+
+- Click de-select all and click OK
+
+- The inplace cross reference view should now have a tree like this:
+
+   |- afterReturning(Pilot)
+       |->> advises
+		   |- Game: ...
+		   |- Game: ...
+		   |- Game: ...
+		   |- Robot: ...
+  							(XREF_INPLACE_28)
+
+Test Exclusion and inclusion for whole document
+-----------------------------------------------
+
+- Navigate to Display1.aj and line 85
+- Bring up the inplace cross reference view to show
+  the xrefs for the entire file (either from the selection
+  position in the editor or by using the key sequence twice)
+- The inplace cross reference view should now have a tree like this:
+
+  (C) Display1
+   |- paintObjects(Graphics)
+   |   |- method-call(...
+   |	   |->> advised by
+   |		   |- Coordinator.before():...
+   |		   |- Coordinator.after():...
+   |- (A) SpaceObjectPainting
+	   |- SpaceObject.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) SpaceObject
+	   |- Ship.color
+	   |   |->> declared on
+	   |	   |- (C) Ship
+	   |- afterReturning(Pilot)
+	   |   |->>  advises
+	   |	   |- Game: ...
+	   |	   |- Game: ...
+	   |	   |- Game: ...
+	   |	   |- Robot: ...
+	   |- Ship.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) Ship
+	   |- Bullet.paint(Graphics)
+	   |   |->> declared on
+	   |	   |- (C) Bullet
+	   |- EnergyPacket.paint(Graphics)
+		   |->> declared on
+			   |- (C) EnergyPacket
+  							(XREF_INPLACE_29)
+
+- Bring up the View Menu from the drop down button in the inplace cross reference view
+- Select the 'Filters...' button
+- In the presented dialog, check the 'declared on' checkbox and click OK
+- The inplace cross reference view should now have a tree like this:
+
+  (C) Display1
+   |- paintObjects(Graphics)
+   |   |- method-call(...
+   |	   |->> advised by
+   |		   |- Coordinator.before():...
+   |		   |- Coordinator.after():...
+   |- (A) SpaceObjectPainting
+	   |- afterReturning(Pilot)
+	       |->>  advises
+	    	   |- Game: ...
+	    	   |- Game: ...
+	    	   |- Game: ...
+	    	   |- Robot: ...
+  							(XREF_INPLACE_30)
+
+- Bring up the View Menu from the drop down button in the inplace cross reference view
+- Select the 'Filters...' button
+- In the presented dialog, uncheck the 'declared on' checkbox and click OK
+- The inplace cross reference view should now have a tree like the one checked in (XREF_INPLACE_28).
+  							(XREF_INPLACE_31)
