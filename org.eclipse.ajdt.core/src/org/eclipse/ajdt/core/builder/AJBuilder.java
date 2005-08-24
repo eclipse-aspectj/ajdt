@@ -670,7 +670,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 			File outputDir = new File(realOutputLocation);
 
-			int numberDeleted = wipeClasses(outputDir.listFiles());
+			int numberDeleted = wipeFiles(outputDir.listFiles(), ".class");
 			AJLog.log("Builder: Tidied output folder, deleted "
 							+ numberDeleted
 							+ " .class files from "
@@ -695,7 +695,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				workspaceRelativeOutputPath);
 		String realOutputLocation = out.getLocation().toOSString();
 		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeClasses(outputDir.listFiles());
+		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class");
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
 		AJLog.log("Builder: Tidied separate output folder, deleted "
 				+ numberDeleted
@@ -704,23 +704,44 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				+ (out.isLinked() ? " (Linked output folder from "
 						+ workspaceRelativeOutputPath.toOSString() + ")" : ""));
 	}
+
+	/**
+	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
+	 * source folders, so we clean these to prevent old class files remaining,
+	 * from before the project was converted to an AJ project.
+	 */
+	public static void cleanAJFilesFromOutputFolder(
+			IPath workspaceRelativeOutputPath) throws CoreException {
+		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
+				workspaceRelativeOutputPath);
+		String realOutputLocation = out.getLocation().toOSString();
+		File outputDir = new File(realOutputLocation);
+		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj");
+		out.refreshLocal(IResource.DEPTH_INFINITE, null);
+		AJLog.log("Builder: Tidied output folder, deleted "
+				+ numberDeleted
+				+ " .aj files from "
+				+ realOutputLocation
+				+ (out.isLinked() ? " (Linked output folder from "
+						+ workspaceRelativeOutputPath.toOSString() + ")" : ""));
+	}
 	
 	/**
 	 * Recursively calling function. Given some set of files (which might be
-	 * dirs) it deletes any class files from the filesystem and then for any
+	 * dirs) it deletes any files with the given extension from the filesystem and then for any
 	 * directories, recursively calls itself.
 	 */
-	private static int wipeClasses(File[] fs) {
+	private static int wipeFiles(File[] fs, String fileExtension) {
 		int count = 0;
 		if (fs != null) {
 			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
 				File file = fs[fcounter];
-				if (file.getName().endsWith(".class")) { //$NON-NLS-1$
+				if (file.getName().endsWith(fileExtension)) { //$NON-NLS-1$
 					file.delete();
 					count++;
 				}
 				if (file.isDirectory())
-					count += wipeClasses(file.listFiles());
+					count += wipeFiles(file.listFiles(), fileExtension);
 			}
 		}
 		return count;

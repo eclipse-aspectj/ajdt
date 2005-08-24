@@ -15,6 +15,7 @@ package org.eclipse.ajdt.internal.utils;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
@@ -33,6 +34,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -149,6 +151,7 @@ public class AJDTUtils {
 	 */
 	public static void addAspectJNature(IProject project) throws CoreException {
 		checkSeparateOutputFolders(project);
+		checkOutputFoldersForAJFiles(project);
 		
 		// add the AspectJ Nature
 		IProjectDescription description = project.getDescription();
@@ -230,6 +233,101 @@ public class AJDTUtils {
 		}
 	}
 	
+	/**
+	 * Bug 98911: Delete any .aj files from the output folder, if the output
+	 * folder and the source folder are not the same.
+	 */
+	private static void checkOutputFoldersForAJFiles(IProject project)
+			throws CoreException {
+		IJavaProject jp = JavaCore.create(project);
+		if (jp == null) {
+			return;
+		}
+		IPath defaultOutputLocation = jp.getOutputLocation();
+		if(defaultOutputLocation.equals(project.getFullPath())) {
+			return;
+		}
+		boolean defaultOutputLocationIsSrcFolder = false;
+		List extraOutputLocations = new ArrayList();
+		List srcFolders = new ArrayList();
+		IClasspathEntry[] cpe = jp.getRawClasspath();
+		for (int i = 0; i < cpe.length; i++) {
+			if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				srcFolders.add(cpe[i]);
+				IPath output = cpe[i].getOutputLocation();
+				if(output != null) {
+					extraOutputLocations.add(output);
+				}
+			}
+		}
+		for (Iterator iter = srcFolders.iterator(); iter.hasNext();) {
+			IClasspathEntry entry = (IClasspathEntry) iter.next();
+			IPath path = entry.getPath();
+			if(path.equals(defaultOutputLocation)) {
+				defaultOutputLocationIsSrcFolder = true;
+			}
+			for (Iterator iterator = extraOutputLocations.iterator(); iterator.hasNext();) {
+				IPath outputPath = (IPath) iterator.next();
+				if(outputPath.equals(path)) {
+					iterator.remove();
+				}				
+			}
+		}
+		boolean ajFilesFound = false; 
+		if(!defaultOutputLocationIsSrcFolder) {
+			IFolder folder = project.getWorkspace().getRoot().getFolder(defaultOutputLocation);
+			ajFilesFound = containsAJFiles(folder);
+		}
+		if(!ajFilesFound && extraOutputLocations.size() > 0) {
+			for (Iterator iter = extraOutputLocations.iterator(); iter.hasNext();) {
+				IPath outputPath = (IPath) iter.next();
+
+				IFolder folder = project.getWorkspace().getRoot().getFolder(outputPath);
+				ajFilesFound = ajFilesFound || containsAJFiles(folder);
+			}
+		}	
+		if(ajFilesFound) {
+			IWorkbenchWindow window = AspectJUIPlugin.getDefault()
+				.getWorkbench().getActiveWorkbenchWindow();
+			boolean remove = MessageDialog
+				.openQuestion(
+					window.getShell(),
+					UIMessages.AJFiles_title,
+					UIMessages.AJFiles_message);
+			if (remove) {
+				if(!defaultOutputLocationIsSrcFolder) {
+					AJBuilder.cleanAJFilesFromOutputFolder(defaultOutputLocation);
+				}
+				for (Iterator iter = extraOutputLocations.iterator(); iter.hasNext();) {
+					IPath extraLocationPath = (IPath) iter.next();
+					AJBuilder.cleanAJFilesFromOutputFolder(extraLocationPath);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Recursive method that checks a resource and all its members for .aj files
+	 * @param resource - the resource to check
+	 * @return
+	 */
+	private static boolean containsAJFiles(IResource resource) {
+		if(resource instanceof IFile && resource.getName().endsWith(".aj")) {
+			return true;
+		} else if (resource instanceof IFolder) {
+			IResource[] members;
+			try {
+				members = ((IFolder)resource).members();			
+				for (int i = 0; i < members.length; i++) {
+					if(containsAJFiles(members[i])) {
+						return true;
+					}
+				}
+			} catch (CoreException e) {}
+		}
+		return false;
+	}
+
 	/**
 	 * (Bug 71540) Detect if user is working with MyEclipse plugin and if yes,
 	 * pop up a message box that tells to add aspectjrt.jar to the classpath of

@@ -99,28 +99,8 @@ public class AspectJPlugin extends Plugin {
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
 				new CoreProjectProperties(), new CoreBuildOptions(),
 				null, null, new CoreErrorHandler());
-		setupSearchConstants();
 	}
 
-	private void setupSearchConstants() {
-//		XXX: Temporary fix for 98547 - remove when JDT bug 71460 is fixed
-		Field field = null;
-		try {
-			field = Util.class.getDeclaredField("JAVA_LIKE_EXTENSIONS");
-		} catch (NoSuchFieldException nsfe) {
-		}
-		if(field != null) {
-			char[][] extensions = new char[2][];
-			extensions[0] = new char[] {'.', 'j', 'a', 'v', 'a'};
-			extensions[1] = new char[] {'.', 'a', 'j'};
-			field.setAccessible(true);
-			try {
-				field.set(null, extensions);
-			} catch (IllegalArgumentException e) {
-			} catch (IllegalAccessException e) {
-			}
-		}
-	}
 
 	/**
 	 * This method is called when the plug-in is stopped
