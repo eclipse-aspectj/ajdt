@@ -7,12 +7,12 @@
           or a subtype of <tt>RuntimeException</tt> then a new XLint warning will be issued:</p><pre class="programlisting">
        	  declare soft : SomeRuntimeException : execution(* *(..));
        	  
-       	  &amp;gt;&amp;gt; "SomeRuntimeException will not be softened as it is already a RuntimeException" [XLint:runtimeExceptionNotSoftened]
+       	  &gt;&gt; "SomeRuntimeException will not be softened as it is already a RuntimeException" [XLint:runtimeExceptionNotSoftened]
 		</pre><p>
 	       This XLint message can be controlled by setting the <tt>runtimeExceptionNotSoftened</tt> XLint parameter.
  	   </p><p>
 	      If the exception type specified in a declare soft statement is a super type of <tt>RuntimeException</tt>
-	      (such as <tt>Exception</tt> for example) then any <font color="red">&lt;i&gt;checked&lt;/i&gt;</font> exception thrown at a matched join point, 
+	      (such as <tt>Exception</tt> for example) then any <span class="emphasis"><i>checked</i></span> exception thrown at a matched join point, 
 	      where the exception is an instance of the softened exception, will be softened to an 
 	      <tt>org.aspectj.lang.SoftException</tt>. 
       </p><pre class="programlisting">

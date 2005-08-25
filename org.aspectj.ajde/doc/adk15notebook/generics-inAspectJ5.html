@@ -5,453 +5,383 @@
         legal AspectJ 5 progam. In addition, AspectJ 5 provides support for generic and parameterized types in pointcuts, inter-type
         declarations, and declare statements.  Parameterized types may freely be used within aspect members, and support is 
         also provided for generic <span class="emphasis"><i>abstract</i></span> aspects.
-      </p><div class="sect2"><a name="d0e2095"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2095"></a>Matching generic and parameterized types in type patterns</h3></div></div><p>
-        The foundation of AspectJ's support for generic and parameterized types in aspect declarations is the extension of type
-        pattern matching to allow matching against generic and parameterized types.
-      </p><p>
-           The type pattern <tt>"Foo"</tt> matches all types named <tt>Foo</tt>, whether they
-           be simple types, generic types, or parameterized types. So for example, <tt>Foo</tt>, 
-           <tt>Foo&lt;T&gt;</tt>, and <tt>Foo&lt;String&gt;</tt>will all be matched. 
-      </p><p>
-          AspectJ 5 also extends the specification of type patterns to allow explicit matching of generic and parameterized
-          types by including one or more type parameter patterns inside angle braces (<tt>&lt; &gt;</tt>) immediately
-          after the type pattern. For example, <tt>List&lt;String&gt;</tt>
-      </p><pre class="programlisting">
-  	  	TypePattern := SimpleTypePattern |
-  	  	               '!' TypePattern |
-  	  	               '(' AnnotationPattern? TypePattern ')'
-  	  	               TypePattern '&amp;&amp;' TypePattern |
-  	  	               TypePattern '||' TypePattern |
-  	  	               TypePattern '&lt;' TypeParameterPatternList '&gt;'
-  	  	               
-  	  	TypeParameterPatternList ::= TypeParameterPattern (',' TypeParameterPattern)*
-  	  	
-  	  	TypeParameterPattern ::= TypePattern |
-  	  	                                    '?' TypeBoundPattern?
-  	  	                                    
-  	  	TypeBoundPattern ::= 'extends' TypePattern AdditionalBoundPatternList? |
-  	  	                               'super' TypePattern AdditionalBoundPatternList?
-  	  	                     
-  	  	AdditionalBoundPatternList ::= AdditionalBoundPattern AdditionalBoundPatternList |
-  	  	                                         AdditionalBoundPattern
-  	  	                               
-  	  	AdditionalBoundPattern ::= '&amp;' TypePattern 
-  	  	
+      </p><div class="sect2"><a name="d0e2104"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2104"></a>Matching generic and parameterized types in pointcut expressions</h3></div></div><p>
+            The simplest way to work with generic and parameterized types in pointcut expressions and type patterns
+            is simply to use the raw type name. For example, the type pattern <tt>List</tt> will match
+            the generic type <tt>List&lt;E&gt;</tt> and any parameterization of that type 
+            (<tt>List&lt;String&gt;, List&lt;?&gt;, List&lt;? extends Number&gt;</tt> and so on. This 
+            ensures that pointcuts written in existing code that is not generics-aware will continue to work as
+            expected in AspectJ 5. It is also the recommended way to match against generic and parameterized types
+            in AspectJ 5 unless you explicitly wish to narrow matches to certain parameterizations of a generic type.
+          </p><p>Generic methods and constructors, and members defined in generic types, may use type variables
+          as part of their signature. For example:</p><pre class="programlisting">
+          public class Utils {
+            
+            /** static generic method */
+            static &lt;T&gt; T first(List&lt;T&gt; ts) { ... }
+            
+            /** instance generic method */
+            &lt;T extends Number&gt; T max(T t1, T t2) { ... }
+                
+          }
+          
+          public class G&lt;T&gt; {
+           
+             // field with parameterized type
+             T myData;
+             
+             // method with parameterized return type
+             public List&lt;T&gt; getAllDataItems() {...}
+              
+          }
 		</pre><p>
-  	  	    A simple identifier (such as <tt>String</tt>) occuring in a type parameter list will be treated as a type name unless
-  	  	    a type variable of that name is in scope (declaring type variables is covered later). The type pattern <tt>List&lt;E&gt;</tt>
-  	  	    will result in an "invalid absolute type name" warning if no type <tt>E</tt> is in scope (declared in the default package, or
-  	  	    imported in the compilation unit) and no declaration of <tt>E</tt> as a type variable is in scope either. 
-  	  	</p><p>Some simple examples of type patterns follow:</p><div class="variablelist"><dl><dt><a name="d0e2144"></a><span class="term">List&lt;String&gt;</span></dt><dd><p><a name="d0e2147"></a>Matches the parameterized type <tt>List&lt;String&gt;</tt>
-            </p></dd><dt><a name="d0e2153"></a><span class="term">List&lt;? extends Number&gt;</span></dt><dd><p><a name="d0e2156"></a>Matches the parameterized type <tt>List&lt;? extends Number&gt;</tt>
-            </p></dd><dt><a name="d0e2162"></a><span class="term">List&lt;E&gt;</span></dt><dd><p><a name="d0e2165"></a>Outside of a scope in which <tt>E</tt>is defined as a type variable, this pattern matches the 
-            parameterized type <tt>List&lt;E&gt;</tt>. If <tt>E</tt> is not
-            a type then an <tt>invalidAbsoluteTypeName</tt> xlint warning will be issued. 
-            </p><p>In a scope in which
-            <tt>E</tt> is defined as a type variable, this pattern matches the generic type <tt>List&lt;E&gt;</tt>.
-            The type parameter name does not have to match the name used in the declaration of <tt>List</tt>, 
-            but the bounds must match. This pattern <span class="emphasis"><i>also</i></span> matches any parameterization of <tt>List</tt> 
-            that satisfies the bounds of the type variable (for example, <tt>List&lt;String&gt;</tt>).
-            </p></dd></dl></div><p>
-  	    The <tt>*</tt>, <tt>+</tt>, and <tt>..</tt> wildcards may be used in type patterns
-  	    matching against generic and parameterized types (just as in any other type pattern). The <tt>+</tt>
-  	    wildcard matches all subtypes. Recalling the discussion on subtypes and supertypes in the previous section, note
-  	    that the pattern <tt>List&lt;Number&gt;+</tt> will match <tt>List&lt;Number&gt;</tt> and
-  	    <tt>LinkedList&lt;Number&gt;</tt>, but not <tt>List&lt;Double&gt;</tt>. To match lists of
-  	    any number type use the pattern <tt>List&lt;Number+&gt;</tt> which will match 
-  	    <tt>List&lt;Number&gt;</tt>, <tt>List&lt;Double&gt;</tt>, <tt>List&lt;Float&gt;</tt>
-  	    and so on.  
-  	  </p><p>
-  	      The generics wildcard <tt>?</tt> is considered part of the signature of a parameterized type, and
-  	      is <span class="emphasis"><i>not</i></span> used as an AspectJ wildcard in type matching. For example:
-  	  </p><div class="variablelist"><dl><dt><a name="d0e2247"></a><span class="term">List&lt;*&gt;</span></dt><dd><p><a name="d0e2250"></a>Matches any generic or parameterized <tt>List</tt>type (<tt>List&lt;String&gt;</tt>,
-              <tt>List&lt;Integer&gt;</tt> and so on) with a single type parameter.
-            </p></dd><dt><a name="d0e2262"></a><span class="term">List&lt;?&gt;</span></dt><dd><p><a name="d0e2265"></a>Matches the parameterized type <tt>List&lt;?&gt;</tt> (and does 
-              <span class="emphasis"><i>not</i></span> match <tt>List&lt;String&gt;</tt>,
-              <tt>List&lt;Integer&gt;</tt> and so on)
-            </p></dd><dt><a name="d0e2280"></a><span class="term">List&lt;? extends Number+&gt;</span></dt><dd><p><a name="d0e2283"></a>Matches <tt>List&lt;? extends Number&gt;</tt>, <tt>List&lt;? extends Double&gt;</tt>,
-              and so on, but does not match <tt>List&lt;Double&gt;</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e2295"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2295"></a>Signature patterns</h3></div></div><p>
-              Now that we understand how to write type patterns that match generic and parameterized types, it is time to look at
-              how these can be utilized to match member declarations by using signature patterns.
-           </p><p>To match members declared in generic types and making use of type variables defined in those types (for
-          example <tt>interface  Foo&lt;T&gt; { public T doSomething(); }</tt> use a signature pattern of the form:</p><pre class="programlisting">
-      	X Foo&lt;X&gt;.doSomething()
-		</pre><p>
-            This assumes a scope in which <tt>X</tt> is declared as a type variable. As with type patterns, the name
-            of the type variable does not have to match the name used in the member declaration, but the bounds must match.
-            For example, if the interface was declared as <tt>Foo&lt;T extends Number&gt;</tt> then the signature 
-            pattern would be: <tt>X Foo&lt;X extends Number&gt;.doSomething()</tt>.
-          </p><div class="variablelist"><dl><dt><a name="d0e2319"></a><span class="term">T Util&lt;T extends Number,S&gt;.someFunction(List&lt;S&gt;)</span></dt><dd><p><a name="d0e2322"></a>Matches the method <tt>someFunction</tt> in a generic type <tt>Util</tt> with
-            two type parameters, the first type parameter having an upper bound of <tt>Number</tt>.
-            </p></dd><dt><a name="d0e2334"></a><span class="term">LinkedList&lt;E&gt;.new()</span></dt><dd><p><a name="d0e2337"></a>Matches the no-argument constructor of the generic type <tt>LinkedList</tt>. 
-            </p></dd></dl></div><p>
-            Matching a field with a generic type works in the same way. For example:
+            AspectJ 5 does not allow the use of type variables in pointcut expressions and type patterns. Instead, members that
+            use type parameters as part of their signature are matched by their <span class="emphasis"><i>erasure</i></span>. Java 5 defines the
+            rules for determing the erasure of a type as follows.
+          </p><p>Let <tt>|T|</tt> represent the erasure of some type <tt>T</tt>. Then:</p><table class="simplelist" border="0" summary="Simple list"><tr><td>The erasure of a parameterized type <tt>T&lt;T1,...,Tn&gt;</tt> is <tt>|T|</tt>.
+            For example, the erasure of <tt>List&lt;String&gt;</tt> is <tt>List</tt>.</td></tr><tr><td>The erasure of a nested type <tt>T.C</tt> is <tt>|T|.C</tt>. For example,
+            the erasure of the nested type <tt>Foo&lt;T&gt;.Bar</tt> is <tt>Foo.Bar</tt>.</td></tr><tr><td>The erasure of an array type <tt>T[]</tt> is <tt>|T|[]</tt>. For example,
+            the erasure of <tt>List&lt;String&gt;[]</tt> is <tt>List[]</tt>.</td></tr><tr><td>The erasure of a type variable is its leftmost bound. For example, the erasure of a 
+            type variable <tt>P</tt> is <tt>Object</tt>, and the erasure of a type
+            variable <tt>N extends Number</tt> is <tt>Number</tt>.</td></tr><tr><td>The erasure of every other type is the type itself</td></tr></table><p>Applying these rules to the earlier examples, we find that the methods defined in <tt>Utils</tt>
+          can be matched by a signature pattern matching <tt>static Object Utils.first(List)</tt> and
+          <tt>Number Utils.max(Number, Number)</tt> respectively. The members of the generic type
+          <tt>G</tt> can be matched by a signature pattern matching <tt>Object G.myData</tt> and
+          <tt>public List G.getAllDataItems()</tt> respectively.</p><div class="sect3"><a name="d0e2215"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2215"></a>Restricting matching using parameterized types</h4></div></div><p>Pointcut matching can be further restricted to match only given parameterizations of parameter types (methods and constructors), return
+          types (methods) and field types (fields). This is achieved by specifying a parameterized type pattern at the appropriate point 
+          in the signature pattern. For example, given the class <tt>Foo</tt>:</p><pre class="programlisting">
+          public class Foo {
+            
+            List&lt;String&gt; myStrings;
+            List&lt;Float&gt;  myFloats;
+                
+            public List&lt;String&gt; getStrings() { return myStrings; }
+            public List&lt;Float&gt; getFloats() { return myFloats; }
+                
+            public void addStrings(List&lt;String&gt; evenMoreStrings) {
+               myStrings.addAll(evenMoreStrings);   
+            }
+                
+          }
+		</pre><p>Then a <tt>get</tt> join point for the field <tt>myStrings</tt> can be matched by the
+        pointcut <tt>get(List Foo.myStrings)</tt> and by the pointcut <tt>get(List&lt;String&gt; Foo.myStrings)</tt>,
+        but <span class="emphasis"><i>not</i></span> by the pointcut <tt>get(List&lt;Number&gt; *)</tt>.</p><p>A <tt>get</tt> join point for the field <tt>myFloats</tt> can be matched by the
+        pointcut <tt>get(List Foo.myFloats)</tt>, the pointcut <tt>get(List&lt;Float&gt; *)</tt>,
+        and the pointcut <tt>get(List&lt;Number+&gt; *)</tt>. This last example shows how AspectJ type
+        patterns can be used to match type parameters types just like any other type. The pointcut
+        <tt>get(List&lt;Double&gt; *)</tt> does <span class="emphasis"><i>not</i></span> match.</p><p>The execution of the methods <tt>getStrings</tt> and <tt>getFloats</tt> can be
+        matched by the pointcut expression <tt>execution(List get*(..))</tt>, and the pointcut
+        expression <tt>execution(List&lt;*&gt; get*(..))</tt>, but only <tt>getStrings</tt>
+        is matched by <tt>execution(List&lt;String&gt; get*(..))</tt> and only <tt>getFloats</tt>
+        is matched by <tt>execution(List&lt;Number+&gt; get*(..))</tt></p><p>A call to the method <tt>addStrings</tt> can be matched by the pointcut expression
+        <tt>call(* addStrings(List))</tt> and by the expression <tt>call(* addStrings(List&lt;String&gt;))</tt>,
+        but <span class="emphasis"><i>not</i></span> by the expression <tt>call(* addStrings(List&lt;Number&gt;))</tt>.
+        </p><p>Remember that any type variable reference in a generic member is
+        <span class="emphasis"><i>always</i></span> matched by its erasure. Thus given the following
+        example:</p><pre class="programlisting">
+          class G&lt;T&gt; {
+  	
+	        List&lt;T&gt; foo(List&lt;String ls) { return null; }
+	
+          }
+		</pre><p>The execution of <tt>foo</tt> can be matched by
+        <tt>execution(List foo(List))</tt>, 
+        <tt>execution(List foo(List&lt;String&gt;&gt;))</tt>, and 
+        <tt>execution(* foo(List&lt;String&lt;))</tt>but 
+        <span class="emphasis"><i>not</i></span> by <tt>execution(List&lt;Object&gt; foo(List&lt;String&gt;&gt;)</tt>
+        since the erasure of <tt>List&lt;T&gt;</tt> is <tt>List</tt>
+        and not <tt>List&lt;Object&gt;</tt>.
+        </p></div><div class="sect3"><a name="d0e2348"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2348"></a>Generic wildcards and signature matching</h4></div></div><p>
+            When it comes to signature matching, a type parameterized using a generic wildcard is a distinct type.
+            For example, <tt>List&lt;?&gt;</tt> is a very different type to <tt>List&lt;String&gt;</tt>,
+            even though a variable of type <tt>List&lt;String&gt;</tt> can be assigned to a variable of
+            type <tt>List&lt;?&gt;</tt>. Given the methods:
           </p><pre class="programlisting">
-      	T *&lt;T&gt;.*
-		</pre><p>Matches a field of the type of type parameter <tt>T</tt> in any generic type with a single
-            unbounded type parameter (the pattern<tt>*&lt;T&gt;</tt>). The field may be of any name.
-            </p><p>Matching of members of parameterized types is straightforward. For example, 
-          <tt>void List&lt;String&gt;.add(String)</tt> matches the add method in the 
-          parameterized type <tt>List&lt;String&gt;</tt>.     
-     </p><p>
-            To match a generic <span class="emphasis"><i>method</i></span> the generic method type variable
-            declarations become part of the signature pattern. For example:          
-          </p><pre class="programlisting">
-          &lt;T&gt; List&lt;T&gt; *.favourites(List&lt;T&gt;)
-		</pre><p>matches a generic method <tt>favourites</tt> declared in any type. To match a 
-		static generic method simply include the <tt>static</tt> modifier in the type pattern.</p></div><div class="sect2"><a name="d0e2378"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2378"></a>Pointcuts</h3></div></div><p>
-            In this section we discuss how type patterns and signature patterns matching on generic and 
-            parameterized types, methods, and constructors can be used in pointcut expressions.  
-            We distinguish between pointcuts that match based on static type information, and pointcuts 
-            that match based on runtime type information (<tt>this, target, args</tt>).
-        </p><p>
-            First however we need to address the notion of type variables and scopes. There is a 
-            convention in Java, but no requirement, that type variables are named with a single letter. 
-            Likewise it is rare, but perfectly legal, to declare a type with a single character name. Given the
-            type pattern <tt>List&lt;Strng&gt;</tt>, is this a mis-spelling of the 
-            parameterized type pattern <tt>List&lt;String&gt;</tt> or is it a generic type pattern
-            with one unbounded type variable <tt>Strng</tt>?. Alternatively, given the
-            type pattern <tt>List&lt;E&gt;</tt>, if  the type <tt>E</tt> cannot be found,
-            is this a missing import statement or an implied type variable? There is no way for AspectJ
-            to disambiguate in these situations without an explicit declaration of type variable names. If 
-            <tt>E</tt> is defined as a type variable, and <tt>Strng</tt> is not, then both
-            declarations can be correctly interpreted.
-         </p><div class="sect3"><a name="d0e2409"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2409"></a>Type Variables in Pointcut Expressions</h4></div></div><p>The type variables in scope for a pointcut primitive are declared in a type variable
-         list immediately following the pointcut desginator keyword. For example:</p><pre class="programlisting">
-          call&lt;T&gt;(* Foo&lt;T&gt;.*(T))
-		</pre><p>matches a call to a method with any name (<tt>*</tt>) declared 
-        by a generic type <tt>Foo</tt> with one unbounded type parameter. The method
-        takes one argument which is of the type of the type variable.</p><p>In contrast, the pointcut</p><pre class="programlisting">
-          call(* Foo&lt;T&gt;.*(T))
-		</pre><p>matches a call to a method with any name that takes an argument of
-        type <tt>T</tt>, where the target of the call is declared as the parameterized
-        type <tt>Foo&lt;T&gt;</tt>. If there is no type <tt>T</tt> in scope, an 
-        "invalid absolute type name (T)" warning will be issued.</p><p>
-            The type variables declaration following a pointcut designator permits only simple identifiers 
-            (e.g. <tt>&lt;S,T&gt;</tt> and not <tt>&lt;S extends Number&gt;</tt>).
-        </p><p>A type variable declaration list can appear following any pointcut designator except
-        for <tt>handler</tt> (Java 5 does
-        not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt>
-         - see JLS 8.1.2), the dynamic pointcuts <tt>this, target, args, if, cflow, cflowbelow</tt>, 
-         and the annotation pointcut designators 
-        (<tt>@args, @this, @within</tt> and so on).</p></div><div class="sect3"><a name="d0e2461"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2461"></a>Initialization and execution pointcuts</h4></div></div><p>
-         Recall that there is only ever one type for a generic type (e.g. <tt>List&lt;E&gt;</tt>)
-         regardless of how many different parameterizations of that type (e.g. 
-         <tt>List&lt;String&gt;</tt>, <tt>List&lt;Double&gt;</tt>) are used within a
-         program. For join points that occur within a type, such as execution join points, it therefore only
-         makes sense to talk about execution join points for the generic type. Given the generic type 
-         </p><pre class="programlisting">
-        public class Foo&lt;T&gt; {
-            
-          T doSomething(T toSomeT) {
-             return T;
-          }  
-          
-        }
-		</pre><p>
-             then 
-         </p><div class="variablelist"><dl><dt><a name="d0e2480"></a><span class="term">execution&lt;T&gt;(T Foo&lt;T&gt;.doSomething(..))</span></dt><dd><p><a name="d0e2483"></a>matches the execution of the <tt>doSomething</tt> method in
-            <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e2492"></a><span class="term">execution(* Foo.doSomething(..))</span></dt><dd><p><a name="d0e2495"></a>also matches the execution of the <tt>doSomething</tt> method in
-            <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e2504"></a><span class="term">execution(T Foo.doSomething(..))</span></dt><dd><p><a name="d0e2507"></a>results in an "invalid absolute type name (T)" warning since <tt>T</tt> is 
-            interpreted as a type, not a type variable.
-            </p></dd><dt><a name="d0e2513"></a><span class="term">execution(String Foo&lt;String&gt;.doSomething(..))</span></dt><dd><p><a name="d0e2516"></a>results in a compilation error "no execution join points for parameterized type
-                Foo&lt;String&gt;, use a generic signature instead".
-            </p></dd></dl></div><p>
-          Given the type declaration
-       </p><pre class="programlisting">
-        public class Bar&lt;N extends Number&gt; {
-            
-          N doSomething(N toSomeN) {
-             return N;
-          }  
-          
-        }
-		</pre><p>
-             then 
-         </p><div class="variablelist"><dl><dt><a name="d0e2526"></a><span class="term">execution&lt;T&gt;(T Bar&lt;T&gt;.doSomething(..))</span></dt><dd><p><a name="d0e2529"></a>does not match the execution of <tt>Bar.doSomething</tt> since
-            the bounds of the type parameter <tt>T</tt> in the pointcut expression do
-            not match the bounds of the type parameter <tt>N</tt> in the type declaration.
-            </p></dd><dt><a name="d0e2541"></a><span class="term">execution&lt;T&gt;(T Bar&lt;T extends Number&gt;.doSomething(..))</span></dt><dd><p><a name="d0e2544"></a>matches the execution of the <tt>doSomething</tt> method in
-            <tt>Bar</tt>.
-            </p></dd><dt><a name="d0e2553"></a><span class="term">execution&lt;T extends Number&gt;(T Bar&lt;T&gt;.doSomething(..))</span></dt><dd><p><a name="d0e2556"></a>results in a compilation error, since type variable bounds must be specified as part
-                of the declaring type pattern, and not in the type variable list.
-            </p></dd></dl></div><p>
-          If a type implements a <span class="emphasis"><i>parameterized</i></span> interface, then
-          execution join points exist and can be matched for the parameterized interface operations within
-          the implementing type. For example, given the pair of types:   
-       </p><pre class="programlisting">
-        public interface Greatest&lt;T&gt; {
-            T greatest(List&lt;T&gt; ts);  
-        }
-        
-        public class  NumberOperations implements Greatest&lt;Number&gt; {
-             public Number greatest(List&lt;Number&gt; numbers) {
-                //...
-             }
-        }
-		</pre><p>
-          then
-       </p><pre class="programlisting">
-        execution(* Greatest&lt;Number&gt;.*(..))
-		</pre><p>
-          will match the execution of the <tt>greatest</tt> method declared in 
-          <tt>NumberOperations</tt>. However, it <span class="emphasis"><i>does not</i></span>
-          match the execution of <tt>greatest</tt> in the program below:
-       </p><pre class="programlisting">
-        public interface Greatest&lt;T&gt; {
-            T greatest(List&lt;T&gt; ts);  
-        }
-        
-        public class  NumberOperations&lt;N extends Number&gt; implements Greatest&lt;N&gt; {
-             public N greatest(List&lt;N&gt; numbers) {
-                //...
-             }
-        }
-        
-        // in some fragment of code...
-        NumberOperations&lt;Number&gt; numOps = new NumberOperations&lt;Number&gt;();
-        numOps.greatest(numList);
-		</pre><p>Since there is only one generic type, <tt>NumberOperations</tt>,
-        which implements a generic interface. Either of the pointcut expressions
-        <tt>execution&lt;T&gt;(* Greatest&lt;T&gt;&gt;.*(..))</tt> or 
-        <tt>execution&lt;T&gt;(* Greatest&lt;T extends Number&gt;&gt;.*(..))</tt> will
-        match the execution of <tt>greatest</tt> in this example.  Recall from 
-        chapter <a href="jpsigs.html">Join Point Signatures</a> that a kinded pointcut primitive matches a join point if
-        it exactly matches one of the signatures of the join point. The signatures of the
-        execution join point for <tt>greatest</tt> in the example above are:</p><div class="variablelist"><dl><dt><a name="d0e2606"></a><span class="term">public N Greatest&lt;N&gt;.greatest(List&lt;N&gt;)</span></dt><dd><p><a name="d0e2609"></a>from the declaration in the <tt>Greatest</tt> interface, and
-            </p></dd><dt><a name="d0e2615"></a><span class="term">public N Greatest&lt;N extends Number&gt;.greatest(List&lt;N&gt;)</span></dt><dd><p><a name="d0e2618"></a>from the additional bounds restriction of <tt>N</tt> in the
-            declaration of <tt>NumberOperations</tt>
-            </p></dd></dl></div><p>
-        Join points for <tt>staticinitialization</tt>,<tt>initialization</tt> and 
-        <tt>preinitialization</tt> 
-        only ever exist on a generic type (an interface cannot define a constructor). The expression
-        <tt>initialization&lt;T&gt;(Foo&lt;T&gt;.new(..))</tt> which match any initialization 
-        join point for the generic type <tt>Foo&lt;T&gt;</tt>, and 
-        <tt>staticinitialization&lt;T&gt;(Foo&lt;T&gt;)</tt> matches the static initialization 
-        of that same type. 
-     </p><p>
-         The expression <tt>staticinitialization(List&lt;String&gt;)</tt> will result in a 
-         compilation error: there is no static initialization join point for the parameterized type
-         <tt>List&lt;String&gt;</tt>. However, the expression 
-         <tt>staticinitialization(List&lt;String&gt;+)</tt> <span class="emphasis"><i>is</i></span>
-         legal, and will match the static initialization of any type that 
-         <tt>implements List&lt;String&gt;</tt>.  The expression
-         <tt>staticinitialization&lt;T&gt;(List&lt;T&gt;+)</tt> will match the static
-         initialization join point of any type that either extends or implements the generic
-         type <tt>List&lt;T&gt;</tt> or implements any parameterization of that
-         interface. 
-      </p></div><div class="sect3"><a name="d0e2670"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2670"></a>Static scoping: within and withincode</h4></div></div><p>The <tt>within</tt> and <tt>withincode</tt> 
-         pointcut designators both match the
-         execution of join points that occur within a type or a member of a type respectively. Therefore
-         the same considerations with respect to there only being <tt>one</tt> type for
-         a generic type regardless of how many parameterizations of that type are used in a program 
-         apply.
-         </p><p>The <tt>within</tt> pointcut designator can never be used in conjunction
-         with a simple parameterized type. So
-         </p><div class="variablelist"><dl><dt><a name="d0e2690"></a><span class="term">within&lt;T&gt;(Foo&lt;T&gt;)</span></dt><dd><p><a name="d0e2693"></a>matches all join points occurring within the generic type <tt>Foo&lt;T&gt;</tt>,
-            and
-            </p></dd><dt><a name="d0e2699"></a><span class="term">within(Foo&lt;String&gt;)</span></dt><dd><p><a name="d0e2702"></a>results in a compilation error since there is no concept of a join point within a 
-            parameterized type, but 
-            </p></dd><dt><a name="d0e2705"></a><span class="term">within(Foo&lt;String&gt;+)</span></dt><dd><p><a name="d0e2708"></a>matches any join point occurring within a type that 
-            <tt>implements Foo&lt;String&gt;</tt>.
-            </p></dd></dl></div><p>The <tt>withincode</tt> designator is likewise normally used with a 
-         generic type, but can be used with a parameterized interface type to match join points
-         arising from code lexically within the implementation of the interface methods in a type
-         that implements the parameterized interface.
-         </p><div class="variablelist"><dl><dt><a name="d0e2720"></a><span class="term">withincode&lt;T&gt;(* Foo&lt;T&gt;.*(..))</span></dt><dd><p><a name="d0e2723"></a>matches all join points arising from code lexically within a method of the 
-            generic type <tt>Foo&lt;T&gt;</tt>
-            </p></dd><dt><a name="d0e2729"></a><span class="term">withincode(* Foo&lt;String&gt;.*(..))</span></dt><dd><p><a name="d0e2732"></a>results in a compilation error if <tt>Foo</tt> is not an interface. If 
-            <tt>Foo</tt> is an interface then it matches all join points arising from
-            code lexically within the implementation of the interface methods in a type that
-            implements <tt>Foo&lt;String&gt;</tt>.
-            </p></dd><dt><a name="d0e2744"></a><span class="term">withincode(* Foo&lt;String&gt;+.*(..))</span></dt><dd><p><a name="d0e2747"></a>matches any join point occurring within a method of a type that 
-            <tt>implements Foo&lt;String&gt;</tt>.
-            </p></dd></dl></div></div><div class="sect3"><a name="d0e2753"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2753"></a>Call, get and set pointcuts</h4></div></div><p>
-         The <tt>call, get,</tt> and <tt>set</tt> join points can occur on the client
-         side (ie. outside of the type owning the member being called, accessed, or updated) or 
-         within the type that owns the target member. The following short program demonstrates this:
-     </p><pre class="programlisting">
-        public class Foo&lt;T&gt; {
-        
-          public T timeFor;  
-          
-          public Foo&lt;T&gt;(T aCuppa) {
-                timeFor = aCuppa;      // set-site A
-          }
-        
-          public void doThis(T t) {
-            doThat(t);  // call-site A
-          }    
-          
-          public void doThat(T t) {
-             return;
-          }
-            
-        }
-        
-        public class Main {
-          public static void main(String[] args) {
-            Foo&lt;String&gt; foos = new Foo&lt;String&gt;();
-            foos.doThis("b");  //call-site B  
-            foos.doThat("c");  // call-site C
-            foos.timeFor = "a cuppa"; // set-site B
-          }
-        }
-		</pre><p>
-            We have annotated the three method call sites as call-site A, call-site B, and call-site C. 
-            Call-site A is situated within the generic type <tt>Foo&lt;T&gt;</tt> and the call
-            join point has signature <tt>public void Foo&lt;T&gt;doThat(T)</tt>. The join point
-            arising from call-site B is a client-side call join point and has the signatures
-            <tt>public void Foo&lt;String&gt;doThis(String)</tt> (from the static type of 
-            <tt>foos</tt>) <span class="emphasis"><i>and</i></span>  
-            <tt>public void Foo&lt;T&gt;doThis(T)</tt>. Likewise the call join point arising from
-            call-site C has the signatures 
-            <tt>public void Foo&lt;String&gt;doThat(String)</tt> (from the static type of 
-            <tt>foos</tt>) <span class="emphasis"><i>and</i></span>  
-            <tt>public void Foo&lt;T&gt;doThat(T)</tt>. A call pointcut expression matches if the
-            signature pattern exactly matches one of the signatures of the call join point.
-        </p><p>
-            The signatures for get and set join points works in a similar fashion. At set-site A in the above
-            example, the set join point has signature <tt>public T Foo&lt;T&gt;.timeFor</tt>. At 
-            set-site B the set join point has signatures <tt>public T Foo&lt;T&gt;.timeFor</tt> and
-            <tt>public String Foo&lt;String&gt;.timeFor</tt>. A get or set pointcut expression
-            matches if the signature pattern exactly matches one of the signatures of the join point.
-         </p>
-         
-         Some examples follow:
+          class C {
 
-      <div class="variablelist"><dl><dt><a name="d0e2811"></a><span class="term">call(* List&lt;?&gt;.*(..))</span></dt><dd><p><a name="d0e2814"></a>matches a call to any method of a <tt>List&lt;?&gt;</tt> (a call where the
-            target is declared to be a <tt>List&lt;?&gt;</tt>). For example:
+            public void foo(List&lt;? extends Number&gt; listOfSomeNumberType) {}
+            
+            public void bar(List&lt;?&gt; listOfSomeType) {}
+            
+            public void goo(List&lt;Double&gt; listOfDoubles) {}	
+	
+          }
+		</pre><div class="variablelist"><dl><dt><a name="d0e2369"></a><span class="term">execution(* C.*(List))</span></dt><dd><p><a name="d0e2372"></a>Matches an execution join point for any of the three methods.
+            </p></dd><dt><a name="d0e2375"></a><span class="term">execution(* C.*(List&lt;? extends Number&gt;))</span></dt><dd><p><a name="d0e2378"></a>matches only the
+          execution of <tt>foo</tt>, and <span class="emphasis"><i>not</i></span> the execution
+          of <tt>goo</tt> since <tt>List&lt;? extends Number&gt;</tt> and 
+          <tt>List&lt;Double&gt;</tt> are distinct types.
+            </p></dd><dt><a name="d0e2396"></a><span class="term">execution(* C.*(List&lt;?&gt;))</span></dt><dd><p><a name="d0e2399"></a>matches only the execution of <tt>bar</tt>.
+            </p></dd><dt><a name="d0e2405"></a><span class="term">execution(* C.*(List&lt;? extends Object+&gt;))</span></dt><dd><p><a name="d0e2408"></a>matches both the execution of <tt>foo</tt> and the execution of <tt>bar</tt> 
+          since the upper bound of <tt>List&lt;?&gt;</tt> is implicitly <tt>Object</tt>.
+            </p></dd></dl></div></div><div class="sect3"><a name="d0e2423"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2423"></a>Treatment of bridge methods</h4></div></div><p>Under certain circumstances a Java 5 compiler is required to create <span class="emphasis"><i>bridge
+          methods</i></span> that support the compilation of programs using raw types. Consider the types</p><pre class="programlisting">
+          class Generic&lt;T&gt; {
+	
+        	public T foo(T someObject) {
+	        	return someObject;
+	        }
+	
+          }
+
+          class SubGeneric&lt;N extends Number&gt; extends Generic&lt;N&gt; {
+	
+	        public N foo(N someNumber) {
+		      return someNumber;
+	        }
+		
+          }
+		</pre><p>The class <tt>SubGeneric</tt> extends <tt>Generic</tt>
+		 and overrides the method <tt>foo</tt>. Since the upper bound of the type variable
+		 <tt>N</tt> in <tt>SubGeneric</tt> is different to the upper bound of
+		 the type variable <tt>T</tt> in <tt>Generic</tt>, the method <tt>foo</tt>
+		 in <tt>SubGeneric</tt> has a different erasure to the method <tt>foo</tt>
+		 in <tt>Generic</tt>. This is an example of a case where a Java 5 compiler will create
+		 a <span class="emphasis"><i>bridge method</i></span> in <tt>SubGeneric</tt>. Although you never see it,
+		 the bridge method will look something like this:</p><pre class="programlisting">
+	        public Object foo(Object arg) {
+	          Number n = (Number) arg; // "bridge" to the signature defined in this type
+		      return foo(n);
+	        }
+		</pre><p>Bridge methods are synthetic artefacts generated as a result of a particular compilation strategy and
+		 have no execution join points in AspectJ 5. So the pointcut <tt>execution(Object SubGeneric.foo(Object))</tt>
+		 does not match anything. (The pointcut <tt>execution(Object Generic.foo(Object))</tt> matches the
+		 execution of <tt>foo</tt> in both <tt>Generic</tt> and <tt>SubGeneric</tt> since
+		 both are implementations of <tt>Generic.foo</tt>).
+		 </p><p>It <span class="emphasis"><i>is</i></span> possible to <span class="emphasis"><i>call</i></span> a bridge method as the following short
+		 code snippet demonstrates. Such a call <span class="emphasis"><i>does</i></span> result in a call join point for the call to
+		 the method.		 
+		 </p><pre class="programlisting">
+           SubGeneric rawType = new SubGeneric();
+           rawType.foo("hi");  // call to bridge method (will result in a runtime failure in this case)
+           Object n = new Integer(5);
+           rawType.foo(n);     // call to bridge method that would succeed at runtime
+		</pre></div><div class="sect3"><a name="d0e2510"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2510"></a>Runtime type matching with this(), target() and args()</h4></div></div><p>The <tt>this()</tt>, <tt>target()</tt>, and
+          <tt>args()</tt> pointcut expressions all match based on the runtime
+          type of their arguments. Because Java 5 implements generics using erasure, it is not
+          possible to ask at runtime whether an object is an instance of a given parameterization of a type
+          (only whether or not it is an instance of the erasure of that parameterized type). Therefore
+          AspectJ 5 does not support the use of parameterized types with the <tt>this()</tt> and
+          <tt>target()</tt> pointcuts. Parameterized types may however be used in conjunction with
+          <tt>args()</tt>. Consider the following class
+          </p><pre class="programlisting">
+         public class C {
+           
+           public void foo(List&lt;String&gt; listOfStrings) {}
+               
+           public void bar(List&lt;Double&gt; listOfDoubles) {}
+               
+           public void goo(List&lt;? extends Number&gt; listOfSomeNumberType) {}
+         
+         }
+		</pre><div class="variablelist"><dl><dt><a name="d0e2537"></a><span class="term">args(List)</span></dt><dd><p><a name="d0e2540"></a>will match an execution or call join point for any of
+              these methods
+              </p></dd><dt><a name="d0e2543"></a><span class="term">args(List&lt;String&gt;)</span></dt><dd><p><a name="d0e2546"></a>will match an execution
+              or call join point for <tt>foo</tt>.
+              </p></dd><dt><a name="d0e2552"></a><span class="term">args(List&lt;Double&gt;)</span></dt><dd><p><a name="d0e2555"></a>matches an execution or call join point for <tt>bar</tt>, and <span class="emphasis"><i>may</i></span> match
+              at an execution or call join point for <tt>goo</tt> since it is legitimate to pass an
+              object of type <tt>List&lt;Double&gt;</tt> to a method expecting a <tt>List&lt;? extends Number&gt;</tt>.
+              </p><p>
+                  In this situation a runtime test would normally be applied to ascertain whether or not the argument
+              was indeed an instance of the required type. However, in the case of parameterized types such a test is not
+              possible and therefore AspectJ 5 considers this a match, but issues an <span class="emphasis"><i>unchecked</i></span> warning.
+              For example, compiling the aspect <tt>A</tt> below with the class <tt>C</tt> produces the 
+              compilation warning: "unchecked match of List&lt;Double&gt; with List&lt;? extends Number&gt; when argument is 
+              an instance of List at join point method-execution(void C.goo(List&lt;? extends Number&gt;)) [Xlint:uncheckedArgument]";
+              </p></dd></dl></div><pre class="programlisting">
+         public aspect A {
+
+            before(List&lt;Double&gt; listOfDoubles) : execution(* C.*(..)) &amp;&amp; args(listOfDoubles) {
+               for (Double d : listOfDoubles) {
+                  // do something
+               }
+            }           
+         
+         }
+		</pre><p>Like all Lint messages, the <tt>uncheckedArgument</tt> warning can be
+            configured in severity from the default warning level to error or even ignore if preferred.
+            In addition, AspectJ 5 offers the annotation <tt>@SuppressAjWarnings</tt> which is
+            the AspectJ equivalent of Java's <tt>@SuppressWarnings</tt> annotation. If the
+            advice is annotated with <tt>@SuppressWarnings</tt> then <span class="emphasis"><i>all</i></span>
+            lint warnings issued during matching of pointcut associated with the advice will be
+            suppressed. To suppress just an <tt>uncheckedArgument</tt> warning, use the
+            annotation <tt>@SuppressWarnings("uncheckedArgument")</tt> as in the following 
+            examples:
             </p><pre class="programlisting">
-        int countItems(List&lt;?&gt; anyList) {
-          return anyList.size();   // matched by call(* List&lt;?&gt;.*(..))
-        }
-		</pre></dd><dt><a name="d0e2825"></a><span class="term">call&lt;T&gt;(* List&lt;T&gt;.*(..))</span></dt><dd><p><a name="d0e2828"></a>matches any call to an operation defined in the generic type 
-            <tt>List&lt;E&gt;</tt>. This includes calls made to <tt>List&lt;String&gt;</tt>,
-            <tt>List&lt;Number&gt;</tt>, <tt>List&lt;? super Foo&gt;</tt> and so on.
-            </p></dd><dt><a name="d0e2843"></a><span class="term">get&lt;T&gt;(T *&lt;T extends Account&gt;.*)</span></dt><dd><p><a name="d0e2846"></a>matches the get of any field defined in a generic type with one type parameter that has 
-                an upper bound of <tt>Account</tt>. The field has the type of the type parameter, and
-                can be of any name. This pointcut expression matches both gets of the field within the
-                declaring type, and also gets on parameterized instances of the type.
-            </p></dd><dt><a name="d0e2852"></a><span class="term">set(Account Foo&lt;Account&gt;.*Account)</span></dt><dd><p><a name="d0e2855"></a>matches the set of a field of type <tt>Account</tt>  where the target
-            is of type <tt>Foo&lt;Account&gt;</tt> and the field name ends with "Account". Does not
-            match sets of any "*Account" field occurring within the <tt>Foo</tt> type itself.
-            </p></dd><dt><a name="d0e2867"></a><span class="term">call(* List&lt;? extends Number&gt;.add(..))</span></dt><dd><p><a name="d0e2870"></a>matches any call to add an element to a list of type <tt>List&lt;? extends Number&gt;</tt>.
-            Does not match calls to add elements to lists of type <tt>List&lt;Number&gt;</tt> or 
-            <tt>List&lt;Double&gt;</tt> as these are distinct types.
-            </p></dd><dt><a name="d0e2882"></a><span class="term">call(* List&lt;Number+&gt;.add(..))</span></dt><dd><p><a name="d0e2885"></a>matches any call to add an element to a list of type <tt> Number</tt> or
-            any subclass of <tt>Number</tt>. For example, <tt>List&lt;Number&gt;, 
-            List&lt;Double&gt; List&lt;Float&gt;</tt>.
-            Does not match calls to add elements to lists of type <tt>List&lt;? extends Number&gt;</tt> 
-            as this is a distinct type.
-            </p></dd></dl></div></div><div class="sect3"><a name="d0e2900"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2900"></a>Handler</h4></div></div><p>
-          The Java Language Specification states that a generic class may not be a direct or indirect
-          subclass of <tt>Throwable</tt>. Therefore it is a compilation error to use a generic
-          or parameterized type pattern in a <tt>handler</tt> pointcut expression.
-      </p></div><div class="sect3"><a name="d0e2911"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2911"></a>Runtime type matching: this, target and args</h4></div></div><p>
-         Java 5 generics are implemented using a technique known an <span class="emphasis"><i>erasure</i></span>.
-         In particular, what gets "erased" is the ability to find out the parameterized runtime type
-         of an instance of a generic type. You can ask if something is an <tt>instanceof List</tt>,
-         but not if something is an <tt>instanceof List&lt;String&gt;</tt>
-     </p><p>
-         The <tt>this, target</tt> and <tt>args</tt> pointcut designators all match
-         based on the runtime type of the appropriate object (this, target, or argument) at a join point. 
-         To match any parameterization of a generic type, simply use the raw type (type variables are
-         not permitted with these designators).  For example:
-      </p><div class="variablelist"><dl><dt><a name="d0e2934"></a><span class="term">target(List)</span></dt><dd><p><a name="d0e2937"></a>matches any call to an instance of <tt>List</tt> (including 
-            <tt>List&lt;String&gt;, List&lt;Number&gt;</tt>, and so on.
-            </p></dd><dt><a name="d0e2946"></a><span class="term">args (List)</span></dt><dd><p><a name="d0e2949"></a>matches any join point with a single argument that is an instance of 
-            <tt>List</tt>. 
-            </p></dd></dl></div><p>
-         To match specific parameterizations of a generic type, simply use the type that you require
-         the relevant object to be an instance of inside the pointcut expression. For example:
-         <tt>target(List&lt;String&gt;)</tt>. 
-     </p><p>
-         Recall that runtime tests to determine whether an object is an instance of a parameterized
-         type are not possible due to erasure. Therefore AspectJ matching behaviour with 
-         parameterized types for <tt>this, target</tt> and <tt>args</tt> is as follows. 
-     </p><table class="simplelist" border="0" summary="Simple list"><tr><td>If it can be statically determined that a given object will always be an instance
-         of the required type, then the pointcut expressions matches. For example, given a variable
-         <tt>bankAccounts</tt>
-         of type <tt>Set&lt;BankAccount&gt;</tt> and the pointcut expression
-         <tt>target(Set&lt;BankAccount&gt;)</tt> then any call made to
-         <tt>bankAccounts</tt> will be matched.</td></tr><tr><td>If it can be statically determined that a given object can never be an 
-         instance of the required type, then the pointcut expression does not match. The
-         expression <tt>target(List&lt;String&gt;)</tt>will never match a call made 
-         using a variable of type <tt>List&lt;Number&gt;</tt> (it is not possible for
-         a type to implement two different parameterizations of the same interface).</td></tr><tr><td>If an object <span class="emphasis"><i>might</i></span> be an instance of the required
-         type in some circumstances but not in others, then since it is not possible to perform
-         the runtime test, AspectJ deems the pointcut expression to match, but issues an
-         unchecked warning. This is analogous to the behaviour of the Java compiler when
-         converting between raw and parameterized types. Given a variable of type
-         <tt>List&lt;? extends Number&gt;</tt> and a call join point with 
-         target pointcut expression <tt>target(List&lt;Double&gt;)</tt> then 
-         the expression matches but with an unchecked warning. The warning can be suppressed
-         by annotating the associated advice with either <tt>@SuppressAjWarnings</tt>
-         or <tt>@SuppressAjWarnings("unchecked")</tt>.</td></tr></table><p>   
-         When using a parameterized type with the
-         <tt>this</tt> pointcut designator then a joinpoint is unambiguously 
-         matched if and only if one or more of the following conditions hold:
-     </p><table class="simplelist" border="0" summary="Simple list"><tr><td>the runtime type of the <tt>this</tt> object extends or
-         implements the parameterized type. For example, 
-         <tt>class Foo implements List&lt;String&gt;</tt> will match
-         <tt>this(List&lt;String&gt;)</tt>.</td></tr><tr><td>
-           The parameterized "this" type is given using a generics wildcard in the pointcut 
-           expression, and the bounds of
-           the generic runtime type of <tt>this</tt> are such that all valid parameterizations
-           are matched by the wildcard. For example, the pointcut expression 
-           <tt>this(List&lt;? extends Number&gt;)</tt> will match a <tt>this</tt>
-           object of type <tt>class Foo&lt;N extends Number&gt; implements List&lt;N&gt;</tt>,
-           but not an object of type  <tt>class Foo&lt;N&gt; implements List&lt;N&gt;</tt>.
-         </td></tr></table><p>
-       You've already seen some examples of using the generic wildcard <tt>?</tt>
-        in parameterized type patterns. Since <tt>this, target</tt> and 
-       <tt>args</tt> match using an instance of test, the generic wildcard can be useful in
-       specifying an acceptable range of parameterized types to match. When used in the binding
-       form, the same restrictions on operations permitted on the bound variable apply as when a 
-       method declares a parameter with a wildcard type. For example, in the advice below, it is
-       a compilation error to attemp to add an element into the list <tt>aList</tt>. 
-      </p><pre class="programlisting">
-        before(List&lt;? extends Number&gt; aList) : 
-          execution(* org.xyz.Foo.*(..)) &amp;&amp; args(aList) {
-           aList.add(new Double(5.0d));  // Compilation error on this line
-        }
-		</pre></div><div class="sect3"><a name="d0e3058"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3058"></a>Declaring pointcuts in generic classes</h4></div></div><p>
-        AspectJ permits pointcuts to be declared in classes as well as aspects. A pointcut defined
-        inside a generic class may not use the type variables of the class in the pointcut expression
-        (just as static members of a generic class may not use type variables). 
-        For example:        
-     </p><pre class="programlisting">
-        public class Foo&lt;T extends Number&gt; {
-          
-          ...
-          
-          // Not allowed - uses T in the pointcut expression
-          public pointcut fooOperationCall(T t) : 
-             call(* Foo&lt;T&gt;.*(T)) &amp;&amp; args(t);   
+         import org.aspectj.lang.annotation.SuppressAjWarnings
+         public aspect A {
+
+            @SuppressAjWarnings   // will not see *any* lint warnings for this advice
+            before(List&lt;Double&gt; listOfDoubles) : execution(* C.*(..)) &amp;&amp; args(listOfDoubles) {
+               for (Double d : listOfDoubles) {
+                  // do something
+               }
+            }           
             
-            
-          // permitted, but recommended to use an alternate variable name in the local 
-          // type variable declaration - e.g. execution&lt;S&gt;(...)
-          public pointcut fooExecution(Number n) :
-             execution&lt;T&gt;(* Foo&lt;T&gt;.*(T)) &amp;&amp; args(n); 
-        }
-		</pre></div></div><div class="sect2"><a name="d0e3065"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3065"></a>Inter-type Declarations</h3></div></div><p>
-            AspectJ 5 allows type parameters to be used in inter-type declarations - either for declaring generic
-            methods and constructors, or for declaring members on generic types. The syntax for declaring generic
-            methods and constructors follows the regular AspectJ convention of simply qualifying the member name with
-            the target type.
-          </p><div class="variablelist"><dl><dt><a name="d0e3071"></a><span class="term">&lt;T extends Number&gt; T Utils.max(T first, T second) {...}</span></dt><dd><p><a name="d0e3074"></a>Declares a generic instance method <tt>max</tt> on the class <tt>Util</tt>.
+            @SuppressAjWarnings("uncheckedArgument")   // will not see *any* lint warnings for this advice
+            before(List&lt;Double&gt; listOfDoubles) : execution(* C.*(..)) &amp;&amp; args(listOfDoubles) {
+               for (Double d : listOfDoubles) {
+                  // do something
+               }
+            }       
+         
+         }
+		</pre><p>
+              The safest way to deal with <tt>uncheckedArgument</tt> warnings however is to restrict the pointcut
+              to match only at those join points where the argument is guaranteed to match. This is achieved by combining
+              <tt>args</tt> with a <tt>call</tt> or <tt>execution</tt> signature matching 
+              pointcut. In the following example the advice will match the execution of <tt>bar</tt> but not
+              of <tt>goo</tt> since the signature of <tt>goo</tt> is not matched by the execution pointcut
+              expression.
+            </p><pre class="programlisting">
+         public aspect A {
+
+            before(List&lt;Double&gt; listOfDoubles) : execution(* C.*(List&lt;Double&gt;)) &amp;&amp; args(listOfDoubles) {
+               for (Double d : listOfDoubles) {
+                  // do something
+               }
+            }           
+         
+         }
+		</pre><p>Generic wildcards can be used in args type patterns, and matching follows regular Java 5 assignability rules. For
+            example, <tt>args(List&lt;?&gt;)</tt> will match a list argument of any type, and 
+            <tt>args(List&lt;? extends Number&gt;)</tt> will match an argument of type
+            <tt>List&lt;Number&gt;, List&lt;Double&gt;, List&lt;Float&gt;</tt> and so on. Where a match cannot be 
+            fully statically determined, the compiler will once more issue an <tt>uncheckedArgument</tt> warning.
+            </p><p>Consider the following program:</p><pre class="programlisting">
+         public class C {
+         
+            public static void main(String[] args) {
+               C c = new C();
+               List&lt;String&gt; ls = new ArrayList&lt;String&gt;();
+               List&lt;Double&gt; ld = new ArrayList&lt;Double&gt;();
+               c.foo("hi");
+               c.foo(ls);
+               c.foo(ld);
+            }
+         
+            public void foo(Object anObject) {}         
+         }
+         
+         aspect A {
+             before(List&lt;? extends Number&gt; aListOfSomeNumberType) 
+               : call(* foo(..)) &amp;&amp; args(aListOfSomeNumberType) {
+                // process list... 
+             }
+         }
+		</pre><p>From the signature of <tt>foo</tt> all we know is that the runtime argument will be an instance of 
+            <tt>Object</tt>.Compiling this program gives the unchecked argument warning: 
+            "unchecked match of List&lt;? extends Number&gt; with List when argument is 
+              an instance of List at join point method-execution(void C.foo(Object)) [Xlint:uncheckedArgument]".
+              The advice will not execute at the call join point for <tt>c.foo("hi")</tt> since <tt>String</tt>
+              is not an instance of <tt>List</tt>. The advice <span class="emphasis"><i>will</i></span> execute at the call join points
+              for <tt>c.foo(ls)</tt> and <tt>c.foo(ld)</tt> since in both cases the argument is an instance of
+              <tt>List</tt>.
+            </p><p>Combine a wildcard argument type with a signature pattern to avoid unchecked argument matches. In the example
+            below we use the signature pattern <tt>List&lt;Number+&gt;</tt> to match a call to any method taking
+            a <tt>List&lt;Number&gt;, List&lt;Double&gt;, List&lt;Float&gt;</tt> and so on. In addition the 
+            signature pattern <tt>List&lt;? extends Number+&gt;</tt> can be used to match a call to a method
+            declared to take a <tt>List&lt;? extends Number&gt;</tt>, <tt>List&lt;? extends Double&gt;</tt>
+            and so on. Taken together, these restrict matching to only
+            those join points at which the argument is guaranteed to be an instance of <tt>List&lt;? extends Number&gt;</tt>.</p><pre class="programlisting">
+         aspect A {
+             before(List&lt;? extends Number&gt; aListOfSomeNumberType) 
+               : (call(* foo(List&lt;Number+&gt;)) || call(* foo(List&lt;? extends Number+&gt;))) 
+                 &amp;&amp; args(aListOfSomeNumberType) {
+                 // process list... 
+             }
+         }
+		</pre></div><div class="sect3"><a name="d0e2706"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2706"></a>Binding return values in after returning advice</h4></div></div><p>
+            After returning advice can be used to bind the return value from a matched join point. AspectJ 5 supports the use of
+            a parameterized type in the returning clause, with matching following the same rules as described for args. For
+            example, the following aspect matches the execution of any method returning a <tt>List</tt>, and makes
+            the returned list available to the body of the advice. 
+          </p><pre class="programlisting">
+         public aspect A {
+
+           pointcut executionOfAnyMethodReturningAList() : execution(List *(..));
+           
+           after() returning(List&lt;?&gt; listOfSomeType) : executionOfAnyMethodReturningAList() {
+             for (Object element : listOfSomeType) {
+                // process element...
+             }
+           }
+         
+         }
+		</pre><p>The pointcut uses the raw type pattern <tt>List</tt>, and hence it
+          matches methods returning any kind of list (<tt>List&lt;String&gt;, List&lt;Double&gt;</tt>, 
+          and so on. We've chosen to bind the returned list as the parameterized type 
+          <tt>List&lt;?&gt;</tt> in the advice since Java's type checking will now ensure
+          that we only perform safe operations on the list.</p><p>Given the class</p><pre class="programlisting">
+         public class C {
+           
+           public List&lt;String&gt; foo(List&lt;String&gt; listOfStrings) {...}
+               
+           public List&lt;Double&gt; bar(List&lt;Double&gt; listOfDoubles) {...}
+               
+           public List&lt;? extends Number&gt; goo(List&lt;? extends Number&gt; listOfSomeNumberType) {...}
+         
+         }
+		</pre><p>The advice in the aspect below will run after the execution of <tt>bar</tt>
+          and bind the return value. It will also run after the execution of <tt>goo</tt> and
+          bind the return value, but gives an <tt>uncheckedArgument</tt> warning during
+          compilation. It does <span class="emphasis"><i>not</i></span> run after the execution of <tt>foo</tt>.
+          </p><pre class="programlisting">
+         public aspect Returning {
+         
+           after() returning(List&lt;Double&gt; listOfDoubles) : execution(* C.*(..)) {
+              for(Double d : listOfDoubles) {
+                 // process double...
+              }   
+           }
+         
+         }
+		</pre><p>As with <tt>args</tt> you can guarantee that after returning advice only
+		executes on lists <span class="emphasis"><i>statically determinable</i></span> to be of the right
+		type by specifying a return type pattern in the associated pointcut. The 
+		<tt>@SuppressAjWarnings</tt> annotation can also be used if desired.</p></div><div class="sect3"><a name="d0e2762"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2762"></a>Declaring pointcuts inside generic types</h4></div></div><p><span class="emphasis"><i>This language feature will not be supported until AspectJ 5 M4.</i></span></p><p>Pointcuts can be declared in both classes and aspects. A pointcut declared in a generic
+            type may use the type variables of the type in which it is declared. All references to
+            a pointcut declared in a generic type from outside of that type must be via a parameterized type reference, 
+            and not a raw type reference.</p><p>Consider the generic type <tt>Generic</tt> with a pointcut <tt>foo</tt>:
+            </p><pre class="programlisting">
+         public class Generic&lt;T&gt; {
+         
+            /**
+             * matches the execution of any implementation of a method defined for T
+             */
+            public pointcut foo() : execution(* T.*(..));
+         
+         }
+		</pre><p>Such a pointcut must be refered to using a parameterized reference as shown
+		below.</p><pre class="programlisting">
+         public aspect A {
+         
+           // runs before the execution of any implementation of a method defined for MyClass
+           before() : Generic&lt;MyClass&gt;.foo() {
+              // ...   
+           }
+           
+           // runs before the execution of any implementation of a method defined for YourClass
+           before() : Generic&lt;YourClass&gt;.foo() {
+               // ...
+           }
+         
+           // results in a compilation error - raw type reference
+           before() : Generic.foo() { }
+         
+         }
+		</pre></div></div><div class="sect2"><a name="d0e2785"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2785"></a>Inter-type Declarations</h3></div></div><p>
+            AspectJ 5 supports the inter-type declaration of generic methods, and of members on
+            generic types. For generic methods, the syntax is exactly as for a regular method
+            declaration, with the addition of the target type specification:
+          </p><div class="variablelist"><dl><dt><a name="d0e2791"></a><span class="term">&lt;T extends Number&gt; T Utils.max(T first, T second) {...}</span></dt><dd><p><a name="d0e2794"></a>Declares a generic instance method <tt>max</tt> on the class <tt>Util</tt>.
             The <tt>max</tt> method takes two arguments, <tt>first</tt> and <tt>second</tt> which must
             both be of the same type (and that type must be Number or a subtype of Number) and returns an instance
             of that type.
-            </p></dd><dt><a name="d0e3092"></a><span class="term">static &lt;E&gt; E Utils.first(List&lt;E&gt; elements) {...}</span></dt><dd><p><a name="d0e3095"></a>Declares a static generic method <tt>first</tt> on the class <tt>Util</tt>.
+            </p></dd><dt><a name="d0e2812"></a><span class="term">static &lt;E&gt; E Utils.first(List&lt;E&gt; elements) {...}</span></dt><dd><p><a name="d0e2815"></a>Declares a static generic method <tt>first</tt> on the class <tt>Util</tt>.
             The <tt>first</tt> method takes a list of elements of some type, and returns an instance
             of that type.
-            </p></dd><dt><a name="d0e3107"></a><span class="term">&lt;T&gt; Sorter.new(List&lt;T&gt; elements,Comparator&lt;? super T&gt; comparator) {...}</span></dt><dd><p><a name="d0e3110"></a>Declares a constructor on the class <tt>Sorter</tt>.
+            </p></dd><dt><a name="d0e2827"></a><span class="term">&lt;T&gt; Sorter.new(List&lt;T&gt; elements,Comparator&lt;? super T&gt; comparator) {...}</span></dt><dd><p><a name="d0e2830"></a>Declares a constructor on the class <tt>Sorter</tt>.
             The constructor takes a list of elements of some type, and a comparator that can compare instances
             of the element type.
             </p></dd></dl></div><p>
@@ -460,63 +390,30 @@
           must match the number of type parameters in
          the generic type declaration. Type parameter <span class="emphasis"><i>names</i></span> do not have to match.
          For example, given the generic type <tt>Foo&lt;T,S extends Number&gt;</tt> then:      
-      </p><div class="variablelist"><dl><dt><a name="d0e3125"></a><span class="term">String Foo.getName() {...}</span></dt><dd><p><a name="d0e3128"></a>Declares a <tt>getName</tt> method on behalf of the raw type <tt>Foo</tt>. It is
+      </p><div class="variablelist"><dl><dt><a name="d0e2845"></a><span class="term">String Foo.getName() {...}</span></dt><dd><p><a name="d0e2848"></a>Declares a <tt>getName</tt> method on behalf of the type <tt>Foo</tt>. It is
             not possible to refer to the type parameters of Foo in such a declaration.
-            </p></dd><dt><a name="d0e3137"></a><span class="term">R Foo&lt;Q, R&gt;.getMagnitude() {...}</span></dt><dd><p><a name="d0e3140"></a>Declares a method <tt>getMagnitude</tt> on the generic class <tt>Foo</tt>.
+            </p></dd><dt><a name="d0e2857"></a><span class="term">public R Foo&lt;Q, R&gt;.getMagnitude() {...}</span></dt><dd><p><a name="d0e2860"></a>Declares a method <tt>getMagnitude</tt> on the generic class <tt>Foo</tt>.
             The method returns an instance of the type substituted for the second type parameter in an invocation
-            of <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e3152"></a><span class="term">R Foo&lt;Q, R extends Number&gt;.getMagnitude() {...}</span></dt><dd><p><a name="d0e3155"></a>Results in a compilation error since a bounds specification is not allowed in this
+            of <tt>Foo</tt> If <tt>Foo</tt> is declared as 
+            <tt>Foo&lt;T,N extends Number&gt; {...}</tt> then this inter-type declaration is
+            equivalent to the declaration of a method <tt>public N getMagnitude()</tt> 
+            within the body of <tt>Foo</tt>.
+            </p></dd><dt><a name="d0e2884"></a><span class="term">R Foo&lt;Q, R extends Number&gt;.getMagnitude() {...}</span></dt><dd><p><a name="d0e2887"></a>Results in a compilation error since a bounds specification is not allowed in this
                 form of an inter-type declaration (the bounds are determined from the declaration of the
                 target type).
             </p></dd></dl></div><p>A parameterized type may not be the target of an inter-type declaration. This is because
       there is only one type (the generic type) regardless of how many different invocations (parameterizations) of
       that generic type are made in a program. Therefore it does not make sense to try and declare a member
-      on behalf of (say) <tt>Foo&lt;String&gt;</tt>, you can only declare members on the generic
-      type <tt>Foo&lt;T&gt;</tt>. 
-      </p><p>
-        If an inter-type member is declared inside a generic aspect, then the type parameter names from the
-        aspect declaration may be used in the signature specification of the inter-type declaration, but 
-        <span class="emphasis"><i>not</i></span> as type parameter names for a generic target type. In other words the example
-        that follows is legal:
-      </p><pre class="programlisting">
-            public abstract aspect A&lt;T&gt; {
-              
-              private T Foo.data;
-              
-              public T Foo.getData(T defaultValue) {
-                return (this.data != null ? data : defaultValue);
-              }   
-                
-            }
-		</pre><p>
-       Whereas the following example is not allowed and will report an error that a parameterized type may not be the
-       target of an inter-type declaration (since when the type parameter <tt>T</tt> in the aspect is subsituted with
-       say, <tt>String</tt>, then the target of the inter-type declaration becomes <tt>Goo&lt;String&gt;</tt>).  
-      </p><pre class="programlisting">
-            public abstract aspect A&lt;T&gt; {
-              
-              private T Goo&lt;T&gt;.data;
-              
-              public T Goo&lt;T&gt;.getData(T defaultValue) {
-                return (this.data != null ? data : defaultValue);
-              }   
-                
-            }
-		</pre></div><div class="sect2"><a name="d0e3186"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3186"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
+      on behalf of (say) <tt>Bar&lt;String&gt;</tt>, you can only declare members on the generic
+      type <tt>Bar&lt;T&gt;</tt>. 
+      </p></div><div class="sect2"><a name="d0e2898"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2898"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
           statement (as long as the resulting type hierarchy would be well-formed in accordance with Java's sub-typing
-          rules). Generic types may also be used as the target type of a <tt>declare parents</tt> statement: 
-          a type variable list follows the <tt>parents</tt> keyword in these cases to declare the
-          type variables in scope.
-          Some examples follow:</p><div class="variablelist"><dl><dt><a name="d0e3201"></a><span class="term">declare parents: Foo implements List&lt;String&gt;</span></dt><dd><p><a name="d0e3204"></a>The <tt>Foo</tt> type implements the <tt>List&lt;String&gt;</tt> interface. If
+          rules). Generic types may also be used as the target type of a <tt>declare parents</tt> statement.</p><div class="variablelist"><dl><dt><a name="d0e2910"></a><span class="term">declare parents: Foo implements List&lt;String&gt;</span></dt><dd><p><a name="d0e2913"></a>The <tt>Foo</tt> type implements the <tt>List&lt;String&gt;</tt> interface. If
             <tt>Foo</tt> already implements some other parameterization of the <tt>List</tt>
             interface (for example, <tt>List&lt;Integer&gt;</tt> then a compilation error will result since a 
             type cannot implement multiple parameterizations of the same generic interface type. 
-            </p></dd><dt><a name="d0e3222"></a><span class="term">declare parents &lt;T&gt;:  org.xyz..*&lt;T&gt; extends Base&lt;T&gt;</span></dt><dd><p><a name="d0e3225"></a>All generic types declared in a package beginning with <tt>org.xyz</tt> and with a 
-            single unbounded type parameter, extend the generic type <tt>Base&lt;T&gt;</tt>.
-            </p></dd><dt><a name="d0e3234"></a><span class="term">declare parents &lt;T&gt;:  org.xyz..*&lt;T&gt; extends Base&lt;S&gt;</span></dt><dd><p><a name="d0e3237"></a>Results in a compilation error (unless <tt>S</tt> is a type) since <tt>S</tt> is
-            not bound in the type pattern.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e3246"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3246"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
-          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="d0e3254"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3254"></a>Parameterized Aspects</h3></div></div><p>
+            </p></dd></dl></div></div><div class="sect2"><a name="d0e2931"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2931"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
+          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="d0e2939"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2939"></a>Generic Aspects</h3></div></div><p><span class="emphasis"><i>This feature will not be fully implemented until AspectJ5 M4.</i></span></p><p>
             AspectJ 5 allows an <span class="emphasis"><i>abstract</i></span> aspect to be declared as a generic type. Any concrete
             aspect extending a generic abstract aspect must extend a parameterized version of the abstract aspect.
             Wildcards are not permitted in this parameterization.     
@@ -524,81 +421,107 @@
             public abstract aspect ParentChildRelationship&lt;P,C&gt; {
                 ...
             }
-		</pre><p>then</p><div class="variablelist"><dl><dt><a name="d0e3269"></a><span class="term">public aspect FilesInFolders extends ParentChildRelationship&lt;Folder,File&gt; {...</span></dt><dd><p><a name="d0e3272"></a>declares a concrete sub-aspect, <tt>FilesInFolders</tt> which extends the
+		</pre><p>then</p><div class="variablelist"><dl><dt><a name="d0e2957"></a><span class="term">public aspect FilesInFolders extends ParentChildRelationship&lt;Folder,File&gt; {...</span></dt><dd><p><a name="d0e2960"></a>declares a concrete sub-aspect, <tt>FilesInFolders</tt> which extends the
             parameterized abstract aspect <tt>ParentChildRelationship&lt;Folder,File&gt;</tt>.
-            </p></dd><dt><a name="d0e3281"></a><span class="term">public aspect FilesInFolders extends ParentChildRelationship {...</span></dt><dd><p><a name="d0e3284"></a>results in a compilation error since the <tt>ParentChildRelationship</tt> aspect must
+            </p></dd><dt><a name="d0e2969"></a><span class="term">public aspect FilesInFolders extends ParentChildRelationship {...</span></dt><dd><p><a name="d0e2972"></a>results in a compilation error since the <tt>ParentChildRelationship</tt> aspect must
             be fully parameterized.
-            </p></dd><dt><a name="d0e3290"></a><span class="term">public aspect ThingsInFolders&lt;T&gt; extends ParentChildRelationship&lt;Folder,T&gt;</span></dt><dd><p><a name="d0e3293"></a>results in a compilation error since concrete aspects may not have type parameters.
-            </p></dd><dt><a name="d0e3296"></a><span class="term">public abstract aspect ThingsInFolders&lt;T&gt; extends ParentChildRelationship&lt;Folder,T&gt;</span></dt><dd><p><a name="d0e3299"></a>declares a sub-aspect of <tt>ParentChildRelationship</tt> in which <tt>Folder</tt>
+            </p></dd><dt><a name="d0e2978"></a><span class="term">public aspect ThingsInFolders&lt;T&gt; extends ParentChildRelationship&lt;Folder,T&gt;</span></dt><dd><p><a name="d0e2981"></a>results in a compilation error since concrete aspects may not have type parameters.
+            </p></dd><dt><a name="d0e2984"></a><span class="term">public abstract aspect ThingsInFolders&lt;T&gt; extends ParentChildRelationship&lt;Folder,T&gt;</span></dt><dd><p><a name="d0e2987"></a>declares a sub-aspect of <tt>ParentChildRelationship</tt> in which <tt>Folder</tt>
             plays the role of parent (is bound to the type variable <tt>P</tt>).
-            </p></dd></dl></div><p>An exception to the rule that concrete aspects may not be generic is a pertypewithin aspect, which
-       may be declared with a single unbounded type parameter. This is discussed in the chapter on <a href="pertypewithin.html">pertypewithin</a>.</p><p>The type parameter variables from a generic aspect declaration may be used in place of a type within any
-        member of the aspect. For example, we can declare a <tt>ParentChildRelationship</tt> aspect to
+            </p></dd></dl></div><p>The type parameter variables from a generic aspect declaration may be used in place of a type within any
+        member of the aspect, <span class="emphasis"><i>except for within inter-type declarations</i></span>. 
+        For example, we can declare a <tt>ParentChildRelationship</tt> aspect to
         manage the bi-directional relationship between parent and child nodes as follows:
         </p><pre class="programlisting">
-            public abstract aspect ParentChildRelationship&lt;P,C&gt; {
-                
-                /**
-                 * Parents contain a list of children
-                 */
-                private List&lt;C&gt; P.children;
-                    
-                /**
-                 * Each child has a parent
-                 */
-                private P C.parent;
+          /** 
+           * a generic aspect, we've used descriptive role names for the type variables
+           * (Parent and Child) but you could use anything of course
+           */
+          public abstract aspect ParentChildRelationship&lt;Parent,Child&gt; {
 
-                /**
-                  * Parents provide access to their children
-                  */
-                public List&lt;C&gt; P.getChildren() {
-                    return Collections.unmodifiableList(children);  
-                }
-                
-                /**
-                 * A child provides access to its parent
-                 */
-                 public P C.getParent() {
-                   return parent;
-                 }
-                
-                /**
-                 * ensure bi-directional navigation on adding a child
-                 */
-                public void P.addChild(C child) {
-                   if (child.parent != null) {
-                     child.parent.removeChild(child);
-                   }
-                   children.add(child);
-                   child.parent = this;
-                }
-
-                /**
-                 * ensure bi-directional navigation on removing a child
-                 */
-                public void P.removeChild(C child) {
-                   if (children.remove(child)) {
-                     child.parent = null;
-                   }
-                }
-
-               /**
-                 * ensure bi-directional navigation on setting parent
-                 */
-                public void C.setParent(P parent) {
-                   parent.addChild(this);
-                }
-                
-                public pointcut addingChild(P p, C c) :
-                  execution(* P.addChild(C)) &amp;&amp; this(p) &amp;&amp; args(c);
-                  
-                public pointcut removingChild(P p, C c) :
-                  execution(* P.removeChild(C)) &amp;&amp; this(p) &amp;&amp; args(c);
+            /** generic interface implemented by parents */   
+            interface ParentHasChildren&lt;C extends ChildHasParent&gt;{
+              List&lt;C&gt; getChildren();
+              void addChild(C child);
+              void removeChild(C child);
             }
+
+            /** generic interface implemented by children */
+            interface ChildHasParent&lt;P extends ParentHasChildren&gt;{
+              P getParent();
+              void setParent(P parent);
+            }
+          
+            /** ensure the parent type implements ParentHasChildren&lt;child type&gt; */
+            declare parents: Parent implements ParentHasChildren&lt;Child&gt;;
+          
+            /** ensure the child type implements ChildHasParent&lt;parent type&gt; */
+            declare parents: Child implements ChildHasParent&lt;Parent&gt;;
+          
+            // Inter-type declarations made on the *generic* interface types to provide 
+            // default implementations.
+          
+            /** list of children maintained by parent */
+            private List&lt;C&gt; ParentHasChildren&lt;C&gt;.children;
+          
+            /** reference to parent maintained by child */        
+            private P ChildHasParent&lt;P&gt;.parent;
+          
+            /** Default implementation of getChildren for the generic type ParentHasChildren */
+            public List&lt;C&gt; ParentHasChildren&lt;C&gt;.getChildren() {
+                  return Collections.unmodifiableList(children);  
+            }
+          
+            /** Default implementation of getParent for the generic type ChildHasParent */    
+            public P ChildHasParent&lt;P&gt;.getParent() {
+                 return parent;
+            }
+          
+            /** 
+              * Default implementation of addChild, ensures that parent of child is
+              * also updated.
+              */ 
+            public void ParentHasChildren&lt;C&gt;.addChild(C child) {
+                 if (child.parent != null) {
+                   child.parent.removeChild(child);
+                 }
+                 children.add(child);
+                 child.parent = this;
+              }
+          
+             /**
+               * Default implementation of removeChild, ensures that parent of
+               * child is also updated.
+               */
+             public void ParentHasChildren&lt;C&gt;.removeChild(C child) {
+                 if (children.remove(child)) {
+                   child.parent = null;
+                 }
+              }
+          
+              /**
+                * Default implementation of setParent for the generic type ChildHasParent.
+                * Ensures that this child is added to the children of the parent too.
+                */
+              public void ChildHasParent&lt;P&gt;.setParent(P parent) {
+                 parent.addChild(this);
+              }
+          
+              /**
+                * Matches at an addChild join point for the parent type P and child type C
+                */    
+              public pointcut addingChild(Parent p, Child c) :
+                execution(* Parent.addChild(Child)) &amp;&amp; this(p) &amp;&amp; args(c);
+                
+              /**
+                * Matches at a removeChild join point for the parent type P and child type C
+                */    
+              public pointcut removingChild(Parent p, Child c) :
+                execution(* Parent.removeChild(C)) &amp;&amp; this(p) &amp;&amp; args(c);
+
+          }
+          
 		</pre><p>
-          Note in the above example how the type parameters <tt>P</tt> and <tt>C</tt> can be
-          used in inter-type declarations, pointcut expressions, and any other member of the aspect type. 
-        </p><p>
           The example aspect captures the protocol for managing a bi-directional parent-child relationship between
           any two types playing the role of parent and child. In a compiler implementation managing an abstract syntax
           tree (AST) in which AST nodes may contain other AST nodes we could declare the concrete aspect:
@@ -613,54 +536,55 @@
 		</pre><p>
            As a result of this declaration, <tt>ASTNode</tt> gains members:
          </p><table class="simplelist" border="0" summary="Simple list"><tr><td><tt>List&lt;ASTNode&gt; children</tt></td></tr><tr><td><tt>ASTNode parent</tt></td></tr><tr><td><tt>List&lt;ASTNode&gt;getChildren()</tt></td></tr><tr><td><tt>ASTNode getParent()</tt></td></tr><tr><td><tt>void addChild(ASTNode child)</tt></td></tr><tr><td><tt>void removeChild(ASTNode child)</tt></td></tr><tr><td><tt>void setParent(ASTNode parent)</tt></td></tr></table><p>
-           In a system managing files and folders, we could declare the concrete aspect:
+           In a system managing orders, we could declare the concrete aspect:
          </p><pre class="programlisting">
-            public aspect FilesInFolders extends ParentChildRelationship&lt;Folder,File&gt; {
+            public aspect OrderItemsInOrders extends ParentChildRelationship&lt;Order,OrderItem&gt; {
                                 
             }
 		</pre><p>
-           As a result of this declaration, <tt>Folder</tt> gains members:
-         </p><table class="simplelist" border="0" summary="Simple list"><tr><td><tt>List&lt;File&gt; children</tt></td></tr><tr><td><tt>List&lt;File&gt; getChildren()</tt></td></tr><tr><td><tt>void addChild(File child)</tt></td></tr><tr><td><tt>void removeChild(File child)</tt></td></tr></table><p>and <tt>File</tt> gains members:</p><table class="simplelist" border="0" summary="Simple list"><tr><td><tt>Folder parent</tt></td></tr><tr><td><tt>Folder getParent()</tt></td></tr><tr><td><tt>void setParent(Folder parent)</tt></td></tr></table><p>When used in this way, the type parameters in a generic abstract aspect declare
-        <span class="emphasis"><i>roles</i></span>, and the parameterization of the abstract aspect in the <tt>extends</tt>
-        clause binds types to those roles. This is a case where you may consider departing from the standard practice 
-        of using a single letter to represent a type parameter, and instead use a role name. It makes no difference
-        to the compiler which option you choose of course.</p><pre class="programlisting">
-            public abstract aspect ParentChildRelationship&lt;Parent,Child&gt; {
-                
-                /**
-                 * Parents contain a list of children
-                 */
-                private List&lt;Child&gt; Parent.children;
-                    
-                /**
-                 * Each child has a parent
-                 */
-                private Parent Child.parent;
-                
-                /**
-                  * Parents provide access to their children
-                  */
-                public List&lt;Children&gt; Parent.getChildren() {
-                    return Collections.unmodifiableList(children);  
-                }
-                
-                /**
-                 * A child provides access to its parent
-                 */
-                 public Parent Children.getParent() {
-                   return parent;
-                 }
-                                
-                /**
-                 * ensure bi-directional navigation on adding a child
-                 */
-                public void Parent.addChild(Child child) {
-                   if (child.parent != null) {
-                     child.parent.removeChild(child);
-                   }
-                   children.add(child);
-                   child.parent = this;
-                }
-         
-                ...
-		</pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="generics.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="autoboxing.html">Next</a></td></tr><tr><td width="40%" align="left">Chapter 3. Generics&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="generics.html">Up</a></td><td width="40%" align="right">&nbsp;Chapter 4. Autoboxing and Unboxing</td></tr></table></div></body></html>
+           As a result of this declaration, <tt>Order</tt> gains members:
+         </p><table class="simplelist" border="0" summary="Simple list"><tr><td><tt>List&lt;OrderItem&gt; children</tt></td></tr><tr><td><tt>List&lt;OrderItem&gt; getChildren()</tt></td></tr><tr><td><tt>void addChild(OrderItem child)</tt></td></tr><tr><td><tt>void removeChild(OrderItem child)</tt></td></tr></table><p>and <tt>OrderItem</tt> gains members:</p><table class="simplelist" border="0" summary="Simple list"><tr><td><tt>Order parent</tt></td></tr><tr><td><tt>Order getParent()</tt></td></tr><tr><td><tt>void setParent(Order parent)</tt></td></tr></table><p>A second example of an abstract aspect, this time for handling exceptions in a uniform
+         manner, is shown below:</p><pre class="programlisting">
+       abstract aspect ExceptionHandling&lt;T extends Throwable&gt; {
+	
+	        /**
+	         * method to be implemented by sub-aspects to handle thrown exceptions
+	         */
+        	protected abstract void onException(T anException);
+        	
+        	/**
+        	 * to be defined by sub-aspects to specify the scope of exception handling
+        	 */
+        	protected abstract pointcut inExceptionHandlingScope();
+        	
+        	/**
+        	 * soften T within the scope of the aspect
+        	 */
+        	declare soft: T : inExceptionHandlingScope();
+        	
+        	/**
+        	 * bind an exception thrown in scope and pass it to the handler
+        	 */
+        	after() throwing (T anException) : inExceptionHandlingScope() {
+        		onException(anException);
+        	}
+        	
+      }
+      </pre><p>Notice how the type variable <tt>T extends Throwable</tt> allows the
+      components of the aspect to be designed to work together in a type-safe manner. The
+      following concrete sub-aspect shows how the abstract aspect might be extended to 
+      handle <tt>IOExceptions</tt>.</p><pre class="programlisting">
+        public aspect IOExceptionHandling extends ExceptionHandling&lt;IOException&gt;{
+        	
+        	protected pointcut inExceptionHandlingScope() :
+        		call(* doIO*(..)) &amp;&amp; within(org.xyz..*);
+        	
+        	/**
+        	 * called whenever an IOException is thrown in scope.
+        	 */
+        	protected void onException(IOException ex) {
+        		System.err.println("handled exception: " + ex.getMessage());
+        		throw new MyDomainException(ex);
+        	}
+         }
+      </pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="generics.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="autoboxing.html">Next</a></td></tr><tr><td width="40%" align="left">Chapter 3. Generics&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="generics.html">Up</a></td><td width="40%" align="right">&nbsp;Chapter 4. Autoboxing and Unboxing</td></tr></table></div></body></html>

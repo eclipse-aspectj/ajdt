@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>The AspectJtm Development Environment Guide</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" id="d0e1"><div class="titlepage"><div><h1 class="title"><a name="d0e1"></a>The AspectJ<sup>tm</sup> Development Environment Guide</h1></div><div><h3 class="author">the AspectJ Team</h3></div><div><div class="legalnotice"><p>Copyright (c) 1998-2001 Xerox Corporation, 
+   <title>The AspectJtm Development Environment Guide</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" id="d0e1"><div class="titlepage"><div><h1 class="title"><a name="d0e1"></a>The AspectJ<sup>tm</sup> Development Environment Guide</h1></div><div><h3 class="author">the AspectJ Team</h3></div><div><div class="legalnotice"><p>Copyright (c) 1998-2001 Xerox Corporation, 
          2002 Palo Alto Research Center, Incorporated,
          2003-2005 Contributors.  
          All rights reserved.
@@ -17,8 +17,8 @@
               	<a href="http://eclipse.org/aspectj" target="_top">
               				http://eclipse.org/aspectj</a>.
         
-      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>I. <a href="#d0e26">Command-line tools</a></dt><dd><dl><dt><a href="#ajc-ref">ajc</a> - compiler and bytecode weaver for the AspectJ and Java languages</dt><dt><a href="#d0e629">ajdoc</a> - generate HTML API documentation, including crosscutting structure (early-access)
-    </dt></dl></dd><dt>1. <a href="#ajbrowser">AspectJ Browser</a></dt><dd><dl><dt><a href="#ajbrowser-intro">Introduction</a></dt><dt><a href="#d0e872">Building Programs</a></dt><dd><dl><dt><a href="#d0e875">Build Configurations</a></dt><dt><a href="#d0e906">Compiling a Program Build Configuration</a></dt></dl></dd><dt><a href="#d0e932">Navigating Program Structure</a></dt><dd><dl><dt><a href="#d0e941">Example: Exploring the "Spacewar" sample code </a></dt></dl></dd><dt><a href="#d0e1073">Running Programs</a></dt><dt><a href="#ajbrowser-problems">Isolating problems running the AspectJ browser</a></dt><dd><dl><dt><a href="#ajbrowser-knownProblems">Known issues with the AspectJ browser</a></dt><dt><a href="#ajbrowser-limitations">Limitations</a></dt><dt><a href="#ajbrowser-feedback">AspectJ Browser questions and bugs</a></dt></dl></dd></dl></dd><dt>2. <a href="#antTasks">AspectJ Ant Tasks</a></dt><dd><dl><dt><a href="#antTasks-intro">Introduction</a></dt><dt><a href="#antTasks-install">Installing Ant Tasks</a></dt><dt><a href="#antTasks-iajc">AjcTask (iajc)</a></dt><dd><dl><dt><a href="#antTasks-iajc-options">AjcTask (iajc) Options</a></dt><dt><a href="#antTasks-nested-includes">AjcTask matching parameters specified as nested elements</a></dt><dt><a href="#antTasks-iajc-paths">AjcTask Path-like Structures</a></dt><dt><a href="#antTasks-iajc-sample">Sample of iajc task</a></dt><dt><a href="#antTasks-iajc-uptodate">Avoiding clean compiles</a></dt><dt><a href="#d0e1921">Programmatically handling compiler messages</a></dt></dl></dd><dt><a href="#antTasks-adapter">Ajc11CompilerAdapter (javac)</a></dt><dd><dl><dt><a href="#antTasks-adapter-sample">Sample of compiler adapter</a></dt><dt><a href="#antTasks-adapter-options">Compiler adapter compilerarg options</a></dt></dl></dd><dt><a href="#antTasks-ajc">Ajc10 (ajc)</a></dt><dd><dl><dt><a href="#antTasks-ajc-options">Ajc10 (ajc) Options</a></dt><dt><a href="#antTasks-ajc-nested">Ajc10 parameters specified as nested elements</a></dt><dt><a href="#antTasks-ajc-sample">Sample of ajc task</a></dt></dl></dd><dt><a href="#antTasks-problems">Isolating problems running the Ant tasks</a></dt><dd><dl><dt><a href="#antTasks-knownProblems">Known issues with the Ant tasks</a></dt><dt><a href="#antTasks-feedback">Ant task questions and bugs</a></dt></dl></dd></dl></dd></dl></div><div class="reference"><div class="titlepage"><div><h1 class="title"><a name="d0e26"></a>Command-line tools</h1></div><div><div class="abstract"><p><a name="d0e29"></a><b>Summary of command-line tools</b></p><p></p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ajc-ref">ajc</a> - compiler and bytecode weaver for the AspectJ and Java languages</dt><dt><a href="#d0e629">ajdoc</a> - generate HTML API documentation, including crosscutting structure (early-access)
+      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>I. <a href="#d0e26">Command-line tools</a></dt><dd><dl><dt><a href="#ajc-ref">ajc</a> - compiler and bytecode weaver for the AspectJ and Java languages</dt><dt><a href="#ajdoc-ref">ajdoc</a> - generate HTML API documentation, including crosscutting structure (early-access)
+    </dt></dl></dd><dt>1. <a href="#ajbrowser">AspectJ Browser</a></dt><dd><dl><dt><a href="#ajbrowser-intro">Introduction</a></dt><dt><a href="#d0e872">Building Programs</a></dt><dd><dl><dt><a href="#d0e875">Build Configurations</a></dt><dt><a href="#d0e906">Compiling a Program Build Configuration</a></dt></dl></dd><dt><a href="#d0e932">Navigating Program Structure</a></dt><dd><dl><dt><a href="#d0e941">Example: Exploring the "Spacewar" sample code </a></dt></dl></dd><dt><a href="#d0e1073">Running Programs</a></dt><dt><a href="#ajbrowser-problems">Isolating problems running the AspectJ browser</a></dt><dd><dl><dt><a href="#ajbrowser-knownProblems">Known issues with the AspectJ browser</a></dt><dt><a href="#ajbrowser-limitations">Limitations</a></dt><dt><a href="#ajbrowser-feedback">AspectJ Browser questions and bugs</a></dt></dl></dd></dl></dd><dt>2. <a href="#antTasks">AspectJ Ant Tasks</a></dt><dd><dl><dt><a href="#antTasks-intro">Introduction</a></dt><dt><a href="#antTasks-install">Installing Ant Tasks</a></dt><dt><a href="#antTasks-iajc">AjcTask (iajc)</a></dt><dd><dl><dt><a href="#antTasks-iajc-options">AjcTask (iajc) Options</a></dt><dt><a href="#antTasks-nested-includes">AjcTask matching parameters specified as nested elements</a></dt><dt><a href="#antTasks-iajc-paths">AjcTask Path-like Structures</a></dt><dt><a href="#antTasks-iajc-sample">Sample of iajc task</a></dt><dt><a href="#antTasks-iajc-uptodate">Avoiding clean compiles</a></dt><dt><a href="#d0e1937">Programmatically handling compiler messages</a></dt></dl></dd><dt><a href="#antTasks-adapter">Ajc11CompilerAdapter (javac)</a></dt><dd><dl><dt><a href="#antTasks-adapter-sample">Sample of compiler adapter</a></dt><dt><a href="#antTasks-adapter-options">Compiler adapter compilerarg options</a></dt></dl></dd><dt><a href="#antTasks-ajc">Ajc10 (ajc)</a></dt><dd><dl><dt><a href="#antTasks-ajc-options">Ajc10 (ajc) Options</a></dt><dt><a href="#antTasks-ajc-nested">Ajc10 parameters specified as nested elements</a></dt><dt><a href="#antTasks-ajc-sample">Sample of ajc task</a></dt></dl></dd><dt><a href="#antTasks-problems">Isolating problems running the Ant tasks</a></dt><dd><dl><dt><a href="#antTasks-knownProblems">Known issues with the Ant tasks</a></dt><dt><a href="#antTasks-feedback">Ant task questions and bugs</a></dt></dl></dd></dl></dd></dl></div><div class="reference"><div class="titlepage"><div><h1 class="title"><a name="d0e26"></a>Command-line tools</h1></div><div><div class="abstract"><p><a name="d0e29"></a><b>Summary of command-line tools</b></p><p></p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ajc-ref">ajc</a> - compiler and bytecode weaver for the AspectJ and Java languages</dt><dt><a href="#ajdoc-ref">ajdoc</a> - generate HTML API documentation, including crosscutting structure (early-access)
     </dt></dl></div><div class="refentry"><h1 class="title"><a name="ajc-ref"></a>ajc</h1><div class="refnamediv"><a name="d0e37"></a><h2>Name</h2>ajc &#8212; compiler and bytecode weaver for the AspectJ and Java languages</div><div class="refsynopsisdiv"><a name="d0e42"></a><h2>Synopsis</h2><div class="cmdsynopsis" id="d0e43"><a name="d0e43"></a><tt>ajc</tt>  [<i><tt>Options</tt></i>] [<i><tt>file...</tt></i> | @<i><tt>file...</tt></i> | -argfile <i><tt>file...</tt></i>]</div></div><div class="refsect1"><a name="ajc"></a><h2>Description</h2><p>The <b>ajc</b> command compiles AspectJ and Java
       language files, weaving aspects as necessary to produce .class files 
       compliant with any Java VM (1.1 or later). 
@@ -360,7 +360,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
       </p><p>In a class file that comes from only a single source file, the AspectJ
             compiler generates SourceFile attributes consistent with
             traditional Java compilers.
-      </p></div></div></div><div class="refentry"><h1 class="title"><a name="d0e629"></a>ajdoc</h1><div class="refnamediv"><a name="d0e630"></a><h2>Name</h2>ajdoc &#8212; generate HTML API documentation, including crosscutting structure (early-access)
+      </p></div></div></div><div class="refentry"><h1 class="title"><a name="ajdoc-ref"></a>ajdoc</h1><div class="refnamediv"><a name="d0e630"></a><h2>Name</h2>ajdoc &#8212; generate HTML API documentation, including crosscutting structure (early-access)
     </div><div class="refsynopsisdiv"><a name="d0e635"></a><h2>Synopsis</h2><div class="cmdsynopsis" id="d0e636"><a name="d0e636"></a><tt>ajdoc</tt>  [
         -bootclasspath <i><tt>classpathlist</tt></i>
       ] [
@@ -678,7 +678,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
         <a href="http://bugs.eclipse.org/bugs" target="_top">
            http://bugs.eclipse.org/bugs</a>
         using the AspectJ product and IDE component. 
-		</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="antTasks"></a>Chapter 2. AspectJ Ant Tasks</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#antTasks-intro">Introduction</a></dt><dt><a href="#antTasks-install">Installing Ant Tasks</a></dt><dt><a href="#antTasks-iajc">AjcTask (iajc)</a></dt><dd><dl><dt><a href="#antTasks-iajc-options">AjcTask (iajc) Options</a></dt><dt><a href="#antTasks-nested-includes">AjcTask matching parameters specified as nested elements</a></dt><dt><a href="#antTasks-iajc-paths">AjcTask Path-like Structures</a></dt><dt><a href="#antTasks-iajc-sample">Sample of iajc task</a></dt><dt><a href="#antTasks-iajc-uptodate">Avoiding clean compiles</a></dt><dt><a href="#d0e1921">Programmatically handling compiler messages</a></dt></dl></dd><dt><a href="#antTasks-adapter">Ajc11CompilerAdapter (javac)</a></dt><dd><dl><dt><a href="#antTasks-adapter-sample">Sample of compiler adapter</a></dt><dt><a href="#antTasks-adapter-options">Compiler adapter compilerarg options</a></dt></dl></dd><dt><a href="#antTasks-ajc">Ajc10 (ajc)</a></dt><dd><dl><dt><a href="#antTasks-ajc-options">Ajc10 (ajc) Options</a></dt><dt><a href="#antTasks-ajc-nested">Ajc10 parameters specified as nested elements</a></dt><dt><a href="#antTasks-ajc-sample">Sample of ajc task</a></dt></dl></dd><dt><a href="#antTasks-problems">Isolating problems running the Ant tasks</a></dt><dd><dl><dt><a href="#antTasks-knownProblems">Known issues with the Ant tasks</a></dt><dt><a href="#antTasks-feedback">Ant task questions and bugs</a></dt></dl></dd></dl></div><div class="sect1"><a name="antTasks-intro"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="antTasks-intro"></a>Introduction</h2></div></div><p>
+		</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="antTasks"></a>Chapter 2. AspectJ Ant Tasks</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#antTasks-intro">Introduction</a></dt><dt><a href="#antTasks-install">Installing Ant Tasks</a></dt><dt><a href="#antTasks-iajc">AjcTask (iajc)</a></dt><dd><dl><dt><a href="#antTasks-iajc-options">AjcTask (iajc) Options</a></dt><dt><a href="#antTasks-nested-includes">AjcTask matching parameters specified as nested elements</a></dt><dt><a href="#antTasks-iajc-paths">AjcTask Path-like Structures</a></dt><dt><a href="#antTasks-iajc-sample">Sample of iajc task</a></dt><dt><a href="#antTasks-iajc-uptodate">Avoiding clean compiles</a></dt><dt><a href="#d0e1937">Programmatically handling compiler messages</a></dt></dl></dd><dt><a href="#antTasks-adapter">Ajc11CompilerAdapter (javac)</a></dt><dd><dl><dt><a href="#antTasks-adapter-sample">Sample of compiler adapter</a></dt><dt><a href="#antTasks-adapter-options">Compiler adapter compilerarg options</a></dt></dl></dd><dt><a href="#antTasks-ajc">Ajc10 (ajc)</a></dt><dd><dl><dt><a href="#antTasks-ajc-options">Ajc10 (ajc) Options</a></dt><dt><a href="#antTasks-ajc-nested">Ajc10 parameters specified as nested elements</a></dt><dt><a href="#antTasks-ajc-sample">Sample of ajc task</a></dt></dl></dd><dt><a href="#antTasks-problems">Isolating problems running the Ant tasks</a></dt><dd><dl><dt><a href="#antTasks-knownProblems">Known issues with the Ant tasks</a></dt><dt><a href="#antTasks-feedback">Ant task questions and bugs</a></dt></dl></dd></dl></div><div class="sect1"><a name="antTasks-intro"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="antTasks-intro"></a>Introduction</h2></div></div><p>
 	AspectJ contains a compiler, <tt>ajc</tt>, 
 	that can be run from Ant. 
 	Included in the <tt>aspectjtools.jar</tt>
@@ -710,11 +710,11 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	Sources are available under the Common Public License v. 1.0 
 	at <a href="http://eclipse.org/aspectj" target="_top">http://eclipse.org/aspectj</a>.
 	</p><p>
-	In Ant, third-party tasks can be declared using a taskdef entry in 
+	In Ant 1.5, third-party tasks can be declared using a taskdef entry in 
 	the build script, to identify the name and classes. 
 	When declaring a task, include the 
 	<tt>aspectjtools.jar</tt> either in the 
-	taskdef classpath or in ${ANT_HOME}/lib where it will be added 
+	taskdef classpath or in <tt>${ANT_HOME}/lib</tt> where it will be added 
 	to the system class path by the ant script. 
 	You may specify the task script names directly, 
 	or use the "resource" attribute to specify the default names:
@@ -727,6 +727,27 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	The current resource file retains the name "ajc" for the Ajc10 task, 
 	and uses "iajc" for the AspectJ post-1.1 task.
     </p><p>
+	In Ant 1.6, third-party tasks are declared in their own namespace 
+	using <tt>antlib.xml</tt>.  For example, the following
+	script would build and run the spacewar example, if you put the
+	script in the examples directory and <tt>aspectjtools.jar</tt>
+	in the <tt>${ANT_HOME}/lib</tt> directory.
+    </p><pre class="programlisting">
+    
+&lt;project name="aspectj-ant1.6" default="spacewar" 
+    xmlns:aspectj="antlib:org.aspectj" basedir="."&gt;
+    &lt;target name="spacewar"&gt;
+        &lt;aspectj:iajc
+            argfiles="spacewar/debug.lst"
+            outjar="spacewar.jar"
+            classpath="../../lib/aspectjrt.jar"
+       /&gt;
+       &lt;java classname="spacewar.Game"
+        classpath="spacewar.jar:../../lib/aspectjrt.jar"/&gt;
+    &lt;/target&gt;
+&lt;/project&gt;
+
+    </pre><p>
 	For more information on using Ant, please refer to Jakarta's 
 	documentation on integrating user-defined Ant tasks into builds.
     </p></div><div class="sect1"><a name="antTasks-iajc"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="antTasks-iajc"></a>AjcTask (iajc)</h2></div></div><p>
@@ -776,7 +797,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 			<span class="strong"><i>
 			AjcTask (iajc) options for specifying sources
 			</i></span>		
-		</p><div class="informaltable" id="d0e1268"><a name="d0e1268"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
+		</p><div class="informaltable" id="d0e1284"><a name="d0e1284"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
 				(<a href="#antTasks-iajc-paths">Path</a>)
 				</p></td><td><p>
 				An argument file contains a list of arguments read by the compiler. 
@@ -834,7 +855,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying output
 			</i></span>		
-		</p><div class="informaltable" id="d0e1371"><a name="d0e1371"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
+		</p><div class="informaltable" id="d0e1387"><a name="d0e1387"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
 				</p></td><td><p>						
 				The directory in which to place the generated class files. 
 				Only one of <tt>destDir</tt> and 
@@ -879,7 +900,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying compiler behavior
 			</i></span>		
-		</p><div class="informaltable" id="d0e1459"><a name="d0e1459"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
+		</p><div class="informaltable" id="d0e1475"><a name="d0e1475"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
 				</p></td><td><p>						
 				Run process in another VM. 
 				This gets the forking classpath either explicitly
@@ -928,7 +949,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying compiler side-effects and messages
 			</i></span>		
-		</p><div class="informaltable" id="d0e1548"><a name="d0e1548"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
+		</p><div class="informaltable" id="d0e1564"><a name="d0e1564"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
 				</p></td><td><p>
 				If true, emit <tt>.ajesym</tt> symbol files for Emacs support.
 				</p></td></tr><tr><td><p>verbose
@@ -980,7 +1001,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying Eclipse compiler options
 			</i></span>		
-		</p><div class="informaltable" id="d0e1663"><a name="d0e1663"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
+		</p><div class="informaltable" id="d0e1679"><a name="d0e1679"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
 				</p></td><td><p>		
 				 	If true, same as <tt>warn:none</tt>.
 				</p></td></tr><tr><td><p>deprecation
@@ -1118,12 +1139,12 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 
 		</pre><p>
 		Below is script with most everything in it. The compile process...
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e1884"></a>Runs in incremental mode, recompiling when the user hits return;
-	        </p></li><li><p><a name="d0e1887"></a>Reads all the source files from two directories;
-	        </p></li><li><p><a name="d0e1890"></a>Reads binary .class files from input jar and directory; 
-				</p></li><li><p><a name="d0e1893"></a>Uses a binary aspect library for persistence;
-	        </p></li><li><p><a name="d0e1896"></a>Outputs to an application jar; and
-	        </p></li><li><p><a name="d0e1899"></a>Copies resources from the source directories and binary input 
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e1900"></a>Runs in incremental mode, recompiling when the user hits return;
+	        </p></li><li><p><a name="d0e1903"></a>Reads all the source files from two directories;
+	        </p></li><li><p><a name="d0e1906"></a>Reads binary .class files from input jar and directory; 
+				</p></li><li><p><a name="d0e1909"></a>Uses a binary aspect library for persistence;
+	        </p></li><li><p><a name="d0e1912"></a>Outputs to an application jar; and
+	        </p></li><li><p><a name="d0e1915"></a>Copies resources from the source directories and binary input 
 				jar and directories to the application jar. </p></li></ol></div><p>
 		When this target is built, the compiler will build once and then 
 		wait for input from the user. 
@@ -1189,7 +1210,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 		When using this technique, be careful to verify that binary
 		input jars are themselves up-to-date after they would have been
 		modified by any build commands.
-		</p></div><div class="sect2"><a name="d0e1921"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1921"></a>Programmatically handling compiler messages</h3></div></div><p>
+		</p></div><div class="sect2"><a name="d0e1937"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1937"></a>Programmatically handling compiler messages</h3></div></div><p>
 	Users may specify a message holder to which the compiler will pass 
 	all messages as they are generated. This will override all of the 
 	normal message printing, but does not prevent the task from failing 
@@ -1257,44 +1278,44 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	The adapter supports any ajc command-line option passed using compilerarg, 
 	as well as the following options available only in AjcTask. 
 	Find more details on the following options in <a href="#antTasks-iajc">AjcTask (iajc)</a>.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e1976"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e1992"></a>
 		<tt>-Xmaxmem</tt>: 
 			set maximum memory for forking (also settable in javac).		
-		</p></li><li><p><a name="d0e1982"></a>
+		</p></li><li><p><a name="d0e1998"></a>
 		<tt>-Xlistfileargs</tt>: 
 			list file arguments (also settable in javac).		
-		</p></li><li><p><a name="d0e1988"></a>
+		</p></li><li><p><a name="d0e2004"></a>
 		<tt>-Xfailonerror</tt>: 
 			throw BuildException on compiler error (also settable in javac).
-		</p></li><li><p><a name="d0e1994"></a>
+		</p></li><li><p><a name="d0e2010"></a>
 		<tt>-Xmessageholderclass</tt>: 
 			specify fully-qualified name of class to use as the message holder.	
-		</p></li><li><p><a name="d0e2000"></a>
+		</p></li><li><p><a name="d0e2016"></a>
 		<tt>-Xcopyinjars</tt>: 
 			copy resources from any input jars to output
 			(default behavior since 1.1.1)
-		</p></li><li><p><a name="d0e2006"></a>
+		</p></li><li><p><a name="d0e2022"></a>
 		<tt>-Xsourcerootcopyfilter {filter}</tt>: 
 			copy resources from source directories to output (minus files specified in filter)
-		</p></li><li><p><a name="d0e2012"></a>
+		</p></li><li><p><a name="d0e2028"></a>
 		<tt>-Xtagfile {file}</tt>: 
 			use file to control incremental compilation		
-		</p></li><li><p><a name="d0e2018"></a>
+		</p></li><li><p><a name="d0e2034"></a>
 		<tt>-Xsrcdir {dir}</tt>: 		
 			add to list of ajc source roots (all source files will be included).
 		</p></li></ul></div><p>
 	Special considerations when using Javac and compilerarg:
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2027"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2043"></a>
 		The names above may differ slightly from what you might expect 
 		from AjcTask; use these forms when specifying compilerarg.
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2031"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2047"></a>
 		By default the adapter will mimic the Javac task's copying of resource 
 		files by specifying 
 		<tt>"**/CVS/*,**/*.java,**/*.aj"</tt>
 		for the sourceroot copy filter. 
 		To change this behavior, supply your own value 
 		(e.g., <tt>"**/*"</tt> to copy nothing).
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2041"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2057"></a>
 		Warning - define the system property
 		<tt>build.compiler.clean</tt> to compile all files, 
 		when available.
@@ -1317,20 +1338,20 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 		</pre><p>		
 		Caveats to consider when using this global 
 		<tt>build.compiler.clean</tt> property:
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2060"></a>
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2076"></a>
 		   If javac believes there are no out-of-date source files, 
 		   then the adapter is never called and cannot clean up, 
 		   and the "compile" will appear to complete successfully 
 		   though it did nothing.
-			</p></li><li><p><a name="d0e2063"></a>
+			</p></li><li><p><a name="d0e2079"></a>
 		   Cleaning will makes stepwise build processes fail if 
 		   they depend on the results of the prior compilation being 
 		   in the same directory, since cleaning deletes all .class files.
-			</p></li><li><p><a name="d0e2066"></a>
+			</p></li><li><p><a name="d0e2082"></a>
 		   This clean process only permits one compile process at a 
 		   time for each destination directory because it tracks 
 		   recursion by writing a tag file to the destination directory.
-			</p></li><li><p><a name="d0e2069"></a>
+			</p></li><li><p><a name="d0e2085"></a>
 		   When running incrementally, the clean happens only before 
 		   the initial compile.
 			</p></li></ol></div></li></ul></div></div></div><div class="sect1"><a name="antTasks-ajc"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="antTasks-ajc"></a>Ajc10 (ajc)</h2></div></div><p>
@@ -1354,7 +1375,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	    <tt>srcdir</tt> (with patterns)).
 	    </p><p>Boolean parameters default to <tt>false</tt>
 	    unless otherwise stated.
-	    </p><div class="table"><p><a name="d0e2103"></a><b>Table 2.1. AjcTask (ajc) options for specifying sources</b></p><table summary="AjcTask (ajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>srcdir
+	    </p><div class="table"><p><a name="d0e2119"></a><b>Table 2.1. AjcTask (ajc) options for specifying sources</b></p><table summary="AjcTask (ajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>srcdir
 				</p></td><td><p>
 				The base directory of the java files.
 				See 
@@ -1414,7 +1435,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td></tr><tr><td><p>source
 				</p></td><td><p>
 				Value of -source option - ignored unless <tt>1.4</tt>.
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e2235"></a><b>Table 2.2. Parameters ignored by the old ajc taskdef, 
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e2251"></a><b>Table 2.2. Parameters ignored by the old ajc taskdef, 
 				but now supported or buggy</b></p><table summary="Parameters ignored by the old ajc taskdef, &#xA;				but now supported or buggy" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th><th>Supported?</th></tr></thead><tbody><tr><td><p>encoding
 				</p></td><td><p>Default encoding of source files.
 				</p></td><td><p>yes
@@ -1445,7 +1466,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td></tr></tbody></table></div><p>
 		The following table shows that many of the unique parameters in 
 		AspectJ 1.0 are no longer supported.
-		</p><div class="table"><p><a name="d0e2323"></a><b>Table 2.3. Parameters unique to ajc</b></p><table summary="Parameters unique to ajc" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>X
+		</p><div class="table"><p><a name="d0e2339"></a><b>Table 2.3. Parameters unique to ajc</b></p><table summary="Parameters unique to ajc" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>X
 				</p></td><td><p>
 				 	comma-delimited list of extended (-X...) options, 
 				 	entered without -X (e.g., 
@@ -1457,7 +1478,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td><td><p>
 				A comma-delimited list of argfiles that contain a line-delimited 
 				list of source file paths (absolute or relative to the argfile).
-				</p></td></tr></tbody></table></div><div class="sect3"><a name="d0e2358"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2358"></a>argfiles - argument list files</h4></div></div><p>
+				</p></td></tr></tbody></table></div><div class="sect3"><a name="d0e2374"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2374"></a>argfiles - argument list files</h4></div></div><p>
 		An argument file is a file (usually <tt>{file}.lst</tt>) 
 		containing a list of source file paths 
 		(absolute or relative to the argfile). 
@@ -1554,15 +1575,15 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	If you have problems with the tasks not solved by the documentation, 
 	please try to see if you have the same problems when running ajc 
 	directly on the command line.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2460"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2476"></a>
 		If the problem occurs on the command line also, then the problem 
 		is not in the task. 
 		(It may be in the tools; please send bug reports.)
-		</p></li><li><p><a name="d0e2463"></a>
+		</p></li><li><p><a name="d0e2479"></a>
 		If the problem does not occur on the command line, then it may 
 		lie in the parameters you are supplying in Ant or in the task's 
 		handling of them.
-		</p></li><li><p><a name="d0e2466"></a>
+		</p></li><li><p><a name="d0e2482"></a>
 		If the build script looks correct and the problem only occurs when 
 		building from Ant, then please send a report 
 		(including your build file, if possible).

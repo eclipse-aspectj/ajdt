@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>Advice</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="semantics.html" title="Appendix B. Language Semantics"><link rel="previous" href="semantics-pointcuts.html" title="Pointcuts"><link rel="next" href="semantics-declare.html" title="Static crosscutting"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Advice</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="semantics-pointcuts.html">Prev</a>&nbsp;</td><th width="60%" align="center">Appendix B. Language Semantics</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="semantics-declare.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="semantics-advice"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="semantics-advice"></a>Advice</h2></div></div><p>
+   <title>Advice</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="semantics.html" title="Appendix B. Language Semantics"><link rel="previous" href="semantics-pointcuts.html" title="Pointcuts"><link rel="next" href="semantics-declare.html" title="Static crosscutting"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Advice</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="semantics-pointcuts.html">Prev</a>&nbsp;</td><th width="60%" align="center">Appendix B. Language Semantics</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="semantics-declare.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="semantics-advice"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="semantics-advice"></a>Advice</h2></div></div><p>
       Each piece of advice is of the form
 
       <blockquote class="blockquote"><tt>[ strictfp ] <i><tt>AdviceSpec</tt></i> [
@@ -9,9 +9,9 @@
         <i><tt>Body</tt></i> } </tt></blockquote>
 
       where <i><tt>AdviceSpec</tt></i> is one of
-    </p><div class="itemizedlist"><ul><li><a name="d0e5999"></a><tt>before( <i><tt>Formals</tt></i> ) </tt></li><li><a name="d0e6005"></a><tt>after( <i><tt>Formals</tt></i> ) returning
-        [ ( <i><tt>Formal</tt></i> ) ] </tt></li><li><a name="d0e6014"></a><tt>after( <i><tt>Formals</tt></i> ) throwing [
-        ( <i><tt>Formal</tt></i> ) ] </tt></li><li><a name="d0e6023"></a><tt>after( <i><tt>Formals</tt></i> ) </tt></li><li><a name="d0e6029"></a><tt><i><tt>Type</tt></i>
+    </p><div class="itemizedlist"><ul><li><a name="d0e6000"></a><tt>before( <i><tt>Formals</tt></i> ) </tt></li><li><a name="d0e6006"></a><tt>after( <i><tt>Formals</tt></i> ) returning
+        [ ( <i><tt>Formal</tt></i> ) ] </tt></li><li><a name="d0e6015"></a><tt>after( <i><tt>Formals</tt></i> ) throwing [
+        ( <i><tt>Formal</tt></i> ) ] </tt></li><li><a name="d0e6024"></a><tt>after( <i><tt>Formals</tt></i> ) </tt></li><li><a name="d0e6030"></a><tt><i><tt>Type</tt></i>
         around( <i><tt>Formals</tt></i> )</tt></li></ul></div><p>
       Advice defines crosscutting behavior.  It is defined in terms of
       pointcuts. The code of a piece of advice runs at every join point
@@ -157,11 +157,11 @@
       Rather, it will double the local parameter.  Changing the values of
       parameters or return values of join points can be done by using around
       advice.
-    </p><div class="sect2"><a name="d0e6148"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6148"></a>Advice modifiers</h3></div></div><p>
+    </p><div class="sect2"><a name="d0e6149"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6149"></a>Advice modifiers</h3></div></div><p>
         The <tt>strictfp</tt> modifier is the only modifier allowed
         on advice, and it has the effect of making all floating-point
         expressions within the advice be FP-strict.
-      </p></div><div class="sect2"><a name="d0e6156"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6156"></a>Advice and checked exceptions</h3></div></div><p>
+      </p></div><div class="sect2"><a name="d0e6157"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6157"></a>Advice and checked exceptions</h3></div></div><p>
         An advice declaration must include a <tt>throws</tt> clause
         listing the checked exceptions the body may throw.  This list of
         checked exceptions must be compatible with each target join point
@@ -190,46 +190,46 @@
         an undeclared checked exception, and the second because field get join
         points cannot throw <tt>FileNotFoundException</tt>s.
       </p><p> The exceptions that each kind of join point in AspectJ may throw are:
-      </p><div class="variablelist"><dl><dt><a name="d0e6176"></a><span class="term">method call and execution</span></dt><dd>
+      </p><div class="variablelist"><dl><dt><a name="d0e6177"></a><span class="term">method call and execution</span></dt><dd>
           the checked exceptions declared by the target method's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6184"></a><span class="term">constructor call and execution</span></dt><dd>
+        </dd><dt><a name="d0e6185"></a><span class="term">constructor call and execution</span></dt><dd>
           the checked exceptions declared by the target constructor's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6192"></a><span class="term">field get and set</span></dt><dd>
+        </dd><dt><a name="d0e6193"></a><span class="term">field get and set</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6197"></a><span class="term">exception handler execution</span></dt><dd>
+        </dd><dt><a name="d0e6198"></a><span class="term">exception handler execution</span></dt><dd>
           the exceptions that can be thrown by the target exception handler.
-        </dd><dt><a name="d0e6202"></a><span class="term">static initializer execution</span></dt><dd>
+        </dd><dt><a name="d0e6203"></a><span class="term">static initializer execution</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6207"></a><span class="term">pre-initialization and initialization</span></dt><dd>
+        </dd><dt><a name="d0e6208"></a><span class="term">pre-initialization and initialization</span></dt><dd>
           any exception that is in the throws clause of
           <span class="emphasis"><i>all</i></span> constructors of the initialized class. 
-        </dd><dt><a name="d0e6215"></a><span class="term">advice execution</span></dt><dd>
+        </dd><dt><a name="d0e6216"></a><span class="term">advice execution</span></dt><dd>
           any exception that is in the throws clause of the advice. 
-        </dd></dl></div></div><div class="sect2"><a name="d0e6220"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6220"></a>Advice precedence</h3></div></div><p>
+        </dd></dl></div></div><div class="sect2"><a name="d0e6221"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6221"></a>Advice precedence</h3></div></div><p>
         Multiple pieces of advice may apply to the same join point.  In such
         cases, the resolution order of the advice is based on advice
         precedence.
-      </p><div class="sect3"><a name="d0e6225"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6225"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
+      </p><div class="sect3"><a name="d0e6226"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6226"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
         piece of advice has precedence over another when they advise the same
         join point. </p><p>If the two pieces of advice are defined in different aspects,
-        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6233"></a>If aspect A is matched earlier than aspect B in some
+        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6234"></a>If aspect A is matched earlier than aspect B in some
           <tt>declare precedence</tt> form, then all advice in
           concrete aspect A has precedence over all advice in concrete aspect B
-          when they are on the same join point.  </li><li><a name="d0e6238"></a>
+          when they are on the same join point.  </li><li><a name="d0e6239"></a>
           Otherwise, if aspect A is a subaspect of aspect B, then all advice
           defined in A has precedence over all advice defined in
           B. So, unless otherwise specified with
           <tt>declare precedence</tt>, advice in a subaspect
           has precedence over advice in a superaspect.
-          </li><li><a name="d0e6243"></a>
+          </li><li><a name="d0e6244"></a>
           Otherwise, if two pieces of advice are defined in two different
           aspects, it is undefined which one has precedence.
           </li></ul></div><p>If the two pieces of advice are defined in the same aspect, then
-        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6248"></a>If either are <tt>after</tt> advice, then the one that
+        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6249"></a>If either are <tt>after</tt> advice, then the one that
           appears later in the aspect has precedence over the one that appears
-          earlier. </li><li><a name="d0e6253"></a>Otherwise, then the one that appears earlier in the aspect
+          earlier. </li><li><a name="d0e6254"></a>Otherwise, then the one that appears earlier in the aspect
           has precedence over the one that appears later.
           </li></ul></div><p>These rules can lead to circularity, such as</p><pre class="programlisting">
   aspect A {
@@ -237,7 +237,7 @@
       after():  execution(void main(String[] args)) {}
       before(): execution(void main(String[] args)) {}
   }
-</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6261"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6261"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
+</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6262"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6262"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
         advice of lower precedence will run by calling
         <tt>proceed</tt>.  The call to <tt>proceed</tt>
         will run the advice with next precedence, or the computation under the
@@ -255,7 +255,7 @@
         run. </p><p>Running <tt>after</tt> advice will run the advice of
         next precedence, or the computation under the join point if
         there is no further advice.  Then the body of the advice will
-        run. </p></div></div><div class="sect2"><a name="d0e6297"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6297"></a>Reflective access to the join point</h3></div></div><p>
+        run. </p></div></div><div class="sect2"><a name="d0e6298"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6298"></a>Reflective access to the join point</h3></div></div><p>
         Three special variables are visible within bodies of advice:
         <tt>thisJoinPoint</tt>,
         <tt>thisJoinPointStaticPart</tt>, and
