@@ -112,32 +112,6 @@ Test4 - remembers settings
   have been persisted)			
 							(XREF_VIEW_16)
 
-
-Test5 - show xrefs for entire file
-----------------------------------
-
-- have "link with editor" and "show xrefs for entire file" 
-  turned on
-- open Debug.aj in the editor
-- click anywhere within the file and the contents of the xref
-  view should always be the same
-							(XREF_VIEW_17)
-- turn off "show xrefs for entire file"
-- xref view should show xrefs for current selection 
-							(XREF_VIEW_18)
-- turn on "show xrefs for entire file"
-- xref view should show xrefs for entire file
-							(XREF_VIEW_19)
-- follow one of the links in the xref view which opens
-  a new file
-- the xref view should show all the xrefs for the new file
-							(XREF_VIEW_20)
-- turn off "show xrefs for entire file"
-- follow the selection which opens a new file
-- the xref view should show the xrefs for this selection
-							(XREF_VIEW_21)
-
-
 Test 6 - selection should be visible in the xref view (scroll bar)
 ------------------------------------------------------------------
 
@@ -153,7 +127,7 @@ Test 6 - selection should be visible in the xref view (scroll bar)
 
 - this selection should be visible in the xref view (i.e. the scroll
   bar should be in the position to show this)
-							(XREF_VIEW_22)
+							(XREF_VIEW_17)
 
 Test 7 - bug 95726: "Show In" navigate menu entry and other menu entries
 ------------------------------------------------------------------------
@@ -163,7 +137,7 @@ Test 7 - bug 95726: "Show In" navigate menu entry and other menu entries
 - go to the Navigate menu and there should be a menu item
   "Show In > Cross References" 
   
-  							(XREF_VIEW_23)				
+  							(XREF_VIEW_18)				
 
 - bring up the cross references view via
 
@@ -171,36 +145,36 @@ Test 7 - bug 95726: "Show In" navigate menu entry and other menu entries
 	
 - the xref view should appear with the current
   selection 
-  							(XREF_VIEW_24)	
+  							(XREF_VIEW_19)	
 - close the cross references view
 - make a selection in the Outline view
 - right click and bring up the context menu of the outline view  	
 - this should contain an entry "Open Cross References"
 
-							(XREF_VIEW_25)	
+							(XREF_VIEW_20)	
 							
 - select this entry and the cross references view should open
   containing the xrefs for the selected item														                  	                
 
-							(XREF_VIEW_26)	
+							(XREF_VIEW_21)	
 
 - select a project, package or file in the package explorer
 - right click and bring up the context menu of the package explorer  	
 - this should NOT contain an entry "Open Cross References"
 
-							(XREF_VIEW_27)	
+							(XREF_VIEW_22)	
  							
 - select a project, package or file in the package explorer
 - open the "Navigate > Show In" menu
 - the "Cross References" entry should be disabled (greyed out)  
 
-							(XREF_VIEW_28)	
+							(XREF_VIEW_23)	
 							
 - select something in the outline view
 - open the "Navigate > Show In" menu
 - the "Cross References" entry should be activated  
 
-							(XREF_VIEW_29)	
+							(XREF_VIEW_24)	
 
 Test for clicking around Package Explorer
 -----------------------------------------
@@ -210,7 +184,7 @@ Test for clicking around Package Explorer
 - the package explorer should be responsive to your clicks
   i.e. it should not freeze up.
   
-  							(XREF_VIEW_30)	
+  							(XREF_VIEW_25)	
   							
 Test for bug 103001
 -------------------
@@ -218,7 +192,7 @@ Test for bug 103001
 - open the cross references view
 - check that there are no "go back" and "go forward" buttons
   on the taskbar
-  							(XREF_VIEW_31)
+  							(XREF_VIEW_26)
 
 Test Applying XRef Filters should update tree, (Feature 95724)
 ----------------------------
@@ -241,19 +215,19 @@ Test Exclude, (Not for whole document)
 		   |- Game: ...
 		   |- Game: ...
 		   |- Robot: ...
-  							(XREF_VIEW_32)
+  							(XREF_VIEW_27)
   							
 - Bring up the View Menu from the drop down button in the Cross References toolbar
 - Select the 'Filters...' button
 - A 'Cross References Filter' dialog should appear
-  							(XREF_VIEW_33)
+  							(XREF_VIEW_28)
 
 - In the presented dialog, de-select any relationships that are checked
 - Check the 'advises' relationship checkbox and click OK
 - The Cross References View should now have a tree like this:
 
 	- afterReturning(Pilot)
-  							(XREF_VIEW_34)
+  							(XREF_VIEW_29)
 
 Test Include, (Not for whole document)
 --------------------------------------
@@ -261,7 +235,7 @@ Test Include, (Not for whole document)
 - Bring up the View Menu from the drop down button in the Cross References toolbar
 - Select the 'Filters...' button
 - In the presented dialog, the 'advises' relationship checkbox should be checked
-  							(XREF_VIEW_36)
+  							(XREF_VIEW_30)
   							
 - Uncheck the 'advises' relationship checkbox and click OK
 - The Cross References View should now have a tree like this:
@@ -272,7 +246,7 @@ Test Include, (Not for whole document)
 		   |- Game: ...
 		   |- Game: ...
 		   |- Robot: ...
-  							(XREF_VIEW_37)
+  							(XREF_VIEW_31)
 
 Test Persistence of Filters, (Not for whole document)
 -----------------------------------------------------
@@ -283,19 +257,19 @@ Test Persistence of Filters, (Not for whole document)
 - The Cross References View should now have a tree like this:
 
 	- afterReturning(Pilot)
-  							(XREF_VIEW_38)
+  							(XREF_VIEW_32)
 
 - Close and reopen Eclipse
 - Navigate to Display1.aj and line 85
 - The Cross References View should still have a tree like this:
 
 	- afterReturning(Pilot)
-  							(XREF_VIEW_39)
+  							(XREF_VIEW_33)
 
 - Bring up the View Menu from the drop down button in the Cross References toolbar
 - Select the 'Filters...' button
 - In the presented dialog, all filters checkboxes should be checked
-  							(XREF_VIEW_40)
+  							(XREF_VIEW_34)
 
 - Click de-select all and click OK
 
@@ -307,7 +281,7 @@ Test Persistence of Filters, (Not for whole document)
 		   |- Game: ...
 		   |- Game: ...
 		   |- Robot: ...
-  							(XREF_VIEW_41)
+  							(XREF_VIEW_35)
 
 Test Exclusion and inclusion for whole document
 -----------------------------------------------
@@ -344,7 +318,7 @@ Test Exclusion and inclusion for whole document
 	   |- EnergyPacket.paint(Graphics)
 		   |->> declared on
 			   |- (C) EnergyPacket
-  							(XREF_VIEW_42)
+  							(XREF_VIEW_36)
 
 - Bring up the View Menu from the drop down button in the Cross References toolbar
 - Select the 'Filters...' button
@@ -364,13 +338,13 @@ Test Exclusion and inclusion for whole document
 	    	   |- Game: ...
 	    	   |- Game: ...
 	    	   |- Robot: ...
-  							(XREF_VIEW_43)
+  							(XREF_VIEW_37)
 
 - Bring up the View Menu from the drop down button in the Cross References toolbar
 - Select the 'Filters...' button
 - In the presented dialog, uncheck the 'declared on' checkbox and click OK
 - The Cross References View should now have a tree like the one checked in (XREF_VIEW_42).
-  							(XREF_VIEW_44)
+  							(XREF_VIEW_38)
 
 Test for Bug 107719 - Filters on XRef View clear view when focus is lost from the editor part
 ---------------------------------------------------------------------------------------------
@@ -390,7 +364,7 @@ Test for Bug 107719 - Filters on XRef View clear view when focus is lost from th
 		   |- Game: ...
 		   |- Game: ...
 		   |- Robot: ...
-  							(XREF_VIEW_45)
+  							(XREF_VIEW_39)
 
 - Click into the Cross References view so that the part tab becomes highlighted
 - Being careful not to click out of the Cross References View, bring up the View Menu
@@ -399,4 +373,4 @@ Test for Bug 107719 - Filters on XRef View clear view when focus is lost from th
 - The Cross References View should now have a tree like this:
 
    |- afterReturning(Pilot)
-   							(XREF_VIEW_46)
+   							(XREF_VIEW_40)

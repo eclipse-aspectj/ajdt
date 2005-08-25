@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
@@ -23,16 +22,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -69,9 +64,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		gotoLine(4);
 		moveCursorRight(37);
 		waitForJobsToComplete();
-		
-		XRefContainsInputDisplayHelper ds = new XRefContainsInputDisplayHelper();
-		ds.waitForCondition(Display.getCurrent(), 5000);
+
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
 		
@@ -83,8 +77,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		postKey('s');
 		postKeyUp(SWT.CTRL);
 		
-		XRefContainsNothingDisplayHelper ds2 = new XRefContainsNothingDisplayHelper();
-		ds2.waitForCondition(Display.getCurrent(), 5000);
+		XRefVisualTestUtils.waitForXRefViewToEmpty();
+
 		// get hold of the xref view and check that it hasn't got
 		// any contents - if it does have contents then the corresponding
 		// source/resource should exist - this was the cause of bug 92895
@@ -131,7 +125,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		postKey('s');
 		postKeyUp(SWT.CTRL);
 
-		ds.waitForCondition(Display.getCurrent(), 5000);
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		// xref view should show the xreferences
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
@@ -170,8 +164,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		moveCursorRight(37);
 		waitForJobsToComplete();
 		
-		XRefContainsInputDisplayHelper ds = new XRefContainsInputDisplayHelper();
-		ds.waitForCondition(Display.getCurrent(), 5000);
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		// The cross reference view should contain something
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
@@ -182,8 +175,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		// the cross reference view should be cleared
-		XRefContainsNothingDisplayHelper ds2 = new XRefContainsNothingDisplayHelper();
-		ds2.waitForCondition(Display.getCurrent(), 5000);
+		XRefVisualTestUtils.waitForXRefViewToEmpty();
+		
 		// get hold of the xref view and check that it hasn't got
 		// any contents - if it does have contents then the corresponding
 		// source/resource should exist - this was the cause of bug 92895
@@ -218,36 +211,6 @@ public class XReferenceViewTest extends VisualTestCase {
 		return ((IJavaElement)o1).exists();
 	}
 	
-	private class XRefContainsInputDisplayHelper extends DisplayHelper {		
-		protected boolean condition() {
-			IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-				.getActivePage().findView(XReferenceView.ID);
-			if (view == null || !(view instanceof XReferenceView)) {
-				fail("xrefView should be showing and not null");
-			}
-			XReferenceView xrefView = (XReferenceView)view;
-			TreeViewer tv = xrefView.getTreeViewer();
-			Object o = tv.getInput();
-			boolean ret = (o != null);
-			return ret;
-		}		
-	}
-	
-	private class XRefContainsNothingDisplayHelper extends DisplayHelper {		
-		protected boolean condition() {
-			IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-				.getActivePage().findView(XReferenceView.ID);
-			if (view == null || !(view instanceof XReferenceView)) {
-				fail("xrefView should be showing and not null");
-			}
-			XReferenceView xrefView = (XReferenceView)view;
-			TreeViewer tv = xrefView.getTreeViewer();
-			Object o = tv.getInput();
-			boolean ret = (o == null);
-			return ret;
-		}		
-	}
-	
 	public void checkProvidersAgree(XReferenceCustomFilterAction xrefAction) {
 		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
 		XReferenceProviderDefinition contributingProviderDefinition = null;
@@ -270,6 +233,9 @@ public class XReferenceViewTest extends VisualTestCase {
 		}		
 	}
 
+	
+	// -------------------- tests for the filter ---------------------
+	
 	public void testSelectAll() throws CoreException {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
