@@ -216,26 +216,35 @@ class XReferenceViewUpdateJob extends UIJob {
 		/* (non-Javadoc)
 		 * @see org.eclipse.ui.progress.UIJob#runInUIThread(org.eclipse.core.runtime.IProgressMonitor)
 		 */
-		public IStatus runInUIThread(IProgressMonitor monitor) {
-			monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
-	 		if (XReferenceUIPlugin.xrefView !=null) {
-	 			ISelection selection = XRefUIUtils.getCurrentSelection();
-	 			
-	 			// Required for enhancement 95724 when refreshing XRef views
-	 			if (selection == null) {
-	 				selection = XReferenceUIPlugin.xrefView.getLastSelection();
-	 			}
-	 			IWorkbenchPart workbenchPart = null;
-	 			if (XRefUIUtils.getActiveWorkbenchWindow() != null) {
-	 				workbenchPart = XRefUIUtils.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-	 			}
-	 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(true);
-	 		 	XReferenceUIPlugin.xrefView.selectionChanged(workbenchPart,selection);						
-	 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(false);
-	 		}
-	 		monitor.done();
-	 		return Status.OK_STATUS;
-		}
+		 public IStatus runInUIThread(IProgressMonitor monitor) {
+				monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1);
+		 		if (XReferenceUIPlugin.xrefView !=null) {
+		 			IWorkbenchPart workbenchPart = null;
+		 			if (XRefUIUtils.getActiveWorkbenchWindow() != null) {
+		 				workbenchPart = XRefUIUtils.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		 			}
+		 			// fix for bug 107719 and 107589 and also required for 
+		 			// enhancement 95724 when refreshing the xref views.
+		 			ISelection selection = null;
+		 			if (workbenchPart != null && workbenchPart.equals(XReferenceUIPlugin.xrefView.getLastSelectedWorkbenchPart())) {
+		 				// if the active workbench part is the same as the last active
+		 				// workbench part recorded in the XReferenceView, then the
+		 				// selection needs to be the corresponding last selection
+		 				// recorded in the XReferenceView.
+		 				selection = XReferenceUIPlugin.xrefView.getLastSelection();
+					} else {
+						selection = XRefUIUtils.getCurrentSelection();
+					}
+		 			
+		 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(true);
+		 		 	XReferenceUIPlugin.xrefView.selectionChanged(workbenchPart,selection);		
+
+					
+		 		 	XReferenceUIPlugin.xrefView.setChangeDrivenByBuild(false);
+		 		}
+		 		monitor.done();
+		 		return Status.OK_STATUS;
+			}
 		 
 }
 
