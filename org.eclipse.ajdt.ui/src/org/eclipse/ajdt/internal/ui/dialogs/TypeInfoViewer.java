@@ -696,24 +696,21 @@ public class TypeInfoViewer {
 									IType[] types = unit.getAllTypes();
 									for (int j = 0; j < types.length; j++) {
 										IType type = types[j];
-										if(type instanceof AspectElement) {
-											if(pattern.matchesName(namePattern, type.getElementName().toCharArray())) {
-												// Part of 103131 - only add aspects to avoid duplicates
-												char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
-												int kind = type.getFlags(); // 103131 - pass in correct flags
-												AJCUTypeInfo info = new AJCUTypeInfo(
-														type.getPackageFragment().getElementName(),
-														type.getElementName(),
-														enclosingTypes,
-														kind,
-														type instanceof AspectElement,
-														jp.getElementName(),
-														unit.getPackageFragmentRoot().getElementName(),
-														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-														"aj", //$NON-NLS-1$
-														unit);							
-												ajTypes.add(info);
-											}
+										if(pattern.matchesName(namePattern, type.getElementName().toCharArray())) {
+											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
+											int kind = type.getFlags(); // 103131 - pass in correct flags
+											AJCUTypeInfo info = new AJCUTypeInfo(
+													type.getPackageFragment().getElementName(),
+													type.getElementName(),
+													enclosingTypes,
+													kind,
+													type instanceof AspectElement,
+													jp.getElementName(),
+													unit.getPackageFragmentRoot().getElementName(),
+													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+													"aj", //$NON-NLS-1$
+													unit);							
+											ajTypes.add(info);
 										}
 									}
 								}

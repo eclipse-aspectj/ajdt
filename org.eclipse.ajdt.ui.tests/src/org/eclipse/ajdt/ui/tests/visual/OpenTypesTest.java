@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -44,7 +45,7 @@ public class OpenTypesTest extends VisualTestCase {
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be no editors open at the start of the test", editors.length == 0);
 		
-		// 1. Test that a class in a .aj file is found by the JDT types dialog
+		// 1. Test that a class in a .aj file is not found by the JDT types dialog
 		
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
@@ -67,10 +68,8 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1);
-		IFileEditorInput editorInput = (IFileEditorInput) editors[0].getEditor(false).getEditorInput();
-		assertTrue("Display.aj should have been opened", editorInput.getFile().getName().equals("Display.aj"));
-		
-		
+		assertFalse("Should not have found Display.aj", editors[0].getEditor(false) instanceof AspectJEditor);
+				
 		// 2. Test that an aspect in a .aj file is not found by the JDT types dialog
 		
 		// Press Ctrl+Shift+T
@@ -123,7 +122,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be two editors open", editors.length == 2);
-		editorInput = (IFileEditorInput) editors[1].getEditor(false).getEditorInput();
+		IFileEditorInput editorInput = (IFileEditorInput) editors[1].getEditor(false).getEditorInput();
 		assertTrue("GameSynchronization.aj should have been opened", editorInput.getFile().getName().equals("GameSynchronization.aj"));
 		
 		// 4. Test that a class in a .aj file is found only once by the AJDT types dialog
