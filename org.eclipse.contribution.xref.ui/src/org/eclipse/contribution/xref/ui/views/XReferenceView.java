@@ -317,6 +317,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	public ISelection getLastSelection() {
 		return lastSelection;
 	}
+	
+	public IWorkbenchPart getLastSelectedWorkbenchPart() {
+		return lastWorkbenchPart;
+	}
 
 	private void persistSettings() {
 		IPreferenceStore pstore = XReferenceUIPlugin.getDefault()
@@ -460,6 +464,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	public void partOpened(IWorkbenchPart part) {
 	}
 
+
 	// ----------------- This is for testing ----------------------
 
 	/**
@@ -476,6 +481,22 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	 */
 	public Action getCustomFilterAction() {
 		return xRefCustomFilterAction;
+	}
+	
+	/**
+	 * Returns the action for the xref view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
+	public Action getToggleShowXRefsForEntireFileAction() {
+		return toggleShowXRefsForFileAction;
+	}
+	
+	/**
+	 * Returns the action for the xref view - this method is for testing
+	 * purposes and not part of the published API.
+	 */
+	public Action getToggleLinkWithEditorAction() {
+		return toggleLinkingAction;
 	}
 
 }

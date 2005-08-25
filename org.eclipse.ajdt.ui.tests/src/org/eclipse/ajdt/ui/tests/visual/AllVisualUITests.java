@@ -27,15 +27,16 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		suite.addTest(new TestSuite(Bug98663Test.class));
+		suite.addTest(new TestSuite(Bug98911Test.class));
 		suite.addTest(new TestSuite(Bug100018Test.class));
 		suite.addTest(new TestSuite(Bug102493Test.class));
-		suite.addTest(new TestSuite(Bug98911Test.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest.class));
 		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 		suite.addTest(new TestSuite(OpenTypesTest.class));
-				
+		
 		// xref view tests
 		suite.addTest(new TestSuite(XReferenceViewTest.class));
+		suite.addTest(new TestSuite(XReferenceViewNavigationTest.class));
 		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));
 		
 		suite.addTest(new TestSuite(CustomFilterDialogTest.class));	
