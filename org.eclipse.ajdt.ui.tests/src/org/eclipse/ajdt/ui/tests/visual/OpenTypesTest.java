@@ -321,7 +321,6 @@ public class OpenTypesTest extends VisualTestCase {
 		}
 		
 		assertNotNull("The hierarchy view should still be open", hierarchyView);
-		System.out.println(hierarchyView.getInputElement().getElementName());
 		assertTrue("The input to the type hierarchy should be GameSynchronization", hierarchyView.getInputElement().getElementName().equals("GameSynchronization"));
 		
 	}
