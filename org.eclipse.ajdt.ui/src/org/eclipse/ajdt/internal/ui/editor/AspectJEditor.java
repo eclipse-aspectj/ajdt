@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.ui.editor.actions.AJOpenAction;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
@@ -293,9 +294,15 @@ public class AspectJEditor extends CompilationUnitEditor {
 	// Fix for bug 88474
 	protected void createActions() {
 		super.createActions();
-		IAction organizeImports= new AJOrganizeImportsAction(this);
-		organizeImports.setActionDefinitionId(IJavaEditorActionDefinitionIds.ORGANIZE_IMPORTS);
+		IAction organizeImports = new AJOrganizeImportsAction(this);
+		organizeImports
+				.setActionDefinitionId(IJavaEditorActionDefinitionIds.ORGANIZE_IMPORTS);
 		setAction("OrganizeImports", organizeImports); //$NON-NLS-1$
+
+		IAction openDeclaration = new AJOpenAction(this);
+		openDeclaration
+				.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_EDITOR);
+		setAction("OpenEditor", openDeclaration); //$NON-NLS-1$
 	}
 
 
