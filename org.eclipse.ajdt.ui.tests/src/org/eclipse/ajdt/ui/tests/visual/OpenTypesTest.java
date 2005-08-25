@@ -20,9 +20,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jdt.internal.ui.typehierarchy.TypeHierarchyViewPart;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
@@ -246,6 +250,79 @@ public class OpenTypesTest extends VisualTestCase {
 		IImportDeclaration[] imports = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(newFile).getImports();
 		assertTrue("There should be one import in the new file", imports.length == 1);
 		assertTrue("Should have imported GameSynchronization", imports[0].getElementName().equals("spacewar.GameSynchronization"));
+		
+	}
+	
+	public void testOpenTypeInHierarchy() {
+		// Open a class in a .aj file in the hierarchy view
+		
+		// Press Ctrl+Alt+A
+		postKeyDown(SWT.CTRL);
+		postKeyDown(SWT.ALT);
+		postKey('a');
+		postKeyUp(SWT.ALT);
+		postKeyUp(SWT.CTRL);
+		
+		Runnable r = new Runnable(){
+			public void run() {
+				sleep();
+				postString("Display1");
+				// Allow types to load
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+			}
+		};
+		new Thread(r).start();
+		waitForJobsToComplete();
+		
+		TypeHierarchyViewPart hierarchyView = null;
+		IViewReference[] views = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		for (int i = 0; i < views.length; i++) {
+			IViewPart view = views[i].getView(false);
+			if (view instanceof TypeHierarchyViewPart) {
+				hierarchyView = (TypeHierarchyViewPart) view;
+			}
+		}
+		
+		assertNotNull("The hierarchy view should have been opened", hierarchyView);
+		assertTrue("The input to the type hierarchy should be Display1", hierarchyView.getInputElement().getElementName().equals("Display1"));
+		
+		Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().hideView(hierarchyView);
+		
+		// Open an aspect in the hierarchy view
+		// Press Ctrl+Alt+A
+		postKeyDown(SWT.CTRL);
+		postKeyDown(SWT.ALT);
+		postKey('a');
+		postKeyUp(SWT.ALT);
+		postKeyUp(SWT.CTRL);
+		
+		r = new Runnable(){
+			public void run() {
+				sleep();
+				postString("GameSynchronization");
+				// Allow types to load
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+			}
+		};
+		new Thread(r).start();
+		waitForJobsToComplete();
+		
+		hierarchyView = null;
+		views = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		for (int i = 0; i < views.length; i++) {
+			IViewPart view = views[i].getView(false);
+			if (view instanceof TypeHierarchyViewPart) {
+				hierarchyView = (TypeHierarchyViewPart) view;
+			}
+		}
+		
+		assertNotNull("The hierarchy view should still be open", hierarchyView);
+		System.out.println(hierarchyView.getInputElement().getElementName());
+		assertTrue("The input to the type hierarchy should be GameSynchronization", hierarchyView.getInputElement().getElementName().equals("GameSynchronization"));
 		
 	}
 	
