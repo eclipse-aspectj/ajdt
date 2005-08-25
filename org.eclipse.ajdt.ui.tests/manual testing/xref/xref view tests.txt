@@ -374,3 +374,20 @@ Test for Bug 107719 - Filters on XRef View clear view when focus is lost from th
 
    |- afterReturning(Pilot)
    							(XREF_VIEW_40)
+   							
+Test for bug 107589 - XRef slowdown after a build
+-------------------------------------------------
+
+- ensure that the Cross References view is open ('Window > Show View > Other... > AspectJ > Cross References')
+- make sure there are no open editors
+- create Bean and Spacewar examples
+- switch to visualisation perspective, click around the projects
+- shutdown the workspace and restart
+- switch back to java perspective, open an aspect in the editor
+- click Bean example in the package explorer, and then press the build button.
+- the build which happens should be smooth and you should not see 
+  the progress bar of the build process dialog get to 100% and
+  remain there locked for about 10 seconds. 
+  							(XREF_VIEW_41)
+- The xref view is should not contain the name of the project
+							(XREF_VIEW_42)							
