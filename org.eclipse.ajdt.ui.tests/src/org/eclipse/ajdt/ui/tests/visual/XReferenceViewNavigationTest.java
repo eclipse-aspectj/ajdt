@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -81,6 +82,13 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		gotoLine(70);
 		moveCursorRight(4);
 		waitForJobsToComplete();
+		
+		// wait for the xref view to receive the selection event
+		new DisplayHelper(){
+			protected boolean condition() {
+				return ((TextSelection)xrefView.getLastSelection()).getOffset() == 2308;
+			}
+		}.waitForCondition(display, 5000);
 		
 		// wait for the xref view to contain something
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
