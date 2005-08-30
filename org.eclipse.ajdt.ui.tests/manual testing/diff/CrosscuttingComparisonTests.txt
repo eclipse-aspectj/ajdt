@@ -1,0 +1,38 @@
+Crosscutting Comparison view
+----------------------------
+
+Check out "Figures Demo" from org.eclipse.ajdt.ui.tests/workspace
+
+Right-click on the project in the package explorer and select
+AspectJ Tools > Save Crosscutting Map
+
+A dialog should appear and the default name for the map file should
+be "build.ajmap". (CCDIFF_1)
+
+Press OK and check that a "build.ajmap" file appears in the top level
+of the project  (CCDIFF_2)
+
+Double-click on the "build.ajmap" file, check that it is opened in the
+AJMap Editor  (CCDIFF_3)
+
+Right-click on the "build.ajmap" file and select AspectJ Tools > Compare
+Crosscutting With Current Build. Check that the Crosscutting Comparison view
+is opened, and that the table shows no entries  (CCDIFF_4)
+
+Include the SaveAndRestore.aj file (in the figures.support package) in the
+build configuration. Three "added" entries should appear in the table, two
+for the windowOpened and windowClosing methods being advised, and one for the
+declare parents on the FigureElement interface.  (CCDIFF_5)
+
+Double-click on the before advice entry and check that it is opened
+in the editor.   (CCDIFF_6)
+
+Filtering: The description should say "Showing 3 of 6 items". Press the
+Filters... button to bring up the relationship filter dialog. Press "Deselect
+All", then press OK. Check that the view now shows all 6 entries.   (CCDIFF_7)
+
+In the editor comment out the before advice, and save. A build
+should occur, and the 2 corresponding entries should disappear from
+the view.  (CCDIFF_8)
+
+
