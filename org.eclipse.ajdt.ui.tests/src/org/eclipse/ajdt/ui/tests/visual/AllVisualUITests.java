@@ -31,6 +31,7 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(Bug100018Test.class));
 		suite.addTest(new TestSuite(Bug102493Test.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest.class));
+		suite.addTest(new TestSuite(OpenDeclarationTest.class));
 		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 		suite.addTest(new TestSuite(OpenTypesTest.class));
 		
