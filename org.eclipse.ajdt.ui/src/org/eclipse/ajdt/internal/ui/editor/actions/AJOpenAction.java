@@ -50,8 +50,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 
-/* copied from org.eclipse.jdt.ui.actions.OpenAction
- * changes marked // AspectJ change
+/*
+ * copied from org.eclipse.jdt.ui.actions.OpenAction changes marked // AspectJ
+ * change
  */
 public class AJOpenAction extends SelectionDispatchAction {
 
@@ -188,32 +189,45 @@ public class AJOpenAction extends SelectionDispatchAction {
 
 			// next, see if the pointcut is inherited from an abstract aspect
 			String superName = aspect.getSuperclassName();
-			String[][] res = aspect.resolveType(superName);
-			if ((res != null) && (res.length > 0)) {
-				IType type = aspect.getJavaProject().findType(
-						res[0][0] + "." + res[0][1]); //$NON-NLS-1$
-				ICompilationUnit cu = type.getCompilationUnit();
-				if (cu instanceof AJCompilationUnit) {
-					AJCompilationUnit ajcu = (AJCompilationUnit) cu;
-					IType[] types = ajcu.getTypes();
-					for (int i = 0; i < types.length; i++) {
-						if (types[i].getElementName().equals(superName)) {
-							if (types[i] instanceof AspectElement) {
-								pc = findPointcutInAspect(
-										(AspectElement) types[i], name);
-								if (pc != null) {
-									return pc;
+			if ((superName != null) && (superName.length() > 0)) {
+				String[][] res = aspect.resolveType(superName);
+				if ((res != null) && (res.length > 0)) {
+					IType type = aspect.getJavaProject().findType(
+							res[0][0] + "." + res[0][1]); //$NON-NLS-1$
+					ICompilationUnit cu = type.getCompilationUnit();
+					if (cu instanceof AJCompilationUnit) {
+						AJCompilationUnit ajcu = (AJCompilationUnit) cu;
+						IType[] types = ajcu.getTypes();
+						for (int i = 0; i < types.length; i++) {
+							if (types[i].getElementName().equals(superName)) {
+								if (types[i] instanceof AspectElement) {
+									pc = findPointcutInAspect(
+											(AspectElement) types[i], name);
+									if (pc != null) {
+										return pc;
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+			
+			// the name might refer to a regular class
+			String[][] res = aspect.resolveType(name);
+			if ((res != null) && (res.length > 0)) {
+				IType type = aspect.getJavaProject().findType(
+						res[0][0] + "." + res[0][1]); //$NON-NLS-1$
+				if (type != null) {
+					return type;
+				}
+			}
 		}
 		return element;
 	}
+
 	// end AspectJ change
-	
+
 	/*
 	 * (non-Javadoc) Method declared on SelectionDispatchAction.
 	 */
