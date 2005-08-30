@@ -36,6 +36,12 @@ public class OpenDeclarationTest extends VisualTestCase {
 		// this
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
+		
+		// workaround for Eclipse 3.0 limitation: supertype can only be resolved
+		// if it is open in the editor
+		openFileInDefaultEditor((IFile) project
+				.findMember("src/foo/AbstractGetInfo.aj"), true);
+		
 		openFileInDefaultEditor(getinfo, true);
 
 		// F3 over the demoExecs pointcut used in around advice
