@@ -22,6 +22,7 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.formatter.MultiPassContentFormatter;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.InformationPresenter;
@@ -30,6 +31,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 
@@ -158,4 +160,26 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		return settings;
 	}
 
+	/*
+	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getHyperlinkDetectors(org.eclipse.jface.text.source.ISourceViewer)
+	 * @since 3.1
+	 */
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+		if (!fPreferenceStore.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_HYPERLINKS_ENABLED))
+			return null;
+
+		IHyperlinkDetector[] inheritedDetectors= super.getHyperlinkDetectors(sourceViewer);
+
+		if (getEditor() == null)
+			return inheritedDetectors;
+
+		int inheritedDetectorsLength= inheritedDetectors != null ? inheritedDetectors.length : 0;
+		IHyperlinkDetector[] detectors= new IHyperlinkDetector[inheritedDetectorsLength + 1];
+		detectors[0]= new PointcutElementHyperlinkDetector(getEditor());
+		for (int i= 0; i < inheritedDetectorsLength; i++)
+			detectors[i+1]= inheritedDetectors[i];
+
+		return detectors;
+	}
+	
 }

@@ -128,7 +128,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	};
 
 	// AspectJ keywords
-	private static String[] ajKeywords = { "aspect", "pointcut", "privileged",
+    static String[] ajKeywords = { "aspect", "pointcut", "privileged",
 		// Pointcut designators: methods and constructora
 		"call", "execution", "initialization", "preinitialization" ,
 		// Pointcut designators: exception handlers
