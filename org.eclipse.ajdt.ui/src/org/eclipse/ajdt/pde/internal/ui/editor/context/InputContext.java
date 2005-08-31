@@ -46,6 +46,7 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IElementStateListener;
 /**
@@ -162,7 +163,7 @@ public abstract class InputContext {
 
 			IAnnotationModel amodel = documentProvider
 					.getAnnotationModel(input);
-			if (amodel != null)
+			if (amodel != null) 
 				amodel.connect(documentProvider.getDocument(input));
 			elementListener = new ElementListener();
 			documentProvider.addElementStateListener(elementListener);

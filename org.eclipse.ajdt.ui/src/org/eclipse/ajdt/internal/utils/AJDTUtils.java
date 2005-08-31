@@ -333,7 +333,7 @@ public class AJDTUtils {
 	private static boolean containsAJFiles(IResource resource) {
 		if(resource instanceof IFile && resource.getName().endsWith(".aj")) {
 			return true;
-		} else if (resource instanceof IFolder) {
+		} else if (resource instanceof IFolder && ((IFolder)resource).exists()) {
 			IResource[] members;
 			try {
 				members = ((IFolder)resource).members();			

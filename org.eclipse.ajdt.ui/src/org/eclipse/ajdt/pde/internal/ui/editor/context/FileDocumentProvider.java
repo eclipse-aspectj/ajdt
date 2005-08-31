@@ -979,7 +979,8 @@ public class FileDocumentProvider extends StorageDocumentProvider {
 		if (element instanceof IFileEditorInput) {
 			IFileEditorInput editorInput= (IFileEditorInput)element;
 			IFile file= editorInput.getFile();
-			if (file != null) {
+			// AspectJ Change - check file exists
+			if (file != null && file.exists()) {
 				String encoding= null;
 				try {
 					encoding= file.getPersistentProperty(ENCODING_KEY);

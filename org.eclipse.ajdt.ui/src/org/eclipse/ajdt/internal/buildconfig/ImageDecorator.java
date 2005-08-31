@@ -122,25 +122,27 @@ public class ImageDecorator implements ILabelDecorator {
 		} else if (element instanceof IAspectJElement) {
 			try {
 				IAspectJElement ajElem = (IAspectJElement)element;
-				IProgramElement.Accessibility acceb = ajElem.getAJAccessibility();
-				AJDTIcon icon;
-				if (acceb == null){
-					if (ajElem instanceof AdviceElement) {						
-						icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
+				if(ajElem.getJavaProject().getProject().exists()) {
+					IProgramElement.Accessibility acceb = ajElem.getAJAccessibility();
+					AJDTIcon icon;
+					if (acceb == null){
+						if (ajElem instanceof AdviceElement) {						
+							icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
+						} else {
+							icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
+						}
 					} else {
-						icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
+						icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 					}
-				} else {
-					icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+					if (icon != null){
+						img = getImageLabel(getJavaImageDescriptor(icon.getImageDescriptor(), image.getBounds(), computeJavaAdornmentFlags(ajElem)));
+					}
 				}
-				if (icon != null){
-					img = getImageLabel(getJavaImageDescriptor(icon.getImageDescriptor(), image.getBounds(), computeJavaAdornmentFlags(ajElem)));
-				}			
 			} catch (JavaModelException e) {
 			}
 		} else if (element instanceof IFile){
 			IFile file= (IFile) element;
-			if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
+			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
 				ProjectBuildConfigurator pbc = buildConfor.getProjectBuildConfigurator(file.getProject());
 				
 				if (pbc == null)
@@ -358,9 +360,11 @@ public class ImageDecorator implements ILabelDecorator {
 		} else {
 			if (element instanceof IAspectJElement){
 				try {
-					IProgramElement.Kind kind = ((IAspectJElement)element).getAJKind();
-					if (!((kind == IProgramElement.Kind.ASPECT) || (kind == IProgramElement.Kind.ADVICE) || (kind == IProgramElement.Kind.POINTCUT) || (kind == IProgramElement.Kind.INTER_TYPE_METHOD) || (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR))){
-						return text.substring(0, text.length() - 2);
+					if(((IAspectJElement)element).getJavaProject().getProject().exists()) {
+						IProgramElement.Kind kind = ((IAspectJElement)element).getAJKind();
+						if (!((kind == IProgramElement.Kind.ASPECT) || (kind == IProgramElement.Kind.ADVICE) || (kind == IProgramElement.Kind.POINTCUT) || (kind == IProgramElement.Kind.INTER_TYPE_METHOD) || (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR))){
+							return text.substring(0, text.length() - 2);
+						}
 					}
 				} catch (JavaModelException e) {
 				}

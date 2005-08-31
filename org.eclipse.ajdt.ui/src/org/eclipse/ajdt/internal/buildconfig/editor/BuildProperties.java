@@ -207,18 +207,20 @@ public class BuildProperties {
 	// sub-folders
 	private List allFiles(IContainer folder) {
 		final List contents = new ArrayList();
-		try {
-			folder.accept(new IResourceVisitor() {
-				public boolean visit(IResource res) {
-					if (res.getType() == IResource.FILE
-							&& CoreUtils.ASPECTJ_SOURCE_FILTER
-									.accept(res.getName())) {
-						contents.add(res);
+		if(folder.exists()) {
+			try {
+				folder.accept(new IResourceVisitor() {
+					public boolean visit(IResource res) {
+						if (res.getType() == IResource.FILE
+								&& CoreUtils.ASPECTJ_SOURCE_FILTER
+										.accept(res.getName())) {
+							contents.add(res);
+						}
+						return true;
 					}
-					return true;
-				}
-			});
-		} catch (CoreException e) {
+				});
+			} catch (CoreException e) {
+			}
 		}
 		return contents;
 	}

@@ -138,7 +138,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	protected IStatus validateCompilationUnit(IResource resource) {
 		IPackageFragmentRoot root = getPackageFragmentRoot();
 		try {
-			if (root.getKind() != IPackageFragmentRoot.K_SOURCE) 
+			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE) 
 				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
 		} catch (JavaModelException e) {
 			return e.getJavaModelStatus();
