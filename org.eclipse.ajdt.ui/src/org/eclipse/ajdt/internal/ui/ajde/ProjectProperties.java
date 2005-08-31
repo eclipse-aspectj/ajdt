@@ -309,25 +309,27 @@ public class ProjectProperties extends CoreProjectProperties  {
 					sourcePath = sourcePath.removeFirstSegments(1);
 					IResource[] srcContainer = new IResource[] { project
 							.findMember(sourcePath) };
-					getProjectRelativePaths(srcContainer, files,
-							CoreUtils.RESOURCE_FILTER, srcContainer[0]
-									.getFullPath().segmentCount() - 1);
-
-					ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
-
-					for (Iterator it = files.iterator(); it.hasNext();) {
-						String relPath = (String) it.next();
-						String fullPath = getResourceFullPath(srcContainer[0],
-								relPath, linkedSrcFolders);
-
-						// put file on list if not in output path
-						if (!fullPath.startsWith(realOutputLocation)
-								&& !relPath.endsWith(".classpath") //$NON-NLS-1$
-								&& !relPath.endsWith(".project") //$NON-NLS-1$
-								&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
-								&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
-							File file = new File(fullPath);
-							map.put(relPath, file);
+					if(srcContainer[0] != null) {
+						getProjectRelativePaths(srcContainer, files,
+								CoreUtils.RESOURCE_FILTER, srcContainer[0]
+										.getFullPath().segmentCount() - 1);
+	
+						ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
+	
+						for (Iterator it = files.iterator(); it.hasNext();) {
+							String relPath = (String) it.next();
+							String fullPath = getResourceFullPath(srcContainer[0],
+									relPath, linkedSrcFolders);
+	
+							// put file on list if not in output path
+							if (!fullPath.startsWith(realOutputLocation)
+									&& !relPath.endsWith(".classpath") //$NON-NLS-1$
+									&& !relPath.endsWith(".project") //$NON-NLS-1$
+									&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
+									&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
+								File file = new File(fullPath);
+								map.put(relPath, file);
+							}
 						}
 					}
 				}

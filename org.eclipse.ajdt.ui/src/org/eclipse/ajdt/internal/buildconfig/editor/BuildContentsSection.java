@@ -80,23 +80,25 @@ public abstract class BuildContentsSection extends TableSection
 				ITreeContentProvider {
 
 		public Object[] getFilteredChildren(IContainer parent) {
-			try{
-				IResource[] res = parent.members();
-				ArrayList children = new ArrayList();
-				for (int i=0; i<res.length; i++){
-					if (res[i] instanceof IFolder){
-						IJavaProject jp =JavaCore.create(res[i].getProject());
-						if (jp != null){
-							addElementsOnClasspath(children, jp, res[i]);
+			if (parent.exists()) {
+				try{
+					IResource[] res = parent.members();
+					ArrayList children = new ArrayList();
+					for (int i=0; i<res.length; i++){
+						if (res[i] instanceof IFolder){
+							IJavaProject jp =JavaCore.create(res[i].getProject());
+							if (jp != null){
+								addElementsOnClasspath(children, jp, res[i]);
+							}
+						} else {
+							if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(res[i].getName()))
+								children.add(res[i]);
 						}
-					} else {
-						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(res[i].getName()))
-							children.add(res[i]);
+	
 					}
-
+					return children.toArray();
+				} catch (CoreException e) {
 				}
-				return children.toArray();
-			} catch (CoreException e) {
 			}
 			return new Object[0];
 		}

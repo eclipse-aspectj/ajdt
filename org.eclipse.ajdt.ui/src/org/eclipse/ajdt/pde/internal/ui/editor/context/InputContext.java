@@ -162,7 +162,7 @@ public abstract class InputContext {
 
 			IAnnotationModel amodel = documentProvider
 					.getAnnotationModel(input);
-			if (amodel != null)
+			if (amodel != null) 
 				amodel.connect(documentProvider.getDocument(input));
 			elementListener = new ElementListener();
 			documentProvider.addElementStateListener(elementListener);

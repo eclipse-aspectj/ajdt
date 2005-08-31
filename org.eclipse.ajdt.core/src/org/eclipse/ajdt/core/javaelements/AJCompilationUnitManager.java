@@ -84,8 +84,9 @@ public class AJCompilationUnitManager {
 			folder.accept(new IResourceVisitor(){
 	
 				public boolean visit(IResource resource) {
-					if(resource instanceof IFile) {
-						if (((IFile)resource).getFileExtension().equals(AspectJPlugin.AJ_FILE_EXT)) {
+					if(resource instanceof IFile && resource.exists()) {
+						String fileExtension = ((IFile)resource).getFileExtension(); 
+						if (fileExtension != null && fileExtension.equals(AspectJPlugin.AJ_FILE_EXT)) {
 							ajcus.add(getAJCompilationUnit((IFile)resource));
 						}
 					}

@@ -103,28 +103,30 @@ public class MarkerUpdating {
 		for (Iterator iter = affectedCompilationUnits.iterator(); iter
 				.hasNext();) {
 			ICompilationUnit cu = (ICompilationUnit)iter.next();
-			List relationships = (List) cUsToListsOfRelationships.get(cu);
-			Map lineNumberToRelationships = new HashMap();
-			for (Iterator iterator = relationships.iterator(); iterator
-					.hasNext();) {
-				AJRelationship relationship = (AJRelationship) iterator.next();
-				IJavaElement source = relationship.getSource();
-				Integer lineNumber = new Integer(ajModel.getJavaElementLineNumber(source));
-				if(lineNumberToRelationships.get(lineNumber) instanceof List) {
-					((List)lineNumberToRelationships.get(lineNumber)).add(relationship);
-				} else {
-					List relationshipsForLine = new ArrayList();
-					relationshipsForLine.add(relationship);
-					lineNumberToRelationships.put(lineNumber, relationshipsForLine);
-				}				
-			}
-			Set lineNumbers = lineNumberToRelationships.keySet();
-			// Create one marker for each affected line
-			for (Iterator iterator = lineNumbers.iterator(); iterator.hasNext();) {
-				numMarkers++;
-				Integer lineNum = (Integer) iterator.next();
-				List relationshipsForLine = (List) lineNumberToRelationships.get(lineNum);
-				createMarker(lineNum.intValue(), cu.getResource(), relationshipsForLine);
+			if(cu.getResource().exists()) {
+				List relationships = (List) cUsToListsOfRelationships.get(cu);
+				Map lineNumberToRelationships = new HashMap();
+				for (Iterator iterator = relationships.iterator(); iterator
+						.hasNext();) {
+					AJRelationship relationship = (AJRelationship) iterator.next();
+					IJavaElement source = relationship.getSource();
+					Integer lineNumber = new Integer(ajModel.getJavaElementLineNumber(source));
+					if(lineNumberToRelationships.get(lineNumber) instanceof List) {
+						((List)lineNumberToRelationships.get(lineNumber)).add(relationship);
+					} else {
+						List relationshipsForLine = new ArrayList();
+						relationshipsForLine.add(relationship);
+						lineNumberToRelationships.put(lineNumber, relationshipsForLine);
+					}				
+				}
+				Set lineNumbers = lineNumberToRelationships.keySet();
+				// Create one marker for each affected line
+				for (Iterator iterator = lineNumbers.iterator(); iterator.hasNext();) {
+					numMarkers++;
+					Integer lineNum = (Integer) iterator.next();
+					List relationshipsForLine = (List) lineNumberToRelationships.get(lineNum);
+					createMarker(lineNum.intValue(), cu.getResource(), relationshipsForLine);
+				}
 			}
 		}
 		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers");

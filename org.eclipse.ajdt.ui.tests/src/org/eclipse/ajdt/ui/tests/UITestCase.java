@@ -127,7 +127,9 @@ public abstract class UITestCase extends TestCase {
 		
 		try {
 			// perform the delete
-			project.delete(true, true, null);
+			if(project.exists()) {
+				project.delete(true, true, null);
+			}
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			System.out.println("***delete failed***");
