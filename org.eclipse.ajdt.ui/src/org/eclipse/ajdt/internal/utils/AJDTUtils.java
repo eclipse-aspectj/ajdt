@@ -13,6 +13,7 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -73,6 +74,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.progress.UIJob;
 
 /**
@@ -156,7 +158,24 @@ public class AJDTUtils {
 	 * @param project
 	 * @throws CoreException
 	 */
-	public static void addAspectJNature(IProject project) throws CoreException {
+	public static void addAspectJNature(final IProject project)
+			throws CoreException {
+		// wrap up the operation so that an autobuild is not triggered in the
+		// middle of the conversion
+		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
+			protected void execute(IProgressMonitor monitor)
+					throws CoreException {
+				internal_addAspectJNature(project);
+			}
+		};
+		try {
+			op.run(null);
+		} catch (InvocationTargetException ex) {
+		} catch (InterruptedException e) {
+		}
+	}
+	
+	private static void internal_addAspectJNature(IProject project) throws CoreException {
 		checkSeparateOutputFolders(project);
 		checkOutputFoldersForAJFiles(project);
 		
