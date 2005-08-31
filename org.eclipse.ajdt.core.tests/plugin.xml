@@ -20,6 +20,7 @@
       <import plugin="org.eclipse.jdt.core"/>
       <import plugin="org.junit"/>
       <import plugin="org.aspectj.ajde"/>
+      <import plugin="org.aspectj.runtime"/>
    </requires>
 
 </plugin>

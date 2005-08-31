@@ -21,6 +21,7 @@
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jdt.core"/>
       <import plugin="org.eclipse.team.core" optional="true"/>
+      <import plugin="org.aspectj.runtime"/>
    </requires>
 
    <!-- ASPECTJRT_LIB classpath variable -->
