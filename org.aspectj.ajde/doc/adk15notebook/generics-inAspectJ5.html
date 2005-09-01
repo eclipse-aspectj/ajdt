@@ -5,7 +5,7 @@
         legal AspectJ 5 progam. In addition, AspectJ 5 provides support for generic and parameterized types in pointcuts, inter-type
         declarations, and declare statements.  Parameterized types may freely be used within aspect members, and support is 
         also provided for generic <span class="emphasis"><i>abstract</i></span> aspects.
-      </p><div class="sect2"><a name="d0e2104"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2104"></a>Matching generic and parameterized types in pointcut expressions</h3></div></div><p>
+      </p><div class="sect2"><a name="matching-generic-and-parameterized-types-in-pointcut-expressions"></a><div class="titlepage"><div><h3 class="title"><a name="matching-generic-and-parameterized-types-in-pointcut-expressions"></a>Matching generic and parameterized types in pointcut expressions</h3></div></div><p>
             The simplest way to work with generic and parameterized types in pointcut expressions and type patterns
             is simply to use the raw type name. For example, the type pattern <tt>List</tt> will match
             the generic type <tt>List&lt;E&gt;</tt> and any parameterization of that type 
@@ -81,7 +81,7 @@
         example:</p><pre class="programlisting">
           class G&lt;T&gt; {
   	
-	        List&lt;T&gt; foo(List&lt;String ls) { return null; }
+	        List&lt;T&gt; foo(List&lt;String&gt; ls) { return null; }
 	
           }
 		</pre><p>The execution of <tt>foo</tt> can be matched by
@@ -310,7 +310,7 @@
          }
 		</pre><p>The pointcut uses the raw type pattern <tt>List</tt>, and hence it
           matches methods returning any kind of list (<tt>List&lt;String&gt;, List&lt;Double&gt;</tt>, 
-          and so on. We've chosen to bind the returned list as the parameterized type 
+          and so on). We've chosen to bind the returned list as the parameterized type 
           <tt>List&lt;?&gt;</tt> in the advice since Java's type checking will now ensure
           that we only perform safe operations on the list.</p><p>Given the class</p><pre class="programlisting">
          public class C {
@@ -370,7 +370,7 @@
            before() : Generic.foo() { }
          
          }
-		</pre></div></div><div class="sect2"><a name="d0e2785"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2785"></a>Inter-type Declarations</h3></div></div><p>
+		</pre></div></div><div class="sect2"><a name="inter-type-declarations"></a><div class="titlepage"><div><h3 class="title"><a name="inter-type-declarations"></a>Inter-type Declarations</h3></div></div><p>
             AspectJ 5 supports the inter-type declaration of generic methods, and of members on
             generic types. For generic methods, the syntax is exactly as for a regular method
             declaration, with the addition of the target type specification:
@@ -406,14 +406,14 @@
       that generic type are made in a program. Therefore it does not make sense to try and declare a member
       on behalf of (say) <tt>Bar&lt;String&gt;</tt>, you can only declare members on the generic
       type <tt>Bar&lt;T&gt;</tt>. 
-      </p></div><div class="sect2"><a name="d0e2898"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2898"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
+      </p></div><div class="sect2"><a name="declare-parents"></a><div class="titlepage"><div><h3 class="title"><a name="declare-parents"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
           statement (as long as the resulting type hierarchy would be well-formed in accordance with Java's sub-typing
           rules). Generic types may also be used as the target type of a <tt>declare parents</tt> statement.</p><div class="variablelist"><dl><dt><a name="d0e2910"></a><span class="term">declare parents: Foo implements List&lt;String&gt;</span></dt><dd><p><a name="d0e2913"></a>The <tt>Foo</tt> type implements the <tt>List&lt;String&gt;</tt> interface. If
             <tt>Foo</tt> already implements some other parameterization of the <tt>List</tt>
             interface (for example, <tt>List&lt;Integer&gt;</tt> then a compilation error will result since a 
             type cannot implement multiple parameterizations of the same generic interface type. 
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e2931"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2931"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
-          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="d0e2939"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2939"></a>Generic Aspects</h3></div></div><p><span class="emphasis"><i>This feature will not be fully implemented until AspectJ5 M4.</i></span></p><p>
+            </p></dd></dl></div></div><div class="sect2"><a name="declare-soft"></a><div class="titlepage"><div><h3 class="title"><a name="declare-soft"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
+          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="generic-aspects"></a><div class="titlepage"><div><h3 class="title"><a name="generic-aspects"></a>Generic Aspects</h3></div></div><p><span class="emphasis"><i>This feature will not be fully implemented until AspectJ5 M4.</i></span></p><p>
             AspectJ 5 allows an <span class="emphasis"><i>abstract</i></span> aspect to be declared as a generic type. Any concrete
             aspect extending a generic abstract aspect must extend a parameterized version of the abstract aspect.
             Wildcards are not permitted in this parameterization.     

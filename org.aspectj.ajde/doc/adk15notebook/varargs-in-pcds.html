@@ -5,7 +5,7 @@
         outlined in the previous section.</p><p>
         AspectJ 5 also allows variable length arguments to be matched by pointcut expressions and
         bound as formals in advice.
-        </p><div class="sect2"><a name="d0e3337"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3337"></a>Matching signatures based on variable length argument types</h3></div></div><p>
+        </p><div class="sect2"><a name="matching-signatures-based-on-variable-length-argument-types"></a><div class="titlepage"><div><h3 class="title"><a name="matching-signatures-based-on-variable-length-argument-types"></a>Matching signatures based on variable length argument types</h3></div></div><p>
             Recall from the definition of signature patterns given in the chapter on
             annotations (<a href="annotations-pointcuts-and-advice.html#signaturePatterns">Signature Patterns</a>), that <tt>MethodPattern</tt>
             and <tt>ConstructorPattern</tt> are extended to allow a <tt>varargs</tt>
@@ -47,7 +47,7 @@
             for <tt>foo</tt>, but not <tt>bar</tt>. The pointcut 
             <tt>execution(* *.*(String[]))</tt> matches the execution join point
             for <tt>bar</tt> but not <tt>foo</tt>.
-        </p></div><div class="sect2"><a name="d0e3439"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3439"></a>Exposing variable-length arguments as context in pointcuts and advice</h3></div></div><p>
+        </p></div><div class="sect2"><a name="exposing-variable-length-arguments-as-context-in-pointcuts-and-advice"></a><div class="titlepage"><div><h3 class="title"><a name="exposing-variable-length-arguments-as-context-in-pointcuts-and-advice"></a>Exposing variable-length arguments as context in pointcuts and advice</h3></div></div><p>
             When a varargs parameter is used within the body of a method, it has
             an array type, as discussed in the introduction to this section. We follow the
             same convention when binding a varargs parameter via the <tt>args</tt>

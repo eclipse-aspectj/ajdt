@@ -72,7 +72,7 @@
       inheritable unit of modularity. Lastly, we will look at how to use
       inter-type declarations to deal with crosscutting concerns of a
       program's class structure.
-    </p><div class="sect2"><a name="d0e181"></a><div class="titlepage"><div><h3 class="title"><a name="d0e181"></a>The Dynamic Join Point Model</h3></div></div><p>
+    </p><div class="sect2"><a name="the-dynamic-join-point-model"></a><div class="titlepage"><div><h3 class="title"><a name="the-dynamic-join-point-model"></a>The Dynamic Join Point Model</h3></div></div><p>
         A critical element in the design of any aspect-oriented language is
         the join point model. The join point model provides the common
         frame of reference that makes it possible to define the dynamic
@@ -94,7 +94,7 @@
         and in those methods called from the body.  We say that these join
         points execute in the <span class="emphasis"><i>dynamic context</i></span> of the
         original call join point.
-      </p></div><div class="sect2"><a name="d0e194"></a><div class="titlepage"><div><h3 class="title"><a name="d0e194"></a>Pointcuts</h3></div></div><p>
+      </p></div><div class="sect2"><a name="pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="pointcuts"></a>Pointcuts</h3></div></div><p>
         In AspectJ, <span class="emphasis"><i>pointcuts</i></span> pick out certain join
         points in the program flow. For example, the pointcut
       </p><pre class="programlisting">
@@ -180,7 +180,7 @@ cflow(move())
         pointcut defined above.  So this picks out each join points that
         occurrs between when a move method is called and when it returns
         (either normally or by throwing an exception).
-      </p></div><div class="sect2"><a name="d0e304"></a><div class="titlepage"><div><h3 class="title"><a name="d0e304"></a>Advice</h3></div></div><p>
+      </p></div><div class="sect2"><a name="advice"></a><div class="titlepage"><div><h3 class="title"><a name="advice"></a>Advice</h3></div></div><p>
         So pointcuts pick out join points.  But they don't
         <span class="emphasis"><i>do</i></span> anything apart from picking out join
         points.  To actually implement crosscutting behavior, we use
@@ -284,7 +284,7 @@ pointcut setXY(FigureElement fe, int x, int y):
 after(FigureElement fe, int x, int y) returning: setXY(fe, x, y) {
     System.out.println(fe + " moved to (" + x + ", " + y + ").");
 }
-</pre></div></div><div class="sect2"><a name="d0e422"></a><div class="titlepage"><div><h3 class="title"><a name="d0e422"></a>Inter-type declarations</h3></div></div><p>
+</pre></div></div><div class="sect2"><a name="inter-type-declarations"></a><div class="titlepage"><div><h3 class="title"><a name="inter-type-declarations"></a>Inter-type declarations</h3></div></div><p>
         Inter-type declarations in AspectJ are declarations that cut across
         classes and their hierarchies.  They may declare members that cut
         across multiple classes, or change the inheritance relationship
@@ -368,7 +368,7 @@ aspect PointObserving {
         <tt>Point</tt>'s code has to be modified, and that
         all the changes needed to support this new capability are local to
         this aspect.
-      </p></div><div class="sect2"><a name="d0e491"></a><div class="titlepage"><div><h3 class="title"><a name="d0e491"></a>Aspects</h3></div></div><p>
+      </p></div><div class="sect2"><a name="aspects"></a><div class="titlepage"><div><h3 class="title"><a name="aspects"></a>Aspects</h3></div></div><p>
         Aspects wrap up pointcuts, advice, and inter-type declarations in a
         a modular unit of crosscutting implementation.  It is defined very
         much like a class, and can have methods, fields, and initializers

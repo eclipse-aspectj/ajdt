@@ -108,7 +108,7 @@
         </dd><dt><a name="d0e5069"></a><span class="term"><tt>( <i><tt>Pointcut</tt></i> )</tt></span></dt><dd>
           Picks out each join points picked out by
           <i><tt>Pointcut</tt></i>.
-        </dd></dl></div><div class="sect2"><a name="d0e5081"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5081"></a>Pointcut definition</h3></div></div><p>
+        </dd></dl></div><div class="sect2"><a name="pointcut-definition"></a><div class="titlepage"><div><h3 class="title"><a name="pointcut-definition"></a>Pointcut definition</h3></div></div><p>
         Pointcuts are defined and named by the programmer with the
         <tt>pointcut</tt> declaration.
       </p><pre class="programlisting">
@@ -161,7 +161,7 @@
   aspect B percflow(publicCall()) {
       pointcut publicCall(): call(public Foo.m(int));
   }
-</pre></div><div class="sect2"><a name="d0e5123"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5123"></a>Context exposure</h3></div></div><p>
+</pre></div><div class="sect2"><a name="context-exposure"></a><div class="titlepage"><div><h3 class="title"><a name="context-exposure"></a>Context exposure</h3></div></div><p>
         Pointcuts have an interface; they expose some parts of the
         execution context of the join points they pick out. For example,
         the PublicIntCall above exposes the first argument from the
@@ -237,7 +237,7 @@
         The pointcut will match and expose the integer argument,
         but it will expose it as an <tt>Integer</tt>,
         not a <tt>Long</tt>.
-      </p></div><div class="sect2"><a name="d0e5198"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5198"></a>Primitive pointcuts</h3></div></div><div class="sect3"><a name="d0e5201"></a><div class="titlepage"><div><h4 class="title"><a name="d0e5201"></a>Method-related pointcuts</h4></div></div><p>AspectJ provides two primitive pointcut designators designed to
+      </p></div><div class="sect2"><a name="primitive-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="primitive-pointcuts"></a>Primitive pointcuts</h3></div></div><div class="sect3"><a name="d0e5201"></a><div class="titlepage"><div><h4 class="title"><a name="d0e5201"></a>Method-related pointcuts</h4></div></div><p>AspectJ provides two primitive pointcut designators designed to
         capture method call and execution join points. </p><div class="itemizedlist"><ul><li><a name="d0e5207"></a><tt>call(<i><tt>MethodPattern</tt></i>)</tt></li><li><a name="d0e5213"></a><tt>execution(<i><tt>MethodPattern</tt></i>)</tt></li></ul></div></div><div class="sect3"><a name="d0e5219"></a><div class="titlepage"><div><h4 class="title"><a name="d0e5219"></a>Field-related pointcuts</h4></div></div><p>
           AspectJ provides two primitive pointcut designators designed to
           capture field reference and set join points:
@@ -421,7 +421,7 @@ aspect A {
 	    	pointcuts that have side-effects is considered bad style and may also 
 	    	lead to potentially confusing or even changing behavior with regard 
 	    	to when or if the test code will run.
-	    </p></div></div><div class="sect2"><a name="d0e5542"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5542"></a>Signatures</h3></div></div><p>
+	    </p></div></div><div class="sect2"><a name="signatures"></a><div class="titlepage"><div><h3 class="title"><a name="signatures"></a>Signatures</h3></div></div><p>
         One very important property of a join point is its signature, which is
         used by many of AspectJ's pointcut designators to select particular
         join points.
@@ -468,7 +468,7 @@ aspect A {
           aspect type, the parameter types of the advice, the return type (void
           for all but around advice) and the types of the declared (checked)
           exceptions.
-        </p></div></div><div class="sect2"><a name="d0e5590"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5590"></a>Matching</h3></div></div><p>
+        </p></div></div><div class="sect2"><a name="matching"></a><div class="titlepage"><div><h3 class="title"><a name="matching"></a>Matching</h3></div></div><p>
         The <tt>withincode</tt>, <tt>call</tt>,
         <tt>execution</tt>, <tt>get</tt>, and
         <tt>set</tt> primitive pointcut designators all use signature
@@ -665,7 +665,7 @@ aspect A {
           method m(), because method m's throws clause declares the it
           throws some exception which does not match IOException,
           i.e. RuntimeException.
-        </p></div></div><div class="sect2"><a name="d0e5818"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5818"></a>Type patterns</h3></div></div><p>
+        </p></div></div><div class="sect2"><a name="type-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="type-patterns"></a>Type patterns</h3></div></div><p>
         Type patterns are a way to pick out collections of types and use them
         in places where you would otherwise use only one type.  The rules for
         using type patterns are simple.
@@ -774,7 +774,7 @@ aspect A {
 </pre><p>
           picks out the constructor call join points when a subtype of Foo, but
           not Foo itself, is constructed.
-        </p></div></div><div class="sect2"><a name="d0e5967"></a><div class="titlepage"><div><h3 class="title"><a name="d0e5967"></a>Pattern Summary</h3></div></div><p>
+        </p></div></div><div class="sect2"><a name="pattern-summary"></a><div class="titlepage"><div><h3 class="title"><a name="pattern-summary"></a>Pattern Summary</h3></div></div><p>
         Here is a summary of the pattern syntax used in AspectJ:
       </p><pre class="programlisting">
 MethodPattern = 

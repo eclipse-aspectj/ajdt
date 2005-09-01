@@ -4,7 +4,7 @@
         easy to use as possibe. The load-time weaving mechanism is chosen through JVM startup options. 
         Configuration files determine the set of aspects to be used for weaving and which 
         types will be woven. Additional diagnostic options allow the user to debug the configuration and 
-        weaving process. </p><div class="sect2"><a name="d0e4162"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4162"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
+        weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
             an application: agents, a command-line launch script, and a set of interfaces for
             integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e4168"></a><span class="term">Agents</span></dt><dd><p><a name="d0e4171"></a>AspectJ 5 ships with a number of load-time weaving agents that
                             enable load-time weaving. These agents and their configuration
@@ -18,7 +18,7 @@
                             to instantiate a weaver and weave classes after loading and before
                             defining them in the JVM. This enables load-time weaving to be supported in
                             environments where no weaving agent is available. It also allows the
-                            user to explicity restrict by class loader which classes can be woven.</p></dd></dl></div></div><div class="sect2"><a name="d0e4206"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4206"></a>Configuring Load-time Weaving with aop.xml files</h3></div></div><p>The weaver is configured using one or more <tt>META-INF/aop.xml</tt>
+                            user to explicity restrict by class loader which classes can be woven.</p></dd></dl></div></div><div class="sect2"><a name="configuring-load-time-weaving-with-aopxml-files"></a><div class="titlepage"><div><h3 class="title"><a name="configuring-load-time-weaving-with-aopxml-files"></a>Configuring Load-time Weaving with aop.xml files</h3></div></div><p>The weaver is configured using one or more <tt>META-INF/aop.xml</tt>
                 files located on the class loader search path. Each file may define a list of
                 concrete aspects to be used for weaving, type patterns describing which types
                 should woven, and a set of options to be passed to the weaver. In addition AspectJ 5
@@ -118,7 +118,7 @@
                 </p><p> A <tt>META-INF/aop.xml</tt> file will automatically be generated when
                 using the <tt>-outjar</tt> option of the AspectJ compiler. 
                 It will simply contain a (possibly empty) set of aspect elements, one for
-                each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="d0e4277"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4277"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
+                each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
                 will be ignored and a warning issued. </p><div class="informaltable" id="d0e4282"><a name="d0e4282"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
                                    when the load time weaving engine is bootstrapped (hence its logger as per <tt>-XmessageHandlerClass:...</tt> not ready yet),
                                    you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line. Messages will then be printed

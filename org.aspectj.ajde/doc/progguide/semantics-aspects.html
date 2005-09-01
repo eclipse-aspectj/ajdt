@@ -3,7 +3,7 @@
    <title>Aspects</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="semantics.html" title="Appendix B. Language Semantics"><link rel="previous" href="semantics-declare.html" title="Static crosscutting"><link rel="next" href="implementation.html" title="Appendix C. Implementation Notes"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Aspects</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="semantics-declare.html">Prev</a>&nbsp;</td><th width="60%" align="center">Appendix B. Language Semantics</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="implementation.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="semantics-aspects"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="semantics-aspects"></a>Aspects</h2></div></div><p>
       An aspect is a crosscutting type defined by the <tt>aspect</tt>
       declaration. 
-    </p><div class="sect2"><a name="d0e6899"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6899"></a>Aspect Declaration</h3></div></div><p>
+    </p><div class="sect2"><a name="aspect-declaration"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-declaration"></a>Aspect Declaration</h3></div></div><p>
         The <tt>aspect</tt> declaration is similar to the
 	<tt>class</tt> declaration in that it defines a type and an
 	implementation for that type. It differs in a number of
@@ -25,7 +25,7 @@
           is not at the package level, the aspect <span class="emphasis"><i>must</i></span> be
           defined with the static keyword.  Local and anonymous aspects are not
           allowed.
-        </p></div></div><div class="sect2"><a name="d0e6930"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6930"></a>Aspect Extension</h3></div></div><p>
+        </p></div></div><div class="sect2"><a name="aspect-extension"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-extension"></a>Aspect Extension</h3></div></div><p>
         To support abstraction and composition of crosscutting concerns,
         aspects can be extended in much the same way that classes can. Aspect
         extension adds some new rules, though.
@@ -42,7 +42,7 @@
           and methods inherited but so are pointcuts. However, aspects may only
           extend abstract aspects. It is an error for a concrete aspect to
           extend another concrete aspect.
-        </p></div></div><div class="sect2"><a name="d0e6950"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6950"></a>Aspect instantiation</h3></div></div><p>
+        </p></div></div><div class="sect2"><a name="aspect-instantiation"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-instantiation"></a>Aspect instantiation</h3></div></div><p>
         Unlike class expressions, aspects are not instantiated with
         <tt>new</tt> expressions.  Rather, aspect instances are
         automatically created to cut across programs.
@@ -140,7 +140,7 @@
           compile time.  If advice runs before its aspect is instantiated,
           AspectJ will throw a <a href="../api/org/aspectj/lang/NoAspectBoundException.html" target="_top">
           <tt>org.aspectj.lang.NoAspectBoundException</tt></a>.
-        </p></div></div><div class="sect2"><a name="d0e7113"></a><div class="titlepage"><div><h3 class="title"><a name="d0e7113"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7117"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
+        </p></div></div><div class="sect2"><a name="aspect-privilege"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-privilege"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7117"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
         Code written in aspects is subject to the same access control rules as
         Java code when referring to members of classes or aspects. So, for
         example, code written in an aspect may not refer to members with

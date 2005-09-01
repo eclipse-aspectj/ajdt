@@ -5,7 +5,7 @@
   	AspectJ 5 that support matching join points based on the presence or absence of
   	annotations. We then discuss means of exposing annotation values within the body
   	of advice.
-  </p><div class="sect2"><a name="d0e782"></a><div class="titlepage"><div><h3 class="title"><a name="d0e782"></a>Annotation Patterns</h3></div></div><p>
+  </p><div class="sect2"><a name="annotation-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-patterns"></a>Annotation Patterns</h3></div></div><p>
           For any kind of annotated element (type, method, constructor, package, etc.), 
           an annotation pattern can be used to match against the set of annotations
           on the annotated element. Annotation patterns are defined by the following
@@ -43,7 +43,7 @@
 		      the type pattern <tt>(org.xyz..*)</tt>. 
 		      In other words, an annotated element with an annotation that is declared in the
 		      org.xyz package or a sub-package. (The parenthesis are required in this example).
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e867"></a><div class="titlepage"><div><h3 class="title"><a name="d0e867"></a>Type Patterns</h3></div></div><p>AspectJ 1.5 extends type patterns to allow an optional <tt>AnnotationPattern</tt>
+            </p></dd></dl></div></div><div class="sect2"><a name="type-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="type-patterns"></a>Type Patterns</h3></div></div><p>AspectJ 1.5 extends type patterns to allow an optional <tt>AnnotationPattern</tt>
 	prefix. (Extensions to this definition for generics are shown in the next chapter).</p><pre class="programlisting">
   	  	TypePattern := SimpleTypePattern |
   	  	               '!' TypePattern |
@@ -177,7 +177,7 @@
             </p></dd><dt><a name="d0e1112"></a><span class="term">* *.*(@Immutable *,..)</span></dt><dd><p><a name="d0e1115"></a>
             	Matches any method taking at least one parameter, where the parameter
             	type has an annotation <tt>@Immutable</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e1121"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1121"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1125"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1128"></a>
+            </p></dd></dl></div></div><div class="sect2"><a name="example-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="example-pointcuts"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1125"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1128"></a>
             	Matches any join point where the code executing is declared in a 
             	type with an <tt>@Secure</tt>
             	annotation. The format of the <tt>within</tt> pointcut designator
@@ -199,7 +199,7 @@
                 Matches the handler join point for the handling of any exception that is
                 not <tt>Catastrophic</tt>. The format of the <tt>handler</tt>
                 pointcut designator in AspectJ 5 is <tt>'handler' '(' OptionalParensTypePattern ')'</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e1194"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1194"></a>Runtime type matching and context exposure</h3></div></div><p>AspectJ 5 supports a set of "@" pointcut designators which
+            </p></dd></dl></div></div><div class="sect2"><a name="runtime-type-matching-and-context-exposure"></a><div class="titlepage"><div><h3 class="title"><a name="runtime-type-matching-and-context-exposure"></a>Runtime type matching and context exposure</h3></div></div><p>AspectJ 5 supports a set of "@" pointcut designators which
     can be used both to match based on the presence of an annotation at
     runtime, and to expose the annotation value as context in a pointcut or
     advice definition. These designators are <tt>@args, @this, @target,
@@ -352,7 +352,7 @@
         and <tt>@annotation</tt> pointcut designators can only be used
         to match against annotations that have at least class-file retention, and
         if used in the binding form the annotation must have runtime retention. 
-    </p></div><div class="sect2"><a name="d0e1421"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1421"></a>Package and Parameter Annotations</h3></div></div><p>
+    </p></div><div class="sect2"><a name="package-and-parameter-annotations"></a><div class="titlepage"><div><h3 class="title"><a name="package-and-parameter-annotations"></a>Package and Parameter Annotations</h3></div></div><p>
           <span class="emphasis"><i>Note: A previous design allowed package annotation patterns to be specified
           directly in type patterns, and parameter annotation patterns to be
           specified directly in method and constructor signature patterns. Because
@@ -362,7 +362,7 @@
           deferred until after the 1.5.0 release so that we can gain more understanding
           of the kinds of uses AspectJ users are making of annotations in pointcut
           expressions before commiting to any one approach.</i></span>
-      </p></div><div class="sect2"><a name="d0e1431"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1431"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
+      </p></div><div class="sect2"><a name="annotation-inheritance-and-pointcut-matching"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance-and-pointcut-matching"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
   	    According to the Java 5 specification, non-type annotations are not
   	    inherited, and annotations on types are only inherited if they have the 
   	    <tt>@Inherited</tt> meta-annotation.
@@ -406,7 +406,7 @@
   	    multiple signatures (<tt>@SomeAnnotation C1.aMethod()</tt> and
   	    <tt>C2.aMethod()</tt>), and the former of those signatures is
   	    exactly matched by the pattern.
-  	</p></div><div class="sect2"><a name="d0e1472"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1472"></a>Limitations</h3></div></div><p>
+  	</p></div><div class="sect2"><a name="limitations"></a><div class="titlepage"><div><h3 class="title"><a name="limitations"></a>Limitations</h3></div></div><p>
         It would be useful to be able to match join points based on  
         annotation values, rather than merely the presence of a
         class-file retention annotation of a given type. This facility may be supported in a future version of AspectJ, by expanding the

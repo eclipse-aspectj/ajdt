@@ -116,7 +116,7 @@
       As you can see from the above example, an aspect can declare that
       interfaces have fields and methods, even non-constant fields and
       methods with bodies.
-    </p><div class="sect2"><a name="d0e1828"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1828"></a>Inter-type Scope</h3></div></div><p>
+    </p><div class="sect2"><a name="inter-type-scope"></a><div class="titlepage"><div><h3 class="title"><a name="inter-type-scope"></a>Inter-type Scope</h3></div></div><p>
         AspectJ allows private and package-protected (default) inter-type declarations in
         addition to public inter-type declarations. Private means private in
         relation to the aspect, not necessarily the target type. So, if an
@@ -134,7 +134,7 @@
 </pre><p>
         then everything in the aspect's package (which may or may not be
         <tt>Foo</tt>'s package) can access <tt>x</tt>.
-      </p></div><div class="sect2"><a name="d0e1853"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1853"></a>Example: <tt>PointAssertions</tt></h3></div></div><p>
+      </p></div><div class="sect2"><a name="example-pointassertions"></a><div class="titlepage"><div><h3 class="title"><a name="example-pointassertions"></a>Example: <tt>PointAssertions</tt></h3></div></div><p>
         The example below consists of one class and one aspect. The aspect
         privately declares the assertion methods of
         <tt>Point</tt>, <tt>assertX</tt> and

@@ -157,11 +157,11 @@
       Rather, it will double the local parameter.  Changing the values of
       parameters or return values of join points can be done by using around
       advice.
-    </p><div class="sect2"><a name="d0e6149"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6149"></a>Advice modifiers</h3></div></div><p>
+    </p><div class="sect2"><a name="advice-modifiers"></a><div class="titlepage"><div><h3 class="title"><a name="advice-modifiers"></a>Advice modifiers</h3></div></div><p>
         The <tt>strictfp</tt> modifier is the only modifier allowed
         on advice, and it has the effect of making all floating-point
         expressions within the advice be FP-strict.
-      </p></div><div class="sect2"><a name="d0e6157"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6157"></a>Advice and checked exceptions</h3></div></div><p>
+      </p></div><div class="sect2"><a name="advice-and-checked-exceptions"></a><div class="titlepage"><div><h3 class="title"><a name="advice-and-checked-exceptions"></a>Advice and checked exceptions</h3></div></div><p>
         An advice declaration must include a <tt>throws</tt> clause
         listing the checked exceptions the body may throw.  This list of
         checked exceptions must be compatible with each target join point
@@ -207,7 +207,7 @@
           <span class="emphasis"><i>all</i></span> constructors of the initialized class. 
         </dd><dt><a name="d0e6216"></a><span class="term">advice execution</span></dt><dd>
           any exception that is in the throws clause of the advice. 
-        </dd></dl></div></div><div class="sect2"><a name="d0e6221"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6221"></a>Advice precedence</h3></div></div><p>
+        </dd></dl></div></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice precedence</h3></div></div><p>
         Multiple pieces of advice may apply to the same join point.  In such
         cases, the resolution order of the advice is based on advice
         precedence.
@@ -255,7 +255,7 @@
         run. </p><p>Running <tt>after</tt> advice will run the advice of
         next precedence, or the computation under the join point if
         there is no further advice.  Then the body of the advice will
-        run. </p></div></div><div class="sect2"><a name="d0e6298"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6298"></a>Reflective access to the join point</h3></div></div><p>
+        run. </p></div></div><div class="sect2"><a name="reflective-access-to-the-join-point"></a><div class="titlepage"><div><h3 class="title"><a name="reflective-access-to-the-join-point"></a>Reflective access to the join point</h3></div></div><p>
         Three special variables are visible within bodies of advice:
         <tt>thisJoinPoint</tt>,
         <tt>thisJoinPointStaticPart</tt>, and

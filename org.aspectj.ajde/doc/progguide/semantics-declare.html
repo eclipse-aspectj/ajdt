@@ -5,7 +5,7 @@
       not change their static type structure. For crosscutting concerns that do
       operate over the static structure of type hierarchies, AspectJ provides
       inter-type member declarations and other <tt>declare</tt> forms.
-    </p><div class="sect2"><a name="d0e6359"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6359"></a>Inter-type member declarations</h3></div></div><p>
+    </p><div class="sect2"><a name="inter-type-member-declarations"></a><div class="titlepage"><div><h3 class="title"><a name="inter-type-member-declarations"></a>Inter-type member declarations</h3></div></div><p>
           AspectJ allows the declaration of members by aspects that are
           associated with other types.
         </p><p>
@@ -88,7 +88,7 @@
         type; it is an error to access <tt>this</tt> in such a
         position from a <tt>static</tt> inter-type member
         declaration.
-      </p><div class="sect2"><a name="d0e6527"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6527"></a>Access modifiers</h3></div></div><p>
+      </p><div class="sect2"><a name="access-modifiers"></a><div class="titlepage"><div><h3 class="title"><a name="access-modifiers"></a>Access modifiers</h3></div></div><p>
         Inter-type member declarations may be public or private, or have
         default (package-protected) visibility.  AspectJ does not provide
         protected inter-type members.
@@ -117,7 +117,7 @@
         has a constraint that only non-public implementors must
         fulfill.  This would not be compatible with Java's type
         system.  
-      </p></div><div class="sect2"><a name="d0e6544"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6544"></a>Conflicts</h3></div></div><p>
+      </p></div><div class="sect2"><a name="conflicts"></a><div class="titlepage"><div><h3 class="title"><a name="conflicts"></a>Conflicts</h3></div></div><p>
         Inter-type declarations raise the possibility of conflicts among
         locally declared members and inter-type members.  For example, assuming
         <tt>otherPackage</tt> is not the package containing the
@@ -173,7 +173,7 @@
         This is true both when the precedence is declared explicitly with
         <tt>declare precedence</tt> as well as when when sub-aspects
         implicitly have precedence over their super-aspect.
-      </p></div><div class="sect2"><a name="d0e6641"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6641"></a>Extension and Implementation</h3></div></div><p>
+      </p></div><div class="sect2"><a name="extension-and-implementation"></a><div class="titlepage"><div><h3 class="title"><a name="extension-and-implementation"></a>Extension and Implementation</h3></div></div><p>
         An aspect may change the inheritance hierarchy of a system by changing
         the superclass of a type or adding a superinterface onto a type, with
         the <tt>declare parents</tt> form.
@@ -189,7 +189,7 @@
       declare parents: SomeClass implements Runnable;
       public void SomeClass.run() { ... }
   }
-</pre></div><div class="sect2"><a name="d0e6684"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6684"></a>Interfaces with members</h3></div></div><p>
+</pre></div><div class="sect2"><a name="interfaces-with-members"></a><div class="titlepage"><div><h3 class="title"><a name="interfaces-with-members"></a>Interfaces with members</h3></div></div><p>
         Through the use of inter-type members, interfaces may now carry
         (non-public-static-final) fields and (non-public-abstract) methods that
         classes can inherit. Conflicts may occur from ambiguously inheriting
@@ -218,11 +218,11 @@
         when a new <tt>E</tt> is instantiated, the initializers run in this order:
       </p><pre class="programlisting">
     Object M C O N D Q P E
-</pre></div><div class="sect2"><a name="d0e6728"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6728"></a>Warnings and Errors</h3></div></div><p>An aspect may specify that a particular join point should never be
+</pre></div><div class="sect2"><a name="warnings-and-errors"></a><div class="titlepage"><div><h3 class="title"><a name="warnings-and-errors"></a>Warnings and Errors</h3></div></div><p>An aspect may specify that a particular join point should never be
       reached.  </p><div class="itemizedlist"><ul><li><a name="d0e6734"></a><tt>declare error: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li><li><a name="d0e6743"></a><tt>declare warning: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li></ul></div><p>If the compiler determines that a join point in
       <i><tt>Pointcut</tt></i> could possibly be reached, then it
       will signal either an error or warning, as declared, using the
-      <i><tt>String</tt></i> for its message.   </p></div><div class="sect2"><a name="d0e6760"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6760"></a>Softened exceptions</h3></div></div><p>An aspect may specify that a particular kind of exception, if
+      <i><tt>String</tt></i> for its message.   </p></div><div class="sect2"><a name="softened-exceptions"></a><div class="titlepage"><div><h3 class="title"><a name="softened-exceptions"></a>Softened exceptions</h3></div></div><p>An aspect may specify that a particular kind of exception, if
       thrown at a join point, should bypass Java's usual static exception
       checking system and instead be thrown as a
       <tt>org.aspectj.lang.SoftException</tt>, which is subtype of
@@ -257,7 +257,7 @@
                                                       
     declare soft : ClassNotFoundException : call(* Class.*(..));
   }
-</pre></div><div class="sect2"><a name="d0e6803"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6803"></a>Advice Precedence</h3></div></div><p>
+</pre></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice Precedence</h3></div></div><p>
         An aspect may declare a precedence relationship between concrete
         aspects with the <tt>declare precedence</tt> form:
       </p><div class="itemizedlist"><ul><li><a name="d0e6812"></a><tt>declare precedence :
@@ -356,7 +356,7 @@
   declare precedence: Logging+, Profiling+;
 </pre><p>
           are meaningful.
-        </p></div></div><div class="sect2"><a name="d0e6866"></a><div class="titlepage"><div><h3 class="title"><a name="d0e6866"></a>Statically determinable pointcuts</h3></div></div><p>Pointcuts that appear inside of <tt>declare</tt> forms
+        </p></div></div><div class="sect2"><a name="statically-determinable-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="statically-determinable-pointcuts"></a>Statically determinable pointcuts</h3></div></div><p>Pointcuts that appear inside of <tt>declare</tt> forms
       have certain restrictions.  Like other pointcuts, these pick out join
       points, but they do so in a way that is statically determinable.  </p><p>Consequently, such pointcuts may not include, directly or
       indirectly (through user-defined pointcut declarations) pointcuts that

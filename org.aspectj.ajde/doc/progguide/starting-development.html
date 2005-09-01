@@ -14,7 +14,7 @@
       consistency within the application. Using AspectJ makes it possible
       to cleanly modularize this kind of functionality, thereby making it
       possible to easily enable and disable the functionality when desired.
-    </p><div class="sect2"><a name="d0e513"></a><div class="titlepage"><div><h3 class="title"><a name="d0e513"></a>Tracing</h3></div></div><p>
+    </p><div class="sect2"><a name="tracing"></a><div class="titlepage"><div><h3 class="title"><a name="tracing"></a>Tracing</h3></div></div><p>
         This first example shows how to increase the visibility of the
         internal workings of a program. It is a simple tracing aspect that
         prints a message at specified method calls. In our figure editor
@@ -64,7 +64,7 @@ Entering: call(void FigureElement.draw(GraphicsContext))
         result of AspectJ modularizing a crosscutting design element the
         set of methods that are appropriate to trace when looking for a
         given kind of information.
-      </p></div><div class="sect2"><a name="d0e541"></a><div class="titlepage"><div><h3 class="title"><a name="d0e541"></a>Profiling and Logging</h3></div></div><p>
+      </p></div><div class="sect2"><a name="profiling-and-logging"></a><div class="titlepage"><div><h3 class="title"><a name="profiling-and-logging"></a>Profiling and Logging</h3></div></div><p>
         Our second example shows you how to do some very specific
         profiling. Although many sophisticated profiling tools are
         available, and these can gather a variety of information and
@@ -112,7 +112,7 @@ aspect SetsInRotateCounting {
 
         questions it may be difficult to express using standard
         profiling or logging tools.
-      </p></div><div class="sect2"><a name="d0e586"></a><div class="titlepage"><div><h3 class="title"><a name="d0e586"></a>Pre- and Post-Conditions</h3></div></div><p>
+      </p></div><div class="sect2"><a name="pre-and-post-conditions"></a><div class="titlepage"><div><h3 class="title"><a name="pre-and-post-conditions"></a>Pre- and Post-Conditions</h3></div></div><p>
         Many programmers use the "Design by Contract" style popularized by
         Bertand Meyer in <i>Object-Oriented Software Construction,
         2/e</i>. In this style of programming, explicit
@@ -160,7 +160,7 @@ aspect PointBoundsChecking {
         include them in the production build as well. Again, because
         AspectJ makes it possible to modularize these crosscutting concerns
         cleanly, it gives developers good control over this decision.
-      </p></div><div class="sect2"><a name="d0e624"></a><div class="titlepage"><div><h3 class="title"><a name="d0e624"></a>Contract Enforcement</h3></div></div><p>
+      </p></div><div class="sect2"><a name="contract-enforcement"></a><div class="titlepage"><div><h3 class="title"><a name="contract-enforcement"></a>Contract Enforcement</h3></div></div><p>
         The property-based crosscutting mechanisms can be very useful in
         defining more sophisticated contract enforcement. One very powerful
         use of these mechanisms is to identify method calls that, in a
@@ -213,7 +213,7 @@ aspect RegistrationProtection {
         statically).  Other enforcement, such as the precondition
         enforcement, above, does require dynamic information such as the
         runtime value of parameters.
-      </p></div><div class="sect2"><a name="d0e658"></a><div class="titlepage"><div><h3 class="title"><a name="d0e658"></a>Configuration Management</h3></div></div><p>
+      </p></div><div class="sect2"><a name="configuration-management"></a><div class="titlepage"><div><h3 class="title"><a name="configuration-management"></a>Configuration Management</h3></div></div><p>
         Configuration management for aspects can be handled using a variety
         of make-file like techniques. To work with optional aspects, the
         programmer can simply define their make files to either include the

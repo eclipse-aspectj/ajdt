@@ -4,7 +4,7 @@
       This lesson explains the parts of AspectJ's aspects. By reading this
       lesson you will have an overview of what's in an aspect and you will
       be exposed to the new terminology introduced by AspectJ.
-    </p><div class="sect2"><a name="d0e863"></a><div class="titlepage"><div><h3 class="title"><a name="d0e863"></a>An Example Aspect</h3></div></div><p>
+    </p><div class="sect2"><a name="an-example-aspect"></a><div class="titlepage"><div><h3 class="title"><a name="an-example-aspect"></a>An Example Aspect</h3></div></div><p>
         Here's an example of an aspect definition in AspectJ:
       </p><pre class="programlisting">
  1 aspect FaultHandler {
@@ -42,7 +42,7 @@
         and advice, where advice may be before, after or around advice. The
         remainder of this lesson focuses on those crosscut-related
         constructs.
-      </p></div><div class="sect2"><a name="d0e880"></a><div class="titlepage"><div><h3 class="title"><a name="d0e880"></a>Pointcuts</h3></div></div><p>
+      </p></div><div class="sect2"><a name="pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="pointcuts"></a>Pointcuts</h3></div></div><p>
         AspectJ's pointcut definitions give names to pointcuts.  Pointcuts
         themselves pick out join points, i.e. interesting points in the
         execution of a program. These join points can be method or
@@ -92,7 +92,7 @@ pointcut services(Server s): target(s) &amp;&amp; call(public * *(..))
          field access.  Each kind of join point can be picked out by its
          own specialized pointcut that you will learn about in other parts
          of this guide.
-      </p></div><div class="sect2"><a name="d0e923"></a><div class="titlepage"><div><h3 class="title"><a name="d0e923"></a>Advice</h3></div></div><p>
+      </p></div><div class="sect2"><a name="advice"></a><div class="titlepage"><div><h3 class="title"><a name="advice"></a>Advice</h3></div></div><p>
         A piece of advice brings together a pointcut and a body of code to
         define aspect implementation that runs at join points picked out by
         the pointcut. For example, the advice in lines 15-17 specifies that
