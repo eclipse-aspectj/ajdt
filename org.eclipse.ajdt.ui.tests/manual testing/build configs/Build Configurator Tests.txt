@@ -4,7 +4,7 @@ Manual testing of build configurations
 
 Tests for activation and including/excluding	
 Start with tracing example, let package explorer show all packages and source-files	
-Right-click tracev2.ajproperties > activate this configuration	The packages "tracing" 
+Right-click tracev2.ajproperties > AspectJ Tools > Activate Build Configuration	The packages "tracing" 
 and "tracing.version2" are activated (filled icon), the others not (empty icon) (BC_1)
 
 Double-click tracev2.ajproperties to open editor, open version2 in resource tree and 
@@ -65,14 +65,14 @@ Add a package "p1"  to the java project and create two classes "ClassA" and "Cla
 inside the package	
 Right-click the java project, select "Convert to AspectJ Project"	A file "build.ajproperties" 
 appears in the project folder, source files still included
-Right-click the java project, select "Remove AspectJ nature"	
+Right-click the java project, select "AspectJ Tools" > "Remove AspectJ nature"	
 Delete the file build.ajproperties	
 Right-Click the java project and select "Properties" > "Java Build Path" > "Source"	
 Add an exclusion filter “**/ClassB.java” to exclude ClassB.java, close Properties window	
 Right-click the java project, select "Convert to AspectJ Project"	A file "build.ajproperties" 
 appears in the project folder, the source files should be included except for ClassB which 
 should still be excluded
-Right-click the java project, select "Remove AspectJ nature"	Exclusion pattern got lost,
+Right-click the java project, select "AspectJ Tools" > "Remove AspectJ nature"	Exclusion pattern got lost,
  everything is included now (BC_10)
 	
 
@@ -80,10 +80,10 @@ Right-click the java project, select "Remove AspectJ nature"	Exclusion pattern g
 
 Test import/export .lst files	
 Start with tracing example, notrace is active configuration	
-Right-Click on notrace.ajproperties > Save as .lst file > Ok	A file "notrace.lst" appears
+Right-Click on notrace.ajproperties > AspectJ Tools > Save as .lst file > Ok	A file "notrace.lst" appears
 Double-click "notrace.lst"	Texteditor opens, there are 4 entries
 Remove "src\tracing\Square.java", save notrace.lst	
-Right-click notrace.lst > Save as .ajproperties file > Ok > Yes	notrace.ajproperties gets 
+Right-click notrace.lst > AspectJ Tools > Save as .ajproperties file > Ok > Yes	notrace.ajproperties gets 
 overwritten, check if the Square class in package tracing is excluded (BC_11)
 	
 
@@ -102,13 +102,13 @@ Delete all remaining .ajproperties files	A new build configuration "build" and i
 "build.ajproperties" should get created. Check in pull-down-menu if it is available and if
  it is the only one. (BC_13)
 	
-Project > Active build configuration > Save as.., followed by "ok"	A new file
+Project > Active build configuration > Save as.., followed by "OK"	A new file
 "build1.ajproperties" gets created, this is now the active build configuration, check if both 
 are available in the pull-down-menu
 Exclude package "tracing" by right-clicking on it and choosing the appropriate option
 Everything should now be excluded (BC_14)
 Project > Active build configuration > Save as..	
-Change name to "build", and verify the ok button is deactivated, as the name is already
+Change name to "build", and verify the OK button is deactivated, as the name is already
 used by an existing configuration. (BC_15)
 	
 

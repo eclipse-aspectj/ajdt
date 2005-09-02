@@ -1,0 +1,34 @@
+Tests for AJDT Dynamic Help
+------------------------------
+
+Open the dynamic help view (Help > Dynamic Help).
+
+1) open the AJDT Event Trace
+2) check that the "About AJDT Event Trace" has a reasonable description
+   and that the corresponding link is reasonable and works (HELP_1)
+3) Check that the dynamic help shows some appropriate topics and that
+   the links work (HELP_2)  
+   
+4) open the Cross References View
+5) check that the "About Cross References" has a reasonable description
+   and that the corresponding links are reasonable and work (HELP_3)
+6) Check that the dynamic help shows some appropriate topics and that
+   the links work (HELP_4)  
+   
+7) open the Crosscutting Comparison View
+8) check that the "About Crosscutting Comparison" has a reasonable description
+   and that the corresponding links are reasonable and work (HELP_5)
+9) Check that the dynamic help shows some appropriate topics and that
+   the links work (HELP_6)  
+   
+10) open the Visualiser
+11) check that the "About Visualiser" has a reasonable description
+   and that the corresponding links are reasonable and work (HELP_7)
+12) Check that the dynamic help shows some appropriate topics and that
+   the links work (HELP_8)  
+   
+13) open the Visualiser Menu
+14) check that the "About AJDT Event Trace" has a reasonable description
+   and that the corresponding links are reasonable and works (HELP_9)
+15) Check that the dynamic help shows some appropriate topics and that
+   the links work (HELP_10)                  

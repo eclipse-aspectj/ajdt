@@ -18,4 +18,26 @@ a. Open a file with the AspectJ editor, and open another beside it with the java
 b. Right click on the ruler in both files and ensure that the menus match. 
 c. Test all of the actions in the AspectJ editor to ensure they perform as expected.
 
-				
+
+
+3. Ctrl-click hyperlink navigation for pointcuts (108341)
+
+a. Checkout the "OpenDeclaration" project from org.eclipse.ajdt.ui.tests/workspace
+b. Open src/tjp/GetInfo.aj in the editor
+c. Hold down the control key and mouse-over various elements in the source file.
+   Check that the following turn blue and get underlined:
+   		"executeGo" in the goCut() pointcut (line 25)
+   		"Demo" and "goCut" in the demoExecs() pointcut (line 27)
+   		"demoExecs" and "goCut" in the around advice (line 29)
+   		"demoExecs2" in the before advice (line 41)
+   Specifically check that the following do NOT turn blue and get underlined:
+        "cflow" and "this" in the goCut() pointcut (line 25)
+        "within" and "execution" in the demoExecs() pointcut (line 27)              (EDITOR_3)
+d. For the hyperlinks in step c. above, check that clicking on them results in
+   navigation to that element:
+   		"goCut" on line 27 -> the definition of the pointcut (line 25 same file) 
+        "executeGo" on line 25 -> the definition from the supertype (line 7 of AbstractGetInfo.aj)
+        "demoExecs2" on line 41 -> the definition from the class (line 19 of Demo.java)
+        "Demo" on line 25 -> the class itself (line 16 of Demo.java)                (EDITOR_4)
+
+ 
