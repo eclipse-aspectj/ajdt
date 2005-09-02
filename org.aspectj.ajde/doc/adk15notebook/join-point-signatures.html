@@ -15,7 +15,7 @@
         Each signature of a field get or set join point has the same id and field
         type, but the declaring type may vary.
         </p><p>The following sections examine signatures for these join points 
-        in more detail.</p><div class="sect2"><a name="d0e246"></a><div class="titlepage"><div><h3 class="title"><a name="d0e246"></a>Method call join point signatures</h3></div></div><p>
+        in more detail.</p><div class="sect2"><a name="method-call-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="method-call-join-point-signatures"></a>Method call join point signatures</h3></div></div><p>
           For a call join point where a call is made to a method
           <tt>m(parameter_types)</tt> on a target type <tt>T</tt> (where
           <tt>T</tt> is the static type of the target):
@@ -65,7 +65,7 @@
 		</pre><p>are all additional signatures for the call join point arising
         from the call <tt>t.m("hello")</tt>. Thus this call
         join point has four signatures in total. Every signature has the same
-        id and parameter types, and a different declaring type.</p></div><div class="sect2"><a name="d0e351"></a><div class="titlepage"><div><h3 class="title"><a name="d0e351"></a>Method execution join point signatures</h3></div></div><p>Join point signatures for execution join points are defined
+        id and parameter types, and a different declaring type.</p></div><div class="sect2"><a name="method-execution-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="method-execution-join-point-signatures"></a>Method execution join point signatures</h3></div></div><p>Join point signatures for execution join points are defined
           in a similar manner to signatures for call join points. Given the
           hierarchy:
           </p><pre class="programlisting">
@@ -98,7 +98,7 @@
         that provides its own declaration of the method. Hence in this 
         example there is no signature <tt>R' T.m(String)</tt>
         as <tt>T</tt> does not provide its own declaration of
-        the method.</p></div><div class="sect2"><a name="d0e373"></a><div class="titlepage"><div><h3 class="title"><a name="d0e373"></a>Field get and set join point signatures</h3></div></div><p>
+        the method.</p></div><div class="sect2"><a name="field-get-and-set-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="field-get-and-set-join-point-signatures"></a>Field get and set join point signatures</h3></div></div><p>
             For a field get join point where an access is made to a field
             <tt>f</tt> of type <tt>F</tt> 
             on a object with declared type <tt>T</tt>, then

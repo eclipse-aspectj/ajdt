@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>Production Aspects</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="starting.html" title="Chapter 1. Getting Started with AspectJ"><link rel="previous" href="starting-development.html" title="Development Aspects"><link rel="next" href="starting-conclusion.html" title="Conclusion"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Production Aspects</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="starting-development.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 1. Getting Started with AspectJ</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="starting-conclusion.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="starting-production"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="starting-production"></a>Production Aspects</h2></div></div><p>
+   <title>Production Aspects</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="starting.html" title="Chapter 1. Getting Started with AspectJ"><link rel="previous" href="starting-development.html" title="Development Aspects"><link rel="next" href="starting-conclusion.html" title="Conclusion"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Production Aspects</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="starting-development.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 1. Getting Started with AspectJ</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="starting-conclusion.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="starting-production"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="starting-production"></a>Production Aspects</h2></div></div><p>
         This section presents examples of aspects that are inherently
         intended to be included in the production builds of an application.
         Production aspects tend to add functionality to an application
@@ -12,7 +12,7 @@
         tend to be small and simple, they can often have a significant
         effect in terms of making the program easier to understand and
         maintain.
-      </p><div class="sect2"><a name="d0e671"></a><div class="titlepage"><div><h3 class="title"><a name="d0e671"></a>Change Monitoring</h3></div></div><p>
+      </p><div class="sect2"><a name="change-monitoring"></a><div class="titlepage"><div><h3 class="title"><a name="change-monitoring"></a>Change Monitoring</h3></div></div><p>
         The first example production aspect shows how one might implement
         some simple functionality where it is problematic to try and do it
         explicitly. It supports the code that refreshes the display. The
@@ -100,7 +100,7 @@ aspect MoveTracking {
         call to <tt>setFlag</tt> in the new overriding
         method. This benefit is often even more compelling for
         property-based aspects (see the section <a href="starting-production.html#starting-production-consistentBehavior">Providing Consistent Behavior</a>).
-      </p></div><div class="sect2"><a name="d0e742"></a><div class="titlepage"><div><h3 class="title"><a name="d0e742"></a>Context Passing</h3></div></div><p>
+      </p></div><div class="sect2"><a name="context-passing"></a><div class="titlepage"><div><h3 class="title"><a name="context-passing"></a>Context Passing</h3></div></div><p>
         The crosscutting structure of context passing can be a significant
         source of complexity in Java programs. Consider implementing
         functionality that would allow a client of the figure editor (a

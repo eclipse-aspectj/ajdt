@@ -57,33 +57,12 @@
 	    Then one aspect instance will be created for each type within
 	    <tt>org.xyz..*</tt>. For each aspect instance, the
 	    after returning advice will match only the execution of constructors
-	    in the type that the aspect is an instance of. The net result is that
+	    within the matched per-type-within type. The net result is that
 	    the aspect tracks all known instances of each type within
 	    <tt>org.xyz..*</tt>. To get access to the instances, a
 	    programmer can simply write 
 	    <tt>InstanceTracking.aspectOf(org.xyz.SomeType.class).getInstances()</tt>.
 	</p><p>
-        A <tt>pertypewithin</tt> aspect may optionally be declared
-        with a single generic type parameter. In this case, for each type 
-        <tt>T</tt> matched by the type pattern, the aspect instance
-        created will be of type <tt>PerTypeWithinAspect&lt;T&gt;</tt>. 
-        So the previous example could also be written as:
-    </p><pre class="programlisting">
-  	 public aspect InstanceTracking&lt;T&gt; pertypewithin(org.xyz..*) {
-  	 
-	   // use WeakHashMap for auto-garbage collection of keys  	 
-  	   private Map&lt;T, Boolean&gt; instances = new WeakHashMap&lt;T, Boolean&gt;();
-  	   
-  	   after(T t) returning : execution(new(..)) &amp;&amp; this(t) {
-  	     instances.put(t, true);
-  	   }
-  	 
-  	   public Set&lt;T&gt; getInstances() {
-  	   	  return instances.keySet();
-  	   }
-  	   
-  	 }
-	</pre><p>
         The <tt>pertypewithin</tt> aspect instantiation model should
         be used when the implementation of a crosscutting concern requires that
         some state be maintained for each type in a set of types. To maintain

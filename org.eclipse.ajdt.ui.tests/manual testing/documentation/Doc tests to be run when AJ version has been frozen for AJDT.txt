@@ -13,7 +13,8 @@ AJDT DOCUMENTATION
 
 (1) follow all the links and check they work (DOC_1)
 
-AspectJ DOCUMENTATION
+AspectJ DOCUMENTATION - NOTE, none of the links should be broken now due to AJbug fix 108094
+                        (the links are no longer generated on AJ's side)
 ---------------------
 
 (1) Expand all the nodes under "AspectJ Guide" in the Eclipse Help Contents.

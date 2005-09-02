@@ -1,6 +1,6 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>Join Points and Pointcuts</title><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="language.html" title="Chapter 2. The AspectJ Language"><link rel="previous" href="language-anatomy.html" title="The Anatomy of an Aspect"><link rel="next" href="language-advice.html" title="Advice"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Join Points and Pointcuts</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="language-anatomy.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 2. The AspectJ Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="language-advice.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="language-joinPoints"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="language-joinPoints"></a>Join Points and Pointcuts</h2></div></div><p>
+   <title>Join Points and Pointcuts</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM Programming Guide"><link rel="up" href="language.html" title="Chapter 2. The AspectJ Language"><link rel="previous" href="language-anatomy.html" title="The Anatomy of an Aspect"><link rel="next" href="language-advice.html" title="Advice"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Join Points and Pointcuts</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="language-anatomy.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 2. The AspectJ Language</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="language-advice.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="language-joinPoints"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="language-joinPoints"></a>Join Points and Pointcuts</h2></div></div><p>
       Consider the following Java class:
     </p><pre class="programlisting">
 class Point {
@@ -62,7 +62,7 @@ pointcut ioHandler(): within(MyClass) &amp;&amp; handler(IOException);
       separated by a colon. The left-hand side consists of the pointcut name
       and the pointcut parameters (i.e. the data available when the events
       happen).  The right-hand side consists of the pointcut itself.
-    </p><div class="sect2"><a name="d0e1018"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1018"></a>Some Example Pointcuts</h3></div></div><p>
+    </p><div class="sect2"><a name="some-example-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="some-example-pointcuts"></a>Some Example Pointcuts</h3></div></div><p>
         Here are examples of pointcuts picking out
       </p><div class="variablelist"><dl><dt><a name="d0e1024"></a><span class="term">when a particular method body executes</span></dt><dd><p><a name="d0e1027"></a>
               <tt>execution(void Point.setX(int))</tt>
@@ -180,7 +180,7 @@ interface MyInterface { ... }
             signature -- that is, any method defined by
             <tt>MyInterface</tt> or inherited by one of its a
             supertypes.
-          </p></li></ul></div></div><div class="sect2"><a name="d0e1288"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1288"></a>call vs. execution</h3></div></div><p>
+          </p></li></ul></div></div><div class="sect2"><a name="call-vs-execution"></a><div class="titlepage"><div><h3 class="title"><a name="call-vs-execution"></a>call vs. execution</h3></div></div><p>
         When methods and constructors run, there are two interesting times
         associated with them.  That is when they are called, and when they
         actually execute.
@@ -214,7 +214,7 @@ interface MyInterface { ... }
         one that runs when a particular <span class="emphasis"><i>signature</i></span> is
         called (as is often the case for production aspects), use
         <tt>call</tt>.
-      </p></div><div class="sect2"><a name="d0e1334"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1334"></a>Pointcut composition</h3></div></div><p>
+      </p></div><div class="sect2"><a name="pointcut-composition"></a><div class="titlepage"><div><h3 class="title"><a name="pointcut-composition"></a>Pointcut composition</h3></div></div><p>
         Pointcuts are put together with the operators and (spelled
         <tt>&amp;&amp;</tt>), or (spelled <tt>||</tt>),
         and not (spelled <tt>!</tt>).  This allows the creation
@@ -305,7 +305,7 @@ aspect A  {
           call in the advice body. If this was not present a recursive call
           would result as the pointcut would apply to it's own advice.
           (See <a href="pitfalls-infiniteLoops.html" title="Infinite loops">the section called &#8220;Infinite loops&#8221;</a> for more details.)
-      </p></div><div class="sect2"><a name="d0e1454"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1454"></a>Pointcut Parameters</h3></div></div><p>
+      </p></div><div class="sect2"><a name="pointcut-parameters"></a><div class="titlepage"><div><h3 class="title"><a name="pointcut-parameters"></a>Pointcut Parameters</h3></div></div><p>
         Consider again the first pointcut definition in this chapter:
       </p><pre class="programlisting">
   pointcut setter(): target(Point) &amp;&amp;
@@ -390,7 +390,7 @@ pointcut setter(Point p, int newval): target(p) &amp;&amp;
         when calling <tt>setY</tt>, but the pointcut picks out
         all of these join points and tries to bind both
         <tt>p1</tt> and <tt>p2</tt>.
-      </p></div><div class="sect2"><a name="d0e1580"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1580"></a>Example: <tt>HandleLiveness</tt></h3></div></div><p>
+      </p></div><div class="sect2"><a name="example"></a><div class="titlepage"><div><h3 class="title"><a name="example"></a>Example: <tt>HandleLiveness</tt></h3></div></div><p>
         The example below consists of two object classes (plus an exception
         class) and one aspect. Handle objects delegate their public,
         non-static operations to their <tt>Partner</tt>

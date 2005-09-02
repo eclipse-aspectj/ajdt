@@ -5,7 +5,7 @@
             <tt>Pointcut, Before, After, AfterReturning, AfterThrowing,</tt>
           and
             <tt>Around</tt> annotations.
-        </p><div class="sect2"><a name="d0e3980"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3980"></a>Pointcuts</h3></div></div><p>
+        </p><div class="sect2"><a name="pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="pointcuts"></a>Pointcuts</h3></div></div><p>
               Pointcuts are specified using the
                 <tt>org.aspectj.lang.annotation.Pointcut</tt> annotation
               on a method declaration. The method should have a
@@ -21,31 +21,23 @@
                 <tt>args(), target(), this(), @args(), @target(), @this(), @annotation())</tt> in the
               pointcut, then they must appear in the method signature.
             </p><p>
-            There is one special case to the general rule for when you use
-                <tt>if()</tt> pointcut
-            as detailled in the next section.
-            </p><p>A simple example:</p><pre class="programlisting">
+            The <tt>if()</tt> pointcut is treated specially and is discussed in a later section.
+            </p><p>Here is a simple example of a pointcut declaration in both code and @AspectJ styles:</p><pre class="programlisting">
      @Pointcut("call(* *.*(..))")
      void anyCall() {}
-
-     is equivalent to...
-
+         </pre><p>is equivalent to...</p><pre class="programlisting">
      pointcut anyCall() : call(* *.*(..));
-             </pre><p>An example with formal bindings:</p><pre class="programlisting">
+             </pre><p>When binding arguments, simply declare the arguments as normal in the annotated method:</p><pre class="programlisting">
      @Pointcut("call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; target(callee)")
      void someCall(int i, Foo callee) {}
-
-     is equivalent to...
-
+         </pre><p>is equivalent to...</p><pre class="programlisting">
      pointcut anyCall(int i, Foo callee) : call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; target(callee);
              </pre><p>An example with modifiers (it is also good to remember that Java 5 annotations are not inherited):</p><pre class="programlisting">
      @Pointcut("")
      protected abstract void anyCall();
-
-     is equivalent to...
-
+         </pre><p>is equivalent to...</p><pre class="programlisting">
      protected abstract pointcut anyCall();
-             </pre><p>
+             </pre><div class="sect3"><a name="d0e3708"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3708"></a>Type references inside @AspectJ annotations</h4></div></div><p>
           Using the code style, types referenced in pointcut expressions are 
           resolved with respect to the imported types in the compilation unit.
           When using the annotation style, types referenced in pointcut 
@@ -53,7 +45,7 @@
           to be fully qualified if they are not by default visible to the
           declaring type (outside of the declaring package and
                 <tt>java.lang</tt>). This
-          to not apply to type patterns with wildcards, which are always resolved
+          does not apply to type patterns with wildcards, which are always resolved
           in a global scope.
             </p><p>
           Consider the following compilation unit:
@@ -86,41 +78,40 @@
        void anyUtilityCall() {}
 
      }
-             </pre><p>The
-                <tt>value</tt> attribute of the
-                <tt>Pointcut</tt> declaration may contain any valid
-                AspectJ pointcut declaration - though <tt>if()</tt> pointcut is a special case explained below.
-            </p><p>The special case for the <tt>if()</tt> pointcut.</p><p>In code style, it is possible to use the <tt>if(...)</tt> poincut to implement
-                conditional pointcut whose residual if form will be evaluated at runtime. The <tt>if(...)</tt>
+             </pre></div><div class="sect3"><a name="d0e3724"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3724"></a>if() pointcut expressions</h4></div></div><p>In code style, it is possible to use the <tt>if(...)</tt> poincut to define
+                a conditional pointcut expression which will be evaluated at runtime for each candidate join point. 
+                The <tt>if(...)</tt>
                 body can be any valid Java boolean expression, and can use any exposed formal, as well as the join point forms
                 <tt>thisJoinPoint, thisJoinPointStaticPart and thisJoinPointEnclosingStaticPart</tt>.
              </p><p>
                 When using the annotation style, it would be really a pain to write a valid Java expression within
                 the annotation value so the syntax differs sligthly, whilst providing the very same
-                semantics and runtime behaviour. Take the following examples:
+                semantics and runtime behaviour. An <tt>if()</tt> pointcut expression can be
+                declared in an <tt>@Pointcut</tt>, but must either an empty body, or be one
+                of the expression <tt>if(true)</tt> or <tt>if(false)</tt>. The annotated
+                method must be public, static, and return a boolean. The body of the method contains the
+                condition to be evaluated. For example:
             </p><pre class="programlisting">
      @Pointcut("call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; if()")
      public static boolean someCallWithIfTest(int i) {
         return i &gt; 0;
      }
-
-     is equivalent to...
-
+         </pre><p>is equivalent to...</p><pre class="programlisting">
      pointcut someCallWithIfTest(int i) : call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; if(i &gt; 0);
              </pre><p> and the following is also a valid form:</p><pre class="programlisting">
      static int COUNT = 0;
 
      @Pointcut("call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; if()")
      public static boolean someCallWithIfTest(int i, JoinPoint jp, JoinPoint.EnclosingStaticPart esjp) {
-        // can call any kind of method (though this method is a static one)
+        // any legal Java expression...
         return i &gt; 0
                &amp;&amp; jp.getSignature().getName.startsWith("doo")
                &amp;&amp; esjp.getSignature().getName().startsWith("test")
                &amp;&amp; COUNT++ &lt; 10;
      }
 
-     @Before("someCallWithIfTest(arg0, jp, enc)") // see how the pointcut is referenced: we obey its exact signature
-     public void beforeAdviceWithRuntimeTest(int arg0, JoinPoint jp, JoinPoint.EnclosingStaticPart enc) {
+     @Before("someCallWithIfTest(anInt, jp, enc)") 
+     public void beforeAdviceWithRuntimeTest(int anInt, JoinPoint jp, JoinPoint.EnclosingStaticPart enc) {
         //...
      }
 
@@ -134,15 +125,15 @@
              </pre><p>
                 It is thus possible with the annotation style to use the <tt>if()</tt> pointcut
                 only within an <tt>@Pointcut</tt> expression. The <tt>if()</tt> must not contain any
-                body. The so annotated <tt>@Pointcut</tt> method must then be of the form <tt>public static boolean</tt>
+                body. The annotated <tt>@Pointcut</tt> method must then be of the form <tt>public static boolean</tt>
                 and can use formal bindings as usual.
-                Extra <span class="emphasis"><i>implicit</i></span> (thus unbound) arguments of type JoinPoint, JoinPoint.StaticPart and JoinPoint.EnclosingStaticPart can also be used
-                (they can't for regular pointcut without <tt>if()</tt> form).
+                Extra <span class="emphasis"><i>implicit</i></span> arguments of type JoinPoint, JoinPoint.StaticPart and JoinPoint.EnclosingStaticPart can also be used
+                (this is not permitted for regular annotated pointcuts not using the <tt>if()</tt> form).
             </p><p>
                 The special forms <tt>if(true)</tt> and <tt>if(false)</tt> can be used in a more
                 general way and don't imply that the pointcut method must have a body.
                 You can thus write <tt>@Before("somePoincut() &amp;&amp; if(false)")</tt>.
-            </p></div><div class="sect2"><a name="d0e4101"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4101"></a>Advice</h3></div></div><p>In this section we first discuss the use of annotations for
+            </p></div></div><div class="sect2"><a name="advice"></a><div class="titlepage"><div><h3 class="title"><a name="advice"></a>Advice</h3></div></div><p>In this section we first discuss the use of annotations for
           simple advice declarations. Then we show how
                 <tt>thisJoinPoint</tt>
           and its siblings are handled in the body of advice and discuss the 
@@ -158,50 +149,24 @@
             </p><p>A method that has an advice annotation is treated exactly as an
           advice declaration by AspectJ's weaver. This includes the join points that
           arise when the advice is executed (an adviceexecution join point, not a 
-          method execution join point), and the restriction that advice cannot be
-          invoked explicitly (the weaver will issue an error if an advice method
-          is explicitly invoked).</p><p>The following example shows a simple before advice declaration in
+          method execution join point).</p><p>The following example shows a simple before advice declaration in
           both styles:</p><pre class="programlisting">
-     before() : call(* org.aspectprogrammer..*(..)) &amp;&amp; this(Foo) {
-       System.out.println("Call from Foo");
-     }
-
-     is equivalent to...
-
      @Before("call(* org.aspectprogrammer..*(..)) &amp;&amp; this(Foo)")
      public void callFromFoo() {
        System.out.println("Call from Foo");
      }
-             </pre><p>Notice one slight difference between the two advice declarations: in
-          the annotation style, the advice has a name, "callFromFoo". Even though
-          advice cannot be invoked explicitly, this name is useful in join point
-          matching when advising advice execution. For this reason, and to preserve
-          exact semantic equivalence between the two styles, we also support the
-                <tt>org.aspectj.lang.annotation.AdviceName</tt> annotation.
-          The exact equivalent declarations are:
-            </p><pre class="programlisting">
-     @AdviceName("callFromFoo")
+             </pre><p>is equivalent to...</p><pre class="programlisting">
      before() : call(* org.aspectprogrammer..*(..)) &amp;&amp; this(Foo) {
        System.out.println("Call from Foo");
      }
-
-     is equivalent to...
-
-     @Before("call(* org.aspectprogrammer..*(..)) &amp;&amp; this(Foo)")
-     public void callFromFoo() {
-       System.out.println("Call from Foo");
-     }
-             </pre><p>If the advice body needs to know which particular
-                <tt>Foo</tt>
-          was doing the calling, just add a parameter to the advice declaration.
+         </pre><p>If the advice body needs to know which particular
+                <tt>Foo</tt> instance
+          is making the call, just add a parameter to the advice declaration.
             </p><pre class="programlisting">
-     @AdviceName("callFromFoo")
      before(Foo foo) : call(* org.aspectprogrammer..*(..)) &amp;&amp; this(foo) {
        System.out.println("Call from Foo: " + foo);
      }
-
-     is equivalent to...
-
+             </pre><p>can be written as:</p><pre class="programlisting">
      @Before("call(* org.aspectprogrammer..*(..)) &amp;&amp; this(foo)")
      public void callFromFoo(Foo foo) {
        System.out.println("Call from Foo: " + foo);
@@ -213,20 +178,17 @@
           be declared as additional method parameters when using the annotation
           style. 
             </p><pre class="programlisting">
-     @AdviceName("callFromFoo")
-     before(Foo foo) : call(* org.aspectprogrammer..*(..)) &amp;&amp; this(foo) {
-       System.out.println("Call from Foo: " + foo + " at "
-                          + thisJoinPoint);
-     }
-
-     is equivalent to...
-
      @Before("call(* org.aspectprogrammer..*(..)) &amp;&amp; this(foo)")
      public void callFromFoo(JoinPoint thisJoinPoint, Foo foo) {
        System.out.println("Call from Foo: " + foo + " at "
                           + thisJoinPoint);
      }
-             </pre><p>Advice that needs all three variables would be declared:</p><pre class="programlisting">
+             </pre><p>is equivalent to...</p><pre class="programlisting">
+     before(Foo foo) : call(* org.aspectprogrammer..*(..)) &amp;&amp; this(foo) {
+       System.out.println("Call from Foo: " + foo + " at "
+                          + thisJoinPoint);
+     }
+            </pre><p>Advice that needs all three variables would be declared:</p><pre class="programlisting">
      @Before("call(* org.aspectprogrammer..*(..)) &amp;&amp; this(Foo)")
      public void callFromFoo(JoinPoint thisJoinPoint,
                              JoinPoint.StaticPart thisJoinPointStaticPart,
@@ -254,16 +216,6 @@
       parameter as a parameter in the method body and bind it with the "returning"
       attribute:
             </p><pre class="programlisting">
-      after() returning : criticalOperation() {
-        System.out.println("phew");
-      }
-
-      after() returning(Foo f) : call(Foo+.new(..)) {
-        System.out.println("It's a Foo: " + f);
-      }
-
-      can be written as...
-
       @AfterReturning("criticalOperation()")
       public void phew() {
         System.out.println("phew");
@@ -271,6 +223,14 @@
 
       @AfterReturning(pointcut="call(Foo+.new(..))",returning="f")
       public void itsAFoo(Foo f) {
+        System.out.println("It's a Foo: " + f);
+      }
+            </pre><p>is equivalent to...</p><pre class="programlisting">
+      after() returning : criticalOperation() {
+        System.out.println("phew");
+      }
+
+      after() returning(Foo f) : call(Foo+.new(..)) {
         System.out.println("It's a Foo: " + f);
       }
             </pre><p>(Note the use of the "pointcut=" prefix in front of the pointcut
@@ -302,16 +262,6 @@
        return thisJoinPoint.proceed();
      }
              </pre><p>Here's an example that uses parameters for the proceed call:</p><pre class="programlisting">
-     public aspect ProceedAspect {
-       pointcut setAge(int i): call(* setAge(..)) &amp;&amp; args(i);
-
-       Object around(int i): setAge(i) {
-         return proceed(i*2);
-       }
-     }
-
-     can be written as...
-
      @Aspect
      public class ProceedAspect {
 
@@ -325,5 +275,13 @@
 
      }
 
-     Note that the ProceedingJoinPoint does not need to be passed as the proceed(..) arguments.
-             </pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ataspectj-aspects.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ataspectj-itds.html">Next</a></td></tr><tr><td width="40%" align="left">Aspect Declarations&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ataspectj.html">Up</a></td><td width="40%" align="right">&nbsp;Inter-type Declarations</td></tr></table></div></body></html>
+             </pre><p>is equivalent to:</p><pre class="programlisting">
+     public aspect ProceedAspect {
+       pointcut setAge(int i): call(* setAge(..)) &amp;&amp; args(i);
+
+       Object around(int i): setAge(i) {
+         return proceed(i*2);
+       }
+     }
+            </pre><p>Note that the ProceedingJoinPoint does not need to be passed to the proceed(..) arguments.
+</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ataspectj-aspects.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ataspectj-itds.html">Next</a></td></tr><tr><td width="40%" align="left">Aspect Declarations&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ataspectj.html">Up</a></td><td width="40%" align="right">&nbsp;Inter-type Declarations</td></tr></table></div></body></html>

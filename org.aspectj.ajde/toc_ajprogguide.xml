@@ -5,26 +5,26 @@
 	<topic label="Introduction" href="doc/progguide/starting.html#starting-intro"/>
 	<topic label="Introduction to AspectJ" href="doc/progguide/starting-aspectj.html">
 
-		<topic label="The Dynamic Join Point Model" href="doc/progguide/starting-aspectj.html#d0e181"/>
-		<topic label="Pointcuts" href="doc/progguide/starting-aspectj.html#d0e194"/>
-		<topic label="Advice" href="doc/progguide/starting-aspectj.html#d0e304"/>
-		<topic label="Inter-type declarations" href="doc/progguide/starting-aspectj.html#d0e422"/>
-		<topic label="Aspects" href="doc/progguide/starting-aspectj.html#d0e491"/>
+		<topic label="The Dynamic Join Point Model" href="doc/progguide/starting-aspectj.html#the-dynamic-join-point-model"/>
+		<topic label="Pointcuts" href="doc/progguide/starting-aspectj.html#pointcuts"/>
+		<topic label="Advice" href="doc/progguide/starting-aspectj.html#advice"/>
+		<topic label="Inter-type declarations" href="doc/progguide/starting-aspectj.html#inter-type-declarations"/>
+		<topic label="Aspects" href="doc/progguide/starting-aspectj.html#aspects"/>
 	</topic>
 	
 	<topic label="Development Aspects" href="doc/progguide/starting-development.html">
 
-		<topic label="Tracing" href="doc/progguide/starting-development.html#d0e513"/>
-		<topic label="Profiling and Logging" href="doc/progguide/starting-development.html#d0e541"/>
-		<topic label="Pre- and Post-Conditions" href="doc/progguide/starting-development.html#d0e586"/>
-		<topic label="Contract Enforcement" href="doc/progguide/starting-development.html#d0e624"/>
-		<topic label="Configuration Management" href="doc/progguide/starting-development.html#d0e658"/>
+		<topic label="Tracing" href="doc/progguide/starting-development.html#tracing"/>
+		<topic label="Profiling and Logging" href="doc/progguide/starting-development.html#profiling-and-logging"/>
+		<topic label="Pre- and Post-Conditions" href="doc/progguide/starting-development.html#pre-and-post-conditions"/>
+		<topic label="Contract Enforcement" href="doc/progguide/starting-development.html#contract-enforcement"/>
+		<topic label="Configuration Management" href="doc/progguide/starting-development.html#configuration-management"/>
 	</topic>
 	
 	<topic label="Production Aspects" href="doc/progguide/starting-production.html">
 
-		<topic label="Change Monitoring" href="doc/progguide/starting-production.html#d0e671"/>
-		<topic label="Context Passing" href="doc/progguide/starting-production.html#d0e742"/>
+		<topic label="Change Monitoring" href="doc/progguide/starting-production.html#change-monitoring"/>
+		<topic label="Context Passing" href="doc/progguide/starting-production.html#context-passing"/>
 		<topic label="Providing Consistent Behavior" href="doc/progguide/starting-production.html#starting-production-consistentBehavior"/>
 	</topic>
 
@@ -36,25 +36,25 @@
 	<topic label="Introduction" href="doc/progguide/language.html#language-intro"/>
 	<topic label="The Anatomy of an Aspect" href="doc/progguide/language-anatomy.html">
 
-		<topic label="An Example Aspect" href="doc/progguide/language-anatomy.html#d0e863"/>
-		<topic label="Pointcuts" href="doc/progguide/language-anatomy.html#d0e880"/>
-		<topic label="Advice" href="doc/progguide/language-anatomy.html#d0e923"/>
+		<topic label="An Example Aspect" href="doc/progguide/language-anatomy.html#an-example-aspect"/>
+		<topic label="Pointcuts" href="doc/progguide/language-anatomy.html#pointcuts"/>
+		<topic label="Advice" href="doc/progguide/language-anatomy.html#advice"/>
 	</topic>
 
 	<topic label="Join Points and Pointcuts" href="doc/progguide/language-joinPoints.html">
 
-		<topic label="Some Example Pointcuts" href="doc/progguide/language-joinPoints.html#d0e1018"/>
-		<topic label="call vs. execution" href="doc/progguide/language-joinPoints.html#d0e1288"/>
-		<topic label="Pointcut composition" href="doc/progguide/language-joinPoints.html#d0e1334"/>
-		<topic label="Pointcut Parameters" href="doc/progguide/language-joinPoints.html#d0e1454"/>
-		<topic label="Example: Handle Liveness" href="doc/progguide/language-joinPoints.html#d0e1580"/>
+		<topic label="Some Example Pointcuts" href="doc/progguide/language-joinPoints.html#some-example-pointcuts"/>
+		<topic label="call vs. execution" href="doc/progguide/language-joinPoints.html#call-vs-execution"/>
+		<topic label="Pointcut composition" href="doc/progguide/language-joinPoints.html#pointcut-composition"/>
+		<topic label="Pointcut Parameters" href="doc/progguide/language-joinPoints.html#pointcut-parameters"/>
+		<topic label="Example: Handle Liveness" href="doc/progguide/language-joinPoints.html#example"/>
 	</topic>
 
 	<topic label="Advice" href="doc/progguide/language-advice.html"/>
 	<topic label="Inter-type declarations" href="doc/progguide/language-interType.html">
 	
-		<topic label="Inter-type Scope" href="doc/progguide/language-interType.html#d0e1828"/>
-		<topic label="Example: Point Assertions" href="doc/progguide/language-interType.html#d0e1853"/>
+		<topic label="Inter-type Scope" href="doc/progguide/language-interType.html#inter-type-scope"/>
+		<topic label="Example: Point Assertions" href="doc/progguide/language-interType.html#example-pointassertions"/>
 	</topic>
 
 	<topic label="thisJoinPoint" href="doc/progguide/language-thisJoinPoint.html"/>
@@ -71,18 +71,18 @@
 	</topic>
 	<topic label="Development Aspects" href="doc/progguide/examples-development.html">
 
-		<topic label="Tracing using aspects" href="doc/progguide/examples-development.html#d0e2490"/>
+		<topic label="Tracing using aspects" href="doc/progguide/examples-development.html#tracing-using-aspects"/>
 	</topic>
 	<topic label="Production Aspects" href="doc/progguide/examples-production.html">
 
-		<topic label="A Bean Aspect" href="doc/progguide/examples-production.html#d0e2692"/>
-		<topic label="The Subject/Observer Protocol" href="doc/progguide/examples-production.html#d0e2874"/>
-		<topic label="A Simple Telecom Simulation" href="doc/progguide/examples-production.html#d0e3011"/>
+		<topic label="A Bean Aspect" href="doc/progguide/examples-production.html#a-bean-aspect"/>
+		<topic label="The Subject/Observer Protocol" href="doc/progguide/examples-production.html#the-subject-observer-protocol"/>
+		<topic label="A Simple Telecom Simulation" href="doc/progguide/examples-production.html#a-simple-telecom-simulation"/>
 	</topic>
 
 	<topic label="Reusable Aspects" href="doc/progguide/examples-reusable.html">
 
-		<topic label="Tracing using Aspects, Revisited" href="doc/progguide/examples-reusable.html#d0e3355"/>
+		<topic label="Tracing using Aspects, Revisited" href="doc/progguide/examples-reusable.html#tracing-using-aspects-revisited"/>
 	</topic>
 </topic>
 
@@ -113,46 +113,46 @@
 	<topic label="Join Points" href="doc/progguide/semantics-joinPoints.html"/>
 	<topic label="Pointcuts" href="doc/progguide/semantics-pointcuts.html">
 
-		<topic label="Pointcut definition" href="doc/progguide/semantics-pointcuts.html#d0e5080"/>
-		<topic label="Context exposure" href="doc/progguide/semantics-pointcuts.html#d0e5122"/>
-		<topic label="Primitive pointcuts" href="doc/progguide/semantics-pointcuts.html#d0e5197"/>
-		<topic label="Signatures" href="doc/progguide/semantics-pointcuts.html#d0e5541"/>
-		<topic label="Matching" href="doc/progguide/semantics-pointcuts.html#d0e5589"/>
-		<topic label="Type patterns" href="doc/progguide/semantics-pointcuts.html#d0e5817"/>
+		<topic label="Pointcut definition" href="doc/progguide/semantics-pointcuts.html#pointcut-definition"/>
+		<topic label="Context exposure" href="doc/progguide/semantics-pointcuts.html#context-exposure"/>
+		<topic label="Primitive pointcuts" href="doc/progguide/semantics-pointcuts.html#primitive-pointcuts"/>
+		<topic label="Signatures" href="doc/progguide/semantics-pointcuts.html#signatures"/>
+		<topic label="Matching" href="doc/progguide/semantics-pointcuts.html#matching"/>
+		<topic label="Type patterns" href="doc/progguide/semantics-pointcuts.html#type-patterns"/>
 	</topic>
 
 	<topic label="Advice" href="doc/progguide/semantics-advice.html">
 
-		<topic label="Advice modifiers" href="doc/progguide/semantics-advice.html#d0e6148"/>
-		<topic label="Advice and checked exceptions" href="doc/progguide/semantics-advice.html#d0e6156"/>
-		<topic label="Advice precedence" href="doc/progguide/semantics-advice.html#d0e6220"/>
-		<topic label="Reflective access to the join point" href="doc/progguide/semantics-advice.html#d0e6297"/>
+		<topic label="Advice modifiers" href="doc/progguide/semantics-advice.html#advice-modifiers"/>
+		<topic label="Advice and checked exceptions" href="doc/progguide/semantics-advice.html#advice-and-checked-exceptions"/>
+		<topic label="Advice precedence" href="doc/progguide/semantics-advice.html#advice-precedence"/>
+		<topic label="Reflective access to the join point" href="doc/progguide/semantics-advice.html#reflective-access-to-the-join-point"/>
 	</topic>
 
 	<topic label="Static crosscutting" href="doc/progguide/semantics-declare.html">
 
-		<topic label="Inter-type member declarations" href="doc/progguide/semantics-declare.html#d0e6358"/>
-		<topic label="Access modifiers" href="doc/progguide/semantics-declare.html#d0e6526"/>
-		<topic label="Conflicts" href="doc/progguide/semantics-declare.html#d0e6543"/>
-		<topic label="Extension and Implementation" href="doc/progguide/semantics-declare.html#d0e6640"/>
-		<topic label="Interfaces with members" href="doc/progguide/semantics-declare.html#d0e6683"/>
-		<topic label="Warnings and Errors" href="doc/progguide/semantics-declare.html#d0e6727"/>
-		<topic label="Softened exceptions" href="doc/progguide/semantics-declare.html#d0e6759"/>
-		<topic label="Advice Precedence" href="doc/progguide/semantics-declare.html#d0e6802"/>
-		<topic label="Statically determinable pointcuts" href="doc/progguide/semantics-declare.html#d0e6865"/>
+		<topic label="Inter-type member declarations" href="doc/progguide/semantics-declare.html#inter-type-member-declarations"/>
+		<topic label="Access modifiers" href="doc/progguide/semantics-declare.html#access-modifiers"/>
+		<topic label="Conflicts" href="doc/progguide/semantics-declare.html#conflicts"/>
+		<topic label="Extension and Implementation" href="doc/progguide/semantics-declare.html#extension-and-implementation"/>
+		<topic label="Interfaces with members" href="doc/progguide/semantics-declare.html#interfaces-with-members"/>
+		<topic label="Warnings and Errors" href="doc/progguide/semantics-declare.html#warnings-and-errors"/>
+		<topic label="Softened exceptions" href="doc/progguide/semantics-declare.html#softened-exceptions"/>
+		<topic label="Advice Precedence" href="doc/progguide/semantics-declare.html#advice-precedence"/>
+		<topic label="Statically determinable pointcuts" href="doc/progguide/semantics-declare.html#statically-determinable-pointcuts"/>
 	</topic>
 
 	<topic label="Aspects" href="doc/progguide/semantics-aspects.html">
 
-		<topic label="Aspect Extension" href="doc/progguide/semantics-aspects.html#d0e6929"/>
-		<topic label="Aspect instantiation" href="doc/progguide/semantics-aspects.html#d0e6949"/>
-		<topic label="Aspect privilege" href="doc/progguide/semantics-aspects.html#d0e7112"/>
+		<topic label="Aspect Extension" href="doc/progguide/semantics-aspects.html#aspect-extension"/>
+		<topic label="Aspect instantiation" href="doc/progguide/semantics-aspects.html#aspect-instantiation"/>
+		<topic label="Aspect privilege" href="doc/progguide/semantics-aspects.html#aspect-privilege"/>
 	</topic>
 </topic>
 
 	<topic label="C. Implementation Notes" href="doc/progguide/implementation.html">
 
-		<topic label="Compiler Notes" href="doc/progguide/implementation.html#d0e7144"/>
+		<topic label="Compiler Notes" href="doc/progguide/implementation.html#compiler-notes"/>
 		<topic label="Bytecode Notes" href="doc/progguide/apcs02.html"/>
 	</topic>
 </toc>
