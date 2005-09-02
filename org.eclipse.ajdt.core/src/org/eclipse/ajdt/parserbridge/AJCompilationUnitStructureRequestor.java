@@ -298,7 +298,7 @@ public class AJCompilationUnitStructureRequestor extends
 					exceptionTypes= CharOperation.NO_CHAR_CHAR;
 				}
 				
-				String nameString = new String(decl.onType.getTypeName()[0]) + "." + new String(decl.getDeclaredSelector());
+				String nameString = new String(decl.getOnType().getTypeName()[0]) + "." + new String(decl.getDeclaredSelector());
 				String[] parameterTypeSigs = convertTypeNamesToSigsCopy(parameterTypes);
 				handle = new IntertypeElement(parentHandle, nameString, parameterTypeSigs);
 				
@@ -323,7 +323,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setName(nameString.toCharArray());
 				info.setNameSourceStart(nameSourceStart);
 				info.setNameSourceEnd(nameSourceEnd);
-				info.setTargetType(decl.onType.getTypeName()[0]);
+				info.setTargetType(decl.getOnType().getTypeName()[0]);
 				info.setFlags(flags);
 				info.setArgumentNames(parameterNames);
 				info.setArgumentTypeNames(parameterTypes);

@@ -47,6 +47,6 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 			}
 			return buff.toString();
 		} 
-		return getHandleMemento();
+		return super.getHandleMemento();
 	}
 }

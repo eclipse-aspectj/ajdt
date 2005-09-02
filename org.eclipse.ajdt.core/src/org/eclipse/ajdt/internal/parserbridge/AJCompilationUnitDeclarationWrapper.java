@@ -8,6 +8,8 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.parserbridge;
 
+import java.util.Hashtable;
+
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -86,7 +88,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 				500);
 		cr.lineSeparatorPositions = delegate.compilationResult.lineSeparatorPositions;
 		cr.problemCount = delegate.compilationResult.problemCount;
-		cr.compiledTypes = delegate.compilationResult.compiledTypes;
+		cr.compiledTypes = (Hashtable)delegate.compilationResult.compiledTypes;
 		cr.hasBeenAccepted = delegate.compilationResult.hasBeenAccepted;
 		cr.qualifiedReferences = delegate.compilationResult.qualifiedReferences;
 		cr.simpleNameReferences = delegate.compilationResult.simpleNameReferences;
