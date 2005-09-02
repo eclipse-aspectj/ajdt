@@ -11,18 +11,19 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests;
 
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
+import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -51,6 +52,9 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJModelTest2.class));
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
+
+		// Java Elemenet tests
+		suite.addTest(new TestSuite(AspectElementTests.class));
 
 		// builder tests
 		suite.addTest(new TestSuite(AJBuilderTest.class));
