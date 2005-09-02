@@ -237,7 +237,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 	}
 	
-	private String getSimpleClassName(Object obj) {
+	private static String getSimpleClassName(Object obj) {
 		String longName = obj.getClass().getName();
 		int index = longName.lastIndexOf('.');
 		if (index == -1) {
@@ -246,7 +246,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		return longName.substring(index + 1);
 	}
 
-	private void compareElementsFromRelationships(AJRelationshipType[] rels,
+	static void compareElementsFromRelationships(AJRelationshipType[] rels,
 			IProject project) {
 		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
 		if (allRels.size() == 0) {
@@ -262,7 +262,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 	}
 
-	private void compareElementWithRecreated(IJavaElement element) {
+	private static void compareElementWithRecreated(IJavaElement element) {
 		String handle = element.getHandleIdentifier();
 		IJavaElement recreated = AspectJCore.create(handle);
 		String recreatedHandle = recreated.getHandleIdentifier();

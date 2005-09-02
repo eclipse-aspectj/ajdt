@@ -25,19 +25,25 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 /**
- * 
+ * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
+ * JVM. Tests which require a 1.5 JVM are only added to the suite if a 1.5 JVM
+ * is detected.
  */
 public class AllCoreTests {
 
 	public static Test suite() {
+		boolean is50 = System.getProperty("java.version").startsWith("1.5");
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
-		
+
 		suite.addTest(new TestSuite(AJCoreTest.class));
+		if (is50) {
+			suite.addTest(new TestSuite(AJCoreTestJava5.class));
+		}
 
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
-		
+
 		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));
-	
+
 		// model tests
 		suite.addTest(new TestSuite(AJCodeElementTest.class));
 		suite.addTest(new TestSuite(AJComparatorTest.class));
@@ -45,11 +51,11 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJModelTest2.class));
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
-		
+
 		// builder tests
-		suite.addTest(new TestSuite(AJBuilderTest.class));	
-		suite.addTest(new TestSuite(Bug99133Test.class));	
-		
+		suite.addTest(new TestSuite(AJBuilderTest.class));
+		suite.addTest(new TestSuite(Bug99133Test.class));
+
 		return suite;
 	}
 }

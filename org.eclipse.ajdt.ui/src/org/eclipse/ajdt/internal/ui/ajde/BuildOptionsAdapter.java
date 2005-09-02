@@ -25,38 +25,6 @@ import org.eclipse.jdt.internal.core.JavaProject;
 public class BuildOptionsAdapter extends CoreBuildOptions {
 
 	/**
-	 * Tries to get a project-specific nature options map if it exists.  
-	 * If it is not found returns the JavaCore's map.
-	 */
-	public Map getJavaOptionsMap() {
-		Map optionsMap = null;
-			
-		JavaProject project;
-		try {
-			project = (JavaProject)AspectJPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
-			optionsMap = project.getOptions(true);
-		} catch (CoreException e) {
-		}
-		
-		if (optionsMap == null) {
-			return JavaCore.getOptions();
-		} else {
-			return optionsMap;
-		}
-	}
-
-	// Return formatted version of the current build options set
-	public String toString() {
-		StringBuffer formattedOptions = new StringBuffer();
-		formattedOptions.append("Current Compiler options set:");
-		formattedOptions.append(
-			"[Incremental compilation=" + getIncrementalMode() + "]");
-		formattedOptions.append(
-			"[NonStandard options='" + getNonStandardOptions() + "']");
-		return formattedOptions.toString();
-	}
-
-	/**
 	 * @see BuildOptionsAdapter#getNonStandardOptions()
 	 */
 	public String getNonStandardOptions() {
