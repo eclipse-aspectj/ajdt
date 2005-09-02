@@ -12,272 +12,116 @@
     <h1>
       Where will I find the source for AJDT?
     </h1>
-    <p>
-<p><span style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:
-EN-US'>AJDT source is held in the Eclipse CVS repository under /home/<span
-class=GramE>technology,</span> see the </span></span><a
-href="http://dev.eclipse.org/viewcvs/indextech.cgi/org.eclipse.ajdt/"><span
-style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>root
-of the AJDT source tree online</span></span><span style='mso-bookmark:d0e26'></span></a><span
-style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>.
-AJDT is organized in subdirectories under org.eclipse.ajdt. The main source
-tree is in the &#8220;AJDT_src&#8221; subdirectory, and contains the
-following plugins:<o:p></o:p></span></span></p>
+			<p>
+				AJDT source is held in the Eclipse CVS repository under /home/technology, see the <a
+				href="http://dev.eclipse.org/viewcvs/indextech.cgi/org.eclipse.ajdt/"> root
+				of the AJDT source tree online</a>.
+				AJDT is organized in subdirectories under org.eclipse.ajdt. The main source
+				tree is in the &#8220;AJDT_src&#8221; subdirectory.
+				The source code for the Eclipse 3.1 version of AJDT is contained in
+				CVS HEAD, and the source code for the Eclipse 3.0 version is contained
+				in the "ajdt1_2" branch. Here is a description of the various AJDT
+				plug-ins:
+			</p>
+				
+				<table>
+				
+				 <tr>
+				  <td><strong>Plug-ins under &#8220;AJDT_src&#8221;</strong></td>
+				  <td ><strong>Description</strong></td>
+				 </tr>
+				 
+				 <tr>
+				  <td>org.aspectj.ajde</td>
+				  <td>The AJDE plug-in provided by the AspectJ project</td>
+				 </tr>
+				 
+				 <tr>
+				  <td>org.aspectj.runtime<o:p></td>				   
+				  <td>The AspectJ runtime classes</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.ajdt.build</td>				   
+				  <td>Automatic build plug-in &#8211; only used by the build process</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.ajdt.core</td>				   
+				  <td>Non-UI parts of AJDT</td>				   
+				 </tr>
+				 
+				  <tr>
+				  <td>org.eclipse.ajdt.core.tests</td>				   
+				  <td>AJDT Core tests</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.ajdt.examples</td>				   
+				  <td>AspectJ examples plug-in</td>				   
+				 </tr>
+				 <tr>
+				  <td>org.eclipse.ajdt.ui.tests</td>
+				   
+				  <td>AJDT UI Tests</td>
+				   
+				 </tr>
+				 <tr>
+				  <td>org.eclipse.ajdt.tests.performance</td>				   
+				  <td>AJDT performance tests</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.ajdt.ui</td>				   
+				  <td>The AJDT UI plug-in</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.aspectj</td>				   
+				  <td>The AspectJ feature</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td >org.eclipse.aspectj.feature</td>				   
+				  <td>The &quot;feature&quot; plug-in</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.visualiser</td>				   
+				  <td>The Visualiser plug-in</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.visualiser.tests</td>
+				  <td>Visualiser tests</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.xref.core</td>				   
+				  <td >The Cross References plug-in (non-UI)</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.xref.core.tests</td>				   
+				  <td>Tests for the above</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.xref.ui</td>				   
+				  <td>The Cross References UI plug-in</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>org.eclipse.contribution.xref.ui.tests</td>				   
+				  <td>Tests for the above</td>				   
+				 </tr>
+				 
+				 <tr>
+				  <td>UpdateSite</td>
+				  <td>Plug-in used to build an update site</td>
+				 </tr>
+				</table>    
 
-<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0
- style='border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;
- mso-yfti-tbllook:480;mso-padding-alt:0cm 5.4pt 0cm 5.4pt;mso-border-insideh:
- .5pt solid windowtext;mso-border-insidev:.5pt solid windowtext'>
- <tr style='mso-yfti-irow:0'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><b style='mso-bidi-font-weight:normal'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>Plugins under &#8220;AJDT_src&#8221;<o:p></o:p></span></b></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border:solid windowtext 1.0pt;
-  border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt:
-  solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><b style='mso-bidi-font-weight:normal'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>Description<o:p></o:p></span></b></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:1'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.aspectj.ajde<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The AJDE plugin provided by the AspectJ project<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:2'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.aspectj.runtime<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The AspectJ runtime classes<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:3'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.build<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>Automatic build plugin &#8211; only used by the build process<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:4'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.core<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>Non-UI parts of AJDT<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
-  <tr style='mso-yfti-irow:4'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.core.tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>AJDT Core tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:5'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.examples<span
-  style='mso-tab-count:1'>      </span><o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>AspectJ examples plugin<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:6'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.test<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>AJDT UI Tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:7'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.tests.performance<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>AJDT performance tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:8'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.ajdt.ui<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The AJDT UI plugin<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:9'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.aspectj<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The AspectJ feature<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:10'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.aspectj.feature<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The &quot;feature&quot; plugin<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:11'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.visualiser<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The Visualiser plugin<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:12'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.visualiser.tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>Visualiser tests<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:13'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.xref.core<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The Cross References plugin (non-UI)<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:14'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.xref.core.test<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>tests for the above<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:15'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.xref.ui<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>The Cross References plugin UI<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:16'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>org.eclipse.contribution.xref.ui.test<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>tests for the above<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
- <tr style='mso-yfti-irow:17;mso-yfti-lastrow:yes'>
-  <td width=342 valign=top style='width:256.8pt;border:solid windowtext 1.0pt;
-  border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt;
-  padding:0cm 5.4pt 0cm 5.4pt'><pre><span style='mso-bookmark:d0e26'><span
-  lang=EN-US style='mso-ansi-language:EN-US'>UpdateSite<span style='mso-tab-count:
-  1'>     </span><o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
-  <td width=197 valign=top style='width:147.6pt;border-top:none;border-left:
-  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-  mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt;
-  mso-border-alt:solid windowtext .5pt;padding:0cm 5.4pt 0cm 5.4pt'><pre><span
-  style='mso-bookmark:d0e26'><span lang=EN-US style='mso-ansi-language:EN-US'>Plugin used to build an update site<o:p></o:p></span></span></pre></td>
-  <span style='mso-bookmark:d0e26'></span>
- </tr>
-</table>    </p>
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
     </p>
