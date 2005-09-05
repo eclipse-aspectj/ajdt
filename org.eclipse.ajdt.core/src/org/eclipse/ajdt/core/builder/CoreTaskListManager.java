@@ -21,11 +21,11 @@ public class CoreTaskListManager implements TaskListManager {
 
 	public void addSourcelineTask(String message,
 			ISourceLocation sourceLocation, Kind kind) {
-		AJLog.log("AJC: "+message);
+		AJLog.log("AJC: "+message); //$NON-NLS-1$
 	}
 
 	public void addSourcelineTask(IMessage message) {
-		AJLog.log("AJC: "+message);
+		AJLog.log("AJC: "+message); //$NON-NLS-1$
 	}
 
 	public boolean hasWarning() {
@@ -33,7 +33,7 @@ public class CoreTaskListManager implements TaskListManager {
 	}
 
 	public void addProjectTask(String message, Kind kind) {
-		AJLog.log("project task: "+message);
+		AJLog.log("project task: "+message); //$NON-NLS-1$
 	}
 
 	public void clearTasks() {

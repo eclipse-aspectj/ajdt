@@ -47,9 +47,9 @@ public class AJLog {
 			long now = System.currentTimeMillis();
 			long elapsed = now - then.longValue();
 			if ((optional_msg != null) && (optional_msg.length() > 0)) {
-				log("Timer event: "+elapsed + "ms: "+event+" ("+optional_msg+")");
+				log("Timer event: "+elapsed + "ms: "+event+" ("+optional_msg+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			} else {
-				log("Timer event: "+elapsed + "ms: "+event);
+				log("Timer event: "+elapsed + "ms: "+event); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			timers.remove(event);
 		}

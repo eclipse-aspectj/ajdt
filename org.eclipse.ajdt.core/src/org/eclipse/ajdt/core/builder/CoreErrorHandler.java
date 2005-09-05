@@ -17,15 +17,15 @@ import org.eclipse.ajdt.core.AJLog;
 public class CoreErrorHandler implements ErrorHandler {
 
 	public void handleWarning(String message) {
-		AJLog.log("AJC: Compiler warning: "+message);
+		AJLog.log("AJC: Compiler warning: "+message); //$NON-NLS-1$
 	}
 
 	public void handleError(String message) {
-		AJLog.log("AJC: Compiler error: "+message);
+		AJLog.log("AJC: Compiler error: "+message); //$NON-NLS-1$
 	}
 
 	public void handleError(String message, Throwable t) {
-		AJLog.log("AJC: Compiler error: "+message);
+		AJLog.log("AJC: Compiler error: "+message); //$NON-NLS-1$
 		t.printStackTrace();
 	}
 

@@ -184,7 +184,7 @@ public class AJModel {
 			pm.deleteModelFile();
 		}
 		projectModelMap.remove(project);
-		AJLog.log("Cleared AJDT relationship map for project "+project.getName());
+		AJLog.log("Cleared AJDT relationship map for project "+project.getName()); //$NON-NLS-1$
 	}
 	
 	/**

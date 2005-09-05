@@ -47,7 +47,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 	 * @see org.aspectj.ajde.BuildProgressMonitor#setProgressText(java.lang.String)
 	 */
 	public void setProgressText(String text) {
-		AJLog.log("AJC: "+text);
+		AJLog.log("AJC: "+text); //$NON-NLS-1$
 	}
 
 	/*
@@ -90,7 +90,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 	 */
 	public void finish() {
 		compilationInProgress = false;
-		AJLog.log("AJC: Build finished");
+		AJLog.log("AJC: Build finished"); //$NON-NLS-1$
 	}
 
 	/**
@@ -100,10 +100,10 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 			IProgressMonitor eclipseMonitor) {
 		monitor = eclipseMonitor;
 		if (monitor != null) {
-			monitor.beginTask("AJC build", 100);
+			monitor.beginTask("AJC build", 100); //$NON-NLS-1$
 		}
 
-		AJLog.log("AJC: Starting new build for project " + project.getName());
+		AJLog.log("AJC: Starting new build for project " + project.getName()); //$NON-NLS-1$
 		compilationInProgress = true;
 	}
 
