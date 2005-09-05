@@ -17,7 +17,7 @@ import java.lang.System;
  * @author mchapman
  */
 public aspect Enforcement {
-	declare warning : get(* System.out) || get(* System.err) : "There should be no printlns";
+	declare warning : get(* System.out) || get(* System.err) : "There should be no printlns"; //$NON-NLS-1$
 	
-	declare warning : call(* Exception.printStackTrace(..)) : "There should be no calls to printStackTrace";
+	declare warning : call(* Exception.printStackTrace(..)) : "There should be no calls to printStackTrace"; //$NON-NLS-1$
 }
