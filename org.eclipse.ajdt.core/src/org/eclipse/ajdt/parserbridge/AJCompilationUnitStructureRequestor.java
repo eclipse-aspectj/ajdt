@@ -499,6 +499,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.modifiers));
 				
 				info.setSourceRangeStart(declarationStart);
+				info.setSourceRangeEnd(decl.sourceEnd+1);
 				int flags = modifiers;
 				info.setName(name);
 				info.setNameSourceStart(nameSourceStart);

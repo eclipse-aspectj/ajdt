@@ -1766,6 +1766,15 @@
          </factory>
     </extension>
 
+   <extension
+         point="org.eclipse.jdt.ui.javaEditorTextHovers">
+      <hover 
+            label="%pointcutSourceHover"
+            description="%pointcutSourceHoverDescription"
+            class="org.eclipse.ajdt.internal.ui.editor.PointcutSourceHover"
+            id="zorg.eclipse.ajdt.ui.PointcutSourceHover">
+      </hover>
+   </extension>
 
   <!-- extensions relating to Crosscutting Comparison view -->
   <extension point="org.eclipse.ui.views">

@@ -17,6 +17,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
+import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -118,116 +119,6 @@ public class AJOpenAction extends SelectionDispatchAction {
 		return true;
 	}
 
-	// begin AspectJ change
-	private String findIdentifier(String source, int offset) {
-		int start = offset - 1;
-		while ((start > 0)
-				&& (Character.isJavaIdentifierStart(source.charAt(start)) || source
-						.charAt(start) == '.')) {
-			start--;
-		}
-		if (start == offset) {
-			return ""; //$NON-NLS-1$
-		}
-		int end = offset;
-		while ((end < source.length())
-				&& (Character.isJavaIdentifierPart(source.charAt(end)) || source
-						.charAt(end) == '.')) {
-			end++;
-		}
-		String s = source.substring(start + 1, end);
-		return s;
-	}
-
-	private PointcutElement findPointcutInAspect(AspectElement aspect,
-			String name) throws JavaModelException {
-		PointcutElement[] pointcuts = aspect.getPointcuts();
-		for (int i = 0; i < pointcuts.length; i++) {
-			if (name.equals(pointcuts[i].getElementName())) {
-				return pointcuts[i];
-			}
-		}
-		return null;
-	}
-
-	private IJavaElement findPointcut(IJavaElement el, String name)
-			throws JavaModelException {
-		IJavaElement element = null;
-		IJavaElement parent = el.getParent();
-		if (parent instanceof AspectElement) {
-			AspectElement aspect = (AspectElement) parent;
-
-			// handle a pointcut in another type
-			if (name.indexOf('.') > 0) {
-				int ind = name.lastIndexOf('.');
-				String typeName = name.substring(0, ind);
-				String pcName = name.substring(ind + 1);
-				String[][] res = aspect.resolveType(typeName);
-				if ((res != null) && (res.length > 0)) {
-					IType type = aspect.getJavaProject().findType(
-							res[0][0] + "." + res[0][1]); //$NON-NLS-1$
-					if (type != null) {
-						IMethod[] methods = type.getMethods();
-						for (int i = 0; i < methods.length; i++) {
-							if (pcName.equals(methods[i].getElementName())) {
-								// make sure the method is really a pointcut
-								if ("Qpointcut;".equals(methods[i] //$NON-NLS-1$
-										.getReturnType())) {
-									return methods[i];
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// see if the pointcut is in the same aspect
-			PointcutElement pc = findPointcutInAspect(aspect, name);
-			if (pc != null) {
-				return pc;
-			}
-
-			// next, see if the pointcut is inherited from an abstract aspect
-			String superName = aspect.getSuperclassName();
-			if ((superName != null) && (superName.length() > 0)) {
-				String[][] res = aspect.resolveType(superName);
-				if ((res != null) && (res.length > 0)) {
-					IType type = aspect.getJavaProject().findType(
-							res[0][0] + "." + res[0][1]); //$NON-NLS-1$
-					ICompilationUnit cu = type.getCompilationUnit();
-					if (cu instanceof AJCompilationUnit) {
-						AJCompilationUnit ajcu = (AJCompilationUnit) cu;
-						IType[] types = ajcu.getTypes();
-						for (int i = 0; i < types.length; i++) {
-							if (types[i].getElementName().equals(superName)) {
-								if (types[i] instanceof AspectElement) {
-									pc = findPointcutInAspect(
-											(AspectElement) types[i], name);
-									if (pc != null) {
-										return pc;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			// the name might refer to a regular class
-			String[][] res = aspect.resolveType(name);
-			if ((res != null) && (res.length > 0)) {
-				IType type = aspect.getJavaProject().findType(
-						res[0][0] + "." + res[0][1]); //$NON-NLS-1$
-				if (type != null) {
-					return type;
-				}
-			}
-		}
-		return element;
-	}
-
-	// end AspectJ change
-
 	/*
 	 * (non-Javadoc) Method declared on SelectionDispatchAction.
 	 */
@@ -249,14 +140,14 @@ public class AJOpenAction extends SelectionDispatchAction {
 						ajcu.requestOriginalContentMode();
 						String source = ajcu.getSource();
 						ajcu.discardOriginalContentMode();
-						sel = findIdentifier(source, selection.getOffset());
+						sel = PointcutUtilities.findIdentifier(source, selection.getOffset());
 					}
 					if ((sel != null) && (sel.length() > 0)) {
 						IJavaElement el = ajcu.getElementAt(selection
 								.getOffset());
 						if ((el instanceof AdviceElement)
 								|| (el instanceof PointcutElement)) {
-							element = findPointcut(el, sel);
+							element = PointcutUtilities.findPointcut(el, sel);
 						}
 					}
 				}
