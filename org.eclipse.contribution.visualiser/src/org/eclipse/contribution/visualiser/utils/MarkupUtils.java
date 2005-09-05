@@ -38,7 +38,7 @@ public class MarkupUtils {
 			if (debug)
 				VisualiserPlugin.log(
 					2,
-					"Stripe processing, iteration: " + (loop + 1));
+					"Stripe processing, iteration: " + (loop + 1)); //$NON-NLS-1$
 			splits = 0;
 			for (int j = 0; j < stripes.size(); j++) {
 				for (int i = 0; i < stripes.size(); i++) {
@@ -48,13 +48,13 @@ public class MarkupUtils {
 						if (debug)
 							VisualiserPlugin.log(
 								2,
-								"Processing " + stripe1 + " and " + stripe2);
+								"Processing " + stripe1 + " and " + stripe2); //$NON-NLS-1$ //$NON-NLS-2$
 						if (stripe2.getOffset() < stripe1.getOffset()
 							|| (stripe2.getOffset() == stripe1.getOffset()
 								&& stripe2.getDepth() < stripe1.getDepth())) {
 							// Changeround
 							if (debug)
-								VisualiserPlugin.log(2, "Stripe change round");
+								VisualiserPlugin.log(2, "Stripe change round"); //$NON-NLS-1$
 							stripe2 = (Stripe) stripes.get(i);
 							stripe1 = (Stripe) stripes.get(j);
 						}
@@ -72,10 +72,10 @@ public class MarkupUtils {
 
 								VisualiserPlugin.log(
 									2,
-									"Stripe split - type 1: stripe2 is entirely within stripe1");
-								VisualiserPlugin.log(2, "Stripe1: " + stripe1);
-								VisualiserPlugin.log(2, "Stripe2: " + stripe2);
-								VisualiserPlugin.log(2, "");
+									"Stripe split - type 1: stripe2 is entirely within stripe1"); //$NON-NLS-1$
+								VisualiserPlugin.log(2, "Stripe1: " + stripe1); //$NON-NLS-1$
+								VisualiserPlugin.log(2, "Stripe2: " + stripe2); //$NON-NLS-1$
+								VisualiserPlugin.log(2, ""); //$NON-NLS-1$
 							}
 							// Stripe1 finishes after Stripe2 starts
 							// Shorten stripe1 and stripe2 and build a stripe3 between them !
@@ -91,9 +91,9 @@ public class MarkupUtils {
 								dep1 - dep2 - (stripe2start - stripe1start));
 							stripe2.setKinds(stripe1.getKinds());
 							if (debug) {
-								VisualiserPlugin.log(2, "Stripe1: " + stripe1);
-								VisualiserPlugin.log(2, "Stripe3: " + stripe3);
-								VisualiserPlugin.log(2, "Stripe2: " + stripe2);
+								VisualiserPlugin.log(2, "Stripe1: " + stripe1); //$NON-NLS-1$
+								VisualiserPlugin.log(2, "Stripe3: " + stripe3); //$NON-NLS-1$
+								VisualiserPlugin.log(2, "Stripe2: " + stripe2); //$NON-NLS-1$
 							}
 							splits++;
 
@@ -106,15 +106,15 @@ public class MarkupUtils {
 
 										VisualiserPlugin.log(
 											2,
-											"Stripe split - type 2: stripe1 finishes after stripe2 starts");
+											"Stripe split - type 2: stripe1 finishes after stripe2 starts"); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe1: " + stripe1);
+											"Stripe1: " + stripe1); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe2: " + stripe2);
+											"Stripe2: " + stripe2); //$NON-NLS-1$
 
-										VisualiserPlugin.log(2, "");
+										VisualiserPlugin.log(2, ""); //$NON-NLS-1$
 									}
 									// Stripe1 finishes after Stripe2 starts
 									// Shorten stripe1 and stripe2 and build a stripe3 between them !
@@ -137,28 +137,28 @@ public class MarkupUtils {
 
 										VisualiserPlugin.log(
 											2,
-											"Stripe1: " + stripe1);
+											"Stripe1: " + stripe1); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe3: " + stripe3);
+											"Stripe3: " + stripe3); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe2: " + stripe2);
+											"Stripe2: " + stripe2); //$NON-NLS-1$
 									}
 								} else {
 									if (debug) {
 
 										VisualiserPlugin.log(
 											2,
-											"Stripe split - type 4: stripe1 and stripe2 start at the same point");
+											"Stripe split - type 4: stripe1 and stripe2 start at the same point"); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe1: " + stripe1);
+											"Stripe1: " + stripe1); //$NON-NLS-1$
 										VisualiserPlugin.log(
 											2,
-											"Stripe2: " + stripe2);
+											"Stripe2: " + stripe2); //$NON-NLS-1$
 
-										VisualiserPlugin.log(2, "");
+										VisualiserPlugin.log(2, ""); //$NON-NLS-1$
 									}
 									if (stripe1end == stripe2end) {
 										stripe2.addKinds(stripe1.getKinds());
@@ -174,25 +174,25 @@ public class MarkupUtils {
 									}
 									VisualiserPlugin.log(
 										2,
-										"NewStripe1: " + stripe1);
+										"NewStripe1: " + stripe1); //$NON-NLS-1$
 									VisualiserPlugin.log(
 										2,
-										"NewStripe2: " + stripe2);
+										"NewStripe2: " + stripe2); //$NON-NLS-1$
 								}
 							} else {
 								if (debug) {
 
 									VisualiserPlugin.log(
 										2,
-										"Stripe split - type 3: stripe2 starts half way down stripe 1 - they both finish at the same point");
+										"Stripe split - type 3: stripe2 starts half way down stripe 1 - they both finish at the same point"); //$NON-NLS-1$
 									VisualiserPlugin.log(
 										2,
-										"Stripe1: " + stripe1);
+										"Stripe1: " + stripe1); //$NON-NLS-1$
 									VisualiserPlugin.log(
 										2,
-										"Stripe2: " + stripe2);
+										"Stripe2: " + stripe2); //$NON-NLS-1$
 
-									VisualiserPlugin.log(2, "");
+									VisualiserPlugin.log(2, ""); //$NON-NLS-1$
 								} 
 
 								// Stripe1 finishes after Stripe2 starts
@@ -204,10 +204,10 @@ public class MarkupUtils {
 
 									VisualiserPlugin.log(
 										2,
-										"Stripe1: " + stripe1);
+										"Stripe1: " + stripe1); //$NON-NLS-1$
 									VisualiserPlugin.log(
 										2,
-										"Stripe2: " + stripe2);
+										"Stripe2: " + stripe2); //$NON-NLS-1$
 								}
 							}
 							splits++;
@@ -217,7 +217,7 @@ public class MarkupUtils {
 				}
 			}
 			if (debug)
-				VisualiserPlugin.log(2, "Splits on this iteration: " + splits);
+				VisualiserPlugin.log(2, "Splits on this iteration: " + splits); //$NON-NLS-1$
 		}
 	}
 }

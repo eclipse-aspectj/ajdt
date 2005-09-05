@@ -497,7 +497,7 @@ public class Visualiser extends ViewPart {
 	private List limitData(List data) {
 		if (data == null)
 			return null;
-		log(3, "In limit processing: Input size: " + data.size());
+		log(3, "In limit processing: Input size: " + data.size()); //$NON-NLS-1$
 		List activeBars = new ArrayList();
 		for (Iterator iter = data.iterator(); iter.hasNext();) {
 			Object element = iter.next();
@@ -513,7 +513,7 @@ public class Visualiser extends ViewPart {
 					activeBars.add(element);
 			}
 		}
-		log(3, "Finished limit processing: Output size: " + activeBars.size());
+		log(3, "Finished limit processing: Output size: " + activeBars.size()); //$NON-NLS-1$
 		return activeBars;
 	}
 

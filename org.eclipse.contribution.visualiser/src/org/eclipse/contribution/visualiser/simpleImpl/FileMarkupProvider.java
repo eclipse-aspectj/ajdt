@@ -108,15 +108,15 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 					addMarkup(membername, newstripe);
 					scount++;
 					
-					if (debugLoading) System.err.println("Loading new stripe: Adding " + newstripe + " for " + membername);
+					if (debugLoading) System.err.println("Loading new stripe: Adding " + newstripe + " for " + membername); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				line = br.readLine();
 			}
 		} catch (FileNotFoundException e) {
-			System.err.println("Problem loading markup data");
+			System.err.println("Problem loading markup data"); //$NON-NLS-1$
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("Problem loading markup data");
+			System.err.println("Problem loading markup data"); //$NON-NLS-1$
 			e.printStackTrace();
 		}		
 		processMarkups();
@@ -134,13 +134,13 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 	 * @return the value after the key (whitespace is the value delimiter)
 	 */
 	private String retrieveKeyValue(String what, String where) {
-		if (debugLoading) System.err.println("looking for '"+what+"' in '"+where+"'");
+		if (debugLoading) System.err.println("looking for '"+what+"' in '"+where+"'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		if (where.indexOf(what)==-1) return null;
 		String postWhat = where.substring(where.indexOf(what)+what.length());
 		String result = postWhat;
-		if (result.indexOf(" ")!=-1) result = postWhat.substring(0,postWhat.indexOf(" "));
+		if (result.indexOf(" ")!=-1) result = postWhat.substring(0,postWhat.indexOf(" ")); //$NON-NLS-1$ //$NON-NLS-2$
 		result = result.replace('_', ' ');
-		if (debugLoading) System.err.println("Returning '"+result+"'");
+		if (debugLoading) System.err.println("Returning '"+result+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 		return result;
 	}
 	

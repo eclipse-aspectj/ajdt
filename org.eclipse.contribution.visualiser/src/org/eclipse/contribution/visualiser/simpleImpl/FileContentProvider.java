@@ -117,9 +117,9 @@ public class FileContentProvider extends SimpleContentProvider {
 				line = br.readLine();
 			}
 		} catch (FileNotFoundException e) {
-			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e);
+			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e); //$NON-NLS-1$
 		} catch (IOException e) {
-			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e);
+			log(IStatus.ERROR,"FileContentProvider failed to load file (FNF)",e); //$NON-NLS-1$
 		}
     }
     
@@ -135,13 +135,13 @@ public class FileContentProvider extends SimpleContentProvider {
 	 * @return the value after the key (whitespace is the value delimiter)
 	 */
 	private static String retrieveKeyValue(String what, String where) {
-		if (debugLoading) System.err.println("looking for '"+what+"' in '"+where+"'");
+		if (debugLoading) System.err.println("looking for '"+what+"' in '"+where+"'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		if (where.indexOf(what)==-1) return null;
 		String postWhat = where.substring(where.indexOf(what)+what.length());
 		String result = postWhat;
-		if (result.indexOf(" ")!=-1) result = postWhat.substring(0,postWhat.indexOf(" "));
+		if (result.indexOf(" ")!=-1) result = postWhat.substring(0,postWhat.indexOf(" ")); //$NON-NLS-1$ //$NON-NLS-2$
 		result = result.replace('_', ' ');
-		if (debugLoading) System.err.println("Returning '"+result+"'");
+		if (debugLoading) System.err.println("Returning '"+result+"'"); //$NON-NLS-1$ //$NON-NLS-2$
 		return result;
 	}
 
