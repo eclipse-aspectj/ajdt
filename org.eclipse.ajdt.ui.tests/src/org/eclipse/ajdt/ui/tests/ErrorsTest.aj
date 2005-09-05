@@ -21,10 +21,13 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.Workbench;
 
+/**
+ * Aspect that causes tests to fail if they add errors to the error log
+ */
 public aspect ErrorsTest {
 	
 	
-	pointcut uiTestRun() : execution(void UITestCase+.test*())
+	pointcut uiTestRun() : execution(public void UITestCase+.test*())
 	 && !this(PluginFFDCTest);
 	
 	void around(): uiTestRun() {
@@ -37,7 +40,7 @@ public aspect ErrorsTest {
 			proceed();
 			logs = logView.getLogs();
 			if(logs.length > numErrors) {
-				TestCase.fail("The test added errors to the log");
+				TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ...");
 			}
 		} catch (PartInitException e) {
 			TestCase.fail("Exception occurred when accessing the log view");
@@ -45,19 +48,5 @@ public aspect ErrorsTest {
 		}
 	}
 	
-//	after() returning: uiTestRun() {
-//		IViewPart view;
-//		try {
-//			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
-//			LogView logView = (LogView)view;
-//			LogEntry[] logs = logView.getLogs();
-//			if(logs.length > numErrors) {
-//				TestCase.fail("The test added errors to the log");
-//			}
-//		} catch (PartInitException e) {
-//			e.printStackTrace();
-//		}
-		
-//	}
 
 }
