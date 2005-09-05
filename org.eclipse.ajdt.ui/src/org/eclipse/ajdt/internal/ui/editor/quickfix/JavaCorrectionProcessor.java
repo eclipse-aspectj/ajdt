@@ -76,9 +76,9 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 			// AspectJ Change Begin
 			// skip jdt's processor, as we have registered our own
 			if (!elements[i]
-					.getAttribute("class")
+					.getAttribute("class") //$NON-NLS-1$
 					.equals(
-							"org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor")) {
+							"org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor")) { //$NON-NLS-1$
 				ContributedProcessorDescriptor desc = new ContributedProcessorDescriptor(
 						elements[i]);
 				IStatus status = desc.checkSyntax();

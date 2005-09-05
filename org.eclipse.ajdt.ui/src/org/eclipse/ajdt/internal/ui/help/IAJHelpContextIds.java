@@ -27,6 +27,6 @@ public interface IAJHelpContextIds {
 	
 	public static final String ASPECTJ_EDITOR= PREFIX + "aspectj_editor_context"; //$NON-NLS-1$
 	public static final String CROSSCUTTING_COMPARISON_VIEW= PREFIX + "crosscutting_comparison_view_context"; //$NON-NLS-1$
-	public static final String EVENT_TRACE_VIEW = PREFIX + "event_trace_view_context";
+	public static final String EVENT_TRACE_VIEW = PREFIX + "event_trace_view_context"; //$NON-NLS-1$
 	
 }

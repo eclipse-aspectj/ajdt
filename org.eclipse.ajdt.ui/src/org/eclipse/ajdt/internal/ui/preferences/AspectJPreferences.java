@@ -65,9 +65,9 @@ public class AspectJPreferences {
 	 */
 	public static final String AJDT_PREF_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.ajdtPrefConfigDone"; //$NON-NLS-1$
 
-	public static final String PERFORM_AUTO_BUILDER_MIGRATION = "org.eclipse.ajdt.ui.preferences.perform.auto.migration";
+	public static final String PERFORM_AUTO_BUILDER_MIGRATION = "org.eclipse.ajdt.ui.preferences.perform.auto.migration"; //$NON-NLS-1$
 
-	public static final String AUTO_BUILDER_MIGRATION_SETTING = "org.eclipse.ajdt.ui.preferences.auto.migration.setting";
+	public static final String AUTO_BUILDER_MIGRATION_SETTING = "org.eclipse.ajdt.ui.preferences.auto.migration.setting"; //$NON-NLS-1$
 
 	public static final String PDE_AUTO_IMPORT_CONFIG_DONE = "org.eclipse.ajdt.ui.preferences.pdeAutoImportConfigDone"; //$NON-NLS-1$
 
@@ -192,13 +192,13 @@ public class AspectJPreferences {
 	public static final String AJDOC_COMMAND = "ajdocCommand"; //$NON-NLS-1$
 
 	// XReference Provider
-	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters";
-	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace";
+	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters"; //$NON-NLS-1$
+	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace"; //$NON-NLS-1$
 	
 	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
 	
 		public static String getFileExt() {
-		return ".aj"; 
+		return ".aj";  //$NON-NLS-1$
 	}
 
 	public static String getLintOptions(IProject thisProject) {
@@ -516,7 +516,7 @@ public class AspectJPreferences {
 			String name = (String) iter.next();
 			sb.append(name);
 			if (iter.hasNext()) {
-				sb.append(",");
+				sb.append(","); //$NON-NLS-1$
 			}
 		}
 		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
@@ -529,7 +529,7 @@ public class AspectJPreferences {
 				.getPreferenceStore();
 		String xRefCheckedFilters = pstore.getString(XREF_CHECKED_FILTERS);
 		List checkedList = new ArrayList();
-		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ",");
+		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
 			checkedList.add(tokenizer.nextElement());
 		}
@@ -542,7 +542,7 @@ public class AspectJPreferences {
 			String name = (String) iter.next();
 			sb.append(name);
 			if (iter.hasNext()) {
-				sb.append(",");
+				sb.append(","); //$NON-NLS-1$
 			}
 		}
 		IPreferenceStore pstoreInplace = AspectJUIPlugin.getDefault()
@@ -556,7 +556,7 @@ public class AspectJPreferences {
 		String xRefCheckedFilters = pstoreInplace
 				.getString(XREF_CHECKED_FILTERS_INPLACE);
 		List checkedList = new ArrayList();
-		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ",");
+		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
 			checkedList.add(tokenizer.nextElement());
 		}

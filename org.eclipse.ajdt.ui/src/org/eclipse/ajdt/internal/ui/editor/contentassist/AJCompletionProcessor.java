@@ -69,7 +69,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 
 			ICompletionProposal[] propsnew = new ICompletionProposal[props.length + 1];
 			System.arraycopy(props, 0, propsnew, 0, props.length);
-			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, UIMessages.codeAssist_limited_title,
+			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, UIMessages.codeAssist_limited_title, //$NON-NLS-1$
 					null, UIMessages.codeAssist_limited_message);
 			props = propsnew;
 		}
@@ -95,7 +95,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		return props;
 	}
 	
-	protected static final String intertypeMemberTag = "ajc$"; 
+	protected static final String intertypeMemberTag = "ajc$";  //$NON-NLS-1$
 	
 	protected boolean shouldBeRemoved(ICompletionProposal proposal){
 		return proposal.getDisplayString().startsWith(intertypeMemberTag);
