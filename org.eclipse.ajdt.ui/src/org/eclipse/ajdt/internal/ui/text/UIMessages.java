@@ -443,6 +443,7 @@ public class UIMessages extends NLS {
 	public static String buildConfigurationChangeAction_job_name;
 	public static String excludeAction_job_name;
 	public static String includeAction_job_name;
+	public static String dynamicBuildConfigurationMenu_job_name;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

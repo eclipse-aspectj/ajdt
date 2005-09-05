@@ -129,7 +129,7 @@ public class MarkerUpdating {
 				}
 			}
 		}
-		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers");
+		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers"); //$NON-NLS-1$
 	}
 		
 
@@ -186,12 +186,12 @@ public class MarkerUpdating {
 	 */
 	private static String getMarkerLabel(AJRelationship relationship) {		
 		return relationship.getRelationship().getDisplayName()
-				+ " "
+				+ " " //$NON-NLS-1$
 				+ AJModel.getInstance().getJavaElementLinkName(
 						relationship.getTarget()) 
 						+ (relationship.hasRuntimeTest() 
-								? " " + UIMessages.AspectJEditor_runtimetest 
-										: "") ;
+								? " " + UIMessages.AspectJEditor_runtimetest  //$NON-NLS-1$
+										: "") ; //$NON-NLS-1$
 	}
 
 	/**
@@ -212,14 +212,14 @@ public class MarkerUpdating {
 							.getAJExtraInformation();
 					if (extraInfo.getExtraAdviceInformation() != null) {
 						if (extraInfo.getExtraAdviceInformation().equals(
-								"before")) {
+								"before")) { //$NON-NLS-1$
 							if (runtimeTest) {
 								return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
 							} else {
 								return IAJModelMarker.BEFORE_ADVICE_MARKER;
 							}
 						} else if (extraInfo.getExtraAdviceInformation()
-								.equals("around")) {
+								.equals("around")) { //$NON-NLS-1$
 							if (runtimeTest) {
 								return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
 							} else {
@@ -248,14 +248,14 @@ public class MarkerUpdating {
 							.getAJExtraInformation();
 					if (extraInfo.getExtraAdviceInformation() != null) {
 						if (extraInfo.getExtraAdviceInformation().equals(
-								"before")) {
+								"before")) { //$NON-NLS-1$
 							if (runtimeTest) {
 								return IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER;
 							} else {
 								return IAJModelMarker.SOURCE_BEFORE_ADVICE_MARKER;
 							}
 						} else if (extraInfo.getExtraAdviceInformation()
-								.equals("around")) {
+								.equals("around")) { //$NON-NLS-1$
 							if (runtimeTest) {
 								return IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER;
 							} else {
