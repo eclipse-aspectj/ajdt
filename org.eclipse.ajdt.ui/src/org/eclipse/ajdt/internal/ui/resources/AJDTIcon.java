@@ -48,7 +48,7 @@ public class AJDTIcon extends AbstractIcon {
 	public AJDTIcon(String localPath) {
 		super( localPath );
 		if ( pluginInstallURL == null ) {
-			pluginInstallURL = AspectJUIPlugin.getDefault().getBundle().getEntry("/");
+			pluginInstallURL = AspectJUIPlugin.getDefault().getBundle().getEntry("/"); //$NON-NLS-1$
 		} 
 		try {
 			URL url = new URL( pluginInstallURL, localPath );
@@ -56,7 +56,7 @@ public class AJDTIcon extends AbstractIcon {
 		} catch ( MalformedURLException malFormedURL ) {
 			this.descriptor = ImageDescriptor.getMissingImageDescriptor();
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
-				"Missing image resource: " + localPath, malFormedURL );	
+				"Missing image resource: " + localPath, malFormedURL );	 //$NON-NLS-1$
 		}
 	}
 	

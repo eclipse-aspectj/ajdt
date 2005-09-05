@@ -16,6 +16,6 @@ public class IdeUIAdapter implements org.aspectj.ajde.ui.IdeUIAdapter {
 
 	public void displayStatusInformation( String message ) {
 		// TO DO! where should this go in Eclipse??
-		System.out.println( "AJDE STATUS MSG: " + message );		
+		System.out.println( "AJDE STATUS MSG: " + message );		 //$NON-NLS-1$
 	}
 }

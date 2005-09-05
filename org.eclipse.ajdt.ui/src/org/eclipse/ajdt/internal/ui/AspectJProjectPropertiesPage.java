@@ -64,25 +64,25 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
         Composite row0Composite = createRowComposite(pageComposite,1);
 		createLabel(
                 row0Composite,
-				AspectJUIPlugin.getResourceString("compilerPropsPage.description"));
+				AspectJUIPlugin.getResourceString("compilerPropsPage.description")); //$NON-NLS-1$
 
 		Composite row3Comp = createRowComposite(pageComposite,2);
 
 		outputJarEditor =
-		  new StringFieldEditor("",
-		    AspectJUIPlugin.getResourceString("compilerPropsPage.outputJar"),
+		  new StringFieldEditor("", //$NON-NLS-1$
+		    AspectJUIPlugin.getResourceString("compilerPropsPage.outputJar"), //$NON-NLS-1$
             row3Comp);
 				
 		nonStandardOptionsEditor =
 			new StringFieldEditor(
-				"",
-				AspectJUIPlugin.getResourceString("compilerPropsPage.nonStandardOptions"),
+				"", //$NON-NLS-1$
+				AspectJUIPlugin.getResourceString("compilerPropsPage.nonStandardOptions"), //$NON-NLS-1$
 				StringFieldEditor.UNLIMITED,
 				pageComposite);
 				
-		createLabel(pageComposite,"");				
+		createLabel(pageComposite,"");				 //$NON-NLS-1$
 
-		createLabel(pageComposite,"");
+		createLabel(pageComposite,""); //$NON-NLS-1$
 
 		updatePageContents();
 		return pageComposite;
@@ -165,7 +165,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	public boolean performOk() {
 		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);		
 		IClasspathEntry oldEntry = null;
-		if(oldOutJar != null && !oldOutJar.equals("")) {
+		if(oldOutJar != null && !oldOutJar.equals("")) { //$NON-NLS-1$
 			oldEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(		
 				IPackageFragmentRoot.K_BINARY, // content kind
 				IClasspathEntry.CPE_LIBRARY, // entry kind
@@ -179,7 +179,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		}
 		String outJar = outputJarEditor.getStringValue();
 		IClasspathEntry newEntry = null;
-		if(outJar != null && !outJar.equals("")) {
+		if(outJar != null && !outJar.equals("")) { //$NON-NLS-1$
 			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(		
 				IPackageFragmentRoot.K_BINARY, // content kind
 				IClasspathEntry.CPE_LIBRARY, // entry kind
@@ -192,7 +192,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 				false); // is exported ?
 		}		
 		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
-		AJLog.log("Compiler properties changed for project: " + thisProject.getName());
+		AJLog.log("Compiler properties changed for project: " + thisProject.getName()); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
@@ -204,9 +204,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 * is clicked. This now behaves like the jdt pages.
 	 */
 	public void performDefaults() {
-		AJLog.log("Compiler properties reset to default for project: " + thisProject.getName());
-		outputJarEditor.setStringValue("");
-		nonStandardOptionsEditor.setStringValue("");
+		AJLog.log("Compiler properties reset to default for project: " + thisProject.getName()); //$NON-NLS-1$
+		outputJarEditor.setStringValue(""); //$NON-NLS-1$
+		nonStandardOptionsEditor.setStringValue(""); //$NON-NLS-1$
 	}
 
 	/**

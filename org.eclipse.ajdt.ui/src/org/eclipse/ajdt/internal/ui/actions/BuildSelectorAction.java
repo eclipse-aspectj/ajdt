@@ -80,7 +80,7 @@ public class BuildSelectorAction implements IWorkbenchWindowActionDelegate {
                     doLocalBuild(pm);
 				} catch ( CoreException cEx ) {
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
-						"Build on select error", cEx );	
+						"Build on select error", cEx );	 //$NON-NLS-1$
 				} catch (Exception e) {
 				}
 			}

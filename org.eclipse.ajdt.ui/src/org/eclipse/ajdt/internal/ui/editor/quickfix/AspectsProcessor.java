@@ -35,7 +35,7 @@ class AspectsProcessor {
 	public static void switchToAJEditorProposal(final IInvocationContext context,
 			IProblemLocation problem, Collection proposals)
 			throws CoreException {
-		String name = CorrectionMessages.getString("QuickFix.OpenInAspectJEditor");
+		String name = CorrectionMessages.getString("QuickFix.OpenInAspectJEditor"); //$NON-NLS-1$
 		final IEditorPart editor = PlatformUI.getWorkbench()
 				.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		ChangeCorrectionProposal proposal = new ChangeCorrectionProposal(name,
@@ -67,7 +67,7 @@ class AspectsProcessor {
 			throws CoreException {
 				final IProject project = context.getCompilationUnit().getJavaProject().getProject();
 		
-		String name = CorrectionMessages.getString("QuickFix.ConvertProjectToAspectJ");
+		String name = CorrectionMessages.getString("QuickFix.ConvertProjectToAspectJ"); //$NON-NLS-1$
 		final IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		ChangeCorrectionProposal proposal = new ChangeCorrectionProposal(name, null, 0, JavaPluginImages.get(JavaPluginImages.IMG_CORRECTION_CHANGE)) {
 			public void apply(IDocument document) {

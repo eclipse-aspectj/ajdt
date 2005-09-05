@@ -90,8 +90,8 @@ public class AJDTConfigSettings {
 	 */
 	static public boolean isAspectJEditorDefault() {
 		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
-		IEditorDescriptor desc = editorRegistry.getDefaultEditor("*.java");
-		return AspectJUIPlugin.getResourceString("ajEditor").equals(desc.getLabel());
+		IEditorDescriptor desc = editorRegistry.getDefaultEditor("*.java"); //$NON-NLS-1$
+		return AspectJUIPlugin.getResourceString("ajEditor").equals(desc.getLabel()); //$NON-NLS-1$
 	}
 	
 	/*
@@ -110,15 +110,15 @@ public class AJDTConfigSettings {
 		EditorRegistry editorRegistry = (EditorRegistry)WorkbenchPlugin.getDefault().getEditorRegistry(); // HACK: cast to allow save to be called
 		IFileEditorMapping[] array = WorkbenchPlugin.getDefault().getEditorRegistry().getFileEditorMappings();
 		editorRegistry.setFileEditorMappings((FileEditorMapping[])array); // HACK: cast to allow set to be called
-		String defaultEditor = editorRegistry.getDefaultEditor("*.java").getId();
+		String defaultEditor = editorRegistry.getDefaultEditor("*.java").getId(); //$NON-NLS-1$
 		if(aspectJ) {
 			if(!(defaultEditor.equals(AspectJEditor.ASPECTJ_EDITOR_ID))) {
-				editorRegistry.setDefaultEditor("*.java", AspectJEditor.ASPECTJ_EDITOR_ID);
+				editorRegistry.setDefaultEditor("*.java", AspectJEditor.ASPECTJ_EDITOR_ID); //$NON-NLS-1$
 				editorRegistry.saveAssociations();
 			}
 		} else {
 			if(!(defaultEditor.equals(JavaUI.ID_CU_EDITOR))) {
-				editorRegistry.setDefaultEditor("*.java", JavaUI.ID_CU_EDITOR);
+				editorRegistry.setDefaultEditor("*.java", JavaUI.ID_CU_EDITOR); //$NON-NLS-1$
 				editorRegistry.saveAssociations();
 			}
 		}	
@@ -131,10 +131,10 @@ public class AJDTConfigSettings {
 	 */
 	static public boolean isAspectJEditorAssociatedWithJavaFiles() {
 		IEditorRegistry editorRegistry = WorkbenchPlugin.getDefault().getEditorRegistry();
-		IEditorDescriptor[] desc = editorRegistry.getEditors("*.java");
+		IEditorDescriptor[] desc = editorRegistry.getEditors("*.java"); //$NON-NLS-1$
 		for (int i = 0; i < desc.length; i++) {
 			IEditorDescriptor descriptor = desc[i];
-			if (descriptor.getLabel().equals(AspectJUIPlugin.getResourceString("ajEditor"))) {
+			if (descriptor.getLabel().equals(AspectJUIPlugin.getResourceString("ajEditor"))) { //$NON-NLS-1$
 				return true;
 			}
 		}

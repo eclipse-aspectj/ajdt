@@ -72,8 +72,8 @@ public class UICoreOperations implements ICoreOperations {
 					outputPath = null;
 				}
 				if (sourceFilesChanged(delta, includedFileNames,outputPath)) {
-					AJLog.log("build: Examined delta - source file changes in "
-							+ "required project " + project.getName() );
+					AJLog.log("build: Examined delta - source file changes in " //$NON-NLS-1$
+							+ "required project " + project.getName() ); //$NON-NLS-1$
 					return true;
 				} else {
 					return false;

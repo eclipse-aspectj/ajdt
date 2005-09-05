@@ -72,7 +72,7 @@ public class BuildEditor extends MultiSourceEditor {
 		IEditorInput in = inputContextManager.getPrimaryContext().getInput();
 		if ((in instanceof IFileEditorInput)) { // && (pbc!=null)) {
 			IFile changedFile = ((IFileEditorInput)in).getFile();
-			AJLog.log("Build configuration file written: " + changedFile.getName());
+			AJLog.log("Build configuration file written: " + changedFile.getName()); //$NON-NLS-1$
 		}
 	}
 	

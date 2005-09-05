@@ -108,7 +108,7 @@ public class MessageDialogWithToggle extends MessageDialog {
         final Button button = new Button(parent, SWT.CHECK | SWT.LEFT);
         String text = toggleMessage;
         if (text == null) {
-            text = AspectJUIPlugin.getResourceString("%dialog.perspSwitchToggleMsg");
+            text = AspectJUIPlugin.getResourceString("%dialog.perspSwitchToggleMsg"); //$NON-NLS-1$
         }
         button.setText(text);
         button.setSelection(toggleState);

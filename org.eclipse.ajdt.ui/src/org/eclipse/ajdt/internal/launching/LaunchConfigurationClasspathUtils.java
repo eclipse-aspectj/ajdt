@@ -128,7 +128,7 @@ public class LaunchConfigurationClasspathUtils {
 				(String) null);
 		IRuntimeClasspathEntry[] aspectEntries = null;
 		IRuntimeClasspathEntry outJar = null;
-		if (projectName != null && !projectName.trim().equals("")) {
+		if (projectName != null && !projectName.trim().equals("")) { //$NON-NLS-1$
 			IProject project = AspectJPlugin.getWorkspace().getRoot()
 					.getProject(projectName);
 			aspectEntries = LaunchConfigurationClasspathUtils
@@ -178,7 +178,7 @@ public class LaunchConfigurationClasspathUtils {
 	 */
 	private static IRuntimeClasspathEntry getOutJar(IProject project) {
 		String outjar = AspectJCorePreferences.getProjectOutJar(project);
-		if(outjar == null || outjar.equals("")) {
+		if(outjar == null || outjar.equals("")) { //$NON-NLS-1$
 			return null;
 		}
 		org.eclipse.jdt.core.IClasspathEntry entry = new org.eclipse.jdt.internal.core.ClasspathEntry(

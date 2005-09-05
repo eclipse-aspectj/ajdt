@@ -36,9 +36,9 @@ public class AspectJImages extends AbstractIconRegistry {
 	private static final org.eclipse.ui.ISharedImages workbenchImages = 
 		AspectJUIPlugin.getDefault().getWorkbench().getSharedImages();
 		
-	private static final URL ajdeIconLocation = Platform.getBundle("org.aspectj.ajde").getEntry("/");
+	private static final URL ajdeIconLocation = Platform.getBundle("org.aspectj.ajde").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 		
-	private static final String AJDE_ICON_PATH_PREFIX = "org/aspectj/ajde/resources/";
+	private static final String AJDE_ICON_PATH_PREFIX = "org/aspectj/ajde/resources/"; //$NON-NLS-1$
 
 	// The following icons are private and should be accessed through the 
 	// getStructureIcon operation:
@@ -77,15 +77,15 @@ public class AspectJImages extends AbstractIconRegistry {
 	private final AbstractIcon WKBENCH_FOLDER = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FOLDER ) );
 	private final AbstractIcon AJDT_ASPECT = new AJDTIcon(
-		"icons/structure/aspect.gif" );
+		"icons/structure/aspect.gif" ); //$NON-NLS-1$
 	
 	// Luzius - added aspect icons with visibility TODO: convert to gif?
 	private final AbstractIcon ASPECT_PRIVATE   = new AJDTIcon(
-		"icons/structure/aspect_pri.png");	
+		"icons/structure/aspect_pri.png");	 //$NON-NLS-1$
 	private final AbstractIcon ASPECT_PROTECTED = new AJDTIcon(
-		"icons/structure/aspect_pro.png");	
+		"icons/structure/aspect_pro.png");	 //$NON-NLS-1$
 	private final AbstractIcon ASPECT_PACKAGE   = new AJDTIcon(
-		"icons/structure/aspect_pac.png");
+		"icons/structure/aspect_pac.png"); //$NON-NLS-1$
 	private final AbstractIcon ASPECT_PUBLIC   = AJDT_ASPECT;
 
 	// These icons are publically available
@@ -98,128 +98,128 @@ public class AspectJImages extends AbstractIconRegistry {
 		
 	// AMC - added gutter annotation icon
 	public static final AJDTIcon E_ANNOTATION = new AJDTIcon(
-				"icons/actions/e_annotation.gif");
+				"icons/actions/e_annotation.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ANNOTATION   = new AJDTIcon(
-				"icons/actions/annotation.gif");
+				"icons/actions/annotation.gif"); //$NON-NLS-1$
 	
 	// MPC - added wizard banner icons
 	public static final AJDTIcon W_NEW_ASPECT = new AJDTIcon(
-				"icons/wizban/newaspect_wiz.gif");
+				"icons/wizban/newaspect_wiz.gif"); //$NON-NLS-1$
 	public static final AJDTIcon W_NEW_AJ_PRJ = new AJDTIcon(
-				"icons/wizban/newajprj_wiz.gif");
+				"icons/wizban/newajprj_wiz.gif"); //$NON-NLS-1$
 	public static final AJDTIcon W_EXPORT_AJDOC = new AJDTIcon(
-				"icons/wizban/export_ajdoc_wiz.gif");
+				"icons/wizban/export_ajdoc_wiz.gif"); //$NON-NLS-1$
 
 	// Sian - added new icons
 	public static final AJDTIcon ADVICE           = new AJDTIcon(
-					"icons/structure/advice.gif");	
+					"icons/structure/advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon BEFORE_ADVICE    = new AJDTIcon(
-					"icons/structure/before_advice.gif");	
+					"icons/structure/before_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon AFTER_ADVICE     = new AJDTIcon(
-					"icons/structure/after_advice.gif");	
+					"icons/structure/after_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon AROUND_ADVICE    = new AJDTIcon(
-					"icons/structure/around_advice.gif");	
+					"icons/structure/around_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon DYNAMIC_BEFORE_ADVICE = new AJDTIcon(
-					"icons/structure/dynamic_before_advice.gif");	
+					"icons/structure/dynamic_before_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon DYNAMIC_AFTER_ADVICE     = new AJDTIcon(
-					"icons/structure/dynamic_after_advice.gif");	
+					"icons/structure/dynamic_after_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon DYNAMIC_AROUND_ADVICE    = new AJDTIcon(
-					"icons/structure/dynamic_around_advice.gif");	
+					"icons/structure/dynamic_around_advice.gif");	 //$NON-NLS-1$
 	public static final AJDTIcon POINTCUT_DEF 	  = new AJDTIcon(
-					"icons/structure/pointcut_def.gif");
+					"icons/structure/pointcut_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon POINTCUT_PUB 	  = new AJDTIcon(
-					"icons/structure/pointcut_pub.gif");
+					"icons/structure/pointcut_pub.gif"); //$NON-NLS-1$
 	public static final AJDTIcon POINTCUT_PRI 	  = new AJDTIcon(
-					"icons/structure/pointcut_pri.gif");
+					"icons/structure/pointcut_pri.gif"); //$NON-NLS-1$
 	public static final AJDTIcon POINTCUT_PRO 	  = new AJDTIcon(
-					"icons/structure/pointcut_pro.gif");
+					"icons/structure/pointcut_pro.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_ERROR 	  = new AJDTIcon(
-					"icons/structure/dec_error.gif");
+					"icons/structure/dec_error.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_WARNING   = new AJDTIcon(
-					"icons/structure/dec_warning.gif");
+					"icons/structure/dec_warning.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_PARENTS   = new AJDTIcon(
-					"icons/structure/dec_parents.gif");
+					"icons/structure/dec_parents.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_PRECEDENCE = new AJDTIcon(
-					"icons/structure/dec_precedence.gif");
+					"icons/structure/dec_precedence.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_SOFT 	  = new AJDTIcon(
-					"icons/structure/dec_soft.gif");
+					"icons/structure/dec_soft.gif"); //$NON-NLS-1$
 	public static final AJDTIcon DECLARE_ANNOTATION = new AJDTIcon(
-					"icons/structure/dec_annotation.gif");
+					"icons/structure/dec_annotation.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD  			  = new AJDTIcon(
-					"icons/structure/itd.gif");
+					"icons/structure/itd.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_METHOD_PUB   = new AJDTIcon(
-					"icons/structure/itdmethod_pub.gif");
+					"icons/structure/itdmethod_pub.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_METHOD_PRI   = new AJDTIcon(
-					"icons/structure/itdmethod_pri.gif");
+					"icons/structure/itdmethod_pri.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_METHOD_DEF   = new AJDTIcon(
-					"icons/structure/itdmethod_def.gif");
+					"icons/structure/itdmethod_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_METHOD_PRO   = new AJDTIcon(
-					"icons/structure/itdmethod_pro.gif");
+					"icons/structure/itdmethod_pro.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_PUB	  = new AJDTIcon(
-					"icons/structure/itdfield_pub.gif");
+					"icons/structure/itdfield_pub.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_DEF 	  = new AJDTIcon(
-					"icons/structure/itdfield_def.gif");
+					"icons/structure/itdfield_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_PRO 	  = new AJDTIcon(
-					"icons/structure/itdfield_pro.gif");
+					"icons/structure/itdfield_pro.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_PRI 	  = new AJDTIcon(
-					"icons/structure/itdfield_pri.gif");
+					"icons/structure/itdfield_pri.gif"); //$NON-NLS-1$
 	public static final AJDTIcon E_ADVICE           = new AJDTIcon(
-					"icons/structure/e_advice.gif");
+					"icons/structure/e_advice.gif"); //$NON-NLS-1$
 	public static final AJDTIcon E_DECLARE_PARENTS  = new AJDTIcon(
-					"icons/structure/e_dec_parents.gif");
+					"icons/structure/e_dec_parents.gif"); //$NON-NLS-1$
 
 	public static final AJDTIcon E_ITD_FIELD_DEF     = new AJDTIcon(
-					"icons/structure/e_itdmethod_def.gif");
+					"icons/structure/e_itdmethod_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon E_POINTCUT_DEF        = new AJDTIcon(
-					"icons/structure/e_joinPoint.gif");
+					"icons/structure/e_joinPoint.gif"); //$NON-NLS-1$
 	public static final AJDTIcon G_ADVICE           = new AJDTIcon(
-					"icons/structure/g_advice.gif");
+					"icons/structure/g_advice.gif"); //$NON-NLS-1$
 	public static final AJDTIcon G_DECLARE_PARENTS  = new AJDTIcon(
-					"icons/structure/g_dec_parentss.gif");
+					"icons/structure/g_dec_parentss.gif"); //$NON-NLS-1$
 	public static final AJDTIcon G_ITD_FIELD_DEF     = new AJDTIcon(
-					"icons/structure/g_itdfield_def.gif");
+					"icons/structure/g_itdfield_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon G_POINTCUT_DEF        = new AJDTIcon(
-					"icons/structure/g_joinPoint.gif");
+					"icons/structure/g_joinPoint.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ADVISES        = new AJDTIcon(
-					"icons/structure/advises.gif");
+					"icons/structure/advises.gif"); //$NON-NLS-1$
 
 	public static final AJDTIcon ADVICE_OVERLAY = new AJDTIcon(
-		"icons/ovr/adviceoverlay.gif");
+		"icons/ovr/adviceoverlay.gif"); //$NON-NLS-1$
 
 	public static final AJDTIcon AJ_CODE = new AJDTIcon(
-		"icons/structure/code.gif");
+		"icons/structure/code.gif"); //$NON-NLS-1$
 	
 	public static final AJDTIcon ASPECTJ_FILE = new AJDTIcon(
-		"icons/structure/ajcu_obj.gif");	
+		"icons/structure/ajcu_obj.gif");	 //$NON-NLS-1$
 
 	
-	public static final AJDTIcon HIDE_ADVICE = new AJDTIcon("icons/actions/hide_advice.gif");
-	public static final AJDTIcon HIDE_ITDS = new AJDTIcon("icons/actions/hide_itds.gif");
-	public static final AJDTIcon HIDE_POINTCUTS = new AJDTIcon("icons/actions/hide_pointcuts.gif");
-	public static final AJDTIcon HIDE_DECLARATIONS = new AJDTIcon("icons/actions/hide_declarations.gif");
-	public static final AJDTIcon HIDE_ERRORS = new AJDTIcon("icons/actions/hide_errors.gif");
-	public static final AJDTIcon HIDE_WARNINGS = new AJDTIcon("icons/actions/hide_warnings.gif");
+	public static final AJDTIcon HIDE_ADVICE = new AJDTIcon("icons/actions/hide_advice.gif"); //$NON-NLS-1$
+	public static final AJDTIcon HIDE_ITDS = new AJDTIcon("icons/actions/hide_itds.gif"); //$NON-NLS-1$
+	public static final AJDTIcon HIDE_POINTCUTS = new AJDTIcon("icons/actions/hide_pointcuts.gif"); //$NON-NLS-1$
+	public static final AJDTIcon HIDE_DECLARATIONS = new AJDTIcon("icons/actions/hide_declarations.gif"); //$NON-NLS-1$
+	public static final AJDTIcon HIDE_ERRORS = new AJDTIcon("icons/actions/hide_errors.gif"); //$NON-NLS-1$
+	public static final AJDTIcon HIDE_WARNINGS = new AJDTIcon("icons/actions/hide_warnings.gif"); //$NON-NLS-1$
 			
 	// TEMPORARY:
 	private final AbstractIcon JDT_PRIVATE_FIELD = new AJDTIcon(
-				"icons/jdt/field_private_obj.gif");
+				"icons/jdt/field_private_obj.gif"); //$NON-NLS-1$
 	private final AbstractIcon JDT_PROTECTED_FIELD = new AJDTIcon(
-				"icons/jdt/field_protected_obj.gif");
+				"icons/jdt/field_protected_obj.gif"); //$NON-NLS-1$
 	private final AbstractIcon JDT_PUBLIC_FIELD = new AJDTIcon(
-				"icons/jdt/field_public_obj.gif");
+				"icons/jdt/field_public_obj.gif"); //$NON-NLS-1$
 	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
-				"icons/jdt/field_default_obj.gif");
+				"icons/jdt/field_default_obj.gif"); //$NON-NLS-1$
 	
 	// Luzius - added build configuration icons
 	public static final AJDTIcon BC_TICK = new AJDTIcon(
-				"icons/buildconfig/tick.gif");
+				"icons/buildconfig/tick.gif"); //$NON-NLS-1$
 	public static final AJDTIcon BC_SELECTED_FILE = new AJDTIcon(
-				"icons/buildconfig/selected_buildconfig_file.gif");
+				"icons/buildconfig/selected_buildconfig_file.gif"); //$NON-NLS-1$
 	public static final AJDTIcon BC_HALF_FILLED_PACKAGE = new AJDTIcon(
-				"icons/buildconfig/halffilledpackage.gif");
+				"icons/buildconfig/halffilledpackage.gif"); //$NON-NLS-1$
 
 	public static final AJDTIcon RESET_COLOURS = new AJDTIcon(
-				"icons/actions/reset_colours.gif");
+				"icons/actions/reset_colours.gif"); //$NON-NLS-1$
 	
 	// icons for crosscutting changes view
 	public static final AJDTIcon CHANGES_ADDED = new AJDTIcon(
@@ -248,12 +248,12 @@ public class AspectJImages extends AbstractIconRegistry {
 		}
 		AJDTIcon retVal = null;
 		try {
-			URL url = new URL( ajdeIconLocation, "icons/" + path );
+			URL url = new URL( ajdeIconLocation, "icons/" + path ); //$NON-NLS-1$
 			retVal = new AJDTIcon( url );
 		} catch ( MalformedURLException malEx ) {
 			retVal = AJDTIcon.MISSING_ICON;
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
-				"Missing image resource: icons/" + path, malEx );
+				"Missing image resource: icons/" + path, malEx ); //$NON-NLS-1$
 			}
 		return retVal;
 	}
@@ -267,7 +267,7 @@ public class AspectJImages extends AbstractIconRegistry {
 		if ( kind == IProgramElement.Kind.CONSTRUCTOR ||
 			 kind == IProgramElement.Kind.METHOD ||
 			 kind == IProgramElement.Kind.FIELD ) {
-			 	String err = "Should use 2-arg version of getStructureIcon for contructors, methods and fields.";
+			 	String err = "Should use 2-arg version of getStructureIcon for contructors, methods and fields."; //$NON-NLS-1$
 			 	System.err.println( err );   
 				throw new RuntimeException( err );			 		
 			 }
@@ -318,13 +318,13 @@ public class AspectJImages extends AbstractIconRegistry {
 	 */
 	public AbstractIcon getAdviceIcon(IProgramElement.ExtraInformation extraInfo, boolean hasDynamicTests) {
 		if (extraInfo.getExtraAdviceInformation()!=null) {				
-				if(extraInfo.getExtraAdviceInformation().equals("before")) {
+				if(extraInfo.getExtraAdviceInformation().equals("before")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
 						return AspectJImages.DYNAMIC_BEFORE_ADVICE;
 					} else {
 						return AspectJImages.BEFORE_ADVICE;
 					}
-				} else if (extraInfo.getExtraAdviceInformation().equals("around")) {
+				} else if (extraInfo.getExtraAdviceInformation().equals("around")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
 						return AspectJImages.DYNAMIC_AROUND_ADVICE;
 					} else {

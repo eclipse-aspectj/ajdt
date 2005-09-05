@@ -123,7 +123,7 @@ public class RenameToJavaAction implements IActionDelegate {
 			try {
 				String line = br.readLine();
 				while (line != null) {
-					line = line.replaceAll(name + ".aj", name + ".java"); //$NON-NLS-1$
+					line = line.replaceAll(name + ".aj", name + ".java"); //$NON-NLS-1$ //$NON-NLS-2$
 					sb.append(line);
 					sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
 					line = br.readLine();

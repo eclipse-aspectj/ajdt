@@ -68,7 +68,7 @@ public class ChangesViewFilterAction extends Action {
 
 	class ShowFilterDialogAction extends Action {
 		ShowFilterDialogAction() {
-			setText(XReferenceUIPlugin.getResourceString("OpenCustomFiltersDialogAction.text"));
+			setText(XReferenceUIPlugin.getResourceString("OpenCustomFiltersDialogAction.text")); //$NON-NLS-1$
 			setImageDescriptor(JavaPluginImages.DESC_ELCL_FILTER);
 			setDisabledImageDescriptor(JavaPluginImages.DESC_DLCL_FILTER);
 		}

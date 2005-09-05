@@ -71,9 +71,9 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 			// AspectJ Change Begin
 			// skip jdt's processor, as we have registered our own
 			if (!elements[i]
-					.getAttribute("class")
+					.getAttribute("class") //$NON-NLS-1$
 					.equals(
-							"org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor")) {
+							"org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor")) { //$NON-NLS-1$
 				ContributedProcessorDescriptor desc = new ContributedProcessorDescriptor(
 						elements[i]);
 				IStatus status = desc.checkSyntax();
@@ -187,7 +187,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 			processAnnotations(context, model, proposals);
 		}
 		if (proposals.isEmpty()) {
-			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.getString("NoCorrectionProposal.description"), null, 0, null));
+			proposals.add(new ChangeCorrectionProposal(CorrectionMessages.getString("NoCorrectionProposal.description"), null, 0, null)); //$NON-NLS-1$
 		}
 		
 		ICompletionProposal[] res= (ICompletionProposal[]) proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -255,7 +255,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}
 				}
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message");
+				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message"); //$NON-NLS-1$
 			}
 		}
 	}
@@ -274,7 +274,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					}				
 				}				
 			} catch (Exception e) {
-				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message");
+				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickassist.message"); //$NON-NLS-1$
 			}
 		}
 	}	

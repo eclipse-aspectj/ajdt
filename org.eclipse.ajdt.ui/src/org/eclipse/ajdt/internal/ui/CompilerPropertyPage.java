@@ -59,8 +59,8 @@ import org.osgi.service.prefs.BackingStoreException;
 public class CompilerPropertyPage extends PropertyPage {
 
 	// bug 90174 - leave these as strings to keep the code simple
-	private static final String VALUE_TRUE = "true";
-	private static final String VALUE_FALSE = "false";
+	private static final String VALUE_TRUE = "true"; //$NON-NLS-1$
+	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
 	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton;  
 	
@@ -662,7 +662,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		walkThroughKeys: for (int i = 0; i < keys.length; i++) {
 			String key = keys[i];
 			String storeValue = AspectJPreferences.getStringPrefValue(thisProject, key);
-			if (!storeValue.equals("")) {
+			if (!storeValue.equals("")) { //$NON-NLS-1$
 				// bug 87128 - why checking against "true/false"
 				if (!storeValue.equals(VALUE_TRUE) && !storeValue.equals(VALUE_FALSE)) {
 					// this is a combo box
@@ -765,7 +765,7 @@ public class CompilerPropertyPage extends PropertyPage {
 			String[] values, int indent, boolean fillGridVertically) {
 		ControlData data = new ControlData(key, values);
 
-		int idx = label.indexOf("-");
+		int idx = label.indexOf("-"); //$NON-NLS-1$
 		String optionname = label.substring(0,idx);
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
@@ -790,7 +790,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		
 		String currValue = AspectJPreferences.getStringPrefValue(thisProject,key);
 		// bug 87128
-		if (currValue.equals("")) {  //$NON-NLS-2$
+		if (currValue.equals("")) {  //$NON-NLS-2$ //$NON-NLS-1$
 			currValue = (String)defaultValueMap.get(key);
 		} else if (currValue.equals(AspectJPreferences.VALUE_ENABLED)) {
 			// this case deals with backwards compatibility
@@ -822,7 +822,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		placeHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		String currValue = AspectJPreferences.getStringPrefValue(thisProject, key);
-		if (currValue.equals("")) {
+		if (currValue.equals("")) { //$NON-NLS-1$
 			currValue = (String)defaultValueMap.get(key);
 		}
 		if (currValue.length() > 0) {

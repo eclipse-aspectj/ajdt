@@ -43,7 +43,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						Shell shell = iww.getShell();
 						MessageDialog.openWarning(
 							shell,
-							AspectJUIPlugin.getResourceString("ajWarningDialogTitle"),
+							AspectJUIPlugin.getResourceString("ajWarningDialogTitle"), //$NON-NLS-1$
 							message);
 					}
 				} catch (Exception t) {
@@ -65,7 +65,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						Shell shell = iww.getShell();
 						MessageDialog.openError(
 							shell,
-							AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+							AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
 							message);
 					}
 				} catch (Exception t) {
@@ -78,7 +78,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	 * Display an error dialog with exception
 	 */
 	public void handleError(String message, Throwable t) {
-		handleError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
+		handleError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
 				message, t);
 	}
 	

@@ -69,8 +69,8 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 
 			ICompletionProposal[] propsnew = new ICompletionProposal[props.length + 1];
 			System.arraycopy(props, 0, propsnew, 0, props.length);
-			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, AspectJUIPlugin.getResourceString("codeAssist.limited.title"),
-					null, AspectJUIPlugin.getResourceString("codeAssist.limited.message"));
+			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, AspectJUIPlugin.getResourceString("codeAssist.limited.title"), //$NON-NLS-1$ //$NON-NLS-2$
+					null, AspectJUIPlugin.getResourceString("codeAssist.limited.message")); //$NON-NLS-1$
 			props = propsnew;
 		}
 		return filterAjcElements(props);
@@ -95,7 +95,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		return props;
 	}
 	
-	protected static final String intertypeMemberTag = "ajc$"; 
+	protected static final String intertypeMemberTag = "ajc$";  //$NON-NLS-1$
 	
 	protected boolean shouldBeRemoved(ICompletionProposal proposal){
 		return proposal.getDisplayString().startsWith(intertypeMemberTag);

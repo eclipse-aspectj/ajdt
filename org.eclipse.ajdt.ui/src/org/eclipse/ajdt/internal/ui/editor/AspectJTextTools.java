@@ -30,7 +30,7 @@ public class AspectJTextTools extends JavaTextTools {
 	 */
 	public AspectJTextTools(IPreferenceStore ips) {
 		super(ips);
-		AJLog.log("Building AJ code scanner");
+		AJLog.log("Building AJ code scanner"); //$NON-NLS-1$
 		aspectjCodeScanner = new AspectJCodeScanner(getColorManager(), ips);
 	} 
 	

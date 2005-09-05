@@ -161,7 +161,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 					monitor
 							.beginTask(
 									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
+											.getResourceString("Refactoring.ConvertingFileExtensions"), //$NON-NLS-1$
 									packages.length + (10 * numBuildConfigs));
 					// map of old to new names - needed to update build config
 					// files.
@@ -246,7 +246,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 					monitor
 							.beginTask(
 									AspectJUIPlugin
-											.getResourceString("Refactoring.ConvertingFileExtensions"),
+											.getResourceString("Refactoring.ConvertingFileExtensions"), //$NON-NLS-1$
 									packages.length + (10 * numBuildConfigs));
 
 					// Map of old to new names - needed to update build config
