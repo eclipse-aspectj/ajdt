@@ -38,7 +38,7 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 
 	protected Job getJob(final BuildConfiguration bc,
 			final List fileList) {
-		return new Job("BuildConfiguration exclude action") {
+		return new Job(UIMessages.excludeAction_job_name) {
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
 					bc.excludeFiles(fileList);

@@ -42,7 +42,7 @@ public class IncludeAction extends BuildConfigurationChangeAction {
 
 	protected Job getJob(final BuildConfiguration bc,
 			final List fileList) {
-		return new Job("BuildConfiguration include action") {
+		return new Job(UIMessages.includeAction_job_name) {
 			protected IStatus run(IProgressMonitor monitor) {
 				bc.includeFiles(fileList);
 				return Status.OK_STATUS;

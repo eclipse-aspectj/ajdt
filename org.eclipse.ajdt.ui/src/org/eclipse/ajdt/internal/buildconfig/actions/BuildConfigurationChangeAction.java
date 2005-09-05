@@ -19,6 +19,7 @@ import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -120,7 +121,7 @@ public abstract class BuildConfigurationChangeAction implements
 	public void buildConfigurationChanged(final ProjectBuildConfigurator pbc) {
 		if (pbc != null) {
 			myAction.setEnabled(true);
-			Job job = new Job("BuildConfiguration change action") {
+			Job job = new Job(UIMessages.buildConfigurationChangeAction_job_name) {
 				protected IStatus run(IProgressMonitor monitor) {
 					BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 					myAction.setText(actionText.replaceAll("%bcname", bc //$NON-NLS-1$

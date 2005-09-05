@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -46,7 +47,7 @@ public class UpdateJob extends Job {
 	 *  
 	 */
 	public UpdateJob(BuildConfigurator myBCor, int type, IResource myRes) {
-		super("Build configuration update");
+		super(UIMessages.UpdateJob_name);
 		setRule(myRes.getProject());
 		setSystem(true);
 		setPriority(Job.SHORT);
@@ -57,7 +58,7 @@ public class UpdateJob extends Job {
 
 	public UpdateJob(BuildConfigurator myBCor, int type, IResource myRes,
 			IResource myRes2) {
-		super("Build configuration update");
+		super(UIMessages.UpdateJob_name);
 		setRule(myRes.getProject());
 		setSystem(true);
 		setPriority(Job.SHORT);
