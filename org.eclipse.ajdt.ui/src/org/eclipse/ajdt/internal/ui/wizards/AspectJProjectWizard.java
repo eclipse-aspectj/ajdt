@@ -131,7 +131,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 				dialog.run(true, true, new IRunnableWithProgress() {
 					public void run(IProgressMonitor monitor)
 							throws InvocationTargetException {
-						monitor.beginTask("", 2);
+						monitor.beginTask("", 2); //$NON-NLS-1$
 						try {
 							monitor
 									.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
@@ -160,7 +160,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		project = thisProject;
 		AspectJPlugin.getDefault().setCurrentProject( project );
 		selectAndReveal(project);
-		AJLog.log("New project created: " + project.getName());
+		AJLog.log("New project created: " + project.getName()); //$NON-NLS-1$
 		return true;
 	}
 

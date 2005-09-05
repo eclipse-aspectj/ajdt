@@ -25,6 +25,7 @@ import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -103,7 +104,7 @@ public class PulldownBuildselectorMenu implements
 			// There are no AspectJ projects, so make a special
 			// menu to inform the user.
 			MenuItem defaultLstItem = new MenuItem(m, SWT.CHECK);
-			defaultLstItem.setText("No open AspectJ project selected"); //ASCFIXME-toNLS
+			defaultLstItem.setText(UIMessages.PulldownBuildselectorMenu_no_open_ajproject);
 			defaultLstItem.setData(null);
 			return m;
 		}
@@ -208,12 +209,12 @@ public class PulldownBuildselectorMenu implements
 				} catch (CoreException cEx) {
 
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-							"Build pulldown error", cEx);
+							"Build pulldown error", cEx); //$NON-NLS-1$
 				} catch (NullPointerException npe) {
-					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:"
+					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:" //$NON-NLS-1$
 									+ npe);
 				} catch (OperationCanceledException e) {
-					AJLog.log("Build was cancelled.");
+					AJLog.log("Build was cancelled."); //$NON-NLS-1$
 				}
 			}
 		};
@@ -223,10 +224,10 @@ public class PulldownBuildselectorMenu implements
 
 		} catch (InvocationTargetException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e);
+					"Auto build on select failed", e); //$NON-NLS-1$
 		} catch (InterruptedException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e);
+					"Auto build on select failed", e); //$NON-NLS-1$
 
 		}
 	}

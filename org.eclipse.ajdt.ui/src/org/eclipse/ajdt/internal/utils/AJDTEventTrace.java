@@ -66,20 +66,20 @@ public class AJDTEventTrace {
 	 */
 	public static void startup( ) { 
 		StringBuffer eventData = new StringBuffer( );
-		eventData.append( "\tAJDT version: " );
+		eventData.append( "\tAJDT version: " ); //$NON-NLS-1$
 		eventData.append( AspectJUIPlugin.VERSION );
-		eventData.append( " for Eclipse " );
-		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION);
+		eventData.append( " for Eclipse " ); //$NON-NLS-1$
+		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION); //$NON-NLS-1$
 		
-		eventData.append( "\n\tAspectJ Compiler version: " );
+		eventData.append( "\n\tAspectJ Compiler version: " ); //$NON-NLS-1$
 		eventData.append( Ajde.getDefault().getVersion() );
 		
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();
 		for ( int i = 0; i < props.length; i++ ) {
-			eventData.append( "\n\t" );
+			eventData.append( "\n\t" ); //$NON-NLS-1$
 			eventData.append( props[i] );
-			eventData.append( " = " );
+			eventData.append( " = " ); //$NON-NLS-1$
 			eventData.append( store.getString( props[i] ) );
 		}
 	
@@ -212,92 +212,92 @@ public class AJDTEventTrace {
 		public String toString( ) {
 			StringBuffer buff = new StringBuffer( );
 			buff.append( DateFormat.getTimeInstance().format( time ) );
-			buff.append( "\t " );
+			buff.append( "\t " ); //$NON-NLS-1$
 			switch( eventCode ) {
 				case EVT_STARTUP:
-					buff.append( "AJDT Plugin Startup\n" );
+					buff.append( "AJDT Plugin Startup\n" ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_EDITOR_OPEN:
-					buff.append( "Editor opened on " );
+					buff.append( "Editor opened on " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_EDITOR_CLOSE:
-					buff.append( "Editor closed - " );
+					buff.append( "Editor closed - " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_CONFIG_SELECT:
-					buff.append( "Configuration file " );
+					buff.append( "Configuration file " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
-					buff.append( " selected for " );
+					buff.append( " selected for " ); //$NON-NLS-1$
 					buff.append( eventData[1] );
 					break;
 				case EVT_STRUCTURE_VIEW:
-					buff.append( "Structure view requested for " );
+					buff.append( "Structure view requested for " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_MODEL_UPDATED:
-					buff.append( "Model update notification for " );
+					buff.append( "Model update notification for " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_BUILD:
-					buff.append( "Building " );
+					buff.append( "Building " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
-					buff.append( " with config " );
+					buff.append( " with config " ); //$NON-NLS-1$
 					buff.append( eventData[1] );
-					buff.append( ".\n\t\t CLASSPATH=" );
+					buff.append( ".\n\t\t CLASSPATH=" ); //$NON-NLS-1$
 					buff.append( eventData[2] );
 					break; 		
 				case EVT_VIEW_ACTION:
-					buff.append( "Outline view action triggered: " );
+					buff.append( "Outline view action triggered: " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
-					buff.append( " for " );
+					buff.append( " for " ); //$NON-NLS-1$
 					buff.append( eventData[1] );
 					break;
 				case EVT_NEW_PROJECT:
-					buff.append( "New project created: " );
+					buff.append( "New project created: " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_NEW_CONFIG:
-					buff.append( "New config file created: " );
+					buff.append( "New config file created: " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;
 				case EVT_NEW_ASPECT:
-					buff.append( "New aspect file created: " );
+					buff.append( "New aspect file created: " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
 					break;	
 				case EVT_NODE_CLICK:
-					buff.append( "Tree node selected: " );
+					buff.append( "Tree node selected: " ); //$NON-NLS-1$
 					buff.append( eventData[0] );
-					buff.append( ". Navigation target: " );
+					buff.append( ". Navigation target: " ); //$NON-NLS-1$
 					if ( eventData[1] != null ) {
 						IMarker marker = (IMarker) eventData[1];
 						buff.append( marker.getResource().getName( ) );
-						buff.append( " line " );
+						buff.append( " line " ); //$NON-NLS-1$
 						try {
 							Integer lineNo = (Integer) marker.getAttribute( IMarker.LINE_NUMBER );
 							buff.append( lineNo.intValue() );
 						} catch ( Exception ex ) {
-							buff.append( "ERR" );	
+							buff.append( "ERR" );	 //$NON-NLS-1$
 						}
 					} else {
-						buff.append( "<None>" );
+						buff.append( "<None>" ); //$NON-NLS-1$
 					}
 					break;
 				case EVT_PROJ_PROPS_CHANGED:
-				    buff.append( "Compiler properties changed for project: " );
+				    buff.append( "Compiler properties changed for project: " ); //$NON-NLS-1$
 				    buff.append(eventData[0]);
 				    break;	
 				case EVT_PROJ_PROPS_DEFAULTED:
-				    buff.append( "Compiler properties reset to default for project: " );
+				    buff.append( "Compiler properties reset to default for project: " ); //$NON-NLS-1$
 				    buff.append(eventData[0]);
 				    break;
 				case EVT_BUILD_CONFIG_READ:
-				    buff.append( "Build configuration file read: " );
+				    buff.append( "Build configuration file read: " ); //$NON-NLS-1$
 				    buff.append(eventData[0]);
 				    break;
 				case EVT_BUILD_CONFIG_WRITE:
-				    buff.append( "Build configuration file written: " );
+				    buff.append( "Build configuration file written: " ); //$NON-NLS-1$
 				    buff.append(eventData[0]);
 				    break;
 				case EVT_GENERAL:

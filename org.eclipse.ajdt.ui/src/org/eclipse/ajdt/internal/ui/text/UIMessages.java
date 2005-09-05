@@ -444,6 +444,7 @@ public class UIMessages extends NLS {
 	public static String excludeAction_job_name;
 	public static String includeAction_job_name;
 	public static String dynamicBuildConfigurationMenu_job_name;
+	public static String PulldownBuildselectorMenu_no_open_ajproject;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

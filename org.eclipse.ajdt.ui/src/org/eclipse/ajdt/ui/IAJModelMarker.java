@@ -17,27 +17,27 @@ public interface IAJModelMarker {
 //	AJDT Markers as defined in plugin.xml
 	
 	// supertypes
-	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker";
-	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker";
+	public static final String ADVICE_MARKER = "org.eclipse.ajdt.ui.advicemarker"; //$NON-NLS-1$
+	public static final String DECLARATION_MARKER = "org.eclipse.ajdt.ui.declarationmarker"; //$NON-NLS-1$
 	
 	// concrete marker types
-	public static final String AJDT_PROBLEM_MARKER = "org.eclipse.ajdt.ui.problemmarker";
-	public static final String ITD_MARKER = "org.eclipse.ajdt.ui.itdmarker";
-	public static final String AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.afteradvicemarker";
-	public static final String DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicafteradvicemarker";
-	public static final String AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.aroundadvicemarker";
-	public static final String DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicaroundadvicemarker";
-	public static final String BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.beforeadvicemarker";
-	public static final String DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicbeforeadvicemarker";
-	public static final String DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicadvicemarker";
-	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker";
-	public static final String SOURCE_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcebeforeadvicemarker";
-	public static final String SOURCE_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceafteradvicemarker";
-	public static final String SOURCE_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcearoundadvicemarker";
-	public static final String SOURCE_ITD_MARKER = "org.eclipse.ajdt.ui.sourceitdmarker";
-	public static final String SOURCE_DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicadvicemarker";
-	public static final String SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicbeforeadvicemarker";
-	public static final String SOURCE_DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker";
-	public static final String SOURCE_DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker";
-	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker";
-	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker";}
+	public static final String AJDT_PROBLEM_MARKER = "org.eclipse.ajdt.ui.problemmarker"; //$NON-NLS-1$
+	public static final String ITD_MARKER = "org.eclipse.ajdt.ui.itdmarker"; //$NON-NLS-1$
+	public static final String AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.afteradvicemarker"; //$NON-NLS-1$
+	public static final String DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicafteradvicemarker"; //$NON-NLS-1$
+	public static final String AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.aroundadvicemarker"; //$NON-NLS-1$
+	public static final String DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicaroundadvicemarker"; //$NON-NLS-1$
+	public static final String BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.beforeadvicemarker"; //$NON-NLS-1$
+	public static final String DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicbeforeadvicemarker"; //$NON-NLS-1$
+	public static final String DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.dynamicadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcebeforeadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourceafteradvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcearoundadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_ITD_MARKER = "org.eclipse.ajdt.ui.sourceitdmarker"; //$NON-NLS-1$
+	public static final String SOURCE_DYNAMIC_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicbeforeadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker"; //$NON-NLS-1$
+	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker"; //$NON-NLS-1$
+	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker";} //$NON-NLS-1$
