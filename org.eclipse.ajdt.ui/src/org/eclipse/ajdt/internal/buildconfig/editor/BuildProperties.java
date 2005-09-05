@@ -192,7 +192,7 @@ public class BuildProperties {
 	private void initBuild(boolean forceInit) {
 		if (build == null || forceInit) {
 			BuildEditor be = new BuildEditor();
-			AJLog.log("Build configuration file read: " + myPropertiesFile.getName());
+			AJLog.log("Build configuration file read: " + myPropertiesFile.getName()); //$NON-NLS-1$
 			be.monitoredFileAdded(myPropertiesFile);
 			IBaseModel ibm = be.getContextManager().findContext(
 					myPropertiesFile).getModel();
@@ -276,7 +276,7 @@ public class BuildProperties {
 	}
 
 	public void writeFile() {
-		AJLog.log("Build configuration file written: " + myPropertiesFile.getName());
+		AJLog.log("Build configuration file written: " + myPropertiesFile.getName()); //$NON-NLS-1$
 		IBuildEntry[] entries = build.getBuildEntries();
 		final StringBuffer buff = new StringBuffer();
 		for (int i = 0; i < entries.length; i++) {
@@ -300,7 +300,7 @@ public class BuildProperties {
 			} catch (CoreException e) {
 			}
 		} else {
-			AJLog.log("BuildProperties: resource tree locked");
+			AJLog.log("BuildProperties: resource tree locked"); //$NON-NLS-1$
 		}
 	}
 

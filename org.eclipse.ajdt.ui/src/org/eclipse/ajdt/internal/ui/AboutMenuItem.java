@@ -67,8 +67,8 @@ public class AboutMenuItem
 				MessageDialog.openInformation(
 							shell,
 							UIMessages.ajAboutDialog,
-							"AJDT version: " + ajdtVersion + 
-							"\nAJDE version: " + ajdeVersion );
+							"AJDT version: " + ajdtVersion +  //$NON-NLS-1$
+							"\nAJDE version: " + ajdeVersion ); //$NON-NLS-1$
 		}
 	}
 

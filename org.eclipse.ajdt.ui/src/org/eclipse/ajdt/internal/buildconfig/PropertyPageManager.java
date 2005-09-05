@@ -65,10 +65,10 @@ public class PropertyPageManager {
 			}
 			
 			if (afterCount != (beforeCount - 2)) {
-				AJLog.log("Failed to unregister Java Build Path property pages");
+				AJLog.log("Failed to unregister Java Build Path property pages"); //$NON-NLS-1$
 			}
 			else {
-				AJLog.log("Successfully unregistered Java Build Path property pages");
+				AJLog.log("Successfully unregistered Java Build Path property pages"); //$NON-NLS-1$
 			}
 			
 			jdtPropertyPageActive = false;

@@ -61,7 +61,7 @@ public class BuildConfiguration implements Cloneable,
 	public static final String STANDARD_BUILD_CONFIGURATION_NAME = UIMessages.buildConfig_standardFileName;
 
 	public static final String STANDARD_BUILD_CONFIGURATION_FILE = STANDARD_BUILD_CONFIGURATION_NAME
-		+ "." + EXTENSION;
+		+ "." + EXTENSION; //$NON-NLS-1$
 
 	//because we are using jdts classpath file reader/writer, we cannot
 	//define new entry kinds and have to recycle one we are not using
@@ -322,7 +322,7 @@ public class BuildConfiguration implements Cloneable,
 					IFile file = files[i];
 					if (file.getName().equals(input)
 							|| file.getName()  //$NON-NLS-1$
-									.equals(input + "." + BuildConfiguration.EXTENSION)) {
+									.equals(input + "." + BuildConfiguration.EXTENSION)) { //$NON-NLS-1$
 						return UIMessages.BCDialog_NameValidator_ExistsError;
 					}
 				}

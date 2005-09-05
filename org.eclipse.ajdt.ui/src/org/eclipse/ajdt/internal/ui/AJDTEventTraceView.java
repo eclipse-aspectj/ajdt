@@ -82,7 +82,7 @@ public class AJDTEventTraceView extends ViewPart
 	 */
 	public void ajdtEvent(Event e) {
 		text.append( e.toString() );
-		text.append( "\n" );
+		text.append( "\n" ); //$NON-NLS-1$
 	}
 
 	// Implementing feature 99129

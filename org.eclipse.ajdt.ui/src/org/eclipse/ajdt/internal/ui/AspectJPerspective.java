@@ -35,12 +35,12 @@ public class AspectJPerspective implements IPerspectiveFactory {
 
     // Place the Java Package View on the left
     IFolderLayout folder =
-      layout.createFolder("left", IPageLayout.LEFT, (float) 0.25, editorArea);
+      layout.createFolder("left", IPageLayout.LEFT, (float) 0.25, editorArea); //$NON-NLS-1$
     folder.addView(JavaUI.ID_PACKAGES);
  
     // Place the Task View at the bottom
     IFolderLayout outputfolder =
-      layout.createFolder("bottom", IPageLayout.BOTTOM, (float) 0.75, editorArea);
+      layout.createFolder("bottom", IPageLayout.BOTTOM, (float) 0.75, editorArea); //$NON-NLS-1$
     outputfolder.addView(IPageLayout.ID_TASK_LIST);
 
   }

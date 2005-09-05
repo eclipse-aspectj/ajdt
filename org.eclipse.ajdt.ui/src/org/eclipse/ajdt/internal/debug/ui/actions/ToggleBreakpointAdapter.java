@@ -91,7 +91,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 						if (javaElem instanceof IPackageFragment)
 							qualifiedName = javaElem.getElementName() + '.';
 						else
-							qualifiedName = "";
+							qualifiedName = ""; //$NON-NLS-1$
 						
 						
 					} else {
@@ -117,12 +117,12 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 						}
 						
 						qualifiedName = elem.getPackageName();
-						if (!"".equals(qualifiedName))
+						if (!"".equals(qualifiedName)) //$NON-NLS-1$
 							qualifiedName += '.';
 					}
 					qualifiedName += res.getName().substring(0, res.getName().lastIndexOf('.'));
 					
-					AJLog.log("creating breakpoint in " + qualifiedName);
+					AJLog.log("creating breakpoint in " + qualifiedName); //$NON-NLS-1$
 					JDIDebugModel.createLineBreakpoint(getResource(editor),
 							qualifiedName, lineNumber, -1, -1, 0, true,
 							new HashMap(10));
