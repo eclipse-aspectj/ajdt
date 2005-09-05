@@ -59,7 +59,7 @@ public class AJDTStructureViewNodeAdapter implements IWorkbenchAdapter {
 	 * @see IWorkbenchAdapter#getLabel(Object)
 	 */
 	public String getLabel(Object o) {
-		String label = "<>";
+		String label = "<>"; //$NON-NLS-1$
 		if ( o instanceof AJDTStructureViewNode ) {
 			AJDTStructureViewNode node = (AJDTStructureViewNode) o;	
 			label = node.getLabel();

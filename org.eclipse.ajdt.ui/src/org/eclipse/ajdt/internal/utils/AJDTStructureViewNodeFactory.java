@@ -91,13 +91,13 @@ public class AJDTStructureViewNodeFactory extends StructureViewNodeFactory {
 	private AbstractIcon changeIconIfAdviceNode(IProgramElement node, AbstractIcon defaultIcon, boolean hasDynamicTests) {
 		if(node.getKind() == IProgramElement.Kind.ADVICE) {
 			if (node.getExtraInfo()!=null && node.getExtraInfo().getExtraAdviceInformation()!=null) {				
-				if(node.getExtraInfo().getExtraAdviceInformation().equals("before")) {
+				if(node.getExtraInfo().getExtraAdviceInformation().equals("before")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
 						defaultIcon = AspectJImages.DYNAMIC_BEFORE_ADVICE;
 					} else {
 						defaultIcon = AspectJImages.BEFORE_ADVICE;
 					}
-				} else if (node.getExtraInfo().getExtraAdviceInformation().equals("around")) {
+				} else if (node.getExtraInfo().getExtraAdviceInformation().equals("around")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
 						defaultIcon = AspectJImages.DYNAMIC_AROUND_ADVICE;
 					} else {
