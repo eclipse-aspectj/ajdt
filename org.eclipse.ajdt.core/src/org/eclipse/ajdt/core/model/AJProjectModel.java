@@ -140,9 +140,9 @@ public class AJProjectModel {
 		}
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel(null);
-		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName());
+		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 		if (!worked && getPersistence().isPersisted()) {
-			AJLog.log("Loading model failed for project: "+project.getName());
+			AJLog.log("Loading model failed for project: "+project.getName()); //$NON-NLS-1$
 		}
 		return;
 	}
@@ -150,9 +150,9 @@ public class AJProjectModel {
 	public void loadModel(IPath file) {
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel(file);
-		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName());
+		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 		if (!worked) {
-			AJLog.log("Loading model failed for file: "+file);
+			AJLog.log("Loading model failed for file: "+file); //$NON-NLS-1$
 		}
 	}
 	
@@ -285,7 +285,7 @@ public class AJProjectModel {
 		} catch (CoreException coreEx) {
 		}
 		processRelationships();
-		AJLog.logEnd(TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName());
+		AJLog.logEnd(TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 
 		// dumpModel();
 	}
@@ -467,7 +467,7 @@ public class AJProjectModel {
 
 	// for debugging...
 	private void dumpModel() {
-		System.out.println("AJDT model for project: " + project.getName());
+		System.out.println("AJDT model for project: " + project.getName()); //$NON-NLS-1$
 		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
 			String kind = (String) iter.next();
 			AJRelationshipType rel = (AJRelationshipType) kindMap.get(kind);
@@ -481,20 +481,20 @@ public class AJProjectModel {
 						for (Iterator iter3 = related.iterator(); iter3
 								.hasNext();) {
 							IJavaElement el = (IJavaElement) iter3.next();
-							System.out.println("    "
-									+ getJavaElementLinkName(je) + " --" + kind
-									+ "-> " + getJavaElementLinkName(el));
-							System.out.println("    " + je.hashCode() + " --"
-									+ kind + "-> " + el.hashCode());
-							System.out.println("    "
-									+ je.getHandleIdentifier() + " --" + kind
-									+ "-> " + el.getHandleIdentifier());
+							System.out.println("    " //$NON-NLS-1$
+									+ getJavaElementLinkName(je) + " --" + kind //$NON-NLS-1$
+									+ "-> " + getJavaElementLinkName(el)); //$NON-NLS-1$
+							System.out.println("    " + je.hashCode() + " --" //$NON-NLS-1$ //$NON-NLS-2$
+									+ kind + "-> " + el.hashCode()); //$NON-NLS-1$
+							System.out.println("    " //$NON-NLS-1$
+									+ je.getHandleIdentifier() + " --" + kind //$NON-NLS-1$
+									+ "-> " + el.getHandleIdentifier()); //$NON-NLS-1$
 						}
 					}
 				}
 			}
 		}
-		System.out.println("End of model");
+		System.out.println("End of model"); //$NON-NLS-1$
 	}
 
 	private class Persistence {

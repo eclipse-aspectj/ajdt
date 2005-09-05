@@ -74,7 +74,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		public void buildSuccessful(boolean arg0) {
-			AJLog.log("AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL"));
+			AJLog.log("AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}};
 	  AjState.stateListener = isl;
 	}
@@ -133,8 +133,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			kindS = "FULLBUILD";  //$NON-NLS-1$
 		if (kind == IncrementalProjectBuilder.CLEAN_BUILD)
 			kindS = "CLEANBUILD";  //$NON-NLS-1$
-		AJLog.log("===========================================================================================");
-		AJLog.log("Build kind = " + kindS);
+		AJLog.log("==========================================================================================="); //$NON-NLS-1$
+		AJLog.log("Build kind = " + kindS); //$NON-NLS-1$
 		
 		IProject project = getProject();
 		AspectJPlugin.getDefault().setCurrentProject(project);
@@ -164,12 +164,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		String mode = "";  //$NON-NLS-1$
 		boolean incremental = buildManager.getBuildOptions().getIncrementalMode();
 		if (incremental && kind!=IncrementalProjectBuilder.FULL_BUILD) {
-			mode = "Incremental AspectJ compilation";
+			mode = "Incremental AspectJ compilation"; //$NON-NLS-1$
 		} else {
-			mode = "Full AspectJ compilation";
+			mode = "Full AspectJ compilation"; //$NON-NLS-1$
 		}
-		AJLog.log("Project="
-				+ project.getName() + "         kind of build requested =" + mode);
+		AJLog.log("Project=" //$NON-NLS-1$
+				+ project.getName() + "         kind of build requested =" + mode); //$NON-NLS-1$
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
 		AsmManager.attemptIncrementalModelRepairs = incremental;		
@@ -195,7 +195,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (kind != FULL_BUILD) {
 		    // need to add check here for whether the classpath has changed
 		    if (!coreOps.sourceFilesChanged(dta, project)){
-				AJLog.log("build: Examined delta - no source file changes for project " 
+				AJLog.log("build: Examined delta - no source file changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
 				// if the source files of any projects which the current
@@ -235,7 +235,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			if (ijp != null)
 				cleanOutputFolders(ijp,false);
 			else
-				AJLog.log("Unable to empty output folder on build all - why cant we find the IJavaProject?");
+				AJLog.log("Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			compilerMonitor.prepare(project, null/*projectFiles*/, progressMonitor);
 		} else {
 			compilerMonitor.prepare(project, null/*projectFiles*/, null);
@@ -318,7 +318,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (progressMonitor != null && buildManager != null && progressMonitor.isCanceled()) {
 			buildManager.abortBuild();
 			buildCancelled = true;
-			AJLog.log("build: Build cancelled as requested");
+			AJLog.log("build: Build cancelled as requested"); //$NON-NLS-1$
 		}
 	}
 
@@ -576,7 +576,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @return
 	 */
 	private IContainer getContainerForGivenPath(IPath path, IProject project) {
-		if (path.toOSString().equals("")) {
+		if (path.toOSString().equals("")) { //$NON-NLS-1$
 			return project;
 		}	
 		return project.getFolder(path);
@@ -670,14 +670,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 			File outputDir = new File(realOutputLocation);
 
-			int numberDeleted = wipeFiles(outputDir.listFiles(), ".class");
-			AJLog.log("Builder: Tidied output folder, deleted "
+			int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
+			AJLog.log("Builder: Tidied output folder, deleted " //$NON-NLS-1$
 							+ numberDeleted
-							+ " .class files from "
+							+ " .class files from " //$NON-NLS-1$
 							+ realOutputLocation
-							+ (linked ? " (Linked output folder from "
+							+ (linked ? " (Linked output folder from " //$NON-NLS-1$
 									+ workspaceRelativeOutputPath.toOSString()
-									+ ")" : ""));
+									+ ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
 			if (refresh) {
                 output.refreshLocal(IResource.DEPTH_INFINITE, null);
             }
@@ -695,14 +695,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				workspaceRelativeOutputPath);
 		String realOutputLocation = out.getLocation().toOSString();
 		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class");
+		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
-		AJLog.log("Builder: Tidied separate output folder, deleted "
+		AJLog.log("Builder: Tidied separate output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
-				+ " .class files from "
+				+ " .class files from " //$NON-NLS-1$
 				+ realOutputLocation
-				+ (out.isLinked() ? " (Linked output folder from "
-						+ workspaceRelativeOutputPath.toOSString() + ")" : ""));
+				+ (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
+						+ workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -716,14 +716,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				workspaceRelativeOutputPath);
 		String realOutputLocation = out.getLocation().toOSString();
 		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj");
+		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
-		AJLog.log("Builder: Tidied output folder, deleted "
+		AJLog.log("Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
-				+ " .aj files from "
+				+ " .aj files from " //$NON-NLS-1$
 				+ realOutputLocation
-				+ (out.isLinked() ? " (Linked output folder from "
-						+ workspaceRelativeOutputPath.toOSString() + ")" : ""));
+				+ (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
+						+ workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	/**
@@ -894,6 +894,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		} catch (CoreException e) {
 		}
-		AJLog.log("Removed problems and tasks for project "+resource.getName());
+		AJLog.log("Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
 	}
 }

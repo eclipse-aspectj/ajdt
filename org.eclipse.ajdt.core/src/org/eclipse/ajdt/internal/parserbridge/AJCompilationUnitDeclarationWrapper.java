@@ -187,13 +187,13 @@ delegate.propagateInnerEmulationForAllLocalTypes();
 				if (delegate.imports != null) {
 					int importLength = delegate.imports.length;
 					for (int i = 0; i < importLength; i++) {
-						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing import: " + delegate.imports[i]);
+						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing import: " + delegate.imports[i]); //$NON-NLS-1$
 					}
 				}
 				if (delegate.types != null) {
 					int typesLength = delegate.types.length;
 					for (int i = 0; i < typesLength; i++) {
-						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing type: " + delegate.types[i]);
+						AJLog.log("AJCompilationUnitDeclarationWrapper - Not traversing type: " + delegate.types[i]); //$NON-NLS-1$
 					}
 				}
 			}

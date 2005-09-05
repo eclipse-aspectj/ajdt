@@ -65,7 +65,7 @@ public class CoreProjectProperties implements IProjectProperties {
 	 * @see ProjectPropertiesAdapter#getClassToExecute()
 	 */
 	public String getClassToExecute() {
-		AJLog.log("*** AJ Plugin: ProjectProperties.getClassToExecute NOT IMPLEMENTED ***");
+		AJLog.log("*** AJ Plugin: ProjectProperties.getClassToExecute NOT IMPLEMENTED ***"); //$NON-NLS-1$
 		return null;
 	}
 
@@ -391,8 +391,8 @@ public class CoreProjectProperties implements IProjectProperties {
 					//		AspectJPlugin.getFormattedResourceString(
 					//				"Path.entryNotFound.warningMessage",
 					//				current));
-					AJLog.log("AspectJ path entry " + current
-							+ " does not exist. Ignoring.");
+					AJLog.log("AspectJ path entry " + current //$NON-NLS-1$
+							+ " does not exist. Ignoring."); //$NON-NLS-1$
 				}// end else entry not found in workspace
 			}// end if entry is relative to workspace
 			resultBuffer.append(File.pathSeparator);
