@@ -96,9 +96,18 @@ public class AspectJMemberElementInfo extends SourceMethodElementInfo implements
 			return new SourceRange(fSourceRangeStart, name.length);
 		return new SourceRange(fSourceRangeStart, fSourceRangeEnd - fSourceRangeStart + 1);
 	}
+
 	public void setSourceRangeEnd(int end) {
+		// JDT's CompilationUnitStructureRequestor.exitMethod() can call
+		// us with an end value of zero for pointcuts, which would result
+		// in a truncated source (as shown in the pointcut source hover for
+		// example).
+		if ((this instanceof PointcutElementInfo) && (end == 0)) {
+			return;
+		}
 		fSourceRangeEnd = end;
 	}
+	
 	public void setSourceRangeStart(int start) {
 		fSourceRangeStart = start;
 	}

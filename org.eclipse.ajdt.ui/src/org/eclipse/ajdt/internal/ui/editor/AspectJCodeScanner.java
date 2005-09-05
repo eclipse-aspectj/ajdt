@@ -128,7 +128,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	};
 
 	// AspectJ keywords
-	private static String[] ajKeywords = { "aspect", "pointcut", "privileged",
+    private static String[] ajKeywords = { "aspect", "pointcut", "privileged",
 		// Pointcut designators: methods and constructora
 		"call", "execution", "initialization", "preinitialization" ,
 		// Pointcut designators: exception handlers
@@ -299,4 +299,26 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		}
 	}
 
+	/**
+	 * Utility method which returns true if the given string is a keyword that
+	 * can appear in a pointcut definition.
+	 * 
+	 * @param word
+	 * @return
+	 */
+	public static boolean isAjPointcutKeyword(String word) {
+		for (int i = 0; i < ajKeywords.length; i++) {
+			if (ajKeywords[i].equals(word)) {
+				return true;
+			}
+		}
+		// "this" and "if" are not in the aj list as they are java keywords
+		if ("this".equals(word)) { //$NON-NLS-1$
+			return true;
+		}
+		if ("if".equals(word)) { //$NON-NLS-1$
+			return true;
+		}
+		return false;
+	}
 }

@@ -40,4 +40,33 @@ d. For the hyperlinks in step c. above, check that clicking on them results in
         "demoExecs2" on line 41 -> the definition from the class (line 19 of Demo.java)
         "Demo" on line 25 -> the class itself (line 16 of Demo.java)                (EDITOR_4)
 
- 
+4. Pointcut definition source hover (108730)
+
+a. Checkout the "OpenDeclaration" project from org.eclipse.ajdt.ui.tests/workspace
+b. Open src/tjp/GetInfo.aj in the editor
+c. Hover over various elements in the source file to check that source code
+   hovers appear as appropriate. Hovering over the following should show the
+   given source code, which should be highlighted the same as it is in the 
+   AspectJ editor (i.e. with "pointcut" being recognised as a keyboard):
+   		"executeGo" in the goCut() pointcut (line 25)
+   		   -> source: "public pointcut executeGo(): execution(void go());"
+  
+   		"goCut" in the demoExecs() pointcut (line 27)
+   		   -> source: "public pointcut goCut(): cflow(this(Demo) && executeGo());"
+
+   		"Demo" in the demoExecs() pointcut (line 27)
+		   -> the full source for the Demo.class, beginning:
+		      "public class Demo {
+                   static Demo d;
+               ..."
+
+   		"goCut" in the around advice (line 29)
+   		   -> source: "public pointcut goCut(): cflow(this(Demo) && executeGo());"
+   		
+   		"demoExecs" in the around advice (line 29)
+   		   -> source: "pointcut demoExecs(): within(Demo) && goCut() && execution(* *(..));"
+   		
+   		"demoExecs2" in the before advice (line 41)   
+   		   -> source: "pointcut demoExecs2(): within(Demo) && execution(void *(..));"
+   		                                                                            (EDITOR_5)
+   		
