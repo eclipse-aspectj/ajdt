@@ -138,7 +138,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		}
 
 		// set active build configuration
-		String value = desc.getAttribute("build");
+		String value = desc.getAttribute("build"); //$NON-NLS-1$
 		if (value != null){
 			AspectJPreferences.setActiveBuildConfigurationName(proj,value);
 		}
@@ -165,7 +165,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 				}
 			}
 			if (buildfiles > 1) {
-				IFile f = (IFile)proj.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_NAME + "." + BuildConfiguration.EXTENSION);
+				IFile f = (IFile)proj.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_NAME + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$
 				BuildConfiguration bc = pbc.getBuildConfiguration(f);
 				if (bc != null){
 					pbc.removeBuildConfiguration(bc);
@@ -211,7 +211,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			try {
 				IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 				IClasspathEntry jreCP = JavaCore.newContainerEntry(new Path(
-						"org.eclipse.jdt.launching.JRE_CONTAINER"));
+						"org.eclipse.jdt.launching.JRE_CONTAINER")); //$NON-NLS-1$
 
 				// Update the raw classpath with the new jreCP entry.
 				int originalCPLength = originalCP.length;
@@ -295,7 +295,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	 */
 	private void setSrcFolder(IProject project) {
 		try {
-			IResource srcFolder = project.findMember("src");
+			IResource srcFolder = project.findMember("src"); //$NON-NLS-1$
 			if ((srcFolder != null)
 					&& (srcFolder.getType() == IResource.FOLDER)) {
 				IJavaProject javaProject = JavaCore.create(project);
@@ -319,7 +319,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			throws CoreException {
 		try {
 			URL starterURL = new URL(AspectJExamplePlugin.getDefault()
-					.getBundle().getEntry("/"), pluginRelativePath);
+					.getBundle().getEntry("/"), pluginRelativePath); //$NON-NLS-1$
 			return new ZipFile(Platform.asLocalURL(starterURL).getFile());
 		} catch (IOException e) {
 			String message = pluginRelativePath + ": " + e.getMessage(); //$NON-NLS-1$

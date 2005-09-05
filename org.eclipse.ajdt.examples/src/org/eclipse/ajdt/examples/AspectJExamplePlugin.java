@@ -53,7 +53,7 @@ public class AspectJExamplePlugin extends AbstractUIPlugin {
 
 	public ImageDescriptor getImageDescriptor(String name) {
 		try {
-			URL url= new URL(getBundle().getEntry("/"), name);
+			URL url= new URL(getBundle().getEntry("/"), name); //$NON-NLS-1$
 			return ImageDescriptor.createFromURL(url);
 		} catch (MalformedURLException e) {
 			return ImageDescriptor.getMissingImageDescriptor();
