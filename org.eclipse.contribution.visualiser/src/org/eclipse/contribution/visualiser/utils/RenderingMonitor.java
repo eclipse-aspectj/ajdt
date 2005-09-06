@@ -77,17 +77,17 @@ public class RenderingMonitor extends ViewPart {
 				.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
 						| GridData.HORIZONTAL_ALIGN_FILL
 						| GridData.VERTICAL_ALIGN_FILL));
-		group.setText("Visualiser rendering information");
+		group.setText("Visualiser rendering information"); //$NON-NLS-1$
 
 		// row 1
 		Label label = new Label(group, SWT.NONE);
-		label.setText("Average framerate:");
+		label.setText("Average framerate:"); //$NON-NLS-1$
 
 		label = new Label(group, SWT.NONE);
-		label.setText("Allocated Image mem:");
+		label.setText("Allocated Image mem:"); //$NON-NLS-1$
 
 		label = new Label(group, SWT.NONE);
-		label.setText("Time to get data:");
+		label.setText("Time to get data:"); //$NON-NLS-1$
 
 		// row 2
 		fpsText = new Text(group, SWT.SINGLE);
@@ -95,7 +95,7 @@ public class RenderingMonitor extends ViewPart {
 		gd.widthHint = widthHint;
 		fpsText.setLayoutData(gd);
 		if (numValues==0) {
-			fpsText.setText("0 fps");
+			fpsText.setText("0 fps"); //$NON-NLS-1$
 		} else {
 			setAverage((float) runningTotal / numValues);
 		}
@@ -104,30 +104,30 @@ public class RenderingMonitor extends ViewPart {
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		ipText.setLayoutData(gd);
-		ipText.setText(imageKB + " KB");
+		ipText.setText(imageKB + " KB"); //$NON-NLS-1$
 
 		provText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		provText.setLayoutData(gd);
-		provText.setText(provTime + " ms");
+		provText.setText(provTime + " ms"); //$NON-NLS-1$
 
 		// row 3
 		label = new Label(group, SWT.NONE);
-		label.setText("Time of last paint:");
+		label.setText("Time of last paint:"); //$NON-NLS-1$
 
 		label = new Label(group, SWT.NONE);
-		label.setText("Allocated Colors:");
+		label.setText("Allocated Colors:"); //$NON-NLS-1$
 
 		label = new Label(group, SWT.NONE);
-		label.setText("Data size:");
+		label.setText("Data size:"); //$NON-NLS-1$
 
 		// row 4
 		msText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		msText.setLayoutData(gd);
-		msText.setText(lastTime + " ms");
+		msText.setText(lastTime + " ms"); //$NON-NLS-1$
 
 		colsText = new Text(group, SWT.SINGLE);
 		gd = new GridData();
@@ -139,11 +139,11 @@ public class RenderingMonitor extends ViewPart {
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		dsText.setLayoutData(gd);
-		dsText.setText(dataSize+" bars");
+		dsText.setText(dataSize+" bars"); //$NON-NLS-1$
 		
 		// row 5
 		label = new Label(group, SWT.NONE);
-		label.setText("Time of geometry calc:");
+		label.setText("Time of geometry calc:"); //$NON-NLS-1$
 		
 		label = new Label(group, SWT.NONE);
 		
@@ -154,7 +154,7 @@ public class RenderingMonitor extends ViewPart {
 		gd = new GridData();
 		gd.widthHint = widthHint;
 		geomText.setLayoutData(gd);
-		geomText.setText(geomTime + " ms");
+		geomText.setText(geomTime + " ms"); //$NON-NLS-1$
 	}
 
 	private void setAverage(float av) {
@@ -162,7 +162,7 @@ public class RenderingMonitor extends ViewPart {
 		float fps = 1000 / av;
 		// round to one decimal place
 		float fpsi = Math.round(fps * 10) / 10f;
-		fpsText.setText(fpsi + " fps");
+		fpsText.setText(fpsi + " fps"); //$NON-NLS-1$
 	}
 
 	/*
@@ -187,7 +187,7 @@ public class RenderingMonitor extends ViewPart {
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					instance.setAverage((float) runningTotal / numValues);
-					instance.msText.setText(lastTime + " ms");
+					instance.msText.setText(lastTime + " ms"); //$NON-NLS-1$
 				}
 			});
 		}
@@ -202,7 +202,7 @@ public class RenderingMonitor extends ViewPart {
 			}
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
-					instance.provText.setText(provTime + " ms");
+					instance.provText.setText(provTime + " ms"); //$NON-NLS-1$
 				}
 			});
 		}
@@ -217,7 +217,7 @@ public class RenderingMonitor extends ViewPart {
 			}
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
-					instance.geomText.setText(geomTime + " ms");
+					instance.geomText.setText(geomTime + " ms"); //$NON-NLS-1$
 				}
 			});
 		}
@@ -232,7 +232,7 @@ public class RenderingMonitor extends ViewPart {
 			}
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
-					instance.dsText.setText(dataSize + " bars");
+					instance.dsText.setText(dataSize + " bars"); //$NON-NLS-1$
 				}
 			});
 		}
@@ -248,7 +248,7 @@ public class RenderingMonitor extends ViewPart {
 			}
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
-					instance.ipText.setText(imageKB + " KB");
+					instance.ipText.setText(imageKB + " KB"); //$NON-NLS-1$
 				}
 			});
 		}
