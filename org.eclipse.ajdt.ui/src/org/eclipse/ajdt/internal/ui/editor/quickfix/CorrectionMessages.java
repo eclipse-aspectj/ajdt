@@ -21,7 +21,7 @@ final class CorrectionMessages extends NLS {
 
 	// Begin AspectJ change
 	//private static final String BUNDLE_NAME= CorrectionMessages.class.getName();
-	private static final String BUNDLE_NAME= "org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages";
+	private static final String BUNDLE_NAME= "org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages"; //$NON-NLS-1$
 	// End AspectJ change
 	
 	private CorrectionMessages() {

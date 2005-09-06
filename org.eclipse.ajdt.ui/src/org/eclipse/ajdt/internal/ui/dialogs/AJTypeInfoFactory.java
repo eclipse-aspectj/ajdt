@@ -56,7 +56,7 @@ public class AJTypeInfoFactory {
 			String project= getProject(path);
 			if (project != null) {
 				// AspectJ Change Begin
-				if(path.endsWith(".aj")) { // $NON-NLS-1$
+				if(path.endsWith(".aj")) { //$NON-NLS-1$
 					result= createAJCUTypeInfo(pn, tn, enclosingName, modifiers, path, getIFileTypeInfo(fLast), project);
 				} else {
 					result= createIFileTypeInfo(pn, tn, enclosingName, modifiers, path, getIFileTypeInfo(fLast), project);

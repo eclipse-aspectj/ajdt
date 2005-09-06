@@ -1265,7 +1265,7 @@ public class XReferenceInplaceDialog {
 				XRefUIUtils.setSelection(workbenchPart, lastSelection,viewer);
 			}
 		}
-		filterText.setText(""); //$NON-NLS-1
+		filterText.setText(""); //$NON-NLS-1$
 	}
 		
 	/**

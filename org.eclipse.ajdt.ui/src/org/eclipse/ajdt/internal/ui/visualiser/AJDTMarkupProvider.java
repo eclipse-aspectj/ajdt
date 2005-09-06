@@ -60,16 +60,16 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	private boolean hideErrors;
 	private boolean hideWarnings;
 	private Map kindMap;
-	protected static final String aspectJErrorKind = "declare error"; // $NON-NLS-1$
-	protected static final String aspectJWarningKind = "declare warning"; // $NON-NLS-1$
+	protected static final String aspectJErrorKind = "declare error"; //$NON-NLS-1$
+	protected static final String aspectJWarningKind = "declare warning"; //$NON-NLS-1$
 	protected Map savedColours;
 	
 	private static Color aspectJErrorColor = new Color(null, new RGB(228,5,64));
 	private static Color aspectJWarningColor = new Color(null, new RGB(255,206,90));
 	private Action resetColorMemoryAction;
-	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239";  // $NON-NLS-1$
+	private static String resetColorMemoryID = "ResetColorMemoryUniqueID32dfnio239";  //$NON-NLS-1$
 	private IPreferenceStore prefs = AspectJUIPlugin.getDefault().getPreferenceStore();
-	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys"; // $NON-NLS-1$
+	private static final String allPrefereceKeys = "AJDTVisualiserMarkupProvider.allPrefereceKeys"; //$NON-NLS-1$
 
 	/**
 	 * Get a List of Stripes for the given member, which are its markups.
@@ -109,16 +109,16 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 							IJavaElement loopElement = enclosingAspect;
 							while(loopElement.getParent() instanceof IType) {
 								loopElement = loopElement.getParent();
-								aspectName = loopElement.getElementName() + "." + aspectName; // $NON-NLS-1$
+								aspectName = loopElement.getElementName() + "." + aspectName; //$NON-NLS-1$
 							}
 							aspectFullName = aspectName;
 							String aspectPackageName = enclosingAspect.getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-							if(!(aspectPackageName.equals(""))) { // $NON-NLS-1$
-								aspectFullName = aspectPackageName + "." + aspectFullName; // $NON-NLS-1$
+							if(!(aspectPackageName.equals(""))) { //$NON-NLS-1$
+								aspectFullName = aspectPackageName + "." + aspectFullName; //$NON-NLS-1$
 							}
 						} else { // It's an injar aspect so we wno't be able to find the parents
 							aspectFullName = target.getElementName();
-							String[] parts = aspectFullName.split(" "); // $NON-NLS-1$
+							String[] parts = aspectFullName.split(" "); //$NON-NLS-1$
 							String aNameWithExtension = parts[parts.length - 1];
 							if(aNameWithExtension.indexOf('.') != -1) { // $NON-NLS-1$
 								aspectName = aNameWithExtension.substring(0, aNameWithExtension.lastIndexOf('.')); // $NON-NLS-1$
@@ -129,10 +129,10 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 						
 						int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getSource());
 						String memberName = element.getSource().getAncestor(IJavaElement.COMPILATION_UNIT).getElementName();
-						memberName = memberName.substring(0, memberName.lastIndexOf(".")); // $NON-NLS-1$
+						memberName = memberName.substring(0, memberName.lastIndexOf(".")); //$NON-NLS-1$
 						String packageName = element.getSource().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-						if(!(packageName.equals(""))) { // $NON-NLS-1$
-							memberName = packageName + "." + memberName; // $NON-NLS-1$
+						if(!(packageName.equals(""))) { //$NON-NLS-1$
+							memberName = packageName + "." + memberName; //$NON-NLS-1$
 						}
 						IMarkupKind markupKind = null;
 						if(kindMap == null) {
@@ -141,11 +141,11 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 						if(element.getRelationship().equals(AJRelationshipManager.MATCHES_DECLARE)) {
 							String sourceName = element.getTarget().getElementName();					
 							boolean errorKind = sourceName.startsWith(aspectJErrorKind);
-							if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) {
-								markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); // $NON-NLS-1$
+							if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
+								markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
 							} else {
-								markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); // $NON-NLS-1$
-								kindMap.put(sourceName + ":::" + aspectFullName, markupKind); // $NON-NLS-1$
+								markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
+								kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
 							}
 						} else {
 							if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
@@ -179,7 +179,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				IMarkupKind kind = (IMarkupKind) iterator.next();
 				if(kind instanceof StealthMarkupKind) {
 					String name = kind.getName();
-					String[] parts = name.split(":::"); // $NON-NLS-1$
+					String[] parts = name.split(":::"); //$NON-NLS-1$
 					if(parts.length > 1) {
 						String eOrWKind = parts[0];
 						if(eOrWKind.startsWith(aspectJErrorKind) && hideErrors) {
@@ -282,22 +282,22 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	protected void saveColourForAspect(String aspectName, int r, int g, int b) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
-			String key = currentProject + ":::" + aspectName; // $NON-NLS-1$
+			String key = currentProject + ":::" + aspectName; //$NON-NLS-1$
 			if(prefs.getString(key) == null) {
-				prefs.setDefault(key, ""); // $NON-NLS-1$
+				prefs.setDefault(key, ""); //$NON-NLS-1$
 			}
 			
 			// Save all keys we add in order that they can be reset.
 			String allColourKeys = prefs.getString(allPrefereceKeys);
 			if(allColourKeys == null) {
 				prefs.putValue(allPrefereceKeys, key);
-				prefs.setDefault(allPrefereceKeys, ""); // $NON-NLS-1$
+				prefs.setDefault(allPrefereceKeys, ""); //$NON-NLS-1$
 			} else {
-				allColourKeys += "," + key; // $NON-NLS-1$
+				allColourKeys += "," + key; //$NON-NLS-1$
 				prefs.putValue(allPrefereceKeys, allColourKeys);
 			}
 			
-			String value = r + "," + g + "," + b; // $NON-NLS-1$ // $NON-NLS-2$
+			String value = r + "," + g + "," + b; //$NON-NLS-1$ //$NON-NLS-2$
 			prefs.setValue(key, value);
 			if(savedColours == null) {
 				savedColours = new HashMap();
@@ -318,7 +318,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	protected Color getSavedColour(String aspectName) {
 		if(ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 			IProject currentProject = ((AJDTContentProvider)ProviderManager.getContentProvider()).getCurrentProject().getProject();
-			String key = currentProject + ":::" + aspectName; // $NON-NLS-1$
+			String key = currentProject + ":::" + aspectName; //$NON-NLS-1$
 			if(savedColours == null) {
 				savedColours = new HashMap();
 			}
@@ -328,8 +328,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 				value = prefs.getString(key); 
 				savedColours.put(key, value);
 			}
-			if(value != null && value != "") { // $NON-NLS-1$
-				String[] rgb = value.split(","); // $NON-NLS-1$
+			if(value != null && value != "") { //$NON-NLS-1$
+				String[] rgb = value.split(","); //$NON-NLS-1$
 				if(rgb.length != 3) {
 					return null;
 				} else {
@@ -397,8 +397,8 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 	 */
 	protected void resetSavedColours() {
 		String colourKeys = prefs.getString(allPrefereceKeys);
-		if(colourKeys != null && colourKeys != "") { // $NON-NLS-1$
-			String[] keys = colourKeys.split(","); // $NON-NLS-1$
+		if(colourKeys != null && colourKeys != "") { //$NON-NLS-1$
+			String[] keys = colourKeys.split(","); //$NON-NLS-1$
 			for (int i = 0; i < keys.length; i++) {
 				prefs.setToDefault(keys[i]);
 			}
@@ -437,7 +437,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 		public ErrorOrWarningMarkupKind(String name, boolean errorKind) {
 			super(name);
 			this.errorKind = errorKind;
-			String[] nameParts = name.split(":::"); // $NON-NLS-1$
+			String[] nameParts = name.split(":::"); //$NON-NLS-1$
 			if(nameParts.length > 1) {
 				declaringAspect = nameParts[1];
 			}
@@ -445,9 +445,9 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 
 		public String toString() {
 			if (errorKind) {
-				return UIMessages.AspectJError + ": " + declaringAspect; // $NON-NLS-1$
+				return UIMessages.AspectJError + ": " + declaringAspect; //$NON-NLS-1$
 				} else {
-				return UIMessages.AspectJWarning + ": " + declaringAspect; // $NON-NLS-1$
+				return UIMessages.AspectJWarning + ": " + declaringAspect; //$NON-NLS-1$
 			}
 		}
 	}

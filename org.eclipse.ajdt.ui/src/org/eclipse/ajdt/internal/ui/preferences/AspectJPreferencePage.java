@@ -90,44 +90,44 @@ public class AspectJPreferencePage
 				compilerOptionsComposite,
 				UIMessages.aspectjPreferences_description);
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
 		createLabel(
 			compilerOptionsComposite,
 			UIMessages.aspectjPreferences_compilerVersion
-				+ " "
+				+ " " //$NON-NLS-1$
 				+ new String(Ajde.getDefault().getVersion()));
 
 		createLabel(
 			compilerOptionsComposite,
 			UIMessages.aspectjPreferences_pluginVersion
-				+ " "
+				+ " " //$NON-NLS-1$
 				+ new String(AspectJUIPlugin.VERSION));
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
-		createLabel(compilerOptionsComposite, "Support Information");
+		createLabel(compilerOptionsComposite, UIMessages.AspectJPreferencePage_support_information);
 		ITextViewer itw1 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 
 		itw1.setDocument(
 			new Document(
-			  "Please refer to the forum eclipse.technology.ajdt\n"+
-			  "on the eclipse.org website."));
+			  UIMessages.AspectJPreferencePage_refer_to_forum+
+			  UIMessages.AspectJPreferencePage_on_the_website));
 
-		createLabel(compilerOptionsComposite, "Licensing");
+		createLabel(compilerOptionsComposite, UIMessages.AspectJPreferencePage_licensing);
 		ITextViewer itw2 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 		
 		itw2.setDocument(
 			new Document(
-			  "Copyright (c) 2002, 2005 IBM Corporation and others.\n"+
-			  "All rights reserved. This program and the accompanying materials\n"+
-			  "are made available under the terms of the Common Public License v1.0\n"+
-			  "which accompanies this distribution, and is available at\n"+
-			  "http://www.eclipse.org/legal/cpl-v10.html"));
+			  UIMessages.AspectJPreferencePage_copyright+
+			  UIMessages.AspectJPreferencePage_copyright2+
+			  UIMessages.AspectJPreferencePage_copyright3+
+			  UIMessages.AspectJPreferencePage_copyright4+
+			  UIMessages.AspectJPreferencePage_copyright5));
 					
 					
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 		
 		addField(createAdviceDecoratorField(compilerOptionsComposite));
 		

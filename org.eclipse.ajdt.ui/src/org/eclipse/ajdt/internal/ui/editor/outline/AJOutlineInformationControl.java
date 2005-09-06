@@ -103,7 +103,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 
 	static class TextMessages {
 		public static String getString(String key) {
-			return "TextMessage";
+			return "TextMessage"; //$NON-NLS-1$
 		}
 	}
 	

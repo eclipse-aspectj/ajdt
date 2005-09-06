@@ -22,6 +22,7 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -33,7 +34,7 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 public class AJDTStructureViewNode 
 implements IStructureViewNode, IAdaptable {
 
-	private static final String JDT_IMPORTS_LABEL = "import declarations";
+	private static final String JDT_IMPORTS_LABEL = UIMessages.AJDTStructureViewNode_import_declarations;
 
 	private IStructureViewNode.Kind kind = IStructureViewNode.Kind.DECLARATION;
 	
@@ -61,7 +62,7 @@ implements IStructureViewNode, IAdaptable {
 		this.icon = (AJDTIcon) icon;
 		this.kind = Kind.RELATIONSHIP;
 		this.relationshipName = 
-			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");		
+			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 
@@ -347,7 +348,7 @@ implements IStructureViewNode, IAdaptable {
 		 * @see org.eclipse.aosd.relations.IRelationship#getName()
 		 */
 		public String getName() {
-			return "matches";
+			return UIMessages.AJDTStructureViewNode_matches;
 		}
 		/* (non-Javadoc)
 		 * @see org.eclipse.aosd.relations.IRelationship#getAssociates()
@@ -366,7 +367,7 @@ implements IStructureViewNode, IAdaptable {
 			// Add all the classes from this projects classpath and output 
 			// directory using world.addClass()
 			org.aspectj.weaver.patterns.Pointcut p = 
-				org.aspectj.weaver.patterns.Pointcut.fromString("execution(* *(..))");
+				org.aspectj.weaver.patterns.Pointcut.fromString("execution(* *(..))"); //$NON-NLS-1$
 			p.toString();
 		}
 	}

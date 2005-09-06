@@ -181,7 +181,6 @@ public class AJOpenAction extends SelectionDispatchAction {
 	 * (non-Javadoc) Method declared on SelectionDispatchAction.
 	 */
 	public void run(IStructuredSelection selection) {
-		System.out.println("run struct selection: " + selection);
 		if (!checkEnabled(selection))
 			return;
 		run(selection.toArray());

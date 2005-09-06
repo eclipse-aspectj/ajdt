@@ -20,6 +20,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -175,7 +176,7 @@ public class PointcutNavigatorView extends ViewPart {
 		public void dispose() { }
 		
 		public Object[] getElements(Object parent) {
-		    if (AsmManager.getDefault().getHierarchy().getRoot() == null) return new TreeParent[] {new TreeParent("<rebuild to view structure>")};
+		    if (AsmManager.getDefault().getHierarchy().getRoot() == null) return new TreeParent[] {new TreeParent(UIMessages.PointcutNavigatorView_rebuild_to_view_structure)};
 		    final List pointcutsAndAdvice = new ArrayList();
 		    AsmManager.getDefault().getHierarchy().getRoot().walk(new HierarchyWalker() {
                 public void preProcess(IProgramElement node) {
@@ -193,7 +194,7 @@ public class PointcutNavigatorView extends ViewPart {
             for (Iterator it = pointcutsAndAdvice.iterator(); it.hasNext();) {
                 IProgramElement element = (IProgramElement) it.next();
                 
-                IRelationship relationship = AsmManager.getDefault().getRelationshipMap().get(element, IRelationship.Kind.USES_POINTCUT, "uses pointcut");
+                IRelationship relationship = AsmManager.getDefault().getRelationshipMap().get(element, IRelationship.Kind.USES_POINTCUT, "uses pointcut"); //$NON-NLS-1$
                 if (relationship == null || relationship.getTargets().size() == 0) {
                     TreeParent adviceOrPointcutNode = new TreeParent(element);
                     topLevel.add(adviceOrPointcutNode);
@@ -210,10 +211,10 @@ public class PointcutNavigatorView extends ViewPart {
             try {
 	            if (node.getElement() == null) return;
 	            if (node.getElement().getKind() == IProgramElement.Kind.ADVICE) {
-	                IRelationship advice = AsmManager.getDefault().getRelationshipMap().get(node.getElement(), IRelationship.Kind.ADVICE, "advises");
+	                IRelationship advice = AsmManager.getDefault().getRelationshipMap().get(node.getElement(), IRelationship.Kind.ADVICE, "advises"); //$NON-NLS-1$
 	//                System.err.println("> " + advice.getTargets());
 	                if (advice.getTargets().size() != 0) {
-	                    TreeParent adviceNode = new TreeParent("advises");
+	                    TreeParent adviceNode = new TreeParent(UIMessages.PointcutNavigatorView_advises);
 	                    List newTargets = advice.getTargets();
 	                    List oldTargets = (List)targetHistory.get(node.getElement().getHandleIdentifier());
 	                    
@@ -255,7 +256,7 @@ public class PointcutNavigatorView extends ViewPart {
         }
 
         private void addAllReferencingAsChildren(TreeParent node) {
-            IRelationship relationship = AsmManager.getDefault().getRelationshipMap().get(node.getElement(), IRelationship.Kind.USES_POINTCUT, "pointcut used by");
+            IRelationship relationship = AsmManager.getDefault().getRelationshipMap().get(node.getElement(), IRelationship.Kind.USES_POINTCUT, "pointcut used by"); //$NON-NLS-1$
             if (relationship != null && relationship.getTargets().size() != 0) {
                 for (Iterator it = relationship.getTargets().iterator(); it.hasNext();) {
                     String handle = (String) it.next();
@@ -297,7 +298,7 @@ public class PointcutNavigatorView extends ViewPart {
 	        if (!(element instanceof TreeParent)) return null;
 			TreeParent node = (TreeParent)element;
 			if (node.isNew() || node.isMissing()) {
-			    return new Font(null, "Tahoma", 8, SWT.BOLD);
+			    return new Font(null, "Tahoma", 8, SWT.BOLD); //$NON-NLS-1$
 			} else {
 			    return null;
 			} 
@@ -418,7 +419,7 @@ public class PointcutNavigatorView extends ViewPart {
 	}
 
 	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
+		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
@@ -460,8 +461,8 @@ public class PointcutNavigatorView extends ViewPart {
 
 	private void makeActions() {
 		pinStructureModel = new TogglePushpinAction();
-		pinStructureModel.setText("Pin structure model");
-		pinStructureModel.setToolTipText("Pin structure model");
+		pinStructureModel.setText(UIMessages.PointcutNavigatorView_pin_structure_model);
+		pinStructureModel.setToolTipText(UIMessages.PointcutNavigatorView_pin_structure_model_tooltip);
 		
 		// MPC: I've commented this out temporarily, to fix the build
 		//pinStructureModel.setImageDescriptor(AspectJImages.PUSHPIN.getImageDescriptor( ) );
@@ -471,8 +472,8 @@ public class PointcutNavigatorView extends ViewPart {
 //				showMessage("Action 2 executed");
 			}
 		};
-		action2.setText("Action 2");
-		action2.setToolTipText("Action 2 tooltip");
+		action2.setText("Action 2"); //$NON-NLS-1$
+		action2.setToolTipText("Action 2 tooltip"); //$NON-NLS-1$
 		action2.setImageDescriptor(AspectJImages.HIDE_DECLARATIONS.getImageDescriptor( ) );
 //		action2.setImageDescriptor(MylarImages.AUTO_EXPAND);
 //		doubleClickAction = new Action() {
@@ -494,7 +495,7 @@ public class PointcutNavigatorView extends ViewPart {
 	private void showMessage(String message) {
 		MessageDialog.openInformation(
 			viewer.getControl().getShell(),
-			"Sample View",
+			"Sample View", //$NON-NLS-1$
 			message);
 	}
 

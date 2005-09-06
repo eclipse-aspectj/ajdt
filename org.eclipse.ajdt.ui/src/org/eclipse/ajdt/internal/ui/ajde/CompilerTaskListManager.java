@@ -98,7 +98,7 @@ public class CompilerTaskListManager implements TaskListManager {
         //	throw new RuntimeException("Why the hell are we in here? We should
         // always be using the other addSourcelineTask() method");
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("CompilerMessage received ]" + message + "[");
+            System.err.println("CompilerMessage received ]" + message + "["); //$NON-NLS-1$ //$NON-NLS-2$
 
         problems.add(new ProblemTracker(message, location, kind));
  
@@ -145,7 +145,7 @@ public class CompilerTaskListManager implements TaskListManager {
 	 */
     public void clearTasks() {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("clearTasks() called");
+            System.err.println("clearTasks() called"); //$NON-NLS-1$
         affectedResources.clear();
         problems.clear();
     }
@@ -202,7 +202,7 @@ public class CompilerTaskListManager implements TaskListManager {
                     Iterator affectedResourceIterator = affectedResources
                             .iterator();
                     //boolean wipedProjectLevelMarkers = false;
-                    AJLog.log("Types affected during build = "+affectedResources.size());
+                    AJLog.log("Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
                     IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
                         ir = (IResource) affectedResourceIterator.next();
@@ -216,7 +216,7 @@ public class CompilerTaskListManager implements TaskListManager {
                                         IResource.DEPTH_INFINITE);
                             }
                         } catch (ResourceException re) {
-                        	AJLog.log("Failed marker deletion: resource="
+                        	AJLog.log("Failed marker deletion: resource=" //$NON-NLS-1$
                                             + ir.getLocation());
                             throw re;
                         }
@@ -286,11 +286,11 @@ public class CompilerTaskListManager implements TaskListManager {
                                     .next();
                                     StringBuffer attrData = new StringBuffer();
                                     attrData.append(sLoc.getSourceFile().getAbsolutePath());
-                                    attrData.append(":::");
+                                    attrData.append(":::"); //$NON-NLS-1$
                                     attrData.append(sLoc.getLine());
-                                    attrData.append(":::");
+                                    attrData.append(":::"); //$NON-NLS-1$
                                     attrData.append(sLoc.getEndLine());
-                                    attrData.append(":::");
+                                    attrData.append(":::"); //$NON-NLS-1$
                                     attrData.append(sLoc.getColumn());
                                     marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
                                           +(relCount++),attrData.toString());
@@ -299,19 +299,19 @@ public class CompilerTaskListManager implements TaskListManager {
                             
                             setMessage(marker, p.message);
                         } catch (ResourceException re) {
-                        	AJLog.log("Failed marker creation: resource="
+                        	AJLog.log("Failed marker creation: resource=" //$NON-NLS-1$
                                             + p.location.getSourceFile()
                                                     .getPath()
-                                            + " line="
+                                            + " line=" //$NON-NLS-1$
                                             + p.location.getLine()
-                                            + " message=" + p.message);
+                                            + " message=" + p.message); //$NON-NLS-1$
                             throw re;
                         }
                     }
                     clearTasks();
                 } catch (Exception e) {
                     AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-                            "Error creating marker", e);
+                            UIMessages.CompilerTaskListManager_Error_creating_marker, e);
                 }                
             }
         };
@@ -320,7 +320,7 @@ public class CompilerTaskListManager implements TaskListManager {
             AspectJPlugin.getWorkspace().run(r, null);
         } catch (CoreException cEx) {
             AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-                    "AJDT Error adding problem markers", cEx);
+                    UIMessages.CompilerTaskListManager_Error_adding_problem_markers, cEx);
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
         Set activeEditorList = AspectJEditor.getActiveEditorList();
@@ -343,21 +343,21 @@ public class CompilerTaskListManager implements TaskListManager {
         String message = p.message;
 
         Preferences pref = JavaCore.getPlugin().getPluginPreferences();
-        String tags = pref.getString("org.eclipse.jdt.core.compiler.taskTags");
+        String tags = pref.getString("org.eclipse.jdt.core.compiler.taskTags"); //$NON-NLS-1$
         String caseSens = pref
-                .getString("org.eclipse.jdt.core.compiler.taskCaseSensitive");
+                .getString("org.eclipse.jdt.core.compiler.taskCaseSensitive"); //$NON-NLS-1$
         String priorities = pref
-                .getString("org.eclipse.jdt.core.compiler.taskPriorities");
+                .getString("org.eclipse.jdt.core.compiler.taskPriorities"); //$NON-NLS-1$
 
         boolean caseSensitive;
-        if (caseSens.equals("disabled")) {
+        if (caseSens.equals("disabled")) { //$NON-NLS-1$
             caseSensitive = false;
         } else {
             caseSensitive = true;
         }
 
-        StringTokenizer tagTokens = new StringTokenizer(tags, ",");
-        StringTokenizer priorityTokens = new StringTokenizer(priorities, ",");
+        StringTokenizer tagTokens = new StringTokenizer(tags, ","); //$NON-NLS-1$
+        StringTokenizer priorityTokens = new StringTokenizer(priorities, ","); //$NON-NLS-1$
         while (tagTokens.hasMoreTokens()) {
             String prio = priorityTokens.nextToken();
             String token = tagTokens.nextToken();
@@ -377,9 +377,9 @@ public class CompilerTaskListManager implements TaskListManager {
     }
 
     private int getPrioritiyFlag(String prio) {
-        if (prio.equals("NORMAL"))
+        if (prio.equals("NORMAL")) //$NON-NLS-1$
             return IMarker.PRIORITY_NORMAL;
-        if (prio.equals("HIGH"))
+        if (prio.equals("HIGH")) //$NON-NLS-1$
             return IMarker.PRIORITY_HIGH;
         return IMarker.PRIORITY_LOW;
     }
@@ -404,11 +404,11 @@ public class CompilerTaskListManager implements TaskListManager {
         // FIXME: Remove this horrid hack.
         // Hack the filename off the front and the line number
         // off the end
-        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) {
+        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
             String hackedMessage = message
-                    .substring(message.indexOf("\":") + 2);
+                    .substring(message.indexOf("\":") + 2); //$NON-NLS-1$
             message = hackedMessage.substring(0, hackedMessage
-                    .indexOf(", at line"));
+                    .indexOf(", at line")); //$NON-NLS-1$
         }
         marker.setAttribute(IMarker.MESSAGE, message);
     }
@@ -471,7 +471,7 @@ public class CompilerTaskListManager implements TaskListManager {
             // blow up
             // with an event trace ...
             if (ir == null)
-            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file "
+            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
                                 + loc);
         }
 

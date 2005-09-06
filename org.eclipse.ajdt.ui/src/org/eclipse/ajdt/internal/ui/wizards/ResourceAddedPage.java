@@ -70,7 +70,7 @@ public class ResourceAddedPage
 	public ResourceAddedPage(
 		List newResources) {
 
-		super("ResourceAddedPage1", "", null);
+		super("ResourceAddedPage1", "", null); //$NON-NLS-1$ //$NON-NLS-2$
 
 		this.newResourcesList = newResources;
 		if (newResources == null)

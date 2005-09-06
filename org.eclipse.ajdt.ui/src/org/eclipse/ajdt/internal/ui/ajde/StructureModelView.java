@@ -152,7 +152,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 						}
 					}
 				} else {
-					AJLog.log("Problem in outline view: Editor input is not a file");
+					AJLog.log("Problem in outline view: Editor input is not a file"); //$NON-NLS-1$
 				}
 			}
 		}
@@ -164,20 +164,20 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	
 	private String getLogMessage(String label, IMarker marker) {
 		StringBuffer buff = new StringBuffer( );
-		buff.append( "Tree node selected: " );
+		buff.append( "Tree node selected: " ); //$NON-NLS-1$
 		buff.append( label );
-		buff.append( ". Navigation target: " );
+		buff.append( ". Navigation target: " ); //$NON-NLS-1$
 		if ( marker != null ) {
 			buff.append( marker.getResource().getName( ) );
-			buff.append( " line " );
+			buff.append( " line " ); //$NON-NLS-1$
 			try {
 				Integer lineNo = (Integer) marker.getAttribute( IMarker.LINE_NUMBER );
 				buff.append( lineNo.intValue() );
 			} catch ( Exception ex ) {
-				buff.append( "ERR" );	
+				buff.append( "ERR" );	 //$NON-NLS-1$
 			}
 		} else {
-			buff.append( "<None>" );
+			buff.append( "<None>" ); //$NON-NLS-1$
 		}
 		return buff.toString();
 	}
@@ -205,7 +205,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 */
 	private IAdaptable getContentOutline(IFile input, boolean registerForUpdates) {
 		String filePath = AJDTUtils.getResourcePath( input );
-		AJLog.log("Structure view requested for " + input.getName());
+		AJLog.log("Structure view requested for " + input.getName()); //$NON-NLS-1$
 		// Memory leak fix, we must delete the view we currently have
 		// so that we don't leak storage over time in the List of structure views maintained
 		// inside the svManager
@@ -247,7 +247,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 * @see StructureViewRenderer#updateView(StructureView)
 	 */
 	public void updateView(StructureView view) {
-		AJLog.log("outline updateview called (file:"+input.getName()+"): "+view.toString());
+		AJLog.log("outline updateview called (file:"+input.getName()+"): "+view.toString()); //$NON-NLS-1$ //$NON-NLS-2$
 		final StructureView fView = view;
 		AspectJUIPlugin.getDefault( ).getDisplay().asyncExec( new Runnable( ) {
 			public void run( ) {
@@ -265,7 +265,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 * @see AspectJEditor#doSave(IProgressMonitor)
 	 */
 	public void update() {
-		AJLog.log("Editor Update called: "+input.getName());
+		AJLog.log("Editor Update called: "+input.getName()); //$NON-NLS-1$
 		getControl().setRedraw(false);
 				IAdaptable outline = getContentOutline(input,true);
 		getTreeViewer().setInput(outline);
@@ -288,13 +288,13 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 			// register as the renderer for the new view.  We cant do that in this function as it would alter
 			// the set of registered renderers whilst the AspectJ code is calling back renderers with updates.
 			// YUCK.  Maybe it can't happen, but I've put this kind of 'almost' assertion in here for now ...
-			AJLog.log("Assumption Not True: Old view object:"+view.toString()+
-										"  New view object:"+view.toString());
+			AJLog.log("Assumption Not True: Old view object:"+view.toString()+ //$NON-NLS-1$
+										"  New view object:"+view.toString()); //$NON-NLS-1$
 		}
 		// add this extra text to stop us geting empty view structure updates
 		// caused by builds from other projects.
 		if ( input.getProject().equals( AJBuilder.getLastBuildTarget() )  ) {
-			AJLog.log("Model update notification for " + input.getName());
+			AJLog.log("Model update notification for " + input.getName()); //$NON-NLS-1$
 			this.view = view;
 
 			getControl().setRedraw(false);

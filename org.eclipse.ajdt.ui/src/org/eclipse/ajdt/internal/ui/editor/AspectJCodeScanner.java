@@ -85,95 +85,88 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	}
 
 	private static final String SOURCE_VERSION =
-		"org.eclipse.jdt.core.compiler.source";
+		"org.eclipse.jdt.core.compiler.source"; //$NON-NLS-1$
 
 	private static String[] fgKeywords = { "abstract", //$NON-NLS-1$
 		"break", //$NON-NLS-1$
-		"case",
-			"catch",
-			"class",
-			"const",
-			"continue",
-		//$NON-NLS-5$ //$NON-NLS-4$ //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+		"case", //$NON-NLS-1$
+			"catch", //$NON-NLS-1$
+			"class", //$NON-NLS-1$
+			"const", //$NON-NLS-1$
+			"continue", //$NON-NLS-1$
 		"default", "do", //$NON-NLS-2$ //$NON-NLS-1$
 		"else", "extends", //$NON-NLS-2$ //$NON-NLS-1$
 		"final", "finally", "for", //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
 		"goto", //$NON-NLS-1$
-		"if",
-			"implements",
-			"import",
-			"instanceof",
-			"interface",
-		//$NON-NLS-5$ //$NON-NLS-4$ //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+		"if", //$NON-NLS-1$
+			"implements", //$NON-NLS-1$
+			"import", //$NON-NLS-1$
+			"instanceof", //$NON-NLS-1$
+			"interface", //$NON-NLS-1$
 		"native", "new", //$NON-NLS-2$ //$NON-NLS-1$
-		"package",
-			"private",
-			"protected",
-			"public",
-		//$NON-NLS-4$ //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+		"package", //$NON-NLS-1$
+			"private", //$NON-NLS-1$
+			"protected", //$NON-NLS-1$
+			"public", //$NON-NLS-1$
 		"return", //$NON-NLS-1$
-		"static",
-			"super",
-			"switch",
-			"synchronized",
-		//$NON-NLS-4$ //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
-		"this",
-			"throw",
-			"throws",
-			"transient",
-			"try",
-		//$NON-NLS-5$ //$NON-NLS-4$ //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+		"static", //$NON-NLS-1$
+			"super", //$NON-NLS-1$
+			"switch", //$NON-NLS-1$
+			"synchronized", //$NON-NLS-1$
+		"this", //$NON-NLS-1$
+			"throw", //$NON-NLS-1$
+			"throws", //$NON-NLS-1$
+			"transient", //$NON-NLS-1$
+			"try", //$NON-NLS-1$
 		"volatile", //$NON-NLS-1$
 		"while" //$NON-NLS-1$
 	};
 
 	// AspectJ keywords
-    private static String[] ajKeywords = { "aspect", "pointcut", "privileged",
+    private static String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		// Pointcut designators: methods and constructora
-		"call", "execution", "initialization", "preinitialization" ,
+		"call", "execution", "initialization", "preinitialization" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		// Pointcut designators: exception handlers
-		"handler",
+		"handler", //$NON-NLS-1$
 		// Pointcut designators: fields
-		"get", "set",
+		"get", "set", //$NON-NLS-1$ //$NON-NLS-2$
 		// Pointcut designators: static initialization
-		"staticinitialization",
+		"staticinitialization", //$NON-NLS-1$
 		// Pointcut designators: object
 		// (this already a Java keyword)
-		"target", "args",
+		"target", "args", //$NON-NLS-1$ //$NON-NLS-2$
 		// Pointcut designators: lexical extents
-		"within", "withincode",
+		"within", "withincode", //$NON-NLS-1$ //$NON-NLS-2$
 		// Pointcut designators: control flow
-		"cflow", "cflowbelow",
+		"cflow", "cflowbelow", //$NON-NLS-1$ //$NON-NLS-2$
 		// Pointcut Designators for annotations
-		"annotation",
+		"annotation", //$NON-NLS-1$
 		// Advice
-		"before", "after", "around", "proceed", "throwing" , "returning" ,
-		"adviceexecution" ,
+		"before", "after", "around", "proceed", "throwing" , "returning" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		"adviceexecution" , //$NON-NLS-1$
 		// Declarations
-		"declare", "parents" , "warning" , "error", "soft" , "precedence" ,
+		"declare", "parents" , "warning" , "error", "soft" , "precedence" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 		// variables
-		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" ,
+		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" };
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 
 	private static String[] fgNewKeywords = { "assert" }; //$NON-NLS-1$
 
 	private static String[] fgTypes =
 		{
-			"void",
-			"boolean",
-			"char",
-			"byte",
-			"short",
-			"strictfp",
-			"int",
-			"long",
-			"float",
-			"double" };
-	//$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
-
-	private static String[] fgConstants = { "false", "null", "true" };
-	//$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
+			"void", //$NON-NLS-1$
+			"boolean", //$NON-NLS-1$
+			"char", //$NON-NLS-1$
+			"byte", //$NON-NLS-1$
+			"short", //$NON-NLS-1$
+			"strictfp", //$NON-NLS-1$
+			"int", //$NON-NLS-1$
+			"long", //$NON-NLS-1$
+			"float", //$NON-NLS-1$
+			"double" }; //$NON-NLS-1$
+	
+	private static String[] fgConstants = { "false", "null", "true" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 	private static String[] fgTokenProperties =
 		{
@@ -209,11 +202,9 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 
 		// Add rule for strings and character constants.
 		Token token = getToken(IJavaColorConstants.JAVA_STRING);
-		rules.add(new SingleLineRule("\"", "\"", token, '\\'));
-		//$NON-NLS-2$ //$NON-NLS-1$
-		rules.add(new SingleLineRule("'", "'", token, '\\'));
-		//$NON-NLS-2$ //$NON-NLS-1$
-
+		rules.add(new SingleLineRule("\"", "\"", token, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
+		rules.add(new SingleLineRule("'", "'", token, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
+	
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new JavaWhitespaceDetector()));
 

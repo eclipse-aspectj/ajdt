@@ -62,7 +62,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	public BuildConfigurationCreationPage(
 		IWorkbench workbench,
 		IStructuredSelection selection) {
-		super("CreateBuildConfigurationFilePage1", selection);
+		super("CreateBuildConfigurationFilePage1", selection); //$NON-NLS-1$
 		this.setTitle(UIMessages.BuildConfig_createLstFile); 
 		this.setDescription(UIMessages.BuildConfig_createLstDesc);
 		this.workbench = workbench;
@@ -80,7 +80,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
         //ASCFIXME: Add help!
 		//WorkbenchHelp.setHelp(composite, new String[] {IReadmeConstants.CREATION_WIZARD_PAGE_CONTEXT});
 
-		this.setFileName(getFreeFileName() + "." + BuildConfiguration.EXTENSION);
+		this.setFileName(getFreeFileName() + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$
 
 		// open file for editing checkbox
 		openFileCheckbox = new Button(composite, SWT.CHECK);
@@ -122,7 +122,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * Override because we overrode createAdvancedControls(..) 
 	 */
 	protected IStatus validateLinkedResource() {
-		return new Status(IStatus.OK, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, "", null);
+		return new Status(IStatus.OK, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, "", null); //$NON-NLS-1$
 	}
 	
 	/*
@@ -161,7 +161,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		} catch (PartInitException e) {
 			return false;
 		} 
-		AJLog.log("New config file created: " + newFile.getName());
+		AJLog.log("New config file created: " + newFile.getName()); //$NON-NLS-1$
 		return true;
 	}
 	

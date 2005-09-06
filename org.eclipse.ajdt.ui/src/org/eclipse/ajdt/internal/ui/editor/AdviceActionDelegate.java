@@ -155,7 +155,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                             // source location
                             while (loc != null) {
                                 // decode the source location
-                                String[] s = loc.split(":::");
+                                String[] s = loc.split(":::"); //$NON-NLS-1$
                                 String resName = s[0].substring(s[0]
                                         .lastIndexOf(File.separator) + 1);
                                 String textLabel = NLS.bind(UIMessages.EditorRulerContextMenu_relatedLocation_message,
@@ -189,7 +189,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                     .getDefault()
                     .getErrorHandler()
                     .handleError(
-                            "Exception whilst extending ruler context menu with advice items",
+                            UIMessages.AdviceActionDelegate_exception_adding_advice_to_context_menu,
                             ce);
         }
     }	
@@ -352,7 +352,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             // affected sites.
             try {
                 // Take jumpLocation apart. It is initially: FFFF:::NNNN:::NNNN:::NNNN
-                String[] s = getJumpLocation().split(":::");                               
+                String[] s = getJumpLocation().split(":::");                                //$NON-NLS-1$
                 final String filepath = s[0];
                 final String linenumber = s[1];
                 // System.err.println("FilePath=" + filepath);
@@ -385,7 +385,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 .getDefault()
                                 .getErrorHandler()
                                 .handleError(
-                                        "Unable to build jump marker in AdviceMenuAction run method",
+                                        UIMessages.AdviceActionDelegate_unable_to_create_marker,
                                         ce);
                     }
 
@@ -398,19 +398,19 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 .getDefault()
                                 .getErrorHandler()
                                 .handleError(
-                                        "Exception whilst asking editor to jump to advice location",
+                                        UIMessages.AdviceActionDelegate_exception_jumping,
                                         e);
 
                     }
                 } else {
-                    report("Could not find resource.");
+                    report("Could not find resource."); //$NON-NLS-1$
                 }
             } catch (IndexOutOfBoundsException ioobe) {
                 AspectJUIPlugin
                         .getDefault()
                         .getErrorHandler()
                         .handleError(
-                                "Problem parsing marker jump location (probably!)",
+                                UIMessages.AdviceActionDelegate_problem_finding_jump_location,
                                 ioobe);
             }
         }

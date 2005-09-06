@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
@@ -134,7 +135,7 @@ public class BuildConfigEditor
 		} catch ( CoreException cEx ) {
 			// resource update failed...
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				"Failed to update lst file resource", cEx );
+				UIMessages.BuildConfigEditor_failed_update, cEx );
 		}
 
 		// after a save we must clear markers and then reload the model to
@@ -172,7 +173,7 @@ public class BuildConfigEditor
 				}
 			}
 		} catch ( CoreException cEx ) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( "Unable to go to marker", cEx);
+			AspectJUIPlugin.getDefault().getErrorHandler().handleError( UIMessages.BuildConfigEditor_unable_to_go_to_marker, cEx);
 		}
 	}
 
@@ -187,7 +188,7 @@ public class BuildConfigEditor
 		setContentDescription(input.getName());
 
 		if (!(input instanceof IFileEditorInput)) {
-			throw new PartInitException("InvalidInput");
+			throw new PartInitException(UIMessages.BuildConfigEditor_invalid_input);
 		}
 		
 		fileInput = (IFileEditorInput) input;
@@ -197,7 +198,7 @@ public class BuildConfigEditor
 		buildModel( fileInput );
 		CompilerTaskListManager.showOutstandingProblems( );
 		
-		AJLog.log("Editor opened on " + fileInput.getFile().getName());
+		AJLog.log("Editor opened on " + fileInput.getFile().getName()); //$NON-NLS-1$
 	}
 
 	/**
@@ -232,7 +233,7 @@ public class BuildConfigEditor
 
 
 	public void dispose( ) {
-		AJLog.log("Editor closed - " + fileInput.getFile().getName());
+		AJLog.log("Editor closed - " + fileInput.getFile().getName()); //$NON-NLS-1$
 		super.dispose();	
 	}
 	
@@ -424,9 +425,9 @@ public class BuildConfigEditor
 			}
 		}
 		String nodename=node.getName();
-		if (overlayFlags!=0 && nodename.startsWith("Use relative paths only, omitting: ")) {
+		if (overlayFlags!=0 && nodename.startsWith("Use relative paths only, omitting: ")) { //$NON-NLS-1$
 			// Check if its inside a linked source folder...
-			String realLocation = node.getName().substring("Use relative paths only, omitting: ".length());
+			String realLocation = node.getName().substring("Use relative paths only, omitting: ".length()); //$NON-NLS-1$
 
 			realLocation = realLocation.replace('/',File.separatorChar);
 			realLocation = realLocation.replace('\\',File.separatorChar);
@@ -436,7 +437,7 @@ public class BuildConfigEditor
 				element = element.replace('\\',File.separatorChar);
 	
 				if (realLocation.startsWith(element)) {
-					node.setName("Resource from linked source folder: "+realLocation);
+					node.setName("Resource from linked source folder: "+realLocation); //$NON-NLS-1$
 					overlayFlags = 0;
 				}
 			}
@@ -444,7 +445,7 @@ public class BuildConfigEditor
 		
 		// Key into the image 'cache' is node.getBuildConfigNodeKind + overlayFlags (int)
 		// For example "Java source file:::0" or "build configuration file:::0"
-		String key = new String(kind.toString() + ":::" + overlayFlags);
+		String key = new String(kind.toString() + ":::" + overlayFlags); //$NON-NLS-1$
 		
 		// Initialize the map if it hasn't already been setup
 		if (reusableImageMap == null)
