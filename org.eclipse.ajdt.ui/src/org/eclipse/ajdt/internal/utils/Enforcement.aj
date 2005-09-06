@@ -25,6 +25,6 @@ public aspect Enforcement {
 		&& !within(org.eclipse.ajdt.internal.utils.AJDTEventTrace) 
 		&& !within(org.eclipse.ajdt.internal.ui.AJDTEventTraceView)
 		&& !within(org.eclipse.ajdt.internal.ui.EventTraceLogger) :
-		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead";
+		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead"; //$NON-NLS-1$
 
 }
