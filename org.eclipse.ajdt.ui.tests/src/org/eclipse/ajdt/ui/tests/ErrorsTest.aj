@@ -15,6 +15,7 @@ package org.eclipse.ajdt.ui.tests;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
 import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.ui.IViewPart;
@@ -39,8 +40,14 @@ public aspect ErrorsTest {
 			int numErrors = logs.length;
 			proceed();
 			logs = logView.getLogs();
-			if(logs.length > numErrors) {
-				TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ...");
+			if(logs.length > numErrors) { // Check for errors or warnings
+				int numAdded = logs.length - numErrors;
+				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
+					LogEntry entry = logs[i];
+					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
+						TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ...");
+					}
+				}
 			}
 		} catch (PartInitException e) {
 			TestCase.fail("Exception occurred when accessing the log view");
