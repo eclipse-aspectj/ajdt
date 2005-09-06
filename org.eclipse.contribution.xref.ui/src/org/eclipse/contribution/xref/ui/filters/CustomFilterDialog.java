@@ -189,7 +189,7 @@ public class CustomFilterDialog {
 			composite.setData(data);
 
 			// Select All button
-			String label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.SelectAllButton.label");
+			String label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.SelectAllButton.label"); //$NON-NLS-1$
 			Button selectButton = createButton(buttonComposite,
 					IDialogConstants.SELECT_ALL_ID, label, false);
 			SWTUtil.setButtonDimensionHint(selectButton);
@@ -201,7 +201,7 @@ public class CustomFilterDialog {
 			selectButton.addSelectionListener(listener);
 
 			// De-select All button
-			label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.DeselectAllButton.label");
+			label = XReferenceUIPlugin.getResourceString("CustomFiltersDialog.DeselectAllButton.label"); //$NON-NLS-1$
 			Button deselectButton = createButton(buttonComposite,
 					IDialogConstants.DESELECT_ALL_ID, label, false);
 			SWTUtil.setButtonDimensionHint(deselectButton);

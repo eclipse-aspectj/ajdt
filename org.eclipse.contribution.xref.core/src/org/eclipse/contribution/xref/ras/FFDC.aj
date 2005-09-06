@@ -73,8 +73,8 @@ public abstract aspect FFDC {
 		String typeName = ejp.getSignature().getDeclaringTypeName();
 		String name = ejp.getSignature().getName();
 		String sourceLocation = tjp.getSourceLocation().toString();
-    	sourceId.append(typeName).append(".").append(name);
-    	sourceId.append("(").append(sourceLocation).append(")");
+    	sourceId.append(typeName).append(".").append(name); //$NON-NLS-1$
+    	sourceId.append("(").append(sourceLocation).append(")"); //$NON-NLS-1$ //$NON-NLS-2$
     	return sourceId.toString();
     }
 

@@ -46,7 +46,7 @@ public class XReferenceCustomFilterActionInplace extends Action {
 	
 	public XReferenceCustomFilterActionInplace(Shell shell) {
 
-		setText(XReferenceUIPlugin.getResourceString("OpenCustomFiltersDialogAction.text"));
+		setText(XReferenceUIPlugin.getResourceString("OpenCustomFiltersDialogAction.text")); //$NON-NLS-1$
 		setImageDescriptor(JavaPluginImages.DESC_ELCL_FILTER);
 		setDisabledImageDescriptor(JavaPluginImages.DESC_DLCL_FILTER);
 		

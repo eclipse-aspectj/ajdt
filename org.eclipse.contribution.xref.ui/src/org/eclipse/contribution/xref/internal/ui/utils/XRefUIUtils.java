@@ -181,7 +181,7 @@ public class XRefUIUtils {
 			// user cancelled - this is ok...
 		} catch (InvocationTargetException invEx) {
 			System.err.println(
-					"Something nasty here, " + xr + " could not be evaluated: " + invEx); //$NON-NLS-1$ //$NON-NLS-1$
+					"Something nasty here, " + xr + " could not be evaluated: " + invEx); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 

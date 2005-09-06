@@ -217,7 +217,7 @@ class XReferenceViewUpdateJob extends UIJob {
 		 * @see org.eclipse.ui.progress.UIJob#runInUIThread(org.eclipse.core.runtime.IProgressMonitor)
 		 */
 		 public IStatus runInUIThread(IProgressMonitor monitor) {
-				monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1);
+				monitor.beginTask(XReferenceUIPlugin.getResourceString("Jobs.Update"), 1); //$NON-NLS-1$
 		 		if (XReferenceUIPlugin.xrefView !=null) {
 		 			IWorkbenchPart workbenchPart = null;
 		 			if (XRefUIUtils.getActiveWorkbenchWindow() != null) {
