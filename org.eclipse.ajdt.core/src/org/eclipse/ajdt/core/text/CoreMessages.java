@@ -53,4 +53,6 @@ public class CoreMessages extends NLS {
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, CoreMessages.class);
 	}
+
+	public static String builder_taskname;
 }

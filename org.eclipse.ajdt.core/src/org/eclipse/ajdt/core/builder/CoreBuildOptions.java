@@ -110,11 +110,11 @@ public class CoreBuildOptions implements BuildOptionsAdapter {
 	// Return formatted version of the current build options set
 	public String toString() {
 		StringBuffer formattedOptions = new StringBuffer();
-		formattedOptions.append("Current Compiler options set:");
+		formattedOptions.append("Current Compiler options set:"); //$NON-NLS-1$
 		formattedOptions.append(
-			"[Incremental compilation=" + getIncrementalMode() + "]");
+			"[Incremental compilation=" + getIncrementalMode() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 		formattedOptions.append(
-			"[NonStandard options='" + getNonStandardOptions() + "']");
+			"[NonStandard options='" + getNonStandardOptions() + "']"); //$NON-NLS-1$ //$NON-NLS-2$
 		return formattedOptions.toString();
 	}
 }

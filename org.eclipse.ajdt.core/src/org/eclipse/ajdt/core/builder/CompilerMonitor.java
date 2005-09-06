@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.builder;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -100,7 +101,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 			IProgressMonitor eclipseMonitor) {
 		monitor = eclipseMonitor;
 		if (monitor != null) {
-			monitor.beginTask("AJC build", 100);
+			monitor.beginTask(CoreMessages.builder_taskname, 100);
 		}
 
 		AJLog.log("AJC: Starting new build for project " + project.getName()); //$NON-NLS-1$
