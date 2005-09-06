@@ -11,15 +11,20 @@
  *******************************************************************************/
 package org.eclipse.internal.ajdt.utils;
 
-
 /**
  *
  */
 public aspect Enforcement {
 
-	declare warning : (get(* System.out) || get(* System.err)) : "There should be no printlns";
+	declare warning : (get(* System.out) || get(* System.err)) : "There should be no printlns"; //$NON-NLS-1$
 	
 	declare warning : call(* Exception.printStackTrace(..)) : 
-	    "There should be no calls to printStackTrace";
+	    "There should be no calls to printStackTrace"; //$NON-NLS-1$
+	
+	declare warning : call(void org.eclipse.ajdt.internal.utils.AJDTEventTrace.*(..)) 
+		&& !within(org.eclipse.ajdt.internal.utils.AJDTEventTrace) 
+		&& !within(org.eclipse.ajdt.internal.ui.AJDTEventTraceView)
+		&& !within(org.eclipse.ajdt.internal.ui.EventTraceLogger) :
+		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead"; //$NON-NLS-1$
 
 }
