@@ -68,7 +68,7 @@ Creates a packaged plug-in jar for AJDE
 		update from them. Also need to copy aspectjrt.jar to org.aspectj.runtime plugin.">
 		<delete dir="${ajde.build.dir}"/>
 		<!-- <copy file="${aspectj.lib.dir}/aspectjrt.jar" tofile="aspectjrt.jar" overwrite="true" /> -->
-		<copy file="${aspectj.lib.dir}/aspectjrt.jar" tofile="../org.aspectj.runtime/aspectjrt.jar" overwrite="true" />
+		<copy file="${aspectj.lib.dir}/aspectj5rt-all.jar" tofile="../org.aspectj.runtime/aspectjrt.jar" overwrite="true" />
 		<copy file="${aspectj.lib.dir}/aspectjtools.jar" tofile="aspectjtools.jar" overwrite="true" />
 		<mkdir dir="${ajde.build.dir}" />
 		<unzip dest="${ajde.build.dir}" src="aspectjtools.jar" />
