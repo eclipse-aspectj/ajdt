@@ -479,6 +479,9 @@ public class UIMessages extends NLS {
 	public static String AspectJUIPlugin_exception_in_selection_changed;
 	public static String AspectJUIPlugin_exception_retrieving_lst_files;
 	public static String AspectJUIPlugin_exception_retrieving_lst_files2;
+	public static String LTWAspectPathTab_errormessage;
+	public static String LTWAspectPathTab_label;
+	public static String LTWAspectPathTab_title;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

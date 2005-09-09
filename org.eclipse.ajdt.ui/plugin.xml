@@ -1691,7 +1691,6 @@
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             type="org.eclipse.ajdt.launching.AspectJApplication"
-            helpContextId="org.eclipse.jdt.junit.junit_tab_group"
             class="org.eclipse.ajdt.internal.launching.AJTabGroup"
             id="org.eclipse.ajdt.aspectjLaunchConfigurationTabGroup.junit">
          <launchMode
@@ -1705,7 +1704,44 @@
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-
+<!-- Commenting out LTW support as the implementation is not yet finished
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            name="%ltwLauncherName"
+            delegate="org.eclipse.ajdt.internal.launching.LTWApplicationLaunchConfigurationDelegate"
+            modes="run, debug"
+            id="org.eclipse.ajdt.launching.AspectJLTWApplication"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+	<extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            icon="icons/actions/ltw_app.gif"
+            configTypeID="org.eclipse.ajdt.launching.AspectJLTWApplication"
+            id="org.eclipse.ajdt.ltwlaunchimage">
+      </launchConfigurationTypeImage>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            type="org.eclipse.ajdt.launching.AspectJLTWApplication"
+            class="org.eclipse.ajdt.internal.launching.AJLTWTabGroup"
+            id="org.eclipse.ajdt.aspectjLTWLaunchConfigurationTabGroup">
+         <launchMode
+               perspective="org.eclipse.debug.ui.DebugPerspective"
+               description="%ltwLauncherDescription"
+               mode="debug">
+         </launchMode>
+         <launchMode
+               description="%launcherDescription"
+               mode="run">
+         </launchMode>
+      </launchConfigurationTabGroup>
+   </extension>
+-->
 	<!-- Extensions for launch shortcuts -->
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">

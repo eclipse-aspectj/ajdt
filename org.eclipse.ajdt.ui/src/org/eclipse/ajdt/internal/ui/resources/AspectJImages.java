@@ -22,7 +22,9 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
+import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 /**
@@ -209,6 +211,8 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/jdt/field_public_obj.gif"); //$NON-NLS-1$
 	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
 				"icons/jdt/field_default_obj.gif"); //$NON-NLS-1$
+
+	private ImageDescriptorRegistry registry;
 
 	// Luzius - added build configuration icons
 	public static final AJDTIcon BC_TICK = new AJDTIcon(
@@ -460,6 +464,13 @@ public class AspectJImages extends AbstractIconRegistry {
 		} else {
 			return super.getIcon(relationship);
 		}
+	}
+	
+	public ImageDescriptorRegistry getRegistry() {
+		if (registry == null) {
+			registry= JavaPlugin.getImageDescriptorRegistry();
+		}
+		return registry;
 	}
 
 }
