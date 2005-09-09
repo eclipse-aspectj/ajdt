@@ -117,7 +117,7 @@ public class BuilderMigrationPage extends WizardPage {
 
 				if (!AspectJProjectNature.hasNewBuilder(project)) {
 					// addition of new builder failed for some reason
-					AJLog.log("AJDT migration builder: addition of new builder failed!");
+					AJLog.log("AJDT migration builder: addition of new builder failed!"); //$NON-NLS-1$
 					Display.getDefault().syncExec(new Runnable() {
 						public void run() {
 							MessageDialog.openError(

@@ -82,7 +82,7 @@ public class BuilderUtils {
 							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
 						}
 					});
-					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
+					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class}); //$NON-NLS-1$
 					setTypes.setAccessible(true);
 					setTypes.invoke(null, new Object[] {typesIncludingAspects});
 				} catch (SecurityException e) {
@@ -149,7 +149,7 @@ public class BuilderUtils {
 							return ((TypeInfo)o1).getTypeName().compareTo(((TypeInfo)o2).getTypeName());
 						}
 					});
-					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class});
+					Method setTypes = AllTypesCache.class.getDeclaredMethod("setCache", new Class[] {TypeInfo[].class}); //$NON-NLS-1$
 					setTypes.setAccessible(true);
 					setTypes.invoke(null, new Object[] {typesIncludingAspects});
 				} catch (SecurityException e) {
@@ -217,7 +217,7 @@ public class BuilderUtils {
 							jp.getElementName(),
 							unit.getPackageFragmentRoot().getElementName(),
 							unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-							"aj",
+							"aj", //$NON-NLS-1$
 							unit);						
 
 					types.add(info);
@@ -238,7 +238,7 @@ public class BuilderUtils {
 				d.syncExec(new Runnable() {
 					public void run() {
 						try {
-							Method startBackgroundMode = AllTypesCache.class.getDeclaredMethod("startBackgroundMode", new Class[0]);
+							Method startBackgroundMode = AllTypesCache.class.getDeclaredMethod("startBackgroundMode", new Class[0]); //$NON-NLS-1$
 							startBackgroundMode.setAccessible(true);
 							startBackgroundMode.invoke(null, new Object[0]);
 						} catch (SecurityException e) {

@@ -108,13 +108,13 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         }
 
         if (AspectJUIPlugin.DEBUG_COMPILER) {
-            System.out.println("CompilerMonitor.prepare called: IPM is "
-                    + (eclipseMonitor == null ? "Null" : "Not-Null"));
+            System.out.println("CompilerMonitor.prepare called: IPM is " //$NON-NLS-1$
+                    + (eclipseMonitor == null ? "Null" : "Not-Null")); //$NON-NLS-2$
         }
 
         monitor = eclipseMonitor;
         if (monitor != null) {
-            monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"),
+            monitor.beginTask(AspectJUIPlugin.getResourceString("ajCompilation"), //$NON-NLS-1$
                     AspectJUIPlugin.PROGRESS_MONITOR_MAX);
         }
 
@@ -141,7 +141,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     public void start(final String configFile) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
             System.err
-                    .println("AJDE Callback: CompileProgressMonitor.start() called");
+                    .println("AJDE Callback: CompileProgressMonitor.start() called"); //$NON-NLS-1$
         
         currentAjdeProgress = 0;
         if (monitor != null) {
@@ -170,11 +170,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Ajde wishes to display information about the progress of the compilation.
      */
     public void setProgressText(String text) {
-        if (!reportedCompiledMessages && text.startsWith("compiled: ")) {
+        if (!reportedCompiledMessages && text.startsWith("compiled: ")) { //$NON-NLS-1$
             reportedCompiledMessages = true;
             AJLog.logEnd(TimerLogEvent.FIRST_COMPILED);
         }
-        if (!reportedWovenMessages && text.startsWith("woven ")) {
+        if (!reportedWovenMessages && text.startsWith("woven ")) { //$NON-NLS-1$
             reportedWovenMessages = true;
             AJLog.logEnd(TimerLogEvent.FIRST_WOVEN);
         }
@@ -189,7 +189,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         // any new ones.  
         // FIXME ASC18022005 this isnt the nicest way to do this, it would be better
         // to ask the state what changed...
-        if (text.startsWith("compiled: ") || text.startsWith("woven ")) {
+        if (text.startsWith("compiled: ") || text.startsWith("woven ")) { //$NON-NLS-1$ //$NON-NLS-2$
             // If a project contains a 'srclink' and that link is to a directory
             // that isn't defined in another eclipse project, then we may get 
         	// resource paths here that cannot be found in eclipse. So the 
@@ -198,12 +198,12 @@ public class CompilerMonitor implements IAJCompilerMonitor {
             // not matter - if it does not exist, it cannot have 
         	// outstanding markers.
             IPath resourcePath = null;
-            if (text.startsWith("compiled: ")) {
+            if (text.startsWith("compiled: ")) { //$NON-NLS-1$
             	resourcePath = new Path(text.substring(10));
             } else {
             	// woven messages look like this: 'woven class XXXX (from c:\fullpathhere)'
-            	int fromLoc = text.indexOf("from ");
-            	int endLoc = text.lastIndexOf(")");
+            	int fromLoc = text.indexOf("from "); //$NON-NLS-1$
+            	int endLoc = text.lastIndexOf(")"); //$NON-NLS-1$
             	if (fromLoc!=-1 && endLoc>fromLoc) { // guards guards
             		resourcePath = new Path(text.substring(fromLoc+5,endLoc));
             	}
@@ -220,7 +220,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
             } else {
                 IFile file = workspaceRoot.getFileForLocation(resourcePath);
                 if (file == null) {
-                	AJLog.log("Processing progress message: Can't find eclipse resource for file with path "
+                	AJLog.log("Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
                                     + text);
                 } else {
                     CompilerTaskListManager.getInstance().addAffectedResource(file);
@@ -230,7 +230,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
         final String amendedText = removePrefix(text);
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressText(" + text + ")");
+            System.err.println("AJDE Callback: setProgressText(" + text + ")"); //$NON-NLS-1$
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -247,8 +247,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public void setProgressBarVal(int newVal) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressBarVal(" + newVal
-                    + ")");
+            System.err.println("AJDE Callback: setProgressBarVal(" + newVal //$NON-NLS-1$
+                    + ")"); //$NON-NLS-1$
 
         if (newVal >= currentAjdeProgress) {
             incrementProgressBarVal("setProgressBarVal() delegating to ");
@@ -261,7 +261,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public void setProgressBarMax(int maxVal) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressBarMax(" + maxVal
+            System.err.println("AJDE Callback: setProgressBarMax(" + maxVal //$NON-NLS-1$
                     + ")");
         ajdeMonitorMaxRatio = ((float) maxVal)
                 / AspectJUIPlugin.PROGRESS_MONITOR_MAX;
@@ -276,7 +276,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public void incrementProgressBarVal(String caller) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println(caller + " incrementProgressBarVal():"
+            System.err.println(caller + " incrementProgressBarVal():" //$NON-NLS-1$
                     + currentAjdeProgress);
         currentAjdeProgress++;
         // Bug 22258 - Reworked internals of run() method, it used to be
@@ -301,7 +301,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public int getProgressBarMax() {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: getProgressBarMax()");
+            System.err.println("AJDE Callback: getProgressBarMax()"); //$NON-NLS-1$
         return AspectJUIPlugin.PROGRESS_MONITOR_MAX;
     }
 
@@ -312,14 +312,14 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public synchronized void finish() {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: finish()");
+            System.err.println("AJDE Callback: finish()"); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
-            System.err.println("Not finishing with bpm, display is disposed!");
+            System.err.println("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
         else
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -357,7 +357,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     private String removePrefix(String msg) {
         String ret = msg;
         IProject p = AspectJPlugin.getDefault().getCurrentProject();
-        String projectLocation = p.getLocation().toOSString() + "\\";
+        String projectLocation = p.getLocation().toOSString() + "\\"; //$NON-NLS-1$
         if (msg.indexOf(projectLocation) != -1) {
             ret = msg.substring(0, msg.indexOf(projectLocation))
                     + msg.substring(msg.indexOf(projectLocation)
@@ -373,29 +373,29 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
         // special cases...
         // this message is too long to be meaningful
-        if (ret.startsWith("might need to weave")) {
+        if (ret.startsWith("might need to weave")) { //$NON-NLS-1$
             ret = "weaving ...";
         }
         // we always get this next one, and it seems to be nonsense
-        if (ret.startsWith("directory classpath entry does not exist: null")) {
+        if (ret.startsWith("directory classpath entry does not exist: null")) { //$NON-NLS-1$
             ret = "";
         }
 
         // chop (from x\y\z\a\b\C.java) to just (C.java)
-        if (ret.startsWith("woven") && ret.indexOf("(from") != -1) {
-            int loc = ret.indexOf("(from");
+        if (ret.startsWith("woven") && ret.indexOf("(from") != -1) {  //$NON-NLS-1$//$NON-NLS-2$
+            int loc = ret.indexOf("(from"); //$NON-NLS-1$
             if (loc != -1) {
                 String fromPiece = ret.substring(loc);
-                int lastSlash = fromPiece.lastIndexOf("/");
+                int lastSlash = fromPiece.lastIndexOf("/"); //$NON-NLS-1$
                 if (lastSlash == -1)
-                    lastSlash = fromPiece.lastIndexOf("\\");
+                    lastSlash = fromPiece.lastIndexOf("\\"); //$NON-NLS-1$
                 if (lastSlash != -1) {
                     fromPiece = fromPiece.substring(lastSlash + 1);
-                    ret = ret.substring(0, loc) + " (" + fromPiece;
+                    ret = ret.substring(0, loc) + " (" + fromPiece; //$NON-NLS-1$
                 } else {
-                    int space = fromPiece.indexOf(" ");
+                    int space = fromPiece.indexOf(" "); //$NON-NLS-1$
                     if (space != -1)
-                        ret = ret.substring(0, loc) + " ("
+                        ret = ret.substring(0, loc) + " (" //$NON-NLS-1$
                                 + fromPiece.substring(space + 1);
                 }
             }

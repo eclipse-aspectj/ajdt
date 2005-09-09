@@ -332,7 +332,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				}
 			}
 			if (!foundJavaCmd) {
-				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-1$				
+				vmArgs.add(jreDir + File.separator + "jre" + File.separator + "bin" + File.separator + "java"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$				
 			}
 			String toolsDir = jreDir + File.separator + "lib" + File.separator + "tools.jar"; //$NON-NLS-1$ //$NON-NLS-2$
 			boolean noXmx = true;

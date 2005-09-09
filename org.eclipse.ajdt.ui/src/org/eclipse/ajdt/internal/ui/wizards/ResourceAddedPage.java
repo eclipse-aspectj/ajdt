@@ -69,7 +69,7 @@ public class ResourceAddedPage
 	public ResourceAddedPage(
 		List newResources) {
 
-		super("ResourceAddedPage1", "", null);
+		super("ResourceAddedPage1", "", null);  //$NON-NLS-1$ //$NON-NLS-2$
 
 		this.newResourcesList = newResources;
 		if (newResources == null)
@@ -79,9 +79,9 @@ public class ResourceAddedPage
 		AspectJPlugin.getDefault().setCurrentProject(project);
 
 		setDescription(
-			AspectJUIPlugin.getResourceString("newResourcesWizard.pageDescription"));
+			AspectJUIPlugin.getResourceString("newResourcesWizard.pageDescription")); //$NON-NLS-1$
 		setTitle(
-			AspectJUIPlugin.getResourceString("newResourcesWizard.pageTitle")
+			AspectJUIPlugin.getResourceString("newResourcesWizard.pageTitle") //$NON-NLS-1$
 				+ project.getName().toString());
 
 		// Retrieve a list of all the .lst files that exist in that project
@@ -118,7 +118,7 @@ public class ResourceAddedPage
 
 		// Inform the user what they have to do via a label
 		Label l = new Label(topLevel, SWT.NONE);
-		l.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.instructions"));
+		l.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.instructions")); //$NON-NLS-1$
 			
 		// Create a two column grid, left hand column is for resources, right hand column is for build config files
 		GridLayout glayout = new GridLayout();
@@ -178,25 +178,25 @@ public class ResourceAddedPage
 		// Add the four buttons
 		
 		Button resSelectAllButton = new Button(group, SWT.NONE);
-		resSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources"));
+		resSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources")); //$NON-NLS-1$
 		resSelectAllButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		resSelectAllButton.addSelectionListener(this);
 
 		Button bcfgSelectAllButton = new Button(group, SWT.NONE);
-		bcfgSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations"));
+		bcfgSelectAllButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations")); //$NON-NLS-1$
 		bcfgSelectAllButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		bcfgSelectAllButton.addSelectionListener(this);
 
 		Button resSelectNoneButton = new Button(group, SWT.NONE);
-		resSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources"));
+		resSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources")); //$NON-NLS-1$
 		resSelectNoneButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		resSelectNoneButton.addSelectionListener(this);
 
 		Button bcfgSelectNoneButton = new Button(group, SWT.NONE);
-		bcfgSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations"));
+		bcfgSelectNoneButton.setText(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations")); //$NON-NLS-1$
 		bcfgSelectNoneButton.setLayoutData(
 			new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 		bcfgSelectNoneButton.addSelectionListener(this);
@@ -228,16 +228,16 @@ public class ResourceAddedPage
 			// Depending on which button was clicked, update the appropriate tree
 			Button b = (Button) e.getSource();
 			String button_text = b.getText();
-			if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources"))) {
+			if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllResources"))) { //$NON-NLS-1$
 				treeToAffect = newResourcesTree;
 				select = true;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations"))) {
+			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.selectAllConfigurations"))) { //$NON-NLS-1$
 				treeToAffect = buildConfigFilesTree;
 				select = true;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources"))) {
+			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllResources"))) { //$NON-NLS-1$
 				treeToAffect = newResourcesTree;
 				select = false;
-			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations"))) {
+			} else if (button_text.equals(AspectJUIPlugin.getResourceString("newResourcesWizard.deselectAllConfigurations"))) { //$NON-NLS-1$
 				treeToAffect = buildConfigFilesTree;
 				select = false;
 			}

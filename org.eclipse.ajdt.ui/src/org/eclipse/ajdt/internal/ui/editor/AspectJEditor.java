@@ -76,7 +76,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 public class AspectJEditor extends CompilationUnitEditor {
 	
 
-	public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor";
+	public static final String ASPECTJ_EDITOR_ID = "org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor"; //$NON-NLS-1$
 
 	private AnnotationAccessWrapper annotationAccessWrapper;
 
@@ -202,7 +202,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 		public int getLayer(Annotation annotation) {
 			int x = wrapped.getLayer(annotation);
-			if ("org.eclipse.jdt.ui.overrideIndicator".equals(annotation
+			if ("org.eclipse.jdt.ui.overrideIndicator".equals(annotation //$NON-NLS-1$
 					.getType())) {
 				x += 2;
 			}
@@ -368,7 +368,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 						.getWorkingCopyManager()).setWorkingCopy(input, unit);
 			}
 
-			AJLog.log("Editor opened on " + fInput.getFile().getName());
+			AJLog.log("Editor opened on " + fInput.getFile().getName()); //$NON-NLS-1$
 			// Ensure any advice markers are created since they are not
 			// persisted.
 			updateActiveConfig(fInput);
@@ -382,7 +382,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			textTools.setupJavaDocumentPartitioner(document,
 					EclipseEditorIsolation.JAVA_PARTITIONING);
 
-			if ("aj".equals(fInput.getFile().getFileExtension())) {
+			if ("aj".equals(fInput.getFile().getFileExtension())) { //$NON-NLS-1$
 				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
 			
@@ -399,21 +399,21 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IProject project = fInput.getFile().getProject();
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
-			AJLog.log("Configuration file " + configFile + " selected for " + project.getName());
+			AJLog.log("Configuration file " + configFile + " selected for " + project.getName()); //$NON-NLS-1$
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
 		}				
 	}
 
 
 	public void dispose() {
-		AJLog.log("Disposing editor for:" + getTitle());
+		AJLog.log("Disposing editor for:" + getTitle()); //$NON-NLS-1$
 		IEditorInput input = getEditorInput();
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;			
 			// Fix for bug 79633 - editor buffer is not refreshed
 			JavaPlugin.getDefault().getWorkingCopyManager().disconnect(input);
 			
-			AJLog.log("Editor closed - " + fInput.getFile().getName());
+			AJLog.log("Editor closed - " + fInput.getFile().getName()); //$NON-NLS-1$
 			synchronized(activeEditorList) {
 				activeEditorList.remove(this);
 			}
@@ -462,7 +462,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			if(view != null) {
 				PackageExplorerPart packageExplorer = (PackageExplorerPart)view;
 				try {
-					Method isLinkingEnabledMethod = PackageExplorerPart.class.getDeclaredMethod("isLinkingEnabled", new Class[]{});
+					Method isLinkingEnabledMethod = PackageExplorerPart.class.getDeclaredMethod("isLinkingEnabled", new Class[]{}); //$NON-NLS-1$
 					isLinkingEnabledMethod.setAccessible(true);
 					boolean linkingEnabled = ((Boolean)isLinkingEnabledMethod.invoke(packageExplorer, new Object[]{})).booleanValue();
 					if(linkingEnabled) {
@@ -501,13 +501,13 @@ public class AspectJEditor extends CompilationUnitEditor {
 	public void editorContextMenuAboutToShow(IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (isEditingAjFile) {
-			menu.remove("org.eclipse.jdt.ui.refactoring.menu");
+			menu.remove("org.eclipse.jdt.ui.refactoring.menu"); //$NON-NLS-1$
 
 			//remove open type & call hierarchy
 			IContributionItem[] items = menu.getItems();
 			for (int i = 0; i < items.length; i++) {
 				IContributionItem item = items[i];
-				if ("group.open".equals(item.getId())) {
+				if ("group.open".equals(item.getId())) { //$NON-NLS-1$
 					menu.remove(items[i + 2]);
 					menu.remove(items[i + 3]);
 					break;

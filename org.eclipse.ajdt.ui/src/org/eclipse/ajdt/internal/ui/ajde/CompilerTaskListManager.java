@@ -97,7 +97,7 @@ public class CompilerTaskListManager implements TaskListManager {
         //	throw new RuntimeException("Why the hell are we in here? We should
         // always be using the other addSourcelineTask() method");
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("CompilerMessage received ]" + message + "[");
+            System.err.println("CompilerMessage received ]" + message + "["); //$NON-NLS-1$
 
         problems.add(new ProblemTracker(message, location, kind));
  
@@ -144,7 +144,7 @@ public class CompilerTaskListManager implements TaskListManager {
 	 */
     public void clearTasks() {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("clearTasks() called");
+            System.err.println("clearTasks() called"); //$NON-NLS-1$
         affectedResources.clear();
         problems.clear();
     }
@@ -376,9 +376,9 @@ public class CompilerTaskListManager implements TaskListManager {
     }
 
     private int getPrioritiyFlag(String prio) {
-        if (prio.equals("NORMAL"))
+        if (prio.equals("NORMAL")) //$NON-NLS-1$
             return IMarker.PRIORITY_NORMAL;
-        if (prio.equals("HIGH"))
+        if (prio.equals("HIGH")) //$NON-NLS-1$
             return IMarker.PRIORITY_HIGH;
         return IMarker.PRIORITY_LOW;
     }
@@ -403,11 +403,11 @@ public class CompilerTaskListManager implements TaskListManager {
         // FIXME: Remove this horrid hack.
         // Hack the filename off the front and the line number
         // off the end
-        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) {
+        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) {  //$NON-NLS-1$//$NON-NLS-2$
             String hackedMessage = message
-                    .substring(message.indexOf("\":") + 2);
+                    .substring(message.indexOf("\":") + 2); //$NON-NLS-1$
             message = hackedMessage.substring(0, hackedMessage
-                    .indexOf(", at line"));
+                    .indexOf(", at line")); //$NON-NLS-1$
         }
         marker.setAttribute(IMarker.MESSAGE, message);
     }
@@ -470,7 +470,7 @@ public class CompilerTaskListManager implements TaskListManager {
             // blow up
             // with an event trace ...
             if (ir == null)
-            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file "
+            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
                                 + loc);
         }
 
@@ -509,8 +509,8 @@ public class CompilerTaskListManager implements TaskListManager {
             }
         } catch (JavaModelException jmEx) {
         	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"),
-					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx);
+					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
+					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx); //$NON-NLS-1$
         }
 
         if (ret == null)

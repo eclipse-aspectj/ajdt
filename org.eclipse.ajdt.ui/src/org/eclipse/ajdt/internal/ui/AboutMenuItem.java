@@ -65,7 +65,7 @@ public class AboutMenuItem
 			Shell shell = iww.getShell();
 				MessageDialog.openInformation(
 							shell,
-							AspectJUIPlugin.getResourceString("ajAboutDialog"),
+							AspectJUIPlugin.getResourceString("ajAboutDialog"), //$NON-NLS-1$
 							"AJDT version: " + ajdtVersion + 
 							"\nAJDE version: " + ajdeVersion );
 		}

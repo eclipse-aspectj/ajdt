@@ -210,10 +210,10 @@ public class PulldownBuildselectorMenu implements
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
 							"Build pulldown error", cEx);
 				} catch (NullPointerException npe) {
-					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:"
+					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:" //$NON-NLS-1$
 									+ npe);
 				} catch (OperationCanceledException e) {
-					AJLog.log("Build was cancelled.");
+					AJLog.log("Build was cancelled."); //$NON-NLS-1$
 				}
 			}
 		};

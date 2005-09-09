@@ -260,11 +260,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	IResourceChangeListener resourceChangeListener;
 
 	// custom attributes AJDT markers can have
-	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice";
+	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
 
-	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-";
+	public static final String RELATED_LOCATIONS_ATTRIBUTE_PREFIX = "relatedLocations-"; //$NON-NLS-1$
 
-	public static final String ACCKIND_ATTRIBUTE = "acckind";
+	public static final String ACCKIND_ATTRIBUTE = "acckind"; //$NON-NLS-1$
 	
 	/**
 	 * Return the single default instance of this plugin
@@ -307,7 +307,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return MessageFormat.format(getResourceString(key), args);
 	}
 
-	private final static String defaultLstShouldBeUsed = "org.eclipse.ajdt.ui.buildConfig.useDefaultLst";
+	private final static String defaultLstShouldBeUsed = "org.eclipse.ajdt.ui.buildConfig.useDefaultLst"; //$NON-NLS-1$
 
 	public static final int PROGRESS_MONITOR_MAX = 100;
 
@@ -322,8 +322,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 
-		String propertyName = "org.eclipse.ajdt.ui." + project.getName()
-				+ ".lst";
+		String propertyName = "org.eclipse.ajdt.ui." + project.getName() //$NON-NLS-1$
+				+ ".lst"; //$NON-NLS-1$
 
 		if (buildfile == null)
 			store.setValue(propertyName, defaultLstShouldBeUsed);
@@ -332,7 +332,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		String cfg = AspectJPlugin.getBuildConfigurationFile(project);
 		Ajde.getDefault().getConfigurationManager().setActiveConfigFile(cfg);
-		AJLog.log("Configuration file " + cfg + " selected for " + project.getName());
+		AJLog.log("Configuration file " + cfg + " selected for " + project.getName()); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public static void setBuildConfigurationFile(IProject project,
@@ -356,7 +356,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		try {
 			resourceBundle = ResourceBundle
-					.getBundle("org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources");
+					.getBundle("org.eclipse.ajdt.internal.ui.resources.AspectJPluginResources"); //$NON-NLS-1$
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}
@@ -387,9 +387,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		String previousAjdeVersion = store.getString(AJDE_VERSION_KEY_PREVIOUS);
 		if (previousAjdeVersion == null
 				|| !currentAjdeVersion.equals(previousAjdeVersion)) {
-			AJLog.log("New version of AJDE detected (now:"
+			AJLog.log("New version of AJDE detected (now:" //$NON-NLS-1$
 					+ currentAjdeVersion
-					+ ") - checking aspectjrt.jar for each project.");
+					+ ") - checking aspectjrt.jar for each project."); //$NON-NLS-1$
 
 			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 					.getProjects();
@@ -409,20 +409,20 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	}
 
 	private void checkProblemMarkersVisible() {
-		String TAG_DIALOG_SECTION = "org.eclipse.ui.views.problem";
-		String problemMarker = "org.eclipse.ajdt.ui.problemmarker:";
+		String TAG_DIALOG_SECTION = "org.eclipse.ui.views.problem"; //$NON-NLS-1$
+		String problemMarker = "org.eclipse.ajdt.ui.problemmarker:"; //$NON-NLS-1$
 		AbstractUIPlugin plugin = UIPlugin.getDefault();
 		IDialogSettings workbenchSettings = plugin.getDialogSettings();
 		IDialogSettings settings = workbenchSettings
 				.getSection(TAG_DIALOG_SECTION);
 		if (settings != null) {
-			IDialogSettings filterSettings = settings.getSection("filter");
+			IDialogSettings filterSettings = settings.getSection("filter"); //$NON-NLS-1$
 			if (filterSettings != null) {
-				String enabledMarkers = filterSettings.get("selectedType");
+				String enabledMarkers = filterSettings.get("selectedType"); //$NON-NLS-1$
 				if ((enabledMarkers != null)
 						&& enabledMarkers.indexOf(problemMarker) == -1) {
 					enabledMarkers = enabledMarkers + problemMarker;
-					filterSettings.put("selectedType", enabledMarkers);
+					filterSettings.put("selectedType", enabledMarkers); //$NON-NLS-1$
 				}
 			}
 		}
@@ -523,7 +523,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				Constants.BUNDLE_VERSION);
 		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
 
-		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "."
+		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." //$NON-NLS-1$ //$NON-NLS-2$
 				+ pvi.getServiceComponent();
 
 		initDebugging();
@@ -605,9 +605,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			getErrorHandler().handleError(
 					getFormattedResourceString("wrong.eclipse.version", //$NON-NLS-1$
 							new String[] {
-									EclipseVersion.MAJOR_VERSION + "."
+									EclipseVersion.MAJOR_VERSION + "." //$NON-NLS-1$
 											+ EclipseVersion.MINOR_VERSION,
-									pvi.getMajorComponent() + "."
+									pvi.getMajorComponent() + "." //$NON-NLS-1$
 											+ pvi.getMinorComponent() }));
 		}
 	}
@@ -674,30 +674,30 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 */
 	private void initDebugging() {
 		if (isDebugging()) {
-			System.out.println("AJP START: " + PLUGIN_ID + " " + VERSION);
+			System.out.println("AJP START: " + PLUGIN_ID + " " + VERSION); //$NON-NLS-1$ //$NON-NLS-2$
 			isDebugging = true;
 
 			String option;
-			option = Platform.getDebugOption(PLUGIN_ID + "/builderDebug");
-			if (option != null && option.equals("true")) {
-				System.out.println("AJP builderDebug ON");
+			option = Platform.getDebugOption(PLUGIN_ID + "/builderDebug"); //$NON-NLS-1$
+			if (option != null && option.equals("true")) { //$NON-NLS-1$
+				System.out.println("AJP builderDebug ON"); //$NON-NLS-1$
 				DEBUG_BUILDER = true;
 			} else {
-				System.out.println("AJP builderDebug OFF");
+				System.out.println("AJP builderDebug OFF"); //$NON-NLS-1$
 			}
-			option = Platform.getDebugOption(PLUGIN_ID + "/compilerDebug");
-			if (option != null && option.equals("true")) {
-				System.out.println("AJP compilerDebug ON");
+			option = Platform.getDebugOption(PLUGIN_ID + "/compilerDebug"); //$NON-NLS-1$
+			if (option != null && option.equals("true")) { //$NON-NLS-1$
+				System.out.println("AJP compilerDebug ON"); //$NON-NLS-1$
 				DEBUG_COMPILER = true;
 			} else {
-				System.out.println("AJP compilerDebug OFF");
+				System.out.println("AJP compilerDebug OFF"); //$NON-NLS-1$
 			}
-			option = Platform.getDebugOption(PLUGIN_ID + "/outlineDebug");
-			if (option != null && option.equals("true")) {
-				System.out.println("AJP outlineDebug ON");
+			option = Platform.getDebugOption(PLUGIN_ID + "/outlineDebug"); //$NON-NLS-1$
+			if (option != null && option.equals("true")) { //$NON-NLS-1$
+				System.out.println("AJP outlineDebug ON"); //$NON-NLS-1$
 				DEBUG_OUTLINE = true;
 			} else {
-				System.out.println("AJP outlineDebug OFF");
+				System.out.println("AJP outlineDebug OFF"); //$NON-NLS-1$
 			}
 		}
 
@@ -789,8 +789,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			for (int i = 0; i < resource_list.length; i++) {
 				IResource ir = resource_list[i];
 				// Add lst files to the list, but NOT default.lst
-				if (ir.getName().endsWith(".lst")
-						&& !ir.getName().equals("default.lst"))
+				if (ir.getName().endsWith(".lst") //$NON-NLS-1$
+						&& !ir.getName().equals("default.lst")) //$NON-NLS-1$
 					allLstFiles.add(ir);
 				if (ir instanceof IContainer)
 					getLstFiles(((IContainer) ir).members(), allLstFiles);
@@ -869,8 +869,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			// to the collection of new classpath entries.
 			for (int i = 0; i < originalCP.length; i++) {
 				IPath path = originalCP[i].getPath();
-				if (!path.toOSString().endsWith("ASPECTJRT_LIB")
-						&& !path.toOSString().endsWith("aspectjrt.jar")) {
+				if (!path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+						&& !path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
 					tempCP.add(originalCP[i]);
 				}
 			}// end for

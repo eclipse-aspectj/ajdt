@@ -42,10 +42,10 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 	private Button useNewCrossCuttingViews;
 	
 	protected CrossCuttingViewMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.name"));
-		this.setTitle(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.title"));		
+		super(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.name")); //$NON-NLS-1$
+		this.setTitle(AspectJUIPlugin.getResourceString("CrossCuttingViewMigrationPage.title"));		 //$NON-NLS-1$
 		this.setDescription( AspectJUIPlugin
-				.getResourceString("CrossCuttingViewMigrationPage.description"));
+				.getResourceString("CrossCuttingViewMigrationPage.description")); //$NON-NLS-1$
 	}
 	
 	public void createControl(Composite parent) {
@@ -98,7 +98,7 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 			activePage.showView(IPageLayout.ID_OUTLINE);
 		} catch (PartInitException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e); //$NON-NLS-1$
 		}		
 		store.setToDefault(AspectJPreferences.ADVICE_DECORATOR);
 	}
@@ -109,7 +109,7 @@ public class CrossCuttingViewMigrationPage extends WizardPage {
 				.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e);
+					AspectJUIPlugin.getResourceString("AJDTPrefConfigWizardPage.ErrorOpeningXRefView"), e); //$NON-NLS-1$
 		}
 	}
 }

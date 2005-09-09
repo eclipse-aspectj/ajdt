@@ -97,7 +97,7 @@ public class UIBuildListener implements IAJBuildListener {
 		BuildManager buildManager = Ajde.getDefault().getBuildManager();
 		if (!AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getBuildAsm()) {
-			AJLog.log("build: No structure model to be built for project: "
+			AJLog.log("build: No structure model to be built for project: " //$NON-NLS-1$
 							+ project.getName());
 			buildManager.setBuildModelMode(false);
 		} else {
@@ -130,8 +130,8 @@ public class UIBuildListener implements IAJBuildListener {
 				}
 			}
 		} catch (CoreException e) {
-			AJLog.log("build: Problem occured finding the markers for project "
-							+ project.getName() + ": " + e.getStackTrace());
+			AJLog.log("build: Problem occured finding the markers for project " //$NON-NLS-1$
+							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
 		}
 		return false;
 	}
@@ -142,8 +142,8 @@ public class UIBuildListener implements IAJBuildListener {
 			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
-			AJLog.log("build: Problem occured creating the error marker for project "
-							+ project.getName() + ": " + e.getStackTrace());
+			AJLog.log("build: Problem occured creating the error marker for project " //$NON-NLS-1$
+							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
 		}
 	}
 
@@ -193,7 +193,7 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		
 		// The message to feature in the problems view of depending projects
-		String buildPrereqsMessage = AspectJUIPlugin.getFormattedResourceString("buildPrereqsMessage",
+		String buildPrereqsMessage = AspectJUIPlugin.getFormattedResourceString("buildPrereqsMessage", //$NON-NLS-1$
 				project.getName());
 		if (buildCancelled) {
 			markReferencingProjects(project, buildPrereqsMessage);
@@ -216,7 +216,7 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
-			AJLog.log("Not updating vis, xref, or changes views as display is disposed!");
+			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
 		} else {
 			AspectJUIPlugin.getDefault().getDisplay().syncExec(
 				new Runnable() {
@@ -286,9 +286,9 @@ public class UIBuildListener implements IAJBuildListener {
 				}
 			}
 		} catch (CoreException e) {
-			AJLog.log("build: Problem occured either finding the markers for project "
+			AJLog.log("build: Problem occured either finding the markers for project " //$NON-NLS-1$
 							+ project.getName()
-							+ ", or deleting the error marker: "
+							+ ", or deleting the error marker: " //$NON-NLS-1$
 							+ e.getStackTrace());
 		}
 	}

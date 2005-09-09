@@ -150,9 +150,9 @@ public class AspectPathPropertyPage extends PropertyPage implements
 					.getErrorHandler()
 					.handleError(
 							AspectJUIPlugin
-									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.title"),
+									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.title"), //$NON-NLS-1$
 							AspectJUIPlugin
-									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.message"),
+									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.message"), //$NON-NLS-1$
 							ce);
         }
 
@@ -238,7 +238,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
             } catch (InvocationTargetException e) {
-                String title= PreferencesMessages.getString("BuildPathsPropertyPage.error.title");
+                String title= PreferencesMessages.getString("BuildPathsPropertyPage.error.title"); //$NON-NLS-1$
                 String message= PreferencesMessages.getString("BuildPathsPropertyPage.error.message"); //$NON-NLS-1$
                 // TODO : Handle exception 
                 return false;

@@ -153,12 +153,12 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                             // source location
                             while (loc != null) {
                                 // decode the source location
-                                String[] s = loc.split(":::");
+                                String[] s = loc.split(":::"); //$NON-NLS-1$
                                 String resName = s[0].substring(s[0]
                                         .lastIndexOf(File.separator) + 1);
                                 String textLabel = AspectJUIPlugin
                                         .getFormattedResourceString(
-                                                "EditorRulerContextMenu.relatedLocation.message",
+                                                "EditorRulerContextMenu.relatedLocation.message", //$NON-NLS-1$
                                                 new String[] { resName, s[1] });
                                 RelatedLocationMenuAction ama = new RelatedLocationMenuAction(
                                         textLabel, loc);
@@ -167,7 +167,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 if (!problemSubmenuInitialized) {
                                     problemSubmenu = new MenuManager(
                                             AspectJUIPlugin
-                                                    .getResourceString("EditorRulerContextMenu.relatedLocations"));
+                                                    .getResourceString("EditorRulerContextMenu.relatedLocations")); //$NON-NLS-1$
                                     if (!addedSeparator) {
                                         manager.add(new Separator());
                                     }
@@ -354,7 +354,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
             // affected sites.
             try {
                 // Take jumpLocation apart. It is initially: FFFF:::NNNN:::NNNN:::NNNN
-                String[] s = getJumpLocation().split(":::");                               
+                String[] s = getJumpLocation().split(":::");                                //$NON-NLS-1$
                 final String filepath = s[0];
                 final String linenumber = s[1];
                 // System.err.println("FilePath=" + filepath);

@@ -598,7 +598,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 			ControlData data = (ControlData) curr.getData();
 			String defaultValue = getPreferenceStore().getDefaultString(
 					data.getKey());
-			curr.setSelection(defaultValue.equals("true"));
+			curr.setSelection(defaultValue.equals("true")); //$NON-NLS-1$
 		}
 	}
 
@@ -621,7 +621,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 			String[] values, int indent, boolean fillGridVertically) {
 		ControlData data = new ControlData(key, values);
 
-		int idx = label.indexOf("-");
+		int idx = label.indexOf("-"); //$NON-NLS-1$
 		String optionname = label.substring(0,idx);
 		String optiondesc = label.substring(idx+1);
 		optiondesc=optiondesc.trim();
@@ -642,7 +642,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalIndent = 20;
 		l.setLayoutData(gridData);
-		createLabel(parent,"");//filler
+		createLabel(parent,"");//filler //$NON-NLS-1$
 		
 
 		boolean currValue = getPreferenceStore().getBoolean(key);

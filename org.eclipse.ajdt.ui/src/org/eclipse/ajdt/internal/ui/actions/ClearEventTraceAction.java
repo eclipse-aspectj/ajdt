@@ -69,7 +69,7 @@ public class ClearEventTraceAction extends Action {
 		BusyIndicator.showWhile(ConsolePlugin.getStandardDisplay(),
 				new Runnable() {
 					public void run() {
-						fText.setText("");
+						fText.setText(""); //$NON-NLS-1$
 					}
 				});
 	}

@@ -87,23 +87,23 @@ public class AspectJPreferencePage
 
 		createLabel(
 				compilerOptionsComposite,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.description"));
+				AspectJUIPlugin.getResourceString("aspectjPreferences.description")); //$NON-NLS-1$
 
 		createLabel(compilerOptionsComposite, ""); // Spacer
 
 		createLabel(
 			compilerOptionsComposite,
-			AspectJUIPlugin.getResourceString("aspectjPreferences.compilerVersion")
+			AspectJUIPlugin.getResourceString("aspectjPreferences.compilerVersion") //$NON-NLS-1$
 				+ " "
 				+ new String(Ajde.getDefault().getVersion()));
 
 		createLabel(
 			compilerOptionsComposite,
-			AspectJUIPlugin.getResourceString("aspectjPreferences.pluginVersion")
+			AspectJUIPlugin.getResourceString("aspectjPreferences.pluginVersion") //$NON-NLS-1$
 				+ " "
 				+ new String(AspectJUIPlugin.VERSION));
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
 		createLabel(compilerOptionsComposite, "Support Information");
 		ITextViewer itw1 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
@@ -126,7 +126,7 @@ public class AspectJPreferencePage
 					
 					
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 		
 		addField(createAdviceDecoratorField(compilerOptionsComposite));
 		
@@ -184,7 +184,7 @@ public class AspectJPreferencePage
 		BooleanFieldEditor editor =
 			new BooleanFieldEditor(
 				AspectJPreferences.ADVICE_DECORATOR,
-				AspectJUIPlugin.getResourceString("aspectjPreferences.adviceDec"),
+				AspectJUIPlugin.getResourceString("aspectjPreferences.adviceDec"), //$NON-NLS-1$
 				parent);
 		return editor;
 	}

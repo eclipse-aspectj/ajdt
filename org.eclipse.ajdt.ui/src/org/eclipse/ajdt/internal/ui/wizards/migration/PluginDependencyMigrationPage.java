@@ -136,7 +136,7 @@ public class PluginDependencyMigrationPage extends WizardPage {
 						.getPackageFragmentRoots();
 				for (int i = 0; i < dependencies.length; i++) {
 					if (dependencies[i].getElementName().equals(
-							"aspectjrt.jar")) // $NON-NLS-1$
+							"aspectjrt.jar")) //$NON-NLS-1$
 						return true;
 				}
 			} catch (JavaModelException e) {
@@ -146,7 +146,7 @@ public class PluginDependencyMigrationPage extends WizardPage {
 
 		for (int i = 0; i < imports.length; i++) {
 			IPluginImport importObj = imports[i];
-			if (importObj.getId().equals("org.aspectj.ajde")) { // $NON-NLS-1$
+			if (importObj.getId().equals("org.aspectj.ajde")) { //$NON-NLS-1$
 				return true;
 			}
 		}
@@ -163,7 +163,7 @@ public class PluginDependencyMigrationPage extends WizardPage {
 		if (manEd != null) {
 			IPluginModel model = (IPluginModel) manEd.getAggregateModel();
 			try {
-				AJDTUtils.removeImportFromPDEModel(model, "org.aspectj.ajde"); // $NON-NLS-1$
+				AJDTUtils.removeImportFromPDEModel(model, "org.aspectj.ajde"); //$NON-NLS-1$
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
 				AspectJUIPlugin
@@ -171,9 +171,9 @@ public class PluginDependencyMigrationPage extends WizardPage {
 						.getErrorHandler()
 						.handleError(
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.title"),
+										.getResourceString("AutoPluginRemoveErrorDialog.title"), //$NON-NLS-1$
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveErrorDialog.message"),
+										.getResourceString("AutoPluginRemoveErrorDialog.message"), //$NON-NLS-1$
 								e);
 			}
 		}// end if we got a reference to the manifest editor
@@ -183,9 +183,9 @@ public class PluginDependencyMigrationPage extends WizardPage {
 							AspectJUIPlugin.getDefault().getWorkbench()
 									.getActiveWorkbenchWindow().getShell(),
 							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
+									.getResourceString("AutoPluginRemoveDialog.noEditor.title"), //$NON-NLS-1$
 							AspectJUIPlugin
-									.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
+									.getResourceString("AutoPluginRemoveDialog.noEditor.message")); //$NON-NLS-1$
 		}
 	}
 }

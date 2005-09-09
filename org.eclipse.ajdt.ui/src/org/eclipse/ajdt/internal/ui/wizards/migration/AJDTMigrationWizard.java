@@ -70,7 +70,7 @@ public class AJDTMigrationWizard extends Wizard {
 	 * Set-up the title.
 	 */
 	public void init() {
-		setWindowTitle(AspectJUIPlugin.getResourceString("AJDTMigrationWizard.title")); 
+		setWindowTitle(AspectJUIPlugin.getResourceString("AJDTMigrationWizard.title"));  //$NON-NLS-1$
 	}
 	
 	/**

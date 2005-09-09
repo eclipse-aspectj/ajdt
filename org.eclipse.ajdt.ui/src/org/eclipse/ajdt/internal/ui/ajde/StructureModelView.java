@@ -152,7 +152,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 						}
 					}
 				} else {
-					AJLog.log("Problem in outline view: Editor input is not a file");
+					AJLog.log("Problem in outline view: Editor input is not a file"); //$NON-NLS-1$
 				}
 			}
 		}
@@ -164,20 +164,20 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	
 	private String getLogMessage(String label, IMarker marker) {
 		StringBuffer buff = new StringBuffer( );
-		buff.append( "Tree node selected: " );
+		buff.append( "Tree node selected: " ); //$NON-NLS-1$
 		buff.append( label );
-		buff.append( ". Navigation target: " );
+		buff.append( ". Navigation target: " ); //$NON-NLS-1$
 		if ( marker != null ) {
 			buff.append( marker.getResource().getName( ) );
-			buff.append( " line " );
+			buff.append( " line " ); //$NON-NLS-1$
 			try {
 				Integer lineNo = (Integer) marker.getAttribute( IMarker.LINE_NUMBER );
 				buff.append( lineNo.intValue() );
 			} catch ( Exception ex ) {
-				buff.append( "ERR" );	
+				buff.append( "ERR" );	 //$NON-NLS-1$
 			}
 		} else {
-			buff.append( "<None>" );
+			buff.append( "<None>" ); //$NON-NLS-1$
 		}
 		return buff.toString();
 	}

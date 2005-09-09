@@ -48,7 +48,7 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.workbench = workbench;
 		this.selection = selection;
-		setWindowTitle(AspectJUIPlugin.getResourceString("newResourcesWizard.wizardTitle"));
+		setWindowTitle(AspectJUIPlugin.getResourceString("newResourcesWizard.wizardTitle")); //$NON-NLS-1$
 		newResourcesList = null;
 	}
 
@@ -99,10 +99,10 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 			String resourcePath =
 				workspacePath.toOSString() + resourceFile.getFullPath().toOSString();
 			// .lst file entries in other .lst files need to be preceeded with a '@'
-			if (resourcePath.endsWith(".lst"))
-				newLines.append("@");
+			if (resourcePath.endsWith(".lst")) //$NON-NLS-1$
+				newLines.append("@"); //$NON-NLS-1$
 			newLines.append(resourcePath);
-			newLines.append("\n");
+			newLines.append("\n"); //$NON-NLS-1$
 		}
 		
 		// Go through the list of config files and add that string buffer of new
@@ -120,13 +120,13 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 				InputStream is = ifile.getContents();
 				byte[] inputdata = new byte[is.available()];
 				is.read(inputdata);
-				if (inputdata[inputdata.length - 1] == (new String("\n").getBytes()[0])) trailingReturnRequired = false;
+				if (inputdata[inputdata.length - 1] == (new String("\n").getBytes()[0])) trailingReturnRequired = false; //$NON-NLS-1$
 
 				// Build an appropriate input stream to pass to appendContents()
 				ByteArrayInputStream bais = null;
 				if (trailingReturnRequired)
 					bais =
-						new ByteArrayInputStream(new String("\n" + newLines.toString()).getBytes());
+						new ByteArrayInputStream(new String("\n" + newLines.toString()).getBytes()); //$NON-NLS-1$
 				else
 					bais = new ByteArrayInputStream(newLines.toString().getBytes());
 
@@ -138,7 +138,7 @@ public class ResourceAddedWizard extends Wizard implements INewWizard {
 				ifile.appendContents(bais, true, false, null);
 			} catch (Exception e) {
 				AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				AspectJUIPlugin.getResourceString("newResourcesWizard.exceptionAppendingToBuildConfigFile")+
+				AspectJUIPlugin.getResourceString("newResourcesWizard.exceptionAppendingToBuildConfigFile")+ //$NON-NLS-1$
 				  ifile.getFullPath().toOSString(),e);
 			}
 		}

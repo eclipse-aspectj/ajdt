@@ -79,7 +79,7 @@ public class BuildOptionsAdapter extends CoreBuildOptions {
 		
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
 			System.out.println(
-				"BuildOptionsAdapter.getIncrementalMode called, returning :"
+				"BuildOptionsAdapter.getIncrementalMode called, returning :" //$NON-NLS-1$
 					+ new Boolean(incrementalMode));
 		}
 
@@ -91,7 +91,7 @@ public class BuildOptionsAdapter extends CoreBuildOptions {
 		boolean buildAsm = AspectJPreferences.getBuildASMOption(currentProject);
 
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
-			System.out.println("BuildOptionsAdapter.getBuildAsm called, returning :"
+			System.out.println("BuildOptionsAdapter.getBuildAsm called, returning :" //$NON-NLS-1$
 				+ new Boolean(buildAsm));
 		}
 		return buildAsm;
@@ -101,7 +101,7 @@ public class BuildOptionsAdapter extends CoreBuildOptions {
 		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();	
 		boolean showweavemessages =  AspectJPreferences.getShowWeaveMessagesOption(currentProject);
 		if (AspectJUIPlugin.DEBUG_BUILDER) {
-			System.out.println("BuildOptionsAdapter.getShowWeaveMessages called, returning :"
+			System.out.println("BuildOptionsAdapter.getShowWeaveMessages called, returning :" //$NON-NLS-1$
 				+ new Boolean(showweavemessages));
 		}
 		return showweavemessages;

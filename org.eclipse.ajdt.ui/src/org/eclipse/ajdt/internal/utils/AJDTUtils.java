@@ -127,7 +127,7 @@ public class AJDTUtils {
 
 		Point size = useSmallSize(decorations) ? SMALL_SIZE : BIG_SIZE;
 		// Check the image descriptor cache
-		String key = new String(base.toString() + ":::" + decorations + ":::"
+		String key = new String(base.toString() + ":::" + decorations + ":::"  //$NON-NLS-1$//$NON-NLS-2$
 				+ size.toString());
 		// Example key is
 		// "URLImageDescriptor(platform:/plugin/org.aspectj.ajde_1.1.0/icons/structure/file-lst.gif):::0:::Point
@@ -344,7 +344,7 @@ public class AJDTUtils {
 	 * @return
 	 */
 	private static boolean containsAJFiles(IResource resource) {
-		if(resource instanceof IFile && resource.getName().endsWith(".aj")) {
+		if(resource instanceof IFile && resource.getName().endsWith(".aj")) { //$NON-NLS-1$
 			return true;
 		} else if (resource instanceof IFolder && ((IFolder)resource).exists()) {
 			IResource[] members;
@@ -371,7 +371,7 @@ public class AJDTUtils {
 	public static void checkMyEclipseNature(IProject project) {
 		try {
 			// check project nature
-			if (project.hasNature("com.genuitec.eclipse.j2eedt.core.webnature") // $NON-NLS-1$
+			if (project.hasNature("com.genuitec.eclipse.j2eedt.core.webnature") //$NON-NLS-1$
 					|| project
 							.hasNature("com.genuitec.eclipse.j2eedt.core.ejbnature")) { //$NON-NLS-1$
 				//display message only once per eclipse startup
@@ -462,9 +462,9 @@ public class AJDTUtils {
 					.openWarning(
 							window.getShell(),
 							AspectJUIPlugin
-									.getResourceString("NoAutoPluginImportDialog.title"),
+									.getResourceString("NoAutoPluginImportDialog.title"), //$NON-NLS-1$
 							AspectJUIPlugin
-									.getResourceString("NoAutoPluginImportDialog.message"));
+									.getResourceString("NoAutoPluginImportDialog.message")); //$NON-NLS-1$
 		}
 	}
 
@@ -500,9 +500,9 @@ public class AJDTUtils {
 							AspectJUIPlugin.getDefault().getWorkbench()
 									.getActiveWorkbenchWindow().getShell(),
 							AspectJUIPlugin
-									.getResourceString("AutoPluginImportDialog.noEditor.title"),
+									.getResourceString("AutoPluginImportDialog.noEditor.title"), //$NON-NLS-1$
 							AspectJUIPlugin
-									.getResourceString("AutoPluginImportDialog.noEditor.message"));
+									.getResourceString("AutoPluginImportDialog.noEditor.message")); //$NON-NLS-1$
 		}
 	}
 
@@ -768,9 +768,9 @@ public class AJDTUtils {
 							.getErrorHandler()
 							.handleError(
 									AspectJUIPlugin
-											.getResourceString("AutoPluginRemoveErrorDialog.title"),
+											.getResourceString("AutoPluginRemoveErrorDialog.title"), //$NON-NLS-1$
 									AspectJUIPlugin
-											.getResourceString("AutoPluginRemoveErrorDialog.message"),
+											.getResourceString("AutoPluginRemoveErrorDialog.message"), //$NON-NLS-1$
 									e);
 				}
 			}// end if we got a reference to the manifest editor
@@ -780,9 +780,9 @@ public class AJDTUtils {
 								AspectJUIPlugin.getDefault().getWorkbench()
 										.getActiveWorkbenchWindow().getShell(),
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveDialog.noEditor.title"),
+										.getResourceString("AutoPluginRemoveDialog.noEditor.title"), //$NON-NLS-1$
 								AspectJUIPlugin
-										.getResourceString("AutoPluginRemoveDialog.noEditor.message"));
+										.getResourceString("AutoPluginRemoveDialog.noEditor.message")); //$NON-NLS-1$
 			}
 		}
 	}
@@ -832,7 +832,7 @@ public class AJDTUtils {
 			// is now invalid - but I don't ...
 			for (int i = 0; i < originalCP.length; i++) {
 				IPath path = originalCP[i].getPath();
-				if (path.toOSString().endsWith("aspectjrt.jar")) {
+				if (path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
 					IClasspathEntry ajrtCP = JavaCore.newLibraryEntry(new Path(
 							ajrtPath), // library location
 							null, // no source
@@ -840,9 +840,9 @@ public class AJDTUtils {
 							);
 					tempCP.add(ajrtCP);
 					changed = true;
-					AJLog.log("In project "
-							+ current.getName() + " - replacing "
-							+ originalCP[i].getPath() + " with "
+					AJLog.log("In project " //$NON-NLS-1$
+							+ current.getName() + " - replacing " //$NON-NLS-1$
+							+ originalCP[i].getPath() + " with " //$NON-NLS-1$
 							+ ajrtCP.getPath());
 				} else {
 					tempCP.add(originalCP[i]);
@@ -875,11 +875,11 @@ public class AJDTUtils {
 				.openQuestion(
 						window.getShell(),
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmTitle"),
+								.getResourceString("PluginImportDialog.importConfirmTitle"), //$NON-NLS-1$
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmMsg"),
+								.getResourceString("PluginImportDialog.importConfirmMsg"), //$NON-NLS-1$
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.importConfirmToggleMsg"),
+								.getResourceString("PluginImportDialog.importConfirmToggleMsg"), //$NON-NLS-1$
 						false); // toggle is initially unchecked
 
 		int result = dialog.getReturnCode();
@@ -911,11 +911,11 @@ public class AJDTUtils {
 				.openQuestion(
 						window.getShell(),
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmTitle"),
+								.getResourceString("PluginImportDialog.removeImportConfirmTitle"), //$NON-NLS-1$
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmMsg"),
+								.getResourceString("PluginImportDialog.removeImportConfirmMsg"), //$NON-NLS-1$
 						AspectJUIPlugin
-								.getResourceString("PluginImportDialog.removeImportConfirmToggleMsg"),
+								.getResourceString("PluginImportDialog.removeImportConfirmToggleMsg"), //$NON-NLS-1$
 						false); // toggle is initially unchecked
 
 		int result = dialog.getReturnCode();
@@ -1004,7 +1004,7 @@ public class AJDTUtils {
 	private static class RefreshPackageExplorerJob extends UIJob {
 		RefreshPackageExplorerJob() {
 			super(AspectJUIPlugin
-					.getResourceString("utils.refresh.explorer.job"));
+					.getResourceString("utils.refresh.explorer.job")); //$NON-NLS-1$
 		}
 
 		public IStatus runInUIThread(IProgressMonitor monitor) {

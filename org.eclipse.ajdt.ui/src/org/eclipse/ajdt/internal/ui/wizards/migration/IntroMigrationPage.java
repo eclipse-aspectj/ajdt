@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.Label;
 public class IntroMigrationPage extends WizardPage {
 	
 	protected IntroMigrationPage() {
-		super(AspectJUIPlugin.getResourceString("IntroMigrationPage.name"));
-		this.setTitle(AspectJUIPlugin.getResourceString("IntroMigrationPage.title"));		
-		this.setDescription(AspectJUIPlugin.getResourceString("IntroMigrationPage.description"));
+		super(AspectJUIPlugin.getResourceString("IntroMigrationPage.name")); //$NON-NLS-1$
+		this.setTitle(AspectJUIPlugin.getResourceString("IntroMigrationPage.title"));		 //$NON-NLS-1$
+		this.setDescription(AspectJUIPlugin.getResourceString("IntroMigrationPage.description")); //$NON-NLS-1$
 	}
 
 	public void createControl(Composite parent) {
@@ -38,7 +38,7 @@ public class IntroMigrationPage extends WizardPage {
 		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Label label = new Label(composite, SWT.NONE);
-		label.setText(AspectJUIPlugin.getResourceString("IntroMigrationPage.message"));
+		label.setText(AspectJUIPlugin.getResourceString("IntroMigrationPage.message")); //$NON-NLS-1$
 		setControl(composite);
 
 	}

@@ -100,7 +100,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 			}
 		}
 		if (updateRequired) {
-			AJLog.log("AJDTContentProvider.selectionChanged(): Marking visualiser content as out of date");
+			AJLog.log("AJDTContentProvider.selectionChanged(): Marking visualiser content as out of date"); //$NON-NLS-1$
 			currentGroups = null;
 			currentMembers = null;
 			VisualiserPlugin.refresh();
@@ -153,8 +153,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 					boolean defaultPackage = packageFragment.isDefaultPackage();
 					IGroup group = new JDTGroup(packageFragment.getElementName());
 					if(defaultPackage) {
-						group.setName("(default package)"); // $NON-NLS-1$
-						group.setTooltip("(default package)"); // $NON-NLS-1$
+						group.setName("(default package)"); //$NON-NLS-1$
+						group.setTooltip("(default package)"); //$NON-NLS-1$
 					}
 					for (Iterator iter = classes.iterator(); iter.hasNext();) {
 						IMember member = (IMember) iter.next();
@@ -190,8 +190,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 					// ?!? Need to confirm a group for the pkg frag is OK in the case of a selection like thiss
 					IGroup group = new JDTGroup(packageFrag.getElementName());
 					if(defaultPackage) {
-						group.setName("(default package)"); // $NON-NLS-1$
-						group.setTooltip("(default package)"); // $NON-NLS-1$
+						group.setName("(default package)"); //$NON-NLS-1$
+						group.setTooltip("(default package)"); //$NON-NLS-1$
 					}
 					if(defaultPackage) {
 						member.setFullName(member.getName());						
@@ -204,7 +204,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 		}
 		long etime = System.currentTimeMillis();
 
-		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms");
+		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$
 	}
 
 	

@@ -1981,15 +1981,5 @@
   </extension>
 -->
 
-<!-- EXPERIMENTAL
-  <extension point="org.eclipse.ui.views">
-    <view name="Pointcut Navigator" 
-    	icon="icons/structure/after_advice.gif" 
-    	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.internal.ui.navigator.PointcutNavigatorView" 
-    	id="org.eclipse.ajdt.ui.navigator.PointcutNavigatorView" /> 
-  </extension>
--->
-
 
 </plugin>

@@ -33,7 +33,7 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 public class AJDTStructureViewNode 
 implements IStructureViewNode, IAdaptable {
 
-	private static final String JDT_IMPORTS_LABEL = "import declarations";
+	private static final String JDT_IMPORTS_LABEL = "import declarations"; //$NON-NLS-1$
 
 	private IStructureViewNode.Kind kind = IStructureViewNode.Kind.DECLARATION;
 	
