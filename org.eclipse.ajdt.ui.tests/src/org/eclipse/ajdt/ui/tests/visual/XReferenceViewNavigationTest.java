@@ -40,7 +40,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 	 * after it's been checked.
 	 */
 	public void testShowXRefsForEntireFile() throws Exception {
-
+		
 		// import the Bean example and check that the xref view
 		// is showing
 		IProject project = createPredefinedProject("Bean Example");

@@ -13,6 +13,7 @@ package org.eclipse.contribution.xref.internal.ui.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IDeferredXReference;
@@ -202,7 +203,7 @@ public class XRefUIUtils {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object first = structuredSelection.getFirstElement();
 			if (first instanceof IJavaElement) {
-				return getXRefAdapterList((IJavaElement)first,showParentCrosscutting);
+				return getXRefAdapterListForJavaElement((IJavaElement)first,showParentCrosscutting);
 			} 
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
  		    if (part instanceof JavaEditor) {
@@ -211,15 +212,36 @@ public class XRefUIUtils {
 			    IJavaElement javaElement = (IJavaElement)sourceRef;
 			    // if we want to show the parent crosscutting then need to show the xrefs for 
 			    // all top level SourceTypes declared in the containing compilation unit
-			    return getXRefAdapterList(javaElement,showParentCrosscutting);
+			    return getXRefAdapterListForJavaElement(javaElement,showParentCrosscutting);
             }
 		}
 		return xrefAdapterList;
 	}
 	
-	private static List getXRefAdapterList(IJavaElement javaElement, boolean showParentCrosscutting) {
+	public static IJavaElement getSelectedJavaElement(IWorkbenchPart part, ISelection selection) {
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			Object first = structuredSelection.getFirstElement();
+			if (first instanceof IJavaElement) {
+				return (IJavaElement)first;
+			} 
+		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
+ 		    if (part instanceof JavaEditor) {
+			    JavaEditor je = (JavaEditor)part;
+			    ISourceReference sourceRef = XRefUIUtils.computeHighlightRangeSourceReference(je);
+			    IJavaElement javaElement = (IJavaElement)sourceRef;
+			    return javaElement;
+            }
+		}
+		return null;
+	}
+	
+	public static List getXRefAdapterListForJavaElement(IJavaElement javaElement, boolean showParentCrosscutting) {
 		List xrefAdapterList = new ArrayList();
-	    if (javaElement != null && showParentCrosscutting) {
+		if (javaElement != null && !javaElement.exists()) {
+			return xrefAdapterList;
+		}
+    	if (javaElement != null && showParentCrosscutting) {
 	    	ICompilationUnit parent = (ICompilationUnit)javaElement.getAncestor(IJavaElement.COMPILATION_UNIT);
 	    	if (parent != null) {
 		    	try {
@@ -241,7 +263,7 @@ public class XRefUIUtils {
 			if (a != null) {
 				xrefAdapterList.add(a.getAdapter(IXReferenceAdapter.class));
 			}
-		}	
+		}		    	
 	    return xrefAdapterList;
 	}
 
@@ -318,5 +340,4 @@ public class XRefUIUtils {
 			viewer.reveal(selection);
 		}		
 	}
-	
 }
