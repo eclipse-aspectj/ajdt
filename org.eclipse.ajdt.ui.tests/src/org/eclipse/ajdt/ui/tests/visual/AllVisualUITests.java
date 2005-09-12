@@ -36,9 +36,7 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(OpenTypesTest.class));
 		
 		// xref view tests
-		suite.addTest(new TestSuite(XReferenceViewTest.class));
-		suite.addTest(new TestSuite(XReferenceViewNavigationTest.class));
-		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));
+		suite.addTest(AllXRefVisualTests.suite());
 		
 		suite.addTest(new TestSuite(CustomFilterDialogTest.class));	
 

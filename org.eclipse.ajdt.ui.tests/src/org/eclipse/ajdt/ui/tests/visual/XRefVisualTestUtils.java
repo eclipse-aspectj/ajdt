@@ -12,16 +12,22 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.inplace.XReferenceInplaceDialog;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.pde.internal.runtime.logview.LogEntry;
+import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 
@@ -40,6 +46,86 @@ public class XRefVisualTestUtils {
 				TreeViewer tv = xrefView.getTreeViewer();
 				Object o = tv.getInput();
 				boolean ret = (o != null);
+				return ret;
+			}	
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+	}
+		
+	public static void waitForXRefViewToContainSomethingNew(Object oldTreeInput) {
+		final Object oldInput = oldTreeInput;
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+					.getActivePage().findView(XReferenceView.ID);
+				if (view == null || !(view instanceof XReferenceView)) {
+					return false;
+				}
+				XReferenceView xrefView = (XReferenceView)view;
+				TreeViewer tv = xrefView.getTreeViewer();
+				Object o = tv.getInput();
+				boolean ret = (o != null && !o.equals(oldInput));
+				return ret;
+			}	
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+	}
+	
+	/**
+	 * Wait for the Cross References View to contain the given number of 
+	 * xrefs from the first top level node. 
+	 */
+	public static void waitForXRefViewToContainXRefs(int numberOfExpectedXRefs) {
+		final int n = numberOfExpectedXRefs;
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+					.getActivePage().findView(XReferenceView.ID);
+				if (view == null || !(view instanceof XReferenceView)) {
+					return false;
+				}
+				XReferenceView xrefView = (XReferenceView)view;
+				ArrayList contents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
+				boolean ret = false;
+				if (contents != null) {
+					TreeParent parentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)contents.get(0));
+					if (parentNode != null) {
+						ret = (parentNode.getChildren().length == n);
+					}
+				}
+				return ret;
+			}	
+		
+		}.waitForCondition(Display.getCurrent(), 5000);
+	}
+	
+	public static void waitToContainNumberOfAffectedPlacesForNode(int nodeNumber, int relationship, int numberOfAffectedPlaces) {
+		final int r = relationship;
+		final int a = numberOfAffectedPlaces;
+		final int n = nodeNumber;
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+					.getActivePage().findView(XReferenceView.ID);
+				if (view == null || !(view instanceof XReferenceView)) {
+					return false;
+				}
+				XReferenceView xrefView = (XReferenceView)view;
+				ArrayList contents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
+
+				boolean ret = false;
+				if (contents != null && n < contents.size() ) {
+					TreeParent parentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)contents.get(n));
+					if (parentNode != null && parentNode.getChildren().length > r) {
+						TreeObject o = parentNode.getChildren()[r];
+						if (o instanceof TreeParent) {
+							ret = (((TreeParent)o).getChildren().length == a);
+						}
+					}
+				}
 				return ret;
 			}	
 		
@@ -152,5 +238,43 @@ public class XRefVisualTestUtils {
 		}
 		return (TreeParent)to;
 	}
+
+	public static int getNumberOfAffectedPlacesForRel(TreeParent parentNode, int i) {
+		TreeObject[] children = parentNode.getChildren();
+		if (children[i] instanceof TreeParent) {
+			TreeParent relationship = (TreeParent)children[i];
+			return relationship.getChildren().length;
+		}
+		return 0;
+	}
 	
+	public static ArrayList /* String */ getReferenceSourceNamesInXRefView(XReferenceView xrefView) {
+		ArrayList names = new ArrayList();
+		ArrayList contents = getContentsOfXRefView(xrefView);
+		for (Iterator iter = contents.iterator(); iter.hasNext();) {
+			IXReferenceAdapter element = (IXReferenceAdapter) iter.next();
+			if (element.getReferenceSource() instanceof JavaElement) {
+				names.add(((JavaElement)element.getReferenceSource()).getElementName());
+			}
+		}
+		
+		return names;
+	}
+	
+	
+	public static List /*String */ getReferenceSourceNames(List /*IXReferenceAdapter */ xrefAdapterList) {
+		if (xrefAdapterList == null) {
+			return new ArrayList();
+		}
+		List names = new ArrayList();
+		for (Iterator iter = xrefAdapterList.iterator(); iter.hasNext();) {
+			IXReferenceAdapter element = (IXReferenceAdapter) iter.next();
+			Object o = element.getReferenceSource();
+			if (o instanceof IJavaElement) {
+				names.add(((IJavaElement)o).getElementName());
+
+			}
+		}
+		return names;
+	}
 }

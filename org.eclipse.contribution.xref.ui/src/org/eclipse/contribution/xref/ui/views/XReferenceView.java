@@ -25,6 +25,7 @@ import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProv
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvider;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
@@ -57,36 +58,29 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		IPartListener {
 
 	public static final String ID = "org.eclipse.contribution.xref.ui.views.XReferenceView"; //$NON-NLS-1$
-
-	private static final String LINK_ID = ID + ".link"; //$NON-NLS-1$
-
-	private static final String XREFS_FOR_FILE_ID = ID + ".xrefsForFile"; //$NON-NLS-1$
+	public static final String LINK_ID = ID + ".link"; //$NON-NLS-1$
+	public static final String XREFS_FOR_FILE_ID = ID + ".xrefsForFile"; //$NON-NLS-1$
 
 	private Action doubleClickAction;
-
 	private Action collapseAllAction;
-
 	private Action toggleLinkingAction;
-
 	private Action toggleShowXRefsForFileAction;
-
 	private Action xRefCustomFilterAction;
 
 	private boolean linkingEnabled = true; // following selection?
-
 	private boolean showXRefsForFileEnabled = false;
+	private boolean changeDrivenByBuild = false;
 
-	private List /* IXReferenceAdapter */lastXRefAdapterList;
+	private List /* IXReferenceAdapter */ lastXRefAdapterList;
+	private List /* IXReferenceAdapter */ lastLinkedXRefAdapterList;
 
 	private ISelection lastSelection, lastLinkedSelection;
-
 	private IWorkbenchPart lastWorkbenchPart, lastLinkedWorkbenchPart;
+	private IJavaElement lastJavaElement, lastLinkedJavaElement;
 
 	private TreeViewer viewer;
-
 	private XReferenceContentProvider contentProvider;
 
-	private boolean changeDrivenByBuild = false;
 
 	public XReferenceView() {
 		XReferenceUIPlugin.xrefView = this;
@@ -114,6 +108,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		if (window != null) {
 			window.getSelectionService().addPostSelectionListener(this);
 		}
+		getSite().setSelectionProvider(viewer);
 	}
 
 	/**
@@ -130,98 +125,131 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	 *      org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		// enhancement 95724 - adding filter to xref view
 		XReferenceProviderManager.getManager().setIsInplace(false);
-		IWorkbenchWindow activeWindow = JavaPlugin.getActiveWorkbenchWindow();
-		if (activeWindow != null) {
-			IWorkbenchPage activePage = activeWindow.getActivePage();
-			if (activePage != null) {
-				IEditorReference[] openEditors = activePage
-						.getEditorReferences();
-				if (openEditors.length != 0) {
-					// add a part listener to each open editor
-					for (int i = 0; i < openEditors.length; i++) {
-						openEditors[i].getPage().addPartListener(this);
-					}
-				}
-			}
-		}
 
+		addListenersToOpenEditors();
+		
 		if (!(part instanceof AbstractTextEditor)
 				&& !(part instanceof ContentOutline)) {
 			// only want to respond to changes in selection
 			// in editors and outline view
 			return;
 		}
-		lastWorkbenchPart = part;
-		lastSelection = selection;
 
-		if (linkingEnabled) {
-			lastLinkedWorkbenchPart = part;
-			lastLinkedSelection = selection;
-		}
-
+		// if linking is enabled we want to work with the current
+		// selection in the workbench, otherwise we want to work
+		// with the last linked selection (since we're not linked with
+		// the editor, we really don't care what was selected and are
+		// really responding to changes due to a build)
 		List xraList = null;
-		if (showXRefsForFileEnabled) {
-			xraList = XRefUIUtils.getXRefAdapterForSelection(part, selection,
-					true);
-		} else {
-			xraList = XRefUIUtils.getXRefAdapterForSelection(part, selection,
-					false);
-		}
+		lastJavaElement = XRefUIUtils.getSelectedJavaElement(part,selection);
+		if (linkingEnabled) {	
+			// calculate the xrefs for the current selection
+			if (showXRefsForFileEnabled) {			
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastJavaElement,true);
+			} else {
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastJavaElement,false);
+			}	
 
-		// bug 92895 - add extra check for empty list (which means the
-		// compilation unit doesn't exist anymore).
-		if (xraList != null && !xraList.isEmpty()) {
-			// if we've selected the same element then don't want the xref view
-			// to flicker, therefore we return without updating the view.
-			if (lastXRefAdapterList != null && !changeDrivenByBuild) {
-				boolean sameXRefAdapter = true;
-				for (Iterator iter = xraList.iterator(); iter.hasNext();) {
-					Object o = iter.next();
-					boolean foundMatch = false;
-					if (o instanceof IXReferenceAdapter) {
-						IXReferenceAdapter currentXra = (IXReferenceAdapter) o;
-
-						for (Iterator i2 = lastXRefAdapterList.iterator(); i2
-								.hasNext();) {
-							Object o2 = i2.next();
-							if (o2 instanceof IXReferenceAdapter) {
-								IXReferenceAdapter lastXra = (IXReferenceAdapter) o2;
-								if (currentXra.getReferenceSource().equals(
-										lastXra.getReferenceSource())) {
-									foundMatch = true;
-								}
-							}
-						}
-					}
-					if (!foundMatch) {
-						sameXRefAdapter = false;
-					}
-				}
-				if (sameXRefAdapter) {
-					XRefUIUtils.setSelection(part, selection, viewer);
-					return;
-				}
-			}
-
-			if ((linkingEnabled && !changeDrivenByBuild)
-					|| lastXRefAdapterList == null) {
+			if (xraList == null || xraList.isEmpty() || !lastJavaElement.exists() ) {
+				// if there are compilation errors then we want to clear 
+				// the view (in this case, xraList is empty or null)
+				clearView();
+			} else if (lastXRefAdapterList == null || lastXRefAdapterList.isEmpty()) {
+				//if this is the first selection (i.e. lastXRefAdapterList == null)
+				// then just set the input to be the just calculated xrefs 
+				// OR
+				// if compilatin errors occurred last time (lastXRefAdapterList is empty)
+				// and this time they're fixed then just set the input to be the xrefs
 				viewer.setInput(xraList);
-			} else if (changeDrivenByBuild) {
-				Object o = viewer.getInput();
-				if (o instanceof IXReferenceAdapter || o instanceof List) {
-					viewer.setInput(o);
-				}
+				XRefUIUtils.setSelection(part, selection, viewer);
+			} else {
+				if (!sameXRefAdapter(lastXRefAdapterList,xraList)) {
+					// if now selecting a new element in the editor then
+					// need to update the view to contain this
+					viewer.setInput(xraList);
+					XRefUIUtils.setSelection(part, selection, viewer);
+				} else if (changeDrivenByBuild){
+					// if the change has been driven by a build then 
+					// need to update view since xrefs may have changed
+					viewer.setInput(xraList);
+					XRefUIUtils.setSelection(part, selection, viewer);
+				} else {
+					XRefUIUtils.setSelection(part, selection, viewer);
+				} 			
 			}
+			// record what was last selected and last calculated
+			lastWorkbenchPart = part;
+			lastSelection = selection;
 			lastXRefAdapterList = xraList;
-			XRefUIUtils.setSelection(part, selection, viewer);
+			
+			lastLinkedSelection = selection;
+			lastLinkedWorkbenchPart = part;
+			lastLinkedXRefAdapterList = xraList;
+			lastLinkedJavaElement = lastJavaElement;
+
 		} else {
-			// bug 92895 - want to clear the view (and all settings) if
-			// have a compilation error in current selection
-			clearView();
+			
+			// calculate the xrefs for the last linked selection - these may have
+			// changed due to a build
+			if (showXRefsForFileEnabled) {
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastLinkedJavaElement,true);
+			} else {
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastLinkedJavaElement,false);
+			}	
+
+			if (xraList == null || xraList.isEmpty() || !lastLinkedJavaElement.exists()) {
+				// if there are compilation errors then we want to clear 
+				// the view (in this case, xraList is empty or null)
+				clearView();
+			} else if (lastXRefAdapterList == null || lastXRefAdapterList.isEmpty()) {
+				// if compilation errors occurred last time (lastXRefAdapterList is empty)
+				// and this time they're fixed then we need to update the xref view. If
+				// we've selected the same thing
+				viewer.setInput(xraList);
+				XRefUIUtils.setSelection(lastLinkedWorkbenchPart, lastLinkedSelection, viewer);
+			} else if (sameXRefAdapter(lastLinkedXRefAdapterList,xraList) && changeDrivenByBuild) {			
+				// if anything has changed about the contents, then need to refresh
+				// (this will come from a build)
+				viewer.setInput(xraList);
+				XRefUIUtils.setSelection(lastLinkedWorkbenchPart, lastLinkedSelection, viewer);
+			}
+
+			// record what was last selected and last calculated
+			lastWorkbenchPart = part;
+			lastSelection = selection;
+			lastXRefAdapterList = xraList;
 		}
 	}
 
+	private boolean sameXRefAdapter(List previousXRefAdapterList, List currentXRefAdapterList) {
+		boolean sameXRefAdapter = true;
+		for (Iterator iter = currentXRefAdapterList.iterator(); iter.hasNext();) {
+			Object o = iter.next();
+			boolean foundMatch = false;
+			if (o instanceof IXReferenceAdapter) {
+				IXReferenceAdapter currentXra = (IXReferenceAdapter) o;
+
+				for (Iterator i2 = previousXRefAdapterList.iterator(); i2
+						.hasNext();) {
+					Object o2 = i2.next();
+					if (o2 instanceof IXReferenceAdapter) {
+						IXReferenceAdapter lastXra = (IXReferenceAdapter) o2;
+						if (currentXra.getReferenceSource().equals(
+								lastXra.getReferenceSource())) {
+							foundMatch = true;
+						}
+					}
+				}
+			}
+			if (!foundMatch) {
+				sameXRefAdapter = false;
+			}
+		}
+		return sameXRefAdapter;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -258,8 +286,17 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 
 	public void setLinkingEnabled(boolean isOn) {
 		linkingEnabled = isOn;
-		if (linkingEnabled && lastXRefAdapterList != null) {
-			viewer.setInput(lastXRefAdapterList);
+		if (linkingEnabled) {
+			// calculate the xrefs for the last selected JavaElement
+			List xraList = null;
+			if (showXRefsForFileEnabled) {
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(
+						lastJavaElement,true);
+			} else {
+				xraList = XRefUIUtils.getXRefAdapterListForJavaElement(
+						lastJavaElement,false);
+			}	
+			viewer.setInput(xraList);
 		}
 	}
 
@@ -279,13 +316,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 			if (lastLinkedSelection != null && lastLinkedWorkbenchPart != null) {
 				part = lastLinkedWorkbenchPart;
 				if (showXRefsForFileEnabled) {
-					xraList = XRefUIUtils.getXRefAdapterForSelection(
-							lastLinkedWorkbenchPart, lastLinkedSelection, true);
+					xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastLinkedJavaElement,true);
 				} else {
-					xraList = XRefUIUtils
-							.getXRefAdapterForSelection(
-									lastLinkedWorkbenchPart,
-									lastLinkedSelection, false);
+					xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastLinkedJavaElement,false);
 				}
 			}
 		} else {
@@ -295,11 +328,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 			if (lastSelection != null && lastWorkbenchPart != null) {
 				part = lastWorkbenchPart;
 				if (showXRefsForFileEnabled) {
-					xraList = XRefUIUtils.getXRefAdapterForSelection(
-							lastWorkbenchPart, lastSelection, true);
+					xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastJavaElement,true);
 				} else {
-					xraList = XRefUIUtils.getXRefAdapterForSelection(
-							lastWorkbenchPart, lastSelection, false);
+					xraList = XRefUIUtils.getXRefAdapterListForJavaElement(lastJavaElement,false);
 				}
 			}
 		}
@@ -388,6 +419,26 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 				.getShell());
 	}
 
+
+	// fix for bug (no number) raised which said that xref view didn't
+	// clear when there were no open editors
+	private void addListenersToOpenEditors() {
+		IWorkbenchWindow activeWindow = JavaPlugin.getActiveWorkbenchWindow();
+		if (activeWindow != null) {
+			IWorkbenchPage activePage = activeWindow.getActivePage();
+			if (activePage != null) {
+				IEditorReference[] openEditors = activePage
+						.getEditorReferences();
+				if (openEditors.length != 0) {
+					// add a part listener to each open editor
+					for (int i = 0; i < openEditors.length; i++) {
+						openEditors[i].getPage().addPartListener(this);
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * @param changeDrivenByBuild
 	 *            The changeDrivenByBuild to set.
@@ -432,6 +483,13 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 						// if there are no editors open, then want to clear the
 						// contents of the xref view and all the records
 						clearView();
+						if (linkingEnabled) {
+							lastXRefAdapterList = null;
+							lastSelection = null;
+							lastWorkbenchPart = null;
+							lastJavaElement = null;
+						}
+						
 					}
 				}
 			}
@@ -443,9 +501,6 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		if (viewer != null && viewer.getContentProvider() != null) {
 			viewer.setInput(null);
 		}
-		lastXRefAdapterList = null;
-		lastLinkedSelection = null;
-		lastLinkedWorkbenchPart = null;
 	}
 
 	/*
