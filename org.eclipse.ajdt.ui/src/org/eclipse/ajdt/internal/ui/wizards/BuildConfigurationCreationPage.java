@@ -61,7 +61,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	public BuildConfigurationCreationPage(
 		IWorkbench workbench,
 		IStructuredSelection selection) {
-		super("CreateBuildConfigurationFilePage1", selection);
+		super("CreateBuildConfigurationFilePage1", selection); //$NON-NLS-1$
 		this.setTitle( AspectJUIPlugin.getResourceString( "BuildConfig.createLstFile" ) );  //$NON-NLS-1$
 		this.setDescription( AspectJUIPlugin.getResourceString( "BuildConfig.createLstDesc" ) ); //$NON-NLS-1$
 		this.workbench = workbench;

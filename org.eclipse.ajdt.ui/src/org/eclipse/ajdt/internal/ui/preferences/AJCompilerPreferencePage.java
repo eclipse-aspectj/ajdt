@@ -92,7 +92,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 
 	public AJCompilerPreferencePage() {
 		super();
-		setTitle("AspectJ Compiler");
+		setTitle(AspectJUIPlugin.getResourceString("AJCompilerPreferencePage.aspectj.compiler")); //$NON-NLS-1$
 		fCheckBoxes = new ArrayList();
 		fComboBoxes = new ArrayList();
 	}

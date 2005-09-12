@@ -10,6 +10,7 @@
 
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.pde.internal.ui.wizards.exports.PluginExportJob;
 import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizard;
@@ -26,9 +27,8 @@ public class AJPluginExportWizard extends PluginExportWizard {
 	 */
 	public AJPluginExportWizard() {
 		setDefaultPageImageDescriptor(PDEPluginImages.DESC_PLUGIN_EXPORT_WIZ);
-		setWindowTitle("Export Plugins and Fragments with AspectJ Support");
+		setWindowTitle(AspectJUIPlugin.getResourceString("PluginExportWizard.title")); //$NON-NLS-1$
 	}
-	
 
 	protected void scheduleExportJob() {
 		PluginExportJob job =

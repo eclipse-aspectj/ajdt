@@ -749,7 +749,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		} catch (JavaModelException jme) {
 			getErrorHandler().handleError(
-					"Exception in AspectJPlugin.selectionChanged processing",
+					AspectJUIPlugin.getResourceString("AspectJUIPlugin.exception.in.selection.changed"), //$NON-NLS-1$
 					jme);
 		}
 
@@ -773,7 +773,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 					.getDefault()
 					.getErrorHandler()
 					.handleError(
-							"Exception occurred whilst retrieving all .lst files in a project",
+							AspectJUIPlugin
+									.getResourceString("AspectJUIPlugin.exception.retrieving.lst.files"), //$NON-NLS-1$
 							ce);
 		}
 		return allLstFiles;
@@ -800,7 +801,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 					.getDefault()
 					.getErrorHandler()
 					.handleError(
-							"Exception occurred whilst retrieiving all .lst files in a project",
+							AspectJUIPlugin
+									.getResourceString("AspectJUIPlugin.exception.retrieving.lst.files"), //$NON-NLS-1$
 							ce);
 		}
 	}

@@ -191,7 +191,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                     .getDefault()
                     .getErrorHandler()
                     .handleError(
-                            "Exception whilst extending ruler context menu with advice items",
+                            AspectJUIPlugin.getResourceString("AdviceActionDelegate.exception.adding.advice.to.context.menu"), //$NON-NLS-1$
                             ce);
         }
     }	
@@ -387,7 +387,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 .getDefault()
                                 .getErrorHandler()
                                 .handleError(
-                                        "Unable to build jump marker in AdviceMenuAction run method",
+                                        AspectJUIPlugin.getResourceString("AdviceActionDelegate.unable.to.create.marker"), //$NON-NLS-1$
                                         ce);
                     }
 
@@ -400,19 +400,19 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 .getDefault()
                                 .getErrorHandler()
                                 .handleError(
-                                        "Exception whilst asking editor to jump to advice location",
+                                		AspectJUIPlugin.getResourceString("AdviceActionDelegate.exception.jumping"), //$NON-NLS-1$
                                         e);
 
                     }
                 } else {
-                    report("Could not find resource.");
+                    report(AspectJUIPlugin.getResourceString("AdviceActionDelegate.resource.not.found")); //$NON-NLS-1$
                 }
             } catch (IndexOutOfBoundsException ioobe) {
                 AspectJUIPlugin
                         .getDefault()
                         .getErrorHandler()
                         .handleError(
-                                "Problem parsing marker jump location (probably!)",
+                        		AspectJUIPlugin.getResourceString("AdviceActionDelegate.problem.finding.jump.location"), //$NON-NLS-1$
                                 ioobe);
             }
         }

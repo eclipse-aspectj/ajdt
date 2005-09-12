@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.builder.AJNode;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceProvider;
 import org.eclipse.jdt.core.IJavaElement;
@@ -103,7 +104,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getProviderDescription()
 	 */
 	public String getProviderDescription() {
-		return "Provides AspectJ cross-cutting structure references";
+		return AspectJUIPlugin.getResourceString("AJXReferenceProvider.description"); //$NON-NLS-1$
 	}
 
 	private static class XRef implements IXReference {

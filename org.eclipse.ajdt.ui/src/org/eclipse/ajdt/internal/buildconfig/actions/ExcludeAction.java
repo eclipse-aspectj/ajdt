@@ -37,7 +37,7 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 
 	protected Job getJob(final BuildConfiguration bc,
 			final List fileList) {
-		return new Job("BuildConfiguration exclude action") {
+		return new Job(AspectJUIPlugin.getResourceString("excludeAction.job.name")) { //$NON-NLS-1$
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
 					bc.excludeFiles(fileList);

@@ -134,7 +134,7 @@ public class BuildConfigEditor
 		} catch ( CoreException cEx ) {
 			// resource update failed...
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-				"Failed to update lst file resource", cEx );
+				AspectJUIPlugin.getResourceString("BuildConfigEditor.failed.update"), cEx ); //$NON-NLS-1$
 		}
 
 		// after a save we must clear markers and then reload the model to
@@ -172,7 +172,13 @@ public class BuildConfigEditor
 				}
 			}
 		} catch ( CoreException cEx ) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( "Unable to go to marker", cEx);
+			AspectJUIPlugin
+					.getDefault()
+					.getErrorHandler()
+					.handleError(
+							AspectJUIPlugin
+									.getResourceString("BuildConfigEditor.unable.to.go.to.marker"), //$NON-NLS-1$
+							cEx);
 		}
 	}
 
@@ -426,7 +432,7 @@ public class BuildConfigEditor
 		String nodename=node.getName();
 		if (overlayFlags!=0 && nodename.startsWith("Use relative paths only, omitting: ")) { //$NON-NLS-1$
 			// Check if its inside a linked source folder...
-			String realLocation = node.getName().substring("Use relative paths only, omitting: ".length());
+			String realLocation = node.getName().substring("Use relative paths only, omitting: ".length()); //$NON-NLS-1$
 
 			realLocation = realLocation.replace('/',File.separatorChar);
 			realLocation = realLocation.replace('\\',File.separatorChar);
@@ -436,7 +442,7 @@ public class BuildConfigEditor
 				element = element.replace('\\',File.separatorChar);
 	
 				if (realLocation.startsWith(element)) {
-					node.setName("Resource from linked source folder: "+realLocation);
+					node.setName("Resource from linked source folder: "+realLocation); //$NON-NLS-1$
 					overlayFlags = 0;
 				}
 			}

@@ -105,26 +105,17 @@ public class AspectJPreferencePage
 
 		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
-		createLabel(compilerOptionsComposite, "Support Information");
+		createLabel(compilerOptionsComposite, AspectJUIPlugin.getResourceString("AspectJPreferencePage.support.information")); //$NON-NLS-1$
 		ITextViewer itw1 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 
 		itw1.setDocument(
-			new Document(
-			  "Please refer to the forum eclipse.technology.ajdt\n"+
-			  "on the eclipse.org website."));
+			new Document(AspectJUIPlugin.getResourceString("AspectJPreferencePage_refer_to_forum"))); //$NON-NLS-1$
 
-		createLabel(compilerOptionsComposite, "Licensing");
+		createLabel(compilerOptionsComposite, AspectJUIPlugin.getResourceString("AspectJPreferencePage_licensing")); //$NON-NLS-1$
 		ITextViewer itw2 = new TextViewer(compilerOptionsComposite, SWT.READ_ONLY);
 		
 		itw2.setDocument(
-			new Document(
-			  "Copyright (c) 2002, 2005 IBM Corporation and others.\n"+
-			  "All rights reserved. This program and the accompanying materials\n"+
-			  "are made available under the terms of the Common Public License v1.0\n"+
-			  "which accompanies this distribution, and is available at\n"+
-			  "http://www.eclipse.org/legal/cpl-v10.html"));
-					
-					
+			new Document(AspectJUIPlugin.getResourceString("AspectJPreferencePage_copyright"))); //$NON-NLS-1$
 
 		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 		

@@ -156,8 +156,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                                 String configName = pbc
                                         .getActiveBuildConfiguration()
                                         .getName();
-                                monitor.setTaskName("Building project with \'"
-                                        + configName + "\' configuration");
+                                monitor
+										.setTaskName(AspectJUIPlugin
+												.getFormattedResourceString(
+														"CompilerMonitor.building.Project", //$NON-NLS-1$
+														configName));
                             }
                         }
                     }// end if
@@ -251,7 +254,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                     + ")"); //$NON-NLS-1$
 
         if (newVal >= currentAjdeProgress) {
-            incrementProgressBarVal("setProgressBarVal() delegating to ");
+            incrementProgressBarVal("setProgressBarVal() delegating to "); //$NON-NLS-1$
         }
     }
 
@@ -268,7 +271,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     }
 
     public void incrementProgressBarVal() {
-        incrementProgressBarVal("AJDE Callback:");
+        incrementProgressBarVal("AJDE Callback:"); //$NON-NLS-1$
     }
 
     /**
@@ -374,7 +377,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         // special cases...
         // this message is too long to be meaningful
         if (ret.startsWith("might need to weave")) { //$NON-NLS-1$
-            ret = "weaving ...";
+            ret = AspectJUIPlugin.getResourceString("CompilerMonitor.weaving"); //$NON-NLS-1$
         }
         // we always get this next one, and it seems to be nonsense
         if (ret.startsWith("directory classpath entry does not exist: null")) { //$NON-NLS-1$

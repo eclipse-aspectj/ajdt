@@ -402,10 +402,8 @@ public class AJDTUtils {
 	 */
 	private static void removeMarkerOnReferencingProjects(IProject project) {
 		try {
-			String errorMessage = "The project cannot be built until its prerequisite "
-					+ project.getName()
-					+ " is rebuilt. Cleaning and rebuilding all projects is recommended";
-
+			String errorMessage = AspectJUIPlugin.getFormattedResourceString(
+					"buildPrereqsMessage", project.getName()); //$NON-NLS-1$
 			IProject[] refProjects = project.getReferencingProjects();
 			// only get the class folder depending projects here
 			IProject[] classFolderReferences = (IProject[]) CoreUtils.getDependingProjects(
@@ -429,7 +427,7 @@ public class AJDTUtils {
 						int markerSeverity = marker.getAttribute(
 								IMarker.SEVERITY, -1);
 						String markerMessage = marker.getAttribute(
-								IMarker.MESSAGE, "no message");
+								IMarker.MESSAGE, AspectJUIPlugin.getResourceString("AJDTUtils.no.message")); //$NON-NLS-1$
 
 						if (markerSeverity == IMarker.SEVERITY_ERROR
 								&& markerMessage.equals(errorMessage)) {

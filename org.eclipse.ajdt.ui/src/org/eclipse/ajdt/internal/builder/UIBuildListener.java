@@ -70,9 +70,9 @@ public class UIBuildListener implements IAJBuildListener {
 		// a required project to be rebuilt.
 		boolean haveClearedMarkers = false;
 		for (int i = 0; i < requiredProjects.length; i++) {
-			String referencedMessage = "The project cannot be built until its prerequisite "
-					+ requiredProjects[i].getName()
-					+ " is rebuilt. Cleaning and rebuilding all projects is recommended";
+			String referencedMessage = AspectJUIPlugin
+					.getFormattedResourceString("buildPrereqsMessage", //$NON-NLS-1$
+							requiredProjects[i].getName());
 			if (projectAlreadyMarked(project, referencedMessage)) {
 				if (kind == IncrementalProjectBuilder.FULL_BUILD) {
 					props.clearMarkers(true);
@@ -122,7 +122,7 @@ public class UIBuildListener implements IAJBuildListener {
 					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
 							-1);
 					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-							"no message");
+							"no message"); //$NON-NLS-1$
 					if (markerSeverity == IMarker.SEVERITY_ERROR
 							&& markerMessage.equals(errorMessage)) {
 						return true;
@@ -276,7 +276,7 @@ public class UIBuildListener implements IAJBuildListener {
 						int markerSeverity = marker.getAttribute(
 								IMarker.SEVERITY, -1);
 						String markerMessage = marker.getAttribute(
-								IMarker.MESSAGE, "no message");
+								IMarker.MESSAGE, "no message"); //$NON-NLS-1$
 
 						if (markerSeverity == IMarker.SEVERITY_ERROR
 								&& markerMessage.equals(errorMessage)) {

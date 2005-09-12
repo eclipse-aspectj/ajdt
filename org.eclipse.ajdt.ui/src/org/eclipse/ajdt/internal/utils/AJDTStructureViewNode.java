@@ -61,7 +61,11 @@ implements IStructureViewNode, IAdaptable {
 		this.icon = (AJDTIcon) icon;
 		this.kind = Kind.RELATIONSHIP;
 		this.relationshipName = 
-			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");		
+			relationship.getName()
+				+ (relationship.hasRuntimeTest() ? " " //$NON-NLS-1$
+						+ AspectJUIPlugin
+								.getResourceString("AJDTStructureViewNode.runtime.test") //$NON-NLS-1$
+						: "");		 //$NON-NLS-1$
 	}
 
 
@@ -347,7 +351,7 @@ implements IStructureViewNode, IAdaptable {
 		 * @see org.eclipse.aosd.relations.IRelationship#getName()
 		 */
 		public String getName() {
-			return "matches";
+			return AspectJUIPlugin.getResourceString("AJDTStructureViewNode.matches"); //$NON-NLS-1$
 		}
 		/* (non-Javadoc)
 		 * @see org.eclipse.aosd.relations.IRelationship#getAssociates()

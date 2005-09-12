@@ -247,7 +247,7 @@ public class StructureModelView extends ViewPart implements ISelectionListener,
 	 * @see StructureViewRenderer#updateView(StructureView)
 	 */
 	public void updateView(StructureView view) {
-		AJLog.log("outline updateview called (file:"+input.getName()+"): "+view.toString()); //$NON-NLS-2$
+		AJLog.log("outline updateview called (file:"+input.getName()+"): "+view.toString());  //$NON-NLS-1$ //$NON-NLS-2$
 		final StructureView fView = view;
 		AspectJUIPlugin.getDefault( ).getDisplay().asyncExec( new Runnable( ) {
 			public void run( ) {

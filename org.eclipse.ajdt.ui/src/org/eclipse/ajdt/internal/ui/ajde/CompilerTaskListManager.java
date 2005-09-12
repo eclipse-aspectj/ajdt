@@ -310,7 +310,7 @@ public class CompilerTaskListManager implements TaskListManager {
                     clearTasks();
                 } catch (Exception e) {
                     AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-                            "Error creating marker", e);
+                    		AspectJUIPlugin.getResourceString("CompilerTaskListManager.markerError"), e); //$NON-NLS-1$
                 }                
             }
         };
@@ -319,7 +319,7 @@ public class CompilerTaskListManager implements TaskListManager {
             AspectJPlugin.getWorkspace().run(r, null);
         } catch (CoreException cEx) {
             AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-                    "AJDT Error adding problem markers", cEx);
+                    AspectJUIPlugin.getResourceString("CompilerTaskListManager.markerError"), cEx); //$NON-NLS-1$
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
         Set activeEditorList = AspectJEditor.getActiveEditorList();

@@ -103,7 +103,7 @@ public class PulldownBuildselectorMenu implements
 			// There are no AspectJ projects, so make a special
 			// menu to inform the user.
 			MenuItem defaultLstItem = new MenuItem(m, SWT.CHECK);
-			defaultLstItem.setText("No open AspectJ project selected"); //ASCFIXME-toNLS
+			defaultLstItem.setText(AspectJUIPlugin.getResourceString("PulldownBuildselectorMenu.no.open.ajproject")); //$NON-NLS-1$
 			defaultLstItem.setData(null);
 			return m;
 		}
@@ -208,7 +208,7 @@ public class PulldownBuildselectorMenu implements
 				} catch (CoreException cEx) {
 
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-							"Build pulldown error", cEx);
+							AspectJUIPlugin.getResourceString("PulldownBuildselectorMenu.build.error"), cEx); //$NON-NLS-1$
 				} catch (NullPointerException npe) {
 					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:" //$NON-NLS-1$
 									+ npe);
@@ -223,10 +223,10 @@ public class PulldownBuildselectorMenu implements
 
 		} catch (InvocationTargetException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e);
+					AspectJUIPlugin.getResourceString("PulldownBuildselectorMenu.autobuild.failed"), e); //$NON-NLS-1$
 		} catch (InterruptedException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e);
+					AspectJUIPlugin.getResourceString("PulldownBuildselectorMenu.autobuild.failed"), e); //$NON-NLS-1$
 
 		}
 	}

@@ -148,8 +148,8 @@ public class InPathBlock {
                     // org.eclipse.ajdt.internal.core.JavaProject which can be
                     // called from here like in the below line of mock up code.
                     // classpathEntries= fCurrJProject.readRawInpath();
-                    System.err.println(
-                        "Need to issue readRawInpath() call to org.eclipse.ajdt.internal.core.JavaProject here!");
+//                    System.err.println(
+//                        "Need to issue readRawInpath() call to org.eclipse.ajdt.internal.core.JavaProject here!");
                 }
             }
 
