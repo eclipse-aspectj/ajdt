@@ -15,11 +15,32 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.ajde.BuildOptionsAdapter;
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.core.JavaProject;
 
 public class CoreBuildOptions implements BuildOptionsAdapter {
 
+	/**
+	 * Tries to get a project-specific nature options map if it exists.  
+	 * If it is not found returns the JavaCore's map.
+	 */
 	public Map getJavaOptionsMap() {
-		return null;
+		Map optionsMap = null;
+			
+		JavaProject project;
+		try {
+			project = (JavaProject)AspectJPlugin.getDefault().getCurrentProject().getNature(JavaCore.NATURE_ID);
+			optionsMap = project.getOptions(true);
+		} catch (CoreException e) {
+		}
+		
+		if (optionsMap == null) {
+			return JavaCore.getOptions();
+		} else {
+			return optionsMap;
+		}
 	}
 
 	public boolean getUseJavacMode() {
@@ -86,4 +107,14 @@ public class CoreBuildOptions implements BuildOptionsAdapter {
 		return false;
 	}
 
+	// Return formatted version of the current build options set
+	public String toString() {
+		StringBuffer formattedOptions = new StringBuffer();
+		formattedOptions.append("Current Compiler options set:"); //$NON-NLS-1$
+		formattedOptions.append(
+			"[Incremental compilation=" + getIncrementalMode() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+		formattedOptions.append(
+			"[NonStandard options='" + getNonStandardOptions() + "']"); //$NON-NLS-1$ //$NON-NLS-2$
+		return formattedOptions.toString();
+	}
 }
