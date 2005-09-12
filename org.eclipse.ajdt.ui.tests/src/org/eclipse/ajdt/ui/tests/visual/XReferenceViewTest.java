@@ -15,6 +15,7 @@ import java.util.Iterator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
+import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
@@ -131,6 +132,110 @@ public class XReferenceViewTest extends VisualTestCase {
 		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
 	}
 
+	public void testBug92895WithLinkingDisabled() throws Exception {
+		
+		IProject project = createPredefinedProject("bug92895");
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing");
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		// ensure linking is enabled
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+
+		IResource res = project.findMember("src/pack/A.aj");
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found.");
+		} 
+		IFile ajFile = (IFile)res;
+
+		// open A.aj and select the pointcut
+		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(4);
+		moveCursorRight(37);
+		waitForJobsToComplete();
+
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		
+		// disable link with editor
+		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
+		linkWithEditorAction.setChecked(false);
+		linkWithEditorAction.run();	
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
+		
+		// remove the ":" from the pointcut definition
+		postKey(SWT.DEL);
+		postKey(SWT.DEL);
+		// save file by using "Ctrl+S"
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
+		
+		XRefVisualTestUtils.waitForXRefViewToEmpty();
+
+		// get hold of the xref view and check that it hasn't got
+		// any contents - if it does have contents then the corresponding
+		// source/resource should exist - this was the cause of bug 92895
+		TreeViewer treeViewer = xrefView.getTreeViewer();
+		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		Object obj = treeViewer.getInput();
+		//if (obj != null) {
+		//	assertTrue("IAspectJElement should exist",xrefSourceExists(xrefView));
+		assertNull("tree viewer shouldn't contain anything",obj);
+		
+		// put the ":" back
+		// Use a Runnable due to problems introduced with the fix for 98547
+		Runnable r = new Runnable() {
+			public void run() {
+				postKeyDown(SWT.SHIFT);
+				postKey(':');
+				postKeyUp(SWT.SHIFT);
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException ie){}
+			}
+		};
+		new Thread(r).start();
+		waitForJobsToComplete();
+		
+		new DisplayHelper() {
+			public boolean condition() {
+		
+				IContentOutlinePage outlinePage = (IContentOutlinePage) editorPart.getAdapter(IContentOutlinePage.class);
+				if(outlinePage instanceof JavaOutlinePage) {
+					outlinePage.setFocus();
+					postKey(SWT.TAB);
+					postKey(SWT.TAB);
+					ISelection selection = ((JavaOutlinePage)outlinePage).getSelection();
+					return !selection.isEmpty();
+				} 
+				return false;
+			}
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		editorPart.setFocus();
+		// save file by using "Ctrl+S"
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
+
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		
+		// xref view should show the xreferences
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		
+		// set linking enabled (which is the default)
+		linkWithEditorAction.setChecked(true);
+		linkWithEditorAction.run();	
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+
+	}
+	
 	public void testBug98319() throws Exception {
 		IProject project = createPredefinedProject("bug98319");
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
