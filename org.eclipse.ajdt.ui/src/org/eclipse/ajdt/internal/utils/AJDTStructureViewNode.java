@@ -366,7 +366,7 @@ implements IStructureViewNode, IAdaptable {
 			// Add all the classes from this projects classpath and output 
 			// directory using world.addClass()
 			org.aspectj.weaver.patterns.Pointcut p = 
-				org.aspectj.weaver.patterns.Pointcut.fromString("execution(* *(..))");
+				org.aspectj.weaver.patterns.Pointcut.fromString("execution(* *(..))"); //$NON-NLS-1$
 			p.toString();
 		}
 	}

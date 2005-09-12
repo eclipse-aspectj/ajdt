@@ -187,7 +187,7 @@ public class BuildConfigEditor
 		setContentDescription(input.getName());
 
 		if (!(input instanceof IFileEditorInput)) {
-			throw new PartInitException("InvalidInput");
+			throw new PartInitException("InvalidInput"); //$NON-NLS-1$
 		}
 		
 		fileInput = (IFileEditorInput) input;
@@ -197,7 +197,7 @@ public class BuildConfigEditor
 		buildModel( fileInput );
 		CompilerTaskListManager.showOutstandingProblems( );
 		
-		AJLog.log("Editor opened on " + fileInput.getFile().getName());
+		AJLog.log("Editor opened on " + fileInput.getFile().getName()); //$NON-NLS-1$
 	}
 
 	/**
@@ -232,7 +232,7 @@ public class BuildConfigEditor
 
 
 	public void dispose( ) {
-		AJLog.log("Editor closed - " + fileInput.getFile().getName());
+		AJLog.log("Editor closed - " + fileInput.getFile().getName()); //$NON-NLS-1$
 		super.dispose();	
 	}
 	
@@ -424,7 +424,7 @@ public class BuildConfigEditor
 			}
 		}
 		String nodename=node.getName();
-		if (overlayFlags!=0 && nodename.startsWith("Use relative paths only, omitting: ")) {
+		if (overlayFlags!=0 && nodename.startsWith("Use relative paths only, omitting: ")) { //$NON-NLS-1$
 			// Check if its inside a linked source folder...
 			String realLocation = node.getName().substring("Use relative paths only, omitting: ".length());
 
@@ -444,7 +444,7 @@ public class BuildConfigEditor
 		
 		// Key into the image 'cache' is node.getBuildConfigNodeKind + overlayFlags (int)
 		// For example "Java source file:::0" or "build configuration file:::0"
-		String key = new String(kind.toString() + ":::" + overlayFlags);
+		String key = new String(kind.toString() + ":::" + overlayFlags); //$NON-NLS-1$
 		
 		// Initialize the map if it hasn't already been setup
 		if (reusableImageMap == null)

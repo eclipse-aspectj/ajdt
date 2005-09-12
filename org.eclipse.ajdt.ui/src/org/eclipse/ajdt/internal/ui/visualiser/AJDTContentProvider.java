@@ -131,8 +131,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 							boolean defaultPackage = packageFragment.isDefaultPackage();
 							IGroup group = new JDTGroup(packageFragment.getElementName());
 							if(defaultPackage) {
-								group.setName("(default package)"); // $NON-NLS-1$
-								group.setTooltip("(default package)"); // $NON-NLS-1$
+								group.setName("(default package)"); //$NON-NLS-1$
+								group.setTooltip("(default package)"); //$NON-NLS-1$
 							}
 							for (Iterator iter = classes.iterator(); iter.hasNext();) {
 								IMember member = (IMember) iter.next();
@@ -204,7 +204,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 		}
 		long etime = System.currentTimeMillis();
 
-		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$
+		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	

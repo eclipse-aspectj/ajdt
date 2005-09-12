@@ -89,18 +89,18 @@ public class AspectJPreferencePage
 				compilerOptionsComposite,
 				AspectJUIPlugin.getResourceString("aspectjPreferences.description")); //$NON-NLS-1$
 
-		createLabel(compilerOptionsComposite, ""); // Spacer
+		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
 		createLabel(
 			compilerOptionsComposite,
 			AspectJUIPlugin.getResourceString("aspectjPreferences.compilerVersion") //$NON-NLS-1$
-				+ " "
+				+ " " //$NON-NLS-1$
 				+ new String(Ajde.getDefault().getVersion()));
 
 		createLabel(
 			compilerOptionsComposite,
 			AspectJUIPlugin.getResourceString("aspectjPreferences.pluginVersion") //$NON-NLS-1$
-				+ " "
+				+ " " //$NON-NLS-1$
 				+ new String(AspectJUIPlugin.VERSION));
 
 		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$

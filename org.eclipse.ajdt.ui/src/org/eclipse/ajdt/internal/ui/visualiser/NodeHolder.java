@@ -24,7 +24,7 @@ public class NodeHolder {
 		node = ipe;
 		runtimeTest = b;
 		if (type == null) {
-			type = "";
+			type = ""; //$NON-NLS-1$
 		}
 		adviceType = type;
 	}

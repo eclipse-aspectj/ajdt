@@ -469,8 +469,8 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         
     private CPListElement[] openNewClassFolderDialog(CPListElement existing) {
         String title = (existing == null) ?
-                AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.new.title") :
-                    AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.edit.title");
+                AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.new.title") : //$NON-NLS-1$
+                    AspectJUIPlugin.getResourceString("InPathLibrariesWorkbookPage.NewClassFolderDialog.edit.title"); //$NON-NLS-1$
         IProject currProject = fCurrJProject.getProject();
 
         NewContainerDialog dialog = new NewContainerDialog(getShell(), title,

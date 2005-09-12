@@ -62,8 +62,8 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		IWorkbench workbench,
 		IStructuredSelection selection) {
 		super("CreateBuildConfigurationFilePage1", selection);
-		this.setTitle( AspectJUIPlugin.getResourceString( "BuildConfig.createLstFile" ) ); 
-		this.setDescription( AspectJUIPlugin.getResourceString( "BuildConfig.createLstDesc" ) );
+		this.setTitle( AspectJUIPlugin.getResourceString( "BuildConfig.createLstFile" ) );  //$NON-NLS-1$
+		this.setDescription( AspectJUIPlugin.getResourceString( "BuildConfig.createLstDesc" ) ); //$NON-NLS-1$
 		this.workbench = workbench;
 		this.selection = selection;
 	}
@@ -79,15 +79,15 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
         //ASCFIXME: Add help!
 		//WorkbenchHelp.setHelp(composite, new String[] {IReadmeConstants.CREATION_WIZARD_PAGE_CONTEXT});
 
-		this.setFileName(getFreeFileName() + "." + BuildConfiguration.EXTENSION);
+		this.setFileName(getFreeFileName() + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$
 
 		// open file for editing checkbox
 		openFileCheckbox = new Button(composite, SWT.CHECK);
-		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) );
+		openFileCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.openForEdit" ) ); //$NON-NLS-1$
 		openFileCheckbox.setSelection(true);
 		
 		makeActiveCheckbox = new Button(composite, SWT.CHECK);
-		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) );
+		makeActiveCheckbox.setText(AspectJUIPlugin.getResourceString( "BuildConfig.activate" ) ); //$NON-NLS-1$
 		makeActiveCheckbox.setSelection(true);
 
 		setPageComplete(validatePage());
@@ -121,7 +121,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * Override because we overrode createAdvancedControls(..) 
 	 */
 	protected IStatus validateLinkedResource() {
-		return new Status(IStatus.OK, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, "", null);
+		return new Status(IStatus.OK, AspectJUIPlugin.PLUGIN_ID, IStatus.OK, "", null); //$NON-NLS-1$
 	}
 	
 	/*
@@ -160,7 +160,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 		} catch (PartInitException e) {
 			return false;
 		} 
-		AJLog.log("New config file created: " + newFile.getName());
+		AJLog.log("New config file created: " + newFile.getName()); //$NON-NLS-1$
 		return true;
 	}
 	
@@ -171,7 +171,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	protected boolean validatePage() {
 		if(super.validatePage()) {
 			if(!isProjectSelected()) {
-				setErrorMessage(AspectJUIPlugin.getResourceString("BuildConfig.needToSelectProject"));
+				setErrorMessage(AspectJUIPlugin.getResourceString("BuildConfig.needToSelectProject")); //$NON-NLS-1$
 				return false;
 			} else {
 				return true;
@@ -203,7 +203,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * Method declared on WizardNewFileCreationPage.
 	 */
 	protected String getNewFileLabel() {
-		return AspectJUIPlugin.getResourceString( "BuildConfig.newLstFile" );
+		return AspectJUIPlugin.getResourceString( "BuildConfig.newLstFile" ); //$NON-NLS-1$
 	}
 
 }

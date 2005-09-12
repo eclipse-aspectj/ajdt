@@ -594,7 +594,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
                         AspectJUIPlugin.PLUGIN_ID,
                         0,
                         AspectJUIPlugin
-                                .getResourceString("NewAspectCreationWizardPage.Name_field_cannot_be_qualified"),
+                                .getResourceString("NewAspectCreationWizardPage.Name_field_cannot_be_qualified"), //$NON-NLS-1$
                         null);
             }// end if dot detected
             else {
@@ -1088,7 +1088,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 
 		BasicNewResourceWizard.selectAndReveal(newFile, workbench
 				.getActiveWorkbenchWindow());
-		AJLog.log("New aspect file created: " + newFile.getName());
+		AJLog.log("New aspect file created: " + newFile.getName()); //$NON-NLS-1$
 
 		return true;
 	}
@@ -1129,8 +1129,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 		IPath newpath = pack.getFullPath().append(aspectName + extName);
 		IFile newfile = workspaceRoot.getFile(newpath);
 
-		if (extName.equals(".java")) { // we've already got a .java file handle
-			// //$NON-NLS-1$
+		if (extName.equals(".java")) { // we've already got a .java file handle //$NON-NLS-1$
 			dotjavaFile = newfile;
 		} else { // need to create a dummy file handle with a .java extension
 			// instead of .aj
@@ -1200,7 +1199,7 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 				manager.disconnect(input);
 			}
 
-			AJLog.log("New aspect file created: " + enclosingFile.getName());
+			AJLog.log("New aspect file created: " + enclosingFile.getName()); //$NON-NLS-1$
 		} catch (CoreException e) {
 		}
 
@@ -1604,8 +1603,8 @@ public class NewAspectCreationWizardPage extends WizardPage implements Listener 
 			char prev = 0;
 			boolean inShortComment = false;
 			boolean inLongComment = false;
-			String importStatement = "import";
-			String packageStatement = "package";
+			String importStatement = "import"; //$NON-NLS-1$
+			String packageStatement = "package"; //$NON-NLS-1$
 			int lastImportPos = -1;
 			int packagePos = -1;
 

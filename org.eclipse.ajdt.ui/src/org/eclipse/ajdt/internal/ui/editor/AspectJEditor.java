@@ -399,7 +399,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		IProject project = fInput.getFile().getProject();
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
-			AJLog.log("Configuration file " + configFile + " selected for " + project.getName()); //$NON-NLS-1$
+			AJLog.log("Configuration file " + configFile + " selected for " + project.getName()); //$NON-NLS-1$ //$NON-NLS-2$
 			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
 		}				
 	}

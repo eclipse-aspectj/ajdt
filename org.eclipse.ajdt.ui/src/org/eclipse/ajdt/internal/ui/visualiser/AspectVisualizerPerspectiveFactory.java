@@ -88,11 +88,11 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 				IPageLayout.ID_EDITOR_AREA);
 		layout.addView(JavaUI.ID_PACKAGES_VIEW, IPageLayout.RIGHT,
 				(float) 0.15, JavaUI.ID_PROJECTS_VIEW);
-		layout.addView("org.eclipse.contribution.visualiser.views.Visualiser",
+		layout.addView("org.eclipse.contribution.visualiser.views.Visualiser", //$NON-NLS-1$
 				IPageLayout.RIGHT, (float) 0.15, JavaUI.ID_PACKAGES_VIEW);
-		layout.addView("org.eclipse.contribution.visualiser.views.Menu",
+		layout.addView("org.eclipse.contribution.visualiser.views.Menu", //$NON-NLS-1$
 				IPageLayout.RIGHT, (float) 0.80,
-				"org.eclipse.contribution.visualiser.views.Visualiser");
+				"org.eclipse.contribution.visualiser.views.Visualiser"); //$NON-NLS-1$
 
 		IPlaceholderFolderLayout placeHolderLeft = layout
 				.createPlaceholderFolder(

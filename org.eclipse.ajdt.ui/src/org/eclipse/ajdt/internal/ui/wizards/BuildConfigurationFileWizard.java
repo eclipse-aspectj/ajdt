@@ -63,7 +63,7 @@ public class BuildConfigurationFileWizard
 		if(this.selection == null) {
 			this.selection = selection;
 		}
-		setWindowTitle( AspectJUIPlugin.getResourceString( "newConfig" ) ); 
+		setWindowTitle( AspectJUIPlugin.getResourceString( "newConfig" ) );  //$NON-NLS-1$
 		//setDefaultPageImageDescriptor( AspectJImages.getImageDescriptor( AspectJImages.FILE_LST ) );
 	}
 

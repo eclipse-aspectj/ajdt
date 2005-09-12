@@ -838,7 +838,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			IClasspathEntry ajrtLIB = JavaCore.newVariableEntry(new Path(
-					"ASPECTJRT_LIB"), // library location
+					"ASPECTJRT_LIB"), // library location //$NON-NLS-1$
 					null, // no source
 					null // no source
 					);

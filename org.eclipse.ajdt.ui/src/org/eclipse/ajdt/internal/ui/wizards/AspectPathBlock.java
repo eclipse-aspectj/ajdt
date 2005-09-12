@@ -98,7 +98,7 @@ public class AspectPathBlock {
         AspectPathAdapter adapter= new AspectPathAdapter();           
         String[] buttonLabels= new String[] {
                 /* 0 */ AspectJUIPlugin.getResourceString("InPathBlock.order.up.button"), //$NON-NLS-1$
-                /* 1 */ AspectJUIPlugin.getResourceString("InPathBlock.order.down.button")};
+                /* 1 */ AspectJUIPlugin.getResourceString("InPathBlock.order.down.button")}; //$NON-NLS-1$
         
         fAspectPathList= new ListDialogField(null, buttonLabels, new CPListLabelProvider());
         fAspectPathList.setDialogFieldListener(adapter);
@@ -368,7 +368,7 @@ public class AspectPathBlock {
         ClasspathOrderingWorkbookPage ordpage =
             new ClasspathOrderingWorkbookPage(fAspectPathList);
         item = new TabItem(folder, SWT.NONE);
-        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.inpath.order"));
+        item.setText(AspectJUIPlugin.getResourceString("InPathBlock.tab.inpath.order")); //$NON-NLS-1$
         item.setImage(cpoImage);
         item.setData(ordpage);
         item.setControl(ordpage.getControl(folder));

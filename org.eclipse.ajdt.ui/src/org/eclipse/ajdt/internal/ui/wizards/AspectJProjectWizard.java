@@ -50,7 +50,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     public AspectJProjectWizard() {
 		setDefaultPageImageDescriptor(AspectJImages.W_NEW_AJ_PRJ.getImageDescriptor());
 		setDialogSettings(AspectJUIPlugin.getDefault().getDialogSettings());
-		setWindowTitle(AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.title"));
+		setWindowTitle(AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.title")); //$NON-NLS-1$
    }
 
     /*
@@ -60,11 +60,11 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         super.addPages();
         fFirstPage= new JavaProjectWizardFirstPage();
         addPage(fFirstPage);
-        fFirstPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProject"));
-		fFirstPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription"));
+        fFirstPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProject")); //$NON-NLS-1$
+		fFirstPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.CreateAnAspectJProjectDescription")); //$NON-NLS-1$
         fSecondPage= new AspectJProjectWizardSecondPage(fFirstPage);
-        fSecondPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettings"));
-        fSecondPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettingsDescription"));
+        fSecondPage.setTitle(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettings")); //$NON-NLS-1$
+        fSecondPage.setDescription(AspectJUIPlugin.getResourceString("NewAspectJProject.BuildSettingsDescription")); //$NON-NLS-1$
         addPage(fSecondPage);
     }		
     
@@ -128,11 +128,11 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 				dialog.run(true, true, new IRunnableWithProgress() {
 					public void run(IProgressMonitor monitor)
 							throws InvocationTargetException {
-						monitor.beginTask("", 2);
+						monitor.beginTask("", 2); //$NON-NLS-1$
 						try {
 							monitor
 									.setTaskName(AspectJUIPlugin
-											.getResourceString("OptionsConfigurationBlock.buildproject.taskname"));
+											.getResourceString("OptionsConfigurationBlock.buildproject.taskname")); //$NON-NLS-1$
 							thisProject.build(
 									IncrementalProjectBuilder.FULL_BUILD,
 									new SubProgressMonitor(monitor, 2));
@@ -148,9 +148,9 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 			return false;
 		} catch(InvocationTargetException e) {
 			String title =
-				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.title");
+				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.title"); //$NON-NLS-1$
 			String message =
-				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.message");
+				AspectJUIPlugin.getResourceString("NewAspectjProjectCreationWizard.op_error.message"); //$NON-NLS-1$
 			ExceptionHandler.handle(e, getShell(), title, message);
 		} catch(CoreException e) {
 		}
@@ -158,7 +158,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		project = thisProject;
 		AspectJPlugin.getDefault().setCurrentProject( project );
 		selectAndReveal(project);
-		AJLog.log("New project created: " + project.getName());
+		AJLog.log("New project created: " + project.getName()); //$NON-NLS-1$
 
 		return true;
 	}

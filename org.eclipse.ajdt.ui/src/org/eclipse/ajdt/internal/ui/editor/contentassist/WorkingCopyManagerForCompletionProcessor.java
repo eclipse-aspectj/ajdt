@@ -70,12 +70,12 @@ public class WorkingCopyManagerForCompletionProcessor implements
 		try {
 			IBuffer buff = unit.getBuffer();
 			String documentContents = buff.getContents();
-			int aspectindex = locateKeyword(documentContents, "aspect ");
-			int bracketindex = documentContents.indexOf("{");
+			int aspectindex = locateKeyword(documentContents, "aspect "); //$NON-NLS-1$
+			int bracketindex = documentContents.indexOf("{"); //$NON-NLS-1$
 			if (aspectindex != -1 && aspectindex < bracketindex) {
 				workingCopy = unit.getWorkingCopy(null);
 				buff = workingCopy.getBuffer();
-				buff.replace(aspectindex, 7, "class  ");
+				buff.replace(aspectindex, 7, "class  "); //$NON-NLS-1$
 				return workingCopy;
 			}
 		} catch (JavaModelException e) {
@@ -104,8 +104,8 @@ public class WorkingCopyManagerForCompletionProcessor implements
 
 		while (cont) {
 			int whatIndex = whereCopy.indexOf(what);
-			int multiLineCommentStart = whereCopy.indexOf("/*");
-			int multiLineCommentEnd = whereCopy.indexOf("*/");
+			int multiLineCommentStart = whereCopy.indexOf("/*"); //$NON-NLS-1$
+			int multiLineCommentEnd = whereCopy.indexOf("*/"); //$NON-NLS-1$
 			if (whatIndex==-1) {cont = false;break;}
 			if (multiLineCommentStart == -1 || (whatIndex<multiLineCommentStart)) {location = whatIndex+offset; cont=false;} 
 			if (multiLineCommentStart!=-1) {

@@ -726,7 +726,7 @@ public class AJDTUtils {
 						.getPackageFragmentRoots();
 				for (int i = 0; i < dependencies.length; i++) {
 					if (dependencies[i].getElementName().equals(
-							"aspectjrt.jar")) // $NON-NLS-1$
+							"aspectjrt.jar")) //$NON-NLS-1$
 						return true;
 				}
 			} catch (JavaModelException e) {

@@ -109,7 +109,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
         if (AspectJUIPlugin.DEBUG_COMPILER) {
             System.out.println("CompilerMonitor.prepare called: IPM is " //$NON-NLS-1$
-                    + (eclipseMonitor == null ? "Null" : "Not-Null")); //$NON-NLS-2$
+                    + (eclipseMonitor == null ? "Null" : "Not-Null")); //$NON-NLS-1$ //$NON-NLS-2$
         }
 
         monitor = eclipseMonitor;
@@ -230,7 +230,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 
         final String amendedText = removePrefix(text);
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressText(" + text + ")"); //$NON-NLS-1$
+            System.err.println("AJDE Callback: setProgressText(" + text + ")"); //$NON-NLS-1$ //$NON-NLS-2$
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -262,7 +262,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     public void setProgressBarMax(int maxVal) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
             System.err.println("AJDE Callback: setProgressBarMax(" + maxVal //$NON-NLS-1$
-                    + ")");
+                    + ")"); //$NON-NLS-1$
         ajdeMonitorMaxRatio = ((float) maxVal)
                 / AspectJUIPlugin.PROGRESS_MONITOR_MAX;
     }
@@ -378,7 +378,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         }
         // we always get this next one, and it seems to be nonsense
         if (ret.startsWith("directory classpath entry does not exist: null")) { //$NON-NLS-1$
-            ret = "";
+            ret = ""; //$NON-NLS-1$
         }
 
         // chop (from x\y\z\a\b\C.java) to just (C.java)

@@ -232,7 +232,7 @@ public class BuilderUtils {
 	 * Initialise the types cache
 	 */
 	public static void initTypesCache() {
-		Job job = new Job("") {
+		Job job = new Job("") { //$NON-NLS-1$
 			public IStatus run(IProgressMonitor monitor) {
 				Display d = Display.getDefault();
 				d.syncExec(new Runnable() {
