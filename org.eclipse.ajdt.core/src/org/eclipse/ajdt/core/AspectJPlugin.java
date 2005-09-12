@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import java.lang.reflect.Field;
-
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
@@ -28,7 +26,6 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.jdt.internal.core.util.Util;
 import org.osgi.framework.BundleContext;
 
 /**
