@@ -281,7 +281,8 @@ public class AJProjectModel {
 		processRelationships();
 		AJLog.logEnd(TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 
-		// dumpModel();
+		//dumpModel();
+		//dumpAJDEStructureModel();
 	}
 
 	private void processRelationships() {
@@ -478,6 +479,7 @@ public class AJProjectModel {
 						for (Iterator iter3 = related.iterator(); iter3
 								.hasNext();) {
 							IJavaElement el = (IJavaElement) iter3.next();
+							System.out.println(""); //$NON-NLS-1$
 							System.out.println("    " //$NON-NLS-1$
 									+ getJavaElementLinkName(je) + " --" + kind //$NON-NLS-1$
 									+ "-> " + getJavaElementLinkName(el)); //$NON-NLS-1$
@@ -494,6 +496,35 @@ public class AJProjectModel {
 		System.out.println("End of model"); //$NON-NLS-1$
 	}
 
+	// for debugging...
+	private void dumpAJDEStructureModel() {
+		System.out.println("AJDE structure model for project: " + project.getName()); //$NON-NLS-1$
+		
+		IRelationshipMap asmRelMap = AsmManager.getDefault().getRelationshipMap();
+		for (Iterator iter = asmRelMap.getEntries().iterator(); iter.hasNext();) {
+			String sourceOfRelationship = (String) iter.next();
+			IProgramElement ipe = AsmManager.getDefault().getHierarchy()
+									.findElementForHandle(sourceOfRelationship);
+			List relationships = asmRelMap.get(ipe);
+			if (relationships != null) {
+				for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
+					Relationship rel = (Relationship) iterator.next();
+					List targets = rel.getTargets();
+					for (Iterator iterator2 = targets.iterator(); iterator2.hasNext();) {
+						String t = (String) iterator2.next();
+						IProgramElement link = AsmManager.getDefault().getHierarchy().findElementForHandle(t);
+						System.out.println(""); //$NON-NLS-1$
+						System.out.println("      sourceOfRelationship " + sourceOfRelationship); //$NON-NLS-1$
+						System.out.println("          relationship " + rel.getName()); //$NON-NLS-1$
+						System.out.println("              target " + link.getName()); //$NON-NLS-1$
+					}
+				}
+				
+			}
+		}
+		System.out.println("End of AJDE structure model"); //$NON-NLS-1$
+	}
+	
 	private class Persistence {
 	
 		private static final int RUNTIME_OFFSET = 100;
