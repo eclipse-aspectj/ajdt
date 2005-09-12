@@ -191,7 +191,9 @@ public class AspectJImages extends AbstractIconRegistry {
 	
 	public static final AJDTIcon ASPECTJ_FILE = new AJDTIcon(
 		"icons/structure/ajcu_obj.gif");	 //$NON-NLS-1$
-
+	
+	public static final AJDTIcon EXCLUDED_ASPECTJ_FILE = new AJDTIcon(
+		"icons/structure/ajcu_obj_excluded.gif");	 //$NON-NLS-1$
 	
 	public static final AJDTIcon HIDE_ADVICE = new AJDTIcon("icons/actions/hide_advice.gif"); //$NON-NLS-1$
 	public static final AJDTIcon HIDE_ITDS = new AJDTIcon("icons/actions/hide_itds.gif"); //$NON-NLS-1$

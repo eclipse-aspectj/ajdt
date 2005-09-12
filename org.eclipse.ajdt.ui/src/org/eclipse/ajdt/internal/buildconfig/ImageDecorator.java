@@ -142,7 +142,21 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		} else if (element instanceof IFile){
 			IFile file= (IFile) element;
-			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
+			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
+				// Fix for 108961 - use different icons for .aj files
+				ProjectBuildConfigurator pbc = buildConfor.getProjectBuildConfigurator(file.getProject());
+				
+				if (pbc == null)
+					return null;
+				
+				if (pbc.getActiveBuildConfiguration().isIncluded(file)){
+					Rectangle rect = image.getBounds();
+					img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+				} else {
+					Rectangle rect = image.getBounds();
+					img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+				}
+			} else if (file.exists() && CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())){
 				ProjectBuildConfigurator pbc = buildConfor.getProjectBuildConfigurator(file.getProject());
 				
 				if (pbc == null)
