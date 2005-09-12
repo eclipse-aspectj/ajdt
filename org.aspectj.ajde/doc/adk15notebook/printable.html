@@ -18,7 +18,7 @@
          have more confidence in the design will be implemented earlier, providing a 
          framework for user feedback and direction setting on features for which the
          use cases are less obvious at time of writing.
-      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="#jpsigs">Join Point Signatures</a></dt><dd><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#d0e246">Method call join point signatures</a></dt><dt><a href="#d0e351">Method execution join point signatures</a></dt><dt><a href="#d0e373">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></dd><dt>2. <a href="#annotations">Annotations</a></dt><dd><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#d0e578">Using Annotations</a></dt><dt><a href="#d0e624">Retention Policies</a></dt><dt><a href="#d0e659">Accessing Annotations at Runtime</a></dt><dt><a href="#d0e694">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#d0e782">Annotation Patterns</a></dt><dt><a href="#d0e867">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#d0e1121">Example Pointcuts</a></dt><dt><a href="#d0e1194">Runtime type matching and context exposure</a></dt><dt><a href="#d0e1421">Package and Parameter Annotations</a></dt><dt><a href="#d0e1431">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#d0e1472">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#d0e1487">Declare error and declare warning</a></dt><dt><a href="#d0e1502">declare parents</a></dt><dt><a href="#d0e1550">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></dd><dt>3. <a href="#generics">Generics</a></dt><dd><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#d0e1682">Declaring Generic Types</a></dt><dt><a href="#d0e1813">Using Generic and Parameterized Types</a></dt><dt><a href="#d0e1957">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#d0e2060">Generic Methods and Constructors</a></dt><dt><a href="#d0e2078">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e2104">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#d0e2785">Inter-type Declarations</a></dt><dt><a href="#d0e2898">Declare Parents</a></dt><dt><a href="#d0e2931">Declare Soft</a></dt><dt><a href="#d0e2939">Generic Aspects</a></dt></dl></dd></dl></dd><dt>4. <a href="#autoboxing">Autoboxing and Unboxing</a></dt><dd><dl><dt><a href="#boxing-inJava5">Autoboxing and Unboxing in Java 5</a></dt><dt><a href="#autoboxing-in-aspectj5">Autoboxing and Join Point matching in AspectJ 5</a></dt><dt><a href="#autoboxing-and-method-dispatch">Inter-type method declarations and method dispatch</a></dt></dl></dd><dt>5. <a href="#covariance">Covariance</a></dt><dd><dl><dt><a href="#covariance-inJava5">Covariance in Java 5</a></dt><dt><a href="#covariance-and-join-point-matching">Covariant methods and Join Point matching</a></dt></dl></dd><dt>6. <a href="#varargs">Varargs</a></dt><dd><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#d0e3303">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#d0e3337">Matching signatures based on variable length argument types</a></dt><dt><a href="#d0e3439">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></dd><dt>7. <a href="#enumeratedtypes">Enumerated Types</a></dt><dd><dl><dt><a href="#enums-in-java5">Enumerated Types in Java 5</a></dt><dt><a href="#enums-in-aspectj5">Enumerated Types in AspectJ 5</a></dt></dl></dd><dt>8. <a href="#pertypewithin">The pertypewithin Aspect Instantiation Model</a></dt><dt>9. <a href="#ataspectj">An Annotation Based Development Style</a></dt><dd><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#d0e3640">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#d0e3657">Pointcuts</a></dt><dt><a href="#d0e3796">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></dd><dt>10. <a href="#reflection">New Reflection Interfaces</a></dt><dd><dl><dt><a href="#reflection_api">The Aspect Class</a></dt></dl></dd><dt>11. <a href="#miscellaneous">Other Changes in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e4055">Pointcuts</a></dt><dd><dl><dt><a href="#d0e4058">Binding of formals</a></dt><dt><a href="#d0e4067">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4109">Tools</a></dt><dd><dl><dt><a href="#d0e4112">Aspectpath</a></dt></dl></dd></dl></dd><dt>12. <a href="#ltw">Load-Time Weaving</a></dt><dd><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#d0e4134">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#d0e4162">Enabling Load-time Weaving</a></dt><dt><a href="#d0e4206">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#d0e4277">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#d0e4412">JVMTI</a></dt><dt><a href="#d0e4419">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></dd><dt>A. <a href="#grammar">A Grammar for the AspectJ 5 Language</a></dt></dl></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="jpsigs"></a>Chapter 1. Join Point Signatures</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#d0e246">Method call join point signatures</a></dt><dt><a href="#d0e351">Method execution join point signatures</a></dt><dt><a href="#d0e373">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></div><p>
+      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="#jpsigs">Join Point Signatures</a></dt><dd><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></dd><dt>2. <a href="#annotations">Annotations</a></dt><dd><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#using-annotations">Using Annotations</a></dt><dt><a href="#retention-policies">Retention Policies</a></dt><dt><a href="#accessing-annotations-at-runtime">Accessing Annotations at Runtime</a></dt><dt><a href="#annotation-inheritance">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#annotation-patterns">Annotation Patterns</a></dt><dt><a href="#type-patterns">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#example-pointcuts">Example Pointcuts</a></dt><dt><a href="#runtime-type-matching-and-context-exposure">Runtime type matching and context exposure</a></dt><dt><a href="#package-and-parameter-annotations">Package and Parameter Annotations</a></dt><dt><a href="#annotation-inheritance-and-pointcut-matching">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#declare-error-and-declare-warning">Declare error and declare warning</a></dt><dt><a href="#declare-parents">declare parents</a></dt><dt><a href="#declare-precedence">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></dd><dt>3. <a href="#generics">Generics</a></dt><dd><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#declaring-generic-types">Declaring Generic Types</a></dt><dt><a href="#using-generic-and-parameterized-types">Using Generic and Parameterized Types</a></dt><dt><a href="#subtypes-supertypes-and-assignability">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#generic-methods-and-constructors">Generic Methods and Constructors</a></dt><dt><a href="#erasure">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#matching-generic-and-parameterized-types-in-pointcut-expressions">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#inter-type-declarations">Inter-type Declarations</a></dt><dt><a href="#declare-parents">Declare Parents</a></dt><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#generic-aspects">Generic Aspects</a></dt></dl></dd></dl></dd><dt>4. <a href="#autoboxing">Autoboxing and Unboxing</a></dt><dd><dl><dt><a href="#boxing-inJava5">Autoboxing and Unboxing in Java 5</a></dt><dt><a href="#autoboxing-in-aspectj5">Autoboxing and Join Point matching in AspectJ 5</a></dt><dt><a href="#autoboxing-and-method-dispatch">Inter-type method declarations and method dispatch</a></dt></dl></dd><dt>5. <a href="#covariance">Covariance</a></dt><dd><dl><dt><a href="#covariance-inJava5">Covariance in Java 5</a></dt><dt><a href="#covariance-and-join-point-matching">Covariant methods and Join Point matching</a></dt></dl></dd><dt>6. <a href="#varargs">Varargs</a></dt><dd><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#calling-methods-and-constructors-with-variable-length-arguments">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#matching-signatures-based-on-variable-length-argument-types">Matching signatures based on variable length argument types</a></dt><dt><a href="#exposing-variable-length-arguments-as-context-in-pointcuts-and-advice">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></dd><dt>7. <a href="#enumeratedtypes">Enumerated Types</a></dt><dd><dl><dt><a href="#enums-in-java5">Enumerated Types in Java 5</a></dt><dt><a href="#enums-in-aspectj5">Enumerated Types in AspectJ 5</a></dt></dl></dd><dt>8. <a href="#pertypewithin">The pertypewithin Aspect Instantiation Model</a></dt><dt>9. <a href="#ataspectj">An Annotation Based Development Style</a></dt><dd><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></dd><dt>10. <a href="#reflection">New Reflection Interfaces</a></dt><dd><dl><dt><a href="#reflection_api">The Aspect Class</a></dt></dl></dd><dt>11. <a href="#miscellaneous">Other Changes in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e4055">Pointcuts</a></dt><dd><dl><dt><a href="#binding-of-formals">Binding of formals</a></dt><dt><a href="#additional-lint-warnings">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4109">Tools</a></dt><dd><dl><dt><a href="#aspectpath">Aspectpath</a></dt></dl></dd></dl></dd><dt>12. <a href="#ltw">Load-Time Weaving</a></dt><dd><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#weaving-class-files-more-than-once">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#enabling-load-time-weaving">Enabling Load-time Weaving</a></dt><dt><a href="#configuring-load-time-weaving-with-aopxml-files">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#weaver-options">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#jvmti">JVMTI</a></dt><dt><a href="#jrockit">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></dd><dt>A. <a href="#grammar">A Grammar for the AspectJ 5 Language</a></dt></dl></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="jpsigs"></a>Chapter 1. Join Point Signatures</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></div><p>
         Many of the extensions to the AspectJ language to address the new features of
         Java 5 are derived from a simple set of principles for join point
         matching. In this section, we outline these principles as a foundation
@@ -64,7 +64,7 @@
         Each signature of a field get or set join point has the same id and field
         type, but the declaring type may vary.
         </p><p>The following sections examine signatures for these join points 
-        in more detail.</p><div class="sect2"><a name="d0e246"></a><div class="titlepage"><div><h3 class="title"><a name="d0e246"></a>Method call join point signatures</h3></div></div><p>
+        in more detail.</p><div class="sect2"><a name="method-call-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="method-call-join-point-signatures"></a>Method call join point signatures</h3></div></div><p>
           For a call join point where a call is made to a method
           <tt>m(parameter_types)</tt> on a target type <tt>T</tt> (where
           <tt>T</tt> is the static type of the target):
@@ -114,7 +114,7 @@
 		</pre><p>are all additional signatures for the call join point arising
         from the call <tt>t.m("hello")</tt>. Thus this call
         join point has four signatures in total. Every signature has the same
-        id and parameter types, and a different declaring type.</p></div><div class="sect2"><a name="d0e351"></a><div class="titlepage"><div><h3 class="title"><a name="d0e351"></a>Method execution join point signatures</h3></div></div><p>Join point signatures for execution join points are defined
+        id and parameter types, and a different declaring type.</p></div><div class="sect2"><a name="method-execution-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="method-execution-join-point-signatures"></a>Method execution join point signatures</h3></div></div><p>Join point signatures for execution join points are defined
           in a similar manner to signatures for call join points. Given the
           hierarchy:
           </p><pre class="programlisting">
@@ -147,7 +147,7 @@
         that provides its own declaration of the method. Hence in this 
         example there is no signature <tt>R' T.m(String)</tt>
         as <tt>T</tt> does not provide its own declaration of
-        the method.</p></div><div class="sect2"><a name="d0e373"></a><div class="titlepage"><div><h3 class="title"><a name="d0e373"></a>Field get and set join point signatures</h3></div></div><p>
+        the method.</p></div><div class="sect2"><a name="field-get-and-set-join-point-signatures"></a><div class="titlepage"><div><h3 class="title"><a name="field-get-and-set-join-point-signatures"></a>Field get and set join point signatures</h3></div></div><p>
             For a field get join point where an access is made to a field
             <tt>f</tt> of type <tt>F</tt> 
             on a object with declared type <tt>T</tt>, then
@@ -242,12 +242,12 @@
         calls <tt>t.m("hello")</tt> and <tt>s.m("hello")</tt>.
         It does not match the call <tt>p.m("hello")</tt> since the
         signature pattern does not match any signature for the call join point
-        of m in P.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="annotations"></a>Chapter 2. Annotations</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#d0e578">Using Annotations</a></dt><dt><a href="#d0e624">Retention Policies</a></dt><dt><a href="#d0e659">Accessing Annotations at Runtime</a></dt><dt><a href="#d0e694">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#d0e782">Annotation Patterns</a></dt><dt><a href="#d0e867">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#d0e1121">Example Pointcuts</a></dt><dt><a href="#d0e1194">Runtime type matching and context exposure</a></dt><dt><a href="#d0e1421">Package and Parameter Annotations</a></dt><dt><a href="#d0e1431">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#d0e1472">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#d0e1487">Declare error and declare warning</a></dt><dt><a href="#d0e1502">declare parents</a></dt><dt><a href="#d0e1550">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></div><div class="sect1"><a name="annotations-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-inJava5"></a>Annotations in Java 5</h2></div></div><p>
+        of m in P.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="annotations"></a>Chapter 2. Annotations</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#using-annotations">Using Annotations</a></dt><dt><a href="#retention-policies">Retention Policies</a></dt><dt><a href="#accessing-annotations-at-runtime">Accessing Annotations at Runtime</a></dt><dt><a href="#annotation-inheritance">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#annotation-patterns">Annotation Patterns</a></dt><dt><a href="#type-patterns">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#example-pointcuts">Example Pointcuts</a></dt><dt><a href="#runtime-type-matching-and-context-exposure">Runtime type matching and context exposure</a></dt><dt><a href="#package-and-parameter-annotations">Package and Parameter Annotations</a></dt><dt><a href="#annotation-inheritance-and-pointcut-matching">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#declare-error-and-declare-warning">Declare error and declare warning</a></dt><dt><a href="#declare-parents">declare parents</a></dt><dt><a href="#declare-precedence">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></div><div class="sect1"><a name="annotations-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-inJava5"></a>Annotations in Java 5</h2></div></div><p>
 		This section provides the essential information about annotations in
 		Java 5 needed to understand how annotations are treated in AspectJ 5.
 		For a full introduction to annotations in Java, please see the
 		documentation for the Java 5 SDK.
-	</p><div class="sect2"><a name="d0e578"></a><div class="titlepage"><div><h3 class="title"><a name="d0e578"></a>Using Annotations</h3></div></div><p>
+	</p><div class="sect2"><a name="using-annotations"></a><div class="titlepage"><div><h3 class="title"><a name="using-annotations"></a>Using Annotations</h3></div></div><p>
 	      Java 5 introduces <span class="emphasis"><i>annotation types</i></span> which can
 	      be used to express metadata relating to program members in the
 	      form of <span class="emphasis"><i>annotations</i></span>. Annotations in Java 5 
@@ -284,7 +284,7 @@
 		</p><pre class="programlisting">
 		@Authenticated(role="supervisor",clearanceLevel=5)
 		public void someMethod() {...}
-		</pre></div><div class="sect2"><a name="d0e624"></a><div class="titlepage"><div><h3 class="title"><a name="d0e624"></a>Retention Policies</h3></div></div><p>
+		</pre></div><div class="sect2"><a name="retention-policies"></a><div class="titlepage"><div><h3 class="title"><a name="retention-policies"></a>Retention Policies</h3></div></div><p>
 	      Annotations can have one of three retention policies:
 	    </p><div class="variablelist"><dl><dt><a name="d0e630"></a><span class="term">Source-file retention</span></dt><dd><p><a name="d0e633"></a>
 	            	Annotations with source-file retention are read by the 
@@ -301,7 +301,7 @@
 	        			.class</tt> files, and also made available
 	        			at runtime.
 	        		</p></dd></dl></div><p>Local variable annotations are not retained in class files (or at runtime)
-	    regardless of the retention policy set on the annotation type. See JLS 9.6.1.2.</p></div><div class="sect2"><a name="d0e659"></a><div class="titlepage"><div><h3 class="title"><a name="d0e659"></a>Accessing Annotations at Runtime</h3></div></div><p>
+	    regardless of the retention policy set on the annotation type. See JLS 9.6.1.2.</p></div><div class="sect2"><a name="accessing-annotations-at-runtime"></a><div class="titlepage"><div><h3 class="title"><a name="accessing-annotations-at-runtime"></a>Accessing Annotations at Runtime</h3></div></div><p>
     		Java 5 supports a new interface, 
     		<tt>java.lang.reflect.AnnotatedElement</tt>, that is
     		implemented by the reflection classes in Java (<tt>Class</tt>, 
@@ -313,7 +313,7 @@
     		and <tt>isAnnotationPresent</tt>. Because annotation types are
     		just regular Java classes, the annotations returned by these methods
     		can be queried just like any regular Java object.
-    	</p></div><div class="sect2"><a name="d0e694"></a><div class="titlepage"><div><h3 class="title"><a name="d0e694"></a>Annotation Inheritance</h3></div></div><p>
+    	</p></div><div class="sect2"><a name="annotation-inheritance"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance"></a>Annotation Inheritance</h3></div></div><p>
     		It is important to understand the rules relating to inheritance of
     		annotations, as these have a bearing on join point matching
     		based on the presence or absence of annotations.
@@ -434,7 +434,7 @@
   	AspectJ 5 that support matching join points based on the presence or absence of
   	annotations. We then discuss means of exposing annotation values within the body
   	of advice.
-  </p><div class="sect2"><a name="d0e782"></a><div class="titlepage"><div><h3 class="title"><a name="d0e782"></a>Annotation Patterns</h3></div></div><p>
+  </p><div class="sect2"><a name="annotation-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-patterns"></a>Annotation Patterns</h3></div></div><p>
           For any kind of annotated element (type, method, constructor, package, etc.), 
           an annotation pattern can be used to match against the set of annotations
           on the annotated element. Annotation patterns are defined by the following
@@ -472,7 +472,7 @@
 		      the type pattern <tt>(org.xyz..*)</tt>. 
 		      In other words, an annotated element with an annotation that is declared in the
 		      org.xyz package or a sub-package. (The parenthesis are required in this example).
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e867"></a><div class="titlepage"><div><h3 class="title"><a name="d0e867"></a>Type Patterns</h3></div></div><p>AspectJ 1.5 extends type patterns to allow an optional <tt>AnnotationPattern</tt>
+            </p></dd></dl></div></div><div class="sect2"><a name="type-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="type-patterns"></a>Type Patterns</h3></div></div><p>AspectJ 1.5 extends type patterns to allow an optional <tt>AnnotationPattern</tt>
 	prefix. (Extensions to this definition for generics are shown in the next chapter).</p><pre class="programlisting">
   	  	TypePattern := SimpleTypePattern |
   	  	               '!' TypePattern |
@@ -606,7 +606,7 @@
             </p></dd><dt><a name="d0e1112"></a><span class="term">* *.*(@Immutable *,..)</span></dt><dd><p><a name="d0e1115"></a>
             	Matches any method taking at least one parameter, where the parameter
             	type has an annotation <tt>@Immutable</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e1121"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1121"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1125"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1128"></a>
+            </p></dd></dl></div></div><div class="sect2"><a name="example-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="example-pointcuts"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1125"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1128"></a>
             	Matches any join point where the code executing is declared in a 
             	type with an <tt>@Secure</tt>
             	annotation. The format of the <tt>within</tt> pointcut designator
@@ -628,7 +628,7 @@
                 Matches the handler join point for the handling of any exception that is
                 not <tt>Catastrophic</tt>. The format of the <tt>handler</tt>
                 pointcut designator in AspectJ 5 is <tt>'handler' '(' OptionalParensTypePattern ')'</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e1194"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1194"></a>Runtime type matching and context exposure</h3></div></div><p>AspectJ 5 supports a set of "@" pointcut designators which
+            </p></dd></dl></div></div><div class="sect2"><a name="runtime-type-matching-and-context-exposure"></a><div class="titlepage"><div><h3 class="title"><a name="runtime-type-matching-and-context-exposure"></a>Runtime type matching and context exposure</h3></div></div><p>AspectJ 5 supports a set of "@" pointcut designators which
     can be used both to match based on the presence of an annotation at
     runtime, and to expose the annotation value as context in a pointcut or
     advice definition. These designators are <tt>@args, @this, @target,
@@ -781,7 +781,7 @@
         and <tt>@annotation</tt> pointcut designators can only be used
         to match against annotations that have at least class-file retention, and
         if used in the binding form the annotation must have runtime retention. 
-    </p></div><div class="sect2"><a name="d0e1421"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1421"></a>Package and Parameter Annotations</h3></div></div><p>
+    </p></div><div class="sect2"><a name="package-and-parameter-annotations"></a><div class="titlepage"><div><h3 class="title"><a name="package-and-parameter-annotations"></a>Package and Parameter Annotations</h3></div></div><p>
           <span class="emphasis"><i>Note: A previous design allowed package annotation patterns to be specified
           directly in type patterns, and parameter annotation patterns to be
           specified directly in method and constructor signature patterns. Because
@@ -791,7 +791,7 @@
           deferred until after the 1.5.0 release so that we can gain more understanding
           of the kinds of uses AspectJ users are making of annotations in pointcut
           expressions before commiting to any one approach.</i></span>
-      </p></div><div class="sect2"><a name="d0e1431"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1431"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
+      </p></div><div class="sect2"><a name="annotation-inheritance-and-pointcut-matching"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance-and-pointcut-matching"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
   	    According to the Java 5 specification, non-type annotations are not
   	    inherited, and annotations on types are only inherited if they have the 
   	    <tt>@Inherited</tt> meta-annotation.
@@ -835,7 +835,7 @@
   	    multiple signatures (<tt>@SomeAnnotation C1.aMethod()</tt> and
   	    <tt>C2.aMethod()</tt>), and the former of those signatures is
   	    exactly matched by the pattern.
-  	</p></div><div class="sect2"><a name="d0e1472"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1472"></a>Limitations</h3></div></div><p>
+  	</p></div><div class="sect2"><a name="limitations"></a><div class="titlepage"><div><h3 class="title"><a name="limitations"></a>Limitations</h3></div></div><p>
         It would be useful to be able to match join points based on  
         annotation values, rather than merely the presence of a
         class-file retention annotation of a given type. This facility may be supported in a future version of AspectJ, by expanding the
@@ -843,7 +843,7 @@
         annotations with runtime retention can be done by exposing the annotation value
         as a pointcut parameter and then using an <tt>if</tt> pointcut expression
         to test the value. 
-    </p></div></div><div class="sect1"><a name="annotations-decp"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-decp"></a>Using Annotations with declare statements</h2></div></div><div class="sect2"><a name="d0e1487"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1487"></a>Declare error and declare warning</h3></div></div><p>
+    </p></div></div><div class="sect1"><a name="annotations-decp"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-decp"></a>Using Annotations with declare statements</h2></div></div><div class="sect2"><a name="declare-error-and-declare-warning"></a><div class="titlepage"><div><h3 class="title"><a name="declare-error-and-declare-warning"></a>Declare error and declare warning</h3></div></div><p>
   	    Since pointcut expressions in AspectJ 5 support join point matching based
   	    on annotations, this facility can be exploited when writing
   	    <tt>declare warning</tt> and <tt>declare error</tt>
@@ -856,7 +856,7 @@
   	declare error : call(* org.xyz.model.*.*(..)) &amp;&amp;
   	                !@within(Trusted)
   	                : "Untrusted code should not call the model classes directly";
-	</pre></div><div class="sect2"><a name="d0e1502"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1502"></a>declare parents</h3></div></div><p>
+	</pre></div><div class="sect2"><a name="declare-parents"></a><div class="titlepage"><div><h3 class="title"><a name="declare-parents"></a>declare parents</h3></div></div><p>
   		The general form of a <tt>declare parents</tt> statement is:
   	</p><pre class="programlisting">
   	declare parents : TypePattern extends Type;
@@ -878,7 +878,7 @@
     statement. If an annotation type is named explicitly as the target of a
     declare parents statement, a compilation error will result. If an annotation
     type is matched by a non-explicit type pattern used in a declare parents
-    statement it will be ignored (and an XLint warning issued).</p></div><div class="sect2"><a name="d0e1550"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1550"></a>declare precedence</h3></div></div><p>
+    statement it will be ignored (and an XLint warning issued).</p></div><div class="sect2"><a name="declare-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="declare-precedence"></a>declare precedence</h3></div></div><p>
 		The general form of a declare precedence statement is:
 	</p><pre class="programlisting">
   	declare precedence : TypePatList;
@@ -915,12 +915,12 @@
 	            </p></dd><dt><a name="d0e1656"></a><span class="term">declare @field : * DAO+.* : @Persisted;</span></dt><dd><p><a name="d0e1659"></a>
 	            	All fields defined in <tt>DAO</tt> or its subtypes have the
 	            	<tt>@Persisted</tt> annotation.
-	            </p></dd></dl></div></div><div class="sect1"><a name="annotations-itds"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-itds"></a>Inter-type Declarations</h2></div></div><p>An annotation type may not be the target of an inter-type declaration.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="generics"></a>Chapter 3. Generics</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#d0e1682">Declaring Generic Types</a></dt><dt><a href="#d0e1813">Using Generic and Parameterized Types</a></dt><dt><a href="#d0e1957">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#d0e2060">Generic Methods and Constructors</a></dt><dt><a href="#d0e2078">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e2104">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#d0e2785">Inter-type Declarations</a></dt><dt><a href="#d0e2898">Declare Parents</a></dt><dt><a href="#d0e2931">Declare Soft</a></dt><dt><a href="#d0e2939">Generic Aspects</a></dt></dl></dd></dl></div><div class="sect1"><a name="generics-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="generics-inJava5"></a>Generics in Java 5</h2></div></div><p>
+	            </p></dd></dl></div></div><div class="sect1"><a name="annotations-itds"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="annotations-itds"></a>Inter-type Declarations</h2></div></div><p>An annotation type may not be the target of an inter-type declaration.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="generics"></a>Chapter 3. Generics</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#declaring-generic-types">Declaring Generic Types</a></dt><dt><a href="#using-generic-and-parameterized-types">Using Generic and Parameterized Types</a></dt><dt><a href="#subtypes-supertypes-and-assignability">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#generic-methods-and-constructors">Generic Methods and Constructors</a></dt><dt><a href="#erasure">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#matching-generic-and-parameterized-types-in-pointcut-expressions">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#inter-type-declarations">Inter-type Declarations</a></dt><dt><a href="#declare-parents">Declare Parents</a></dt><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#generic-aspects">Generic Aspects</a></dt></dl></dd></dl></div><div class="sect1"><a name="generics-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="generics-inJava5"></a>Generics in Java 5</h2></div></div><p>
 		This section provides the essential information about generics in
 		Java 5 needed to understand how generics are treated in AspectJ 5.
 		For a full introduction to generics in Java, please see the
 		documentation for the Java 5 SDK.
-	</p><div class="sect2"><a name="d0e1682"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1682"></a>Declaring Generic Types</h3></div></div><p>
+	</p><div class="sect2"><a name="declaring-generic-types"></a><div class="titlepage"><div><h3 class="title"><a name="declaring-generic-types"></a>Declaring Generic Types</h3></div></div><p>
             A generic type is declared with one or more type parameters following the type name. 
             By convention formal type parameters are named using a single letter, though this is not required.  
             A simple generic list type
@@ -951,7 +951,7 @@
             must be instantiated with a type <tt>S</tt> that is a subtype of the type specified for parameter <tt>T</tt>.
             </p></dd><dt><a name="d0e1792"></a><span class="term">class Foo&lt;T extends Number &amp; Comparable&gt; {...}</span></dt><dd><p><a name="d0e1795"></a>A class <tt>Foo</tt> with one type parameter, <tt>T</tt>. <tt>Foo</tt>
             must be instantiated with a type that is a subtype of <tt>Number</tt> and that implements <tt>Comparable</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e1813"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1813"></a>Using Generic and Parameterized Types</h3></div></div><p>You declare a variable (or a method/constructor argument) of a parameterized type  by specifying a concrete type specfication for each type parameter in
+            </p></dd></dl></div></div><div class="sect2"><a name="using-generic-and-parameterized-types"></a><div class="titlepage"><div><h3 class="title"><a name="using-generic-and-parameterized-types"></a>Using Generic and Parameterized Types</h3></div></div><p>You declare a variable (or a method/constructor argument) of a parameterized type  by specifying a concrete type specfication for each type parameter in
 	        the generic type. The following example declares a list of strings and a list of numbers:</p><pre class="programlisting">
         List&lt;String&gt; strings;
         List&lt;Number&gt; numbers;
@@ -991,7 +991,7 @@
             </p></dd></dl></div><p>A generic type may implement one or more generic interfaces, following the type binding
 	    rules given above. A type may also implement one or more parameterized interfaces (for example,
 	    <tt>class X implements List&lt;String&gt;</tt>, however a type may not at the same time
-	    be a subtype of two interface types which are different parameterizations of the same interface.</p></div><div class="sect2"><a name="d0e1957"></a><div class="titlepage"><div><h3 class="title"><a name="d0e1957"></a>Subtypes, Supertypes, and Assignability</h3></div></div><p>
+	    be a subtype of two interface types which are different parameterizations of the same interface.</p></div><div class="sect2"><a name="subtypes-supertypes-and-assignability"></a><div class="titlepage"><div><h3 class="title"><a name="subtypes-supertypes-and-assignability"></a>Subtypes, Supertypes, and Assignability</h3></div></div><p>
 	      The supertype of a generic type <tt>C</tt> is the type given in the extends clause of
 	      <tt>C</tt>, or <tt>Object</tt> if no extends clause is present. Given the type declaration
 	    </p><pre class="programlisting">
@@ -1016,7 +1016,7 @@
 	      <tt>Tm</tt> falls within the bounds of the wildcard. For example, <tt>List&lt;String&gt;</tt>
 	      can be assigned to a variable of type <tt>Collection&lt;?&gt;</tt>, and <tt>List&lt;Double&gt;</tt>
 	      can be assigned to a variable of type <tt>List&lt;? extends Number&gt;</tt>. 	      
-	    </p></div><div class="sect2"><a name="d0e2060"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2060"></a>Generic Methods and Constructors</h3></div></div><p>
+	    </p></div><div class="sect2"><a name="generic-methods-and-constructors"></a><div class="titlepage"><div><h3 class="title"><a name="generic-methods-and-constructors"></a>Generic Methods and Constructors</h3></div></div><p>
 	      A static method may be declared with one or more type parameters as in the following declaration:
 	    </p><pre class="programlisting">
           static &lt;T&gt; T first(List&lt;T&gt; ts) { ... }
@@ -1027,7 +1027,7 @@
 	      Non-static methods may also be declared with one or more type parameters in a similar fashion:
 	    </p><pre class="programlisting">
           &lt;T extends Number&gt; T max(T t1, T t2) { ... }
-		</pre><p>The same technique can be used to declare a generic constructor.</p></div><div class="sect2"><a name="d0e2078"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2078"></a>Erasure</h3></div></div><p>Generics in Java are implemented using a technique called <span class="emphasis"><i>erasure</i></span>. All
+		</pre><p>The same technique can be used to declare a generic constructor.</p></div><div class="sect2"><a name="erasure"></a><div class="titlepage"><div><h3 class="title"><a name="erasure"></a>Erasure</h3></div></div><p>Generics in Java are implemented using a technique called <span class="emphasis"><i>erasure</i></span>. All
 	  type parameter information is erased from the run-time type system. Asking an object of a parameterized
 	  type for its class will return the class object for the raw type (eg. <tt>List</tt> for an object
 	  declared to be of type <tt>List&lt;String&gt;</tt>. A consequence of this is that you cannot at
@@ -1036,7 +1036,7 @@
         legal AspectJ 5 progam. In addition, AspectJ 5 provides support for generic and parameterized types in pointcuts, inter-type
         declarations, and declare statements.  Parameterized types may freely be used within aspect members, and support is 
         also provided for generic <span class="emphasis"><i>abstract</i></span> aspects.
-      </p><div class="sect2"><a name="d0e2104"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2104"></a>Matching generic and parameterized types in pointcut expressions</h3></div></div><p>
+      </p><div class="sect2"><a name="matching-generic-and-parameterized-types-in-pointcut-expressions"></a><div class="titlepage"><div><h3 class="title"><a name="matching-generic-and-parameterized-types-in-pointcut-expressions"></a>Matching generic and parameterized types in pointcut expressions</h3></div></div><p>
             The simplest way to work with generic and parameterized types in pointcut expressions and type patterns
             is simply to use the raw type name. For example, the type pattern <tt>List</tt> will match
             the generic type <tt>List&lt;E&gt;</tt> and any parameterization of that type 
@@ -1112,7 +1112,7 @@
         example:</p><pre class="programlisting">
           class G&lt;T&gt; {
   	
-	        List&lt;T&gt; foo(List&lt;String ls) { return null; }
+	        List&lt;T&gt; foo(List&lt;String&gt; ls) { return null; }
 	
           }
 		</pre><p>The execution of <tt>foo</tt> can be matched by
@@ -1341,7 +1341,7 @@
          }
 		</pre><p>The pointcut uses the raw type pattern <tt>List</tt>, and hence it
           matches methods returning any kind of list (<tt>List&lt;String&gt;, List&lt;Double&gt;</tt>, 
-          and so on. We've chosen to bind the returned list as the parameterized type 
+          and so on). We've chosen to bind the returned list as the parameterized type 
           <tt>List&lt;?&gt;</tt> in the advice since Java's type checking will now ensure
           that we only perform safe operations on the list.</p><p>Given the class</p><pre class="programlisting">
          public class C {
@@ -1401,7 +1401,7 @@
            before() : Generic.foo() { }
          
          }
-		</pre></div></div><div class="sect2"><a name="d0e2785"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2785"></a>Inter-type Declarations</h3></div></div><p>
+		</pre></div></div><div class="sect2"><a name="inter-type-declarations"></a><div class="titlepage"><div><h3 class="title"><a name="inter-type-declarations"></a>Inter-type Declarations</h3></div></div><p>
             AspectJ 5 supports the inter-type declaration of generic methods, and of members on
             generic types. For generic methods, the syntax is exactly as for a regular method
             declaration, with the addition of the target type specification:
@@ -1437,14 +1437,14 @@
       that generic type are made in a program. Therefore it does not make sense to try and declare a member
       on behalf of (say) <tt>Bar&lt;String&gt;</tt>, you can only declare members on the generic
       type <tt>Bar&lt;T&gt;</tt>. 
-      </p></div><div class="sect2"><a name="d0e2898"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2898"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
+      </p></div><div class="sect2"><a name="declare-parents"></a><div class="titlepage"><div><h3 class="title"><a name="declare-parents"></a>Declare Parents</h3></div></div><p>Both generic and parameterized types can be used as the parent type in a <tt>declare parents</tt>
           statement (as long as the resulting type hierarchy would be well-formed in accordance with Java's sub-typing
           rules). Generic types may also be used as the target type of a <tt>declare parents</tt> statement.</p><div class="variablelist"><dl><dt><a name="d0e2910"></a><span class="term">declare parents: Foo implements List&lt;String&gt;</span></dt><dd><p><a name="d0e2913"></a>The <tt>Foo</tt> type implements the <tt>List&lt;String&gt;</tt> interface. If
             <tt>Foo</tt> already implements some other parameterization of the <tt>List</tt>
             interface (for example, <tt>List&lt;Integer&gt;</tt> then a compilation error will result since a 
             type cannot implement multiple parameterizations of the same generic interface type. 
-            </p></dd></dl></div></div><div class="sect2"><a name="d0e2931"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2931"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
-          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="d0e2939"></a><div class="titlepage"><div><h3 class="title"><a name="d0e2939"></a>Generic Aspects</h3></div></div><p><span class="emphasis"><i>This feature will not be fully implemented until AspectJ5 M4.</i></span></p><p>
+            </p></dd></dl></div></div><div class="sect2"><a name="declare-soft"></a><div class="titlepage"><div><h3 class="title"><a name="declare-soft"></a>Declare Soft</h3></div></div><p>It is an error to use a generic or parameterized type as the softened exception type in a declare soft statement. Java 5 does
+          not permit a generic class to be a direct or indirect subtype of <tt>Throwable</tt> (JLS 8.1.2).</p></div><div class="sect2"><a name="generic-aspects"></a><div class="titlepage"><div><h3 class="title"><a name="generic-aspects"></a>Generic Aspects</h3></div></div><p><span class="emphasis"><i>This feature will not be fully implemented until AspectJ5 M4.</i></span></p><p>
             AspectJ 5 allows an <span class="emphasis"><i>abstract</i></span> aspect to be declared as a generic type. Any concrete
             aspect extending a generic abstract aspect must extend a parameterized version of the abstract aspect.
             Wildcards are not permitted in this parameterization.     
@@ -1709,7 +1709,7 @@
 		is unchanged from AspectJ 1.2: a call or execution pointcut matches if
 		the signature pattern matches at least one of the signatures of the
 		join point, and if the modifiers of the method or constructor are matched
-		by any modifier pattern or annotation pattern that may be present.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="varargs"></a>Chapter 6. Varargs</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#d0e3303">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#d0e3337">Matching signatures based on variable length argument types</a></dt><dt><a href="#d0e3439">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></div><div class="sect1"><a name="varargs-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="varargs-inJava5"></a>Variable-length Argument Lists in Java 5</h2></div></div><p>
+		by any modifier pattern or annotation pattern that may be present.</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="varargs"></a>Chapter 6. Varargs</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#calling-methods-and-constructors-with-variable-length-arguments">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#matching-signatures-based-on-variable-length-argument-types">Matching signatures based on variable length argument types</a></dt><dt><a href="#exposing-variable-length-arguments-as-context-in-pointcuts-and-advice">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></div><div class="sect1"><a name="varargs-inJava5"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="varargs-inJava5"></a>Variable-length Argument Lists in Java 5</h2></div></div><p>
           Java 5 (and hence AspectJ 5) allows you to specify methods that take a 
           variable number of arguments of a specified type. This is achieved using
           an ellipsis (...) in the method signature as shown:    
@@ -1719,7 +1719,7 @@
 		</pre><p>
             A method or constructor may take at most one variable length argument, and
             this must always be the last declared argument in the signature.
-        </p><div class="sect2"><a name="d0e3303"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3303"></a>Calling Methods and Constructors with variable-length arguments</h3></div></div><p>
+        </p><div class="sect2"><a name="calling-methods-and-constructors-with-variable-length-arguments"></a><div class="titlepage"><div><h3 class="title"><a name="calling-methods-and-constructors-with-variable-length-arguments"></a>Calling Methods and Constructors with variable-length arguments</h3></div></div><p>
              A <span class="emphasis"><i>varargs</i></span> method may be called with zero or more arguments
              in the variable argument position. For example, given the definition of 
              <tt>foo</tt> above, the following calls are all legal:
@@ -1743,7 +1743,7 @@
         outlined in the previous section.</p><p>
         AspectJ 5 also allows variable length arguments to be matched by pointcut expressions and
         bound as formals in advice.
-        </p><div class="sect2"><a name="d0e3337"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3337"></a>Matching signatures based on variable length argument types</h3></div></div><p>
+        </p><div class="sect2"><a name="matching-signatures-based-on-variable-length-argument-types"></a><div class="titlepage"><div><h3 class="title"><a name="matching-signatures-based-on-variable-length-argument-types"></a>Matching signatures based on variable length argument types</h3></div></div><p>
             Recall from the definition of signature patterns given in the chapter on
             annotations (<a href="#signaturePatterns">Signature Patterns</a>), that <tt>MethodPattern</tt>
             and <tt>ConstructorPattern</tt> are extended to allow a <tt>varargs</tt>
@@ -1785,7 +1785,7 @@
             for <tt>foo</tt>, but not <tt>bar</tt>. The pointcut 
             <tt>execution(* *.*(String[]))</tt> matches the execution join point
             for <tt>bar</tt> but not <tt>foo</tt>.
-        </p></div><div class="sect2"><a name="d0e3439"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3439"></a>Exposing variable-length arguments as context in pointcuts and advice</h3></div></div><p>
+        </p></div><div class="sect2"><a name="exposing-variable-length-arguments-as-context-in-pointcuts-and-advice"></a><div class="titlepage"><div><h3 class="title"><a name="exposing-variable-length-arguments-as-context-in-pointcuts-and-advice"></a>Exposing variable-length arguments as context in pointcuts and advice</h3></div></div><p>
             When a varargs parameter is used within the body of a method, it has
             an array type, as discussed in the introduction to this section. We follow the
             same convention when binding a varargs parameter via the <tt>args</tt>
@@ -1910,7 +1910,7 @@
         field. Examples of usage include instance tracking, profiling, and the
         implementation of a common tracing idiom that uses one Logger per 
         traced class.
-    </p></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ataspectj"></a>Chapter 9. An Annotation Based Development Style</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#d0e3640">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#d0e3657">Pointcuts</a></dt><dt><a href="#d0e3796">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></div><div class="sect1"><a name="ataspectj-intro"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ataspectj-intro"></a>Introduction</h2></div></div><p>In addition to the familiar AspectJ code-based style of aspect
+    </p></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ataspectj"></a>Chapter 9. An Annotation Based Development Style</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></div><div class="sect1"><a name="ataspectj-intro"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ataspectj-intro"></a>Introduction</h2></div></div><p>In addition to the familiar AspectJ code-based style of aspect
       declaration, AspectJ 5 also supports an annotation-based style of 
       aspect declaration. We informally call the set of annotations that
       support this development style the "@AspectJ" annotations.</p><p>
@@ -1949,12 +1949,12 @@
      public class Foo {}
          </pre><p>is equivalent to...</p><pre class="programlisting">
      public aspect Foo perthis(execution(* abc..*(..))) {}
-         </pre><div class="sect2"><a name="d0e3640"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3640"></a>Limitations</h3></div></div><p>Privileged aspects are not supported by the annotation style.</p></div></div><div class="sect1"><a name="ataspectj-pcadvice"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ataspectj-pcadvice"></a>Pointcuts and Advice</h2></div></div><p>
+         </pre><div class="sect2"><a name="limitations"></a><div class="titlepage"><div><h3 class="title"><a name="limitations"></a>Limitations</h3></div></div><p>Privileged aspects are not supported by the annotation style.</p></div></div><div class="sect1"><a name="ataspectj-pcadvice"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ataspectj-pcadvice"></a>Pointcuts and Advice</h2></div></div><p>
           Pointcut and advice declarations can be made using the
             <tt>Pointcut, Before, After, AfterReturning, AfterThrowing,</tt>
           and
             <tt>Around</tt> annotations.
-        </p><div class="sect2"><a name="d0e3657"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3657"></a>Pointcuts</h3></div></div><p>
+        </p><div class="sect2"><a name="pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="pointcuts"></a>Pointcuts</h3></div></div><p>
               Pointcuts are specified using the
                 <tt>org.aspectj.lang.annotation.Pointcut</tt> annotation
               on a method declaration. The method should have a
@@ -2082,7 +2082,7 @@
                 The special forms <tt>if(true)</tt> and <tt>if(false)</tt> can be used in a more
                 general way and don't imply that the pointcut method must have a body.
                 You can thus write <tt>@Before("somePoincut() &amp;&amp; if(false)")</tt>.
-            </p></div></div><div class="sect2"><a name="d0e3796"></a><div class="titlepage"><div><h3 class="title"><a name="d0e3796"></a>Advice</h3></div></div><p>In this section we first discuss the use of annotations for
+            </p></div></div><div class="sect2"><a name="advice"></a><div class="titlepage"><div><h3 class="title"><a name="advice"></a>Advice</h3></div></div><p>In this section we first discuss the use of annotations for
           simple advice declarations. Then we show how
                 <tt>thisJoinPoint</tt>
           and its siblings are handled in the body of advice and discuss the 
@@ -2434,7 +2434,7 @@
       analogous to the Java class <tt>Class</tt> and provides access to the members of an aspect. 
   </p><div class="sect1"><a name="reflection_api"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="reflection_api"></a>The Aspect Class</h2></div></div><p>
 	    
-	</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="miscellaneous"></a>Chapter 11. Other Changes in AspectJ 5</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#d0e4055">Pointcuts</a></dt><dd><dl><dt><a href="#d0e4058">Binding of formals</a></dt><dt><a href="#d0e4067">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4109">Tools</a></dt><dd><dl><dt><a href="#d0e4112">Aspectpath</a></dt></dl></dd></dl></div><div class="sect1"><a name="d0e4055"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e4055"></a>Pointcuts</h2></div></div><div class="sect2"><a name="d0e4058"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4058"></a>Binding of formals</h3></div></div><p>
+	</p></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="miscellaneous"></a>Chapter 11. Other Changes in AspectJ 5</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#d0e4055">Pointcuts</a></dt><dd><dl><dt><a href="#binding-of-formals">Binding of formals</a></dt><dt><a href="#additional-lint-warnings">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4109">Tools</a></dt><dd><dl><dt><a href="#aspectpath">Aspectpath</a></dt></dl></dd></dl></div><div class="sect1"><a name="d0e4055"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e4055"></a>Pointcuts</h2></div></div><div class="sect2"><a name="binding-of-formals"></a><div class="titlepage"><div><h3 class="title"><a name="binding-of-formals"></a>Binding of formals</h3></div></div><p>
            AspectJ 5 is more liberal than AspectJ 1.2.1 in accepting pointcut expressions
            that bind context variables in more than one location. For example, AspectJ
            1.2.1 does not allow:
@@ -2447,7 +2447,7 @@
 		     must be mutually exclusive. In the above example for instance, no join point
 		     can be both an execution join point and a set join point so the two branches
 		     are mutually exclusive.
-		  </p></div><div class="sect2"><a name="d0e4067"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4067"></a>Additional lint warnings</h3></div></div><p>
+		  </p></div><div class="sect2"><a name="additional-lint-warnings"></a><div class="titlepage"><div><h3 class="title"><a name="additional-lint-warnings"></a>Additional lint warnings</h3></div></div><p>
             Discuss detection of common errors -&gt; warning/error, eg. conjunction of more than one
             kind of join point. Differing numbers of args in method signature / args / @args /
             @parameters.
@@ -2490,8 +2490,8 @@
        	  }
        	
        	}
-		</pre></div><div class="sect1"><a name="d0e4109"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e4109"></a>Tools</h2></div></div><div class="sect2"><a name="d0e4112"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4112"></a>Aspectpath</h3></div></div><p>AspectJ 5 allows the specification of directories (containing .class files) on the aspectpath in
-              addition to jar/zip files.</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ltw"></a>Chapter 12. Load-Time Weaving</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#d0e4134">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#d0e4162">Enabling Load-time Weaving</a></dt><dt><a href="#d0e4206">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#d0e4277">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#d0e4412">JVMTI</a></dt><dt><a href="#d0e4419">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></div><div class="sect1"><a name="ltw-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-introduction"></a>Introduction</h2></div></div><p> The AspectJ 5 weaver takes class files as input and produces class files as output.
+		</pre></div><div class="sect1"><a name="d0e4109"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e4109"></a>Tools</h2></div></div><div class="sect2"><a name="aspectpath"></a><div class="titlepage"><div><h3 class="title"><a name="aspectpath"></a>Aspectpath</h3></div></div><p>AspectJ 5 allows the specification of directories (containing .class files) on the aspectpath in
+              addition to jar/zip files.</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ltw"></a>Chapter 12. Load-Time Weaving</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#weaving-class-files-more-than-once">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#enabling-load-time-weaving">Enabling Load-time Weaving</a></dt><dt><a href="#configuring-load-time-weaving-with-aopxml-files">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#weaver-options">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#jvmti">JVMTI</a></dt><dt><a href="#jrockit">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></div><div class="sect1"><a name="ltw-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-introduction"></a>Introduction</h2></div></div><p> The AspectJ 5 weaver takes class files as input and produces class files as output.
             The weaving process itself can take place at one of three different times: compile-time,
             post-compile time, and load-time. The class files produced by the weaving process (and
             hence the run-time behaviour of an application) are the same regardless of the approach
@@ -2506,7 +2506,7 @@
                 environment or enabled through a "weaving agent" are required. </li></ul></div><p> You may also hear the term "run-time weaving". We define this as the weaving of
             classes that have already been defined to the JVM (without reloading those
             classes). AspectJ 5 does not provide explicit support for run-time weaving although
-            simple coding patterns can support dynamically enabling and disabling advice in aspects. </p><div class="sect2"><a name="d0e4134"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4134"></a>Weaving class files more than once</h3></div></div><p> By default a class file that has been woven by the AspectJ compiler cannot
+            simple coding patterns can support dynamically enabling and disabling advice in aspects. </p><div class="sect2"><a name="weaving-class-files-more-than-once"></a><div class="titlepage"><div><h3 class="title"><a name="weaving-class-files-more-than-once"></a>Weaving class files more than once</h3></div></div><p> By default a class file that has been woven by the AspectJ compiler cannot
                 subsequently be rewoven (passed as input to the weaver). If you are developing
                 AspectJ applications that are to be used in a load-time weaving environment, you
                 need to specify the <tt>-Xreweavable</tt> compiler option when building
@@ -2524,7 +2524,7 @@
         easy to use as possibe. The load-time weaving mechanism is chosen through JVM startup options. 
         Configuration files determine the set of aspects to be used for weaving and which 
         types will be woven. Additional diagnostic options allow the user to debug the configuration and 
-        weaving process. </p><div class="sect2"><a name="d0e4162"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4162"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
+        weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
             an application: agents, a command-line launch script, and a set of interfaces for
             integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e4168"></a><span class="term">Agents</span></dt><dd><p><a name="d0e4171"></a>AspectJ 5 ships with a number of load-time weaving agents that
                             enable load-time weaving. These agents and their configuration
@@ -2538,7 +2538,7 @@
                             to instantiate a weaver and weave classes after loading and before
                             defining them in the JVM. This enables load-time weaving to be supported in
                             environments where no weaving agent is available. It also allows the
-                            user to explicity restrict by class loader which classes can be woven.</p></dd></dl></div></div><div class="sect2"><a name="d0e4206"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4206"></a>Configuring Load-time Weaving with aop.xml files</h3></div></div><p>The weaver is configured using one or more <tt>META-INF/aop.xml</tt>
+                            user to explicity restrict by class loader which classes can be woven.</p></dd></dl></div></div><div class="sect2"><a name="configuring-load-time-weaving-with-aopxml-files"></a><div class="titlepage"><div><h3 class="title"><a name="configuring-load-time-weaving-with-aopxml-files"></a>Configuring Load-time Weaving with aop.xml files</h3></div></div><p>The weaver is configured using one or more <tt>META-INF/aop.xml</tt>
                 files located on the class loader search path. Each file may define a list of
                 concrete aspects to be used for weaving, type patterns describing which types
                 should woven, and a set of options to be passed to the weaver. In addition AspectJ 5
@@ -2638,7 +2638,7 @@
                 </p><p> A <tt>META-INF/aop.xml</tt> file will automatically be generated when
                 using the <tt>-outjar</tt> option of the AspectJ compiler. 
                 It will simply contain a (possibly empty) set of aspect elements, one for
-                each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="d0e4277"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4277"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
+                each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
                 will be ignored and a warning issued. </p><div class="informaltable" id="d0e4282"><a name="d0e4282"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
                                    when the load time weaving engine is bootstrapped (hence its logger as per <tt>-XmessageHandlerClass:...</tt> not ready yet),
                                    you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line. Messages will then be printed
@@ -2667,10 +2667,10 @@
             a special case.
         </p></div><div class="sect1"><a name="ltw-packaging"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-packaging"></a>Runtime Requirements for Load-time Weaving</h2></div></div><p> To use LTW the <tt>aspectjweaver.jar</tt> library must be added to the
             classpath. This contains the AspectJ 5 runtime, weaver, weaving class loader and
-            weaving agents. It also contains the DTD for parsing XML weaving configuration files. </p></div><div class="sect1"><a name="ltw-agents"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-agents"></a>Supported Agents</h2></div></div><div class="sect2"><a name="d0e4412"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4412"></a>JVMTI</h3></div></div><p> When using Java 5 the JVMTI agent can be used by starting the JVM with the
+            weaving agents. It also contains the DTD for parsing XML weaving configuration files. </p></div><div class="sect1"><a name="ltw-agents"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-agents"></a>Supported Agents</h2></div></div><div class="sect2"><a name="jvmti"></a><div class="titlepage"><div><h3 class="title"><a name="jvmti"></a>JVMTI</h3></div></div><p> When using Java 5 the JVMTI agent can be used by starting the JVM with the
                 following option (adapt according to the path to aspectjweaver.jar): </p><pre class="programlisting">
 			-javaagent:pathto/aspectjweaver.jar
-		  </pre></div><div class="sect2"><a name="d0e4419"></a><div class="titlepage"><div><h3 class="title"><a name="d0e4419"></a>JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</h3></div></div><p> The JRockit agent is configured with the following JVM option: </p><pre class="programlisting">
+		  </pre></div><div class="sect2"><a name="jrockit"></a><div class="titlepage"><div><h3 class="title"><a name="jrockit"></a>JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</h3></div></div><p> The JRockit agent is configured with the following JVM option: </p><pre class="programlisting">
 			-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent
 		  </pre></div></div></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="grammar"></a>Appendix A. A Grammar for the AspectJ 5 Language</h2></div></div><pre class="programlisting">
         === type patterns ===
