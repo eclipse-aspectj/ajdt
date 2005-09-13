@@ -11,8 +11,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
-import org.eclipse.ajdt.ui.tests.UITestCase;
+import java.util.List;
+import java.util.ArrayList;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.pde.internal.runtime.logview.LogEntry;
 import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.ui.IViewPart;
@@ -22,7 +24,7 @@ import org.eclipse.ui.internal.Workbench;
  * Test that we don't get any spurious errors or warnings in the log on startup
  * (E.g. bug 106707)
  */
-public class NLSWarningsTest extends UITestCase {
+public class ErrorLogTest extends UITestCase {
 
 	
 	public void testNoWarningsOnStartup() throws Exception {
@@ -30,7 +32,19 @@ public class NLSWarningsTest extends UITestCase {
 		if(view instanceof LogView) {
 			LogView logView = (LogView)view;
 			LogEntry[] logs = logView.getLogs();
-			assertTrue("There should be exactly four entries in the log", logs.length == 4);
+			// Ignore information entries in the log
+			List errorsAndWarnings = new ArrayList();
+			for (int i = 0; i < logs.length; i++) {
+				if(logs[i].getSeverity() == IStatus.ERROR || 
+						logs[i].getSeverity() == IStatus.WARNING) {
+					errorsAndWarnings.add(logs[i]);
+				}
+			}
+			LogEntry[] logsMinusInfos = new LogEntry[errorsAndWarnings.size()];
+			for (int i = 0; i < logsMinusInfos.length; i++) {
+				logsMinusInfos[i] = (LogEntry) errorsAndWarnings.get(i);
+			}
+			assertTrue("There should be exactly three entries in the log, found " + logsMinusInfos.length + ": " + logsMinusInfos[logsMinusInfos.length - 1].getMessage() + ", ...", logsMinusInfos.length == 3);
 		} else {
 			fail("Could not find the Error log.");
 		}
