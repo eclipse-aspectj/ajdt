@@ -37,7 +37,7 @@ import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 
 public class LTWUtilsTest extends UITestCase{
 	
-	private String line0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+	private String line0Start = "<?xml version=\"1.0\"";
 	private String aspectjBegin = "<aspectj>";
 	private String aspectjEnd = "</aspectj>";
 	private String aspectsBegin = "  <aspects>";
@@ -99,11 +99,9 @@ public class LTWUtilsTest extends UITestCase{
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		
 		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
 		
-		printFileContents((IFile)r1);
-		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"bean.BoundPoint\"/>",
@@ -137,7 +135,7 @@ public class LTWUtilsTest extends UITestCase{
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"A\"/>",
@@ -177,7 +175,7 @@ public class LTWUtilsTest extends UITestCase{
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"pack.A1\"/>",
@@ -188,7 +186,7 @@ public class LTWUtilsTest extends UITestCase{
 		
 		IFile file2 = (IFile)r2;
 		String[] expectedLines2 = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"pack.A2\"/>",
@@ -221,7 +219,7 @@ public class LTWUtilsTest extends UITestCase{
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"tracing.lib.TraceMyClasses\"/>",
@@ -247,7 +245,7 @@ public class LTWUtilsTest extends UITestCase{
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspectsBegin,
 				"    <aspect name=\"tracing.version1.TraceMyClasses\"/>",
@@ -274,7 +272,7 @@ public class LTWUtilsTest extends UITestCase{
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				aspects,
 				aspectjEnd};
@@ -297,7 +295,7 @@ public class LTWUtilsTest extends UITestCase{
 		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
-				line0,
+				line0Start,
 				aspectjBegin,
 				"  <weaver options=\"-verbose -showWeaveInfo\"/>",
 				aspectsBegin,
@@ -327,7 +325,12 @@ public class LTWUtilsTest extends UITestCase{
 		String line = br.readLine();
 		int counter = 0;
 		while (line != null) {
-			if ((expectedLines.length <= counter) 
+			if (counter == 0) {
+				if (!line.startsWith(expectedLines[0])) {
+				 fail("expected line 1 to start with " + expectedLines[counter] 
+						+ (counter+1) + ", found " + line);
+				}
+			} else if ((expectedLines.length <= counter) 
 					|| !line.equals(expectedLines[counter]) ) {
 				br.close();
 				fail("expected " + expectedLines[counter] + " on line " 
