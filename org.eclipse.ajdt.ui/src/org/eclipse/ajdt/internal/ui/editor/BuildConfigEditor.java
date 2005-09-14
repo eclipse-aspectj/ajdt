@@ -461,7 +461,7 @@ public class BuildConfigEditor
 			return (Image) reusableImageMap.get(key);
 		} 
 		AJDTIcon icon =
-			(AJDTIcon) AspectJImages.registry().getIcon(kind);
+			(AJDTIcon) AspectJImages.instance().getIcon(kind);
 		baseDescriptor = icon.getImageDescriptor();
 		Image newImage =
 			AJDTUtils.decorate(baseDescriptor, overlayFlags).createImage();

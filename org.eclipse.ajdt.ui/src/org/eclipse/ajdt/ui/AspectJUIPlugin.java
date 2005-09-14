@@ -540,7 +540,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		ajdtEditorAdapter = new EditorAdapter();
 		ajdtErrorHandler = new ErrorHandler();
 		ajdtBuildOptions = new BuildOptionsAdapter();
-		ajdtImages = AspectJImages.registry();
+		ajdtImages = AspectJImages.instance();
 		ajdtUIAdapter = new IdeUIAdapter();
 		ajdtStructureFactory = new AJDTStructureViewNodeFactory(ajdtImages);
 

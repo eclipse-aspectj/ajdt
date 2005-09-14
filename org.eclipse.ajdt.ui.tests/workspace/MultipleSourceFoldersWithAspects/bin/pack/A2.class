@@ -1,0 +1,29 @@
+Êþº¾   . . pack/A2  java/lang/Object  ajc$initFailureCause Ljava/lang/Throwable; ajc$perSingletonInstance 	Lpack/A2; <clinit> ()V Code ajc$postClinit  
+
+  
+  	   java/lang/Throwable  LineNumberTable LocalVariableTable <init>  
+
+   this aspectOf ()Lpack/A2; org.aspectj.weaver.AjSynthetic  	   'org/aspectj/lang/NoAspectBoundException  pack_A2   *(Ljava/lang/String;Ljava/lang/Throwable;)V  "
+  # 	hasAspect ()Z
+   
+SourceFile A2.aj  org.aspectj.weaver.WeaverVersion org.aspectj.weaver.Aspect  org.aspectj.weaver.SourceContext org.aspectj.weaver.WeaverState !      
+            	 
+     ,     ¸ § K*³ ±                  
+     /     *· ±                        	            +      ² Ç » Y!² · $¿² °          	 % &                
+² Æ ¬¬          
+  
+                » Y· '³ ±           (    ) *       +   	ÿÿÿÿÿÿÿÿ ,   ¡ {C:\eclipse_installations\ajdt_3_1_0_development\eclipse\runtime-workspace2\MultipleSourceFoldersWithAspects\src2\pack\A2.aj         	            3   5   8 -  o      fÊþº¾   . - pack/A2  java/lang/Object  ajc$initFailureCause Ljava/lang/Throwable; ajc$perSingletonInstance 	Lpack/A2; <clinit> ()V Code ajc$postClinit  
+
+  
+  	   java/lang/Throwable  LineNumberTable LocalVariableTable <init>  
+
+   this aspectOf ()Lpack/A2; org.aspectj.weaver.AjSynthetic  	   'org/aspectj/lang/NoAspectBoundException  pack_A2   *(Ljava/lang/String;Ljava/lang/Throwable;)V  "
+  # 	hasAspect ()Z
+   
+SourceFile A2.aj  org.aspectj.weaver.WeaverVersion org.aspectj.weaver.Aspect  org.aspectj.weaver.SourceContext !      
+            	 
+     4      ¸ § K*³ ±                        
+     /     *· ±                        	            +      ² Ç » Y!² · $¿² °          	 % &                
+² Æ ¬¬          
+  
+                » Y· '³ ±           (    ) *       +   	ÿÿÿÿÿÿÿÿ ,   ¡ {C:\eclipse_installations\ajdt_3_1_0_development\eclipse\runtime-workspace2\MultipleSourceFoldersWithAspects\src2\pack\A2.aj         	            3   5   8
