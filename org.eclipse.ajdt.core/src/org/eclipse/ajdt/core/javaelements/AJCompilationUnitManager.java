@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -99,6 +100,22 @@ public class AJCompilationUnitManager {
 	public List getAJCompilationUnits(IJavaProject jp) throws CoreException {
 		final List ajcus = new ArrayList();
 		jp.getProject().accept(new IResourceVisitor(){
+
+			public boolean visit(IResource resource) {
+				if(resource instanceof IFile && AspectJPlugin.AJ_FILE_EXT.equals(resource.getFileExtension())) {
+					AJCompilationUnit ajcu = getAJCompilationUnit((IFile)resource);
+					if(ajcu != null) {
+						ajcus.add(ajcu);
+					}
+				}				
+				return resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT;
+			}});
+		return ajcus;
+	}
+	
+	public List getAJCompilationUnits(IPackageFragmentRoot root) throws CoreException {
+		final List ajcus = new ArrayList();
+		root.getResource().accept(new IResourceVisitor(){
 
 			public boolean visit(IResource resource) {
 				if(resource instanceof IFile && AspectJPlugin.AJ_FILE_EXT.equals(resource.getFileExtension())) {
