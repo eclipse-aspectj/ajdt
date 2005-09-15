@@ -12,21 +12,21 @@
 
 package org.eclipse.ajdt.internal.launching;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 
-import org.apache.crimson.jaxp.DocumentBuilderFactoryImpl;
-import org.apache.xalan.serialize.SerializerToXML;
-import org.apache.xalan.templates.OutputProperties;
+import org.apache.tools.ant.util.ReaderInputStream;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -67,14 +67,6 @@ public class LTWUtils {
 	 * @param project
 	 */
 	public static void generateLTWConfigFile(IJavaProject project) {
-		// get all source folders
-		
-		// for each source folder,
-		// does the source folder contain aspects?
-		// Yes :
-		// either: create srcFolder/META-INF/aop.xml 
-		// or    : update existing aop.xml
-		// No  update srcFolder/META-INF/aop.xml if it exists
 		try {
 			// Get all the source folders in the project
 			IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
@@ -102,16 +94,16 @@ public class LTWUtils {
 								newResource(project.getPath().append(path),
 										IResource.FILE);
 							metainf.create(true,true,null);
-							aopFile.create(new ByteArrayInputStream(new byte[0]),true,null);
-							project.getProject().refreshLocal(4,null);
+							aopFile.create(new ByteArrayInputStream(new byte[0]), true, null);
+							project.getProject().refreshLocal(4, null);
 							
 							// Add the xml content to the aop.xml file
-							addAspectsToLTWConfigFile(false,aspects,aopFile);
+							addAspectsToLTWConfigFile(false, aspects, aopFile);
 						}
 						 
 					// Otherwise update the existing file	
 					} else { 
-						addAspectsToLTWConfigFile(true,aspects,ltwConfigFile);
+						addAspectsToLTWConfigFile(true, aspects, ltwConfigFile);
 					}
 				}
 			}
@@ -182,20 +174,9 @@ public class LTWUtils {
 			}
 		}
 		
-		// Set the output formatting options.
-		Properties format = new Properties();
-		format.setProperty(OutputKeys.INDENT, "yes"); //$NON-NLS-1$
-		format.setProperty(OutputProperties.S_KEY_INDENT_AMOUNT, "2"); //$NON-NLS-1$
-
-		// Serialize the document
-		String fileName = getFileName(configFile);
-		FileOutputStream fos = new FileOutputStream(fileName, false);
-		SerializerToXML serializer =
-			new SerializerToXML();
-		serializer.setOutputFormat(format);
-		serializer.setOutputStream(fos);
-		serializer.serialize(doc);
-		fos.close();
+		// Write out the document
+		File file = new File(getFileName(configFile));
+		XMLPrintHandler.writeFile(doc, file);
 		configFile.refreshLocal(1,null);
 	}
 	
@@ -206,9 +187,9 @@ public class LTWUtils {
 	 * @throws Exception if there was an error reading the file or creating the Document
 	 */
 	private static Document readFile(IFile configFile) throws Exception {
-		DocumentBuilder builder = new DocumentBuilderFactoryImpl().newDocumentBuilder();
+		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 		builder.setErrorHandler(new AOPXMLErrorHandler());
-		return builder.parse(configFile.getContents());
+		return builder.parse(configFile.getContents());		
 	}
 	
 	/**

@@ -40,9 +40,9 @@ public class LTWUtilsTest extends UITestCase{
 	private String line0Start = "<?xml version=\"1.0\"";
 	private String aspectjBegin = "<aspectj>";
 	private String aspectjEnd = "</aspectj>";
-	private String aspectsBegin = "  <aspects>";
-	private String aspectsEnd = "  </aspects>";
-	private String aspects = "  <aspects/>";
+	private String aspectsBegin = "\t<aspects>";
+	private String aspectsEnd = "\t</aspects>";
+	private String aspects = "\t<aspects/>";
 	
 	// abstract aspects (which we don't want to include)
 	public void testGetConcreteAspects() throws Exception {
@@ -104,7 +104,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"bean.BoundPoint\"/>",
+				"\t\t<aspect name=\"bean.BoundPoint\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -114,12 +114,11 @@ public class LTWUtilsTest extends UITestCase{
 		
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
-		
+				
 		IResource r2 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		
 		assertNotNull("aop.xml should exist in src directory because there are aspects",r2);
 
 		compareFileContentsWithExpected((IFile)r2, expectedLines);
-
 	}
 	
 	// no src folders with aspects
@@ -138,7 +137,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"A\"/>",
+				"\t\t<aspect name=\"A\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -178,7 +177,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"pack.A1\"/>",
+				"\t\t<aspect name=\"pack.A1\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -189,7 +188,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"pack.A2\"/>",
+				"\t\t<aspect name=\"pack.A2\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -222,7 +221,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"tracing.lib.TraceMyClasses\"/>",
+				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -248,7 +247,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"    <aspect name=\"tracing.version1.TraceMyClasses\"/>",
+				"\t\t<aspect name=\"tracing.version1.TraceMyClasses\"/>",
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -297,13 +296,14 @@ public class LTWUtilsTest extends UITestCase{
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
-				"  <weaver options=\"-verbose -showWeaveInfo\"/>",
+				"\t<weaver options=\"-verbose -showWeaveInfo\"/>",
 				aspectsBegin,
-				"    <aspect name=\"bean.BoundPoint\"/>",
+				"\t\t<aspect name=\"bean.BoundPoint\"/>",
 				aspectsEnd,
-				"  <!-- this is a comment -->",
+				"<!-- this is a comment -->",
 				aspectjEnd};
 		
+		file.refreshLocal(1, null);
 		compareFileContentsWithExpected(file, expectedLines);
 	}
 	
