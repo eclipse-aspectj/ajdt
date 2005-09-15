@@ -20,12 +20,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.launching.JavaLocalApplicationLaunchConfigurationDelegate;
 import org.eclipse.jdt.internal.launching.LaunchingMessages;
 import org.eclipse.jdt.launching.ExecutionArguments;
@@ -60,6 +63,8 @@ public class LTWApplicationLaunchConfigurationDelegate
 		if (monitor.isCanceled()) {
 			return;
 		}
+		
+		generateAOPConfigFiles(configuration);
 		
 		monitor.subTask(LaunchingMessages.getString("JavaLocalApplicationLaunchConfigurationDelegate.Verifying_launch_attributes..._1")); //$NON-NLS-1$
 						
@@ -131,6 +136,27 @@ public class LTWApplicationLaunchConfigurationDelegate
 		}	
 		
 		monitor.done();
+	}
+
+	/**
+	 * Generate aop.xml files for any projects on the LTW aspectpath
+	 * @param configuration
+	 * @throws CoreException
+	 */
+	private void generateAOPConfigFiles(ILaunchConfiguration configuration) throws CoreException {
+		IProject[] workspaceProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		IRuntimeClasspathEntry[] aspectPathEntries = getAspectPathEntries(configuration);
+		for (int i = 0; i < aspectPathEntries.length; i++) {
+			String location = aspectPathEntries[i].getLocation();
+			for (int j = 0; j < workspaceProjects.length; j++) {
+				IProject project = workspaceProjects[i];
+				IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
+				String projectLocation = entry.getLocation();
+				if(projectLocation.equals(location)) {
+					LTWUtils.generateLTWConfigFile(JavaCore.create(project));
+				}
+			}
+		}
 	}
 
 	/**
