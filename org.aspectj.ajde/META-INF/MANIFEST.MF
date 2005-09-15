@@ -96,6 +96,8 @@ Export-Package: org.aspectj.ajde,
  org.aspectj.weaver.ast,
  org.aspectj.weaver.bcel,
  org.aspectj.weaver.internal.tools,
+ org.aspectj.weaver.loadtime,
+ org.aspectj.weaver.loadtime.definition,
  org.aspectj.weaver.patterns,
  org.aspectj.weaver.tools
 Require-Bundle: org.apache.ant,
