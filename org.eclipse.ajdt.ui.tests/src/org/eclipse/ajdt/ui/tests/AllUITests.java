@@ -121,7 +121,7 @@ public class AllUITests {
 		
 		// launching tests
 		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
-//		suite.addTest(new TestSuite(LTWUtilsTest.class));
+		suite.addTest(new TestSuite(LTWUtilsTest.class));
 		
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
