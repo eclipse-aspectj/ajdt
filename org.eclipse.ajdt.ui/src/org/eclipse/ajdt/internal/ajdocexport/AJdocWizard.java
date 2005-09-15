@@ -7,6 +7,7 @@
  * Contributors: IBM Corporation - initial API and implementation Sebastian
  * Davids <sdavids@gmx.de>bug 38692
  * Luzius Meisser - adjusted for ajdoc 
+ * Helen Hawkins - updated for Eclipse 3.1 (bug 109484)
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ajdocexport;
 
@@ -74,6 +75,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -87,11 +89,12 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocWizard
+ * Updated for Eclipse 3.1 - bug 109484
  * Changes marked with // AspectJ Extension
  */
 public class AJdocWizard extends Wizard implements IExportWizard {
 
-//	 AspectJ Extension
+//	 AspectJ Extension - using AJDoc pages rather than javadoc
 	private AJdocTreeWizardPage fJTWPage;
 	private AJdocSpecificsWizardPage fJSWPage;
 	private AJdocStandardWizardPage fJSpWPage;
@@ -309,10 +312,32 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 				File ajdeFile = new File(Platform.asLocalURL(ajdeURL).getFile());
 				if (ajdeFile.exists()) {
 					aspectjtoolsDir += ajdeFile.getAbsolutePath();
+				} else {
+					int lengthOfPath = ajdeFile.getAbsolutePath().length();
+					MessageDialog.openError(getShell(),
+							UIMessages.ajdocWizard_error_title,
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_ajde_jar, 
+									ajdeFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
+									ajdeFile.getAbsolutePath().substring((lengthOfPath/2))));
+					return true;
 				}
 				File coreFile = new File(Platform.asLocalURL(coreURL).getFile());
-				if (coreFile.exists()) {
+				// need to check that have found a jar or the correct bundle. In the case when
+				// you're running ajdoc in a runtime workbench and you have imported org.eclipse.core.runtime
+				// into your workbench coreFile is just this directory and ajdoc doesn't run
+				// (and it's not immediately obvious why).
+				if (coreFile.exists() && 
+						(coreFile.getName().endsWith("jar") //$NON-NLS-1$ 
+								|| coreFile.getName().endsWith("cp"))) { //$NON-NLS-1$
 					aspectjtoolsDir += File.pathSeparator + coreFile.getAbsolutePath();
+				} else {
+					int lengthOfPath = coreFile.getAbsolutePath().length();
+					MessageDialog.openError(getShell(),
+							UIMessages.ajdocWizard_error_title,
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_runtime_jar, 
+									coreFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
+									coreFile.getAbsolutePath().substring((lengthOfPath/2)))); 
+					return true;
 				}
 			} catch (IOException e) {
 			}

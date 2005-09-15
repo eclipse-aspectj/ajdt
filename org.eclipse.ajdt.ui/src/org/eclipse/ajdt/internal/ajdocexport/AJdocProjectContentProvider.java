@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2003 IBM Corporation and others.
+ * Copyright (c) 2000, 2003, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,8 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Luzius Meisser - adjusted for ajdoc 
+ *     Luzius Meisser  - adjusted for ajdoc 
+ *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ajdocexport;
 
@@ -22,11 +23,13 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocProjectContentProvider
+ * Updated for eclipse 3.1
  * Changes marked with // AspectJ Extension
  */
 public class AJdocProjectContentProvider implements ITreeContentProvider {
@@ -35,14 +38,28 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	 * @see ITreeContentProvider#getChildren(Object)
 	 */
 	public Object[] getChildren(Object parentElement) {
+		// AspectJ Extension - we only want a list of projects since the
+		// build config determines what is built
+/*		try {
+			if (parentElement instanceof IJavaProject) {
+				IJavaProject project= (IJavaProject) parentElement;
+				return getPackageFragmentRoots(project);
+			} else if (parentElement instanceof IPackageFragmentRoot) {
+				return getPackageFragments((IPackageFragmentRoot) parentElement);
+			}
+		} catch (JavaModelException e) {
+			JavaPlugin.log(e);
+		} */
 		return new Object[0];
 	}
+	
 	/*
 	 * @see IStructuredContentProvider#getElements(Object)
 	 */
 	public Object[] getElements(Object inputElement) {
 		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
 		try {
+			// AspectJ Extension begin - only return aspectj projects
 			IJavaProject[] javaprojects = JavaCore.create(root).getJavaProjects();
 			List ajProjects = new ArrayList(javaprojects.length);
 			for (int i=0; i<javaprojects.length; i++){
@@ -50,8 +67,10 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 					ajProjects.add(javaprojects[i]);
 				}
 			}
-			return ajProjects.toArray();		
+			return ajProjects.toArray();
+			// AspectJ Extension end
 		} catch (JavaModelException e) {
+			JavaPlugin.log(e);
 		}
 		return new Object[0];
 	}
@@ -89,5 +108,38 @@ public class AJdocProjectContentProvider implements ITreeContentProvider {
 	 */
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 	}
+
+	// AspectJ Extension - commenting out unused code
+/*	private Object[] getPackageFragmentRoots(IJavaProject project) throws JavaModelException {
+		ArrayList result= new ArrayList();
+
+		IPackageFragmentRoot[] roots= project.getPackageFragmentRoots();
+		for (int i= 0; i < roots.length; i++) {
+			IPackageFragmentRoot root= roots[i];
+			if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
+				if (root.getPath().equals(root.getJavaProject().getPath())) {
+					Object[] packageFragments= getPackageFragments(root);
+					for (int k= 0; k < packageFragments.length; k++) {
+						result.add(packageFragments[k]);
+					}
+				} else {
+					result.add(root);
+				}
+			}
+		}
+		return result.toArray();
+	}
+
+	private Object[] getPackageFragments(IPackageFragmentRoot root) throws JavaModelException {
+		ArrayList packageFragments= new ArrayList();
+
+		IJavaElement[] children= root.getChildren();
+		for (int i= 0; i < children.length; i++) {
+			if (((IPackageFragment) children[i]).containsJavaResources())
+				packageFragments.add(children[i]);
+		}
+		return packageFragments.toArray();
+	}*/
+
 
 }

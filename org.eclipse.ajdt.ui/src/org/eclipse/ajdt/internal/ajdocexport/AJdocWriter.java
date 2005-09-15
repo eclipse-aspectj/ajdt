@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2003 IBM Corporation and others.
+ * Copyright (c) 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ajdocexport;
 
@@ -28,29 +29,26 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import org.eclipse.ajdt.internal.ajdocexport.AJdocOptionsManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-
-import org.eclipse.jface.util.Assert;
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jface.util.Assert;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocWriter
+ * updated for Eclipse 3.1 (bug 109484)
  * Changes marked with // AspectJ Extension
  */
 public class AJdocWriter {
-	
+
 	private static final char PATH_SEPARATOR= '/'; // use forward slash for all platforms
 	
 	private OutputStream fOutputStream;
@@ -70,6 +68,7 @@ public class AJdocWriter {
 		fJavaProjects= projects;
 	}
 
+	// AspectJ Extension - passing an AJdocOptionsManager as an argument
 	public void writeXML(AJdocOptionsManager store) throws ParserConfigurationException, TransformerException {
 
 		DocumentBuilder docBuilder= null;
@@ -110,14 +109,16 @@ public class AJdocWriter {
 	}
 
 	//writes ant file, for now only worry about one project
+	// AspectJ Extension - passing an AJdocOptionsManager as an argument
 	private void xmlWriteJavadocStandardParams(AJdocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
 
-		String destination= getPathString(new Path(store.getDestination()));
+		String destination= getPathString(Path.fromOSString(store.getDestination()));
 
 		xmlJavadocDesc.setAttribute(store.DESTINATION, destination);
 		xmlJavadocDesc.setAttribute(store.VISIBILITY, store.getAccess());
-		if (store.isJDK14Mode()) {
-			xmlJavadocDesc.setAttribute(store.SOURCE, "1.4"); //$NON-NLS-1$
+		String source= store.getSource();
+		if (source.length() > 0 && !source.equals("-")) { //$NON-NLS-1$
+			xmlJavadocDesc.setAttribute(store.SOURCE, store.getSource());
 		}
 		xmlJavadocDesc.setAttribute(store.USE, booleanToString(store.getBoolean("use"))); //$NON-NLS-1$
 		xmlJavadocDesc.setAttribute(store.NOTREE, booleanToString(store.getBoolean("notree"))); //$NON-NLS-1$
@@ -143,23 +144,23 @@ public class AJdocWriter {
 		xmlJavadocDesc.setAttribute(store.SOURCEPATH, getPathString(store.getSourcepath()));
 		xmlJavadocDesc.setAttribute(store.CLASSPATH, getPathString(store.getClasspath()));
 
-		String str= store.getOverview();
-		if (str.length() > 0) //$NON-NLS-1$
-			xmlJavadocDesc.setAttribute(store.OVERVIEW, str);
+		String overview= store.getOverview();
+		if (overview.length() > 0)
+			xmlJavadocDesc.setAttribute(store.OVERVIEW, overview);
 
-		str= store.getStyleSheet();
-		if (str.length() > 0) //$NON-NLS-1$
-			xmlJavadocDesc.setAttribute(store.STYLESHEETFILE, str);
+		String styleSheet= store.getStyleSheet();
+		if (styleSheet.length() > 0)
+			xmlJavadocDesc.setAttribute(store.STYLESHEETFILE, styleSheet);
 
-		str= store.getTitle();
-		if (str.length() > 0) //$NON-NLS-1$
-			xmlJavadocDesc.setAttribute(store.TITLE, str);
+		String title= store.getTitle();
+		if (title.length() > 0)
+			xmlJavadocDesc.setAttribute(store.TITLE, title);
 
 		
 		String vmArgs= store.getVMParams();
 		String additionalArgs= store.getAdditionalParams();
 		if (vmArgs.length() + additionalArgs.length() > 0) {
-			str= vmArgs + ' ' + additionalArgs;
+			String str= vmArgs + ' ' + additionalArgs;
 			xmlJavadocDesc.setAttribute(store.EXTRAOPTIONS, str);
 		}
 
@@ -252,6 +253,7 @@ public class AJdocWriter {
 		return res.toString();
 	}
 
+    // AspectJ Extension - passing an AJdocOptionsManager as an argument
 	private void xmlWriteDoclet(AJdocOptionsManager store, Document document, Element xmlJavadocDesc) throws DOMException {
 
 		//set the packages and source files
@@ -311,4 +313,5 @@ public class AJdocWriter {
 		}
 	}
 
+	
 }

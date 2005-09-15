@@ -389,6 +389,8 @@ public class UIMessages extends NLS {
 	public static String ajdoc_error_noProjectSelected;
 	public static String ajdoc_info_projectselection;
 	public static String ajdocWizard_error_title;
+	public static String ajdocWizard_error_cant_find_ajde_jar;
+	public static String ajdocWizard_error_cant_find_runtime_jar;
 	public static String ajdocWizard_launch_error_message;
 	public static String ajdocWizard_exec_error_message;
 	public static String breakpoint_missingStructureModel;

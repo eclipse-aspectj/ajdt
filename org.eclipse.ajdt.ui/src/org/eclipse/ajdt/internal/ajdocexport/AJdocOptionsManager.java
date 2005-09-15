@@ -8,9 +8,9 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Sebastian Davids <sdavids@gmx.de> bug 38692
- *     Luzius Meisser - adjusted for ajdoc 
+ *     Luzius Meisser  - adjusted for ajdoc 
+ *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
-
 package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
@@ -66,10 +66,10 @@ import org.xml.sax.SAXException;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.javadocexport.JavadocOptionsManager
+ * Updated for Eclipse 3.1 - bug 109484
  * Changes marked with // AspectJ Extension
  */
 public class AJdocOptionsManager {
-
 	private IFile fXmlfile;
 
 	private StatusInfo fWizardStatus;
@@ -105,7 +105,7 @@ public class AJdocOptionsManager {
 	private boolean fVersion;
 	private boolean fUse;
 	
-	private boolean fJDK14Mode;
+	private String fSource;
 
 	private boolean fOpenInBrowser;
 	
@@ -143,7 +143,6 @@ public class AJdocOptionsManager {
 	public final String SOURCEFILES= "sourcefiles"; //$NON-NLS-1$
 	public final String EXTRAOPTIONS= "additionalparam"; //$NON-NLS-1$
 	public final String VMOPTIONS= "vmparam"; //$NON-NLS-1$
-	// AspectJ Extension
 	//public final String JAVADOCCOMMAND= "javadoccommand"; //$NON-NLS-1$
 	public final String TITLE= "doctitle"; //$NON-NLS-1$
 	public final String HREF= "href"; //$NON-NLS-1$
@@ -154,14 +153,18 @@ public class AJdocOptionsManager {
 	public final String ANTPATH= "antpath"; //$NON-NLS-1$
 	public final String SOURCE= "source"; //$NON-NLS-1$
 	
-	// AspectJ Extension
+	// AspectJ Extension - changing JAVADOC to AJDOC
 	private final String SECTION_AJDOC= "ajdoc"; //$NON-NLS-1$
 	private static final String AJDOC_COMMAND_HISTORY= "ajdoc_command_history"; //$NON-NLS-1$
-	
+/*	private final String SECTION_JAVADOC= "javadoc"; //$NON-NLS-1$
+
+	private static final String JAVADOC_COMMAND_HISTORY= "javadoc_command_history"; //$NON-NLS-1$
+*/	
 	public AJdocOptionsManager(IFile xmlJavadocFile, IDialogSettings dialogSettings, List currSelection) {
 		fXmlfile= xmlJavadocFile;
 		fWizardStatus= new StatusInfo();
 
+        // AspectJ Extension begin - changing javadoc to ajdoc
 		IDialogSettings ajdocSection= dialogSettings.getSection(SECTION_AJDOC); //$NON-NLS-1$
 		
 		String commandHistory= null; //$NON-NLS-1$
@@ -199,6 +202,7 @@ public class AJdocOptionsManager {
 		} else {
 			loadDefaults(currSelection);
 		}
+		// AspectJ Extension end
 	}
 
 
@@ -216,7 +220,10 @@ public class AJdocOptionsManager {
 				return null;
 			}
 		}
-		return res;
+		if (res != null && res.isOpen()) {
+			return res;
+		}
+		return null;
 	}
 	
 	
@@ -292,7 +299,10 @@ public class AJdocOptionsManager {
 		fSplitindex= loadBoolean(settings.get(SPLITINDEX));
 		fOpenInBrowser= loadBoolean(settings.get(OPENINBROWSER));
 		
-		fJDK14Mode= loadBoolean(settings.get(SOURCE));
+		fSource= settings.get(SOURCE);
+		if (project != null) {
+			fSource= project.getOption(JavaCore.COMPILER_SOURCE, true);
+		}
 		
 		if (project != null) {
 			fHRefs= getRecentSettings().getHRefs(project);
@@ -338,7 +348,10 @@ public class AJdocOptionsManager {
 		fNotree= false;
 		fSplitindex= true;
 		fOpenInBrowser= false;
-		fJDK14Mode= false;
+		fSource= "1.3"; //$NON-NLS-1$
+		if (project != null) {
+			fSource= project.getOption(JavaCore.COMPILER_SOURCE, true);
+		}
 
 		//by default it is empty all project map to the empty string
 		fFromStandard= true;
@@ -352,7 +365,7 @@ public class AJdocOptionsManager {
 
 		//Since the selected packages are stored we must locate the project
 		String destination= element.getAttribute(DESTINATION);
-		fDestination= makeAbsolutePathFromRelative(destination).toOSString();
+		fDestination= makeAbsolutePathFromRelative(new Path(destination)).toOSString();
 		fFromStandard= true;
 		fDocletname= ""; //$NON-NLS-1$
 		fDocletpath= ""; //$NON-NLS-1$
@@ -434,6 +447,8 @@ public class AJdocOptionsManager {
 		fNoindex= loadBoolean(element.getAttribute(NOINDEX));
 		fNotree= loadBoolean(element.getAttribute(NOTREE));
 		fSplitindex= loadBoolean(element.getAttribute(SPLITINDEX));
+		
+		fSource= element.getAttribute(SOURCE); //$NON-NLS-1$
 	}
 
 	/*
@@ -441,11 +456,10 @@ public class AJdocOptionsManager {
 	 * absolute it returns the path. If it encounters any difficulties in
 	 * creating the absolute path, the method returns null.
 	 * 
-	 * @param pathStr
+	 * @param path
 	 * @return IPath
 	 */
-	private IPath makeAbsolutePathFromRelative(String pathStr) {
-		IPath path= new Path(pathStr);
+	private IPath makeAbsolutePathFromRelative(IPath path) {
 		if (!path.isAbsolute()) {
 			if (fXmlfile == null) {
 				return null;
@@ -454,7 +468,7 @@ public class AJdocOptionsManager {
 			if (basePath == null) {
 				return null;
 			}
-			return basePath.append(pathStr);
+			return basePath.append(path);
 		}
 		return path;
 	}
@@ -467,7 +481,7 @@ public class AJdocOptionsManager {
 		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
 		
 		while (tokenizer.hasMoreTokens()) {
-			IPath path= makeAbsolutePathFromRelative(tokenizer.nextToken().trim());
+			IPath path= makeAbsolutePathFromRelative(new Path(tokenizer.nextToken().trim()));
 			if (path != null) {
 				IContainer[] containers= root.findContainersForLocation(path);
 				for (int i= 0; i < containers.length; i++) {
@@ -512,7 +526,7 @@ public class AJdocOptionsManager {
 			while (tokenizer.hasMoreTokens()) {
 				String name= tokenizer.nextToken().trim();
 				if (name.endsWith(".java")) { //$NON-NLS-1$
-					IPath path= makeAbsolutePathFromRelative(name);
+					IPath path= makeAbsolutePathFromRelative(new Path(name));
 					//if unable to create an absolute path the the resource skip it
 					if (path != null) {
 						IFile[] files= root.findFilesForLocation(path);
@@ -682,42 +696,37 @@ public class AJdocOptionsManager {
 
 		//bug 38692
 		vmArgs.add(getJavadocCommandHistory()[0]);
+		
 		if (fFromStandard) {
 			toolArgs.add("-d"); //$NON-NLS-1$
 			toolArgs.add(fDestination);
 		} else {
-			if (fAdditionalParams.length() + fVMParams.length() != 0) {
-				ExecutionArguments tokens= new ExecutionArguments(fVMParams, fAdditionalParams); //$NON-NLS-1$
-				String[] vmArgsArray= tokens.getVMArgumentsArray();
-				for (int i= 0; i < vmArgsArray.length; i++) {
-					vmArgs.add(vmArgsArray[i]);
-				}
-				
-				String[] argsArray= tokens.getProgramArgumentsArray();
-				for (int i= 0; i < argsArray.length; i++) {
-					toolArgs.add(argsArray[i]);
-				}
-			}
 			toolArgs.add("-doclet"); //$NON-NLS-1$
 			toolArgs.add(fDocletname);
 			toolArgs.add("-docletpath"); //$NON-NLS-1$
 			toolArgs.add(fDocletpath);
 		}
 		
-		toolArgs.add("-sourcepath"); //$NON-NLS-1$
-		toolArgs.add(flatPathList(fSourcepath));
-		toolArgs.add("-classpath"); //$NON-NLS-1$
-		toolArgs.add(flatPathList(fClasspath));
+		if (fSourcepath.length > 0) {
+			toolArgs.add("-sourcepath"); //$NON-NLS-1$
+			toolArgs.add(flatPathList(fSourcepath));
+		}
+		
+		if (fClasspath.length > 0) {
+			toolArgs.add("-classpath"); //$NON-NLS-1$
+			toolArgs.add(flatPathList(fClasspath));
+		}
 		toolArgs.add("-" + fAccess); //$NON-NLS-1$
 
 		if (fFromStandard) {
-			if (fJDK14Mode) {
+			if (fSource.length() > 0 && !fSource.equals("-")) { //$NON-NLS-1$
 				toolArgs.add("-source"); //$NON-NLS-1$
-				toolArgs.add("1.4"); //$NON-NLS-1$
-			}			
+				toolArgs.add(fSource); //$NON-NLS-1$
+			}
 			
-//			if (fUse)
-//				toolArgs.add("-use"); //$NON-NLS-1$
+			// AspectJ Extension - commenting out unsupported -use option (in aj)
+			/*if (fUse)
+				toolArgs.add("-use"); //$NON-NLS-1$ */
 			if (fVersion)
 				toolArgs.add("-version"); //$NON-NLS-1$
 			if (fAuthor)
@@ -745,27 +754,28 @@ public class AJdocOptionsManager {
 				toolArgs.add("-stylesheetfile"); //$NON-NLS-1$
 				toolArgs.add(fStylesheet);
 			}
-
-			if (fAdditionalParams.length() + fVMParams.length() != 0) {
-				ExecutionArguments tokens= new ExecutionArguments(fVMParams, fAdditionalParams); //$NON-NLS-1$
-				String[] vmArgsArray= tokens.getVMArgumentsArray();
-				for (int i= 0; i < vmArgsArray.length; i++) {
-					vmArgs.add(vmArgsArray[i]);
-				}
-				
-				String[] argsArray= tokens.getProgramArgumentsArray();
-				for (int i= 0; i < argsArray.length; i++) {
-					toolArgs.add(argsArray[i]);
-				}
-			}
-
+			
 			for (int i= 0; i < fHRefs.length; i++) {
 				toolArgs.add("-link"); //$NON-NLS-1$
 				toolArgs.add(fHRefs[i]);
 			}
-
+			
 		} //end standard options
 
+		if (fAdditionalParams.length() + fVMParams.length() != 0) {
+			ExecutionArguments tokens= new ExecutionArguments(fVMParams, fAdditionalParams); //$NON-NLS-1$
+			String[] vmArgsArray= tokens.getVMArgumentsArray();
+			for (int i= 0; i < vmArgsArray.length; i++) {
+				vmArgs.add(vmArgsArray[i]);
+			}
+			String[] argsArray= tokens.getProgramArgumentsArray();
+			for (int i= 0; i < argsArray.length; i++) {
+				toolArgs.add(argsArray[i]);
+			}
+		}
+		// AspectJ Extension - don't add proxy options
+		//addProxyOptions(vmArgs);
+		
 		if (fOverview.length() != 0) { //$NON-NLS-1$
 			toolArgs.add("-overview"); //$NON-NLS-1$
 			toolArgs.add(fOverview);
@@ -773,6 +783,7 @@ public class AJdocOptionsManager {
 
 		for (int i= 0; i < fSelectedElements.length; i++) {
 			IJavaElement curr= fSelectedElements[i];
+			// AspectJ Extension - we need to get the included files from the build configuration
 			if (curr instanceof IJavaProject) {
 				IJavaProject jp = (IJavaProject)curr;
 				ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
@@ -783,10 +794,34 @@ public class AJdocOptionsManager {
 					}
 				}
 			}
+			// AspectJ Extension end
 		}
 	}
+	
+	// AspectJ Extension - commenting out unused code
+/*	private void addProxyOptions(List vmOptions) {
+		// bug 74132
+		String hostPrefix= "-J-Dhttp.proxyHost="; //$NON-NLS-1$
+		String portPrefix= "-J-Dhttp.proxyPort="; //$NON-NLS-1$
+		for (int i= 0; i < vmOptions.size(); i++) {
+			String curr= (String) vmOptions.get(i);
+			if (curr.startsWith(hostPrefix) || curr.startsWith(portPrefix)) {
+				return;
+			}
+		}
+		String proxyHost= System.getProperty("http.proxyHost"); //$NON-NLS-1$
+		if (proxyHost != null) {
+			vmOptions.add(hostPrefix + proxyHost); //$NON-NLS-1$
+		}
+		
+		String proxyPort= System.getProperty("http.proxyPort"); //$NON-NLS-1$
+		if (proxyPort != null) {
+			vmOptions.add(portPrefix + proxyPort); //$NON-NLS-1$
+		}
+	}
+*/	
 
-	public void createXML(IJavaProject[] projects) throws CoreException {
+	public File createXML(IJavaProject[] projects) throws CoreException {
 		FileOutputStream objectStreamOutput= null;
 		//@change
 		//for now only writting ant files for single project selection
@@ -795,7 +830,7 @@ public class AJdocOptionsManager {
 			if (antpath.length() > 0) {
 				File file= new File(antpath);
 
-				IPath antPath= new Path(antpath);
+				IPath antPath= Path.fromOSString(antpath);
 				IPath antDir= antPath.removeLastSegments(1);
 				
 				IPath basePath= null;
@@ -807,8 +842,10 @@ public class AJdocOptionsManager {
 				antDir.toFile().mkdirs();
 			
 				objectStreamOutput= new FileOutputStream(file);
+				// AspectJ Extension - changing JavadocWriter to AJdocWriter
 				AJdocWriter writer= new AJdocWriter(objectStreamOutput, basePath, projects);
 				writer.writeXML(this);
+				return file;
 			}
 		} catch (IOException e) {
 			String message= JavadocExportMessages.JavadocOptionsManager_createXM_error;
@@ -827,18 +864,21 @@ public class AJdocOptionsManager {
 				}
 			}
 		}
+		return null;
 	}
 
 	public void updateDialogSettings(IDialogSettings dialogSettings, IJavaProject[] checkedProjects) {
+		// AspectJ Extension begin - replacing JAVADOC with AJDOC
 		IDialogSettings settings= dialogSettings.addNewSection(SECTION_AJDOC);
 
 		settings.put(AJDOC_COMMAND_HISTORY, flatStringList(fJavadocCommandHistory));
+		// AspectJ Extension end
 		if (fJavadocCommandHistory.length > 0) {
-			// AspectJ Extension
+			// AspectJ Extension - using our own preference store
 			//IPreferenceStore store= PreferenceConstants.getPreferenceStore();
 			//store.setValue(PreferenceConstants.JAVADOC_COMMAND, fJavadocCommandHistory[0]);
 			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
-			store.setValue(AspectJPreferences.AJDOC_COMMAND,fJavadocCommandHistory[0]);
+			store.setValue(AspectJPreferences.AJDOC_COMMAND,fJavadocCommandHistory[0]);			
 		}
 		
 		
@@ -859,7 +899,7 @@ public class AJdocOptionsManager {
 		settings.put(NOTREE, fNotree);
 		settings.put(NONAVBAR, fNonavbar);
 		settings.put(OPENINBROWSER, fOpenInBrowser);
-		settings.put(SOURCE, fJDK14Mode);
+		settings.put(SOURCE, fSource);
 
 		if (fAntpath.length() != 0) //$NON-NLS-1$
 			settings.put(ANTPATH, fAntpath);
@@ -928,7 +968,7 @@ public class AJdocOptionsManager {
 		fSourcepath= sourcepath;
 	}
 
-	public void setCheckedProjects(IJavaProject[] elements) {
+	public void setSelectedElements(IJavaElement[] elements) {
 		fSelectedElements= elements;
 	}
 
@@ -970,13 +1010,13 @@ public class AJdocOptionsManager {
 			fNonavbar= value;
 	}
 	
-	public boolean isJDK14Mode() {
-		return fJDK14Mode;
+	public void setSource(String source) {
+		fSource= source;
 	}
-
-	public void setJDK14Mode(boolean jdk14Mode) {
-		fJDK14Mode= jdk14Mode;
-	}	
+	
+	public String getSource() {
+		return fSource;
+	}
 
 	private IJavaElement[] getInitialElementsFromSelection(List candidates) {
 		ArrayList res= new ArrayList();
@@ -1030,13 +1070,8 @@ public class AJdocOptionsManager {
 	}
 
 	private boolean isValidProject(IJavaProject project) throws JavaModelException {
-		if (project != null && project.exists()) {
-			IPackageFragmentRoot[] roots= project.getPackageFragmentRoots();
-			for (int i= 0; i < roots.length; i++) {
-				if (containsCompilationUnits(roots[i])) {
-					return true;
-				}
-			}
+		if (project != null && project.exists() && project.isOpen()) {
+			return true;
 		}
 		return false;
 	}
@@ -1075,7 +1110,9 @@ public class AJdocOptionsManager {
 
 	
 	private static String initJavadocCommandDefault() {
-		IPreferenceStore store= AspectJUIPlugin.getDefault().getPreferenceStore();
+		// AspectJ Extension - using our own preference store
+		//IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
+		IPreferenceStore store= AspectJUIPlugin.getDefault().getPreferenceStore();	
 		String cmd= store.getString(PreferenceConstants.JAVADOC_COMMAND);	// old location
 		if (cmd != null && cmd.length() > 0) {
 			store.setToDefault(PreferenceConstants.JAVADOC_COMMAND);
@@ -1116,19 +1153,20 @@ public class AJdocOptionsManager {
 	private static File getCommand(IVMInstall install) {
 		File installLocation= install.getInstallLocation();
 		if (installLocation != null) {
-			// AspectJ Extension
+			// AspectJ Extension - using ajdoc command
 			File ajDocCommand= new File(installLocation, "lib/tools"); //$NON-NLS-1$
 			if (ajDocCommand.isFile()) {
 				return ajDocCommand;
 			}
-			// AspectJ Extension
+			// AspectJ Extension - using ajdoc command
 			ajDocCommand= new File(installLocation, "lib/tools.jar"); //$NON-NLS-1$
 			if (ajDocCommand.isFile()) {
 				return ajDocCommand;
 			}
 		}
 		return null;
-
 	}
+
+
 
 }
