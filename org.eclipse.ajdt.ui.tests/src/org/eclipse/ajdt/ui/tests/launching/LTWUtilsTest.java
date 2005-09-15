@@ -304,7 +304,6 @@ public class LTWUtilsTest extends UITestCase{
 				aspectjEnd};
 		
 		file.refreshLocal(1, null);
-		printFileContents(file);
 		compareFileContentsWithExpected(file, expectedLines);
 	}
 	
