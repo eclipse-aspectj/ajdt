@@ -51,7 +51,6 @@ import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
-import org.eclipse.ajdt.ui.tests.utils.NewAspectUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
@@ -88,7 +87,6 @@ public class AllUITests {
 		suite.addTest(new TestSuite(BuildConfiguratorTest.class));
 		
 		// internal.core tests
-		suite.addTest(new TestSuite(NewAspectUtilsTest.class));
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
 
 		// internal.ui tests

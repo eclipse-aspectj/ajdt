@@ -66,7 +66,7 @@ public class OpenDeclarationTest extends VisualTestCase {
 
 		// F3 over the executeGo pointcut inherited from the supertype
 		gotoLine(24);
-		moveCursorRight(46);
+		moveCursorRight(53);
 		postKey(SWT.F3);
 		waitForJobsToComplete();
 		checkSelection(3, "executeGo");

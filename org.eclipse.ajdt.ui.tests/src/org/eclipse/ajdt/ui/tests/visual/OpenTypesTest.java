@@ -191,7 +191,7 @@ public class OpenTypesTest extends VisualTestCase {
 	public void testNewAspectWizard () throws Exception {
 		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		packageExplorer.setFocus();
-		IResource folder = project.findMember("src/coordination");
+		IResource folder = project.findMember("src/spacewar");
 		if (!(folder instanceof IFolder)) {
 			fail("Folder \"src/coordination\" should have been found in the project");
 		}
@@ -229,7 +229,7 @@ public class OpenTypesTest extends VisualTestCase {
 				postKey(SWT.TAB);
 				postKey(' ');
 				sleep();
-				postString("GameSynchronization");
+				postString("Coordinator");
 				sleep();
 				postKey(SWT.CR);
 				sleep();
@@ -249,7 +249,7 @@ public class OpenTypesTest extends VisualTestCase {
 		IFile newFile = ((FileEditorInput)editors[0].getEditor(false).getEditorInput()).getFile();
 		IImportDeclaration[] imports = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(newFile).getImports();
 		assertTrue("There should be one import in the new file", imports.length == 1);
-		assertTrue("Should have imported GameSynchronization", imports[0].getElementName().equals("spacewar.GameSynchronization"));
+		assertTrue("Should have imported Coordinator", imports[0].getElementName().equals("coordination.Coordinator"));
 		
 	}
 	

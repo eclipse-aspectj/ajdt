@@ -10,7 +10,7 @@ Contributors:
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
-import org.eclipse.ajdt.internal.ui.wizards.NewAspectWizard;
+import org.eclipse.ajdt.internal.ui.wizards.NewAspectCreationWizard;
 import org.eclipse.jdt.internal.ui.wizards.AbstractOpenWizardAction;
 import org.eclipse.jface.wizard.Wizard;
 
@@ -25,7 +25,7 @@ public class OpenAspectWizardAction extends AbstractOpenWizardAction {
 	 * @see org.eclipse.jdt.internal.ui.wizards.AbstractOpenWizardAction#createWizard()
 	 */
 	protected Wizard createWizard() {
-		return new NewAspectWizard( );
+		return new NewAspectCreationWizard( );
 	}
 
 
