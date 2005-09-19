@@ -21,7 +21,7 @@ aspect GetInfo extends AbstractGetInfo {
 
    static final void println(String s){ System.out.println(s); }
 
-   pointcut goCut(): cflow(this(Demo) && executeGo());
+   public pointcut goCut(): cflow(this(Demo) && executeGo());
 
    pointcut demoExecs(): within(Demo) && goCut() && execution(* *(..));
 
