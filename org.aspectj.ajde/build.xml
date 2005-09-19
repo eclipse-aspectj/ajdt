@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!-- writen for Ant 1.5.1 -->
-<project name="org.aspectj.ajde" default="plugin jars">
+<project name="org.aspectj.ajde" default="packaged-plugin">
 
 	<description>
 Creates a packaged plug-in jar for AJDE
