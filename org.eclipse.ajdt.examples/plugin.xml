@@ -4,7 +4,7 @@
    id="org.eclipse.ajdt.examples"
    name="%pluginName"
    version="92.2.29"
-   provider-name="Eclipse.org"
+   provider-name="%providerName"
    class="org.eclipse.ajdt.examples.AspectJExamplePlugin">
 
    <runtime>
