@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.aspectj.weaver" default="packaged-plugin">
+
+	<description>
+Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
+</description>
+
+	<!-- VERSION-STRING -->
+	<!-- these property values will be overridden when called from the master build script -->
+	<property name="ajde.version" value="9.9.9" />
+
+
+	<property name="build.dir" value="build" />
+	<property name="ajde.build.dir" value="build/ajdetemp" />
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="dist" />
+	</target>
+
+	<target name="clean" depends="init">
+		<delete dir="${build.dir}" />
+		<delete dir="dist" />
+	</target>
+
+	<target name="packaged-plugin" depends="init" description="Create the plugin jar file from the assembled components in the build dir">
+		<copy todir="${build.dir}" includeemptydirs="false">
+			<fileset dir=".">
+				<exclude name="build.*" />
+				<exclude name=".*" />
+				<exclude name="*/*" />
+				<exclude name="META-INF/MANIFEST.MF" />
+				<depth max="0" />
+			</fileset>
+		</copy>
+		 <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
+		 	<filterset begintoken="9" endtoken="9">
+		 		<filter token="2.2.2" value="${ajde.version}"/>
+		 	</filterset>
+		 </copy>
+		<zip destfile="dist/org.aspectj.weaver_${ajde.version}.jar">
+			<fileset dir="build" />
+		</zip>
+	</target>
+
+</project>
