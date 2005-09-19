@@ -39,7 +39,7 @@
    <!-- Define AspectJ Builder -->
    <extension
          id="ajbuilder"
-         name="AspectJ Builder"
+         name="%aspectJBuilder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run

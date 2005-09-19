@@ -20,5 +20,5 @@
       <import plugin="org.eclipse.jdt.core"/>
    </requires>
 
-	<extension-point id="providers" name="Cross Reference Provider" schema="schema/org.eclipse.contribution.xref.core.providers.exsd"/>
+	<extension-point id="providers" name="%crossReferenceProvider" schema="schema/org.eclipse.contribution.xref.core.providers.exsd"/>
 </plugin>

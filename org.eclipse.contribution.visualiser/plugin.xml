@@ -3,7 +3,7 @@
 
 <plugin
    id="org.eclipse.contribution.visualiser"
-   name="Visualiser Plug-in"
+   name="%pluginName"
    version="92.2.29"
    provider-name="Eclipse.org"
    class="org.eclipse.contribution.visualiser.VisualiserPlugin">
@@ -28,25 +28,25 @@
       <import plugin="org.aspectj.runtime"/>
    </requires>
 
-   <extension-point id="providers" name="Visualiser Providers" schema="schema/providers.exsd"/>
-   <extension-point id="renderers" name="Visualiser Renderers" schema="schema/renderers.exsd"/>
-   <extension-point id="palettes" name="Visualiser Palettes" schema="schema/palettes.exsd"/>
+   <extension-point id="providers" name="%visualiserProviders" schema="schema/providers.exsd"/>
+   <extension-point id="renderers" name="%visualiserRenderers" schema="schema/renderers.exsd"/>
+   <extension-point id="palettes" name="%visualiserPalettes" schema="schema/palettes.exsd"/>
 
    <extension
          point="org.eclipse.ui.views">
       <category
-            name="Visualiser"
+            name="%Visualiser"
             id="Visualiser">
       </category>
       <view
-            name="Visualiser"
+            name="%visualiserView"
             icon="icons/visualiser.gif"
             category="Visualiser"
             class="org.eclipse.contribution.visualiser.views.Visualiser"
             id="org.eclipse.contribution.visualiser.views.Visualiser">
       </view>
       <view
-            name="Visualiser Menu"
+            name="%visualiserMenuView"
             icon="icons/vismenu.gif"
             category="Visualiser"
             class="org.eclipse.contribution.visualiser.views.Menu"
@@ -78,32 +78,32 @@
    </extension-->
    <extension
          id="inbuilt_providers"
-         name="Inbuilt Providers"
+         name="%inbuiltProviders"
          point="org.eclipse.contribution.visualiser.providers">
      <provider
             markupProviderClass="org.eclipse.contribution.visualiser.simpleImpl.FileMarkupProvider"
-            name="File-based provider"
+            name="%fileBasedProvider"
             priority="0"
-            emptyMessage="Nothing to display from file-based provider."
-            description="Simple test provider that reads a file to determine groups, members and stripes"
+            emptyMessage="%fileBasedProvider.emptyMessage"
+            description="%fileBasedProvider.description"
             contentProviderClass="org.eclipse.contribution.visualiser.simpleImpl.FileContentProvider"
             id="filecontentprovider">
       </provider>
       <provider
             markupProviderClass="org.eclipse.contribution.visualiser.jdtImpl.JDTSearchResultsMarkupProvider"
-            name="JDT Search Results Provider"
+            name="%jdtSearchResultsProvider"
             priority="5"
-            description="Provider that shows Java search results in the visualiser"
-            emptyMessage="%JDTSearch.emptyMessage"
+            description="%jdtSearchResultsProvider.description"
+            emptyMessage="%jdtSearchResultsProvider.emptyMessage"
             contentProviderClass="org.eclipse.contribution.visualiser.jdtImpl.JDTSearchResultsContentProvider"
             id="jdtsearchresultscontentprovider">
       </provider>
       <provider
             markupProviderClass="org.eclipse.contribution.visualiser.markerImpl.MarkerMarkupProvider"
-            name="Resources and Markers"
+            name="%resourcesAndMarkersProvider"
             priority="6"
-            emptyMessage="Nothing to display.  Select a folder or file in the Navigator or the Package Explorer."
-            description="Provider that shows markers in the visualiser"
+            emptyMessage="%resourcesAndMarkersProvider.emptyMessage"
+            description="%resourcesAndMarkersProvider.description"
             contentProviderClass="org.eclipse.contribution.visualiser.markerImpl.ResourceContentProvider"
             id="markercontentprovider">
       </provider>

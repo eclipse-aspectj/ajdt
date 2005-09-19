@@ -2,7 +2,7 @@
 <?eclipse version="3.0"?>
 <plugin
    id="org.eclipse.ajdt.examples"
-   name="AspectJ Examples"
+   name="%pluginName"
    version="92.2.29"
    provider-name="Eclipse.org"
    class="org.eclipse.ajdt.examples.AspectJExamplePlugin">
@@ -20,7 +20,7 @@
       <import plugin="org.eclipse.ajdt.ui"/>
    </requires>
 
-   <extension-point id="projectsetup" name="Project setup" schema="schema/wizardconfig.exsd"/>
+   <extension-point id="projectsetup" name="%projectSetup" schema="schema/wizardconfig.exsd"/>
 
 <!-- Each example needs two extensions (with the same "id" for each):
      1. org.eclipse.ui.newWizards, to appear in the New wizard
