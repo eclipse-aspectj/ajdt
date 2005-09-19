@@ -254,7 +254,7 @@
      plugin, with id org.eclipse.ajdt.core.ajbuilder -->
    <extension
          id="ajbuilder"
-         name="AspectJ Builder"
+         name="%ajBuilder"
          point="org.eclipse.core.resources.builders">
       <builder>
          <run
@@ -344,7 +344,7 @@
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
       </editor>
       <editor
-            name="AspectJ Properties Editor"
+            name="%ajPropertiesEditor"
             icon="icons/buildconfig/buildconfig_file.gif"
             extensions="ajproperties"
             contributorClass="org.eclipse.ajdt.internal.buildconfig.editor.BuildEditorContributor"
@@ -361,7 +361,7 @@
             id="org.eclipse.jdt.ui.ClassFileEditor">
       </editor-->
       <editor
-            name="Properties File Editor"
+            name="%propertiesFileEditor"
             icon="icons/jdt/file_obj.gif"
             extensions="properties"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -369,7 +369,7 @@
             id="org.eclipse.jdt.ui.DefaultTextEditor">
       </editor>
       <editor
-            name="JAR Description Editor"
+            name="%jarDescriptionEditor"
             icon="icons/jdt/jar_desc_obj.gif"
             extensions="jardesc"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -396,7 +396,7 @@
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajprojectwizard">
          <description>
-            Create an AspectJ Project
+            %ajProjectWizard.description
          </description>
       </wizard>
       <!--
@@ -413,14 +413,14 @@
             category="org.eclipse.ajdt.wizards"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajaspectwizard">
-         <class class="org.eclipse.ajdt.internal.ui.wizards.NewAspectCreationWizard">
+         <class class="org.eclipse.ajdt.internal.ui.wizards.NewAspectWizard">
             <parameter
                 name="javatype"
                 value="true">
             </parameter>
          </class>
          <description>
-            Create an Aspect
+            %ajAspectWizard.description
          </description>
       </wizard>
       
@@ -479,7 +479,7 @@
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
-            label="AspectJ Actions"
+            label="%ajActions"
             visible="false"
             id="ajactionset">
 		 <!--  This action not for public consumption!
@@ -652,7 +652,7 @@
       <page
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
-            name="AspectJ"
+            name="%aspectj"
             class="org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage"
             id="org.eclipse.ajdt.ui.ProjectPage">
          <filter
@@ -663,7 +663,7 @@
       <page
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
-            name="Java Build Path"
+            name="%javaBuildPath"
             class="org.eclipse.ajdt.internal.buildconfig.propertypage.BCPropertyPage"
             id="org.eclipse.ajdt.ui.ConfiguratorPage">
          <filter
@@ -674,7 +674,7 @@
       <!-- inpath and aspectpath -->
       <page
             objectClass="org.eclipse.core.resources.IProject"
-            name="AspectJ InPath"
+            name="%aspectJInpath"
             adaptable="true"
             class="org.eclipse.ajdt.internal.ui.preferences.InPathPropertyPage"
             id="org.eclipse.ajdt.ui.InPathPropertyPage">
@@ -685,7 +685,7 @@
       </page>      
       <page
             objectClass="org.eclipse.core.resources.IProject"
-            name="AspectJ Aspect Path"
+            name="%aspectJAspectPath"
             adaptable="true"
             class="org.eclipse.ajdt.internal.ui.preferences.AspectPathPropertyPage"
             id="org.eclipse.ajdt.ui.AspectPathPropertyPage">
@@ -698,7 +698,7 @@
             adaptable="true"
             objectClass="org.eclipse.core.resources.IProject"
             class="org.eclipse.ajdt.internal.ui.CompilerPropertyPage"
-            name="AspectJ Compiler"
+            name="%aspectJCompiler"
             id="org.eclipse.ajdt.ui.Compiler">
          <filter
                value="org.eclipse.ajdt.ui.ajnature"
@@ -788,7 +788,7 @@
 
    <extension
    	      id="sourceandtargetmarker"
-   	      name="Source and Target Marker"
+   	      name="%sourceAndTargetMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -799,7 +799,7 @@
    </extension>   
    <extension
    	      id="dynamicsourceandtargetmarker"
-   	      name="Dynamic Source and Target Marker"
+   	      name="%dynamicSourceAndTargetMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -812,7 +812,7 @@
 <!-- Markers for different types of advice -->      
    <extension
    	      id="beforeadvicemarker"
-   	      name="Before Advice Marker"
+   	      name="%beforeAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -834,7 +834,7 @@
    </extension>
    <extension
    	      id="aroundadvicemarker"
-   	      name="Around Advice Marker"
+   	      name="%aroundAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -846,7 +846,7 @@
 <!-- Markers to show the source of advice -->   
     <extension
    	      id="sourceadvicemarker"
-   	      name="Source of Advice Marker"
+   	      name="%sourceOfAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.core.resources.textmarker">
@@ -860,7 +860,7 @@
    </extension>
    <extension
    	      id="sourcearoundadvicemarker"
-   	      name="Source of Around Advice Marker"
+   	      name="%sourceOfAroundAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -871,7 +871,7 @@
    </extension>
    <extension
    	      id="sourcebeforeadvicemarker"
-   	      name="Source of Before Advice Marker"
+   	      name="%sourceOfBeforeAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -882,7 +882,7 @@
    </extension>
    <extension
    	      id="sourceafteradvicemarker"
-   	      name="Source of After Advice Marker"
+   	      name="%sourceOfAfterAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -917,7 +917,7 @@
             showInNextPrevDropdownToolbarAction="true"
             textPreferenceValue="true"
             isGoToPreviousNavigationTargetKey="isAJDTErrorGoToPreviousNavigationTarget"
-            label="AJDT Errors"
+            label="%ajdtErrors"
             colorPreferenceKey="ajdtErrorIndicationColor"
             showInNextPrevDropdownToolbarActionKey="showAJDTErrorInNextPrevDropdownToolbarAction"
             icon="icons/markers/error.gif"
@@ -940,7 +940,7 @@
             showInNextPrevDropdownToolbarAction="true"
             textPreferenceValue="true"
             isGoToPreviousNavigationTargetKey="isAJDTWarningGoToPreviousNavigationTarget"
-            label="AJDT Warnings"
+            label="%ajdtWarnings"
             colorPreferenceKey="ajdtWarningIndicationColor"
             showInNextPrevDropdownToolbarActionKey="showAJDTWarningInNextPrevDropdownToolbarAction"
             icon="icons/markers/warning.gif"
@@ -974,7 +974,7 @@
 <!-- Dynamic Advice Markers -->
    <extension
 		  id="dynamicadvicemarker"
-          name="Dynamic Advice Marker"
+          name="%dynamicAdviceMarker"
           point="org.eclipse.core.resources.markers">
           <super type="org.eclipse.ajdt.ui.advicemarker"/>
       <persistent
@@ -983,7 +983,7 @@
    </extension>
    <extension
    	      id="dynamicbeforeadvicemarker"
-   	      name="Dynamic Before Advice Marker"
+   	      name="%dynamicBeforeAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -994,7 +994,7 @@
    </extension>
    <extension
    	      id="dynamicafteradvicemarker"
-   	      name="Dynamic After Advice Marker"
+   	      name="%dynamicAfterAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -1005,7 +1005,7 @@
    </extension>
     <extension
    	      id="dynamicaroundadvicemarker"
-   	      name="Dynamic Around Advice Marker"
+   	      name="%dynamicAroundAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.advicemarker">
@@ -1017,7 +1017,7 @@
 
    <extension
 		  id="sourcedynamicadvicemarker"
-          name="Source Dynamic Advice Marker"
+          name="%sourceDynamicAdviceMarker"
           point="org.eclipse.core.resources.markers">
           <super type="org.eclipse.ajdt.ui.sourceadvicemarker"/>
       <persistent
@@ -1026,7 +1026,7 @@
    </extension>
    <extension
    	      id="sourcedynamicbeforeadvicemarker"
-   	      name="Source Dynamic Before Advice Marker"
+   	      name="%sourceDynamicBeforeAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -1037,7 +1037,7 @@
    </extension>
    <extension
    	      id="sourcedynamicafteradvicemarker"
-   	      name="Source Dynamic After Advice Marker"
+   	      name="%sourceDynamicAfterAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -1048,7 +1048,7 @@
    </extension>
     <extension
    	      id="sourcedynamicaroundadvicemarker"
-   	      name="Source Dynamic Around Advice Marker"
+   	      name="%sourceDynamicAroundAdviceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.sourceadvicemarker">
@@ -1063,7 +1063,7 @@
  
      <extension
    	      id="declarationmarker"
-   	      name="Aspect Declaration Marker"
+   	      name="%declarationMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.core.resources.textmarker">
@@ -1077,7 +1077,7 @@
     </extension>  
     <extension
    	      id="itdmarker"
-   	      name="Intertype Declaration Marker"
+   	      name="%intertypeDeclarationMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.declarationmarker">
@@ -1089,7 +1089,7 @@
 
     <extension
    	      id="sourceitdmarker"
-   	      name="Intertype Declaration Source Marker"
+   	      name="%intertypeDeclarationSourceMarker"
    	      point="org.eclipse.core.resources.markers">
       <super
             type="org.eclipse.ajdt.ui.declarationmarker">
@@ -1202,7 +1202,7 @@
 	     point="org.eclipse.ui.editors.markerAnnotationSpecification">
 	     <specification
       		annotationType="org.eclipse.ajdt.advice"
-            	label="Advice"
+            	label="%advice"
             	icon="icons/markers/advice.gif"
             	textPreferenceKey="adviceIndication"
             	textPreferenceValue="true"
@@ -1286,7 +1286,7 @@
 		<!-- Aspect Declaration Markers -->
 		<specification
 			annotationType="org.eclipse.ajdt.aspectDeclaration"
-			label="Aspect Declaration"
+			label="%aspectDeclaration"
 			icon="icons/markers/advice.gif"
         	textPreferenceKey="decIndication"
         	textPreferenceValue="true"
@@ -1319,14 +1319,14 @@
 <!-- AJDT Visualiser Provider Definition -->
    <extension
          id="ajdt_provider"
-         name="AJDT Provider"
+         name="%ajdtProvider"
          point="org.eclipse.contribution.visualiser.providers">
       <provider
             markupProviderClass="org.eclipse.ajdt.internal.ui.visualiser.AJDTMarkupProvider"
-            name="AspectJ Provider"
+            name="%aspectJProvider"
             priority="10"
-            description="Provider that shows where AspectJ advice applies on Java packages and classes."
-            emptyMessage="Nothing to display. Select a project, package, or class from the Package Explorer."
+            description="%aspectJProvider.description"
+            emptyMessage="%aspectJProvider.emptyMessage"
             contentProviderClass="org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider"
             id="ajdtprovider"
             paletteid="ajdtpalette">
@@ -1336,7 +1336,7 @@
    <extension
          point="org.eclipse.contribution.visualiser.palettes">
          <palette class="org.eclipse.ajdt.internal.ui.visualiser.AJDTPalette"
-             name="AJDT palette"
+             name="%ajdtPalette"
              id="ajdtpalette">
          </palette>
    </extension>
@@ -1374,7 +1374,7 @@
 	point="org.eclipse.ui.perspectives">
 	<perspective
 		id="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizationPerspective"
-		name="Aspect Visualization"
+		name="%aspectVisualizationPerspective"
 		icon="icons/aspect_visualization.gif"
 		class="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizerPerspectiveFactory">
 	</perspective>
@@ -1422,7 +1422,7 @@
             </separator>
          </menu>
          <action
-               label="Exclude from active build configuration"
+               label="%excludeFromBuildConfig"
                class="org.eclipse.ajdt.internal.buildconfig.actions.ExcludeAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
                icon="icons/buildconfig/exclusion_filter_attrib.gif"
@@ -1455,7 +1455,7 @@
             </separator>
          </menu>
          <action
-               label="Include in active build configuration"
+               label="%includeInActiveBuildConfig"
                class="org.eclipse.ajdt.internal.buildconfig.actions.IncludeAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
                icon="icons/buildconfig/inclusion_filter_attrib.gif"
@@ -1572,7 +1572,7 @@
    <extension
          point="org.eclipse.ui.cheatsheets.cheatSheetContent">
       <category
-            name="AspectJ"
+            name="%aspectj"
             id="org.eclipse.ajdt.aspectjCheatSheetCategory"/>
       <cheatsheet
             category="org.eclipse.ajdt.aspectjCheatSheetCategory"
@@ -1787,7 +1787,7 @@
    <extension
          point="org.eclipse.contribution.xref.core.providers">
       <xrefProvider
-            label="AspectJ XReference Provider"
+            label="%ajXRefProvider"
             enabled="true"
             class="org.eclipse.ajdt.internal.ui.xref.AJXReferenceProvider"
             id="org.eclipse.ajdt.ui.xref.providers.AJXReferenceProvider">

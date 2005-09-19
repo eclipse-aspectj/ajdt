@@ -2,5 +2,5 @@
 <?eclipse version="3.0"?>
 <plugin>
 
-    	<extension-point id="providers" name="Cross Reference Provider" schema="schema/org.eclipse.contribution.xref.core.providers.exsd"/>
+    	<extension-point id="providers" name="%crossReferenceProvider" schema="schema/org.eclipse.contribution.xref.core.providers.exsd"/>
 </plugin>
