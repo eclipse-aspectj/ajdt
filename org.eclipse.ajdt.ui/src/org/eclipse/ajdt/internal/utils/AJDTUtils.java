@@ -414,7 +414,7 @@ public class AJDTUtils {
 						int markerSeverity = marker.getAttribute(
 								IMarker.SEVERITY, -1);
 						String markerMessage = marker.getAttribute(
-								IMarker.MESSAGE, "no message"); //$NON-NLS-1$
+								IMarker.MESSAGE, UIMessages.AJDTUtils_no_message);
 
 						if (markerSeverity == IMarker.SEVERITY_ERROR
 								&& markerMessage.equals(errorMessage)) {

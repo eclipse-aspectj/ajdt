@@ -419,9 +419,11 @@ public class UIMessages extends NLS {
 	public static String includeAction_job_name;
 	public static String dynamicBuildConfigurationMenu_job_name;
 	public static String PulldownBuildselectorMenu_no_open_ajproject;
+	public static String PulldownBuildselectorMenu_build_error;
+	public static String PulldownBuildselectorMenu_autobuild_failed;
 	public static String jre_1_4_src_compatability;
 	public static String CompilerMonitor_building_Project;
-	public static String CompilerMonitor_configuration;
+	public static String CompilerMonitor_weaving;
 	public static String CompilerTaskListManager_Error_creating_marker;
 	public static String CompilerTaskListManager_Error_adding_problem_markers;
 	public static String BuildConfigEditor_failed_update;
@@ -431,6 +433,7 @@ public class UIMessages extends NLS {
 	public static String AdviceActionDelegate_unable_to_create_marker;
 	public static String AdviceActionDelegate_exception_jumping;
 	public static String AdviceActionDelegate_problem_finding_jump_location;
+	public static String AdviceActionDelegate_resource_not_found;
 	public static String PointcutNavigatorView_rebuild_to_view_structure;
 	public static String PointcutNavigatorView_advises;
 	public static String PointcutNavigatorView_pin_structure_model;
@@ -448,8 +451,10 @@ public class UIMessages extends NLS {
 	public static String AJXReferenceProvider_description;
 	public static String AJDTUtils_project_cannot_be_rebuilt;
 	public static String AJDTUtils_cleaning_recommended;
+	public static String AJDTUtils_no_message;
 	public static String AJDTStructureViewNode_import_declarations;
 	public static String AJDTStructureViewNode_matches;
+	public static String AJDTStructureViewNode_runtime_test;
 	public static String AspectJUIPlugin_exception_in_selection_changed;
 	public static String AspectJUIPlugin_exception_retrieving_lst_files;
 	public static String AspectJUIPlugin_exception_retrieving_lst_files2;

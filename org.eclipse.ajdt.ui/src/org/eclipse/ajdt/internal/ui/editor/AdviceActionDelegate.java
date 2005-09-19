@@ -403,7 +403,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 
                     }
                 } else {
-                    report("Could not find resource."); //$NON-NLS-1$
+                    report(UIMessages.AdviceActionDelegate_resource_not_found);
                 }
             } catch (IndexOutOfBoundsException ioobe) {
                 AspectJUIPlugin

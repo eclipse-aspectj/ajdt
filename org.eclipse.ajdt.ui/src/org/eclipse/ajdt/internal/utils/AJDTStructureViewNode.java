@@ -62,7 +62,10 @@ implements IStructureViewNode, IAdaptable {
 		this.icon = (AJDTIcon) icon;
 		this.kind = Kind.RELATIONSHIP;
 		this.relationshipName = 
-			relationship.getName()+(relationship.hasRuntimeTest()?" (with runtime test)":"");		 //$NON-NLS-1$ //$NON-NLS-2$
+			relationship.getName()
+				+ (relationship.hasRuntimeTest() ? " " //$NON-NLS-1$
+						+ UIMessages.AJDTStructureViewNode_runtime_test
+						: "");		 //$NON-NLS-1$
 	}
 
 

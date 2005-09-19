@@ -209,7 +209,7 @@ public class PulldownBuildselectorMenu implements
 				} catch (CoreException cEx) {
 
 					AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-							"Build pulldown error", cEx); //$NON-NLS-1$
+							UIMessages.PulldownBuildselectorMenu_build_error, cEx);
 				} catch (NullPointerException npe) {
 					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:" //$NON-NLS-1$
 									+ npe);
@@ -224,10 +224,10 @@ public class PulldownBuildselectorMenu implements
 
 		} catch (InvocationTargetException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e); //$NON-NLS-1$
+					UIMessages.PulldownBuildselectorMenu_autobuild_failed, e);
 		} catch (InterruptedException e) {
 			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-					"Auto build on select failed", e); //$NON-NLS-1$
+					UIMessages.PulldownBuildselectorMenu_autobuild_failed, e);
 
 		}
 	}

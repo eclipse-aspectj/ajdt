@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.osgi.util.NLS;
 
 /**
  * The compiler monitor interface is used by the AspectJ builder. Just before
@@ -149,12 +150,15 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                                     .getBuildConfigurator()
                                     .getActiveProjectBuildConfigurator();
                             if (pbc != null) {
-                                String configName = pbc
-                                        .getActiveBuildConfiguration()
-                                        .getName();
-                                monitor.setTaskName(UIMessages.CompilerMonitor_building_Project
-                                        + configName + UIMessages.CompilerMonitor_configuration);
-                            }
+								String configName = pbc
+										.getActiveBuildConfiguration()
+										.getName();
+								monitor
+										.setTaskName(NLS
+												.bind(
+														UIMessages.CompilerMonitor_building_Project,
+														configName));
+							}
                         }
                     }// end if
                 }// end run method
@@ -163,8 +167,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     }
 
     /**
-     * Ajde wishes to display information about the progress of the compilation.
-     */
+	 * Ajde wishes to display information about the progress of the compilation.
+	 */
     public void setProgressText(String text) {
         if (!reportedCompiledMessages && text.startsWith("compiled: ")) { //$NON-NLS-1$
             reportedCompiledMessages = true;
@@ -368,7 +372,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         // special cases...
         // this message is too long to be meaningful
         if (ret.startsWith("might need to weave")) { //$NON-NLS-1$
-            ret = "weaving ..."; //$NON-NLS-1$
+            ret = UIMessages.CompilerMonitor_weaving;
         }
         // we always get this next one, and it seems to be nonsense
         if (ret.startsWith("directory classpath entry does not exist: null")) { //$NON-NLS-1$
