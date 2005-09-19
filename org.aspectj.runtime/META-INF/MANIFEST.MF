@@ -6,13 +6,13 @@ Bundle-Version: 92.2.29
 Bundle-ClassPath: aspectjrt.jar
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.aspectj.internal.lang.annotation;x-internal:=true,
- org.aspectj.internal.lang.reflect;x-internal:=true,
+Export-Package: org.aspectj.internal.lang.annotation,
+ org.aspectj.internal.lang.reflect,
  org.aspectj.lang,
  org.aspectj.lang.annotation,
- org.aspectj.lang.internal.lang;x-internal:=true,
+ org.aspectj.lang.internal.lang,
  org.aspectj.lang.reflect,
  org.aspectj.runtime,
- org.aspectj.runtime.internal;x-internal:=true,
- org.aspectj.runtime.internal.cflowstack;x-internal:=true,
+ org.aspectj.runtime.internal,
+ org.aspectj.runtime.internal.cflowstack,
  org.aspectj.runtime.reflect
