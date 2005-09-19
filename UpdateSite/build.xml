@@ -53,6 +53,7 @@ Creates an update site structure for AspectJ
   <delete dir="dist"/>
   <delete dir="fpack_dist"/>
   <ant dir="../org.aspectj.runtime" inheritAll="true" target="clean" />
+	<ant dir="../org.aspectj.weaver" inheritAll="true" target="clean" />
   <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
   <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
@@ -101,6 +102,10 @@ Creates an update site structure for AspectJ
 	<mkdir dir="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"/>
 	<unzip dest="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"
 	        src="dist/plugins/org.aspectj.runtime_${ajde.version}.jar"/>
+	
+	<mkdir dir="fpack_dist/plugins/org.aspectj.weaver_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.weaver_${ajde.version}"
+	        src="dist/plugins/org.aspectj.weaver_${ajde.version}.jar"/>
 
 	<mkdir dir="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"/>
 	<unzip dest="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"
@@ -126,6 +131,7 @@ Creates an update site structure for AspectJ
  description="Build the update site structure">
  
  <ant dir="../org.aspectj.runtime" inheritAll="true" />
+ <ant dir="../org.aspectj.weaver" inheritAll="true" />
  <ant dir="../org.aspectj.ajde" inheritAll="true" />
  <!--ant dir="../org.eclipse.aosd.relationships" inheritAll="true"/-->
  <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true"/>
@@ -160,6 +166,8 @@ Creates an update site structure for AspectJ
        todir="dist/plugins" />
  <copy file="../org.aspectj.runtime/dist/org.aspectj.runtime_${ajde.version}.jar"
        todir="dist/plugins" />  
+ <copy file="../org.aspectj.runtime/dist/org.aspectj.weaver_${ajde.version}.jar"
+       todir="dist/plugins" />
  <copy file="../org.aspectj.ajde/dist/org.aspectj.ajde_${ajde.version}.jar"
 	   todir="dist/plugins" />  
  <copy file="../org.eclipse.contribution.visualiser/dist/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
