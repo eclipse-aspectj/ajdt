@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.eclipse.ajdt.examples; singleton:=true
 Bundle-Version: 92.2.29
 Bundle-ClassPath: ajdtExamples.jar
 Bundle-Activator: org.eclipse.ajdt.examples.AspectJExamplePlugin
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui.ide,
  org.eclipse.core.runtime,

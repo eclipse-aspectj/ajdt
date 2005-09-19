@@ -6,7 +6,7 @@ Bundle-Version: 92.2.29
 Bundle-ClassPath: Visualiser.jar,
  lib/draw2d.jar
 Bundle-Activator: org.eclipse.contribution.visualiser.VisualiserPlugin
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.visualiser,
  org.eclipse.contribution.visualiser.core,
