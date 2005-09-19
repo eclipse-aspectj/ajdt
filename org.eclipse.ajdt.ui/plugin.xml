@@ -529,7 +529,7 @@
             category="org.eclipse.ajdt.wizards"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajaspectwizard">
-         <class class="org.eclipse.ajdt.internal.ui.wizards.NewAspectWizard">
+         <class class="org.eclipse.ajdt.internal.ui.wizards.NewAspectCreationWizard">
             <parameter
                 name="javatype"
                 value="true">
