@@ -53,7 +53,7 @@ Creates an update site structure for AspectJ
   <delete dir="dist"/>
   <delete dir="fpack_dist"/>
   <ant dir="../org.aspectj.runtime" inheritAll="true" target="clean" />
-	<ant dir="../org.aspectj.weaver" inheritAll="true" target="clean" />
+  <ant dir="../org.aspectj.weaver" inheritAll="true" target="clean" />
   <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
   <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
@@ -166,7 +166,7 @@ Creates an update site structure for AspectJ
        todir="dist/plugins" />
  <copy file="../org.aspectj.runtime/dist/org.aspectj.runtime_${ajde.version}.jar"
        todir="dist/plugins" />  
- <copy file="../org.aspectj.runtime/dist/org.aspectj.weaver_${ajde.version}.jar"
+ <copy file="../org.aspectj.weaver/dist/org.aspectj.weaver_${ajde.version}.jar"
        todir="dist/plugins" />
  <copy file="../org.aspectj.ajde/dist/org.aspectj.ajde_${ajde.version}.jar"
 	   todir="dist/plugins" />  
