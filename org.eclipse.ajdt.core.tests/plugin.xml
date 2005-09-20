@@ -21,6 +21,7 @@
       <import plugin="org.junit"/>
       <import plugin="org.aspectj.ajde"/>
       <import plugin="org.aspectj.runtime"/>
+      <import plugin="org.aspectj.weaver"/>
    </requires>
 
 </plugin>
