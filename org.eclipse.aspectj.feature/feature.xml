@@ -50,6 +50,12 @@
          download-size="0"
          install-size="0"
          version="@AJDEVERSION@"/>
+         
+   <plugin
+         id="org.aspectj.weaver"
+         download-size="0"
+         install-size="0"
+         version="@AJDEVERSION@"/>
 
    <plugin
          id="org.aspectj.ajde"
