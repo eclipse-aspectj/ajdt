@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.aspectj.weaver"
+   name="%pluginName"
+   version="92.2.29"
+   provider-name="%providerName">
+
+   <runtime>
+      <library name="aspectjweaver.jar">
+         <export name="*"/>
+      </library>
+   </runtime>
+   <requires>
+      <import plugin="org.aspectj.runtime" export="true"/>
+   </requires>
+
+</plugin>
