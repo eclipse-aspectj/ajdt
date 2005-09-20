@@ -26,8 +26,6 @@ import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 
