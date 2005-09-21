@@ -17,7 +17,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
-import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

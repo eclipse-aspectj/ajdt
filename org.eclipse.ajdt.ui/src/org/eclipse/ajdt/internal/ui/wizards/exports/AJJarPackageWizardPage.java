@@ -36,7 +36,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.filters.EmptyInnerPackageFilter;
-import org.eclipse.jdt.internal.ui.jarpackager.JarPackageWizard;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.viewsupport.LibraryFilter;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;

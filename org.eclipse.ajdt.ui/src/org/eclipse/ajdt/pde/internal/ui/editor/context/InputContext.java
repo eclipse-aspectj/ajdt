@@ -17,6 +17,7 @@
 package org.eclipse.ajdt.pde.internal.ui.editor.context;
 import java.util.ArrayList;
 
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -33,7 +34,6 @@ import org.eclipse.pde.core.IModelChangeProvider;
 import org.eclipse.pde.core.IModelChangedEvent;
 import org.eclipse.pde.core.IModelChangedListener;
 import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 import org.eclipse.pde.internal.ui.editor.StorageDocumentProvider;
 import org.eclipse.pde.internal.ui.editor.SystemFileDocumentProvider;
 import org.eclipse.pde.internal.ui.editor.SystemFileEditorInput;
@@ -46,7 +46,6 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IElementStateListener;
 /**

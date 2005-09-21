@@ -13,7 +13,6 @@ package org.eclipse.contribution.xref.internal.ui.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.contribution.xref.core.IDeferredXReference;
