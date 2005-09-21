@@ -79,9 +79,6 @@ public class ExportPluginTest extends UITestCase {
 		}
 		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
 		ZipFile zf = new ZipFile(zip);
-		for (Enumeration e = zf.entries() ; e.hasMoreElements() ;) {
-	         System.out.println(e.nextElement());
-	     }
 		String jarEntry = "plugins/HelloWorld_1.0.0/HelloWorld.jar"; //$NON-NLS-1$
 		ZipEntry entry = zf.getEntry(jarEntry);
 		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
