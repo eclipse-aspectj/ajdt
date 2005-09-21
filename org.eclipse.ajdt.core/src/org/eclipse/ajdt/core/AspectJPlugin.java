@@ -41,6 +41,9 @@ public class AspectJPlugin extends Plugin {
 	// plugin containing aspectjtools.jar, or the contents thereof
     public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; //$NON-NLS-1$
 
+	// plugin containing aspectjweaver.jar, or the contents thereof
+    public static final String WEAVER_PLUGIN_ID = "org.aspectj.weaver"; //$NON-NLS-1$
+
 	// the plugin containing aspectjrt.jar
 	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
 

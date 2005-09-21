@@ -25,13 +25,15 @@ public class AJCTask extends JavacTask {
 	public void print(AntScript script) {
 		if(script instanceof AJAntScript) {
 			AJAntScript ajScript = (AJAntScript)script;
-			Bundle bundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
-			URL url = bundle.getEntry("/"); //$NON-NLS-1$
-			URL resolved;
+			Bundle toolsBundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
+			Bundle weaverBundle = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID);
 			try {
-				resolved = Platform.resolve(url);
-				String AJDELocation = resolved.toExternalForm();
-				ajScript.printProperty("aspectj.plugin.home", AJDELocation); //$NON-NLS-1$
+				URL resolved = Platform.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
+				String ajdeLocation = resolved.toExternalForm();
+				resolved = Platform.resolve(weaverBundle.getEntry("/")); //$NON-NLS-1$
+				String weaverLocation = resolved.toExternalForm();
+				ajScript.printProperty("aspectj.plugin.home", ajdeLocation); //$NON-NLS-1$
+				ajScript.printProperty("aspectj.weaver.home", weaverLocation); //$NON-NLS-1$
 			} catch (IOException e) {
 			}
 						
@@ -40,6 +42,9 @@ public class AJCTask extends JavacTask {
 			ajScript.printStartTag("classpath"); //$NON-NLS-1$
 			ajScript.print("<pathelement"); //$NON-NLS-1$
 			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("/>"); //$NON-NLS-1$
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.weaver.home}/aspectjweaver.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.println("/>"); //$NON-NLS-1$
 			ajScript.printEndTag("classpath"); //$NON-NLS-1$
 			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
@@ -68,9 +73,12 @@ public class AJCTask extends JavacTask {
 				ajScript.print("/>"); //$NON-NLS-1$
 				ajScript.println();
 			}
-			// Add ajde.jar to this classpath too because we have forked
+			// Add ajde.jar and aspectjweaver.jar to this classpath too because we have forked
 			ajScript.print("<pathelement"); //$NON-NLS-1$
 			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("/>"); //$NON-NLS-1$
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.weaver.home}/aspectjweaver.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.println("/>"); //$NON-NLS-1$
 			
 			ajScript.indent--;
