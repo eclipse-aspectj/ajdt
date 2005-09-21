@@ -54,28 +54,28 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		
 	}
 	
 	public void testSetBreakpointA(){
-		IResource res = project.findMember("src/p1/Main.java");
+		IResource res = project.findMember("src/p1/Main.java"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		BreakpointSetTest((IFile)res);
 	}
 	
 	public void testSetBreakpointB(){
-		IResource res = project.findMember("src/p2/Aspect.aj");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		BreakpointSetTest((IFile)res);
 	}
 	
 	public void testSetBreakpointC(){
-		IResource res = project.findMember("src/AspectInDefaultPackage.aj");
+		IResource res = project.findMember("src/AspectInDefaultPackage.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		BreakpointSetTest((IFile)res);
 	}
 	
@@ -112,7 +112,7 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 		int newNumOfMarkers = getNumOfMarkers(file, editor);
 		//hasBreakpointOnCurrentLine(file, editor);
 		if ((numOfMarkers == newNumOfMarkers) == hasEffect)
-			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position.");
+			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position."); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	private void clickLine(int desiredline, CompositeRuler rulerInfo){

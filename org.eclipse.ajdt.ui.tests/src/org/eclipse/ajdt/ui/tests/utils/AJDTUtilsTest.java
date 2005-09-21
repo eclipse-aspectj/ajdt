@@ -57,45 +57,45 @@ public class AJDTUtilsTest extends UITestCase {
 	public void testAddAndRemoveAspectJNatureWithPluginProject()
 			throws Exception {
 		setUpPluginEnvironment();
-		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin");
+		IProject testPluginProject = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		assertFalse("Plugin project shouldn't have AspectJ nature",
+		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		assertFalse("Plugin should not import AJDE plugin",
+		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.addAspectJNature(testPluginProject.getProject());
 		waitForJobsToComplete();
-		assertTrue("Plugin project should now have AspectJ nature",
+		assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
-		assertTrue("Plugin should now import AJDE plugin",
+		assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
 				hasDependencyOnAJDE(testPluginProject));
 		AJDTUtils.removeAspectJNature(testPluginProject.getProject());
 		waitForJobsToComplete();
-		assertFalse("Plugin should not import AJDE plugin",
+		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
 				hasDependencyOnAJDE(testPluginProject));
-		assertFalse("Plugin project shouldn't have AspectJ nature",
+		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		resetPluginEnvironment();
 	}
 
 	public void testAddAndRemoveAspectJNature() throws CoreException {
-		IProject testProject = createPredefinedProject("project.java.Y");
+		IProject testProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		IJavaProject jY = JavaCore.create(testProject);
 		waitForJobsToComplete();
 		
-		assertFalse("Java project should not have AspectJ Nature",
+		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
-		assertFalse("Build path shouldn't contain aspectjrt.jar",
+		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.addAspectJNature(testProject.getProject());
-		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin
+		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin //$NON-NLS-1$
 				.isAJProject(testProject.getProject()));
-		assertTrue("Build path should now contain aspectjrt.jar",
+		assertTrue("Build path should now contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.removeAspectJNature(testProject.getProject());
-		assertFalse("Java project should not have AspectJ Nature",
+		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
-		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
+		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY)); //$NON-NLS-1$
 	}
 	
 	/**
@@ -105,23 +105,23 @@ public class AJDTUtilsTest extends UITestCase {
 	 * @throws Exception
 	 */
 	public void testBug93532() throws Exception {
-		IProject testProject = createPredefinedProject("bug93532");
+		IProject testProject = createPredefinedProject("bug93532"); //$NON-NLS-1$
 		IJavaProject jY = JavaCore.create(testProject);
 		waitForJobsToComplete();
 		
-		assertFalse("Java project should not have AspectJ Nature",
+		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
-		assertFalse("Build path shouldn't contain aspectjrt.jar",
+		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.addAspectJNature(testProject.getProject());
-		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin
+		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin //$NON-NLS-1$
 				.isAJProject(testProject.getProject()));
-		assertTrue("Build path should now contain aspectjrt.jar",
+		assertTrue("Build path should now contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 		AJDTUtils.removeAspectJNature(testProject.getProject());
-		assertFalse("Java project should not have AspectJ Nature",
+		assertFalse("Java project should not have AspectJ Nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testProject.getProject()));
-		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY));
+		assertFalse("Build path shouldn't contain aspectjrt.jar",hasAjrtOnBuildPath(jY)); //$NON-NLS-1$
 	}
 
 	/**
@@ -132,19 +132,19 @@ public class AJDTUtilsTest extends UITestCase {
 	public void testGetPDEManifestEditor() throws Exception {
 		setUpPluginEnvironment();
 		// know that the plugin id of this is HelloWorld
-		IProject projectA1 = createPredefinedProject("Hello World Java Plugin");
+		IProject projectA1 = createPredefinedProject("Hello World Java Plugin"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		
 		// know that the plugin id for this is PluginWithView
-		IProject projectA2 = createPredefinedProject("PluginWithView");
+		IProject projectA2 = createPredefinedProject("PluginWithView"); //$NON-NLS-1$
 		waitForJobsToComplete();
 
-		assertTrue("projectA1 should have manifest editor for project A1",
+		assertTrue("projectA1 should have manifest editor for project A1", //$NON-NLS-1$
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA1.getProject())
-						.getPartName().equals("HelloWorld"));
-		assertTrue("projectA2 should have manifest editor for project A2",
+						.getPartName().equals("HelloWorld")); //$NON-NLS-1$
+		assertTrue("projectA2 should have manifest editor for project A2", //$NON-NLS-1$
 				AJDTUtils.getAndPrepareToChangePDEModel(projectA2.getProject())
-						.getPartName().equals("PluginWithView"));
+						.getPartName().equals("PluginWithView")); //$NON-NLS-1$
 		resetPluginEnvironment();
 	}
 
@@ -176,21 +176,21 @@ public class AJDTUtilsTest extends UITestCase {
 //	}
 
 	public void testAddAndRemoveAjrtToBuildPath() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		IJavaProject jY = JavaCore.create(projectY);
 		waitForJobsToComplete();
 
-		assertFalse("project.java.Y should not have ajrt on build path",
+		assertFalse("project.java.Y should not have ajrt on build path", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 		AspectJUIPlugin.addAjrtToBuildPath(projectY);
 		waitForJobsToComplete();
 
-		assertTrue("project.java.Y should have ajrt on build path",
+		assertTrue("project.java.Y should have ajrt on build path", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 
 		AspectJUIPlugin.removeAjrtFromBuildPath(projectY);
 		waitForJobsToComplete();
-		assertFalse("project.java.Y should not have ajrt on build path",
+		assertFalse("project.java.Y should not have ajrt on build path", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
 	}
 
@@ -204,7 +204,7 @@ public class AJDTUtilsTest extends UITestCase {
 				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT
 						&& entry.getPath().equals(
 								projectDependedOn.getFullPath())) {
-					return "project";
+					return "project"; //$NON-NLS-1$
 				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
 					List outputLocationPaths = CoreUtils
 							.getOutputLocationPaths(projectDependedOn);
@@ -212,7 +212,7 @@ public class AJDTUtilsTest extends UITestCase {
 							.hasNext();) {
 						IPath path = (IPath) iterator.next();
 						if (entry.getPath().equals(path)) {
-							return "classfolder";
+							return "classfolder"; //$NON-NLS-1$
 						}
 					}
 				}
@@ -220,7 +220,7 @@ public class AJDTUtilsTest extends UITestCase {
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
-		return "none";
+		return "none"; //$NON-NLS-1$
 	}
 
 	private boolean hasAjrtOnBuildPath(IJavaProject javaProject) {
@@ -228,8 +228,8 @@ public class AJDTUtilsTest extends UITestCase {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			for (int i = 0; i < originalCP.length; i++) {
 				IPath path = originalCP[i].getPath();
-				if (path.toOSString().endsWith("ASPECTJRT_LIB")
-						|| path.toOSString().endsWith("aspectjrt.jar")) {
+				if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+						|| path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
 					return true;
 				}
 			}
@@ -282,7 +282,7 @@ public class AJDTUtilsTest extends UITestCase {
 
 		public void done(IJobChangeEvent event) {
 			if (event.getJob().getPriority() == Job.BUILD) {
-				System.out.println(">> finished a build");
+				System.out.println(">> finished a build"); //$NON-NLS-1$
 				scheduledBuilds.remove(event.getJob());
 			}
 
@@ -293,7 +293,7 @@ public class AJDTUtilsTest extends UITestCase {
 
 		public void scheduled(IJobChangeEvent event) {
 			if (event.getJob().getPriority() == Job.BUILD) {
-				System.out.println(">> scheduled a build");
+				System.out.println(">> scheduled a build"); //$NON-NLS-1$
 				scheduledBuilds.add(event.getJob());
 			}
 		}

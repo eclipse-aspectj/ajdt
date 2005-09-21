@@ -31,7 +31,7 @@ public class RemoveAJNatureActionTest extends UITestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		testProject = createPredefinedProject("project.java.Y");
+		testProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		AJDTUtils.addAspectJNature(testProject);
 		waitForJobsToComplete();

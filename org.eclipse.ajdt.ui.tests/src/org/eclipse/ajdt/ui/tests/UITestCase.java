@@ -47,7 +47,7 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
  */
 public abstract class UITestCase extends TestCase {
 
-	public static final String TEST_PROJECTS_FOLDER = "/workspace";
+	public static final String TEST_PROJECTS_FOLDER = "/workspace"; //$NON-NLS-1$
 
 	public UITestCase(String name) {
 		super(name);
@@ -85,7 +85,7 @@ public abstract class UITestCase extends TestCase {
 		waitForJobsToComplete();
 		
 		File sourceDir;
-		sourceDir = new File(AspectJTestPlugin.getPluginDir() + TEST_PROJECTS_FOLDER + "/" + projectName);
+		sourceDir = new File(AspectJTestPlugin.getPluginDir() + TEST_PROJECTS_FOLDER + "/" + projectName); //$NON-NLS-1$
 		if ((sourceDir == null) || (!sourceDir.exists()) || (sourceDir.isFile()))
 			return null;
 		
@@ -127,7 +127,7 @@ public abstract class UITestCase extends TestCase {
 			project.delete(true, true, null);
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
-			System.out.println("***delete failed***");
+			System.out.println("***delete failed***"); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 		

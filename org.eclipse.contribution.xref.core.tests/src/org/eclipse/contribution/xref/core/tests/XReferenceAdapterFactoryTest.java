@@ -41,7 +41,7 @@ public class XReferenceAdapterFactoryTest extends TestCase {
 
 	public void testGetWrongAdapter() {
 		Object adapter = xraf.getAdapter(new Object(),String.class);
-		assertNull("We only adapt to IXReferenceAdapter",adapter);
+		assertNull("We only adapt to IXReferenceAdapter",adapter); //$NON-NLS-1$
 	}
 
 	public void testGetAdapter() {

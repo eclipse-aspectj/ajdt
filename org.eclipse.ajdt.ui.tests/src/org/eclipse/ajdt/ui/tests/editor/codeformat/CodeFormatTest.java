@@ -36,14 +36,14 @@ public class CodeFormatTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("CodeFormat");
+		project = createPredefinedProject("CodeFormat"); //$NON-NLS-1$
 		
 	}
 	
 	public void testCodeFormat() {
-		String filename = "src/bean/BoundPoint.aj";
+		String filename = "src/bean/BoundPoint.aj"; //$NON-NLS-1$
 		IFile sourceFile = (IFile)project.findMember(filename);
-		if(sourceFile==null) fail("Cannot open file:"+filename);
+		if(sourceFile==null) fail("Cannot open file:"+filename); //$NON-NLS-1$
 
 		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(
 				(IFile)sourceFile, true);
@@ -68,7 +68,7 @@ public class CodeFormatTest extends UITestCase {
 		try {
 			sourceFile.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 		} catch (CoreException e) {
-			fail("building failed.");
+			fail("building failed."); //$NON-NLS-1$
 		}
 		waitForJobsToComplete();
 	}
@@ -91,9 +91,9 @@ public class CodeFormatTest extends UITestCase {
 				int lineDeLen = lineDe==null ? 0 : lineDe.length();
 				// remove line delimiter
 				line = line.substring(0, line.length()-lineDeLen);
-				assertTrue(line+" correct:"+lines[l],line.equals(lines[l]));
+				assertTrue(line+" correct:"+lines[l],line.equals(lines[l])); //$NON-NLS-1$
 			} catch (BadLocationException e) {
-				failOnException("Exception occurs.", e);
+				failOnException("Exception occurs.", e); //$NON-NLS-1$
 			}
 		}
 	}
@@ -103,7 +103,7 @@ public class CodeFormatTest extends UITestCase {
 	 * @param e
 	 */
 	private void failOnException(String string, BadLocationException e) {
-		fail(string+" exception:"+e.toString()+" message:"+e.getMessage());
+		fail(string+" exception:"+e.toString()+" message:"+e.getMessage()); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -116,8 +116,8 @@ public class CodeFormatTest extends UITestCase {
 		 */
 	private void verifyDoc1(IDocument document) {
 		String[] lines = {
-				"\tpointcut setter(Point p): call(void Point.set*(*))",
-				"&& target(p);"
+				"\tpointcut setter(Point p): call(void Point.set*(*))", //$NON-NLS-1$
+				"&& target(p);" //$NON-NLS-1$
 		};
 		//			int[] lineNos = {65, 66};
 		verifyLines(document, lines, 65);
@@ -136,11 +136,11 @@ public class CodeFormatTest extends UITestCase {
 	 */
 	private void verifyDoc2(IDocument document) {
 		String[] lines = {
-				"\t/**",
-				"\t * Advice to get the property change event fired when the setters are",
-				"\t * called. It's around advice because you need the old value of the",
-				"\t * property.",
-				"\t */"
+				"\t/**", //$NON-NLS-1$
+				"\t * Advice to get the property change event fired when the setters are", //$NON-NLS-1$
+				"\t * called. It's around advice because you need the old value of the", //$NON-NLS-1$
+				"\t * property.", //$NON-NLS-1$
+				"\t */" //$NON-NLS-1$
 		};
 //		int[] lineNos = {68, 69, 70, 71, 72};
 		verifyLines(document, lines, 68);
@@ -166,18 +166,18 @@ public class CodeFormatTest extends UITestCase {
 	 */
 	private void verifyDoc3(IDocument document) {
 		String[] lines = {
-				"\tvoid around(Point p): setter(p) {",
-				"\t\tString propertyName = thisJoinPointStaticPart.getSignature().getName()",
-				"\t\t\t\t.substring(\"set\".length());",
-				"\t\tint oldX = p.getX();",
-				"\t\tint oldY = p.getY();",
-				"\t\tproceed(p);",
-				"\t\tif (propertyName.equals(\"X\")) {",
-				"\t\t\tfirePropertyChange(p, propertyName, oldX, p.getX());",
-				"\t\t} else {",
-				"\t\t\tfirePropertyChange(p, propertyName, oldY, p.getY());",
-				"\t\t}",
-				"\t}"
+				"\tvoid around(Point p): setter(p) {", //$NON-NLS-1$
+				"\t\tString propertyName = thisJoinPointStaticPart.getSignature().getName()", //$NON-NLS-1$
+				"\t\t\t\t.substring(\"set\".length());", //$NON-NLS-1$
+				"\t\tint oldX = p.getX();", //$NON-NLS-1$
+				"\t\tint oldY = p.getY();", //$NON-NLS-1$
+				"\t\tproceed(p);", //$NON-NLS-1$
+				"\t\tif (propertyName.equals(\"X\")) {", //$NON-NLS-1$
+				"\t\t\tfirePropertyChange(p, propertyName, oldX, p.getX());", //$NON-NLS-1$
+				"\t\t} else {", //$NON-NLS-1$
+				"\t\t\tfirePropertyChange(p, propertyName, oldY, p.getY());", //$NON-NLS-1$
+				"\t\t}", //$NON-NLS-1$
+				"\t}" //$NON-NLS-1$
 		};
 		verifyLines(document, lines, 73);
 	}
@@ -195,11 +195,11 @@ public class CodeFormatTest extends UITestCase {
 	 */
 	private void verifyDoc4(IDocument document) {
 		String[] lines = {
-				"\tvoid firePropertyChange(Point p, String property, double oldval,",
-				"\t\t\tdouble newval) {",
-				"\t\tp.support.firePropertyChange(property, new Double(oldval), new Double(",
-				"\t\t\t\tnewval));",
-				"\t}"
+				"\tvoid firePropertyChange(Point p, String property, double oldval,", //$NON-NLS-1$
+				"\t\t\tdouble newval) {", //$NON-NLS-1$
+				"\t\tp.support.firePropertyChange(property, new Double(oldval), new Double(", //$NON-NLS-1$
+				"\t\t\t\tnewval));", //$NON-NLS-1$
+				"\t}" //$NON-NLS-1$
 		};
 		verifyLines(document, lines, 89);
 	}
@@ -210,7 +210,7 @@ public class CodeFormatTest extends UITestCase {
 	 */
 	private void verifyDoc5(IDocument document) {
 		String[] lines = {
-				"privileged aspect BoundPoint {"
+				"privileged aspect BoundPoint {" //$NON-NLS-1$
 		};
 		verifyLines(document, lines, 23);
 		

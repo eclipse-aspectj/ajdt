@@ -26,12 +26,12 @@ public class ProjectPropertiesTest extends UITestCase {
 
 	/* bug 82258 */
 	public void testCaseInsensitiveDriveLetters() throws Exception {
-		IProject project = createPredefinedProject("Hello World Project");
+		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
 		String fullpath1 = project.getLocation().toOSString() + File.separator
-				+ "src" + File.separator + "HelloWorld.java";
+				+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
 		String fullpath2;
 
 		// check for windows style drive letter
@@ -53,11 +53,11 @@ public class ProjectPropertiesTest extends UITestCase {
 		// found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res1);
+		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res1); //$NON-NLS-1$
 		
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2);
+		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2); //$NON-NLS-1$
 
 	}
 	
@@ -65,55 +65,55 @@ public class ProjectPropertiesTest extends UITestCase {
 	 * Bug 82341  
 	 */
 	public void testCaseInsensitive() throws Exception {
-		IProject project = createPredefinedProject("Hello World Project");
+		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
 		String fullpath1 = project.getLocation().toOSString() + File.separator
-				+ "src" + File.separator + "HelloWorld.java";
+				+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
 		String fullpath2;
 		
 		// if on windows then change the case
 		if ((fullpath1.charAt(1) == ':')) {
 			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
-							+ "src" + File.separator + "HelloWorld.java";
+							+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
 			fullpath2 = fullpath1;
 		}	
 		// now make sure both the resources can be found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82341",res1);
+		assertNotNull("Regression of bug 82341",res1); //$NON-NLS-1$
 		
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82341",res2);
+		assertNotNull("Regression of bug 82341",res2); //$NON-NLS-1$
 	}
 	
 	public void testCaseInsensitiveNoSrcFolder() throws Exception {
-		IProject project = createPredefinedProject("WithoutSourceFolder");
+		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
 
 		// create two paths, one where the drive letter (if there is one) has a
 		// different case to the other
 		String fullpath1 = project.getLocation().toOSString() + File.separator
-				+ "C.java";
+				+ "C.java"; //$NON-NLS-1$
 		String fullpath2;
 		
 		// if on windows then change the case
 		if ((fullpath1.charAt(1) == ':')) {
 			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
-							+ "C.java";
+							+ "C.java"; //$NON-NLS-1$
 		} else {
 			fullpath2 = fullpath1;
 		}
 		// now make sure both the resources can be found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82341",res1);
+		assertNotNull("Regression of bug 82341",res1); //$NON-NLS-1$
 		
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82341",res2);
+		assertNotNull("Regression of bug 82341",res2); //$NON-NLS-1$
 		
 	}
 }

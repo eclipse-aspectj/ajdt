@@ -51,17 +51,17 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		project = createPredefinedProject("AJProject83082");
+		project = createPredefinedProject("AJProject83082"); //$NON-NLS-1$
 		projectModel = new AJProjectModel(project);
 		projectModel.createProjectMap();
 		
 		AJModel model = AJModel.getInstance();
 		model.createMap(project);
 
-		IFolder src = project.getFolder("src");
-		IFolder wpstest = src.getFolder("wpstest");
-		IFolder aspectjPackage = wpstest.getFolder("aspectj");
-		IFile main = aspectjPackage.getFile("Main.java");
+		IFolder src = project.getFolder("src"); //$NON-NLS-1$
+		IFolder wpstest = src.getFolder("wpstest"); //$NON-NLS-1$
+		IFolder aspectjPackage = wpstest.getFolder("aspectj"); //$NON-NLS-1$
+		IFile main = aspectjPackage.getFile("Main.java"); //$NON-NLS-1$
 		Map annotationsMap = AsmManager.getDefault().getInlineAnnotations(main.getRawLocation().toOSString(),true, true);
 		ajCodeElements = createAJCodeElements(model,annotationsMap);  
     }
@@ -76,23 +76,23 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 
     public void testIsAdvised() {
         IJavaElement parent = ajCodeElements[0].getParent();
-        assertFalse("Parent shouldn't be an AJCodeElement", (parent instanceof AJCodeElement));
-        assertTrue("parent is advised because subelement is advised",projectModel.isAdvised(parent));
+        assertFalse("Parent shouldn't be an AJCodeElement", (parent instanceof AJCodeElement)); //$NON-NLS-1$
+        assertTrue("parent is advised because subelement is advised",projectModel.isAdvised(parent)); //$NON-NLS-1$
     }
 
     public void testGetExtraChildren() {
         IJavaElement parent = ajCodeElements[0].getParent();
         List extraChildren = projectModel.getExtraChildren(parent);
-        assertTrue("parent should have two children",extraChildren.size() == 2);
+        assertTrue("parent should have two children",extraChildren.size() == 2); //$NON-NLS-1$
         for (Iterator iter = extraChildren.iterator(); iter.hasNext();) {
             IJavaElement element = (IJavaElement) iter.next();
-            assertTrue("child should be an AJCodeElement",(element instanceof AJCodeElement));
+            assertTrue("child should be an AJCodeElement",(element instanceof AJCodeElement)); //$NON-NLS-1$
             AJCodeElement aj = (AJCodeElement)element;
-            assertEquals("the name should be method-call(void java.io.PrintStream.println(java.lang.String))","method-call(void java.io.PrintStream.println(java.lang.String))" ,aj.getName());
-            assertTrue("the line number should be 18 or 19",aj.getLine() == 18 || aj.getLine() == 19);
+            assertEquals("the name should be method-call(void java.io.PrintStream.println(java.lang.String))","method-call(void java.io.PrintStream.println(java.lang.String))" ,aj.getName()); //$NON-NLS-1$ //$NON-NLS-2$
+            assertTrue("the line number should be 18 or 19",aj.getLine() == 18 || aj.getLine() == 19); //$NON-NLS-1$
         }
-        assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(0)));
-        assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(1)));        
+        assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(0))); //$NON-NLS-1$
+        assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(1)));         //$NON-NLS-1$
     }
 
 	public void testGetLineNumber() {
@@ -100,10 +100,10 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 		IJavaElement je2 = ajCodeElements[1];
 		int line1 = projectModel.getJavaElementLineNumber(je1);
 		int line2 = projectModel.getJavaElementLineNumber(je2);
-		assertTrue("The first IJavaElement should be located at line " + LINE1
-				+ " got: " + line1, line1 == LINE1);
-		assertTrue("The second IJavaElement should be located at line " + LINE2
-				+ " got: " + line2, line2 == LINE2);
+		assertTrue("The first IJavaElement should be located at line " + LINE1 //$NON-NLS-1$
+				+ " got: " + line1, line1 == LINE1); //$NON-NLS-1$
+		assertTrue("The second IJavaElement should be located at line " + LINE2 //$NON-NLS-1$
+				+ " got: " + line2, line2 == LINE2); //$NON-NLS-1$
 	}
 	
 	public void testGetAllRelationships() {
@@ -124,15 +124,15 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 				advisedCount2++;
 			}
 		}
-		assertTrue("The first IJavaElement should be advised twice",advisedCount1==2);
-		assertTrue("The second IJavaElement should be advised twice",advisedCount2==2);
+		assertTrue("The first IJavaElement should be advised twice",advisedCount1==2); //$NON-NLS-1$
+		assertTrue("The second IJavaElement should be advised twice",advisedCount2==2); //$NON-NLS-1$
 
 		rels = new AJRelationshipType[] {
 				AJRelationshipManager.DECLARED_ON
 		};
 		allRels = AJModel.getInstance().getAllRelationships(project,rels);
 		if (allRels!=null && allRels.size()>0) {
-			fail("There should be no DECLARED_ON relationships");
+			fail("There should be no DECLARED_ON relationships"); //$NON-NLS-1$
 		}
 	}
 	
@@ -146,7 +146,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
+						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == LINE1) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
@@ -154,7 +154,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 						arrayOfajce[0] = (AJCodeElement) ije;
 					}					
 				} else if (node.toLinkLabelString()
-						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
+						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == LINE2) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);

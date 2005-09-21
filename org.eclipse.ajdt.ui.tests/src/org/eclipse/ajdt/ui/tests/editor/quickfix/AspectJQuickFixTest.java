@@ -39,14 +39,14 @@ public class AspectJQuickFixTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("QuickFix");
+		project = createPredefinedProject("QuickFix"); //$NON-NLS-1$
 	}
 
 	public void testJavaQuickFix() throws Exception {
-		String filename = "src/test/TestJava.java";
+		String filename = "src/test/TestJava.java"; //$NON-NLS-1$
 		IResource res = project.findMember(filename);
 		if (res == null)
-			fail("Required file not found: " + filename);
+			fail("Required file not found: " + filename); //$NON-NLS-1$
 		QuickFixTest((IFile) res);
 	}
 
@@ -60,7 +60,7 @@ public class AspectJQuickFixTest extends UITestCase {
 
 		IMarker[] markers = getMarkers(sourcefile, editorPart);
 
-		assertTrue("Didn't find any Java model markers", markers.length > 0);
+		assertTrue("Didn't find any Java model markers", markers.length > 0); //$NON-NLS-1$
 
 		boolean foundWarning = false;
 		boolean foundError = false;
@@ -71,24 +71,24 @@ public class AspectJQuickFixTest extends UITestCase {
 			if (!foundError && (sev.intValue() == IMarker.SEVERITY_ERROR)) {
 				foundError = true;
 				Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
-				assertNotNull("Problem id attribute must be set", pid);
+				assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
 				Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
-				assertNotNull("Character start attribute must be set", start);
+				assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
 				Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
-				assertNotNull("Character end attribute must be set", end);
+				assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
 			}
 			if (!foundWarning && (sev.intValue() == IMarker.SEVERITY_WARNING)) {
 				foundWarning = true;
 				Integer pid = (Integer) m.getAttribute(IJavaModelMarker.ID);
-				assertNotNull("Problem id attribute must be set", pid);
+				assertNotNull("Problem id attribute must be set", pid); //$NON-NLS-1$
 				Integer start = (Integer) m.getAttribute(IMarker.CHAR_START);
-				assertNotNull("Character start attribute must be set", start);
+				assertNotNull("Character start attribute must be set", start); //$NON-NLS-1$
 				Integer end = (Integer) m.getAttribute(IMarker.CHAR_END);
-				assertNotNull("Character end attribute must be set", end);
+				assertNotNull("Character end attribute must be set", end); //$NON-NLS-1$
 			}
 		}
-		assertEquals("Didn't find a warning marker", foundWarning, true);
-		assertEquals("Didn't find an error marker", foundError, true);
+		assertEquals("Didn't find a warning marker", foundWarning, true); //$NON-NLS-1$
+		assertEquals("Didn't find an error marker", foundError, true); //$NON-NLS-1$
 	}
 
 	protected AbstractMarkerAnnotationModel getAnnotationModel(

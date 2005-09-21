@@ -41,58 +41,58 @@ public class ContentAssistTest extends UITestCase {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
 		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
-		fProject = createPredefinedProject("CodeCompletionTestArea");
+		fProject = createPredefinedProject("CodeCompletionTestArea"); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistA() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj");
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos A*/");
-		if (contains(props, "bar"))
-			fail("The intertype declaration Foo.bar should not be visible here.");
-		if (!contains(props, "x"))
-			fail("Field x missing in completion proposals.");
-		if (!contains(props, "limited AspectJ"))
-			fail("Limited AspectJ support note missing");
+		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos A*/"); //$NON-NLS-1$
+		if (contains(props, "bar")) //$NON-NLS-1$
+			fail("The intertype declaration Foo.bar should not be visible here."); //$NON-NLS-1$
+		if (!contains(props, "x")) //$NON-NLS-1$
+			fail("Field x missing in completion proposals."); //$NON-NLS-1$
+		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
+			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistB() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj");
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos B*/");
-		if (!contains(props, "localInt"))
-			fail("local variable not visible.");
-		if (!contains(props, "desiredAssertionStatus"))
-			fail("Not all methods from java.lang.Class available.");
-		if (contains(props, "x"))
-			fail("Field x should not be visible.");
+		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos B*/"); //$NON-NLS-1$
+		if (!contains(props, "localInt")) //$NON-NLS-1$
+			fail("local variable not visible."); //$NON-NLS-1$
+		if (!contains(props, "desiredAssertionStatus")) //$NON-NLS-1$
+			fail("Not all methods from java.lang.Class available."); //$NON-NLS-1$
+		if (contains(props, "x")) //$NON-NLS-1$
+			fail("Field x should not be visible."); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistC() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java");
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos C*/");
-		if (contains(props, "ajc$"))
-			fail("AspectJ artefact members have not been filtered.");
-		if (!contains(props, "aspectOf"))
-			fail("Not all members of local variable asp are visible.");
-		if (!contains(props, "limited AspectJ"))
-			fail("Limited AspectJ support note missing");
+		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java"); //$NON-NLS-1$
+		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos C*/"); //$NON-NLS-1$
+		if (contains(props, "ajc$")) //$NON-NLS-1$
+			fail("AspectJ artefact members have not been filtered."); //$NON-NLS-1$
+		if (!contains(props, "aspectOf")) //$NON-NLS-1$
+			fail("Not all members of local variable asp are visible."); //$NON-NLS-1$
+		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
+			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistD() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java");
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos D*/");
-		if (!contains(props, "decw"))
-			fail("AspectJ code template missing.");
+		IFile file = (IFile)fProject.findMember("src/p2/TestClass.java"); //$NON-NLS-1$
+		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos D*/"); //$NON-NLS-1$
+		if (!contains(props, "decw")) //$NON-NLS-1$
+			fail("AspectJ code template missing."); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistE() throws JavaModelException{
-		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj");
-		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos E*/");
-		if (!contains(props, "thisJoinPoint"))
-			fail("thisJoinPoint not available.");
-		if (!contains(props, "meth"))
-			fail("Member meth missing.");
-		if (contains(props, "interMethod"))
-			fail("interMethod should not be visible here.");
+		IFile file = (IFile)fProject.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos E*/"); //$NON-NLS-1$
+		if (!contains(props, "thisJoinPoint")) //$NON-NLS-1$
+			fail("thisJoinPoint not available."); //$NON-NLS-1$
+		if (!contains(props, "meth")) //$NON-NLS-1$
+			fail("Member meth missing."); //$NON-NLS-1$
+		if (contains(props, "interMethod")) //$NON-NLS-1$
+			fail("interMethod should not be visible here."); //$NON-NLS-1$
 	}
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{

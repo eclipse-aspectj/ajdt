@@ -35,19 +35,19 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testContainsAspectJConstructs() throws Exception {
-		IProject project = createPredefinedProject("Spacewar Example");
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 
 		final List trueList = new ArrayList();
-		trueList.add("Ship"); // pointcut in a class
-		trueList.add("RegistrySynchronization"); // aspect
-		trueList.add("Registry"); // inner aspect in a class
-		trueList.add("GameSynchronization"); // aspect
-		trueList.add("EnsureShipIsAlive"); // aspect
-		trueList.add("Display2"); // inner aspect in a class
-		trueList.add("Display1"); // inner aspect in a class
-		trueList.add("Display"); // inner aspect in a class
-		trueList.add("Debug"); // aspect and class
-		trueList.add("Coordinator"); // abstract aspect with inner classes
+		trueList.add("Ship"); // pointcut in a class //$NON-NLS-1$
+		trueList.add("RegistrySynchronization"); // aspect //$NON-NLS-1$
+		trueList.add("Registry"); // inner aspect in a class //$NON-NLS-1$
+		trueList.add("GameSynchronization"); // aspect //$NON-NLS-1$
+		trueList.add("EnsureShipIsAlive"); // aspect //$NON-NLS-1$
+		trueList.add("Display2"); // inner aspect in a class //$NON-NLS-1$
+		trueList.add("Display1"); // inner aspect in a class //$NON-NLS-1$
+		trueList.add("Display"); // inner aspect in a class //$NON-NLS-1$
+		trueList.add("Debug"); // aspect and class //$NON-NLS-1$
+		trueList.add("Coordinator"); // abstract aspect with inner classes //$NON-NLS-1$
 
 		project.accept(new IResourceVisitor() {
 			public boolean visit(IResource resource) throws CoreException {
@@ -65,19 +65,19 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 							if (ret) {
 								trueList.remove(name);
 							} else {
-								fail("Returned false from CodeChecker.containsAspectJConstructs for "
-										+ name + ", expected true");
+								fail("Returned false from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+										+ name + ", expected true"); //$NON-NLS-1$
 							}
 						} else if (ret) {
-							fail("Returned true from CodeChecker.containsAspectJConstructs for "
-									+ name + ", expected false");
+							fail("Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+									+ name + ", expected false"); //$NON-NLS-1$
 						}
 					}
 				}
 				return true;
 			}
 		});
-		assertTrue("Didn't correctly identify all resources. Missed: "
+		assertTrue("Didn't correctly identify all resources. Missed: " //$NON-NLS-1$
 				+ trueList, trueList.size() == 0);
 
 		deleteProject(project);
@@ -91,7 +91,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testContainsAspectJConstructs2() throws Exception {
-		IProject project = createPredefinedProject("bug95370");
+		IProject project = createPredefinedProject("bug95370"); //$NON-NLS-1$
 		try {
 			project.accept(new IResourceVisitor() {
 				public boolean visit(IResource resource) throws CoreException {
@@ -101,8 +101,8 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 							boolean ret = CodeChecker
 									.containsAspectJConstructs((IFile) resource);
 							assertFalse(
-									"Returned true from CodeChecker.containsAspectJConstructs for "
-											+ name + ", expected false", ret);
+									"Returned true from CodeChecker.containsAspectJConstructs for " //$NON-NLS-1$
+											+ name + ", expected false", ret); //$NON-NLS-1$
 						}
 					}
 					return true;

@@ -36,7 +36,7 @@ public class CompilerPropertyPageTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		jp = JavaCore.create(project);
 		
 		IScopeContext projectScope = new ProjectScope(project);
@@ -66,28 +66,28 @@ public class CompilerPropertyPageTest extends UITestCase {
 		String[] keys = projectNode.keys(); 
 		for (int i = 0; i < keys.length; i++) {
 			String key = keys[i];
-			String compilerDefault = projectNode.get(key,"");
+			String compilerDefault = projectNode.get(key,""); //$NON-NLS-1$
 			String storeDefault = prefStore.getDefaultString(key);
-			assertEquals("default settings should be the same",storeDefault,compilerDefault);
+			assertEquals("default settings should be the same",storeDefault,compilerDefault); //$NON-NLS-1$
 		}
 	}
 
 	public void testSetDefaultsIfValueNotAlreadySet() throws Exception {
 		IPreferenceStore prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();		
 		AJCompilerPreferencePage.initDefaults(prefStore);
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"true");
+		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"true"); //$NON-NLS-1$
 		CompilerPropertyPage.setDefaultsIfValueNotAlreadySet(projectNode);
 
 		String[] keys = projectNode.keys(); 
 		for (int i = 0; i < keys.length; i++) {
 			String key = keys[i];
-			String compilerSetting = projectNode.get(key,"");
+			String compilerSetting = projectNode.get(key,""); //$NON-NLS-1$
 			String storeDefault = prefStore.getDefaultString(key);
 			if (key.equals(AspectJPreferences.OPTION_WeaveMessages)) {
 				boolean eq = storeDefault.equals(compilerSetting);
-				assertFalse("should not have overwritten showWeaveMessages option",eq);
+				assertFalse("should not have overwritten showWeaveMessages option",eq); //$NON-NLS-1$
 			} else {
-				assertEquals("default settings should be the same",storeDefault,compilerSetting);				
+				assertEquals("default settings should be the same",storeDefault,compilerSetting);				 //$NON-NLS-1$
 			}
 		}
 	}
@@ -96,7 +96,7 @@ public class CompilerPropertyPageTest extends UITestCase {
 		CompilerPropertyPage.setDefaults(projectNode);
 		CompilerPropertyPage.removeValues(projectNode);
 		String[] keys = projectNode.keys();
-		assertEquals("there should be no settings",0,keys.length);		
+		assertEquals("there should be no settings",0,keys.length);		 //$NON-NLS-1$
 	}
 
 }

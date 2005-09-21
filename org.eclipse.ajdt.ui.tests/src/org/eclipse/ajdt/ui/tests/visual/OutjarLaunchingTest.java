@@ -30,16 +30,16 @@ import org.eclipse.ui.internal.console.IOConsolePage;
  */
 public class OutjarLaunchingTest extends VisualTestCase {
 
-	private String outputStringStart = "p1 =";
+	private String outputStringStart = "p1 ="; //$NON-NLS-1$
 	
 	public void testLaunchingWithAnOutJar() throws Exception {
-		IProject project = createPredefinedProject("Outjar Example");
-		assertTrue("The Outjar Example project should have been created", project != null);
+		IProject project = createPredefinedProject("Outjar Example"); //$NON-NLS-1$
+		assertTrue("The Outjar Example project should have been created", project != null); //$NON-NLS-1$
 		IJavaProject jp = JavaCore.create(project);
 		String outJar = AspectJCorePreferences.getProjectOutJar(project);
-		assertTrue("The Outjar Example project should have an outjar", outJar != null && outJar.equals("bean.jar"));
-		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("bean");
-		ICompilationUnit demo = p1.getCompilationUnit("Demo.java");
+		assertTrue("The Outjar Example project should have an outjar", outJar != null && outJar.equals("bean.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("bean"); //$NON-NLS-1$ //$NON-NLS-2$
+		ICompilationUnit demo = p1.getCompilationUnit("Demo.java"); //$NON-NLS-1$
 		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		packageExplorer.setFocus();
 		packageExplorer.selectAndReveal(demo);
@@ -59,13 +59,13 @@ public class OutjarLaunchingTest extends VisualTestCase {
 				cview = (ConsoleView)views[i].getView(false);
 			}
 		}
-		assertNotNull("Console view should be open", cview);
+		assertNotNull("Console view should be open", cview); //$NON-NLS-1$
 		String output = null;
 		IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
 		TextViewer viewer = page.getViewer();
 		output = viewer.getDocument().get();
 		assertNotNull(output);
-		assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1);
+		assertTrue("program did not run correctly", output.indexOf(outputStringStart) != -1); //$NON-NLS-1$
 	}
 	
 }

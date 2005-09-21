@@ -45,7 +45,7 @@ public class BuildConfigurationTest extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest"); //$NON-NLS-1$
 		
 		waitForJobsToComplete();
 		setupSandboxSourceFolder();
@@ -54,7 +54,7 @@ public class BuildConfigurationTest extends UITestCase {
 
 
 	private void setupSandboxSourceFolder() throws Exception{
-		IFolder src = ajProject.getFolder("testSrcPath");
+		IFolder src = ajProject.getFolder("testSrcPath"); //$NON-NLS-1$
 		if (!src.exists()){
 			src.create(true, true, null);
 		}
@@ -73,30 +73,30 @@ public class BuildConfigurationTest extends UITestCase {
 			jp.setRawClasspath(newCpes, null);
 		}
 		
-		fileDef = src.getFile("InDefaultPack.java");
+		fileDef = src.getFile("InDefaultPack.java"); //$NON-NLS-1$
 		if (!fileDef.exists()) {
 			//fileDef.create(new StringBufferInputStream("public class InDefaultPack{}"), true, null);
-			String content = "public class InDefaultPack{}";
+			String content = "public class InDefaultPack{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
 			fileDef.create(source,true,null);
 		}
-		IFolder pack = src.getFolder("package1");
+		IFolder pack = src.getFolder("package1"); //$NON-NLS-1$
 		if (!pack.exists()){
 			pack.create(true, true, null);
 		}
 
-		fileA = pack.getFile("A.java"); 
+		fileA = pack.getFile("A.java");  //$NON-NLS-1$
 		if (!fileA.exists()) {
 			//fileA.create(new StringBufferInputStream("package package1;\npublic class A{}"), true, null);
-			String content = "package package1;\npublic class A{}";
+			String content = "package package1;\npublic class A{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
 			fileA.create(source,true,null);
 		}
 
-		fileB = pack.getFile("B.java"); 
+		fileB = pack.getFile("B.java");  //$NON-NLS-1$
 		if (!fileB.exists()) {
 			//fileB.create(new StringBufferInputStream("package package1;\npublic class B{}"), true, null);
-			String content = "package package1;\npublic class B{}";
+			String content = "package package1;\npublic class B{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
 			fileB.create(source,true,null);
 		}
@@ -112,11 +112,11 @@ public class BuildConfigurationTest extends UITestCase {
 		//test: are all new files included?
 		waitForJobsToComplete();
 		if (!bc.isIncluded(fileA))
-			fail("A.java was not included.");
+			fail("A.java was not included."); //$NON-NLS-1$
 		if (!bc.isIncluded(fileB))
-			fail("B.java was not included.");
+			fail("B.java was not included."); //$NON-NLS-1$
 		if (!bc.isIncluded(fileDef))
-			fail("InDefaultPackage.java was not included.");
+			fail("InDefaultPackage.java was not included."); //$NON-NLS-1$
 		
 	}
 	
@@ -136,33 +136,33 @@ public class BuildConfigurationTest extends UITestCase {
 			bc.excludeFiles(l);
 			waitForJobsToComplete();
 			if (bc.isIncluded(fileA)){
-				fail("Exclude failed. A.java still included.");
+				fail("Exclude failed. A.java still included."); //$NON-NLS-1$
 			}
 			if (!bc.isIncluded(fileB))
-				fail("Exclude failed. B.java should be included.");
+				fail("Exclude failed. B.java should be included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Exclude failed. InDefaultPackage.java should be included.");
+				fail("Exclude failed. InDefaultPackage.java should be included."); //$NON-NLS-1$
 			
 			l.clear();
 			l.add(fileA.getParent());
 			bc.excludeFiles(l);
 			waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
-				fail("Exclude failed. A.java still included.");
+				fail("Exclude failed. A.java still included."); //$NON-NLS-1$
 			if (bc.isIncluded(fileB))
-				fail("Exclude failed. B.java still included.");
+				fail("Exclude failed. B.java still included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Exclude failed. InDefaultPackage.java should be included.");
+				fail("Exclude failed. InDefaultPackage.java should be included."); //$NON-NLS-1$
 			
 			
 			bc.includeFiles(l);
 			waitForJobsToComplete();
 			if (!bc.isIncluded(fileA))
-				fail("Reinclude failed. A.java should be included.");
+				fail("Reinclude failed. A.java should be included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileB))
-				fail("Reinclude failed. B.java should be included.");
+				fail("Reinclude failed. B.java should be included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Reinclude failed. InDefaultPackage.java should be included.");
+				fail("Reinclude failed. InDefaultPackage.java should be included."); //$NON-NLS-1$
 		
 			l.clear();
 			l.add(fileA);
@@ -170,11 +170,11 @@ public class BuildConfigurationTest extends UITestCase {
 			bc.excludeFiles(l);
 			waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
-				fail("Exclude failed. A.java still included.");
+				fail("Exclude failed. A.java still included."); //$NON-NLS-1$
 			if (bc.isIncluded(fileB))
-				fail("Exclude failed. B.java still included.");
+				fail("Exclude failed. B.java still included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Exclude failed. InDefaultPackage.java should be included.");
+				fail("Exclude failed. InDefaultPackage.java should be included."); //$NON-NLS-1$
 			
 	}
 	
@@ -192,22 +192,22 @@ public class BuildConfigurationTest extends UITestCase {
 			bc.excludeFiles(l);
 			waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
-				fail("Exclude failed. A.java should be excluded.");
+				fail("Exclude failed. A.java should be excluded."); //$NON-NLS-1$
 			if (bc.isIncluded(fileB))
-				fail("Exclude failed. B.java should be excluded.");
+				fail("Exclude failed. B.java should be excluded."); //$NON-NLS-1$
 			if (bc.isIncluded(fileDef))
-				fail("Exclude failed. InDefaultPackage.java should be excluded.");
+				fail("Exclude failed. InDefaultPackage.java should be excluded."); //$NON-NLS-1$
 			
 			l.clear();
 			l.add(fileDef);
 			bc.includeFiles(l);
 			waitForJobsToComplete();
 			if (bc.isIncluded(fileA))
-				fail("Include failed. A.java should be excluded.");
+				fail("Include failed. A.java should be excluded."); //$NON-NLS-1$
 			if (bc.isIncluded(fileB))
-				fail("Include failed. B.java should be excluded.");
+				fail("Include failed. B.java should be excluded."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Include failed. InDefaultPackage.java should be included.");
+				fail("Include failed. InDefaultPackage.java should be included."); //$NON-NLS-1$
 			
 
 			l.clear();
@@ -215,11 +215,11 @@ public class BuildConfigurationTest extends UITestCase {
 			bc.includeFiles(l);
 			waitForJobsToComplete();
 			if (!bc.isIncluded(fileA))
-				fail("Include failed. A.java is not included.");
+				fail("Include failed. A.java is not included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileB))
-				fail("Include failed. B.java is not included.");
+				fail("Include failed. B.java is not included."); //$NON-NLS-1$
 			if (!bc.isIncluded(fileDef))
-				fail("Include failed. InDefaultPackage.java is not included.");
+				fail("Include failed. InDefaultPackage.java is not included."); //$NON-NLS-1$
 				
 	}
 }

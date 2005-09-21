@@ -41,13 +41,13 @@ public class OpenTypesTest extends VisualTestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Spacewar Example");
-		assertTrue("The Spacewar Example project should have been created", project != null);
+		project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+		assertTrue("The Spacewar Example project should have been created", project != null); //$NON-NLS-1$
 	}
 	
 	public void testOpenTypesDialog() throws Exception {	
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be no editors open at the start of the test", editors.length == 0);
+		assertTrue("There should be no editors open at the start of the test", editors.length == 0); //$NON-NLS-1$
 		
 		// 1. Test that a class in a .aj file is not found by the JDT types dialog
 		
@@ -61,7 +61,7 @@ public class OpenTypesTest extends VisualTestCase {
 		Runnable r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("Display");
+				postString("Display"); //$NON-NLS-1$
 				// Allow types to load
 				sleep();
 				postKey(SWT.CR);
@@ -71,8 +71,8 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be one editor open", editors.length == 1);
-		assertFalse("Should not have found Display.aj", editors[0].getEditor(false) instanceof AspectJEditor);
+		assertTrue("There should be one editor open", editors.length == 1); //$NON-NLS-1$
+		assertFalse("Should not have found Display.aj", editors[0].getEditor(false) instanceof AspectJEditor); //$NON-NLS-1$
 				
 		// 2. Test that an aspect in a .aj file is not found by the JDT types dialog
 		
@@ -86,7 +86,7 @@ public class OpenTypesTest extends VisualTestCase {
 		r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("GameSynchronization");
+				postString("GameSynchronization"); //$NON-NLS-1$
 				sleep();
 				postKey(SWT.CR);
 				sleep();
@@ -99,7 +99,7 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should still only be one editor open", editors.length == 1);
+		assertTrue("There should still only be one editor open", editors.length == 1); //$NON-NLS-1$
 		
 		
 		// 3. Test that an aspect in a .aj file is found by the AJDT types dialog
@@ -116,7 +116,7 @@ public class OpenTypesTest extends VisualTestCase {
 				sleep();
 				// wait for searching
 				sleep();
-				postString("GameSynchronization");
+				postString("GameSynchronization"); //$NON-NLS-1$
 				sleep();
 				postKey(SWT.CR);
 			}
@@ -125,9 +125,9 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be two editors open", editors.length == 2);
+		assertTrue("There should be two editors open", editors.length == 2); //$NON-NLS-1$
 		IFileEditorInput editorInput = (IFileEditorInput) editors[1].getEditor(false).getEditorInput();
-		assertTrue("GameSynchronization.aj should have been opened", editorInput.getFile().getName().equals("GameSynchronization.aj"));
+		assertTrue("GameSynchronization.aj should have been opened", editorInput.getFile().getName().equals("GameSynchronization.aj")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// 4. Test that a class in a .aj file is found only once by the AJDT types dialog
 		
@@ -141,7 +141,7 @@ public class OpenTypesTest extends VisualTestCase {
 		r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("Display");
+				postString("Display"); //$NON-NLS-1$
 				sleep();
 				// Select the item under Display
 				postKey(SWT.TAB);
@@ -153,9 +153,9 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be three editors open", editors.length == 3);
+		assertTrue("There should be three editors open", editors.length == 3); //$NON-NLS-1$
 		editorInput = (IFileEditorInput) editors[2].getEditor(false).getEditorInput();
-		assertTrue("Display1.aj should have been opened", editorInput.getFile().getName().equals("Display1.aj"));
+		assertTrue("Display1.aj should have been opened", editorInput.getFile().getName().equals("Display1.aj")); //$NON-NLS-1$ //$NON-NLS-2$
 
 			
 		// 5. Test that an aspect that appears twice shows 2 options in the bottom box
@@ -170,7 +170,7 @@ public class OpenTypesTest extends VisualTestCase {
 		r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("SpaceObjectPainting");
+				postString("SpaceObjectPainting"); //$NON-NLS-1$
 				sleep();
 				// Select Display2 in the bottom box
 				postKey(SWT.TAB);
@@ -182,18 +182,18 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be four editors open", editors.length == 4);
+		assertTrue("There should be four editors open", editors.length == 4); //$NON-NLS-1$
 		editorInput = (IFileEditorInput) editors[3].getEditor(false).getEditorInput();
-		assertTrue("Display2.aj should have been opened", editorInput.getFile().getName().equals("Display2.aj"));		
+		assertTrue("Display2.aj should have been opened", editorInput.getFile().getName().equals("Display2.aj"));		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	
 	public void testNewAspectWizard () throws Exception {
 		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		packageExplorer.setFocus();
-		IResource folder = project.findMember("src/spacewar");
+		IResource folder = project.findMember("src/spacewar"); //$NON-NLS-1$
 		if (!(folder instanceof IFolder)) {
-			fail("Folder \"src/coordination\" should have been found in the project");
+			fail("Folder \"src/coordination\" should have been found in the project"); //$NON-NLS-1$
 		}
 		packageExplorer.tryToReveal(folder);
 		
@@ -219,7 +219,7 @@ public class OpenTypesTest extends VisualTestCase {
 				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.CR);
 				sleep();
-				postString("A1");				
+				postString("A1");				 //$NON-NLS-1$
 				postKey(SWT.TAB);
 				postKey(SWT.TAB);
 				postKey(SWT.TAB);
@@ -229,7 +229,7 @@ public class OpenTypesTest extends VisualTestCase {
 				postKey(SWT.TAB);
 				postKey(' ');
 				sleep();
-				postString("Coordinator");
+				postString("Coordinator"); //$NON-NLS-1$
 				sleep();
 				postKey(SWT.CR);
 				sleep();
@@ -245,11 +245,11 @@ public class OpenTypesTest extends VisualTestCase {
 		waitForJobsToComplete();
 		
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
-		assertTrue("There should be one editor open", editors.length == 1);
+		assertTrue("There should be one editor open", editors.length == 1); //$NON-NLS-1$
 		IFile newFile = ((FileEditorInput)editors[0].getEditor(false).getEditorInput()).getFile();
 		IImportDeclaration[] imports = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(newFile).getImports();
-		assertTrue("There should be one import in the new file", imports.length == 1);
-		assertTrue("Should have imported Coordinator", imports[0].getElementName().equals("coordination.Coordinator"));
+		assertTrue("There should be one import in the new file", imports.length == 1); //$NON-NLS-1$
+		assertTrue("Should have imported Coordinator", imports[0].getElementName().equals("coordination.Coordinator")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 	}
 	
@@ -266,7 +266,7 @@ public class OpenTypesTest extends VisualTestCase {
 		Runnable r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("Display1");
+				postString("Display1"); //$NON-NLS-1$
 				// Allow types to load
 				sleep();
 				postKey(SWT.CR);
@@ -285,8 +285,8 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		}
 		
-		assertNotNull("The hierarchy view should have been opened", hierarchyView);
-		assertTrue("The input to the type hierarchy should be Display1", hierarchyView.getInputElement().getElementName().equals("Display1"));
+		assertNotNull("The hierarchy view should have been opened", hierarchyView); //$NON-NLS-1$
+		assertTrue("The input to the type hierarchy should be Display1", hierarchyView.getInputElement().getElementName().equals("Display1")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().hideView(hierarchyView);
 		
@@ -301,7 +301,7 @@ public class OpenTypesTest extends VisualTestCase {
 		r = new Runnable(){
 			public void run() {
 				sleep();
-				postString("GameSynchronization");
+				postString("GameSynchronization"); //$NON-NLS-1$
 				// Allow types to load
 				sleep();
 				postKey(SWT.CR);
@@ -320,8 +320,8 @@ public class OpenTypesTest extends VisualTestCase {
 			}
 		}
 		
-		assertNotNull("The hierarchy view should still be open", hierarchyView);
-		assertTrue("The input to the type hierarchy should be GameSynchronization", hierarchyView.getInputElement().getElementName().equals("GameSynchronization"));
+		assertNotNull("The hierarchy view should still be open", hierarchyView); //$NON-NLS-1$
+		assertTrue("The input to the type hierarchy should be GameSynchronization", hierarchyView.getInputElement().getElementName().equals("GameSynchronization")); //$NON-NLS-1$ //$NON-NLS-2$
 		
 	}
 	

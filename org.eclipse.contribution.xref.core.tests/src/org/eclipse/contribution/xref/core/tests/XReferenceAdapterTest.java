@@ -39,17 +39,17 @@ public class XReferenceAdapterTest extends TestCase {
 		XReferenceAdapter xra = new XReferenceAdapter(o);
 		Collection references = xra.getXReferences();
 		assertEquals(0, references.size());
-		XReferenceAdapter xra2 = new XReferenceAdapter("more lower case");
+		XReferenceAdapter xra2 = new XReferenceAdapter("more lower case"); //$NON-NLS-1$
 		references = xra2.getXReferences();
 		assertEquals(1, references.size());
 
 		IXReference xref = (IXReference) references.iterator().next();
-		assertEquals("In Upper Case", xref.getName());
+		assertEquals("In Upper Case", xref.getName()); //$NON-NLS-1$
 		Iterator it = xref.getAssociates();
 		int numAssociates = 0;
 		while (it.hasNext()) {
 			String element = (String) it.next();
-			assertEquals("MORE LOWER CASE", element);
+			assertEquals("MORE LOWER CASE", element); //$NON-NLS-1$
 			numAssociates++;
 		}
 		assertEquals(1, numAssociates);
@@ -62,7 +62,7 @@ public class XReferenceAdapterTest extends TestCase {
     		def.setEnabled(false);            
         }
 
-		XReferenceAdapter xra3 = new XReferenceAdapter("more lower case");
+		XReferenceAdapter xra3 = new XReferenceAdapter("more lower case"); //$NON-NLS-1$
 		references = xra3.getXReferences();
 		assertEquals(0, references.size());
 

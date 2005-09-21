@@ -48,19 +48,19 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 * Everything should work ok if A is converted to be an AJ project
 	 */
 	 public void testWithExportedJarFile() throws Exception {
-		IProject projectA = createPredefinedProject("another.project.AAA");
-		IProject projectB = createPredefinedProject("another.project.B");
+		IProject projectA = createPredefinedProject("another.project.AAA"); //$NON-NLS-1$
+		IProject projectB = createPredefinedProject("another.project.B"); //$NON-NLS-1$
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project A should
 		// export a jar file and project B should have a project dependency on
 		// project A
-		assertFalse("project A should build with no errors",
+		assertFalse("project A should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectA,null));
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertTrue("project A should export a jar file", 
+		assertTrue("project A should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
-		assertTrue("project B should have a project dependency on project A",
+		assertTrue("project B should have a project dependency on project A", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB, projectA));
 
 		checkForJDTBug84214(projectB,projectA);
@@ -73,9 +73,9 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// export the jar file, project B should now have the exported jar file as an
 		// entry on it's classpath, and project B should have a classfolder dependency on
 		// project A
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertTrue("project A should export a jar file", 
+		assertTrue("project A should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
 		// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertTrue("project B should have jar file on classpath (and not export it)",
@@ -84,11 +84,11 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		//		projectHasClassFolderDependency(projectB,projectA));
 		//assertFalse("project B should not have a project dependency on project A",
 		//		projectHasProjectDependency(projectB,projectA));
-		assertFalse("project B should NOT have jar file on classpath (and not export it)",
+		assertFalse("project B should NOT have jar file on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
-		assertFalse("project B should NOT have class folder dependency on project A", 
+		assertFalse("project B should NOT have class folder dependency on project A",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
-		assertTrue("project B should still have a project dependency on project A",
+		assertTrue("project B should still have a project dependency on project A", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
 		
 		
@@ -100,15 +100,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// There should be no build errors on project B, project B should have a project dependency 
 		// on project A, project A should still export the jar file, project B should not include 
 		// the exported jar file on it's classpath
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertTrue("project B should have a project dependency on project A",
+		assertTrue("project B should have a project dependency on project A", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB,projectA));
-		assertFalse("project B should not have a class folder dependency on project A",
+		assertFalse("project B should not have a class folder dependency on project A", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB,projectA));
-		assertTrue("project A should export a jar file", 
+		assertTrue("project A should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectA));
-		assertFalse("project B should not have jar file on classpath (and not export it)",
+		assertFalse("project B should not have jar file on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB,projectA));
 
 	}
@@ -126,9 +126,9 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 */
 	public void testWithExportedJarFileAndBinaryProject() throws Exception {
 		
-		IProject projA = createPredefinedProject("non.plugin.project.A1");
-		IProject projB = createPredefinedProject("non.plugin.project.B");
-		IProject projC = createPredefinedProject("non.plugin.project.C");
+		IProject projA = createPredefinedProject("non.plugin.project.A1"); //$NON-NLS-1$
+		IProject projB = createPredefinedProject("non.plugin.project.B"); //$NON-NLS-1$
+		IProject projC = createPredefinedProject("non.plugin.project.C"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers and both 
 		// projects B and C should build as they're both java projects.
@@ -136,17 +136,17 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// - project A should be a binary project with no src
 		// - project B should export a jar file
 		// - project C should have a project dependency on project B
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));
-		assertFalse("project C should build with no errors",
+		assertFalse("project C should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
-		assertTrue("project A should have no src", 
+		assertTrue("project A should have no src",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasNoSrc(projA));
-		assertTrue("project B should export a jar file", 
+		assertTrue("project B should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
-		assertTrue("project C should have a project dependency on project B",
+		assertTrue("project C should have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
-		assertFalse("project C should not have a class dependency on project B",
+		assertFalse("project C should not have a class dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
 
 		checkForJDTBug84214(projC,projB);
@@ -157,11 +157,11 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
-		assertFalse("project C should build with no errors",
+		assertFalse("project C should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
-		assertTrue("project B should still export the jar file", 
+		assertTrue("project B should still export the jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
 		// PD: switching following 3 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertTrue("project C should have jar file on classpath (and not export it)",
@@ -170,11 +170,11 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		//		projectHasClassFolderDependency(projC,projB));
 		//assertFalse("project C should NOT have a project dependency on project B",
 		//		projectHasProjectDependency(projC,projB));
-		assertFalse("project C should NOT have jar file on classpath (and not export it)",
+		assertFalse("project C should NOT have jar file on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
-		assertFalse("project C should NOT have a class folder dependency on project B",
+		assertFalse("project C should NOT have a class folder dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
-		assertTrue("project C should still have a project dependency on project B",
+		assertTrue("project C should still have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
 		
 		// remove AJ nature from project B
@@ -187,17 +187,17 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// - project B should still export the jar file, 
 		// - project C should not have the exported jar file as an entry on it's classpath
 		// - project B should have a project dependency on project A
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projB,null));		
-		assertFalse("project C should build with no errors",
+		assertFalse("project C should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projC,null));
-		assertTrue("project B should still export the jar file", 
+		assertTrue("project B should still export the jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projB));
-		assertFalse("project C should have jar file on classpath (and not export it)",
+		assertFalse("project C should have jar file on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projC,projB));		
-		assertFalse("project C should have a class folder dependency on project B",
+		assertFalse("project C should have a class folder dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projC,projB));
-		assertTrue("project C should NOT have a project dependency on project B",
+		assertTrue("project C should NOT have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
 
 	}
@@ -211,22 +211,22 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 * there should be no class folder dependency added onto project B.
 	 */
 	 public void testWithExportedJarFileAndNoSrcEntry() throws Exception {
-		IProject projectB = createPredefinedProject("pd.non.plugin.project.B");
-		IProject projectB1 = createPredefinedProject("pd.non.plugin.project.B1");
+		IProject projectB = createPredefinedProject("pd.non.plugin.project.B"); //$NON-NLS-1$
+		IProject projectB1 = createPredefinedProject("pd.non.plugin.project.B1"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project A should
 		// export a jar file and project B should have a project dependency on
 		// project A
-		assertFalse("project B should build with no errors",
+		assertFalse("project B should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB,null));
-		assertFalse("project B1 should build with no errors",
+		assertFalse("project B1 should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
-		assertTrue("project B should export a jar file", 
+		assertTrue("project B should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
-		assertTrue("project B1 should have a project dependency on project B",
+		assertTrue("project B1 should have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB1, projectB));
-		assertTrue("project B should contain no src directory", 
+		assertTrue("project B should contain no src directory",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasNoSrc(projectB));
 		
 		checkForJDTBug84214(projectB1,projectB);
@@ -239,20 +239,20 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// export the jar file, project B should now have the exported jar file as an
 		// entry on it's classpath, and project B should have a classfolder dependency on
 		// project A
-		assertFalse("project B1 should build with no errors",
+		assertFalse("project B1 should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
-		assertTrue("project B should export a jar file", 
+		assertTrue("project B should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
-		assertFalse("project B1 should not have class folder dependency on project B", 
+		assertFalse("project B1 should not have class folder dependency on project B",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
 		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertTrue("project B1 should have jar file on classpath (and not export it)",
 		//		projectHasJarOnClasspath(projectB1,projectB));
 		//assertFalse("project B1 should not have a project dependency on project B",
 		//		projectHasProjectDependency(projectB1,projectB));
-		assertFalse("project B1 should NOT have jar file added on classpath (and not export it)",
+		assertFalse("project B1 should NOT have jar file added on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
-		assertTrue("project B1 should still have a project dependency on project B",
+		assertTrue("project B1 should still have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
 		
 		// remove AJ nature frrom project A
@@ -263,15 +263,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// There should be no build errors on project B, project B should have a project dependency 
 		// on project A, project A should still export the jar file, project B should not include 
 		// the exported jar file on it's classpath
-		assertFalse("project B1 should build with no errors",
+		assertFalse("project B1 should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectB1,null));
-		assertTrue("project B1 should have a project dependency on project B",
+		assertTrue("project B1 should have a project dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
-		assertFalse("project B1 should not have a class folder dependency on project B",
+		assertFalse("project B1 should not have a class folder dependency on project B", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectB1,projectB));
-		assertTrue("project B should export a jar file", 
+		assertTrue("project B should export a jar file",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasAnExportedClasspathEntry(projectB));
-		assertFalse("project B1 should not have jar file on classpath (and not export it)",
+		assertFalse("project B1 should not have jar file on classpath (and not export it)", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasJarOnClasspath(projectB1,projectB));
 	}
 	
@@ -291,44 +291,44 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 * @throws Exception
 	 */ 
 	public void testWithOutJarSwitch1() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 
 		checkForJDTBug84214(projectX,projectY);
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertFalse("project X should not have a project dependency on project Y",
 		//		projectHasProjectDependency(projectX, projectY));
 		//assertTrue("project X should have a class folder dependency on project Y",
 		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
+		assertTrue("project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
+		assertFalse("project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 			
 		// set project Y to send output to jar file
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
+		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
 
@@ -346,25 +346,25 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
+		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 
 		// PD: switching following assert because current thinking is not to change project dependencies to classfolder ones
 		//assertFalse("project X should not have a project dependency on project Y",
 		//		projectHasProjectDependency(projectX, projectY));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
 		
 		
-		assertFalse("project X should not have a class folder dependency on project Y",
+		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,""); //$NON-NLS-1$
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -375,14 +375,14 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
 		jarFile.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
+		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
 		
 		// reset projects to their original state:
@@ -391,15 +391,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 					AspectJPlugin.isAJProject(projectX));
 	}
 
@@ -417,22 +417,22 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
      *   to an outjar. 
 	 */ 
 	public void testWithOutJarSwitch2() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 
 		
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 	
 		checkForJDTBug84214(projectX,projectY);
@@ -440,43 +440,43 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertFalse("project X should not have a project dependency on project Y",
 		//		projectHasProjectDependency(projectX, projectY));
 		//assertTrue("project X should have a class folder dependency on project Y",
 		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
+		assertTrue("project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
+		assertFalse("project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		// convert project X to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectX);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		// PD: switching following 2 asserts because current thinking is not to change project dependencies to classfolder ones
 		//assertFalse("project X should not have a project dependency on project Y",
 		//		projectHasProjectDependency(projectX, projectY));
 		//assertTrue("project X should have a class folder dependency on project Y",
 		//		projectHasClassFolderDependency(projectX,projectY));
-		assertTrue("project X should still have a project dependency on project Y",
+		assertTrue("project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
+		assertFalse("project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		// set project Y to send output to jar file
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY);
+		String outJar = ProjectDependenciesUtils.setupOutJar("mainWork.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
-		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists());
+		assertFalse("Output jar should not yet exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// build the project so it picks up the outjar and sends 
 		// output there
@@ -484,37 +484,37 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should now exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
+		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 		// don't want to add outjar to aspect path
-		assertNull("project X should have NOT have outjar on aspect path!",
+		assertNull("project X should have NOT have outjar on aspect path!", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectPath());
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
+		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		// now set the outjar option back to nothing and build projectY 
 		// to send output to bin directory rather than jar file
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,""); //$NON-NLS-1$
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
 
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
+		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
 
 				
@@ -525,13 +525,13 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
+		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 
 		projectY.refreshLocal(IResource.DEPTH_INFINITE,null);
@@ -546,15 +546,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 		
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 	}
 
@@ -573,23 +573,23 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
      *   classpath (and not the old one)
 	 */ 
 	public void testWithOutJarSwitch3() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 
 			
@@ -599,21 +599,21 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should still have a project dependency on project Y",
+		assertTrue("project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project X should NOT have a class folder dependency on project Y",
+		assertFalse("project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 		
 		// set project Y to send output to jar file mainWork.jar
 		// setup the outjar
-		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY);
+		String outJar = ProjectDependenciesUtils.setupOutJar("firstJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// build the project so it picks up the outjar and sends 
 		// output there
@@ -622,25 +622,25 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 
-		assertTrue("project X should have project Y's outjar on it's classpath",
+		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
+		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		// set project Y to send output to jar file newJar.jar
 		// setup the outjar
-		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY);
+		String outJar2 = ProjectDependenciesUtils.setupOutJar("newJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar2);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists());
+		assertFalse("Output jar should NOT exist! (path=" + outJar2 + ")",new File(outJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// build the project so it picks up the outjar and sends 
 		// output there
@@ -648,18 +648,18 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should exist! (path=" + outJar2 + ")",new File(outJar2).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's NEW outjar on it's classpath",
+		assertTrue("project X should have project Y's NEW outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar2));
-		assertFalse("project X should NOT have project Y's old outjar on it's classpath",
+		assertFalse("project X should NOT have project Y's old outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
-		assertFalse("project X should not have a class folder dependency on project Y",
+		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		StringBuffer sb = new StringBuffer(outJar);
@@ -667,9 +667,9 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		IResource jarFile = projectY.getWorkspace().getRoot().findMember(path.makeAbsolute());
 		jarFile.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
-		AspectJCorePreferences.setProjectOutJar(projectY,"");
+		AspectJCorePreferences.setProjectOutJar(projectY,""); //$NON-NLS-1$
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -680,15 +680,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		IResource jarFile2 = projectY.getWorkspace().getRoot().findMember(path2.makeAbsolute());
 		jarFile2.delete(true,null);
 		waitForJobsToComplete();
-		assertFalse("Second Output jar should NOT exist! (path=" + outJar2 + ")"
+		assertFalse("Second Output jar should NOT exist! (path=" + outJar2 + ")" //$NON-NLS-1$ //$NON-NLS-2$
 				,new File(outJar2).exists());
 		
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertFalse("project X should not have outjar on classpath",
+		assertFalse("project X should not have outjar on classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar2));
 		
 		// reset projects to their original state:
@@ -697,15 +697,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 
 	}
@@ -716,21 +716,21 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 * only contains one entry corresponding to this outjar 
 	 */
 	public void testBuildTwiceWithOutJar() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers, both 
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));
 
 		// convert project Y to be an AJ project and check setup is correct
@@ -739,10 +739,10 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		checkForJDTBug84214(projectX,projectY);
 		
-		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY);
+		String outJar = ProjectDependenciesUtils.setupOutJar("anotherJar.jar",projectY); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(projectY,outJar);
 		waitForJobsToComplete();
-		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists());
+		assertFalse("Output jar should NOT exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// build the project so it picks up the outjar and sends 
 		// output there
@@ -752,27 +752,27 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		// check that outjar exists etc, but that the jar only appears
 		// once on the classpath and aspect path
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 
-		assertTrue("project X should have project Y's outjar on it's classpath",
+		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
 				projectY,outJar));
 		
 		// build again and check that the same still holds
-		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null);
+		projectY.build(IncrementalProjectBuilder.FULL_BUILD,"org.eclipse.ajdt.ui.ajbuilder", null, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 
-		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists());
-		assertFalse("project Y should build with no errors",
+		assertTrue("Output jar should exist! (path=" + outJar + ")",new File(outJar).exists()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have project Y's outjar on it's classpath",
+		assertTrue("project X should have project Y's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 		assertEquals(1,ProjectDependenciesUtils.numberOfTimesOutJarOnClasspath(projectX,
 				projectY,outJar));
@@ -782,15 +782,15 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));
-		assertFalse("project Y should not be an AJ project", 
+		assertFalse("project Y should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectY));
-		assertFalse("project X should not be an AJ project", 
+		assertFalse("project X should not be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(projectX));		
 	}	
 
@@ -802,22 +802,22 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 	 */
 	public void testDependingProjectBuiltWhenOutjarChanges() throws Exception {
 		// test setup
-		IProject jarCreatingProject = createPredefinedProject("jarCreatingProject");
-		IProject jarDependentProject = createPredefinedProject("jarDependentProject");
+		IProject jarCreatingProject = createPredefinedProject("jarCreatingProject"); //$NON-NLS-1$
+		IProject jarDependentProject = createPredefinedProject("jarDependentProject"); //$NON-NLS-1$
 
 		// sanity check on setup of projects....
 		checkForJDTBug84214(jarDependentProject,jarCreatingProject);
 		
 		String outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject);
-		if(outjar == null || !outjar.equals("myJar.jar")) {			
+		String jar = ProjectDependenciesUtils.setupOutJar("myJar.jar",jarCreatingProject); //$NON-NLS-1$
+		if(outjar == null || !outjar.equals("myJar.jar")) {			 //$NON-NLS-1$
 			AspectJCorePreferences.setProjectOutJar(jarCreatingProject,jar);
 		}
 		outjar = AspectJCorePreferences.getProjectOutJar(jarCreatingProject);
-		assertEquals("the outjar should be called myjar.jar",jar,outjar);
-		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+		assertEquals("the outjar should be called myjar.jar",jar,outjar); //$NON-NLS-1$
+		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
-		assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath",
+		assertTrue("jarDependentProject should have jarCreatingProject's outjar on it's classpath", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(jarDependentProject,jarCreatingProject, outjar));
 		
 		jarCreatingProject.build(IncrementalProjectBuilder.FULL_BUILD, null);
@@ -827,29 +827,29 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 		
-		assertFalse("jarCreatingProject should build with no errors",
+		assertFalse("jarCreatingProject should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
-		assertFalse("jarDependentProject should build with no errors",
+		assertFalse("jarDependentProject should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,null));
-		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject",
+		assertTrue("jarDependentProject should have a project dependency on jarCreatingProject", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(jarDependentProject, jarCreatingProject));
-		assertTrue("jarCreatingProject should be an AJ project", 
+		assertTrue("jarCreatingProject should be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(jarCreatingProject));
-		assertTrue("jarDependentProject should be an AJ project", 
+		assertTrue("jarDependentProject should be an AJ project",  //$NON-NLS-1$
 				AspectJPlugin.isAJProject(jarDependentProject));
 		
 		// add new abstract pointcut to A.aj in jarCreatingProject
-		IFolder src = jarCreatingProject.getFolder("src");
+		IFolder src = jarCreatingProject.getFolder("src"); //$NON-NLS-1$
 		if (!src.exists()){
 			src.create(true, true, null);
 		}
-		IFolder p1 = src.getFolder("p1");
+		IFolder p1 = src.getFolder("p1"); //$NON-NLS-1$
 		if (!p1.exists()){
 			p1.create(true, true, null);
 		}
 				
-		IFile A = p1.getFile("A.aj");
-		assertNotNull("There should be an aspect called A",A);
+		IFile A = p1.getFile("A.aj"); //$NON-NLS-1$
+		assertNotNull("There should be an aspect called A",A); //$NON-NLS-1$
 		
 		InputStream contentsOfA = A.getContents();	
 		StringBuffer sb = new StringBuffer();		
@@ -857,8 +857,8 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		String line = reader.readLine();
 		while (line != null) {
 			sb.append(line);
-			if (line.indexOf("public abstract pointcut myPC();") != -1) {
-				sb.append("public abstract pointcut anotherPC();");
+			if (line.indexOf("public abstract pointcut myPC();") != -1) { //$NON-NLS-1$
+				sb.append("public abstract pointcut anotherPC();"); //$NON-NLS-1$
 			}
 			line = reader.readLine();
 		}
@@ -877,10 +877,10 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertTrue("jarCreatingProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
-		assertTrue("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+		assertTrue("jarCreatingProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete", //$NON-NLS-1$
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete")); //$NON-NLS-1$
+		assertTrue("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete", //$NON-NLS-1$
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete")); //$NON-NLS-1$
 
 		InputStream contentsOfA2 = A.getContents();	
 		StringBuffer sb2 = new StringBuffer();		
@@ -888,8 +888,8 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		String line2 = reader2.readLine();
 		while (line2 != null) {
 			// comment out offending line
-			if (line2.indexOf("public abstract pointcut anotherPC();") != -1) {
-				sb2.append("// public abstract pointcut anotherPC();");
+			if (line2.indexOf("public abstract pointcut anotherPC();") != -1) { //$NON-NLS-1$
+				sb2.append("// public abstract pointcut anotherPC();"); //$NON-NLS-1$
 			} else {
 				sb2.append(line2);
 			}
@@ -906,10 +906,10 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 
-		assertFalse("jarCreatingProject should build with no errors",
+		assertFalse("jarCreatingProject should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(jarCreatingProject,null));
-		assertFalse("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete",
-				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete"));
+		assertFalse("jarDependentProject should have a build error: inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete", //$NON-NLS-1$
+				ProjectDependenciesUtils.projectIsMarkedWithError(jarDependentProject,"inherited abstract pointcut p1.A.anotherPC() is not made concrete in Concrete")); //$NON-NLS-1$
 
 	}
 	
@@ -926,9 +926,9 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 			waitForJobsToComplete();
 			waitForJobsToComplete();
 		}
-		assertEquals(" " + projectDependedOn  + " should have " 
+		assertEquals(" " + projectDependedOn  + " should have "  //$NON-NLS-1$ //$NON-NLS-2$
 				+ projectWhichShouldHaveDependency 
-				+ " as it's list of referencing projects - if not, see JDT bug 84214",
+				+ " as it's list of referencing projects - if not, see JDT bug 84214", //$NON-NLS-1$
 				1, projectDependedOn.getReferencingProjects().length);
 	}
 	

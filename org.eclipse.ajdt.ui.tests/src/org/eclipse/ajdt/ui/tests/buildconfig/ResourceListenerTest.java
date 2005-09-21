@@ -21,26 +21,26 @@ import org.eclipse.core.resources.IProject;
 
 public class ResourceListenerTest extends UITestCase {
 	
-	private static final String MODEL_FILE = ".elementMap";
-	private static final String LST_FILE = ".generated.lst";
+	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
+	private static final String LST_FILE = ".generated.lst"; //$NON-NLS-1$
 
 	public void testBug101214() throws Exception {
 		AllUITests.setupAJDTPlugin();
-		IProject project = createPredefinedProject("Simple AJ Project");
+		IProject project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		File lstFile = new File(getFileName(project, LST_FILE));
-		assertTrue("LST file has not been created when project created", lstFile.exists());
+		assertTrue("LST file has not been created when project created", lstFile.exists()); //$NON-NLS-1$
 		
 		AJModel.getInstance().saveModel(project);
 		File modelFile = new File(getFileName(project, MODEL_FILE));
-		assertTrue("File has not been saved", modelFile.exists());
+		assertTrue("File has not been saved", modelFile.exists()); //$NON-NLS-1$
 
 		deleteProject(project);
 		
 		waitForJobsToComplete();
 					
 		// Check that the files have been deleted
-		assertFalse("LST File has not been deleted", lstFile.exists()); // Fix not implemented
-		assertFalse("Model File has not been deleted", modelFile.exists());
+		assertFalse("LST File has not been deleted", lstFile.exists()); // Fix not implemented //$NON-NLS-1$
+		assertFalse("Model File has not been deleted", modelFile.exists()); //$NON-NLS-1$
 	}
 	
 	private String getFileName(IProject project, String FILE) {

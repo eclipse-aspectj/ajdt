@@ -42,8 +42,8 @@ public class TestXRefProvider implements IXReferenceProvider {
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getXReferences(java.lang.Object)
 	 */
 	public Collection getXReferences(Object o, List checked) {
-		XReference e = new XReference("extends");
-		XReference i = new XReference("implements");
+		XReference e = new XReference("extends"); //$NON-NLS-1$
+		XReference i = new XReference("implements"); //$NON-NLS-1$
 		List l = new ArrayList();
 		l.add(e);
 		l.add(i);
@@ -55,7 +55,7 @@ public class TestXRefProvider implements IXReferenceProvider {
 	}
 
  	public String getProviderDescription() {
- 		return "Definition of TestXRefProvider";
+ 		return "Definition of TestXRefProvider"; //$NON-NLS-1$
  		
  	}
 	

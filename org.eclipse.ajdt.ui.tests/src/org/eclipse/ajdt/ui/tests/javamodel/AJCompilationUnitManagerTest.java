@@ -41,17 +41,17 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 	public void testGetAJCompilationUnitFromCache() throws CoreException {
 	
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) == null)
-			fail("AJCompilationUnit has not been created for Aspect.aj");
+			fail("AJCompilationUnit has not been created for Aspect.aj"); //$NON-NLS-1$
 		
 		myProject.close(null);
 		waitForJobsToComplete();
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
-			fail("AJCompilationUnit for Aspect.aj has not been disposed when project got closed.");
+			fail("AJCompilationUnit for Aspect.aj has not been disposed when project got closed."); //$NON-NLS-1$
 		
-		file = myProject.getFile("src/C.java");
+		file = myProject.getFile("src/C.java"); //$NON-NLS-1$
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
-			fail("Could create AJCompilationUnit for non .aj file.");
+			fail("Could create AJCompilationUnit for non .aj file."); //$NON-NLS-1$
 		
 		
 		
@@ -60,12 +60,12 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 	public void testGetAJCompilationUnit() {
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file) == null)
-			fail("Could not create AJCompilationUnit for Aspect.aj file.");
+			fail("Could not create AJCompilationUnit for Aspect.aj file."); //$NON-NLS-1$
 		
-		file = myProject.getFile("src/C.java");
+		file = myProject.getFile("src/C.java"); //$NON-NLS-1$
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file) != null)
-			fail("Could create AJCompilationUnit for non .aj file.");
+			fail("Could create AJCompilationUnit for non .aj file."); //$NON-NLS-1$
 		
 	}
 
@@ -78,14 +78,14 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(myProject);
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) == null)
-			fail("AJCompilationUnit should have been created when opening project.");
+			fail("AJCompilationUnit should have been created when opening project."); //$NON-NLS-1$
 	}
 
 	public void testRemoveCUsfromJavaModel() {
 		AJCompilationUnitManager.INSTANCE.removeCUsfromJavaModel(myProject);
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) != null)
-			fail("AJCompilationUnit should have been removed from cache.");
+			fail("AJCompilationUnit should have been removed from cache."); //$NON-NLS-1$
 
 	}
 
@@ -98,16 +98,16 @@ public class AJCompilationUnitManagerTest extends AbstractTestCase {
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(myProject.getWorkspace());
 		
 		if (AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(file) == null)
-			fail("AJCompilationUnit should have been created when opening project.");
+			fail("AJCompilationUnit should have been created when opening project."); //$NON-NLS-1$
 	}
 	
 	public void testIfProjectWithoutSourceFolderWorks() throws CoreException{
-		IProject project = createPredefinedProject("WithoutSourceFolder");
+		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IFile f = project.getFile("A.aj");
+		IFile f = project.getFile("A.aj"); //$NON-NLS-1$
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnitFromCache(f);
 		if (unit == null)
-			fail("Compilation Unit for A.aj has not been created and inserted into the model.");
+			fail("Compilation Unit for A.aj has not been created and inserted into the model."); //$NON-NLS-1$
 	}
 
 }

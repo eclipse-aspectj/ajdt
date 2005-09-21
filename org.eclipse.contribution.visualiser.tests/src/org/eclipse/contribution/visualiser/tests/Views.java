@@ -39,8 +39,8 @@ public class Views extends TestCase {
   }
 
   public void showViews() throws PartInitException {
-	vismenuView = (Menu)       getPage().showView("org.eclipse.contribution.visualiser.views.Menu");
-	visView     = (Visualiser) getPage().showView("org.eclipse.contribution.visualiser.views.Visualiser");
+	vismenuView = (Menu)       getPage().showView("org.eclipse.contribution.visualiser.views.Menu"); //$NON-NLS-1$
+	visView     = (Visualiser) getPage().showView("org.eclipse.contribution.visualiser.views.Visualiser"); //$NON-NLS-1$
   }
   
   public void hideViews() {
@@ -53,7 +53,7 @@ public class Views extends TestCase {
 		showViews();
 	} catch (PartInitException e) {
 		e.printStackTrace();
-		fail("Should be able to show the two visualiser views");
+		fail("Should be able to show the two visualiser views"); //$NON-NLS-1$
 	}
   }
   
@@ -80,10 +80,10 @@ public class Views extends TestCase {
 				&& providers[i].getMarkupInstance() instanceof FileMarkupProvider) {
 			important_providers++;
 		}
-		providersString.append(providers[i].getName()+" ");
+		providersString.append(providers[i].getName()+" "); //$NON-NLS-1$
 	}
-	assertTrue("Should have found the Marker and File content providers, but instead found these:["+
-	  providersString.toString()+"]",important_providers==2);
+	assertTrue("Should have found the Marker and File content providers, but instead found these:["+ //$NON-NLS-1$
+	  providersString.toString()+"]",important_providers==2); //$NON-NLS-1$
   }
   
   // Check we can select the File provider successfully

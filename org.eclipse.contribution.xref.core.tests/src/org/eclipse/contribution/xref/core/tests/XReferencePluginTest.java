@@ -33,7 +33,7 @@ public class XReferencePluginTest extends TestCase {
 	}
 
 	public void testPluginID() {
-		assertEquals("org.eclipse.contribution.xref.core",XReferencePlugin.PLUGIN_ID);
+		assertEquals("org.eclipse.contribution.xref.core",XReferencePlugin.PLUGIN_ID); //$NON-NLS-1$
 	}
 		
 	public void testLog() {
@@ -41,8 +41,8 @@ public class XReferencePluginTest extends TestCase {
 		try {
 			XReferencePlugin.getDefault().getLog().addLogListener(l);
 			assertFalse(l.hasLogged);
-			IStatus status = new Status(IStatus.ERROR,"org.eclipse.contribution.xref.core.tests",1,
-						"Testcase generated exception as expected",new Throwable());
+			IStatus status = new Status(IStatus.ERROR,"org.eclipse.contribution.xref.core.tests",1, //$NON-NLS-1$
+						"Testcase generated exception as expected",new Throwable()); //$NON-NLS-1$
 			XReferencePlugin.log(new CoreException(status));
 			assertTrue(l.hasLogged);
 		} finally {

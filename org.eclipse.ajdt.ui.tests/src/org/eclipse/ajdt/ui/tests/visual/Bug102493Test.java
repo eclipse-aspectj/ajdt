@@ -26,21 +26,21 @@ public class Bug102493Test extends VisualTestCase {
 	// source folders in the build
 	public void testBug102493() throws Exception {
 		// Create the example project
-		final IProject project = createPredefinedProject("MultipleSourceFolders");
+		final IProject project = createPredefinedProject("MultipleSourceFolders"); //$NON-NLS-1$
 		assertTrue(
-				"The MultipleSourceFolders project should have been created",
+				"The MultipleSourceFolders project should have been created", //$NON-NLS-1$
 				project != null);
 
 		// Exclude the second source folder from the build configuration
 		PackageExplorerPart packageExplorer = PackageExplorerPart
 				.getFromActivePerspective();
 		packageExplorer.setFocus();
-		IFolder src2 = project.getFolder("src2");
-		assertTrue("Should have found a folder called src2", src2.exists());
-		final IFile class3 = src2.getFile("pack/Class3.java");
-		assertTrue("Should have found a file called Class3.java", class3
+		IFolder src2 = project.getFolder("src2"); //$NON-NLS-1$
+		assertTrue("Should have found a folder called src2", src2.exists()); //$NON-NLS-1$
+		final IFile class3 = src2.getFile("pack/Class3.java"); //$NON-NLS-1$
+		assertTrue("Should have found a file called Class3.java", class3 //$NON-NLS-1$
 				.exists());
-		assertTrue("Class3 should be included in the build", BuildConfigurator
+		assertTrue("Class3 should be included in the build", BuildConfigurator //$NON-NLS-1$
 				.getBuildConfigurator().getProjectBuildConfigurator(project)
 				.getActiveBuildConfiguration().isIncluded(class3));
 
@@ -77,7 +77,7 @@ public class Bug102493Test extends VisualTestCase {
 
 		}.waitForCondition(Display.getDefault(), 5000);
 
-		assertFalse("Class3 should not be included in the build",
+		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
 				BuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(project)
 						.getActiveBuildConfiguration().isIncluded(class3));
@@ -102,7 +102,7 @@ public class Bug102493Test extends VisualTestCase {
 
 			public void run() {
 				sleep();
-				postString("src3");
+				postString("src3"); //$NON-NLS-1$
 				postKey(SWT.CR);
 			}
 		};
@@ -110,9 +110,9 @@ public class Bug102493Test extends VisualTestCase {
 		waitForJobsToComplete();
 
 		// Check that src2 is still excluded from the build
-		IFolder src3 = project.getFolder("src3");
-		assertTrue("Should have found a folder called src3", src3.exists());
-		assertFalse("Class3 should not be included in the build",
+		IFolder src3 = project.getFolder("src3"); //$NON-NLS-1$
+		assertTrue("Should have found a folder called src3", src3.exists()); //$NON-NLS-1$
+		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
 				BuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(project)
 						.getActiveBuildConfiguration().isIncluded(class3));

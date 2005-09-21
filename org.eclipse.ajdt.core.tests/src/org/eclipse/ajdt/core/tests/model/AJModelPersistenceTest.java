@@ -38,7 +38,7 @@ import org.eclipse.jdt.core.IJavaElement;
  */
 public class AJModelPersistenceTest extends AJDTCoreTestCase {
 
-	private static final String MODEL_FILE = ".elementMap";
+	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	private String getFileName(IProject project) {
 		return AspectJPlugin.getDefault().getStateLocation().append(
@@ -49,7 +49,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testReloadingModel() throws Exception {
-		IProject project = createPredefinedProject("TJP Example");
+		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] {
 					AJRelationshipManager.ADVISED_BY,
@@ -61,7 +61,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testReloadingModel2() throws Exception {
-		IProject project = createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] {
 					AJRelationshipManager.ADVISED_BY,
@@ -75,7 +75,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testReloadingModel3() throws Exception {
-		IProject project = createPredefinedProject("MarkersTest");
+		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] {
 					AJRelationshipManager.ADVISED_BY,
@@ -91,7 +91,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testReloadingModel4() throws Exception {
-		IProject project = createPredefinedProject("Spacewar Example");
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] {
 					AJRelationshipManager.ADVISED_BY,
@@ -107,11 +107,11 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testReloadingModel5() throws Exception {
-		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary");
+		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary"); //$NON-NLS-1$
 		if (libProject==null) {
-			libProject = createPredefinedProject("MyAspectLibrary");
+			libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
 		}
-		IProject weaveMeProject = createPredefinedProject("WeaveMe");
+		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 			compareAfterReloadingModel(rels, weaveMeProject);
@@ -123,7 +123,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 
 	public void testLoadingModelFromFile() throws Exception {
-		IProject project = createPredefinedProject("Spacewar Example");
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 		IProject project2 = null;
 		IPath ajmap = null;
 
@@ -135,12 +135,12 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 					AJRelationshipManager.ASPECT_DECLARATIONS,
 					AJRelationshipManager.MATCHED_BY,
 					AJRelationshipManager.MATCHES_DECLARE };
-			IResource res = project.findMember("Spacewar Example.ajmap");
-			assertNotNull("Couldn't find ajmap file", res);
+			IResource res = project.findMember("Spacewar Example.ajmap"); //$NON-NLS-1$
+			assertNotNull("Couldn't find ajmap file", res); //$NON-NLS-1$
 
 			// copy ajmap file somewhere safe
 			ajmap = AspectJPlugin.getDefault().getStateLocation().append(
-					"test.ajmap");
+					"test.ajmap"); //$NON-NLS-1$
 			copy(res.getLocation().toFile(), ajmap.toFile());
 
 			// delete project to clear model
@@ -149,24 +149,24 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			// make sure project model is clear
 			AJProjectModel model = AJModel.getInstance().getModelForProject(
 					project);
-			assertNull("Project model should be null", model);
+			assertNull("Project model should be null", model); //$NON-NLS-1$
 			List allRels = AJModel.getInstance().getAllRelationships(project,
 					rels);
 			if (allRels != null && allRels.size() > 0) {
-				fail("Deleted project should have no relationships");
+				fail("Deleted project should have no relationships"); //$NON-NLS-1$
 			}
 
 			// now test loading model from map file
 			// need to have a project in order to load model, doesn't matter
 			// which one
-			project2 = createPredefinedProject("TJP Example");
+			project2 = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 			model = new AJProjectModel(project2);
 			model.loadModel(ajmap);
 			allRels = model.getAllRelationships(rels);
 			assertNotNull(
-					"Loaded model should have non-null relationship list",
+					"Loaded model should have non-null relationship list", //$NON-NLS-1$
 					allRels);
-			assertTrue("Loaded model should have non-empty relationship list",
+			assertTrue("Loaded model should have non-empty relationship list", //$NON-NLS-1$
 					allRels.size() > 0);
 		} finally {
 			if (project != null) {
@@ -182,16 +182,16 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	}
 	
 	public void testModelFileDeletion() throws Exception {
-		IProject project = createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		try{
 			AJModel.getInstance().saveModel(project);
 			File modelFile = new File(getFileName(project));
-			assertTrue("File has not been saved", modelFile.exists());
+			assertTrue("File has not been saved", modelFile.exists()); //$NON-NLS-1$
 
 			AJModel.getInstance().getModelForProject(project).deleteModelFile();
 						
 			// Check that the file has been deleted
-			assertFalse("File has not been deleted", modelFile.exists());
+			assertFalse("File has not been deleted", modelFile.exists()); //$NON-NLS-1$
 			
 		} finally {
 			if (project != null) {
@@ -210,62 +210,62 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			FileInputStream fis = new FileInputStream(f);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			int version = ois.readInt();
-			System.out.println("====");
-			System.out.println("loading model version: " + version);
+			System.out.println("===="); //$NON-NLS-1$
+			System.out.println("loading model version: " + version); //$NON-NLS-1$
 			if (version == 101) {
 				int numElements = ois.readInt();
-				System.out.println("numElements: " + numElements);
+				System.out.println("numElements: " + numElements); //$NON-NLS-1$
 
 				for (int i = 0; i < numElements; i++) {
 					String handleIdentifier = (String) ois.readObject();
-					System.out.println("handle: " + handleIdentifier);
+					System.out.println("handle: " + handleIdentifier); //$NON-NLS-1$
 					String linkName = (String) ois.readObject();
-					System.out.println("linkName: " + linkName);
+					System.out.println("linkName: " + linkName); //$NON-NLS-1$
 					Integer lineNum = new Integer(ois.readInt());
-					System.out.println("lineNum:" + lineNum);
+					System.out.println("lineNum:" + lineNum); //$NON-NLS-1$
 				}
 
 				int numRelTypes = ois.readInt();
 				
-				System.out.println("====");
-				System.out.println("num rel types=" + numRelTypes);
+				System.out.println("===="); //$NON-NLS-1$
+				System.out.println("num rel types=" + numRelTypes); //$NON-NLS-1$
 
 				for (int i = 0; i < numRelTypes; i++) {
 					int relType = ois.readInt();
 					int numRels = ois.readInt();
-					System.out.println(numRels+" rels of type: "+relType);
+					System.out.println(numRels+" rels of type: "+relType); //$NON-NLS-1$
 					for (int j = 0; j < numRels; j++) {
 						int sourceID = ois.readInt();
-						System.out.print("source: "+sourceID+" targets: ");
+						System.out.print("source: "+sourceID+" targets: "); //$NON-NLS-1$ //$NON-NLS-2$
 						int numTargets = ois.readInt();
 						for (int k = 0; k < numTargets; k++) {
 							int targetID = ois.readInt();
-							System.out.print(targetID+" ");
+							System.out.print(targetID+" "); //$NON-NLS-1$
 						}
 						System.out.println();
 					}
 				}
 
-				System.out.println("====");
+				System.out.println("===="); //$NON-NLS-1$
 				
 				int numParents = ois.readInt();
-				System.out.println("num parents: " + numParents);
+				System.out.println("num parents: " + numParents); //$NON-NLS-1$
 				for (int i = 0; i < numParents; i++) {
 					String parentHandle = (String)ois.readObject();
-					System.out.println("parent: " + parentHandle);
+					System.out.println("parent: " + parentHandle); //$NON-NLS-1$
 					int numChildren = ois.readInt();
-					System.out.print("extra children: ");
+					System.out.print("extra children: "); //$NON-NLS-1$
 					for (int j = 0; j < numChildren; j++) {
 						int childID = ois.readInt();
-						System.out.print(childID+" ");
+						System.out.print(childID+" "); //$NON-NLS-1$
 					}
 					System.out.println();
 				}
 				
-				System.out.println("====");
-				System.out.println("end of model");
+				System.out.println("===="); //$NON-NLS-1$
+				System.out.println("end of model"); //$NON-NLS-1$
 			} else {
-				System.out.println("unknown model version: " + version);
+				System.out.println("unknown model version: " + version); //$NON-NLS-1$
 			}
 			ois.close();
 			fis.close();
@@ -297,25 +297,25 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		AJModel.getInstance().saveModel(project);
 		File modelFile = new File(getFileName(project));
 		assertTrue(
-				"Serialized project model file does not exist: " + modelFile,
+				"Serialized project model file does not exist: " + modelFile, //$NON-NLS-1$
 				modelFile.exists());
-		assertTrue("Serialized project model file should not be empty: "
+		assertTrue("Serialized project model file should not be empty: " //$NON-NLS-1$
 				+ modelFile, modelFile.length() > 0);
 
 
 		// we have to move the saved file out of the way, to make sure the
 		// model really is empty, otherwise the getAllRelationships call
 		// would cause the model to be loaded
-		File tmpFile = new File(modelFile.getPath() + ".tmp");
+		File tmpFile = new File(modelFile.getPath() + ".tmp"); //$NON-NLS-1$
 		copy(modelFile, tmpFile);
 
 		AJModel.getInstance().clearMap(project, true);
 		
-		assertTrue("Failed to create temporary model file", tmpFile.exists());
-		assertTrue("Failed to delete model file", !modelFile.exists());
+		assertTrue("Failed to create temporary model file", tmpFile.exists()); //$NON-NLS-1$
+		assertTrue("Failed to delete model file", !modelFile.exists()); //$NON-NLS-1$
 
 		allRels = AJModel.getInstance().getAllRelationships(project, rels);
-		assertTrue("Model should be empty after saving and clearing",
+		assertTrue("Model should be empty after saving and clearing", //$NON-NLS-1$
 				(allRels == null) || (allRels.size() == 0));
 
 		AJModel.getInstance().clearMap(project, true);
@@ -324,13 +324,13 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		copy(tmpFile, modelFile);
 		tmpFile.delete();
 
-		assertTrue("Failed to restore model file", modelFile.exists());
+		assertTrue("Failed to restore model file", modelFile.exists()); //$NON-NLS-1$
 
 		// now we ask for relationships again, but this time the persisted model
 		// should be detected and loaded
 		allRels = AJModel.getInstance().getAllRelationships(project, rels);
 		assertTrue(
-				"Model should NOT be empty - persisted model should have been loaded",
+				"Model should NOT be empty - persisted model should have been loaded", //$NON-NLS-1$
 				allRels.size() > 0);
 		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
@@ -358,18 +358,18 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 					}
 				}
 			}
-			assertTrue("Didn't find matching source and target", found);
+			assertTrue("Didn't find matching source and target", found); //$NON-NLS-1$
 		}
 
-		String missed = "";
+		String missed = ""; //$NON-NLS-1$
 		// check for missing entries
 		for (int i = 0; i < sourceList.size(); i++) {
 			Object obj = sourceList.get(i);
 			if (obj != null) {
-				missed += (String) obj + " ";
+				missed += (String) obj + " "; //$NON-NLS-1$
 			}
 		}
-		assertTrue("Missing elements in reloaded model: " + missed, missed
+		assertTrue("Missing elements in reloaded model: " + missed, missed //$NON-NLS-1$
 				.length() == 0);
 	}
 }

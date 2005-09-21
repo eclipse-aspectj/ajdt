@@ -34,7 +34,7 @@ public aspect ErrorsTest {
 	void around(): uiTestRun() {
 		IViewPart view;
 		try {
-			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
+			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
 			LogView logView = (LogView)view;
 			LogEntry[] logs = logView.getLogs();
 			int numErrors = logs.length;
@@ -45,12 +45,12 @@ public aspect ErrorsTest {
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
 					LogEntry entry = logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ...");
+						TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ..."); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 				}
 			}
 		} catch (PartInitException e) {
-			TestCase.fail("Exception occurred when accessing the log view");
+			TestCase.fail("Exception occurred when accessing the log view"); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 	}

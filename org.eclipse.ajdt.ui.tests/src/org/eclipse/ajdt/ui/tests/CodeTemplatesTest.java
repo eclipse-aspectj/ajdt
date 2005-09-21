@@ -27,14 +27,14 @@ public class CodeTemplatesTest extends UITestCase {
 	public void testIfAJCodeTemplatesAvailable() {
 		TemplateStore codeTemplates = JavaPlugin.getDefault().getTemplateStore();
 		//pick three (random) code templates and check if they are available	
-		Template templ = codeTemplates.findTemplate("decw");
+		Template templ = codeTemplates.findTemplate("decw"); //$NON-NLS-1$
 		if (templ != null)
-			templ = codeTemplates.findTemplate("around");
+			templ = codeTemplates.findTemplate("around"); //$NON-NLS-1$
 		if (templ != null)
-			templ = codeTemplates.findTemplate("within");
+			templ = codeTemplates.findTemplate("within"); //$NON-NLS-1$
 		if (templ == null)
-			fail("Code template not found. -> AJ code templates have not been installed properly.");
+			fail("Code template not found. -> AJ code templates have not been installed properly."); //$NON-NLS-1$
 		if ((templ.getDescription() == null) || (templ.getPattern() == null))
-			fail("Code template description or pattern missing.");
+			fail("Code template description or pattern missing."); //$NON-NLS-1$
 	}
 }

@@ -36,8 +36,8 @@ public abstract class AbstractTestCase extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = createPredefinedProject("javamodelEnhancementTesting");
-		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj");
+		myProject = createPredefinedProject("javamodelEnhancementTesting"); //$NON-NLS-1$
+		IFile f = myProject.getFile("src" + File.separator + "Aspect.aj"); //$NON-NLS-1$ //$NON-NLS-2$
 		unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(f);
 		waitForJobsToComplete();
 	}

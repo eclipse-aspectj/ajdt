@@ -43,17 +43,17 @@ public class TestLogger implements IAJLogger {
 		}
         
         StringBuffer sb = new StringBuffer(msg);
-        if (sb.indexOf("=======================") != -1) {
+        if (sb.indexOf("=======================") != -1) { //$NON-NLS-1$
         	// we think we might be starting a build
         	foundSplit = true;
-        } else if (foundSplit && (sb.indexOf("Build kind =") != -1)) {
+        } else if (foundSplit && (sb.indexOf("Build kind =") != -1)) { //$NON-NLS-1$
         	// this is the first line in the log after the "====" 
         	// when we do a build, therefore, we know we're doing 
         	// a build and want to start creating the buildLog.
         	foundSplit = false;
         	loggingBuildEvent = true;
         	tempBuildLog.add(msg);
-        } else if (sb.indexOf("Total time spent in AJBuilder.build()") != -1) {
+        } else if (sb.indexOf("Total time spent in AJBuilder.build()") != -1) { //$NON-NLS-1$
 			// this is the last log line when we build. 
         	loggingBuildEvent = false;
 			tempBuildLog.add(msg);
@@ -132,13 +132,13 @@ public class TestLogger implements IAJLogger {
      * in testcase development
      */
     public void printLog() {
-    	System.out.println("");
-    	System.out.println("Printing log begin ------------------------------------");
+    	System.out.println(""); //$NON-NLS-1$
+    	System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
     	for (Iterator iter = log.iterator(); iter.hasNext();) {
 			String element = (String) iter.next();
-			System.out.println("LOG: " + element);
+			System.out.println("LOG: " + element); //$NON-NLS-1$
 		}
-    	System.out.println("-------------------------------------- Printing log end");
+    	System.out.println("-------------------------------------- Printing log end"); //$NON-NLS-1$
     }
     
     public List getPreviousBuildEntry(int i) {

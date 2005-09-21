@@ -47,7 +47,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		jp = JavaCore.create(project);
 
 		prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();
@@ -72,16 +72,16 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		String nonStandard = AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions();
 		String[] nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
-		assertEquals("first element should be -Xlintfile", "-Xlintfile",
+		assertEquals("first element should be -Xlintfile", "-Xlintfile", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[0]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoWeave option", "-XnoWeave",
+		assertEquals("should have set -XnoWeave option", "-XnoWeave", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
 		prefStore
@@ -89,14 +89,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XserializableAspects option",
-				"-XserializableAspects", nonStandardOptions[3]);
+		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
+				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
 
 		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp",
+		assertEquals("should have set -XlazyTjp option", "-XlazyTjp", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[4]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, false);
@@ -105,21 +105,21 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, false);
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoInline option", "-XnoInline",
+		assertEquals("should have set -XnoInline option", "-XnoInline", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_XReweavable, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable", "-Xreweavable",
+		assertEquals("should have set -Xreweavable", "-Xreweavable", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[3]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_XReweavable, false);
@@ -127,8 +127,8 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable:compress",
-				"-Xreweavable:compress", nonStandardOptions[3]);
+		assertEquals("should have set -Xreweavable:compress", //$NON-NLS-1$
+				"-Xreweavable:compress", nonStandardOptions[3]); //$NON-NLS-1$
 
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline, false);
 		prefStore
@@ -136,21 +136,21 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
 		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo",
+		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
 	}
@@ -158,89 +158,89 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	public void testGetNonStandardOptionsViaProjectPreferences()
 			throws Exception {
 		AspectJPreferences.setUsingProjectSettings(project, true);
-		assertTrue("should be using project settings", AspectJPreferences
+		assertTrue("should be using project settings", AspectJPreferences //$NON-NLS-1$
 				.isUsingProjectSettings(project));
 
 		String nonStandard = AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions();
 		String[] nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
-		assertEquals("first element should be -Xlintfile", "-Xlintfile",
+		assertEquals("first element should be -Xlintfile", "-Xlintfile", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[0]);
 
-		projectNode.put(AspectJPreferences.OPTION_NoWeave, "true");
+		projectNode.put(AspectJPreferences.OPTION_NoWeave, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoWeave option", "-XnoWeave",
+		assertEquals("should have set -XnoWeave option", "-XnoWeave", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
-		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects, "true");
+		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XserializableAspects option",
-				"-XserializableAspects", nonStandardOptions[3]);
+		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
+				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
 
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "true");
+		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp",
+		assertEquals("should have set -XlazyTjp option", "-XlazyTjp", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[4]);
 
-		projectNode.put(AspectJPreferences.OPTION_NoWeave, "false");
+		projectNode.put(AspectJPreferences.OPTION_NoWeave, "false"); //$NON-NLS-1$
 		projectNode
-				.put(AspectJPreferences.OPTION_XSerializableAspects, "false");
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false");
+				.put(AspectJPreferences.OPTION_XSerializableAspects, "false"); //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false"); //$NON-NLS-1$
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
-		projectNode.put(AspectJPreferences.OPTION_XNoInline, "true");
+		projectNode.put(AspectJPreferences.OPTION_XNoInline, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoInline option", "-XnoInline",
+		assertEquals("should have set -XnoInline option", "-XnoInline", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
-		projectNode.put(AspectJPreferences.OPTION_XReweavable, "true");
+		projectNode.put(AspectJPreferences.OPTION_XReweavable, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable", "-Xreweavable",
+		assertEquals("should have set -Xreweavable", "-Xreweavable", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[3]);
 
-		projectNode.put(AspectJPreferences.OPTION_XReweavable, "false");
-		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "true");
+		projectNode.put(AspectJPreferences.OPTION_XReweavable, "false"); //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable:compress",
-				"-Xreweavable:compress", nonStandardOptions[3]);
+		assertEquals("should have set -Xreweavable:compress", //$NON-NLS-1$
+				"-Xreweavable:compress", nonStandardOptions[3]); //$NON-NLS-1$
 
-		projectNode.put(AspectJPreferences.OPTION_XNoInline, "false");
-		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "false");
+		projectNode.put(AspectJPreferences.OPTION_XNoInline, "false"); //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "false"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true");
+		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo",
+		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false");
+		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should only have -Xlintfile option set", 2,
+		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
 		AspectJPreferences.setUsingProjectSettings(project, false);
@@ -249,26 +249,26 @@ public class BuildOptionsAdapterTest extends UITestCase {
 
 	public void testGetIncrementalModeViaWorkbenchPreferences()
 			throws Exception {
-		assertTrue("default setting is use incremental", AspectJUIPlugin
+		assertTrue("default setting is use incremental", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
 		// know that when "use incremental" is selected in the preference
 		// page, then set this store value to true because use the
 		// getSelection() call on the button to see whether it
 		// is selected (weave messages on) or not (weave messages off)
 		prefStore.setValue(AspectJPreferences.OPTION_Incremental, false);
-		assertFalse("have chosen not to use incremental building",
+		assertFalse("have chosen not to use incremental building", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 						.getIncrementalMode());
 
 		prefStore.setValue(AspectJPreferences.OPTION_Incremental, true);
-		assertTrue("have chosen to use incremental building", AspectJUIPlugin
+		assertTrue("have chosen to use incremental building", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
 	}
 
 	public void testGetIncrementalModeViaProjectPreferences() {
 		AspectJPreferences.setUsingProjectSettings(project, true);
 
-		assertTrue("default setting is use incremental", AspectJUIPlugin
+		assertTrue("default setting is use incremental", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
 		// know that when "use incremental" is selected in the preference
 		// page, then set this store value to true because use the
@@ -276,13 +276,13 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		// String stringValue = curr.getSelection() ? "true" : "false";
 		// to see whether it is selected (weave messages on) or not (weave
 		// messages off)
-		projectNode.put(AspectJPreferences.OPTION_Incremental, "false");
-		assertFalse("have chosen not to use incremental buildino",
+		projectNode.put(AspectJPreferences.OPTION_Incremental, "false"); //$NON-NLS-1$
+		assertFalse("have chosen not to use incremental buildino", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 						.getIncrementalMode());
 
-		projectNode.put(AspectJPreferences.OPTION_Incremental, "true");
-		assertTrue("have chosen to use incremental building", AspectJUIPlugin
+		projectNode.put(AspectJPreferences.OPTION_Incremental, "true"); //$NON-NLS-1$
+		assertTrue("have chosen to use incremental building", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
 	}
 
@@ -295,7 +295,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 	 */
 	public void testGetShowWeaveMessagesViaWorkbenchPreferences()
 			throws Exception {
-		assertFalse("default setting is not to show weave info",
+		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 						.getShowWeaveMessages());
 		// know that when "show weave messages" is selected in the preference
@@ -303,12 +303,12 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		// getSelection() call on the button to see whether it
 		// is selected (weave messages on) or not (weave messages off)
 		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, true);
-		assertTrue("have chosen to show weave info", AspectJUIPlugin
+		assertTrue("have chosen to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 
 		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, false);
-		assertFalse("have chosen not to show weave info", AspectJUIPlugin
+		assertFalse("have chosen not to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 	}
@@ -324,7 +324,7 @@ public class BuildOptionsAdapterTest extends UITestCase {
 			throws Exception {
 		AspectJPreferences.setUsingProjectSettings(project, true);
 
-		assertFalse("default setting is not to show weave info",
+		assertFalse("default setting is not to show weave info", //$NON-NLS-1$
 				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 						.getShowWeaveMessages());
 		// know that when "show weave messages" is selected in the preference
@@ -333,13 +333,13 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		// String stringValue = curr.getSelection() ? "true" : "false";
 		// to see whether it is selected (weave messages on) or not (weave
 		// messages off)
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true");
-		assertTrue("have chosen to show weave info", AspectJUIPlugin
+		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true"); //$NON-NLS-1$
+		assertTrue("have chosen to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false");
-		assertFalse("have chosen not to show weave info", AspectJUIPlugin
+		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false"); //$NON-NLS-1$
+		assertFalse("have chosen not to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 	}

@@ -36,7 +36,7 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 		List providers = manager.getRegisteredProviders();
 		for (Iterator iter = providers.iterator(); iter.hasNext();) {
             XReferenceProviderDefinition element = (XReferenceProviderDefinition) iter.next();
-            if (element.getProvider().getProviderDescription().equals("My Description")) {
+            if (element.getProvider().getProviderDescription().equals("My Description")) { //$NON-NLS-1$
                 def = element;
             }
         }
@@ -56,11 +56,11 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 
 	public void testGetLabel() {
 
-		assertEquals("My Label",def.getLabel());
+		assertEquals("My Label",def.getLabel()); //$NON-NLS-1$
 	}
 
 	public void testGetID() {
-		assertEquals("org.eclipse.contribution.xref.core.tests.testProvider",def.getID());
+		assertEquals("org.eclipse.contribution.xref.core.tests.testProvider",def.getID()); //$NON-NLS-1$
 	}
 
 	public void testIsAndSetEnabled() {
@@ -71,7 +71,7 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 	}
 
 	public void testGetDescription() {
-		assertEquals("My Description",def.getDescription());
+		assertEquals("My Description",def.getDescription()); //$NON-NLS-1$
 	}
 	
 	public void testSafeExecution() {
@@ -79,27 +79,27 @@ public class XReferenceProviderDefinitionTest extends TestCase {
 		try {
 			def.getDescription();
 		} catch( RuntimeException rEx) {
-			fail("IXReferenceProvider.SafeExecution aspect should have protected us from the exception");
+			fail("IXReferenceProvider.SafeExecution aspect should have protected us from the exception"); //$NON-NLS-1$
 		}
 		TestProvider.beBad = false;
 	}
 
 	public void testSetCheckedFilters() {
 		List li = new ArrayList();
-		li.add("Item 1");
+		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedFilters(li);
 		List returned = def.getCheckedFilters();
-		assertTrue("One item should be checked", returned.size()==1);
+		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
 		// Reset
 		def.setCheckedFilters(new ArrayList());		
 	}
 	
 	public void testSetCheckedInplaceFilters() {
 		List li = new ArrayList();
-		li.add("Item 1");
+		li.add("Item 1"); //$NON-NLS-1$
 		def.setCheckedInplaceFilters(li);
 		List returned = def.getCheckedInplaceFilters();
-		assertTrue("One item should be checked", returned.size()==1);
+		assertTrue("One item should be checked", returned.size()==1); //$NON-NLS-1$
 		// Reset
 		def.setCheckedInplaceFilters(new ArrayList());		
 	}

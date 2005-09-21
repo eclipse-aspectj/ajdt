@@ -43,7 +43,7 @@ public class AJDTCoreTestCase extends TestCase {
 	 */
 	protected String getPluginDirectoryPath() {
 		try {
-			URL platformURL = Platform.getBundle("org.eclipse.ajdt.core.tests").getEntry("/");
+			URL platformURL = Platform.getBundle("org.eclipse.ajdt.core.tests").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 			return new File(Platform.asLocalURL(platformURL).getFile()).getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -52,7 +52,7 @@ public class AJDTCoreTestCase extends TestCase {
 	}
 	
 	public String getSourceWorkspacePath() {
-		return getPluginDirectoryPath() +  java.io.File.separator + "workspace";
+		return getPluginDirectoryPath() +  java.io.File.separator + "workspace"; //$NON-NLS-1$
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	
 	protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
-		return setUpJavaProject(projectName, "1.4");
+		return setUpJavaProject(projectName, "1.4"); //$NON-NLS-1$
 	}
 	
 	protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
@@ -126,7 +126,7 @@ public class AJDTCoreTestCase extends TestCase {
 		for (int i = 0; i < files.length; i++) {
 			File sourceChild = files[i];
 			String name =  sourceChild.getName();
-			if (name.equals("CVS")) continue;
+			if (name.equals("CVS")) continue; //$NON-NLS-1$
 			File targetChild = new File(target, name);
 			if (sourceChild.isDirectory()) {
 				copyDirectory(sourceChild, targetChild);
@@ -214,10 +214,10 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
-			System.out.println("(CoreException): " + e.getMessage() + ", resource " + resource.getFullPath());
+			System.out.println("(CoreException): " + e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (IllegalArgumentException iae) {
 			// just print for info
-			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath());
+			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		int retryCount = 60; // wait 1 minute at most
 		while (resource.isAccessible() && --retryCount >= 0) {
@@ -230,14 +230,14 @@ public class AJDTCoreTestCase extends TestCase {
 			} catch (CoreException e) {
 				lastException = e;
 				// just print for info
-				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath());
+				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			} catch (IllegalArgumentException iae) {
 				// just print for info
-				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath());
+				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			}
 		}
 		if (!resource.isAccessible()) return;
-		System.err.println("Failed to delete " + resource.getFullPath());
+		System.err.println("Failed to delete " + resource.getFullPath()); //$NON-NLS-1$
 		if (lastException != null) {
 			throw lastException;
 		}

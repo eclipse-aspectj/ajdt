@@ -40,20 +40,20 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
 	
 	public void testSetBreakpoint(){
-		IResource res = project.findMember("src/p2/Aspect.aj");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		breakpointSetTest((IFile)res);
 	}
 	
 	public void testSetBreakpointInDefaultPackage(){
-		IResource res = project.findMember("src/AspectInDefaultPackage.aj");
+		IResource res = project.findMember("src/AspectInDefaultPackage.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		breakpointSetTest((IFile)res);
 	}
 	
@@ -91,7 +91,7 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 	
 		int newNumOfMarkers = getNumMarkers(file);
 		if ((numOfMarkers == newNumOfMarkers) == hasEffect)
-			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position.");
+			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position."); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	private void postCtrlShiftB(DisplayHelper dh) {

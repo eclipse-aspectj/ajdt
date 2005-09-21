@@ -48,7 +48,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		setupSandboxSourceFolder();
 		waitForJobsToComplete();
@@ -56,7 +56,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 
 
 	private void setupSandboxSourceFolder() throws Exception {
-		IFolder src = ajProject.getFolder("testSrcPath");
+		IFolder src = ajProject.getFolder("testSrcPath"); //$NON-NLS-1$
 		if (!src.exists()) {
 			src.create(true, true, null);
 		}
@@ -75,35 +75,35 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 			jp.setRawClasspath(newCpes, null);
 		}
 
-		fileDef = src.getFile("InDefaultPack.java");
+		fileDef = src.getFile("InDefaultPack.java"); //$NON-NLS-1$
 		if (!fileDef.exists()) {
 			//fileDef.create(new StringBufferInputStream("public class
 			// InDefaultPack{}"), true, null);
-			String content = "public class InDefaultPack{}";
+			String content = "public class InDefaultPack{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileDef.create(source, true, null);
 		}
-		IFolder pack = src.getFolder("package1");
+		IFolder pack = src.getFolder("package1"); //$NON-NLS-1$
 		if (!pack.exists()) {
 			pack.create(true, true, null);
 		}
 
-		fileA = pack.getFile("A.java");
+		fileA = pack.getFile("A.java"); //$NON-NLS-1$
 		if (!fileA.exists()) {
 			//fileA.create(new StringBufferInputStream("package
 			// package1;\npublic class A{}"), true, null);
-			String content = "package package1;\npublic class A{}";
+			String content = "package package1;\npublic class A{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileA.create(source, true, null);
 		}
 
-		fileB = pack.getFile("B.java");
+		fileB = pack.getFile("B.java"); //$NON-NLS-1$
 		if (!fileB.exists()) {
 			//fileB.create(new StringBufferInputStream("package
 			// package1;\npublic class B{}"), true, null);
-			String content = "package package1;\npublic class B{}";
+			String content = "package package1;\npublic class B{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileB.create(source, true, null);
@@ -116,7 +116,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
 		BuildConfigurator conf2 = BuildConfigurator.getBuildConfigurator();
 		if (conf != conf2) {
-			fail("Build Configurator not unique.");
+			fail("Build Configurator not unique."); //$NON-NLS-1$
 		}
 	}
 
@@ -128,7 +128,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (bc == null)
-			fail("Could not get active BuildConfiguration.");
+			fail("Could not get active BuildConfiguration."); //$NON-NLS-1$
 
 		Collection bcs = new ArrayList(pbc.getBuildConfigurations());
 
@@ -154,7 +154,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 			pbc.removeBuildConfiguration(bc);
 
 		if (bc == null)
-			fail("No new build configuration was created when removing all old ones.");
+			fail("No new build configuration was created when removing all old ones."); //$NON-NLS-1$
 	}
 
 	public void testNatureConversion() throws CoreException {
@@ -166,7 +166,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc != null) {
 			AJDTUtils.addAspectJNature(ajProject);
-			fail("could obtain pbc despite of removed aj nature");
+			fail("could obtain pbc despite of removed aj nature"); //$NON-NLS-1$
 		}
 
 		IResource[] mems = ajProject.members();
@@ -194,27 +194,27 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc == null) {
-			fail("No ProjectBuildConfigurator was created after adding aj nature.");
+			fail("No ProjectBuildConfigurator was created after adding aj nature."); //$NON-NLS-1$
 		}
 
 		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (bc == null) {
-			fail("No active build configuration was created when added aj nature to project.");
+			fail("No active build configuration was created when added aj nature to project."); //$NON-NLS-1$
 		}
 
 		waitForJobsToComplete();
 		//this cannot be tested because the file writing thread may still not
 		// have written its file
 		if (bc.isIncluded(fileA)) {
-			fail("jdt exclusion filter not taken into account when converted to aj project.");
+			fail("jdt exclusion filter not taken into account when converted to aj project."); //$NON-NLS-1$
 		}
 
 		if (!bc.isIncluded(fileDef) || !bc.isIncluded(fileB)) {
-			fail("not all desired files included after conversion to aj project.");
+			fail("not all desired files included after conversion to aj project."); //$NON-NLS-1$
 		}
 
 		if (!bc.getFile().exists()) {
-			fail("New build configuration was created when adding aj nature, but file not written.");
+			fail("New build configuration was created when adding aj nature, but file not written."); //$NON-NLS-1$
 		}
 
 		jp.getRawClasspath();
@@ -222,7 +222,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 		for (int i = 0; i < cpes.length; i++) {
 			if (cpes[i].getPath().equals(fileDef.getParent().getFullPath())) {
 				if (cpes[i].getExclusionPatterns().length > 0)
-					fail("Exclusion patterns not reset when converting to aj project.");
+					fail("Exclusion patterns not reset when converting to aj project."); //$NON-NLS-1$
 			}
 		}
 

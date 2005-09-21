@@ -47,32 +47,32 @@ public class AdviceMarkersTest2 extends UITestCase {
 	//   third index is expected line number of that marker
 	private static Object[][][] results = {
 			{ // IAJModelMarker.ADVICE_MARKER
-					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) },
+					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }, //$NON-NLS-1$
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(21) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(21) },
-					{ "2 AspectJ markers at this line", new Integer(21) },
+					{ "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
 					
-					{ "advised by GetInfo.after(): fieldSet..", new Integer(28) },
+					{ "advised by GetInfo.after(): fieldSet..", new Integer(28) }, //$NON-NLS-1$
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(25) },
 //					{ "softened by GetInfo.declare soft: tjp.DemoException", new Integer(25) },					
-					{ "2 AspectJ markers at this line", new Integer(25) },
+					{ "2 AspectJ markers at this line", new Integer(25) }, //$NON-NLS-1$
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(32) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(32) },
 //					{ "advised by GetInfo.before(): <anonymous pointcut>.. (runtime test)",
 //							new Integer(32) },
-					{ "3 AspectJ markers at this line", new Integer(32) },					
+					{ "3 AspectJ markers at this line", new Integer(32) },					 //$NON-NLS-1$
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(41) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(41) } },
-					{ "2 AspectJ markers at this line", new Integer(41) }
+					{ "2 AspectJ markers at this line", new Integer(41) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.BEFORE_ADVICE_MARKER
-					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }			
+					{ "advised by GetInfo.before(): <anonymous pointcut>", new Integer(36) }			 //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AFTER_ADVICE_MARKER
-			    { "advised by GetInfo.after(): fieldSet..", new Integer(28) }
+			    { "advised by GetInfo.after(): fieldSet..", new Integer(28) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.AROUND_ADVICE_MARKER
 				{}
@@ -81,18 +81,18 @@ public class AdviceMarkersTest2 extends UITestCase {
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(21) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(21) },
-					{ "2 AspectJ markers at this line", new Integer(21) },
+					{ "2 AspectJ markers at this line", new Integer(21) }, //$NON-NLS-1$
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(32) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(32) },
 //					{ "advised by GetInfo.before(): <anonymous pointcut>.. (runtime test)",
 //							new Integer(32) },
-					{ "3 AspectJ markers at this line", new Integer(32) },
+					{ "3 AspectJ markers at this line", new Integer(32) }, //$NON-NLS-1$
 					
 //					{ "advised by GetInfo.before(): demoExecs..", new Integer(41) },
 //					{ "advised by GetInfo.around(): demoExecs().. (runtime test)",
 //							new Integer(41) }, 
-					{ "2 AspectJ markers at this line", new Integer(41) },
+					{ "2 AspectJ markers at this line", new Integer(41) }, //$NON-NLS-1$
 			},		
 			{ // IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER
 			    {}
@@ -107,14 +107,14 @@ public class AdviceMarkersTest2 extends UITestCase {
 //				{ "aspect declarations Demo.itd(int)", new Integer(17) },
 //				{ "aspect declarations Demo.f", new Integer(17) },
 //				{ "aspect declarations declare parents: implements Serializable", new Integer(17) } // bug 79979
-				{ "3 AspectJ markers at this line", new Integer(17) },
+				{ "3 AspectJ markers at this line", new Integer(17) }, //$NON-NLS-1$
 				
 			},
 			{ // IAJModelMarker.ITD_MARKER
 //				{ "aspect declarations Demo.itd(int)", new Integer(17) },
 //				{ "aspect declarations Demo.f", new Integer(17) },
 //				{ "aspect declarations declare parents: implements Serializable", new Integer(17) } // bug 79979
-				{ "3 AspectJ markers at this line", new Integer(17) },
+				{ "3 AspectJ markers at this line", new Integer(17) }, //$NON-NLS-1$
 				
 			}
 		};
@@ -124,15 +124,15 @@ public class AdviceMarkersTest2 extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("MarkersTest");
+		project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 	}
 
 
 	public void testMarkers() throws Exception {
-		String filename = "src/tjp/Demo.java";
+		String filename = "src/tjp/Demo.java"; //$NON-NLS-1$
 		IResource file = project.findMember(filename);
 		if (file == null)
-			fail("Required file not found: " + filename);
+			fail("Required file not found: " + filename); //$NON-NLS-1$
 
 		for (int i = 0; i < markerTypes.length; i++) {
 			IMarker[] markers = file.findMarkers(markerTypes[i], true,
@@ -153,7 +153,7 @@ public class AdviceMarkersTest2 extends UITestCase {
 			for (int j = 0; j < markers.length; j++) {
 				IMarker m = markers[j];
 				int line = m.getAttribute(IMarker.LINE_NUMBER, -1);
-				String msg = m.getAttribute(IMarker.MESSAGE, "").intern();
+				String msg = m.getAttribute(IMarker.MESSAGE, "").intern(); //$NON-NLS-1$
 				//System.out.println("msg=" + msg + " line=" + line);
 				if (tofindMsg.contains(msg)) {
 					// search for matching message and line number
@@ -172,26 +172,26 @@ public class AdviceMarkersTest2 extends UITestCase {
 						}
 					}
 					if (!found) {
-						fail("Expected marker message found, but found at wrong line number: "
-								+ line + " Message="+msg);
+						fail("Expected marker message found, but found at wrong line number: " //$NON-NLS-1$
+								+ line + " Message="+msg); //$NON-NLS-1$
 					}
 					// successfully found message and line so remove from lists
 					tofindMsg.remove(foundIndex);
 					tofindLine.remove(foundIndex);
 				} else {
-					fail("Found unexpected marker of type " + markerTypes[i]
-					    + " with message: " + msg);
+					fail("Found unexpected marker of type " + markerTypes[i] //$NON-NLS-1$
+					    + " with message: " + msg); //$NON-NLS-1$
 				}
 			}
 			// check that we found everything we were looking for
 			if (tofindMsg.size() > 0) {
-				String missing = "";
+				String missing = ""; //$NON-NLS-1$
 				for (int j = 0; j < tofindMsg.size(); j++) {
-					missing += System.getProperty("line.separator");
+					missing += System.getProperty("line.separator"); //$NON-NLS-1$
 					missing += (String)tofindMsg.get(j);					
 				}
-				fail("Did not find all expected markers of type "
-						+ markerTypes[i] + ". Missing: " + missing);
+				fail("Did not find all expected markers of type " //$NON-NLS-1$
+						+ markerTypes[i] + ". Missing: " + missing); //$NON-NLS-1$
 			}
 		}
 	}

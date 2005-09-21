@@ -40,27 +40,27 @@ public class EagerParsingTest extends VisualTestCase {
 		final IPreferenceStore store= JavaPlugin.getDefault().getPreferenceStore();
 		store.setValue(PreferenceConstants.EDITOR_EVALUTE_TEMPORARY_PROBLEMS, true);		
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
 	
 	public void testIntroduceError(){
-		IResource res = project.findMember("src/p2/Aspect.aj");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		eagerParserTest((IFile)res);
 	}
 	
 	public void testIntroduceErrorInDefaultPackage(){
-		IResource res = project.findMember("src/AspectInDefaultPackage.aj");
+		IResource res = project.findMember("src/AspectInDefaultPackage.aj"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		eagerParserTest((IFile)res);
 	}
 
 	public void testIntroduceErrorInJava(){
-		IResource res = project.findMember("src/ClassInDefaultPackage.java");
+		IResource res = project.findMember("src/ClassInDefaultPackage.java"); //$NON-NLS-1$
 		if (res == null)
-			fail("Required file not found.");
+			fail("Required file not found."); //$NON-NLS-1$
 		eagerParserTest((IFile)res);
 	}
 	
@@ -106,7 +106,7 @@ public class EagerParsingTest extends VisualTestCase {
 			
 		int newNumAnnotations = getNumErrorAnnotations(editor);
 		if (numAnnotations == newNumAnnotations)
-			fail(addsError?"Error did not appear.":"Error did not disappear.");
+			fail(addsError?"Error did not appear.":"Error did not disappear."); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class EagerParsingTest extends VisualTestCase {
 		for (Iterator iter = model.getAnnotationIterator(); iter.hasNext();) {
 			Annotation a = (Annotation)iter.next();
 			String message = a.getText();
-			if(message.startsWith("Syntax error")) {
+			if(message.startsWith("Syntax error")) { //$NON-NLS-1$
 				num++;
 			}
 			

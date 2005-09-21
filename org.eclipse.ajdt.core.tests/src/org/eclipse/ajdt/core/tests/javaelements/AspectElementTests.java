@@ -28,19 +28,19 @@ public class AspectElementTests extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testGetPointcuts() throws Exception {
-		IProject project = createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		try {
-			IResource bp = project.findMember("src/bean/BoundPoint.aj");
-			assertNotNull("Couldn't find BoundPoint.aj file", bp);
+			IResource bp = project.findMember("src/bean/BoundPoint.aj"); //$NON-NLS-1$
+			assertNotNull("Couldn't find BoundPoint.aj file", bp); //$NON-NLS-1$
 			AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)bp);
 			IType[] types = cu.getAllTypes();
-			assertTrue("Compilation unit should contain exactly one type", types.length==1);
-			assertTrue("Contained type should be an AspectElement", types[0] instanceof AspectElement);
+			assertTrue("Compilation unit should contain exactly one type", types.length==1); //$NON-NLS-1$
+			assertTrue("Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
 			AspectElement aspect = (AspectElement)types[0];
 			PointcutElement[] pointcuts = aspect.getPointcuts();
-			assertNotNull("AspectElement.getPointcuts() should not return null",pointcuts);
-			assertTrue("AspectElement.getPointcuts() should return exactly one pointcut",pointcuts.length==1);
-			assertEquals("AspectElement.getPointcuts() should return a pointcut called setter",pointcuts[0].getElementName(),"setter");
+			assertNotNull("AspectElement.getPointcuts() should not return null",pointcuts); //$NON-NLS-1$
+			assertTrue("AspectElement.getPointcuts() should return exactly one pointcut",pointcuts.length==1); //$NON-NLS-1$
+			assertEquals("AspectElement.getPointcuts() should return a pointcut called setter",pointcuts[0].getElementName(),"setter"); //$NON-NLS-1$ //$NON-NLS-2$
 		} finally {
 			deleteProject(project);
 		}

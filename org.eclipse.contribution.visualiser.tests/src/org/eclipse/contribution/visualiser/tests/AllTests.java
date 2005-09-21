@@ -16,7 +16,7 @@ import junit.framework.TestSuite;
 public class AllTests {
 
 	public static Test suite() {
-		TestSuite suite = new TestSuite("Test for Visualiser.tests");
+		TestSuite suite = new TestSuite("Test for Visualiser.tests"); //$NON-NLS-1$
 		//$JUnit-BEGIN$
 		suite.addTest(new TestSuite(MarkupUtilsTest.class));
 		suite.addTest(new TestSuite(StripeTest.class));

@@ -31,7 +31,7 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 	
 	
 	public void testWithTracingExample() throws Exception {
-		IProject project = createPredefinedProject("Tracing Example");
+		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
@@ -40,14 +40,14 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		BuildConfiguration tracev1 = null;
 		for (Iterator iter = bcs.iterator(); iter.hasNext();) {
 			BuildConfiguration bc = (BuildConfiguration) iter.next();
-			if(bc.getName().equals("notrace")) {
+			if(bc.getName().equals("notrace")) { //$NON-NLS-1$
 				notrace = bc;
-			} else if(bc.getName().equals("tracev1")) {
+			} else if(bc.getName().equals("tracev1")) { //$NON-NLS-1$
 				tracev1 = bc;
 			}
 		}
-		assertNotNull("Build configuration notrace should have been found", notrace);
-		assertNotNull("Build configuration tracev1 should have been found", tracev1);
+		assertNotNull("Build configuration notrace should have been found", notrace); //$NON-NLS-1$
+		assertNotNull("Build configuration tracev1 should have been found", tracev1); //$NON-NLS-1$
 		pbc.setActiveBuildConfiguration(notrace);
 		waitForJobsToComplete();
 		AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
@@ -56,11 +56,11 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		int constraints = IJavaSearchScope.SOURCES;
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
 		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-		assertTrue("There should be one result, found " + results.length, results.length == 1);
+		assertTrue("There should be one result, found " + results.length, results.length == 1); //$NON-NLS-1$
 		pbc.setActiveBuildConfiguration(tracev1);
 		waitForJobsToComplete();
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
-		assertTrue("There should be two results, found " + results2.length, results2.length == 2);
+		assertTrue("There should be two results, found " + results2.length, results2.length == 2); //$NON-NLS-1$
 	}
 	
 }

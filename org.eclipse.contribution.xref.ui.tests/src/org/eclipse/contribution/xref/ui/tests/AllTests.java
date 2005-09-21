@@ -24,7 +24,7 @@ public class AllTests {
 
 	public static Test suite() {
 		TestSuite suite =
-			new TestSuite("Test for org.eclipse.contribution.xref.ui");
+			new TestSuite("Test for org.eclipse.contribution.xref.ui"); //$NON-NLS-1$
 		//$JUnit-BEGIN$
 		suite.addTestSuite(XReferenceViewTest.class);
 		suite.addTestSuite(AJXReferenceProviderTest.class);

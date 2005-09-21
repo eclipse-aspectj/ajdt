@@ -69,7 +69,7 @@ public class AspectJPreferencePageTest extends UITestCase {
         assertEquals(false, ps.getBoolean(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE));
         assertEquals(true, ps.getBoolean(AspectJPreferences.ASK_PDE_AUTO_IMPORT));
         assertEquals(false, ps.getBoolean(AspectJPreferences.DO_PDE_AUTO_IMPORT));
-        assertEquals("", ps.getString("Non-existent-preference"));  
+        assertEquals("", ps.getString("Non-existent-preference"));   //$NON-NLS-1$ //$NON-NLS-2$
     }
 
 }

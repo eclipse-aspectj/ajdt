@@ -30,18 +30,18 @@ public class Bug100018Test extends VisualTestCase {
 
 	public void testBug100018() throws Exception {
 		// must be a Java project
-		IProject project = createPredefinedProject("project.java.Y");
+		IProject project = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		IFile javaFile = (IFile) project
-				.findMember("src/internal/stuff/MyBuilder.java");
+				.findMember("src/internal/stuff/MyBuilder.java"); //$NON-NLS-1$
 		IEditorPart editor = openFileInDefaultEditor(javaFile, true);
 		int numEditors = countOpenEditors();
-		assertTrue("There should only be one open editor", numEditors == 1);
+		assertTrue("There should only be one open editor", numEditors == 1); //$NON-NLS-1$
 
 		IJavaProject jp = JavaCore.create(project);
-		assertNotNull("Java project is null", jp);
+		assertNotNull("Java project is null", jp); //$NON-NLS-1$
 		IJavaElement elem = jp.findElement(new Path(
-				"internal/stuff/MyBuilder.java"), null);
-		assertNotNull("Couldn't find IJavaElement for MyBuilder.java", elem);
+				"internal/stuff/MyBuilder.java"), null); //$NON-NLS-1$
+		assertNotNull("Couldn't find IJavaElement for MyBuilder.java", elem); //$NON-NLS-1$
 
 		Runnable r = new Runnable() {
 			public void run() {
@@ -63,9 +63,9 @@ public class Bug100018Test extends VisualTestCase {
 
 		// bug 100018: the rename operation caused the editor to close
 		numEditors = countOpenEditors();
-		assertFalse("Bug 100018: Rename operation caused editor to close",
+		assertFalse("Bug 100018: Rename operation caused editor to close", //$NON-NLS-1$
 				numEditors == 0);
-		assertTrue("Wrong number of open editors: expected 1, found "
+		assertTrue("Wrong number of open editors: expected 1, found " //$NON-NLS-1$
 				+ numEditors, numEditors == 1);
 
 	}

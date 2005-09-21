@@ -24,10 +24,10 @@ import junit.framework.TestCase;
 public class MarkupUtilsTest extends TestCase {
 	
   private final static int ANYWHERE = -1;
-  private static IMarkupKind A = new SimpleMarkupKind("AAA"); 
-  private static IMarkupKind B = new SimpleMarkupKind("BBB"); 
-  private static IMarkupKind C = new SimpleMarkupKind("CCC"); 
-  private static IMarkupKind D = new SimpleMarkupKind("DDD"); 
+  private static IMarkupKind A = new SimpleMarkupKind("AAA");  //$NON-NLS-1$
+  private static IMarkupKind B = new SimpleMarkupKind("BBB");  //$NON-NLS-1$
+  private static IMarkupKind C = new SimpleMarkupKind("CCC");  //$NON-NLS-1$
+  private static IMarkupKind D = new SimpleMarkupKind("DDD");  //$NON-NLS-1$
 
   private List getStripes(int i) {
     List stripes = new ArrayList();
@@ -66,13 +66,13 @@ public class MarkupUtilsTest extends TestCase {
 		// dump some data we'll need for debugging !
 		StringBuffer sb = new StringBuffer();
 		for (int j = 0; j < expKinds.length; j++) {
-			sb.append(expKinds[j]).append(" ");
+			sb.append(expKinds[j]).append(" "); //$NON-NLS-1$
 		}
-		System.err.println("Looking for stripe of kind:"+sb.toString()+" offset:"+expOffset+" depth:"+expDepth+" at location:"+expLocationInList);
+		System.err.println("Looking for stripe of kind:"+sb.toString()+" offset:"+expOffset+" depth:"+expDepth+" at location:"+expLocationInList); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	    i =0;
 		for (Iterator iter = inputs.iterator(); iter.hasNext();) {
 			Stripe element = (Stripe) iter.next();
-			System.err.println("Stripe "+i+" is "+element.toString());i++;
+			System.err.println("Stripe "+i+" is "+element.toString());i++; //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 	return found;
@@ -99,7 +99,7 @@ public class MarkupUtilsTest extends TestCase {
   	assertTrue(inputs.size()==1);
   	Stripe s = (Stripe)inputs.get(0);
   	assertTrue(containsStripe(inputs,A,5,1,ANYWHERE));
-  	assertTrue(((IMarkupKind)s.getKinds().get(0)).getName().equals("AAA"));
+  	assertTrue(((IMarkupKind)s.getKinds().get(0)).getName().equals("AAA")); //$NON-NLS-1$
   	assertTrue(s.getOffset()==5);
   }
   

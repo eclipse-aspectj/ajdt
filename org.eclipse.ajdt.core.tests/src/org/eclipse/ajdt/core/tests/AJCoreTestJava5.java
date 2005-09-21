@@ -26,7 +26,7 @@ public class AJCoreTestJava5 extends AJDTCoreTestCase {
 	 */
 	public void testHandleCreateRoundtripBug108552() throws Exception {
 		// the project has a .settings file to set source level to 5.0
-		IProject project = createPredefinedProject("bug108552");
+		IProject project = createPredefinedProject("bug108552"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] {
 					AJRelationshipManager.DECLARED_ON,

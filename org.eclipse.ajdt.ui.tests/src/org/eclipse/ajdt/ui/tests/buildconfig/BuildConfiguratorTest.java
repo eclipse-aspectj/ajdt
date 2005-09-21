@@ -43,9 +43,9 @@ public class BuildConfiguratorTest extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		ajProject = createPredefinedProject("AJ Project For BuildConfigurationTest"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		javaProject = createPredefinedProject("java.project.Y");
+		javaProject = createPredefinedProject("java.project.Y"); //$NON-NLS-1$
 		
 		setupSandboxSourceFolder();
 		waitForJobsToComplete();
@@ -53,7 +53,7 @@ public class BuildConfiguratorTest extends UITestCase {
 	}
 
 	private void setupSandboxSourceFolder() throws Exception {
-		IFolder src = ajProject.getFolder("testSrcPath");
+		IFolder src = ajProject.getFolder("testSrcPath"); //$NON-NLS-1$
 		if (!src.exists()) {
 			src.create(true, true, null);
 		}
@@ -72,35 +72,35 @@ public class BuildConfiguratorTest extends UITestCase {
 			jp.setRawClasspath(newCpes, null);
 		}
 
-		fileDef = src.getFile("InDefaultPack.java");
+		fileDef = src.getFile("InDefaultPack.java"); //$NON-NLS-1$
 		if (!fileDef.exists()) {
 			//fileDef.create(new StringBufferInputStream("public class
 			// InDefaultPack{}"), true, null);
-			String content = "public class InDefaultPack{}";
+			String content = "public class InDefaultPack{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileDef.create(source, true, null);
 		}
-		IFolder pack = src.getFolder("package1");
+		IFolder pack = src.getFolder("package1"); //$NON-NLS-1$
 		if (!pack.exists()) {
 			pack.create(true, true, null);
 		}
 
-		fileA = pack.getFile("A.java");
+		fileA = pack.getFile("A.java"); //$NON-NLS-1$
 		if (!fileA.exists()) {
 			//fileA.create(new StringBufferInputStream("package
 			// package1;\npublic class A{}"), true, null);
-			String content = "package package1;\npublic class A{}";
+			String content = "package package1;\npublic class A{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileA.create(source, true, null);
 		}
 
-		fileB = pack.getFile("B.java");
+		fileB = pack.getFile("B.java"); //$NON-NLS-1$
 		if (!fileB.exists()) {
 			//fileB.create(new StringBufferInputStream("package
 			// package1;\npublic class B{}"), true, null);
-			String content = "package package1;\npublic class B{}";
+			String content = "package package1;\npublic class B{}"; //$NON-NLS-1$
 			ByteArrayInputStream source = new ByteArrayInputStream(content
 					.getBytes());
 			fileB.create(source, true, null);
@@ -113,7 +113,7 @@ public class BuildConfiguratorTest extends UITestCase {
 
 		pbc = conf.getProjectBuildConfigurator(javaProject);
 		if (pbc != null)
-			fail("Could obtain a ProjectBuildConfigurator for non-aj project. This should not be possible.");
+			fail("Could obtain a ProjectBuildConfigurator for non-aj project. This should not be possible."); //$NON-NLS-1$
 
 		waitForJobsToComplete();
 
@@ -123,14 +123,14 @@ public class BuildConfiguratorTest extends UITestCase {
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc != null)
-			fail("Could obtain a ProjectBuildConfigurator for closed project. This should not be possible.");
+			fail("Could obtain a ProjectBuildConfigurator for closed project. This should not be possible."); //$NON-NLS-1$
 
 		waitForJobsToComplete();
 
 		ajProject.open(null);
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 		if (pbc == null)
-			fail("Could not get a ProjectBuildConfigurator for an aj project.");
+			fail("Could not get a ProjectBuildConfigurator for an aj project."); //$NON-NLS-1$
 
 		//test does not work. buildConfigurator gets not notified when
 		// selection changes...

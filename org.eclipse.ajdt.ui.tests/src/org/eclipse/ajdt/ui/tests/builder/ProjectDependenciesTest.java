@@ -48,29 +48,29 @@ public class ProjectDependenciesTest extends UITestCase {
 	 * marked with a PD in the comment).
 	 */
 	public void testHowDealingWithProjectDependencies() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,
 						null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,
 						projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,
 						null));
 
@@ -93,11 +93,11 @@ public class ProjectDependenciesTest extends UITestCase {
 		// added/removed
 		// then the following two asserts should be uncommented.
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,
 						projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(
 						projectX, projectY));
 
@@ -105,18 +105,18 @@ public class ProjectDependenciesTest extends UITestCase {
 		// true
 		AJDTUtils.removeAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,
 						null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,
 						projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(
 						projectX, projectY));
 
@@ -136,9 +136,9 @@ public class ProjectDependenciesTest extends UITestCase {
 		Platform.getJobManager().addJobChangeListener(listener);
 
 		// create two plugin projects (java)
-		IProject projectY = createPredefinedProject("java.plugin.project.Y");
+		IProject projectY = createPredefinedProject("java.plugin.project.Y"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IProject projectX = createPredefinedProject("java.plugin.project.X");
+		IProject projectX = createPredefinedProject("java.plugin.project.X"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD,null);
@@ -150,14 +150,14 @@ public class ProjectDependenciesTest extends UITestCase {
 		// dependency on java.plugin.project.Y
 //		assertTrue("projectX should have plugin dependency on projectY",
 //				ProjectDependenciesUtils.projectHasPluginDependency(projectX,"java.plugin.project.Y"));
-		assertFalse("project X should not have any IJavaModelMarkers",
+		assertFalse("project X should not have any IJavaModelMarkers", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
 						projectX, projectY));
 
 		// convert project Y to be an AJ project ==> still no build errors
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project X should still not have any IJavaModelMarkers",
+		assertFalse("project X should still not have any IJavaModelMarkers", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
 						projectX, projectY));
 
@@ -169,104 +169,104 @@ public class ProjectDependenciesTest extends UITestCase {
 	 * various sequences - ensuring that the dependencies remain as they should
 	 */
 	public void testProjectDependencies1() throws Exception {
-		IProject projectY = createPredefinedProject("project.java.Y");
-		IProject projectX = createPredefinedProject("project.java.X");
+		IProject projectY = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IProject projectX = createPredefinedProject("project.java.X"); //$NON-NLS-1$
 
 		// sanity check: at this point there should be no error markers, both
 		// projects should build as they're both java projects, project X should
 		// should have a project dependency on project Y
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
 						null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,
 						null));
-		assertTrue("project X should have a project dependency on project Y",
+		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,
 						projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// convert project X to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectX);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
 		AJDTUtils.addAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// remove AJ nature from project X		
 		AJDTUtils.removeAspectJNature(projectX);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 		
 		// remove AJ nature from project Y		
 		AJDTUtils.removeAspectJNature(projectY);
 		waitForJobsToComplete();
-		assertFalse("project Y should build with no errors",
+		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
-		assertFalse("project X should build with no errors",
+		assertFalse("project X should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectX,null));
 		assertTrue(
-				"project X should still have a project dependency on project Y",
+				"project X should still have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX,projectY));
 		assertFalse(
-				"project X should NOT have a class folder dependency on project Y",
+				"project X should NOT have a class folder dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 	}
 

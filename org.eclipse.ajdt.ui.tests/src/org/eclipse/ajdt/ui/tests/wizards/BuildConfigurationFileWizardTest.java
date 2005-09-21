@@ -35,11 +35,11 @@ public class BuildConfigurationFileWizardTest extends UITestCase {
 	
 	public void testWizardPerformFinish() throws CoreException {
 		
-		testSrcProject = createPredefinedProject("AJ Project For BuildConfigurationTest");
+		testSrcProject = createPredefinedProject("AJ Project For BuildConfigurationTest"); //$NON-NLS-1$
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(testSrcProject);
-		assertNotNull("The new project should have a build configurator", pbc);
+		assertNotNull("The new project should have a build configurator", pbc); //$NON-NLS-1$
 		Collection configs = pbc.getBuildConfigurations();
-		assertTrue("The new project should have one build configuration", configs.size() == 1);
+		assertTrue("The new project should have one build configuration", configs.size() == 1); //$NON-NLS-1$
 		BuildConfigurationFileWizard wiz = new BuildConfigurationFileWizard();
 		Shell shell = JavaPlugin.getActiveWorkbenchShell();
 		wiz.init(JavaPlugin.getDefault().getWorkbench(), new StructuredSelection(testSrcProject));
@@ -49,7 +49,7 @@ public class BuildConfigurationFileWizardTest extends UITestCase {
 		dialog.open();
 		dialog.finishPressed();
 		Collection newconfigs = pbc.getBuildConfigurations();
-		assertTrue("The new project should have two build configurations", configs.size() == 2);
+		assertTrue("The new project should have two build configurations", configs.size() == 2); //$NON-NLS-1$
 	}
 
 	

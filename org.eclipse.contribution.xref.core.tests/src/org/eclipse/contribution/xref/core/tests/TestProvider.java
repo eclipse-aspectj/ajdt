@@ -55,7 +55,7 @@ public class TestProvider implements IXReferenceProvider {
 		String s = (String) o;
 		Set a = new HashSet();
 		a.add(s.toUpperCase());
-		XReference xr = new XReference("In Upper Case", a);
+		XReference xr = new XReference("In Upper Case", a); //$NON-NLS-1$
 		List l = new ArrayList();
 		l.add(xr);
 		return l;
@@ -74,9 +74,9 @@ public class TestProvider implements IXReferenceProvider {
 		// let's be deliberately untrustworthy here, to test the SafeExecution
 		// aspect
 		if (beBad) {
-			throw new RuntimeException("You should never trust a provider you know...");
+			throw new RuntimeException("You should never trust a provider you know..."); //$NON-NLS-1$
 		}
-		return "My Description";
+		return "My Description"; //$NON-NLS-1$
 	}
 
 	public void setCheckedFilters(List l) {

@@ -51,14 +51,14 @@ public class AspectJCoreTestPlugin extends Plugin {
 	 */
 	public static String getPluginDir() {
 		String pluginDir=null;
-		URL loc = plugin.getBundle().getEntry("/");
+		URL loc = plugin.getBundle().getEntry("/"); //$NON-NLS-1$
 		try {
 			URL resolved = Platform.resolve(loc);
 			pluginDir = resolved.getFile();
 		} catch (IOException e) {}		
 		if ((pluginDir==null) || (pluginDir.length()==0)) {
-			return System.getProperty("user.dir") + File.separator
-				+ "workspace" + File.separator + "org.eclipse.ajdt.core.tests"
+			return System.getProperty("user.dir") + File.separator //$NON-NLS-1$
+				+ "workspace" + File.separator + "org.eclipse.ajdt.core.tests" //$NON-NLS-1$ //$NON-NLS-2$
 				+ File.separator;
 		}
 		return pluginDir;

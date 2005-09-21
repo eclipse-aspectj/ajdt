@@ -53,7 +53,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 				sleep();
 				
 				// Enter a name for the project
-				postString("Project1");
+				postString("Project1"); //$NON-NLS-1$
 		
 				// Go to the next page
 				postKeyDown(SWT.ALT);
@@ -63,7 +63,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 				
 				// Add a source folder called src
 				postKey('a');
-				postString("src");
+				postString("src"); //$NON-NLS-1$
 				sleep();
 				postKey(SWT.CR);
 				sleep();
@@ -84,15 +84,15 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		new DisplayHelper() {
 
 			protected boolean condition() {
-				boolean ret = workspace.getRoot().getProject("Project1").exists();
+				boolean ret = workspace.getRoot().getProject("Project1").exists(); //$NON-NLS-1$
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
 
-		IProject project = workspace.getRoot().getProject("Project1");
+		IProject project = workspace.getRoot().getProject("Project1"); //$NON-NLS-1$
 
-		assertTrue("Should have created a project", project.exists());	
+		assertTrue("Should have created a project", project.exists());	 //$NON-NLS-1$
 		
 		// Test that a build file has been created
 		IFile buildFile = checkBuildFileExists(project);
@@ -104,10 +104,10 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		addNewFolderAndCheckBuildFile(buildFile);
 		
 		// Test that when the new folder is added to the build path the build file updates correctly
-		addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile);
+		addFolderToBuildPathAndCheckBuildFile("src2", project, buildFile); //$NON-NLS-1$
 		
 		// Test that when the new folder is removed from the build path the build file updates correctly
-		removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile);
+		removeFolderFromBuildPathAndCheckBuildFile("src2", project, buildFile); //$NON-NLS-1$
 	}
 
 	private void addFolderToBuildPathAndCheckBuildFile(String folderName, IProject project,  IFile buildFile) throws CoreException, IOException {
@@ -116,7 +116,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		if (runningEclipse31) {
 			IResource folder = project.findMember(folderName);
 			if (!(folder instanceof IFolder)) {
-				fail("Folder \"" + folderName + "\" should have been found in the project");
+				fail("Folder \"" + folderName + "\" should have been found in the project"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			packageExplorer.tryToReveal(folder);
 			postKeyDown(SWT.SHIFT);
@@ -163,9 +163,9 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		try {
 			String line1 = br.readLine();
-			assertTrue("Contents of the build configuration file are wrong after adding a folder to the build path", line1.trim().equals("src.includes = src/,\\"));
+			assertTrue("Contents of the build configuration file are wrong after adding a folder to the build path", line1.trim().equals("src.includes = src/,\\")); //$NON-NLS-1$ //$NON-NLS-2$
 			String line2 = br.readLine();
-			assertTrue("Contents of the build configuration file are wrong after adding a folder to the build path", line2.trim().equals("src2/"));		
+			assertTrue("Contents of the build configuration file are wrong after adding a folder to the build path", line2.trim().equals("src2/"));		 //$NON-NLS-1$ //$NON-NLS-2$
 		} finally {	
 			br.close();
 		}		
@@ -177,7 +177,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		if (runningEclipse31) {
 			IResource folder = project.findMember(folderName);
 			if (!(folder instanceof IFolder)) {
-				fail("Folder \"" + folderName + "\" should have been found in the project");
+				fail("Folder \"" + folderName + "\" should have been found in the project"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			packageExplorer.tryToReveal(folder);
 			postKeyDown(SWT.SHIFT);
@@ -207,7 +207,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
 		br.close();
-		assertTrue("Contents of the build configuration file are wrong after removing a folder from the build path", line1.trim().equals("src.includes = src/"));		
+		assertTrue("Contents of the build configuration file are wrong after removing a folder from the build path", line1.trim().equals("src.includes = src/"));		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private void addNewFolderAndCheckBuildFile(IFile buildFile) throws CoreException, IOException {
@@ -235,7 +235,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		
 			public void run() {
 				sleep();
-				postString("src2");
+				postString("src2"); //$NON-NLS-1$
 				postKey(SWT.CR);
 			}
 		};
@@ -247,7 +247,7 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
 		br.close();
-		assertTrue("Contents of the build configuration file are wrong after adding a folder", line1.trim().equals("src.includes = src/"));		
+		assertTrue("Contents of the build configuration file are wrong after adding a folder", line1.trim().equals("src.includes = src/"));		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	
 	/**
@@ -259,12 +259,12 @@ public class BuildConfigurationTest2 extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
 		br.close();
-		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = src/"));
+		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = src/")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private IFile checkBuildFileExists(IProject project) {
 		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
-		assertTrue("Should have created a build configuration file", buildFile.exists());
+		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
 		return buildFile;
 	}
 	

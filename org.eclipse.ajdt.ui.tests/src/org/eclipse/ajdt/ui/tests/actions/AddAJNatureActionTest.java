@@ -35,14 +35,14 @@ public class AddAJNatureActionTest extends UITestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-		testProject = createPredefinedProject("project.java.Y");
+		testProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		waitForJobsToComplete();
 
     }
 
     public void testAddsAJNature() throws CoreException {
         // Ensure that we are starting with a Java project.	
-        assertTrue(testProject.hasNature("org.eclipse.jdt.core.javanature"));
+        assertTrue(testProject.hasNature("org.eclipse.jdt.core.javanature")); //$NON-NLS-1$
         
         // Next, create the necessary arguments for the nature addition.
         ISelection sel = new StructuredSelection(testProject);

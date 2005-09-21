@@ -63,24 +63,24 @@ public class XReferenceViewTest extends TestCase {
 	// tests for XReferenceView.TreeObject
 	// pretty basic stuff...
 	public void testTreeObject() {
-		TreeObject to = new TreeObject("name");
+		TreeObject to = new TreeObject("name"); //$NON-NLS-1$
 
-		assertEquals("name", to.getName());
+		assertEquals("name", to.getName()); //$NON-NLS-1$
 		assertNull(to.getAdapter(Object.class));
 		to.setData(this);
 		assertEquals(this, to.getData());
 
-		TreeParent tp = new TreeParent("pname");
+		TreeParent tp = new TreeParent("pname"); //$NON-NLS-1$
 		to.setParent(tp);
 		assertEquals(tp, to.getParent());
 	}
 
 	// test for TreeParent, basic stuff again
 	public void testTreeParent() {
-		TreeParent tp = new TreeParent("pname");
+		TreeParent tp = new TreeParent("pname"); //$NON-NLS-1$
 		assertFalse(tp.hasChildren());
 
-		TreeObject to = new TreeObject("name");
+		TreeObject to = new TreeObject("name"); //$NON-NLS-1$
 
 		tp.addChild(to);
 		assertTrue(tp.hasChildren());
@@ -89,7 +89,7 @@ public class XReferenceViewTest extends TestCase {
 		assertEquals(1, children.length);
 		assertEquals(to, children[0]);
 
-		TreeObject to2 = new TreeObject("name2");
+		TreeObject to2 = new TreeObject("name2"); //$NON-NLS-1$
 		tp.addChild(to2);
 		children = tp.getChildren();
 		assertEquals(2, children.length);
@@ -105,11 +105,11 @@ public class XReferenceViewTest extends TestCase {
 			new XReferenceContentProvider();
 
 		TreeParent parent =
-			new TreeParent("parent-name");
+			new TreeParent("parent-name"); //$NON-NLS-1$
 		TreeObject child1 =
-			new TreeObject("child1-name");
+			new TreeObject("child1-name"); //$NON-NLS-1$
 		TreeObject child2 =
-			new TreeObject("child2-name");
+			new TreeObject("child2-name"); //$NON-NLS-1$
 
 		parent.addChild(child1);
 		parent.addChild(child2);
@@ -149,7 +149,7 @@ public class XReferenceViewTest extends TestCase {
 		assertEquals(0, viewContentProvider.getElements(null).length);
 
 		// if the input is not an IXReferenceAdapter, we ignore it
-		viewContentProvider.inputChanged(null, null, new String("aha!"));
+		viewContentProvider.inputChanged(null, null, new String("aha!")); //$NON-NLS-1$
 		assertEquals(0, viewContentProvider.getElements(null).length);
 
 		// add a XReference adapter with no XReference
@@ -175,13 +175,13 @@ public class XReferenceViewTest extends TestCase {
 		String n1 = ((TreeParent) ch[0]).getName();
 		String n2 = ((TreeParent) ch[1]).getName();
 		assertTrue(
-			(n1.equals("extends") && n2.equals("implements"))
-				|| (n2.equals("extends") && n1.equals("implements")));
+			(n1.equals("extends") && n2.equals("implements")) //$NON-NLS-1$ //$NON-NLS-2$
+				|| (n2.equals("extends") && n1.equals("implements"))); //$NON-NLS-1$ //$NON-NLS-2$
 		assertNull(
-			"No data associated with a XReference node",
+			"No data associated with a XReference node", //$NON-NLS-1$
 			((TreeParent) ch[0]).getData());
 		assertNull(
-			"No data associated with a XReference node",
+			"No data associated with a XReference node", //$NON-NLS-1$
 			((TreeParent) ch[1]).getData());
 		assertFalse(viewContentProvider.hasChildren(ch[0]));
 		assertFalse(viewContentProvider.hasChildren(ch[1]));
@@ -196,13 +196,13 @@ public class XReferenceViewTest extends TestCase {
 		assertTrue(
 			viewContentProvider.hasChildren(ch[0])
 				|| viewContentProvider.hasChildren(ch[1]));
-		if (((TreeParent) ch[0]).getName().equals("extends")) {
+		if (((TreeParent) ch[0]).getName().equals("extends")) { //$NON-NLS-1$
 			ch = viewContentProvider.getChildren(ch[0]);
 		} else {
 			ch = viewContentProvider.getChildren(ch[1]);
 		}
 		assertEquals(
-			"test associate",
+			"test associate", //$NON-NLS-1$
 			((TreeObject) ch[0]).getData());
 	}
 

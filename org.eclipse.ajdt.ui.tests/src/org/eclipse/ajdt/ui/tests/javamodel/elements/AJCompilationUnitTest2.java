@@ -34,22 +34,22 @@ public class AJCompilationUnitTest2 extends UITestCase {
 	// bug 74426
 	public void testDeletingAJCompilationUnits() throws Exception {
 		AllUITests.setupAJDTPlugin();
-		IProject project = createPredefinedProject("Introduction Example");
+		IProject project = createPredefinedProject("Introduction Example"); //$NON-NLS-1$
 
 		IFile file1 = (IFile) project
-				.findMember("src/introduction/CloneablePoint.aj");
-		assertNotNull("Couldn't find CloneablePoint.aj in project", file1);
+				.findMember("src/introduction/CloneablePoint.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find CloneablePoint.aj in project", file1); //$NON-NLS-1$
 		IFile file2 = (IFile) project
-				.findMember("src/introduction/ComparablePoint.aj");
-		assertNotNull("Couldn't find ComparablePoint.aj in project", file1);
+				.findMember("src/introduction/ComparablePoint.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find ComparablePoint.aj in project", file1); //$NON-NLS-1$
 
 		final ICompilationUnit unit1 = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit(file1);
-		assertNotNull("Couldn't obtain compilation unit for file: " + file1,
+		assertNotNull("Couldn't obtain compilation unit for file: " + file1, //$NON-NLS-1$
 				unit1);
 		ICompilationUnit unit2 = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit(file2);
-		assertNotNull("Couldn't obtain compilation unit for file: " + file2,
+		assertNotNull("Couldn't obtain compilation unit for file: " + file2, //$NON-NLS-1$
 				unit2);
 
 		// now try to delete these units
@@ -84,8 +84,8 @@ public class AJCompilationUnitTest2 extends UITestCase {
 		waitForJobsToComplete();
 
 		// check the corresponding files have gone
-		assertFalse("File should have been deleted: " + file1, file1.exists());
-		assertFalse("File should have been deleted: " + file2, file2.exists());
+		assertFalse("File should have been deleted: " + file1, file1.exists()); //$NON-NLS-1$
+		assertFalse("File should have been deleted: " + file2, file2.exists()); //$NON-NLS-1$
 
 	}
 

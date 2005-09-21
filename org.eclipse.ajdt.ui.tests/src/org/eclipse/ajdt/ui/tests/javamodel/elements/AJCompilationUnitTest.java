@@ -41,10 +41,10 @@ public class AJCompilationUnitTest extends AbstractTestCase {
 		IJavaElement[] children = unit.getChildren();
 		
 		if (children == null)
-			fail("Could not get children of CompilationUnit");
+			fail("Could not get children of CompilationUnit"); //$NON-NLS-1$
 
 		if (children.length != 1)
-			fail("Wrong number of children in CompilationUnit. (" + children.length + ")");
+			fail("Wrong number of children in CompilationUnit. (" + children.length + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		
 	}
 
@@ -54,24 +54,24 @@ public class AJCompilationUnitTest extends AbstractTestCase {
 		IBuffer orig = unit.getBuffer();
 		unit.discardOriginalContentMode();
 		if (fake == orig)
-			fail("CompilationUnit did not provide different buffers in different modes.");
+			fail("CompilationUnit did not provide different buffers in different modes."); //$NON-NLS-1$
 		
 		
 	}
 
 	public void testOriginalContentMode() {
 		if (unit.isInOriginalContentMode())
-			fail("AJCompilationUnit should not be in original mode at startup.");
+			fail("AJCompilationUnit should not be in original mode at startup."); //$NON-NLS-1$
 		
 		unit.requestOriginalContentMode();
 		
 		if (!unit.isInOriginalContentMode())
-			fail("Request originalContentMode did not succeed.");
+			fail("Request originalContentMode did not succeed."); //$NON-NLS-1$
 		
 		unit.discardOriginalContentMode();
 		
 		if (unit.isInOriginalContentMode())
-			fail("Discard originalContentMode did not succeed.");
+			fail("Discard originalContentMode did not succeed."); //$NON-NLS-1$
 		
 	}
 
@@ -80,16 +80,16 @@ public class AJCompilationUnitTest extends AbstractTestCase {
 		IType type = unit.findPrimaryType();
 		
 		if (!(type instanceof SourceType))
-			fail("Incorrect class of main type.");
+			fail("Incorrect class of main type."); //$NON-NLS-1$
 		
-		if (!"Aspect".equals(type.getElementName()))
-			fail("Incorrect main type.");
+		if (!"Aspect".equals(type.getElementName())) //$NON-NLS-1$
+			fail("Incorrect main type."); //$NON-NLS-1$
 		
 	}
 
 	public void testGetMainTypeName() {
-		if (!"Aspect".equals(new String(unit.getMainTypeName())))
-			fail("Could not get correct main type name.");
+		if (!"Aspect".equals(new String(unit.getMainTypeName()))) //$NON-NLS-1$
+			fail("Could not get correct main type name."); //$NON-NLS-1$
 	}
 
 }

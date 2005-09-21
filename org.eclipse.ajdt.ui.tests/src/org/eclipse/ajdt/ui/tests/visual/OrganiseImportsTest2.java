@@ -33,12 +33,12 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 	 * @throws Exception
 	 */
 	public void testOrganiseImports2() throws Exception {
-		IProject project = createPredefinedProject("Spacewar Example");
-		IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj");
-		assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null );
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+		IFile gameSynchronizationFile = (IFile)project.findMember("src/spacewar/GameSynchronization.aj"); //$NON-NLS-1$
+		assertTrue("The Spacewar Example project should contain a file called 'GameSynchronization.aj'", gameSynchronizationFile != null ); //$NON-NLS-1$
 		openFileInDefaultEditor(gameSynchronizationFile, true);
 		final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(gameSynchronizationFile);
-		assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1);
+		assertTrue("GameSynchronization.aj should start with one import", cUnit.getImports().length == 1); //$NON-NLS-1$
 		waitForJobsToComplete();			
 		
 //			 Post Ctrl+Shift+O to organise imports
@@ -59,7 +59,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			}
 		
 		}.waitForCondition(display, 3000);
-		assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1);
+		assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1); //$NON-NLS-1$
 		
 		// Post Ctrl+S to save the file
 		postKeyDown(SWT.CTRL);
@@ -79,7 +79,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 		
 		}.waitForCondition(display, 3000);
 		IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-		assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
+		assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0); //$NON-NLS-1$
 
 	}
 

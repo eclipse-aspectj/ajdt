@@ -28,8 +28,8 @@ public class VerificationTest extends UITestCase {
 	 */
 	public void testAbsentStructureModelView() {
 		assertFalse(
-				"Structure Model view should be commented out in plugin.xml",
-				isViewDefined("org.eclipse.ajdt.ui.ajde.StructureModelView"));
+				"Structure Model view should be commented out in plugin.xml", //$NON-NLS-1$
+				isViewDefined("org.eclipse.ajdt.ui.ajde.StructureModelView")); //$NON-NLS-1$
 	}
 
 	/**
@@ -40,12 +40,12 @@ public class VerificationTest extends UITestCase {
 	 */
 	public void testAbsentNavigatorView() {
 		assertFalse(
-				"Pointcut Navigator view should be commented out in plugin.xml",
-				isViewDefined("org.eclipse.ajdt.ui.navigator.PointcutNavigatorView"));
+				"Pointcut Navigator view should be commented out in plugin.xml", //$NON-NLS-1$
+				isViewDefined("org.eclipse.ajdt.ui.navigator.PointcutNavigatorView")); //$NON-NLS-1$
 	}
 
 	private boolean isViewDefined(String viewID) {
-		String viewExtension = "org.eclipse.ui.views";
+		String viewExtension = "org.eclipse.ui.views"; //$NON-NLS-1$
 
 		IExtensionPoint exP = Platform.getExtensionRegistry()
 				.getExtensionPoint(viewExtension);
@@ -54,7 +54,7 @@ public class VerificationTest extends UITestCase {
 		for (int i = 0; i < exs.length; i++) {
 			IConfigurationElement[] ces = exs[i].getConfigurationElements();
 			for (int j = 0; j < ces.length; j++) {
-				String id = ces[j].getAttribute("id");
+				String id = ces[j].getAttribute("id"); //$NON-NLS-1$
 				if (id.equals(viewID)) {
 					return true;
 				}

@@ -44,19 +44,19 @@ public class ClasspathOrderTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("ClasspathOrdering");
+		project = createPredefinedProject("ClasspathOrdering"); //$NON-NLS-1$
 	}
 
 	
 	public void testClasspathOrder() throws Exception {
 		assertFalse(
-				"ClasspathOrdering project shouldn't yet have AspectJ nature",
+				"ClasspathOrdering project shouldn't yet have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(project));
 
-		String filename = "src/foo/OrderTest.java";
+		String filename = "src/foo/OrderTest.java"; //$NON-NLS-1$
 		IResource res = project.findMember(filename);
 		if (res == null) {
-			fail("Required file not found: " + filename);
+			fail("Required file not found: " + filename); //$NON-NLS-1$
 		}
 		ITextEditor editorPart = (ITextEditor) openFileInDefaultEditor(
 				(IFile) res, false);
@@ -71,11 +71,11 @@ public class ClasspathOrderTest extends UITestCase {
 				foundError = true;
 			}
 		}
-		assertFalse("Java project has errors", foundError);
+		assertFalse("Java project has errors", foundError); //$NON-NLS-1$
 
 		AJDTUtils.addAspectJNature(project);
 		waitForJobsToComplete();
-		assertTrue("ClasspathOrdering project should now have AspectJ nature",
+		assertTrue("ClasspathOrdering project should now have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(project));
 		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -89,7 +89,7 @@ public class ClasspathOrderTest extends UITestCase {
 				foundError = true;
 			}
 		}
-		assertFalse("AspectJ project has errors", foundError);
+		assertFalse("AspectJ project has errors", foundError); //$NON-NLS-1$
 
 	}
 

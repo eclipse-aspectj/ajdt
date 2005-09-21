@@ -35,17 +35,17 @@ public class ProblemMarkerTest extends UITestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		myProject = createPredefinedProject("Simple AJ Project");
+		myProject = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
 	
 	public void testMarkerIsNotRemoved() throws CoreException {
-		IFile f = myProject.getFile("src/p1/Main.java");
+		IFile f = myProject.getFile("src/p1/Main.java"); //$NON-NLS-1$
 		IMarker marker = f.createMarker(IMarker.PROBLEM);
-		marker.setAttribute(IMarker.MESSAGE, "hello");
+		marker.setAttribute(IMarker.MESSAGE, "hello"); //$NON-NLS-1$
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,
 				new NullProgressMonitor());
 		waitForJobsToComplete();
-		assertTrue("Marker we created should still exist after a build", marker
+		assertTrue("Marker we created should still exist after a build", marker //$NON-NLS-1$
 				.exists());
 	}
 	
@@ -56,19 +56,19 @@ public class ProblemMarkerTest extends UITestCase {
 	 * @throws Exception
 	 */
 	public void testExludedFromBuildConfig() throws Exception {
-		IFolder src = myProject.getFolder("src");
+		IFolder src = myProject.getFolder("src"); //$NON-NLS-1$
 		if (!src.exists()){
 			src.create(true, true, null);
 		}
-		IFolder p1 = src.getFolder("p1");
+		IFolder p1 = src.getFolder("p1"); //$NON-NLS-1$
 		if (!p1.exists()){
 			p1.create(true, true, null);
 		}
-		assertNotNull("src folder should not be null", src);
-		assertNotNull("package p1 should not be null", p1);
+		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
+		assertNotNull("package p1 should not be null", p1); //$NON-NLS-1$
 		 
-		IFile newAspect = createFile(p1,"newAspect.aj","blah blah blah");
-		assertNotNull("newAspect should not be null", newAspect);
+		IFile newAspect = createFile(p1,"newAspect.aj","blah blah blah"); //$NON-NLS-1$ //$NON-NLS-2$
+		assertNotNull("newAspect should not be null", newAspect); //$NON-NLS-1$
 		
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(myProject);
 		BuildConfiguration buildConfig = pbc.getActiveBuildConfiguration();
@@ -79,22 +79,22 @@ public class ProblemMarkerTest extends UITestCase {
 		buildConfig.excludeFiles(newFiles);
 		waitForJobsToComplete();
 		
-		assertFalse("new aspect shouldn't be included in active build configuration",
+		assertFalse("new aspect shouldn't be included in active build configuration", //$NON-NLS-1$
 				buildConfig.isIncluded(newAspect));
 		
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
 		waitForJobsToComplete();
-		assertFalse("new aspect shouldn't be included in active build configuration",
+		assertFalse("new aspect shouldn't be included in active build configuration", //$NON-NLS-1$
 				buildConfig.isIncluded(newAspect));
 		
-		assertFalse("no problem markers should be against the project since the file isn't included in the build config", 
+		assertFalse("no problem markers should be against the project since the file isn't included in the build config",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(myProject,null));
 		
 		buildConfig.includeFiles(newFiles);
 
 		myProject.build(IncrementalProjectBuilder.FULL_BUILD,new NullProgressMonitor());
 		waitForJobsToComplete();
-		assertTrue("problem markers should be against the project since file is included in the build config", 
+		assertTrue("problem markers should be against the project since file is included in the build config",  //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(myProject,null));
 
 		

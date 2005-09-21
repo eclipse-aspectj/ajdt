@@ -39,48 +39,48 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testCompareWithCurrent() throws Exception {
-		IProject project = createPredefinedProject("Spacewar Example");
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
 		try {
-			IResource ajmap = project.findMember("Spacewar Example.ajmap");
-			assertNotNull("Couldn't find ajmap file", ajmap);
+			IResource ajmap = project.findMember("Spacewar Example.ajmap"); //$NON-NLS-1$
+			assertNotNull("Couldn't find ajmap file", ajmap); //$NON-NLS-1$
 
-			IResource debug = project.findMember("src/spacewar/Debug.aj");
-			assertNotNull("Couldn't find Debug.aj file", debug);
+			IResource debug = project.findMember("src/spacewar/Debug.aj"); //$NON-NLS-1$
+			assertNotNull("Couldn't find Debug.aj file", debug); //$NON-NLS-1$
 
 			AJProjectModel currentModel = AJModel.getInstance()
 					.getModelForProject(project);
-			assertNotNull("Project model should not be null", currentModel);
+			assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
 
 			// load model from .ajmap file
 			AJProjectModel mapModel = new AJProjectModel(project);
 			mapModel.loadModel(ajmap.getLocation());
-			assertNotNull("Loaded model should not be null", mapModel);
+			assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
 
 			// compare the two models: there should be added relationships
 			List[] results = ModelComparison.compare(mapModel, currentModel);
 			List added = results[0];
 			if ((added == null) || (added.size() == 0)) {
-				fail("List of added relationships should not be empty or null");
+				fail("List of added relationships should not be empty or null"); //$NON-NLS-1$
 			}
 			boolean found = false;
 			for (Iterator iter = added.iterator(); !found && iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				if (rel.getRelationship() == AJRelationshipManager.ADVISES) {
 					if (currentModel.getJavaElementLinkName(rel.getSource())
-							.indexOf("afterReturning") != -1) {
+							.indexOf("afterReturning") != -1) { //$NON-NLS-1$
 						if (currentModel
 								.getJavaElementLinkName(rel.getTarget())
-								.indexOf("fire()") != -1) {
+								.indexOf("fire()") != -1) { //$NON-NLS-1$
 							found = true;
 						}
 					}
 				}
 			}
-			assertTrue("Missing added relationship: Expected afterReturning advises fire()",found);
+			assertTrue("Missing added relationship: Expected afterReturning advises fire()",found); //$NON-NLS-1$
 			List removed = results[1];
 			if ((removed != null) && (removed.size() > 0)) {
-				fail("List of removed relationships should be empty or null. Found "
-						+ removed.size() + " relationships");
+				fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
+						+ removed.size() + " relationships"); //$NON-NLS-1$
 			}
 
 			// now delete Debug.aj file (should just exclude it from the build
@@ -88,19 +88,19 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			debug.delete(true, null);
 			waitForAutoBuild();
 			currentModel = AJModel.getInstance().getModelForProject(project);
-			assertNotNull("Project model should not be null", currentModel);
+			assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
 
 			// compare the two models: they should now be the same
 			results = ModelComparison.compare(mapModel, currentModel);
 			added = results[0];
 			if ((added != null) && (added.size() > 0)) {
-				fail("List of added relationships should be empty or null. Found "
-						+ added.size() + " relationships");
+				fail("List of added relationships should be empty or null. Found " //$NON-NLS-1$
+						+ added.size() + " relationships"); //$NON-NLS-1$
 			}
 			removed = results[1];
 			if ((removed != null) && (removed.size() > 0)) {
-				fail("List of removed relationships should be empty or null. Found "
-						+ removed.size() + " relationships");
+				fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
+						+ removed.size() + " relationships"); //$NON-NLS-1$
 			}
 
 		} finally {

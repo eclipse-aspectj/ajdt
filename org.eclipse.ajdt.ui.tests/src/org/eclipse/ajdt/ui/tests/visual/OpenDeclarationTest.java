@@ -25,12 +25,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 public class OpenDeclarationTest extends VisualTestCase {
 	public void testOpenDeclaration() throws Exception {
-		IProject project = createPredefinedProject("OpenDeclaration");
-		assertNotNull("The OpenDeclaration project should have been created",
+		IProject project = createPredefinedProject("OpenDeclaration"); //$NON-NLS-1$
+		assertNotNull("The OpenDeclaration project should have been created", //$NON-NLS-1$
 				project);
-		IFile getinfo = (IFile) project.findMember("src/tjp/GetInfo.aj");
+		IFile getinfo = (IFile) project.findMember("src/tjp/GetInfo.aj"); //$NON-NLS-1$
 		assertNotNull(
-				"The OpenDeclaration project should contain a file called 'GetInfo.aj'",
+				"The OpenDeclaration project should contain a file called 'GetInfo.aj'", //$NON-NLS-1$
 				getinfo);
 		// make sure ajdt knows about the supertype - we probably shouldn't need
 		// this
@@ -45,7 +45,7 @@ public class OpenDeclarationTest extends VisualTestCase {
 			moveCursorRight(i);
 			postKey(SWT.F3);
 			waitForJobsToComplete();
-			checkSelection(25, "demoExecs");
+			checkSelection(25, "demoExecs"); //$NON-NLS-1$
 		}
 		// check that F3 either side of the pointcut doesnt work
 		gotoLine(28);
@@ -62,14 +62,14 @@ public class OpenDeclarationTest extends VisualTestCase {
 		moveCursorRight(43);
 		postKey(SWT.F3);
 		waitForJobsToComplete();
-		checkSelection(23, "goCut");
+		checkSelection(23, "goCut"); //$NON-NLS-1$
 
 		// F3 over the executeGo pointcut inherited from the supertype
 		gotoLine(24);
 		moveCursorRight(53);
 		postKey(SWT.F3);
 		waitForJobsToComplete();
-		checkSelection(3, "executeGo");
+		checkSelection(3, "executeGo"); //$NON-NLS-1$
 
 		// close the editor opened for the supertype, to return to GetInfo.aj
 		IWorkbenchPage page = getWindow().getActivePage();
@@ -81,14 +81,14 @@ public class OpenDeclarationTest extends VisualTestCase {
 		moveCursorRight(24);
 		postKey(SWT.F3);
 		waitForJobsToComplete();
-		checkSelection(18, "demoExecs2");
+		checkSelection(18, "demoExecs2"); //$NON-NLS-1$
 	}
 
 	private IWorkbenchWindow getWindow() {
 		IWorkbenchWindow window = AspectJTestPlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow();
 		if (window == null) {
-			fail("Couldn't get active workbench window");
+			fail("Couldn't get active workbench window"); //$NON-NLS-1$
 		}
 		return window;
 	}
@@ -96,26 +96,26 @@ public class OpenDeclarationTest extends VisualTestCase {
 	private TextSelection getCurrentTextSelection() {
 		ISelection sel = getWindow().getSelectionService().getSelection();
 		if (!(sel instanceof TextSelection)) {
-			fail("Expected ISelection to be a TextSelection");
+			fail("Expected ISelection to be a TextSelection"); //$NON-NLS-1$
 		}
 		return (TextSelection) sel;
 	}
 
 	private void checkEmptySelection() {
 		TextSelection ts = getCurrentTextSelection();
-		assertTrue("Current text selection should be empty", ts.getText()
+		assertTrue("Current text selection should be empty", ts.getText() //$NON-NLS-1$
 				.length() == 0);
 	}
 
 	private void checkSelection(int expectedLine, String expectedText) {
 		TextSelection ts = getCurrentTextSelection();
-		assertTrue("Pressing F3 should have selected the pointcut on line "
-				+ expectedLine + ". got start line: " + ts.getStartLine(), ts
+		assertTrue("Pressing F3 should have selected the pointcut on line " //$NON-NLS-1$
+				+ expectedLine + ". got start line: " + ts.getStartLine(), ts //$NON-NLS-1$
 				.getStartLine() == expectedLine);
-		assertTrue("Pressing F3 should have selected the pointcut on line "
-				+ expectedLine + ". got end line: " + ts.getEndLine(), ts
+		assertTrue("Pressing F3 should have selected the pointcut on line " //$NON-NLS-1$
+				+ expectedLine + ". got end line: " + ts.getEndLine(), ts //$NON-NLS-1$
 				.getEndLine() == expectedLine);
-		assertEquals("Pressing F3 should have selected the " + expectedText
-				+ " pointcut." + ts.getText(), expectedText, ts.getText());
+		assertEquals("Pressing F3 should have selected the " + expectedText //$NON-NLS-1$
+				+ " pointcut." + ts.getText(), expectedText, ts.getText()); //$NON-NLS-1$
 	}
 }

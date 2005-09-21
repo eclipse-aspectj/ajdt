@@ -33,7 +33,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 public class AllCoreTests {
 
 	public static Test suite() {
-		boolean is50 = System.getProperty("java.version").startsWith("1.5");
+		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		TestSuite suite = new TestSuite(AllCoreTests.class.getName());
 
 		suite.addTest(new TestSuite(AJCoreTest.class));

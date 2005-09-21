@@ -34,24 +34,24 @@ public class AspectJEditorTest extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
 	
 	private void openFileTest(IFile file, boolean shouldBeOpenedInAspectJEditor){
 		IEditorPart editor = openFileInDefaultEditor(file, false);
 		if (editor == null)
-			fail("Editor for file " + file.getName() + " could not be opened.");
+			fail("Editor for file " + file.getName() + " could not be opened."); //$NON-NLS-1$ //$NON-NLS-2$
 		if (shouldBeOpenedInAspectJEditor && !(editor instanceof AspectJEditor))
-			fail("File " + file.getName() + " was opened in editor " + editor.getClass() + " instead of AspectJEditor.");
+			fail("File " + file.getName() + " was opened in editor " + editor.getClass() + " instead of AspectJEditor."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
 	public void testOpenJavaFile(){
-		IResource res = project.findMember("src/p1/Main.java");
+		IResource res = project.findMember("src/p1/Main.java"); //$NON-NLS-1$
 		openFileTest((IFile)res, false);
 	}
 	
 	public void testOpenAJFile(){
-		IResource res = project.findMember("src/p2/Aspect.aj");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		openFileTest((IFile)res, true);
 	}
 

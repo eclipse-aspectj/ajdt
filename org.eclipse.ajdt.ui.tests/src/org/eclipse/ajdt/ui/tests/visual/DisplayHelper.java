@@ -431,13 +431,13 @@ final class DisplayWaiter {
 				} catch (InterruptedException e) {
 					// ignore and end the thread - we never interrupt ourselves,
 					// so it must be an external entity that interrupted us
-					Logger.global.log(Level.FINE, "", e);
+					Logger.global.log(Level.FINE, "", e); //$NON-NLS-1$
 				} catch (ThreadChangedException e) {
 					// the thread was stopped and restarted before we got out
 					// of a wait - we're no longer used
 					// we might have been notified instead of the current thread,
 					// so wake it up
-					Logger.global.log(Level.FINE, "", e);
+					Logger.global.log(Level.FINE, "", e); //$NON-NLS-1$
 					synchronized (fMutex) {
 						fMutex.notifyAll();
 					}
@@ -491,7 +491,7 @@ final class DisplayWaiter {
 				long delta;
 				while (isState(RUNNING) && (delta = fNextTimeout - System.currentTimeMillis()) > 0) {
 					delta= Math.max(delta, 50); // wait at least 50ms in order to avoid timing out before the display is going to sleep
-					Logger.global.finest("sleeping for " + delta + "ms");
+					Logger.global.finest("sleeping for " + delta + "ms"); //$NON-NLS-1$ //$NON-NLS-2$
 					fMutex.wait(delta);
 					checkThread();
 				}
@@ -503,7 +503,7 @@ final class DisplayWaiter {
 			 * <code>STOPPED</code>.
 			 */
 			private void timedOut() {
-				Logger.global.finer("timed out");
+				Logger.global.finer("timed out"); //$NON-NLS-1$
 				fCurrentTimeoutState.setTimedOut(true);
 				fDisplay.wake(); // wake up call!
 				if (fKeepRunningOnTimeout)
@@ -546,11 +546,11 @@ final class DisplayWaiter {
 	 */
 	private boolean tryTransition(int possibleStates, int nextState) {
 		if (isState(possibleStates)) {
-			Logger.global.finer(name(fState) + " > " + name(nextState) + " (" + name(possibleStates) + ")");
+			Logger.global.finer(name(fState) + " > " + name(nextState) + " (" + name(possibleStates) + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			fState= nextState;
 			return true;
 		}
-		Logger.global.finest("noTransition" + name(fState) + " !> " + name(nextState) + " (" + name(possibleStates) + ")");
+		Logger.global.finest("noTransition" + name(fState) + " !> " + name(nextState) + " (" + name(possibleStates) + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		return false;
 	}
 	
@@ -563,7 +563,7 @@ final class DisplayWaiter {
 	 */
 	private void checkedTransition(int possibleStates, int nextState) {
 		assertStates(possibleStates);
-		Logger.global.finer(name(fState) + " > " + name(nextState));
+		Logger.global.finer(name(fState) + " > " + name(nextState)); //$NON-NLS-1$
 		fState= nextState;
 	}
 	
@@ -575,7 +575,7 @@ final class DisplayWaiter {
 	 *         in <code>states</code>
 	 */
 	private void assertStates(int states) {
-		Assert.assertTrue("illegal state", isState(states));
+		Assert.assertTrue("illegal state", isState(states)); //$NON-NLS-1$
 	}
 
 	/**
@@ -600,19 +600,19 @@ final class DisplayWaiter {
 		StringBuffer buf= new StringBuffer();
 		boolean comma= false;
 		if ((states & RUNNING) == RUNNING) {
-			buf.append("RUNNING");
+			buf.append("RUNNING"); //$NON-NLS-1$
 			comma= true;
 		}
 		if ((states & STOPPED) == STOPPED) {
 			if (comma)
-				buf.append(",");
-			buf.append("STOPPED");
+				buf.append(","); //$NON-NLS-1$
+			buf.append("STOPPED"); //$NON-NLS-1$
 			comma= true;
 		}
 		if ((states & IDLE) == IDLE) {
 			if (comma)
-				buf.append(",");
-			buf.append("IDLE");
+				buf.append(","); //$NON-NLS-1$
+			buf.append("IDLE"); //$NON-NLS-1$
 		}
 		return buf.toString();
 	}

@@ -49,10 +49,10 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		super.setUp();
 		testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
-		pB = createPredefinedProject("bug99133b");
+		pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
 		waitForAutoBuild();
 		waitForAutoBuild();
-		pA = createPredefinedProject("bug99133a");
+		pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
 		waitForAutoBuild();
 		waitForAutoBuild();
 		checkForJDTBug84214(pA,pB);
@@ -61,7 +61,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		// test for bug 107027 - there were classpath problems if this
 		// test is run after others because we didn't flush the classpath
 		// in the core plugin
-		assertFalse("log should contain no errors",testLog.containsMessage("error"));
+		assertFalse("log should contain no errors",testLog.containsMessage("error")); //$NON-NLS-1$ //$NON-NLS-2$
 		numberOfBuilds = testLog.getNumberOfBuildsRun();
 	}
 
@@ -89,7 +89,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	public void testBug99133a() throws Exception {
 		// change the contents of the method m1() in 
 		// bug99133b\src\p\C1.java to include a sysout call
-		IFile c1 = getFile(pB,"p","C1.java");
+		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
 		StringBuffer sb1 = new StringBuffer();
@@ -97,11 +97,11 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		String line1 = br1.readLine();
 		while (line1 != null) {
 			if (lineNumber1 == 5) {
-				sb1.append("System.out.println(\"Hello\");");
+				sb1.append("System.out.println(\"Hello\");"); //$NON-NLS-1$
 			} else {
 				sb1.append(line1);
 			}
-			sb1.append(System.getProperty("line.separator"));
+			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
 			lineNumber1++;
 			line1 = br1.readLine();
 		}
@@ -110,7 +110,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		c1.setContents(new ReaderInputStream(reader1), true, true, null);
 		waitForAutoBuild();
 		waitForAutoBuild();
-		assertEquals("two more builds should have occured",
+		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				numberOfBuilds + 2,
 				testLog.getNumberOfBuildsRun());
 		
@@ -118,28 +118,28 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		// dependent project is an incremental build.
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133b build then fail
 		// printing out whether did a full build instead
 		if (!incB) {
-			fail("Changing method contents of a method in project bug99133b " 
-				+ "should cause an incremental build of project bug99133b "
-				+ ": (did a full build instead:" + fullB+")");
+			fail("Changing method contents of a method in project bug99133b "  //$NON-NLS-1$
+				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		List buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133a build then fail
 		// printing out whether did a full build instead
 		if (!incA) {
-			fail("Changing method contents of method in project bug99133b "
-					+ "should cause an incremental build of dependent project "
-					+ "bug99133a : (did a full build instead:" + fullA + ")");
+			fail("Changing method contents of method in project bug99133b " //$NON-NLS-1$
+					+ "should cause an incremental build of dependent project " //$NON-NLS-1$
+					+ "bug99133a : (did a full build instead:" + fullA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 
@@ -151,7 +151,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	 */
 	public void testBug99133b() throws Exception {
 		//change the return type of the method m1() in bug99133b\src\p\C1.java
-		IFile c1 = getFile(pB,"p","C1.java");
+		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
 		StringBuffer sb1 = new StringBuffer();
@@ -159,13 +159,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		String line1 = br1.readLine();
 		while (line1 != null) {
 			if (lineNumber1 == 4) {
-				sb1.append("public String m1() {");
+				sb1.append("public String m1() {"); //$NON-NLS-1$
 			} else if (lineNumber1 == 5) {
-				sb1.append("return \"Hello\";");
+				sb1.append("return \"Hello\";"); //$NON-NLS-1$
 			} else {
 				sb1.append(line1);
 			}
-			sb1.append(System.getProperty("line.separator"));
+			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
 			lineNumber1++;
 			line1 = br1.readLine();
 		}
@@ -176,34 +176,34 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 		waitForAutoBuild();
-		assertEquals("two more builds should have occured",
+		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				numberOfBuilds + 2,
 				testLog.getNumberOfBuildsRun());
 	
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133b build then fail
 		// printing out whether did a full build instead
 		if (!incB) {
-			fail("Changing the method signature of method in project bug99133b " 
-				+ "should cause an incremental build of project bug99133b "
-				+ ": (did a full build instead:" + fullB+")");
+			fail("Changing the method signature of method in project bug99133b "  //$NON-NLS-1$
+				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		List buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not a full build of project bug99133a build then fail
 		// printing out whether did an incremental build instead
 		if (!fullA) {
-			fail("Changing the method signature of a method in project bug99133b "
-					+ "should cause an full build of dependent project bug99133a "
-					+ ": (did an incremental build instead:" + incA + ")");
+			fail("Changing the method signature of a method in project bug99133b " //$NON-NLS-1$
+					+ "should cause an full build of dependent project bug99133a " //$NON-NLS-1$
+					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 
@@ -214,7 +214,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	public void testBug99133c() throws Exception {
 		// change the contents of the method m1() in 
 		// bug99133b\src\p\C1.java to include a sysout call
-		IFile c1 = getFile(pB,"p","C1.java");
+		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
 		StringBuffer sb1 = new StringBuffer();
@@ -222,11 +222,11 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		String line1 = br1.readLine();
 		while (line1 != null) {
 			if (lineNumber1 == 9) {
-				sb1.append("System.out.println(\"Hello\");");
+				sb1.append("System.out.println(\"Hello\");"); //$NON-NLS-1$
 			} else {
 				sb1.append(line1);
 			}
-			sb1.append(System.getProperty("line.separator"));
+			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
 			lineNumber1++;
 			line1 = br1.readLine();
 		}
@@ -236,7 +236,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 		
-		assertEquals("two more builds should have occured",
+		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				numberOfBuilds + 2,
 				testLog.getNumberOfBuildsRun());
 
@@ -244,29 +244,29 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		// incremental build.
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133b build then fail
 		// printing out whether did a full build instead
 		if (!incB) {
-			fail("Changing the method contents of a method in project bug99133b " 
-				+ "should cause an incremental build of project bug99133b "
-				+ ": (did a full build instead:" + fullB+")");
+			fail("Changing the method contents of a method in project bug99133b "  //$NON-NLS-1$
+				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		List buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133a build then fail
 		// printing out whether did a full build instead
 		if (!incA) {
-			fail("Changing the method contents of an unreferenced method " 
-					+ "in project bug99133b should cause an incremental build " 
-					+ "of dependent project bug99133a "
-					+ ": (did a full build instead:" + fullA + ")");
+			fail("Changing the method contents of an unreferenced method "  //$NON-NLS-1$
+					+ "in project bug99133b should cause an incremental build "  //$NON-NLS-1$
+					+ "of dependent project bug99133a " //$NON-NLS-1$
+					+ ": (did a full build instead:" + fullA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 	}
@@ -280,7 +280,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	public void testBug99133d() throws Exception {
 
 		//change the return type of the method m1() in bug99133b\src\p\C1.java
-		IFile c1 = getFile(pB,"p","C1.java");
+		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
 		StringBuffer sb1 = new StringBuffer();
@@ -288,13 +288,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		String line1 = br1.readLine();
 		while (line1 != null) {
 			if (lineNumber1 == 8) {
-				sb1.append("public String m2() {");
+				sb1.append("public String m2() {"); //$NON-NLS-1$
 			} else if (lineNumber1 == 9) {
-				sb1.append("return \"Hello\";");
+				sb1.append("return \"Hello\";"); //$NON-NLS-1$
 			} else {
 				sb1.append(line1);
 			}
-			sb1.append(System.getProperty("line.separator"));
+			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
 			lineNumber1++;
 			line1 = br1.readLine();
 		}
@@ -304,35 +304,35 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 
-		assertEquals("two more builds should have occured",
+		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				numberOfBuilds + 2,
 				testLog.getNumberOfBuildsRun());
 		
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133b build then fail
 		// printing out whether did a full build instead
 		if (!incB) {
-			fail("Changing the signature of a method in project bug99133b " 
-				+ "should cause an incremental build of project bug99133b "
-				+ ": (did a full build instead:" + fullB+")");
+			fail("Changing the signature of a method in project bug99133b "  //$NON-NLS-1$
+				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		List buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not a full build of project bug99133a build then fail
 		// printing out whether did an incremental build instead
 		if (!fullA) {
-			fail("Changing the signature of an unreferenced method in" 
-					+ " project bug99133b should cause a full build of "
-					+ " dependent project bug99133a "
-					+ ": (did an incremental build instead:" + incA + ")");
+			fail("Changing the signature of an unreferenced method in"  //$NON-NLS-1$
+					+ " project bug99133b should cause a full build of " //$NON-NLS-1$
+					+ " dependent project bug99133a " //$NON-NLS-1$
+					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 
@@ -345,7 +345,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	public void testBug99133e() throws Exception {
 
 		//change the return type of the method m1() in bug99133b\src\p\C1.java
-		IFile c1 = getFile(pB,"p","C1.java");
+		IFile c1 = getFile(pB,"p","C1.java"); //$NON-NLS-1$ //$NON-NLS-2$
 		BufferedReader br1 = new BufferedReader(new InputStreamReader(c1.getContents()));
 
 		StringBuffer sb1 = new StringBuffer();
@@ -353,13 +353,13 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		String line1 = br1.readLine();
 		while (line1 != null) {
 			if (lineNumber1 == 10) {
-				sb1.append("}");
-				sb1.append(System.getProperty("line.separator"));
-				sb1.append("public void m3() {}");
+				sb1.append("}"); //$NON-NLS-1$
+				sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
+				sb1.append("public void m3() {}"); //$NON-NLS-1$
 			} else {
 				sb1.append(line1);
 			}
-			sb1.append(System.getProperty("line.separator"));
+			sb1.append(System.getProperty("line.separator")); //$NON-NLS-1$
 			lineNumber1++;
 			line1 = br1.readLine();
 		}
@@ -369,34 +369,34 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		waitForAutoBuild();
 		waitForAutoBuild();
 
-		assertEquals("two more builds should have occured",
+		assertEquals("two more builds should have occured", //$NON-NLS-1$
 				numberOfBuilds + 2,
 				testLog.getNumberOfBuildsRun());
 		
 		List buildLogB = testLog.getPreviousBuildEntry(2);
 		boolean incB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullB = listContainsString(buildLogB,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not an incremental build of project bug99133b build then fail
 		// printing out whether did a full build instead
 		if (!incB) {
-			fail("Adding a method in project bug99133b " 
-				+ "should cause an incremental build of project bug99133b "
-				+ ": (did a full build instead:" + fullB+")");
+			fail("Adding a method in project bug99133b "  //$NON-NLS-1$
+				+ "should cause an incremental build of project bug99133b " //$NON-NLS-1$
+				+ ": (did a full build instead:" + fullB+")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		List buildLogA = testLog.getPreviousBuildEntry(1);
 		boolean incA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: INCREMENTAL");
+				"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
 		boolean fullA = listContainsString(buildLogA,
-				"AspectJ reports build successful, build was: FULL");
+				"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 		// if not a full build of project bug99133a build then fail
 		// printing out whether did an incremental build instead
 		if (!fullA) {
-			fail("Adding a method in project bug99133b "
-					+ "should cause an full build of dependent project bug99133b "
-					+ ": (did an incremental build instead:" + incA + ")");
+			fail("Adding a method in project bug99133b " //$NON-NLS-1$
+					+ "should cause an full build of dependent project bug99133b " //$NON-NLS-1$
+					+ ": (did an incremental build instead:" + incA + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 	}
@@ -437,7 +437,7 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	}
 	
 	private IFile getFile(IProject project, String packageName, String fileName) throws CoreException {
-		IFolder src = project.getFolder("src");
+		IFolder src = project.getFolder("src"); //$NON-NLS-1$
 		if (!src.exists()) {
 			src.create(true, true, null);
 		}
@@ -446,12 +446,12 @@ public class Bug99133Test extends AJDTCoreTestCase {
 			pack.create(true, true, null);
 		}
 		
-		assertNotNull("src folder should not be null", src);
-		assertNotNull("package pack should not be null", pack);
+		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
+		assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
 
 		IFile f = pack.getFile(fileName);
-		assertNotNull(fileName + " should not be null", f);
-		assertTrue(fileName + " should exist", f.exists());
+		assertNotNull(fileName + " should not be null", f); //$NON-NLS-1$
+		assertTrue(fileName + " should exist", f.exists()); //$NON-NLS-1$
 		return f;
 	}
 	
@@ -470,18 +470,18 @@ public class Bug99133Test extends AJDTCoreTestCase {
 			waitForAutoBuild();
 			waitForAutoBuild();
 		}
-		assertEquals(" " + projectDependedOn  + " should have " 
+		assertEquals(" " + projectDependedOn  + " should have "  //$NON-NLS-1$ //$NON-NLS-2$
 				+ projectWhichShouldHaveDependency 
-				+ " as it's list of referencing projects - if not, see JDT bug 84214",
+				+ " as it's list of referencing projects - if not, see JDT bug 84214", //$NON-NLS-1$
 				1, projectDependedOn.getReferencingProjects().length);
 	}
 	
 	private void printFileContents(IFile file) throws IOException, CoreException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
 		String line = br.readLine();
-		System.out.println("----------");
+		System.out.println("----------"); //$NON-NLS-1$
 		while (line != null) {
-			System.out.println("line: " + line);
+			System.out.println("line: " + line); //$NON-NLS-1$
 			line = br.readLine();
 		}
 		br.close();
@@ -498,12 +498,12 @@ public class Bug99133Test extends AJDTCoreTestCase {
 	}
 	
 	private void printListOfStrings(List l) {
-		System.out.println("");
+		System.out.println(""); //$NON-NLS-1$
 		for (Iterator iter = l.iterator(); iter.hasNext();) {
 			String element = (String) iter.next();
-			System.out.println("LIST: " + element);
+			System.out.println("LIST: " + element); //$NON-NLS-1$
 		}
-		System.out.println("");
+		System.out.println(""); //$NON-NLS-1$
 	}
 	
 }

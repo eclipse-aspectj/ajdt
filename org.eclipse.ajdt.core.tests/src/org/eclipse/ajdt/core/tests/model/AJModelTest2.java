@@ -36,11 +36,11 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testAspectPathDirWeaving() throws Exception {
-		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary");
+		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary"); //$NON-NLS-1$
 		if (libProject==null) {
-			libProject = createPredefinedProject("MyAspectLibrary");
+			libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
 		}
-		IProject weaveMeProject = createPredefinedProject("WeaveMe");
+		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 			List allRels = AJModel.getInstance().getAllRelationships(
@@ -49,14 +49,14 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				IJavaElement source = rel.getSource();
-				if (source.getElementName().equals("main")) {
+				if (source.getElementName().equals("main")) { //$NON-NLS-1$
 					IJavaElement target = rel.getTarget();
-					if (target.getElementName().indexOf("binary aspect") != -1) {
+					if (target.getElementName().indexOf("binary aspect") != -1) { //$NON-NLS-1$
 						gotBinaryAdvice = true;
 					}
 				}
 			}
-			assertTrue("Didn't find main element advised by an injar aspect",
+			assertTrue("Didn't find main element advised by an injar aspect", //$NON-NLS-1$
 					gotBinaryAdvice);
 		} finally {
 			deleteProject(weaveMeProject);
@@ -72,7 +72,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testHasRuntimeTest() throws Exception {
-		IProject project = createPredefinedProject("MarkersTest");
+		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 			List allRels = AJModel.getInstance().getAllRelationships(project,
@@ -82,22 +82,22 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			for (Iterator iter = allRels.iterator(); iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				IJavaElement source = rel.getSource();
-				if (source.getElementName().equals("bar")) {
+				if (source.getElementName().equals("bar")) { //$NON-NLS-1$
 					IJavaElement target = rel.getTarget();
-					if (target.getElementName().equals("before")
+					if (target.getElementName().equals("before") //$NON-NLS-1$
 							&& !rel.hasRuntimeTest()) {
 						gotBeforeAdviceWithoutRuntimeTest = true;
-					} else if (target.getElementName().equals("around")
+					} else if (target.getElementName().equals("around") //$NON-NLS-1$
 							&& rel.hasRuntimeTest()) {
 						gotAroundAdviceWithRuntimeTest = true;
 					}
 				}
 			}
 			assertTrue(
-					"Didn't find \"bar\" element advised by before advice without a runtime test",
+					"Didn't find \"bar\" element advised by before advice without a runtime test", //$NON-NLS-1$
 					gotBeforeAdviceWithoutRuntimeTest);
 			assertTrue(
-					"Didn't find \"bar\" element advised by around advice with a runtime test",
+					"Didn't find \"bar\" element advised by around advice with a runtime test", //$NON-NLS-1$
 					gotAroundAdviceWithRuntimeTest);
 		} finally {
 			deleteProject(project);

@@ -37,22 +37,22 @@ import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 
 public class LTWUtilsTest extends UITestCase{
 	
-	private String line0Start = "<?xml version=\"1.0\"";
-	private String aspectjBegin = "<aspectj>";
-	private String aspectjEnd = "</aspectj>";
-	private String aspectsBegin = "\t<aspects>";
-	private String aspectsEnd = "\t</aspects>";
-	private String aspects = "\t<aspects/>";
+	private String line0Start = "<?xml version=\"1.0\""; //$NON-NLS-1$
+	private String aspectjBegin = "<aspectj>"; //$NON-NLS-1$
+	private String aspectjEnd = "</aspectj>"; //$NON-NLS-1$
+	private String aspectsBegin = "\t<aspects>"; //$NON-NLS-1$
+	private String aspectsEnd = "\t</aspects>"; //$NON-NLS-1$
+	private String aspects = "\t<aspects/>"; //$NON-NLS-1$
 	
 	// abstract aspects (which we don't want to include)
 	public void testGetConcreteAspects() throws Exception {
-		IProject project = createPredefinedProject("Tracing Example");
+		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		ProjectBuildConfigurator bc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		Collection c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
 			BuildConfiguration element = (BuildConfiguration) iter.next();
-			if (element.getName().equals("tracelib")) {
+			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
 		}	
@@ -66,45 +66,45 @@ public class LTWUtilsTest extends UITestCase{
 				srcRoots.add(root);
 			}
 		}
-		assertEquals("There should be one src directory",1,srcRoots.size());
+		assertEquals("There should be one src directory",1,srcRoots.size()); //$NON-NLS-1$
 		List aspects = LTWUtils.getConcreteAspects((IPackageFragmentRoot)srcRoots.get(0));
-		assertEquals("There should be one concrete aspect",1,aspects.size());
-		assertEquals("The concrete aspect should be called TraceMyClasses","TraceMyClasses",((AspectElement)aspects.get(0)).getElementName());
+		assertEquals("There should be one concrete aspect",1,aspects.size()); //$NON-NLS-1$
+		assertEquals("The concrete aspect should be called TraceMyClasses","TraceMyClasses",((AspectElement)aspects.get(0)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 		
 	}
 	
 	// multiple source folders with no aspects
 	public void testGenerateLTWConfigFile1() throws Exception {
-		IProject project = createPredefinedProject("MultipleSourceFolders");
+		IProject project = createPredefinedProject("MultipleSourceFolders"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
-		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);
-		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION);
+		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
+		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		
-		assertNull("aop.xml shouldn't exist in src directory because there are no aspects",r1);
-		assertNull("aop.xml shouldn't exist in src2 directory because there are no aspects",r2);
+		assertNull("aop.xml shouldn't exist in src directory because there are no aspects",r1); //$NON-NLS-1$
+		assertNull("aop.xml shouldn't exist in src2 directory because there are no aspects",r2); //$NON-NLS-1$
 	}
 	
 	// one source folder with aspects
 	public void testGenerateLTWConfigFile2() throws Exception {
-		IProject project = createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
-		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
+		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"bean.BoundPoint\"/>",
+				"\t\t<aspect name=\"bean.BoundPoint\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -115,29 +115,29 @@ public class LTWUtilsTest extends UITestCase{
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 				
-		IResource r2 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r2);
+		IResource r2 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r2); //$NON-NLS-1$
 
 		compareFileContentsWithExpected((IFile)r2, expectedLines);
 	}
 	
 	// no src folders with aspects
 	public void testGenerateLTWConfigFile3() throws Exception {
-		IProject project = createPredefinedProject("WithoutSourceFolder");
+		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);	
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember(LTWUtils.AOP_XML_LOCATION);		
-		assertNotNull("aop.xml should exist in project directory because there are aspects",r1);
+		assertNotNull("aop.xml should exist in project directory because there are aspects",r1); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"A\"/>",
+				"\t\t<aspect name=\"A\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -147,37 +147,37 @@ public class LTWUtilsTest extends UITestCase{
 	
 	// no source folders, no aspects
 	public void testGenerateLTWConfigFile4() throws Exception {
-		IProject project = createPredefinedProject("Simple Project");
+		IProject project = createPredefinedProject("Simple Project"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);	
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember(LTWUtils.AOP_XML_LOCATION);		
-		assertNull("aop.xml should not exist in the project directory because there are no aspects",r1);
+		assertNull("aop.xml should not exist in the project directory because there are no aspects",r1); //$NON-NLS-1$
 
 	}
 	
 	// multiple source folders with aspects
 	public void testGenerateLTWConfigFile5() throws Exception {
-		IProject project = createPredefinedProject("MultipleSourceFoldersWithAspects");
+		IProject project = createPredefinedProject("MultipleSourceFoldersWithAspects"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 
-		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);
-		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION);
+		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
+		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
-		assertNotNull("aop.xml should exist in src2 directory because there are aspects",r2);
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src2 directory because there are aspects",r2); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"pack.A1\"/>",
+				"\t\t<aspect name=\"pack.A1\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -188,7 +188,7 @@ public class LTWUtilsTest extends UITestCase{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"pack.A2\"/>",
+				"\t\t<aspect name=\"pack.A2\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -197,13 +197,13 @@ public class LTWUtilsTest extends UITestCase{
 	
 	// abstract aspects (which we don't want to include)
 	public void testGenerateLTWConfigFile6() throws Exception {
-		IProject project = createPredefinedProject("Tracing Example");
+		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		ProjectBuildConfigurator bc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		Collection c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
 			BuildConfiguration element = (BuildConfiguration) iter.next();
-			if (element.getName().equals("tracelib")) {
+			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
 		}	
@@ -213,15 +213,15 @@ public class LTWUtilsTest extends UITestCase{
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 
-		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
+		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>",
+				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -231,7 +231,7 @@ public class LTWUtilsTest extends UITestCase{
 		c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
 			BuildConfiguration element = (BuildConfiguration) iter.next();
-			if (element.getName().equals("tracev1")) {
+			if (element.getName().equals("tracev1")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
 		}	
@@ -239,15 +239,15 @@ public class LTWUtilsTest extends UITestCase{
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
-		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
+		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
 				aspectsBegin,
-				"\t\t<aspect name=\"tracing.version1.TraceMyClasses\"/>",
+				"\t\t<aspect name=\"tracing.version1.TraceMyClasses\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
@@ -258,7 +258,7 @@ public class LTWUtilsTest extends UITestCase{
 		c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
 			BuildConfiguration element = (BuildConfiguration) iter.next();
-			if (element.getName().equals("notrace")) {
+			if (element.getName().equals("notrace")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
 		}	
@@ -266,8 +266,8 @@ public class LTWUtilsTest extends UITestCase{
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
-		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
+		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
@@ -283,24 +283,24 @@ public class LTWUtilsTest extends UITestCase{
 	// one source folder with aspects and aop.xml file which
 	// contains other contents
 	public void testGenerateLTWConfigFile7() throws Exception {
-		IProject project = createPredefinedProject("project.with.aop.xml.file");
+		IProject project = createPredefinedProject("project.with.aop.xml.file"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
-		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1);
+		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
+		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
 				line0Start,
 				aspectjBegin,
-				"\t<weaver options=\"-verbose -showWeaveInfo\"/>",
+				"\t<weaver options=\"-verbose -showWeaveInfo\"/>", //$NON-NLS-1$
 				aspectsBegin,
-				"\t\t<aspect name=\"bean.BoundPoint\"/>",
+				"\t\t<aspect name=\"bean.BoundPoint\"/>", //$NON-NLS-1$
 				aspectsEnd,
-				"<!-- this is a comment -->",
+				"<!-- this is a comment -->", //$NON-NLS-1$
 				aspectjEnd};
 		
 		file.refreshLocal(1, null);
@@ -311,9 +311,9 @@ public class LTWUtilsTest extends UITestCase{
 	private void printFileContents(IFile file) throws IOException, CoreException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
 		String line = br.readLine();
-		System.out.println("----------");
+		System.out.println("----------"); //$NON-NLS-1$
 		while (line != null) {
-			System.out.println("line: " + line);
+			System.out.println("line: " + line); //$NON-NLS-1$
 			line = br.readLine();
 		}
 		br.close();
@@ -327,14 +327,14 @@ public class LTWUtilsTest extends UITestCase{
 		while (line != null) {
 			if (counter == 0) {
 				if (!line.startsWith(expectedLines[0])) {
-				 fail("expected line 1 to start with " + expectedLines[counter] 
-						+ (counter+1) + ", found " + line);
+				 fail("expected line 1 to start with " + expectedLines[counter]  //$NON-NLS-1$
+						+ (counter+1) + ", found " + line); //$NON-NLS-1$
 				}
 			} else if ((expectedLines.length <= counter) 
 					|| !line.equals(expectedLines[counter]) ) {
 				br.close();
-				fail("expected " + expectedLines[counter] + " on line " 
-						+ (counter+1) + ", found " + line);
+				fail("expected " + expectedLines[counter] + " on line "  //$NON-NLS-1$ //$NON-NLS-2$
+						+ (counter+1) + ", found " + line); //$NON-NLS-1$
 			}
 			counter++;
 			line = br.readLine();

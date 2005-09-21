@@ -72,7 +72,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 				sleep();
 
 				// Enter a name for the project
-				postString("Project1");
+				postString("Project1"); //$NON-NLS-1$
 
 				// Complete the wizard
 				postKey(SWT.CR);
@@ -88,15 +88,15 @@ public class BuildConfigurationTest extends VisualTestCase {
 		new DisplayHelper() {
 
 			protected boolean condition() {
-				boolean ret = workspace.getRoot().getProject("Project1").exists();
+				boolean ret = workspace.getRoot().getProject("Project1").exists(); //$NON-NLS-1$
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
 
-		IProject project = workspace.getRoot().getProject("Project1");
+		IProject project = workspace.getRoot().getProject("Project1"); //$NON-NLS-1$
 
-		assertTrue("Should have created a project", project.exists());	
+		assertTrue("Should have created a project", project.exists());	 //$NON-NLS-1$
 		
 		// Test that a build file has been created
 		IFile buildFile = checkBuildFileExists(project);
@@ -110,21 +110,21 @@ public class BuildConfigurationTest extends VisualTestCase {
 		// Create a package and a class and test that they are included in the build
 		addNewPackage();
 		IJavaProject jp = JavaCore.create(project);
-		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
+		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1"); //$NON-NLS-1$ //$NON-NLS-2$
 		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		packageExplorer.setFocus();
 		packageExplorer.selectAndReveal(p1);
 		addNewClass();				
-		IResource res = project.findMember("src/p1/Hello.java");
-		assertNotNull("New class Hello.java wan't created",res);
+		IResource res = project.findMember("src/p1/Hello.java"); //$NON-NLS-1$
+		assertNotNull("New class Hello.java wan't created",res); //$NON-NLS-1$
 		
 		DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
 		Image image = djlp.getImage(p1);
 		Image expected = JavaPlugin.getImageDescriptorRegistry().get(ImageDecorator.getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_PACKAGE, image.getBounds(), 0));
-		assertTrue("The new package should have a filled-in image", expected.equals(image));
+		assertTrue("The new package should have a filled-in image", expected.equals(image)); //$NON-NLS-1$
 		
 		// Add a main method and run the class to test that it has been built
-		ICompilationUnit hello = p1.getCompilationUnit("Hello.java");
+		ICompilationUnit hello = p1.getCompilationUnit("Hello.java"); //$NON-NLS-1$
 		addMainMethod(hello);
 		packageExplorer.setFocus();
 		packageExplorer.selectAndReveal(hello);
@@ -149,24 +149,24 @@ public class BuildConfigurationTest extends VisualTestCase {
 				cview = (ConsoleView)views[i].getView(false);
 			}
 		}
-		assertNotNull("Console view should be open", cview);
+		assertNotNull("Console view should be open", cview); //$NON-NLS-1$
 		String output = null;
 		IPage page = cview.getCurrentPage();
 		Class cl = page.getClass();
 		try {
-			Method m = cl.getMethod("getConsoleViewer", new Class[0]);
+			Method m = cl.getMethod("getConsoleViewer", new Class[0]); //$NON-NLS-1$
 			Object o = m.invoke(page, new Object[0]);
 			TextViewer viewer = (TextViewer)o;
 			output = viewer.getDocument().get();
 		} catch (NoSuchMethodException nsme) {
 			// We are on Eclipse 3.1
-			Method m = cl.getMethod("getViewer", new Class[0]);
+			Method m = cl.getMethod("getViewer", new Class[0]); //$NON-NLS-1$
 			Object o = m.invoke(page, new Object[0]);
 			TextViewer viewer = (TextViewer)o;
 			output = viewer.getDocument().get();
 		}
 		assertNotNull(output);
-		assertTrue("program did not run correctly", output.indexOf("Hello") != -1);
+		assertTrue("program did not run correctly", output.indexOf("Hello") != -1); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -175,12 +175,12 @@ public class BuildConfigurationTest extends VisualTestCase {
 	 */
 	private void addMainMethod(ICompilationUnit hello) throws CoreException {
 		IFile helloFile = (IFile)hello.getResource();
-		String s = "package p1; \n" +
-			"public class Hello { \n\n" +
-			"	public static void main(String[] args) { \n" +
-			"		System.out.println(\"Hello\"); \n" +				
-			"	} \n" + 	
-			"} \n";
+		String s = "package p1; \n" + //$NON-NLS-1$
+			"public class Hello { \n\n" + //$NON-NLS-1$
+			"	public static void main(String[] args) { \n" + //$NON-NLS-1$
+			"		System.out.println(\"Hello\"); \n" +				 //$NON-NLS-1$
+			"	} \n" + 	 //$NON-NLS-1$
+			"} \n"; //$NON-NLS-1$
 		InputStream stream = new ByteArrayInputStream(s.getBytes()); 
 		helloFile.setContents(stream, true, true, null);
 		waitForJobsToComplete();
@@ -198,7 +198,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);			
 	
 		postKey(SWT.CR);
-		postString("Hello");
+		postString("Hello"); //$NON-NLS-1$
 		postKey(SWT.CR);
 		waitForJobsToComplete();	
 	}
@@ -251,7 +251,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postString("src");
+				postString("src"); //$NON-NLS-1$
 				postKey(SWT.CR);
 			}
 		};
@@ -263,7 +263,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
 		br.close();
-		assertTrue("Contents of the build configuration file are wrong after adding a source folder", line1.trim().equals("src.includes = src/"));		
+		assertTrue("Contents of the build configuration file are wrong after adding a source folder", line1.trim().equals("src.includes = src/"));		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -275,12 +275,12 @@ public class BuildConfigurationTest extends VisualTestCase {
 		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
 		String line1 = br.readLine();
 		br.close();
-		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = /"));
+		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = /")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	private IFile checkBuildFileExists(IProject project) {
 		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
-		assertTrue("Should have created a build configuration file", buildFile.exists());
+		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
 		return buildFile;
 	}
 	

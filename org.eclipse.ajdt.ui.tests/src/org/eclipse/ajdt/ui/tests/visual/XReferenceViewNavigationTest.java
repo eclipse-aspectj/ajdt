@@ -43,11 +43,11 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		
 		// import the Bean example and check that the xref view
 		// is showing
-		IProject project = createPredefinedProject("Bean Example");
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}		
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -57,9 +57,9 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		a.run();
 
 		// open BoundPoint.aj and select the pointcut
-		IResource res = project.findMember("src/bean/BoundPoint.aj");
+		IResource res = project.findMember("src/bean/BoundPoint.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;				
 		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
@@ -73,9 +73,9 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 8 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 8 cross references shown",8,originalParentNode.getChildren().length);
+		assertEquals("There should be 8 cross references shown",8,originalParentNode.getChildren().length); //$NON-NLS-1$
 		
 		// click somewhere else in the file where if "show xrefs for entire
 		// file" wasn't selected, would change the contents of the view
@@ -95,12 +95,12 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		
 		// check that we have the same contents in the xref view
 		final ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents1.size());
-		assertEquals("xref view should contain the same contents",originalContents,newContents1);
+		assertEquals("there should be one reference source featured in the xref view",1,newContents1.size()); //$NON-NLS-1$
+		assertEquals("xref view should contain the same contents",originalContents,newContents1); //$NON-NLS-1$
 		
 		TreeParent newParentNode1 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents1.get(0));
-		assertEquals("There should be 8 cross references shown",8,newParentNode1.getChildren().length);
-		assertEquals("xref view should contain the same top level node",originalParentNode,newParentNode1);
+		assertEquals("There should be 8 cross references shown",8,newParentNode1.getChildren().length); //$NON-NLS-1$
+		assertEquals("xref view should contain the same top level node",originalParentNode,newParentNode1); //$NON-NLS-1$
 		
 		// turn off "show xrefs for entire file. The xref view should
 		// show xrefs for the current selection (piece of around advice)
@@ -120,14 +120,14 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 
 		// check that the view only contains the xrefs for the around advice
 		final ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size()); //$NON-NLS-1$
 				
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents2.get(0));
-		assertTrue("top level node in xref view should be an AdviceElement",(newParentNode2.getData() instanceof AdviceElement));
-		assertEquals("There should be 1 cross references shown",1,newParentNode2.getChildren().length);
+		assertTrue("top level node in xref view should be an AdviceElement",(newParentNode2.getData() instanceof AdviceElement)); //$NON-NLS-1$
+		assertEquals("There should be 1 cross references shown",1,newParentNode2.getChildren().length); //$NON-NLS-1$
 		
 		AdviceElement ae = (AdviceElement)newParentNode2.getData();
-		assertEquals("the name of the current parent node should be around","around" ,ae.getElementName());
+		assertEquals("the name of the current parent node should be around","around" ,ae.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 	
 		// turn "show xrefs for entire file" back on and the view should now
 		// contain the xrefs for the entire file
@@ -147,9 +147,9 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		
 		// check that the view now shows the xrefs for the entire file
 		ArrayList newContents3 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents3.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents3.size()); //$NON-NLS-1$
 		TreeParent newParentNode3 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents3.get(0));
-		assertEquals("There should be 8 cross references shown",8,newParentNode3.getChildren().length);
+		assertEquals("There should be 8 cross references shown",8,newParentNode3.getChildren().length); //$NON-NLS-1$
 		
 		TreeObject[] originalChildren = originalParentNode.getChildren();
 		TreeObject[] newChildren = newParentNode3.getChildren();
@@ -158,7 +158,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 			
 		for (int i = 0; i < newChildren.length; i++) {
 			JavaElement child = (JavaElement)newChildren[i].getData();	
-			if ((child instanceof AdviceElement) && child.getElementName().equals("around")) {
+			if ((child instanceof AdviceElement) && child.getElementName().equals("around")) { //$NON-NLS-1$
 				aroundAdvice = newChildren[i];
 			}
 			boolean foundMatch = false;
@@ -168,8 +168,8 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 					foundMatch = true;
 				}
 			}
-			assertTrue("the new tree of xrefs should contain the same xrefs" +
-					" as the old tree", foundMatch);
+			assertTrue("the new tree of xrefs should contain the same xrefs" + //$NON-NLS-1$
+					" as the old tree", foundMatch); //$NON-NLS-1$
 		}
 		
 		// navigate to one of the advised places shown in the xref
@@ -195,7 +195,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
 		final IEditorPart newEditor = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		assertTrue("Demo.java should have been opened in the editor",!(newEditor.equals(editorPart))); 
+		assertTrue("Demo.java should have been opened in the editor",!(newEditor.equals(editorPart)));  //$NON-NLS-1$
 
 		// wait for the xref view to contain something
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
@@ -203,10 +203,10 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// get the cross references and check that the view 
 		// is showing the xrefs for the entire file
 		final ArrayList newContents4 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents4.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents4.size()); //$NON-NLS-1$
 		TreeParent newParentNode4 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents4.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode4.getChildren().length);
-		assertEquals("the root node in the xref view should be entitled Demo","Demo",((JavaElement)newParentNode4.getData()).getElementName());
+		assertEquals("There should be 1 cross reference shown",1,newParentNode4.getChildren().length); //$NON-NLS-1$
+		assertEquals("the root node in the xref view should be entitled Demo","Demo",((JavaElement)newParentNode4.getData()).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// turn off "show xrefs for entire file" 
 		a.setChecked(false);
@@ -236,7 +236,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
 		IEditorPart newEditor2 = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		assertTrue("BoundPoing.aj should have been opened in the editor",(newEditor2.equals(editorPart))); 
+		assertTrue("BoundPoing.aj should have been opened in the editor",(newEditor2.equals(editorPart)));  //$NON-NLS-1$
 		
 		// wait for the xref view to be populated with the current selection
 		new DisplayHelper() {
@@ -252,10 +252,10 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// get the cross references and check that the view 
 		// is showing the xrefs for the around advice only
 		ArrayList newContents5 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents5.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents5.size()); //$NON-NLS-1$
 		TreeParent newParentNode5 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents5.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode5.getChildren().length);
-		assertEquals("the root node in the xref view should be entitled around","around",((JavaElement)newParentNode5.getData()).getElementName());
+		assertEquals("There should be 1 cross reference shown",1,newParentNode5.getChildren().length); //$NON-NLS-1$
+		assertEquals("the root node in the xref view should be entitled around","around",((JavaElement)newParentNode5.getData()).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 
 	}
 	

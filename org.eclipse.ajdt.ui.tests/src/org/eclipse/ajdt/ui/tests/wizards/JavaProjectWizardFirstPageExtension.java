@@ -54,7 +54,7 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 
 	static class NewWizardMessages {
 		static String getString(String s) {
-			return "";
+			return ""; //$NON-NLS-1$
 		}
 	}
 

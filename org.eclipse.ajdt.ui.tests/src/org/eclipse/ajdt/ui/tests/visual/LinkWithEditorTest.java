@@ -36,9 +36,9 @@ public class LinkWithEditorTest extends VisualTestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		packageExplorer = PackageExplorerPart.getFromActivePerspective();
-		assertNotNull("The Package Explorer View should be open", packageExplorer);
+		assertNotNull("The Package Explorer View should be open", packageExplorer); //$NON-NLS-1$
 		linkWithEditorSet = PreferenceConstants.getPreferenceStore().getBoolean(PreferenceConstants.LINK_PACKAGES_TO_EDITOR);
 	}
 	
@@ -49,15 +49,15 @@ public class LinkWithEditorTest extends VisualTestCase {
 	}
 	
 	public void testPackageExplorerSelection() {
-		IResource res = project.findMember("src/p2/Aspect.aj");
-		IResource res2 = project.findMember("src/ClassInDefaultPackage.java");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+		IResource res2 = project.findMember("src/ClassInDefaultPackage.java"); //$NON-NLS-1$
 		if (res == null || res2 == null)
-			fail("Required files not found.");
+			fail("Required files not found."); //$NON-NLS-1$
 		
 		// Open an aj file in the editor then open a java file on top
 		final ITextEditor editor1 = (ITextEditor)openFileInDefaultEditor((IFile)res, true);
 		openFileInDefaultEditor((IFile)res2, true);
-		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1));
+		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1)); //$NON-NLS-1$
 				
 		packageExplorer.setFocus();
 		
@@ -71,22 +71,22 @@ public class LinkWithEditorTest extends VisualTestCase {
 		waitForJobsToComplete();
 	
 		// Check that the editor for the aj file is now on top
-		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));
+		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1)); //$NON-NLS-1$
 		// need to close the AJ editor until bug 98261 is fixed
 		// otherwise testBug100018 will fail
 		editor1.close(false);
 	}
 	
 	public void testEditorSelection() {
-		IResource res = project.findMember("src/p2/Aspect.aj");
-		IResource res2 = project.findMember("src/ClassInDefaultPackage.java");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
+		IResource res2 = project.findMember("src/ClassInDefaultPackage.java"); //$NON-NLS-1$
 		if (res == null || res2 == null)
-			fail("Required files not found.");
+			fail("Required files not found."); //$NON-NLS-1$
 		
 		// Open an aj file in the editor then open a java file on top
 		final ITextEditor editor1 = (ITextEditor)openFileInDefaultEditor((IFile)res, true);
 		openFileInDefaultEditor((IFile)res2, true);
-		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1));
+		assertTrue("Editor for Aspect.aj should not be on top", !isActiveEditor(editor1)); //$NON-NLS-1$
 		IFileEditorInput fInput = (IFileEditorInput) editor1.getEditorInput();
 		AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
 				
@@ -95,7 +95,7 @@ public class LinkWithEditorTest extends VisualTestCase {
 		
 		if(packageExplorer.getTreeViewer().getSelection() instanceof StructuredSelection) {
 			StructuredSelection s = (StructuredSelection)packageExplorer.getTreeViewer().getSelection();
-			assertTrue("Aspect should not be selected", !(ajc.equals(s.getFirstElement())));
+			assertTrue("Aspect should not be selected", !(ajc.equals(s.getFirstElement()))); //$NON-NLS-1$
 		} 
 
 		// Bring the aj editor to the front
@@ -103,18 +103,18 @@ public class LinkWithEditorTest extends VisualTestCase {
 		IWorkbenchPage page = window.getActivePage();
 		page.activate(editor1);
 		editor1.setFocus();
-		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));		
+		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));		 //$NON-NLS-1$
 		
 		
 		if(packageExplorer.getTreeViewer().getSelection() instanceof StructuredSelection) {
 			StructuredSelection s = (StructuredSelection)packageExplorer.getTreeViewer().getSelection();
-			assertTrue("Aspect.aj should be selected", ajc.equals(s.getFirstElement()));
+			assertTrue("Aspect.aj should be selected", ajc.equals(s.getFirstElement())); //$NON-NLS-1$
 		} else {
-			fail("Nothing was selected in the package explorer");
+			fail("Nothing was selected in the package explorer"); //$NON-NLS-1$
 		}
 	
 		// Check that the editor for the aj file is now on top
-		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));		
+		assertTrue("Editor for Aspect.aj should be on top", isActiveEditor(editor1));		 //$NON-NLS-1$
 		
 		// need to close the AJ editor until bug 98261 is fixed
 		// otherwise testBug100018 will fail

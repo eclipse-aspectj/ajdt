@@ -33,7 +33,7 @@ public class Bug98663Test extends VisualTestCase {
 
 	public void testBug98663() throws Exception {
 		// Get the number of entries in the error log
-		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
+		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
 		if(view instanceof LogView) {
 			LogView logView = (LogView)view;
 			LogEntry[] logs = logView.getLogs();
@@ -63,7 +63,7 @@ public class Bug98663Test extends VisualTestCase {
 			Runnable r = new Runnable() {				
 				public void run() {
 					sleep();
-					postString("Project1");
+					postString("Project1"); //$NON-NLS-1$
 					postKey(SWT.CR);
 				}
 			};
@@ -73,15 +73,15 @@ public class Bug98663Test extends VisualTestCase {
 			final IWorkspace workspace= JavaPlugin.getWorkspace();				
 			new DisplayHelper() {
 				protected boolean condition() {
-					boolean ret = workspace.getRoot().getProject("Project1").exists();
+					boolean ret = workspace.getRoot().getProject("Project1").exists(); //$NON-NLS-1$
 					return ret;
 				}			
 			}.waitForCondition(Display.getCurrent(), 5000);
-			IProject project = workspace.getRoot().getProject("Project1");
-			assertTrue("Should have created a project", project.exists());
+			IProject project = workspace.getRoot().getProject("Project1"); //$NON-NLS-1$
+			assertTrue("Should have created a project", project.exists()); //$NON-NLS-1$
 		
-			IFolder src = project.getFolder("src");
-			assertFalse("Should not have found a folder called src", src.exists());
+			IFolder src = project.getFolder("src"); //$NON-NLS-1$
+			assertFalse("Should not have found a folder called src", src.exists()); //$NON-NLS-1$
 			
 			// Add a source folder		
 			postKeyDown(SWT.ALT);
@@ -102,14 +102,14 @@ public class Bug98663Test extends VisualTestCase {
 			r = new Runnable() {					
 				public void run() {
 					sleep();
-					postString("src");
+					postString("src"); //$NON-NLS-1$
 					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();	
 			waitForJobsToComplete();
-			src = project.getFolder("src");
-			assertTrue("Should have found a folder called src", src.exists());
+			src = project.getFolder("src"); //$NON-NLS-1$
+			assertTrue("Should have found a folder called src", src.exists()); //$NON-NLS-1$
 			
 			// Add a package		
 			postKeyDown(SWT.ALT);
@@ -125,22 +125,22 @@ public class Bug98663Test extends VisualTestCase {
 			r = new Runnable() {					
 				public void run() {
 					sleep();
-					postString("p1");
+					postString("p1"); //$NON-NLS-1$
 					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();	
 			waitForJobsToComplete();
 			IJavaProject jp = JavaCore.create(project);
-			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1");
-			assertTrue("Should have created a package called p1", p1.exists());
+			IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1"); //$NON-NLS-1$ //$NON-NLS-2$
+			assertTrue("Should have created a package called p1", p1.exists()); //$NON-NLS-1$
 			
 			// Check that no more errors have appeared in the error log
 			logs = logView.getLogs();
-			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length);
+			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length); //$NON-NLS-1$
 				
 		} else {
-			fail("Could not find the Error log.");
+			fail("Could not find the Error log."); //$NON-NLS-1$
 		}
 	}
 	

@@ -14,7 +14,7 @@ public class PluginFFDCTest extends UITestCase {
 	
 	public void testFFDC () {
 		LogListener listener = new LogListener(getPlugin());
-		String message = "testFFDC";
+		String message = "testFFDC"; //$NON-NLS-1$
 		
 		try {
 			throw new Exception(message);
@@ -27,7 +27,7 @@ public class PluginFFDCTest extends UITestCase {
 	
 	public void testRogueFFDC () {
 		LogListener listener = new LogListener(getPlugin());
-		String message = "testRogueFFDC";
+		String message = "testRogueFFDC"; //$NON-NLS-1$
 		
 		try {
 			throw new Exception(message);
@@ -115,7 +115,7 @@ public class PluginFFDCTest extends UITestCase {
 	
 	public void assertMessage (LogListener listener, String expected) {
 		if (!listener.hasMessage(expected)) {
-			fail("The log did not contain the following message\n" + expected);
+			fail("The log did not contain the following message\n" + expected); //$NON-NLS-1$
 		}
 	}
 	

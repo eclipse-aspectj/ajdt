@@ -25,13 +25,13 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = createPredefinedProject("Simple AJ Project");
+		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 	}
 	
 	public void testBug80239() {
-		IResource res = project.findMember("src/p2/Aspect.aj");
+		IResource res = project.findMember("src/p2/Aspect.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/p2/Aspect.aj file not found.");
+			fail("src/p2/Aspect.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -63,10 +63,10 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
 		Rectangle r1 = shell.getBounds();
-		assertTrue("the inplace view should have changed it's height", r.height != r1.height);
-		assertTrue("the inplace view should have changed it's width", r.width != r1.width);
-		assertTrue("the inplace view should have changed it's x coordinate", r.x != r1.x);
-		assertTrue("the inplace view should have changed it's y coordinate", r.y != r1.y);
+		assertTrue("the inplace view should have changed it's height", r.height != r1.height); //$NON-NLS-1$
+		assertTrue("the inplace view should have changed it's width", r.width != r1.width); //$NON-NLS-1$
+		assertTrue("the inplace view should have changed it's x coordinate", r.x != r1.x); //$NON-NLS-1$
+		assertTrue("the inplace view should have changed it's y coordinate", r.y != r1.y); //$NON-NLS-1$
 				
 		// get rid of the inplace view
 		shutdownViewWithEscape(info);
@@ -85,18 +85,18 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		
 		info2 = AJOutlineInformationControl.getInfoControl();
 		
-		assertNotNull("AJOutlineInformationControl shouldn't be null",info2);
-		assertFalse("should have a new copy of the AJOutlineInformationControl",info2.equals(info));
+		assertNotNull("AJOutlineInformationControl shouldn't be null",info2); //$NON-NLS-1$
+		assertFalse("should have a new copy of the AJOutlineInformationControl",info2.equals(info)); //$NON-NLS-1$
 		
 		Rectangle r2 = info2.getBounds();
-		assertEquals("the inplace view should have remembered the changed height", r1.height, r2.height);
-		assertEquals("the inplace view should have remembered the changed width", r1.width, r2.width);
+		assertEquals("the inplace view should have remembered the changed height", r1.height, r2.height); //$NON-NLS-1$
+		assertEquals("the inplace view should have remembered the changed width", r1.width, r2.width); //$NON-NLS-1$
 		// for some bizarre reason, on windows, or if this test is run standalone, it always seems to 
 		// add 3 to the x and y coordinates, whereas if this test is run on linux as part of
 		// the test suite, then 6 is added to the xcoordinate, and 25 is added to the y
-		assertTrue("the inplace view should have remembered the changed x coordinate", 
+		assertTrue("the inplace view should have remembered the changed x coordinate",  //$NON-NLS-1$
 				r2.x == r1.x + 3 || r2.x == (r1.x + 6) );
-		assertTrue("the inplace view should have remembered the changed y coordinate", 
+		assertTrue("the inplace view should have remembered the changed y coordinate",  //$NON-NLS-1$
 				r2.y == r1.y + 3 || r2.y == (r1.y + 25) );
 		// get rid of the inplace view
 		shutdownViewWithEscape(info2);
@@ -122,7 +122,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
 
-		assertTrue("xref inplace view should not be open",info.getShell() == null);
+		assertTrue("xref inplace view should not be open",info.getShell() == null); //$NON-NLS-1$
 	}
 	
 	private void openInplaceDialog(AJOutlineInformationControl previousDialog) {

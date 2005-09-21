@@ -28,7 +28,7 @@ public class ErrorLogTest extends UITestCase {
 
 	
 	public void testNoWarningsOnStartup() throws Exception {
-		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView");
+		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
 		if(view instanceof LogView) {
 			LogView logView = (LogView)view;
 			LogEntry[] logs = logView.getLogs();
@@ -44,9 +44,9 @@ public class ErrorLogTest extends UITestCase {
 			for (int i = 0; i < logsMinusInfos.length; i++) {
 				logsMinusInfos[i] = (LogEntry) errorsAndWarnings.get(i);
 			}
-			assertTrue("There should be exactly two entries in the log, found " + logsMinusInfos.length + ": " + logsMinusInfos[logsMinusInfos.length - 1].getMessage() + ", ...", logsMinusInfos.length == 2);
+			assertTrue("There should be exactly two entries in the log, found " + logsMinusInfos.length + ": " + logsMinusInfos[logsMinusInfos.length - 1].getMessage() + ", ...", logsMinusInfos.length == 2); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		} else {
-			fail("Could not find the Error log.");
+			fail("Could not find the Error log."); //$NON-NLS-1$
 		}
 	}
 	

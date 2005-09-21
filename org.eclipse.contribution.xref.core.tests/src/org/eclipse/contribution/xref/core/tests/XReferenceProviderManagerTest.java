@@ -53,7 +53,7 @@ public class XReferenceProviderManagerTest extends TestCase {
 			XReferenceProviderManager.getManager();
 		List providers = manager.getProvidersFor(new Object());
 		assertEquals(0, providers.size());
-		providers = manager.getProvidersFor("lower case");
+		providers = manager.getProvidersFor("lower case"); //$NON-NLS-1$
 		assertEquals(1, providers.size());
 		assertTrue(providers.get(0) instanceof TestProvider);
 	}
@@ -68,13 +68,13 @@ public class XReferenceProviderManagerTest extends TestCase {
 		// check that all three are actually registered 
 		// (note haven't hard coded in that expect exactly 3 providers
 		// to cope with the case where there are others)
-		assertTrue(containsProvider(providers, "My Label"));
+		assertTrue(containsProvider(providers, "My Label")); //$NON-NLS-1$
 		assertTrue(
-			containsProvider(providers, "Test XReference Provider Label"));
+			containsProvider(providers, "Test XReference Provider Label")); //$NON-NLS-1$
 		assertTrue(
 			containsProvider(
 				providers,
-				"Test XReference Provider With Entities Label"));
+				"Test XReference Provider With Entities Label")); //$NON-NLS-1$
 		// TODO: HELEN: put this back in!
 		//assertTrue(ProviderExceptionLoggingTest.exceptionLoggedOnRegistration);
 	}
@@ -98,10 +98,10 @@ public class XReferenceProviderManagerTest extends TestCase {
 		boolean currentValue = manager.getIsInplace();
 		if (currentValue == true) {
 			manager.setIsInplace(false);
-			assertFalse("isInplace has not been set correctly", manager.getIsInplace());
+			assertFalse("isInplace has not been set correctly", manager.getIsInplace()); //$NON-NLS-1$
 		} else {
 			manager.setIsInplace(true);
-			assertTrue("isInplace has not been set correctly", manager.getIsInplace());
+			assertTrue("isInplace has not been set correctly", manager.getIsInplace()); //$NON-NLS-1$
 		}
 		// Reset the value
 		manager.setIsInplace(currentValue);

@@ -114,7 +114,7 @@ public class ProjectDependenciesUtils {
 				IMarker marker = problemMarkers[j];
 				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
 				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-						"no message");
+						"no message"); //$NON-NLS-1$
 				if (markerSeverity == IMarker.SEVERITY_ERROR) {
 					if (errorMessage == null
 							|| markerMessage.equals(errorMessage)) {
@@ -131,11 +131,11 @@ public class ProjectDependenciesUtils {
 				IMarker marker = javaModelMarkers[j];
 				int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
 				String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-						"no message");
+						"no message"); //$NON-NLS-1$
 				if (markerSeverity == IMarker.SEVERITY_ERROR) {
 					if (errorMessage == null
 							|| markerMessage.equals(errorMessage)) {
-						System.out.println("TEST: error message: " + markerMessage);
+						System.out.println("TEST: error message: " + markerMessage); //$NON-NLS-1$
 						projectIsMarked = true;
 					}
 				}
@@ -236,7 +236,7 @@ public class ProjectDependenciesUtils {
 		if (javaProject1 == null) {
 			return false;
 		}
-		System.out.println("TEST: outjar = " + outJar);
+		System.out.println("TEST: outjar = " + outJar); //$NON-NLS-1$
 		StringBuffer sb = new StringBuffer(outJar);
 		int indexOfProject = sb.lastIndexOf(projectWhichHasOutJar.getName());
 		IPath newPath;
@@ -267,7 +267,7 @@ public class ProjectDependenciesUtils {
 			return -1;
 		}
 		int counter = 0;
-		System.out.println("TEST: outjar = " + outJar);
+		System.out.println("TEST: outjar = " + outJar); //$NON-NLS-1$
 		StringBuffer sb = new StringBuffer(outJar);
 		int indexOfProject = sb.lastIndexOf(projectWhichHasOutJar.getName());
 		String jar = sb.substring(indexOfProject);
@@ -298,7 +298,7 @@ public class ProjectDependenciesUtils {
 				outJar = full.toOSString() + File.separator + outJar;
 			}
 		}
-		System.out.println("TEST: outJar = " + outJar);
+		System.out.println("TEST: outJar = " + outJar); //$NON-NLS-1$
 		return outJar;
 	}
 
@@ -311,9 +311,9 @@ public class ProjectDependenciesUtils {
 			IProject prereqProject) {
 		waitForJobsToComplete();
 		try {
-			String errorMessage = "The project cannot be built until its prerequisite "
+			String errorMessage = "The project cannot be built until its prerequisite " //$NON-NLS-1$
 					+ prereqProject.getName()
-					+ " is built. Cleaning and rebuilding all projects is recommended";
+					+ " is built. Cleaning and rebuilding all projects is recommended"; //$NON-NLS-1$
 			IMarker[] javaModelMarkers = project.findMarkers(
 					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
 					IResource.DEPTH_INFINITE);
@@ -323,7 +323,7 @@ public class ProjectDependenciesUtils {
 					int markerSeverity = marker.getAttribute(IMarker.SEVERITY,
 							-1);
 					String markerMessage = marker.getAttribute(IMarker.MESSAGE,
-							"no message");
+							"no message"); //$NON-NLS-1$
 					if (markerSeverity == IMarker.SEVERITY_ERROR
 							&& markerMessage.equals(errorMessage)) {
 						return true;
@@ -399,7 +399,7 @@ public class ProjectDependenciesUtils {
 				monitor.waitForCompletion();
 				monitor.reset();
 				projectToHaveDependency.build(
-						IncrementalProjectBuilder.FULL_BUILD, "Java Builder",
+						IncrementalProjectBuilder.FULL_BUILD, "Java Builder", //$NON-NLS-1$
 						null, monitor);
 				monitor.waitForCompletion();
 			} catch (CoreException e) {

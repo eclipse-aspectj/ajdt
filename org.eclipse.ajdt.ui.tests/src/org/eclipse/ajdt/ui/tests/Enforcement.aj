@@ -17,8 +17,8 @@ import junit.framework.TestCase;
 public aspect Enforcement {
 
 	declare error: execution(* TestCase+.*(..)) && !execution(* UITestCase+.*(..)):
-		"All test classes should extend UITestCase";
+		"All test classes should extend UITestCase"; //$NON-NLS-1$
 	
 	declare warning: call(* UITestCase.deleteProject(..)) && !within(UITestCase):
-		"Projects are automatically deleted for you at the end of each test.";
+		"Projects are automatically deleted for you at the end of each test."; //$NON-NLS-1$
 }

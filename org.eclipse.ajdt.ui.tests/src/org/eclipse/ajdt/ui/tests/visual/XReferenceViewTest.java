@@ -45,17 +45,17 @@ public class XReferenceViewTest extends VisualTestCase {
 	}
 	
 	public void testBug92895() throws Exception {
-		IProject project = createPredefinedProject("bug92895");
+		IProject project = createPredefinedProject("bug92895"); //$NON-NLS-1$
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -68,7 +68,7 @@ public class XReferenceViewTest extends VisualTestCase {
 
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
-		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
 		
 		// remove the ":" from the pointcut definition
 		postKey(SWT.DEL);
@@ -84,11 +84,11 @@ public class XReferenceViewTest extends VisualTestCase {
 		// any contents - if it does have contents then the corresponding
 		// source/resource should exist - this was the cause of bug 92895
 		TreeViewer treeViewer = xrefView.getTreeViewer();
-		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		assertNotNull("xref view should have non null treeviewer",treeViewer); //$NON-NLS-1$
 		Object obj = treeViewer.getInput();
 		//if (obj != null) {
 		//	assertTrue("IAspectJElement should exist",xrefSourceExists(xrefView));
-		assertNull("tree viewer shouldn't contain anything",obj);
+		assertNull("tree viewer shouldn't contain anything",obj); //$NON-NLS-1$
 		
 		// put the ":" back
 		// Use a Runnable due to problems introduced with the fix for 98547
@@ -129,25 +129,25 @@ public class XReferenceViewTest extends VisualTestCase {
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		// xref view should show the xreferences
-		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
 	}
 
 	public void testBug92895WithLinkingDisabled() throws Exception {
 		
-		IProject project = createPredefinedProject("bug92895");
+		IProject project = createPredefinedProject("bug92895"); //$NON-NLS-1$
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -160,13 +160,13 @@ public class XReferenceViewTest extends VisualTestCase {
 
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
-		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
 		
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();	
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
 		// remove the ":" from the pointcut definition
 		postKey(SWT.DEL);
@@ -182,11 +182,11 @@ public class XReferenceViewTest extends VisualTestCase {
 		// any contents - if it does have contents then the corresponding
 		// source/resource should exist - this was the cause of bug 92895
 		TreeViewer treeViewer = xrefView.getTreeViewer();
-		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		assertNotNull("xref view should have non null treeviewer",treeViewer); //$NON-NLS-1$
 		Object obj = treeViewer.getInput();
 		//if (obj != null) {
 		//	assertTrue("IAspectJElement should exist",xrefSourceExists(xrefView));
-		assertNull("tree viewer shouldn't contain anything",obj);
+		assertNull("tree viewer shouldn't contain anything",obj); //$NON-NLS-1$
 		
 		// put the ":" back
 		// Use a Runnable due to problems introduced with the fix for 98547
@@ -227,33 +227,33 @@ public class XReferenceViewTest extends VisualTestCase {
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		// xref view should show the xreferences
-		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
 		
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
 	}
 	
 	public void testBug98319() throws Exception {
-		IProject project = createPredefinedProject("bug98319");
+		IProject project = createPredefinedProject("bug98319"); //$NON-NLS-1$
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 		
-		IResource res2 = project.findMember("test.txt");
+		IResource res2 = project.findMember("test.txt"); //$NON-NLS-1$
 		if (res2 == null || !(res2 instanceof IFile)) {
-			fail("test.txt file not found.");
+			fail("test.txt file not found."); //$NON-NLS-1$
 		} 
 		IFile textFile = (IFile)res2;
 		
@@ -272,7 +272,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XRefVisualTestUtils.waitForXRefViewToContainSomething();
 		
 		// The cross reference view should contain something
-		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView));
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
 		
 		// switch to the text file
 		ITextEditor defaultEditorPart2 = (ITextEditor)openFileInDefaultEditor(textFile,true);
@@ -286,9 +286,9 @@ public class XReferenceViewTest extends VisualTestCase {
 		// any contents - if it does have contents then the corresponding
 		// source/resource should exist - this was the cause of bug 92895
 		TreeViewer treeViewer = xrefView.getTreeViewer();
-		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		assertNotNull("xref view should have non null treeviewer",treeViewer); //$NON-NLS-1$
 		Object obj = treeViewer.getInput();
-		assertNull("tree viewer shouldn't contain anything",obj);
+		assertNull("tree viewer shouldn't contain anything",obj); //$NON-NLS-1$
 				
 		defaultEditorPart.close(false);
 		defaultEditorPart2.close(false);
@@ -296,22 +296,22 @@ public class XReferenceViewTest extends VisualTestCase {
 
 	private boolean xrefSourceExists(XReferenceView xrefView) {
 		TreeViewer treeViewer = xrefView.getTreeViewer();
-		assertNotNull("xref view should have non null treeviewer",treeViewer);
+		assertNotNull("xref view should have non null treeviewer",treeViewer); //$NON-NLS-1$
 		Object obj = treeViewer.getInput();
-		assertNotNull("input of xref view should not be null",obj);
+		assertNotNull("input of xref view should not be null",obj); //$NON-NLS-1$
 		if (!(obj instanceof ArrayList)) {
-			fail("input of xrefview should be an arraylist");
+			fail("input of xrefview should be an arraylist"); //$NON-NLS-1$
 		}
 		ArrayList al = (ArrayList)obj;
 		Object o = al.get(0);
-		assertNotNull("contents of xref view should not be null",o);
+		assertNotNull("contents of xref view should not be null",o); //$NON-NLS-1$
 		if (!(o instanceof XReferenceAdapter)) {
-			fail("input should be a XReferenceAdapter");
+			fail("input should be a XReferenceAdapter"); //$NON-NLS-1$
 		}
 		Object o1 = ((XReferenceAdapter)o).getReferenceSource();
-		assertNotNull("reference source should not be null",o1);
+		assertNotNull("reference source should not be null",o1); //$NON-NLS-1$
 		if (!(o1 instanceof IJavaElement)) {
-			fail("input should be an IJavaElement");
+			fail("input should be an IJavaElement"); //$NON-NLS-1$
 		}
 		return ((IJavaElement)o1).exists();
 	}
@@ -326,9 +326,9 @@ public class XReferenceViewTest extends VisualTestCase {
 					contributingProviderDefinition = provider;
 //					inplaceSize = contributingProviderDefinition.getCheckedInplaceFilters().size();
 				} else {
-					assertTrue("Provider 'checked' Lists do not match",
+					assertTrue("Provider 'checked' Lists do not match", //$NON-NLS-1$
 							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()));
-					assertTrue("Provider 'checkedInplace' Lists do not match",
+					assertTrue("Provider 'checkedInplace' Lists do not match", //$NON-NLS-1$
 							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters())
 							&& provider.getCheckedInplaceFilters().size() == inplaceSize);
 				}
@@ -345,7 +345,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -377,7 +377,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		Object obj = treeViewer.getInput();
 		//if (obj != null) {
 		//	assertTrue("IAspectJElement should exist",xrefSourceExists(xrefView));
-		assertNull("tree viewer shouldn't contain anything",obj);
+		assertNull("tree viewer shouldn't contain anything",obj); //$NON-NLS-1$
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -385,7 +385,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
 				// in the populating list are removed in the constructor of the action
-				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedFilters().size());
+				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedFilters().size()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -394,7 +394,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -424,7 +424,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
 			}
 		}
 		testSelectAll();
@@ -434,7 +434,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -464,7 +464,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
 			}
 		}
 	}
@@ -474,7 +474,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -506,7 +506,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedFilters().size() == 3);
+				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedFilters().size() == 3); //$NON-NLS-1$
 			}
 		}
 	}
@@ -516,7 +516,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -548,7 +548,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
 			}
 		}
 	}
@@ -559,7 +559,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		final XReferenceView xrefView = (XReferenceView)view;
 		
@@ -597,7 +597,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0);
+				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
 			}
 		}
 	}

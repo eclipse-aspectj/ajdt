@@ -20,7 +20,7 @@ import junit.framework.TestSuite;
 public class AllTests {
 
 	public static Test suite() {
-		TestSuite suite = new TestSuite("Test for org.eclipse.contribution.xref.core.tests");
+		TestSuite suite = new TestSuite("Test for org.eclipse.contribution.xref.core.tests"); //$NON-NLS-1$
 		//$JUnit-BEGIN$
 		suite.addTestSuite(XReferencePluginTest.class);
 		suite.addTestSuite(XReferenceTest.class);

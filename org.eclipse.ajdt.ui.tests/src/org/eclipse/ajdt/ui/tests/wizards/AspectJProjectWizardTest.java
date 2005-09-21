@@ -65,17 +65,17 @@ public class AspectJProjectWizardTest extends UITestCase {
 		projectWizard.addPages();
 
 		if (projectWizard.getPageCount() != 2) {
-			fail("addPages() failed, 2 pages have not be accurately added.");
+			fail("addPages() failed, 2 pages have not be accurately added."); //$NON-NLS-1$
 		}
 
 		IWizardPage firstPage = projectWizard
-				.getPage("SimpleProjectFirstPage");
-		IWizardPage secondPage = projectWizard.getPage("JavaCapabilityConfigurationPage");
+				.getPage("SimpleProjectFirstPage"); //$NON-NLS-1$
+		IWizardPage secondPage = projectWizard.getPage("JavaCapabilityConfigurationPage"); //$NON-NLS-1$
 
 		if (firstPage == null)
-			fail("addPages() has failed to add a JavaProjectWizardFirstPage at the correct location.");
+			fail("addPages() has failed to add a JavaProjectWizardFirstPage at the correct location."); //$NON-NLS-1$
 		if (secondPage == null)
-			fail("addPages() has failed to add an AspectJProjectWizardSecondPage at the correct location.");
+			fail("addPages() has failed to add an AspectJProjectWizardSecondPage at the correct location."); //$NON-NLS-1$
 
 		try {
 			AJTitleCorrect = firstPage
@@ -85,14 +85,14 @@ public class AspectJProjectWizardTest extends UITestCase {
 					.getDescription()
 					.equals(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
 		} catch (NullPointerException e) {
-			fail("The title or description for the AJ page is incorrect.");
+			fail("The title or description for the AJ page is incorrect."); //$NON-NLS-1$
 		}
 
 		if (!AJTitleCorrect) {
-			fail("The title for the AJ page is incorrect.");
+			fail("The title for the AJ page is incorrect."); //$NON-NLS-1$
 		}
 		if (!AJDescriptionCorrect) {
-			fail("The description for the AJ page is incorrect.");
+			fail("The description for the AJ page is incorrect."); //$NON-NLS-1$
 		}
 
 	}
@@ -102,10 +102,10 @@ public class AspectJProjectWizardTest extends UITestCase {
 	 */
 	public void testProjectWizardPerformFinish() throws Exception {
 
-		IProject testSrcProject = createPredefinedProject("SourceProject1");
+		IProject testSrcProject = createPredefinedProject("SourceProject1"); //$NON-NLS-1$
 		IJavaProject javaProject = JavaCore.create(testSrcProject);
 		int ID = 1;
-		String pDestinationName = "NotVisible" + ID;
+		String pDestinationName = "NotVisible" + ID; //$NON-NLS-1$
 		String pSrcName = testSrcProject.getName();
 		ID++;
 		
@@ -115,15 +115,15 @@ public class AspectJProjectWizardTest extends UITestCase {
 				.append(pSrcName).toFile();
 
 		copyFileStructure(testSrcFile, testDestinationFile);
-		IProject wizardCreatedProject = makeNewWizardProject("TestWizardProject");
-		runGeneralTests(wizardCreatedProject, "TestWizardProject");
+		IProject wizardCreatedProject = makeNewWizardProject("TestWizardProject"); //$NON-NLS-1$
+		runGeneralTests(wizardCreatedProject, "TestWizardProject"); //$NON-NLS-1$
 		IJavaProject jp = JavaCore.create(wizardCreatedProject);
 
 		try {
-			assertTrue("The wizard created project does not have the correct output folder",
+			assertTrue("The wizard created project does not have the correct output folder", //$NON-NLS-1$
 				jp.getOutputLocation().equals(jp.getPath()));
 		} catch (JavaModelException e) {
-			fail("Failed attempting to find the output location of the project");
+			fail("Failed attempting to find the output location of the project"); //$NON-NLS-1$
 		}
 		
 		IProject newlyFoundProject = makeNewWizardProject(pDestinationName);		// The wizard should make the project from the one
@@ -131,32 +131,32 @@ public class AspectJProjectWizardTest extends UITestCase {
 		IJavaProject discoveredAJProject = JavaCore.create(newlyFoundProject);
 		
 		try {
-			assertTrue("The wizard discovered project does not have the correct output folder",
+			assertTrue("The wizard discovered project does not have the correct output folder", //$NON-NLS-1$
 				javaProject.getOutputLocation().lastSegment().equals(
 						discoveredAJProject.getOutputLocation().lastSegment()));
 			
 		} catch (JavaModelException e) {	
-			fail("Failed attempting to find the output location of the project");
+			fail("Failed attempting to find the output location of the project"); //$NON-NLS-1$
 		}	
 		
-		String packagePath = "src" + IPath.SEPARATOR + "TestPackage";
+		String packagePath = "src" + IPath.SEPARATOR + "TestPackage"; //$NON-NLS-1$ //$NON-NLS-2$
 		IResource projectPackage = newlyFoundProject.findMember(packagePath);
 		
-		assertTrue("The TestPackage of the discovered project has not been identified correctly",
+		assertTrue("The TestPackage of the discovered project has not been identified correctly", //$NON-NLS-1$
 				projectPackage != null);
 			
-		String helloPath = packagePath + IPath.SEPARATOR + "Hello.java";
-		String aspPath = packagePath + IPath.SEPARATOR + "Asp.aj";
-		String wrongFile = packagePath + IPath.SEPARATOR + "wrongFile.imc";
+		String helloPath = packagePath + IPath.SEPARATOR + "Hello.java"; //$NON-NLS-1$
+		String aspPath = packagePath + IPath.SEPARATOR + "Asp.aj"; //$NON-NLS-1$
+		String wrongFile = packagePath + IPath.SEPARATOR + "wrongFile.imc"; //$NON-NLS-1$
 		
-		assertTrue("The Hello.java file has not been correctly discovered",
+		assertTrue("The Hello.java file has not been correctly discovered", //$NON-NLS-1$
 				newlyFoundProject.findMember(helloPath) != null);
 	
 	
-		assertTrue("The Asp.aj file has not been correctly discovered",
+		assertTrue("The Asp.aj file has not been correctly discovered", //$NON-NLS-1$
 				newlyFoundProject.findMember(aspPath) != null);
 		
-		assertTrue("An incorrect file has been created during the discovery of the project",
+		assertTrue("An incorrect file has been created during the discovery of the project", //$NON-NLS-1$
 				newlyFoundProject.findMember(wrongFile) == null);
 	}
 
@@ -167,18 +167,18 @@ public class AspectJProjectWizardTest extends UITestCase {
 	private void runGeneralTests(IProject project, String expectedProjectName) {
 		
 		if(expectedProjectName != null) {
-			assertTrue("The wizard created project has not been named correctly",
+			assertTrue("The wizard created project has not been named correctly", //$NON-NLS-1$
 				project.getName().equals(expectedProjectName));
 		}
-		assertTrue("The Wizard created project doesnt appear in the workspace",
+		assertTrue("The Wizard created project doesnt appear in the workspace", //$NON-NLS-1$
 				project.exists());
-		assertTrue("The Wizard created project has not opened properly",
+		assertTrue("The Wizard created project has not opened properly", //$NON-NLS-1$
 				project.isOpen());
 
-		assertTrue("A .project file has not been created", project
-				.findMember(".project") != null);
-		assertTrue("A .classpath file has not been created",
-				project.findMember(".classpath") != null);
+		assertTrue("A .project file has not been created", project //$NON-NLS-1$
+				.findMember(".project") != null); //$NON-NLS-1$
+		assertTrue("A .classpath file has not been created", //$NON-NLS-1$
+				project.findMember(".classpath") != null); //$NON-NLS-1$
 
 		IProject preOpenCloseWizard = project;
 
@@ -187,25 +187,25 @@ public class AspectJProjectWizardTest extends UITestCase {
 			project.open(null);
 		} catch (CoreException e) {
 			e.printStackTrace();
-			fail("Project does not open and close correctly");
+			fail("Project does not open and close correctly"); //$NON-NLS-1$
 		}
 
-		assertTrue("When a project is closed and then opened its properties change",
+		assertTrue("When a project is closed and then opened its properties change", //$NON-NLS-1$
 				project.equals(preOpenCloseWizard));
 
 		try {
-			assertTrue("The Wizard created project does not have Java Nature",
-					project.hasNature("org.eclipse.jdt.core.javanature"));
+			assertTrue("The Wizard created project does not have Java Nature", //$NON-NLS-1$
+					project.hasNature("org.eclipse.jdt.core.javanature")); //$NON-NLS-1$
 
-			assertTrue("The Wizard created project does not have AspectJ Nature",
-					project.hasNature("org.eclipse.ajdt.ui.ajnature"));
+			assertTrue("The Wizard created project does not have AspectJ Nature", //$NON-NLS-1$
+					project.hasNature("org.eclipse.ajdt.ui.ajnature")); //$NON-NLS-1$
 			
 		} catch (CoreException e) {
 			e.printStackTrace();
-			fail("Failed attempting to check the nature of the project");
+			fail("Failed attempting to check the nature of the project"); //$NON-NLS-1$
 		}
 
-		assertTrue("The wizard created project has not been created in the correct location",
+		assertTrue("The wizard created project has not been created in the correct location", //$NON-NLS-1$
 				project.getParent().getLocation().equals(
 								AspectJPlugin.getWorkspace().getRoot().getRawLocation()));
 	}
@@ -253,7 +253,7 @@ public class AspectJProjectWizardTest extends UITestCase {
 					output.flush();
 					output.close();
 				} catch (IOException e) {
-					fail("Did not successfully copy files" + e.getMessage());
+					fail("Did not successfully copy files" + e.getMessage()); //$NON-NLS-1$
 				}
 			}
 

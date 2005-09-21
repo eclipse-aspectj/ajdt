@@ -28,13 +28,13 @@ public class OrganiseImportsTest extends VisualTestCase {
 
 	
 	public void testOrganiseImports() throws Exception {
-		IProject project = createPredefinedProject("Bean Example");
-		assertTrue("The Bean Example project should have been created", project != null);
-		IFile boundPoint = (IFile)project.findMember("src/bean/BoundPoint.aj");
-		assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null );
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
+		assertTrue("The Bean Example project should have been created", project != null); //$NON-NLS-1$
+		IFile boundPoint = (IFile)project.findMember("src/bean/BoundPoint.aj"); //$NON-NLS-1$
+		assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null ); //$NON-NLS-1$
 		openFileInDefaultEditor(boundPoint, true);
 		final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(boundPoint);
-		assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2);
+		assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2); //$NON-NLS-1$
 		waitForJobsToComplete();			
 		
 		// Organise imports and test that the file is correct
@@ -42,7 +42,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		
 		// Add an unused import
 		gotoLine(19);
-		postString("import java.io.File;");
+		postString("import java.io.File;"); //$NON-NLS-1$
 		postKey(SWT.CR);
 		
 		// Post Ctrl+S to save the file
@@ -65,31 +65,31 @@ public class OrganiseImportsTest extends VisualTestCase {
 
 		// Check that there is an unused import in the file
 		IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-		assertTrue("BoundPoint.aj should have one problem", problemMarkers.length == 1);
-		assertTrue("BoundPoint.aj should have four imports", cUnit.getImports().length == 4);
+		assertTrue("BoundPoint.aj should have one problem", problemMarkers.length == 1); //$NON-NLS-1$
+		assertTrue("BoundPoint.aj should have four imports", cUnit.getImports().length == 4); //$NON-NLS-1$
 		
 		organiseImports(cUnit, 3);
 
 		// Add an import requirement - pointcut p2(): call(* File.*(..));
 		gotoLine(65);
 		postKey(SWT.TAB);
-		postString("pointcut p2");
+		postString("pointcut p2"); //$NON-NLS-1$
 		postKeyDown(SWT.SHIFT);
-		postString("90; ");
+		postString("90; "); //$NON-NLS-1$
 		postKeyUp(SWT.SHIFT);
-		postString("call");
+		postString("call"); //$NON-NLS-1$
 		postKeyDown(SWT.SHIFT);
-		postString("98 ");
+		postString("98 "); //$NON-NLS-1$
 		postKeyUp(SWT.SHIFT);
-		postString("ByteArrayInputStream.");
+		postString("ByteArrayInputStream."); //$NON-NLS-1$
 		postKeyDown(SWT.SHIFT);
-		postString("89");
+		postString("89"); //$NON-NLS-1$
 		postKeyUp(SWT.SHIFT);
-		postString("..");
+		postString(".."); //$NON-NLS-1$
 		postKeyDown(SWT.SHIFT);
-		postString("00");
+		postString("00"); //$NON-NLS-1$
 		postKeyUp(SWT.SHIFT);	
-		postString(";");		
+		postString(";");		 //$NON-NLS-1$
 		postKey(SWT.DEL); // delete the extra bracket eclipse added
 		postKey(SWT.CR);			
 		
@@ -134,7 +134,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 			}
 		
 		}.waitForCondition(display, 5000);
-		assertTrue("BoundPoint.aj should now have " + expectedImports + " imports, has " + cUnit.getImports().length, cUnit.getImports().length == expectedImports);
+		assertTrue("BoundPoint.aj should now have " + expectedImports + " imports, has " + cUnit.getImports().length, cUnit.getImports().length == expectedImports); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// Post Ctrl+S to save the file
 		postKeyDown(SWT.CTRL);
@@ -154,7 +154,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		
 		}.waitForCondition(display, 5000);
 		IMarker[] problemMarkers = cUnit.getResource().findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-		assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0);
+		assertTrue("BoundPoint.aj should not have any problems", problemMarkers.length == 0); //$NON-NLS-1$
 	
 	}
 	
