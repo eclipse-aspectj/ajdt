@@ -40,3 +40,20 @@ a#aspectj-noteworthy:hover img { background-image : url(graphics/icons/ajdt/aspe
 
 /*** First Steps Link Images ***/
 
+/*** Web Link Images ***/
+
+a#aj-resources-main-link img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#aj-resources-main-link:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#developerWorks-aopAtWorkSeries img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#developerWorks-aopAtWorkSeries:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#developerWorks-visualiserTutorial img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#developerWorks-visualiserTutorial:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#ajdtHomepage img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#ajdtHomepage:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#aspectjHomepage img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#aspectjHomepage:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
