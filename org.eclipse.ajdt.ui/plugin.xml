@@ -130,11 +130,6 @@
                   name="group2">
             </separator>
          </menu>
-          <!--  This appears to be broken on 3.1...
-          <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-          </filter> -->
           <visibility>
              <objectState 
 	            name="projectNature" 
@@ -235,18 +230,6 @@
          </action>
       </viewerContribution>
    </extension>
-
-<!--
-   <extension
-         point="org.eclipse.jdt.ui.queryParticipants">
-      <queryParticipant
-      		name="AJDT Query Participant"
-            nature="org.eclipse.jdt.core.javanature"
-            class="org.eclipse.ajdt.ui.search.AJDTQueryParticipant"
-            id="org.eclipse.ajdt.ui.search.AJDTQueryParticipant">
-      </queryParticipant>
-   </extension>-->
-
 
 <!-- Define AspectJ Builder -->
 <!-- Note: this is now the *OLD* builder, and is only here to migrate project settings
@@ -481,29 +464,7 @@
       <actionSet
             label="%ajActions"
             visible="false"
-            id="ajactionset">
-		 <!--  This action not for public consumption!
-         <action
-               label="%runTestSuite"
-               pulldown="false"
-               icon="icons/actions/perspective.gif"
-               tooltip="Run the org.eclipse.ajdt.ui plugin test suite"
-               class="org.eclipse.ajdt.internal.ui.tests.RunTestSuiteMenuSelection"
-               menubarPath="ajMenu/slot1"
-               id="RunTestSuite">
-         </action>
-         -->
-         <!-- 
-	         <menu
-               label="AspectJ"
-               path="additions"
-               id="ajMenu">
-        	    <separator
-            	      name="slot1">
-    	        </separator>
-         	</menu>
-         -->
-        
+            id="ajactionset">    
 		<action
                label="%OpenTypeInHierarchyAction.label"
                tooltip="%OpenTypeInHierarchyAction.tooltip"
@@ -1340,21 +1301,7 @@
              id="ajdtpalette">
          </palette>
    </extension>
-      
-<!-- Joinpoint Probe definitions -->
-<!-- temporarily removed from plugin till Swing Gui can be converted to
-  SWT and user-interaction model worked out.
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            name="Joinpoint Probe"
-            icon="icons/actions/joinPointProbeView.gif"
-            category="org.eclipse.ajdt.ui.cat"
-            class="org.eclipse.ajdt.internal.ui.wizards.JoinPointProbeView"
-            id="org.eclipse.ajdt.internal.ui.wizards.JoinPointProbeView">
-      </view>
-   </extension>
--->
+
 <!-- AJDT Help -->
   <extension point="org.eclipse.help.toc">
    <toc file="toc.xml" primary="true" />
@@ -1379,29 +1326,6 @@
 		class="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizerPerspectiveFactory">
 	</perspective>
 </extension>
-
-<!-- Entries for Cross-Reference -->
-<!--extension
-         point="org.eclipse.aosd.relationships.providers">
-        <relationshipProvider
-        	id="org.eclipse.ajdt.ui.xref.pointcutMatches"
-        	class="org.eclipse.ajdt.internal.ui.xref.PointcutMatches"
-        	label="%pointcutMatches"
-        	enabled="true">
-        	<description>
-        	Shows statically determinable matches for AspectJ pointcuts.
-        	</description>
-        </relationshipProvider>          
-        <relationshipProvider
-        	id="org.eclipse.ajdt.ui.xref.adviceXReference"
-        	class="org.eclipse.ajdt.internal.ui.xref.AdviceReferences"
-        	label="%adviceXRef"
-        	enabled="true">
-        	<description>
-        	Shows advises / advised by relationships for AspectJ advice.
-        	</description>  
-        </relationshipProvider>          
-   </extension-->
 
    <extension
          point="org.eclipse.ui.popupMenus">
