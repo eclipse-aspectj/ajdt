@@ -1711,7 +1711,7 @@
             content="intro/eclipse/ajdtNewsExtensionContent.xml"/>
 
 	  <!--
-	      Below four welcome page extensions for IBM Rational 6.x tooling.
+	      Below are welcome page extensions for IBM Rational tooling.
 	  --> 
       <configExtension
             configId="com.ibm.rational.welcome.core.introConfig"
@@ -1728,6 +1728,11 @@
       <configExtension
             configId="com.ibm.rational.welcome.core.introConfig"
             content="intro/rad/radAjdtNewsExtensionContent.xml"/>
+
+      <configExtension
+            configId="com.ibm.rational.welcome.core.introConfig"
+            content="intro/rad/radAjdtWebExtensionContent.xml"/>
+
 
    </extension>
    
