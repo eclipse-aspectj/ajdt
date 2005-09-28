@@ -36,6 +36,7 @@ public class UIMessages extends NLS {
 	public static String codeTemplates_couldNotLoad;
 	public static String ajWarningDialogTitle;
 	public static String ajErrorDialogTitle;	
+	public static String ajErrorText;
 	public static String jmCoreException;	
 	public static String newConfig;	
 	public static String BuildConfig_createLstFile;
