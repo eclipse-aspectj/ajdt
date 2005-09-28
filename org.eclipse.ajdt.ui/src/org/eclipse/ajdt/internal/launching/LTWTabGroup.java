@@ -27,7 +27,7 @@ import org.eclipse.jdt.internal.debug.ui.launcher.LocalJavaApplicationTabGroup;
  * Extends LocalJavaApplicationTabGroup to enable a custom 'Main' Tab, which
  * allows main methods to be discovered in aspects.
  */
-public class AJLTWTabGroup extends LocalJavaApplicationTabGroup {
+public class LTWTabGroup extends LocalJavaApplicationTabGroup {
 
 	
 	/**

@@ -31,11 +31,10 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
  * The AspectJ preferences that appear in the "AspectJ" category under
- * Workbench->preferences.
+ * Window->preferences.
  * The policy for preferences in AspectJ mode is to use the Java mode
  * preference where it exists, and only the AspectJ specific preferences
  * in this page.
- * @todo What preferences do we need??
  */
 public class AspectJPreferencePage
 	extends FieldEditorPreferencePage

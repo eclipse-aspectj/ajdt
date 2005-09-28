@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -35,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 public class CustomFilterDialog {
@@ -122,9 +124,8 @@ public class CustomFilterDialog {
 		protected void configureShell(Shell shell) {
 			setTitle(dialogTitle);
 			super.configureShell(shell);
-			// This can be re-enabled for 3.1
-//			PlatformUI.getWorkbench().getHelpSystem().setHelp(shell,
-//					IJavaHelpContextIds.CUSTOM_FILTERS_DIALOG);
+			PlatformUI.getWorkbench().getHelpSystem().setHelp(shell,
+					IJavaHelpContextIds.CUSTOM_FILTERS_DIALOG);
 		}
 
 		/**

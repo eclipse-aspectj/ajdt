@@ -36,10 +36,10 @@ public class XRefMessages extends NLS {
 	public static String CollapseAllAction_tooltip;
 	public static String CollapseAllAction_description;
 
-	public static String XReferencePreferencePage_explanation;
-	public static String XReferencePreferencePage_description;
-	public static String XReferencePreferencePage_providersLabel;
-	public static String XReferencePreferencePage_noDescription;
+//	public static String XReferencePreferencePage_explanation;
+//	public static String XReferencePreferencePage_description;
+//	public static String XReferencePreferencePage_providersLabel;
+//	public static String XReferencePreferencePage_noDescription;
 	
 	public static String XReferenceContentProvider_evaluate;
 

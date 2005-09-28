@@ -113,13 +113,14 @@ public class XMLPrintHandler {
 //			xmlWriter.write(encode(node.getNodeValue()).toString());
 			break;
 		}
-		// AspectJ Change - print out comment nodes
+		// AspectJ Change begin - print out comment nodes
 		case Node.COMMENT_NODE: {
 			StringBuffer temp = new StringBuffer(XML_COMMENT_BEGIN_TAG);
 			temp.append(encode(node.getNodeValue()).toString()).append(XML_COMMENT_END_TAG).append("\n"); //$NON-NLS-1$
 			xmlWriter.write(temp.toString());
 			break;
 		}
+		// AspectJ Change end
 		default: {
 			throw new UnsupportedOperationException("Unsupported XML Node Type."); //$NON-NLS-1$		
 		}

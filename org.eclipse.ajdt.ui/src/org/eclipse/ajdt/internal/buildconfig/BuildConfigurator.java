@@ -94,14 +94,14 @@ public class BuildConfigurator implements ISelectionListener {
 			if (!store.getBoolean(AspectJPreferences.DONE_AUTO_OPEN_XREF_VIEW + workspaceLocation)
 			        && !store.getBoolean(workspaceLocation)) {
 		        // open xref view in perspective if we haven't opened the xref view before.
-				Job job = new UIJob(UIMessages.AJDTPrefConfigWizardPage_workbench_openXRefView) {
+				Job job = new UIJob(UIMessages.BuildConfigurator_workbench_openXRefView) {
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {
 			                AspectJUIPlugin.getDefault().getActiveWorkbenchWindow()
 								.getActivePage().showView(XReferenceView.ID);
 			                return Status.OK_STATUS;
 				        } catch (PartInitException e) {
-				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(UIMessages.AJDTPrefConfigWizardPage_ErrorOpeningXRefView, e);
+				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(UIMessages.BuildConfigurator_ErrorOpeningXRefView, e);
 				            return Status.OK_STATUS;
 				        }
 					}

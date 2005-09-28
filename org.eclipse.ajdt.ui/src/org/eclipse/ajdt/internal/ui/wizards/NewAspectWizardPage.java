@@ -82,12 +82,12 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 		fPerClauseSelection.setLabelText(UIMessages.NewAspectCreationWizardPage_instantiation_label); 
 
 		String[] perClauseButtonNames= new String[] {
-				"issingleton", //$NON-NLS-1$
-				"perthis", //$NON-NLS-1$
-				"pertarget", //$NON-NLS-1$
-				"percflow", //$NON-NLS-1$
-				"percflowbelow", //$NON-NLS-1$
-				"pertypewithin" //$NON-NLS-1$
+				"i&ssingleton", //$NON-NLS-1$
+				"p&erthis", //$NON-NLS-1$
+				"pertar&get", //$NON-NLS-1$
+				"per&cflow", //$NON-NLS-1$
+				"pe&rcflowbelow", //$NON-NLS-1$
+				"pertypewithi&n" //$NON-NLS-1$
 		};
 		fPerClauseButtons= new SelectionButtonDialogFieldGroup(SWT.RADIO, perClauseButtonNames, 3);
 		fPerClauseSelection.attachDialogField(fPerClauseButtons);

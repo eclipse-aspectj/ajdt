@@ -204,7 +204,7 @@ public class BuildConfigurationCreationPage extends WizardNewFileCreationPage {
 	 * Method declared on WizardNewFileCreationPage.
 	 */
 	protected String getNewFileLabel() {
-		return UIMessages.BuildConfig_newLstFile;
+		return UIMessages.BuildConfig_newBCFile;
 	}
 
 }

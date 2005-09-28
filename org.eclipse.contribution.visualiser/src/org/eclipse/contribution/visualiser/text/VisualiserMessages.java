@@ -34,7 +34,6 @@ public class VisualiserMessages extends NLS {
 	public static String VisualiserPreferencePage_colorSet;
 	public static String VisualiserPreferencePage_stripeHeight;
 	public static String VisualiserPreferencePage_colWidth;
-	public static String VisualiserPreferencePage_usePats;
 	public static String VisualiserPreferencePage_preview;
 	public static String VisualiserPreferencePage_preview_col1;
 	public static String VisualiserPreferencePage_preview_col2;
@@ -64,16 +63,10 @@ public class VisualiserMessages extends NLS {
 	public static String Changes_to_group_view_13;
 	public static String Class_View_15;
 	public static String Changes_to_member_view_16;
-	public static String Subselect_18;
-	public static String Subselects_chosen_packages_classes_19;
 	public static String Select_All_20;
 	public static String Select_None_21;
-	public static String Change_Mode_22;
-	public static String Change_Mode_23;
 	public static String Preferences_24;
 	public static String Preferences_Tip_25;
-	public static String Lock;
-	public static String Lock_Tooltip;
 	public static String Absolute_Proportions;
 	public static String Zoom_fittoview;
 

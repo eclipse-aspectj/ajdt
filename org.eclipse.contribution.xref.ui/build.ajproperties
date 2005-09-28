@@ -1,3 +1,4 @@
 src.includes = src/
 src.excludes = src/org/eclipse/contribution/xref/internal/ui/policy/Enforcement.aj,\
-               src/org/eclipse/contribution/xref/internal/ui/policy/DontUseEclipseInternalAPIs.aj
+               src/org/eclipse/contribution/xref/internal/ui/policy/DontUseEclipseInternalAPIs.aj,\
+               src/org/eclipse/contribution/xref/internal/ui/preference/XReferencePreferencePage.java
