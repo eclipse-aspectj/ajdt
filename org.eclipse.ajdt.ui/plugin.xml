@@ -485,7 +485,7 @@
          </action>         
          <action
                label="%buildConfig"
-               pulldown="true"
+               style="pulldown"
                icon="icons/actions/ajdt-build.gif"
                disabledIcon="icons/actions/disabled_build.gif"
                tooltip="Build AspectJ Project / Select Configuration"
@@ -505,62 +505,67 @@
       </actionSet>
    </extension>
 
+ <!-- commands and their bindings
+NOTE:
+M1 = CTRL/COMMAND 
+M2 = SHIFT 
+M3 = ALT 
+M4 = Platform-specific fourth key
+-->
    <extension
          point="org.eclipse.ui.commands">
+<!-- Open Types shortcuts -->
       <command
             name="%ActionDefinition.openType.name"
             description="%ActionDefinition.openType.description"
-            category="org.eclipse.ui.category.navigate"
+            categoryId="org.eclipse.ui.category.navigate"
             id="org.eclipse.ajdt.ui.navigate.open.type">
       </command>
-      <keyBinding
-            string="Ctrl+Alt+T"
-            scope="org.eclipse.ui.globalScope"
-            command="org.eclipse.ajdt.ui.navigate.open.type"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Ctrl+Alt+T"
-            scope="org.eclipse.ui.globalScope"
-            command=""
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Command+Alt+T"
-            scope="org.eclipse.ui.globalScope"
-            command="org.eclipse.ajdt.ui.navigate.open.type"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
       <command
             name="%ActionDefinition.openTypeInHierarchy.name"
             description="%ActionDefinition.openTypeInHierarchy.description"
-            category="org.eclipse.ui.category.navigate"
+            categoryId="org.eclipse.ui.category.navigate"
             id="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy">
       </command>
-      <keyBinding
-            string="Ctrl+Alt+A"
-            scope="org.eclipse.ui.globalScope"
-            command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Ctrl+Alt+A"
-            scope="org.eclipse.ui.globalScope"
-            command=""
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Command+Alt+A"
-            scope="org.eclipse.ui.globalScope"
-            command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-   </extension>    
-          
+      
+<!-- launch shortcuts -->
+      <command
+            name="%AspectJApplicationShortcut.description.debug"
+            description="%AspectJApplicationShortcut.description.debug"
+            categoryId="org.eclipse.debug.ui.category.run"
+            id="org.eclipse.ajdt.launching.runShortcut.debug">
+      </command>
+      <command
+            name="%AspectJApplicationShortcut.description.run"
+            description="%AspectJApplicationShortcut.description.run"
+            categoryId="org.eclipse.debug.ui.category.run"
+            id="org.eclipse.ajdt.launching.runShortcut.run">
+      </command>
+   </extension>
+
+   <extension point="org.eclipse.ui.bindings">
+        <key
+            sequence="M1+M3+T"
+            contextId="org.eclipse.ui.globalScope"
+            commandId="org.eclipse.ajdt.ui.navigate.open.type"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M3+A"
+            contextId="org.eclipse.ui.globalScope"
+            commandId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M3+M2+D C"
+            contextId="org.eclipse.ui.globalScope"
+            commandId="org.eclipse.ajdt.launching.runShortcut.debug"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+       <key
+            sequence="M3+M2+X C"
+            contextId="org.eclipse.ui.globalScope"
+            commandId="org.eclipse.ajdt.launching.runShortcut.run"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+   </extension> 
+      
    <extension point="org.eclipse.ui.perspectiveExtensions">
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
@@ -1675,7 +1680,7 @@
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
-            label="%launcherName"
+            label="%AspectJApplicationShortcut.label"
             icon="icons/actions/aj_app.gif"
             class="org.eclipse.ajdt.internal.launching.AspectJApplicationLaunchShortcut"
             modes="run, debug"
