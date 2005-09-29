@@ -279,6 +279,7 @@ public class UIMessages extends NLS {
 	public static String changesView_filter_dialog_title;
 	public static String changesView_filter_dialog_message;
 	public static String changesView_filter_dialog_showingXofY;
+	public static String changesView_filter_action_tooltip; 
 	public static String quickFix_ConvertProjectToAspectJ;
 	public static String quickFix_OpenInAspectJEditor;
 	public static String AJFiles_title;
@@ -329,7 +330,7 @@ public class UIMessages extends NLS {
 	public static String AspectJUIPlugin_exception_retrieving_lst_files2;
 	public static String LTWAspectPathTab_errormessage;
 	public static String LTWAspectPathTab_label;
-	public static String LTWAspectPathTab_title; 
+	public static String LTWAspectPathTab_title;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

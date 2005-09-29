@@ -447,7 +447,7 @@ public class ChangesView extends ViewPart {
 		
 		filterAction = new ChangesViewFilterAction(getSite().getShell(),
 				populatingList, checkedList, defaultCheckedList, dlogTitle,
-				dlogMessage);
+				dlogMessage, UIMessages.changesView_filter_action_tooltip);
 	}
 	
 	public Object getAdapter(Class key) {
