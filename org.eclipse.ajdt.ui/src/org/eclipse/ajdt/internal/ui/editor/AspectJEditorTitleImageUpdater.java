@@ -47,7 +47,7 @@ public class AspectJEditorTitleImageUpdater {
 		}
 		Image newImage = problemsDecorator.decorateImage(baseImage, jelement);
 		if (titleImage != newImage) {
-			editor.updatedTitleImage(newImage);
+			editor.customUpdatedTitleImage(newImage);
 			return true;
 		}
 		return false;

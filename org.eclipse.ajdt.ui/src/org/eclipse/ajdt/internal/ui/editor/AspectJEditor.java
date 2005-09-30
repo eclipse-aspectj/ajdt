@@ -24,11 +24,13 @@ import org.eclipse.ajdt.internal.ui.editor.actions.AJOpenAction;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
 import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -66,6 +68,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
@@ -105,9 +108,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	private AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
 
 	private IAnnotationModel annotationModel;
-
-	private boolean aboutToUpdateTitleImage;
-
+	
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
 
@@ -475,10 +476,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 		}
 	}
-
-	public void gotoMarker(IMarker marker) {
-		super.gotoMarker(marker);
-	}
 	
 	protected void initializeEditor() {
 		super.initializeEditor();
@@ -527,32 +524,42 @@ public class AspectJEditor extends CompilationUnitEditor {
 	}
 	
 	public synchronized void updatedTitleImage(Image image) {
-		if(aboutToUpdateTitleImage) { // only let us update the image (fix for 105299)
-			aboutToUpdateTitleImage = false;
-			super.updatedTitleImage(image);
-		}
+		// only let us update the image (fix for 105299)
 	}
 
+	public synchronized void customUpdatedTitleImage(Image image) {
+		// only let us update the image (fix for 105299)
+		super.updatedTitleImage(image);
+	}
+	
 	/**
 	 * Update the title image
 	 */
 	// Part of the fix for 89793 - editor icon is not always correct
 	public  void resetTitleImage() {
-		Shell shell= getEditorSite().getShell();
-		if (shell != null && !shell.isDisposed()) {
-			shell.getDisplay().syncExec(new Runnable() {
-				public void run() {
-					synchronized(AspectJEditor.this) {
-						aboutToUpdateTitleImage = true; // only let us update the image (fix for 105299) 
-						boolean updated = aspectJEditorErrorTickUpdater.updateEditorImage(getInputJavaElement());
-						if(!updated) {
-							aboutToUpdateTitleImage = false;
-						}
-					}
-				}
-			});
-		}
+		refreshJob.setElement(getInputJavaElement());
+		refreshJob.schedule();
 	}
 	
+	private UpdateTitleImageJob refreshJob = new UpdateTitleImageJob();
+	
+	private class UpdateTitleImageJob extends UIJob {
+		private IJavaElement elem;
+		
+		UpdateTitleImageJob() {
+			super(AspectJUIPlugin.getResourceString("editor.title.refresh.job")); //$NON-NLS-1$
+			setSystem(true);
+		}
 
+		public void setElement(IJavaElement element) {
+			elem = element;
+		}
+		
+		public IStatus runInUIThread(IProgressMonitor monitor) {
+			if (elem != null) {
+				aspectJEditorErrorTickUpdater.updateEditorImage(elem);
+			}
+			return Status.OK_STATUS;
+		}
+	}
 }
