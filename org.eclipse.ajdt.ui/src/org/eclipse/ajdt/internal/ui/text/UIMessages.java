@@ -262,6 +262,7 @@ public class UIMessages extends NLS {
 	public static String Refactoring_ConvertingFileExtensions;
 	public static String utils_refresh_explorer_job;
 	public static String utils_refresh_outline_job;
+	public static String editor_title_refresh_job;
 	public static String wrong_eclipse_version;
 	public static String savemap_dialog_title;
 	public static String savemap_dialog_message;
