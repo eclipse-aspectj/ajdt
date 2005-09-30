@@ -564,7 +564,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 		
 		public IStatus runInUIThread(IProgressMonitor monitor) {
-			aspectJEditorErrorTickUpdater.updateEditorImage(elem);
+			if (elem != null) {
+				aspectJEditorErrorTickUpdater.updateEditorImage(elem);
+			}
 			return Status.OK_STATUS;
 		}
 	}
