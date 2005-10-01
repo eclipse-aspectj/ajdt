@@ -823,7 +823,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		script.printMkdirTask(destdir);
 		script.printComment("compile the source code"); //$NON-NLS-1$
 		// AspectJ Change Begin
-		JavacTask javac = new AJCTask();
+		JavacTask javac = new AJCTask(getModel().getLocation());
 		// AspectJ Change End
 		javac.setClasspath(classpath);
 		javac.setBootClasspath(Utils.getPropertyFormat(PROPERTY_BOOTCLASSPATH));
