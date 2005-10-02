@@ -8,7 +8,7 @@
  * ...
  **********************************************************************/
 
-package org.eclipse.ajdt.internal.exports;
+package org.eclipse.ajdt.exports;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.eclipse.ajdt.exports.AJAntScript;
-import org.eclipse.ajdt.exports.AJCTask;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
@@ -791,7 +789,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		script.printMkdirTask(destdir);
 		script.printComment("compile the source code"); //$NON-NLS-1$
 		// AspectJ Change Begin
-		JavacTask javac = new AJCTask();
+		JavacTask javac = new AJCTask(getModel().getLocation());
 		// AspectJ Change End
 		javac.setClasspath(classpath);
 		javac.setBootClasspath(getPropertyFormat(PROPERTY_BOOTCLASSPATH));

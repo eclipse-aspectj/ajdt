@@ -7,7 +7,7 @@
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
-package org.eclipse.ajdt.internal.exports;
+package org.eclipse.ajdt.exports;
 
 import java.util.Iterator;
 import java.util.List;

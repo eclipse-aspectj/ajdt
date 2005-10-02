@@ -36,7 +36,9 @@ public class AJAntScript extends AntScript {
 	 * Print the given number of tabs to the Ant script.
 	 */
 	protected void printTab() {
+		super.indent += indent;
 		super.printTab();
+		super.indent -= indent;
 		
 	}
 	
