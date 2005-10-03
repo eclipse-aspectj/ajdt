@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -91,13 +92,13 @@ public class AspectJPreferencePage
 
 		createLabel(compilerOptionsComposite, ""); // Spacer //$NON-NLS-1$
 
-		createLabel(
+		createText(
 			compilerOptionsComposite,
 			UIMessages.aspectjPreferences_compilerVersion
 				+ " " //$NON-NLS-1$
 				+ new String(Ajde.getDefault().getVersion()));
 
-		createLabel(
+		createText(
 			compilerOptionsComposite,
 			UIMessages.aspectjPreferences_pluginVersion
 				+ " " //$NON-NLS-1$
@@ -172,6 +173,24 @@ public class AspectJPreferencePage
 	 */
 	private Label createLabel(Composite parent, String text) {
 		Label label = new Label(parent, SWT.LEFT);
+		label.setText(text);
+		GridData data = new GridData();
+		data.horizontalSpan = 2;
+		data.horizontalAlignment = GridData.FILL;
+		label.setLayoutData(data);
+		return label;
+	}
+	
+	/**
+	 * Utility method that creates a Text instance
+	 * and sets the default layout data.
+	 *
+	 * @param parent  the parent for the new label
+	 * @param text  the text for the new label
+	 * @return the new Text
+	 */
+	private Text createText(Composite parent, String text) {
+		Text label = new Text(parent, SWT.LEFT | SWT.READ_ONLY);
 		label.setText(text);
 		GridData data = new GridData();
 		data.horizontalSpan = 2;
