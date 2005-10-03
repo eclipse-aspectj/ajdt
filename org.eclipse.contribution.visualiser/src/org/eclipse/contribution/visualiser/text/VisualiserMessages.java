@@ -19,7 +19,7 @@ import org.eclipse.osgi.util.NLS;
 public class VisualiserMessages extends NLS {
 
 	private static final String BUNDLE_NAME= VisualiserMessages.class.getName();
-
+	
 	private VisualiserMessages() {
 		// Do not instantiate
 	}
@@ -79,6 +79,8 @@ public class VisualiserMessages extends NLS {
 	public static String Jobs_GettingData;
 	public static String Jobs_UpdatingMenu;
 	public static String Jobs_Drawing;
+	
+	public static String Change_color_for;
 
 	public static String Visualiser_testString;
 	

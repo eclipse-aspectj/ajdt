@@ -441,6 +441,7 @@ public class Menu extends ViewPart {
 		 		 		 // TODO: If we're using patterns, just want image, no button
 		 		 		 if (!VisualiserPreferences.getUsePatterns()) {
 			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
+			 		 		 buttons[i].setToolTipText(VisualiserMessages.Change_color_for + " " + element.getName()); //$NON-NLS-1$
 		 		 		 } else {
 		 		 		 // Just an image
 			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
@@ -454,7 +455,7 @@ public class Menu extends ViewPart {
 		 		 		 Image image = buttons[i].getImage();
 		 		 		 drawImage(image, colors[i]);
 		 		 		 buttons[i].setImage(image);
-
+		 		 		 
 		 		 		 checkboxes[i] = new Button(canvas, SWT.CHECK);
 		 		 		 checkboxes[i].addSelectionListener(checkboxListener);
 		 		 		 checkboxes[i].setSelection(true);
