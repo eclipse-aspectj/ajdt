@@ -145,29 +145,26 @@ public class Menu extends ViewPart {
 		 */
 		selectionListener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				// Do nothing if viewing with Pattern Palette
-				if (!VisualiserPreferences.getUsePatterns()) {
-					if (e.getSource() instanceof Button) {
-						Button button = (Button) e.getSource();
-						int location = 0;
-						for (int j = 0; j < buttons.length; j++) {
-							if ((buttons[j]).equals(button)) {
-								location = j;
-							}
-						}
-						RGB rgb = colorDialogs[location].open();
-						if (rgb == null) {
-							return;
-						}
-						colors[location] = new Color(buttons[location].getDisplay(), rgb);
-						Image image = buttons[location].getImage();
-						drawImage(image, colors[location]);
-						buttons[location].setImage(image);
-						if (!(VisualiserPlugin.visualiser == null)) {
-							vmp.setColorFor((IMarkupKind)labels[location].getData(),colors[location]);
-							VisualiserPlugin.visualiser.draw();
+				if (e.getSource() instanceof Button) {
+					Button button = (Button) e.getSource();
+					int location = 0;
+					for (int j = 0; j < buttons.length; j++) {
+						if ((buttons[j]).equals(button)) {
+							location = j;
 						}
 					}
+					RGB rgb = colorDialogs[location].open();
+					if (rgb == null) {
+						return;
+					}
+					colors[location] = new Color(buttons[location].getDisplay(), rgb);
+					Image image = buttons[location].getImage();
+					drawImage(image, colors[location]);
+					buttons[location].setImage(image);
+					if (!(VisualiserPlugin.visualiser == null)) {
+						vmp.setColorFor((IMarkupKind)labels[location].getData(),colors[location]);
+						VisualiserPlugin.visualiser.draw();
+					}					
 				}
 			}
 		};
@@ -438,24 +435,28 @@ public class Menu extends ViewPart {
 		 		 		 if(colors[i] == null) {
 		 		 		 		 throw new NullPointerException(VisualiserMessages.getColorForError);
 		 		 		 }
-		 		 		 // TODO: If we're using patterns, just want image, no button
 		 		 		 if (!VisualiserPreferences.getUsePatterns()) {
 			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
-			 		 		 buttons[i].setToolTipText(VisualiserMessages.Change_color_for + " " + element.getName()); //$NON-NLS-1$
+			 		 		 buttons[i].setToolTipText(VisualiserMessages.Change_color_for + " " + element.getName()); //$NON-NLS-1$		 		 		 
+			 		 		 shells[i] = buttons[i].getShell();
+			 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
+			 		 		 Display display = shells[i].getDisplay();
+			 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);
+			 		 		 buttons[i].setImage(colorSquares[i]);
+			 		 		 buttons[i].addSelectionListener(selectionListener);
+			 		 		 Image image = buttons[i].getImage();
+			 		 		 drawImage(image, colors[i]);
+			 		 		 buttons[i].setImage(image);
 		 		 		 } else {
-		 		 		 // Just an image
-			 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
-		 		 		 }
-		 		 		 shells[i] = buttons[i].getShell();
-		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
-		 		 		 Display display = shells[i].getDisplay();
-		 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);
-		 		 		 buttons[i].setImage(colorSquares[i]);
-		 		 		 buttons[i].addSelectionListener(selectionListener);
-		 		 		 Image image = buttons[i].getImage();
-		 		 		 drawImage(image, colors[i]);
-		 		 		 buttons[i].setImage(image);
-		 		 		 
+		 		 			 // We're using patterns so make a plain label rather than a button
+		 		 			 Label l = new Label(canvas, SWT.NONE);		 		 			 
+			 		 		 colorSquares[i] = new Image(canvas.getDisplay(), imageSize, imageSize);
+		 		 			 l.setImage(colorSquares[i]);
+		 		 			 l.setToolTipText(VisualiserMessages.Pattern_for + " " + element.getName()); //$NON-NLS-1$
+			 		 		 Image image = l.getImage();
+			 		 		 drawImage(image, colors[i]);
+			 		 		 l.setImage(image);
+			 		 	 }	 
 		 		 		 checkboxes[i] = new Button(canvas, SWT.CHECK);
 		 		 		 checkboxes[i].addSelectionListener(checkboxListener);
 		 		 		 checkboxes[i].setSelection(true);

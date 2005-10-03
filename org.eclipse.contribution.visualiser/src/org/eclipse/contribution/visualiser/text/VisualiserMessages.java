@@ -83,6 +83,7 @@ public class VisualiserMessages extends NLS {
 	public static String Change_color_for;
 
 	public static String Visualiser_testString;
+	public static String Pattern_for;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, VisualiserMessages.class);
