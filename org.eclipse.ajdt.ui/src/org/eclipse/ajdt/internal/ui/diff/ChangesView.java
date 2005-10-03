@@ -36,6 +36,8 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -74,6 +76,8 @@ public class ChangesView extends ViewPart {
 
 	private Table table;
 
+	private TableCursor cursor;
+	
 	private IJavaElement[] sourceElements;
 
 	private IJavaElement[] targetElements;
@@ -177,7 +181,7 @@ public class ChangesView extends ViewPart {
 		}
 
 		// keyboard selection
-		final TableCursor cursor = new TableCursor(table, SWT.SINGLE);
+		cursor = new TableCursor(table, SWT.SINGLE);
 		cursor.addSelectionListener(new SelectionAdapter() {
 			// when the TableEditor is over a cell, select the corresponding row
 			// in the table
@@ -223,6 +227,27 @@ public class ChangesView extends ViewPart {
 		});
 		makeActions();
 		contributeToActionBars();
+
+		// ensure focus goes to the cursor not the table
+		table.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {
+				cursor.setVisible(true);
+				cursor.setFocus();
+			}
+
+			public void focusLost(FocusEvent e) {
+			}
+		});
+		cursor.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {
+			}
+
+			public void focusLost(FocusEvent e) {
+				cursor.setVisible(false);
+				table.setSelection(-1);
+			}
+		});
+		
 	}
 
 	private void navigateTo(int row, int column) {
@@ -260,7 +285,11 @@ public class ChangesView extends ViewPart {
 	 * Passing the focus request to the viewer's control.
 	 */
 	public void setFocus() {
-		table.setFocus();
+		if (table.getItemCount() > 0) {
+			cursor.setVisible(true);
+			cursor.setSelection(0,0);
+			cursor.setFocus();
+		}
 	}
 
 	private void updateDescription(String fromName, String toName, int remove,
