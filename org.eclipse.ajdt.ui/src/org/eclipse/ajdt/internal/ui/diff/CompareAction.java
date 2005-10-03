@@ -91,6 +91,7 @@ public class CompareAction implements IWorkbenchWindowActionDelegate {
 						}
 					}
 				}
+				changesView.setFocus();
 			}
 		} catch (PartInitException e) {
 		}
