@@ -545,12 +545,12 @@ M4 = Platform-specific fourth key
 
    <extension point="org.eclipse.ui.bindings">
         <key
-            sequence="M1+M3+T"
+            sequence="M3+M2+A"
             contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.ui.navigate.open.type"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
-            sequence="M1+M3+A"
+            sequence="M3+M2+H"
             contextId="org.eclipse.ui.globalScope"
             commandId="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
@@ -1638,7 +1638,7 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-<!-- Commenting out LTW support as the implementation is not yet finished
+<!-- Commenting out LTW support as the implementation is not yet finished -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
@@ -1662,7 +1662,7 @@ M4 = Platform-specific fourth key
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             type="org.eclipse.ajdt.launching.AspectJLTWApplication"
-            class="org.eclipse.ajdt.internal.launching.AJLTWTabGroup"
+            class="org.eclipse.ajdt.internal.launching.LTWTabGroup"
             id="org.eclipse.ajdt.aspectjLTWLaunchConfigurationTabGroup">
          <launchMode
                perspective="org.eclipse.debug.ui.DebugPerspective"
@@ -1675,7 +1675,7 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
--->
+<!---->
 	<!-- Extensions for launch shortcuts -->
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">

@@ -100,32 +100,35 @@
              
       </actionSet>
    </extension> 
-        
-   <!-- Adding key binding for inplace XReferenceView 
+
+    <!-- Adding key binding for inplace XReferenceView 
         and commands for showing the inplace and regular view -->             
    <extension
          point="org.eclipse.ui.commands">
-      <!-- Command and Keybinding for inplace xref view -->   
+      <!-- Command for inplace xref view -->   
       <command
             name="%QuickXRef.label"
             description="%ShowXRef.description"
-            category="org.eclipse.ui.category.navigate"
+            categoryId="org.eclipse.ui.category.navigate"
             id="org.eclipse.contribution.xref.show.xref">
       </command>
-      <keyBinding
-            string="Ctrl+Alt+X"
-            scope="org.eclipse.jdt.ui.javaEditorScope"
-            command="org.eclipse.contribution.xref.show.xref"
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <!-- Command for opening the xref view via the
-           Navigate > Show In menu -->
+      <!-- Command for opening the xref view via the Navigate > Show In menu -->
       <command
             name="%XRefView.label"
             description="%ShowXRef.description"
-            category="org.eclipse.ui.category.navigate"
+            categoryId="org.eclipse.ui.category.navigate"
             id="org.eclipse.contribution.xref.show.xref.view">
       </command>
+	</extension>
+	
+   <extension point="org.eclipse.ui.bindings">
+   <!-- Key binding for the inplace XReference view (Alt+Shift+P)-->
+        <key
+            sequence="M3+M2+P" 
+            contextId="org.eclipse.jdt.ui.javaEditorScope"
+            commandId="org.eclipse.contribution.xref.show.xref"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
    </extension>    
 
    <!-- Adding "Open Cross References" to the context menu 
