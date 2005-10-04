@@ -78,6 +78,8 @@ public class ChangesView extends ViewPart {
 
 	private TableCursor cursor;
 	
+	private int selectedRow, selectedColumn;
+	
 	private IJavaElement[] sourceElements;
 
 	private IJavaElement[] targetElements;
@@ -243,6 +245,10 @@ public class ChangesView extends ViewPart {
 			}
 
 			public void focusLost(FocusEvent e) {
+				if (cursor.getRow() != null) {
+					selectedColumn = cursor.getColumn();
+					selectedRow = table.indexOf(cursor.getRow());
+				}
 				cursor.setVisible(false);
 				table.setSelection(-1);
 			}
@@ -287,7 +293,12 @@ public class ChangesView extends ViewPart {
 	public void setFocus() {
 		if (table.getItemCount() > 0) {
 			cursor.setVisible(true);
-			cursor.setSelection(0,0);
+			if (selectedColumn >= 0 && selectedColumn < table.getColumnCount()
+					&& selectedRow >= 0 && selectedRow < table.getItemCount()) {
+				cursor.setSelection(selectedRow,selectedColumn);
+			} else {
+				cursor.setSelection(0,0);
+			}
 			cursor.setFocus();
 		}
 	}
@@ -463,6 +474,6 @@ public class ChangesView extends ViewPart {
 		
 		filterAction = new ChangesViewFilterAction(getSite().getShell(),
 				populatingList, checkedList, defaultCheckedList, dlogTitle,
-				dlogMessage, AspectJUIPlugin.getResourceString("changesView.filter.action.tooltip"));
+				dlogMessage, AspectJUIPlugin.getResourceString("changesView.filter.action.tooltip")); //$NON-NLS-1$
 	}
 }
