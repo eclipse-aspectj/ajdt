@@ -49,6 +49,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -189,13 +190,12 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 //		 AspectJ Extension - message
 		createLabel(composite, SWT.NONE, UIMessages.ajdoc_info_projectselection, createGridData(6)); //$NON-NLS-1$
 		Composite c= new Composite(composite, SWT.NONE);
-		GridLayout layout= new GridLayout();
-		layout.numColumns= 1;
-		layout.makeColumnsEqualWidth= true;
-		layout.marginWidth= 0;
-		layout.marginHeight= 0;
-		c.setLayout(layout);
-		c.setLayoutData(createGridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL, 6, 0));
+		
+		// AspectJ Extension begin - fill layout
+		FillLayout f = new FillLayout();
+		c.setLayout(f);
+		c.setLayoutData(createGridData(GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL | GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL, 6, 1));
+		// AspectJ Extension end
 		
 		// AspectJ Extension - using aj equivalents
 		ITreeContentProvider treeContentProvider= new AJdocProjectContentProvider();
@@ -218,6 +218,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		if (elements.length > 0) {
 			fInputGroup.setSelection(new StructuredSelection(elements[0].getJavaProject()));
 		}
+		c.layout();
 		
 //		fInputGroup.aboutToOpen();
 		// AspectJ Extension End
