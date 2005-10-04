@@ -422,20 +422,14 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	 * project is selected.
 	 */
 	private void setTreeChecked(IJavaElement[] sourceElements) {
-//		for (int i= 0; i < sourceElements.length; i++) {
-//			IJavaElement curr= sourceElements[i];
-//			if (curr instanceof ICompilationUnit) {
-//				fInputGroup.initialCheckListItem(curr);
-//			} else if (curr instanceof IPackageFragment) {
-//				fInputGroup.initialCheckTreeItem(curr);
-//			} else if (curr instanceof IJavaProject) {
-//				fInputGroup.initialCheckTreeItem(curr);
-//			} else if (curr instanceof IPackageFragmentRoot) {
-//				IPackageFragmentRoot root= (IPackageFragmentRoot) curr;
-//				if (!root.isArchive())
-//					fInputGroup.initialCheckTreeItem(curr);
-//			}
-//		}
+		for (int i= 0; i < sourceElements.length; i++) {
+			// AspectJ Extension Begin - change due to use of CheckboxTreeViewer
+			IJavaElement curr= sourceElements[i];
+			if (curr instanceof IJavaProject) {
+				fInputGroup.setChecked(curr, true);
+			}
+			// AspectJ Extension End
+		}
 	}
 
 	private IPath[] getSourcePath(IJavaProject[] projects) {
