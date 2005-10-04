@@ -585,11 +585,11 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	private void openDialog(XReferenceInplaceDialog previousDialog) {
 		final XReferenceInplaceDialog dialog = previousDialog;
 		
-		postKeyDown(SWT.CTRL);
 		postKeyDown(SWT.ALT);
-		postKey('x');
+		postKeyDown(SWT.SHIFT);
+		postKey('p');
+		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
 		
 		new DisplayHelper() {
 

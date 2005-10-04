@@ -104,12 +104,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		// 3. Test that an aspect in a .aj file is found by the AJDT types dialog
 	
-		// Press Ctrl+Alt+T
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postKey('t');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		openAJOpenTypesDialog();
 		
 		r = new Runnable(){
 			public void run() {
@@ -131,12 +126,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		// 4. Test that a class in a .aj file is found only once by the AJDT types dialog
 		
-		// Press Ctrl+Alt+T
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postKey('t');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		openAJOpenTypesDialog();
 		
 		r = new Runnable(){
 			public void run() {
@@ -160,12 +150,7 @@ public class OpenTypesTest extends VisualTestCase {
 			
 		// 5. Test that an aspect that appears twice shows 2 options in the bottom box
 	
-		// Press Ctrl+Alt+T
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postKey('t');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		openAJOpenTypesDialog();
 		
 		r = new Runnable(){
 			public void run() {
@@ -185,6 +170,15 @@ public class OpenTypesTest extends VisualTestCase {
 		assertTrue("There should be four editors open", editors.length == 4); //$NON-NLS-1$
 		editorInput = (IFileEditorInput) editors[3].getEditor(false).getEditorInput();
 		assertTrue("Display2.aj should have been opened", editorInput.getFile().getName().equals("Display2.aj"));		 //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	private void openAJOpenTypesDialog() {
+		// Press Alt+Shift+A
+		postKeyDown(SWT.ALT);
+		postKeyDown(SWT.SHIFT);
+		postKey('a');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.ALT);
 	}
 	
 	
@@ -256,12 +250,7 @@ public class OpenTypesTest extends VisualTestCase {
 	public void testOpenTypeInHierarchy() {
 		// Open a class in a .aj file in the hierarchy view
 		
-		// Press Ctrl+Alt+A
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postKey('a');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		openAJOpenTypeInHierarchyDialog();
 		
 		Runnable r = new Runnable(){
 			public void run() {
@@ -290,13 +279,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().hideView(hierarchyView);
 		
-		// Open an aspect in the hierarchy view
-		// Press Ctrl+Alt+A
-		postKeyDown(SWT.CTRL);
-		postKeyDown(SWT.ALT);
-		postKey('a');
-		postKeyUp(SWT.ALT);
-		postKeyUp(SWT.CTRL);
+		openAJOpenTypeInHierarchyDialog();
 		
 		r = new Runnable(){
 			public void run() {
@@ -323,6 +306,15 @@ public class OpenTypesTest extends VisualTestCase {
 		assertNotNull("The hierarchy view should still be open", hierarchyView); //$NON-NLS-1$
 		assertTrue("The input to the type hierarchy should be GameSynchronization", hierarchyView.getInputElement().getElementName().equals("GameSynchronization")); //$NON-NLS-1$ //$NON-NLS-2$
 		
+	}
+
+	private void openAJOpenTypeInHierarchyDialog() {
+		// Press Alt+Shift+H
+		postKeyDown(SWT.ALT);
+		postKeyDown(SWT.SHIFT);
+		postKey('h');
+		postKeyUp(SWT.SHIFT);
+		postKeyUp(SWT.ALT);
 	}
 	
 }
