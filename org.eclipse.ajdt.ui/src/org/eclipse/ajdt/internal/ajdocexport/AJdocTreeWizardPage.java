@@ -13,24 +13,16 @@ package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.StringTokenizer;
 
-import org.eclipse.ajdt.internal.ajdocexport.AJdocProjectContentProvider;
-import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
@@ -38,7 +30,6 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocExportMessages;
-import org.eclipse.jdt.internal.ui.javadocexport.JavadocMemberContentProvider;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
@@ -480,68 +471,69 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		return (IPath[]) res.toArray(new IPath[res.size()]);
 	}
 
-	/**
-	 * Gets a list of elements to generated javadoc for from each project. 
-	 * Javadoc can be generated for either a IPackageFragmentRoot or a ICompilationUnit.
-	 */
-	private IJavaElement[] getSourceElements(IJavaProject[] projects) {
-		ArrayList res= new ArrayList();
-		try {
-			Set allChecked= new HashSet(Arrays.asList(fInputGroup.getCheckedElements()));
-
-			Set incompletePackages= new HashSet();
-			for (int h= 0; h < projects.length; h++) {
-				IJavaProject iJavaProject= projects[h];
-
-				IPackageFragmentRoot[] roots= iJavaProject.getPackageFragmentRoots();
-				for (int i= 0; i < roots.length; i++) {
-					IPackageFragmentRoot root= roots[i];
-					if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
-						IJavaElement[] packs= root.getChildren();
-						for (int k= 0; k < packs.length; k++) {
-							IJavaElement curr= packs[k];
-							if (curr.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
-								// default packages are always incomplete
-								if (curr.getElementName().length() == 0 || !allChecked.contains(curr)) {
-									incompletePackages.add(curr.getElementName());
-								}
-							}
-						}
-					}
-				}
-			}
-
-			Iterator checkedElements= allChecked.iterator();
-			while (checkedElements.hasNext()) {
-				Object element= checkedElements.next();
-				if (element instanceof ICompilationUnit) {
-					ICompilationUnit unit= (ICompilationUnit) element;
-					if (incompletePackages.contains(unit.getParent().getElementName())) {
-						res.add(unit);
-					}
-				}
-			}
-
-			Set addedPackages= new HashSet();
-
-			checkedElements= allChecked.iterator();
-			while (checkedElements.hasNext()) {
-				Object element= checkedElements.next();
-				if (element instanceof IPackageFragment) {
-					IPackageFragment fragment= (IPackageFragment) element;
-					String name= fragment.getElementName();
-					if (!incompletePackages.contains(name) && !addedPackages.contains(name)) {
-						res.add(fragment);
-						addedPackages.add(name);
-					}
-				}
-			}
-
-		} catch (JavaModelException e) {
-			JavaPlugin.log(e);
-		}
-		return (IJavaElement[]) res.toArray(new IJavaElement[res.size()]);
-	}
+// AspectJ Extension - commented out unused method
+//	/**
+//	 * Gets a list of elements to generated javadoc for from each project. 
+//	 * Javadoc can be generated for either a IPackageFragmentRoot or a ICompilationUnit.
+//	 */
+//	private IJavaElement[] getSourceElements(IJavaProject[] projects) {
+//		ArrayList res= new ArrayList();
+//		try {
+//			Set allChecked= new HashSet(Arrays.asList(fInputGroup.getCheckedElements()));
+//
+//			Set incompletePackages= new HashSet();
+//			for (int h= 0; h < projects.length; h++) {
+//				IJavaProject iJavaProject= projects[h];
+//
+//				IPackageFragmentRoot[] roots= iJavaProject.getPackageFragmentRoots();
+//				for (int i= 0; i < roots.length; i++) {
+//					IPackageFragmentRoot root= roots[i];
+//					if (root.getKind() == IPackageFragmentRoot.K_SOURCE) {
+//						IJavaElement[] packs= root.getChildren();
+//						for (int k= 0; k < packs.length; k++) {
+//							IJavaElement curr= packs[k];
+//							if (curr.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
+//								// default packages are always incomplete
+//								if (curr.getElementName().length() == 0 || !allChecked.contains(curr)) {
+//									incompletePackages.add(curr.getElementName());
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//
+//			Iterator checkedElements= allChecked.iterator();
+//			while (checkedElements.hasNext()) {
+//				Object element= checkedElements.next();
+//				if (element instanceof ICompilationUnit) {
+//					ICompilationUnit unit= (ICompilationUnit) element;
+//					if (incompletePackages.contains(unit.getParent().getElementName())) {
+//						res.add(unit);
+//					}
+//				}
+//			}
+//
+//			Set addedPackages= new HashSet();
+//
+//			checkedElements= allChecked.iterator();
+//			while (checkedElements.hasNext()) {
+//				Object element= checkedElements.next();
+//				if (element instanceof IPackageFragment) {
+//					IPackageFragment fragment= (IPackageFragment) element;
+//					String name= fragment.getElementName();
+//					if (!incompletePackages.contains(name) && !addedPackages.contains(name)) {
+//						res.add(fragment);
+//						addedPackages.add(name);
+//					}
+//				}
+//			}
+//
+//		} catch (JavaModelException e) {
+//			JavaPlugin.log(e);
+//		}
+//		return (IJavaElement[]) res.toArray(new IJavaElement[res.size()]);
+//	}
 
 	protected void updateStore(IJavaProject[] checkedProjects) {
 //		 AspectJ Extension - commenting out unused code
@@ -687,16 +679,16 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 		}
 	}
 	
-
-	private boolean validDocletPath(String docletPath) {
-		StringTokenizer tokens= new StringTokenizer(docletPath, ";"); //$NON-NLS-1$
-		while (tokens.hasMoreTokens()) {
-			File file= new File(tokens.nextToken());
-			if (!file.exists())
-				return false;
-		}
-		return true;
-	}
+// AspectJ Extension - commented out unused method
+//	private boolean validDocletPath(String docletPath) {
+//		StringTokenizer tokens= new StringTokenizer(docletPath, ";"); //$NON-NLS-1$
+//		while (tokens.hasMoreTokens()) {
+//			File file= new File(tokens.nextToken());
+//			if (!file.exists())
+//				return false;
+//		}
+//		return true;
+//	}
 
 	/**
 	 * Finds the most severe error (if there is one)
