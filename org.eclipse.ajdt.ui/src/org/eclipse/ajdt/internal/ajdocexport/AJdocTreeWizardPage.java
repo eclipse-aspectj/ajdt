@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -36,7 +37,6 @@ import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
-import org.eclipse.jdt.internal.ui.jarpackager.CheckboxTreeAndListGroup;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocExportMessages;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocMemberContentProvider;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
@@ -45,6 +45,7 @@ import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jdt.ui.JavaElementSorter;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -54,6 +55,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -71,7 +73,8 @@ import org.eclipse.ui.help.WorkbenchHelp;
  */
 public class AJdocTreeWizardPage extends AJdocWizardPage {
 
-	private CheckboxTreeAndListGroup fInputGroup;
+	// AspectJ Extension - use a CheckboxTreeViewer instead (bug 111063)
+	private CheckboxTreeViewer fInputGroup;
 
 	private Text fDestinationText;
 	private Combo fAJdocCommandText;
@@ -186,32 +189,37 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 //		 AspectJ Extension - message
 		createLabel(composite, SWT.NONE, AspectJUIPlugin.getResourceString("ajdoc.info.projectselection"), createGridData(6)); //$NON-NLS-1$
 		Composite c= new Composite(composite, SWT.NONE);
-		GridLayout layout= new GridLayout();
-		layout.numColumns= 1;
-		layout.makeColumnsEqualWidth= true;
-		layout.marginWidth= 0;
-		layout.marginHeight= 0;
-		c.setLayout(layout);
-		c.setLayoutData(createGridData(GridData.FILL_HORIZONTAL, 6, 0));
+//		 AspectJ Extension begin - fill layout
+		FillLayout f = new FillLayout();
+		c.setLayout(f);
+		// AspectJ Extension end
 		
+		// AspectJ Extension - added GRAB horizontal and FILL and GRAB vertical
+		c.setLayoutData(createGridData(GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL | GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL, 6, 1));
+		 
 		ITreeContentProvider treeContentProvider= new AJdocProjectContentProvider();
-		ITreeContentProvider listContentProvider= new JavadocMemberContentProvider();
-		fInputGroup= new CheckboxTreeAndListGroup(c, this, treeContentProvider, new JavaElementLabelProvider(JavaElementLabelProvider.SHOW_DEFAULT), listContentProvider, new JavaElementLabelProvider(JavaElementLabelProvider.SHOW_DEFAULT), SWT.NONE, convertWidthInCharsToPixels(60), convertHeightInCharsToPixels(7));
-
+		
+		// AspectJ Extension Begin - use a CheckboxTreeViewer and associated methods
+		fInputGroup= new CheckboxTreeViewer(c, SWT.BORDER);
+		fInputGroup.setLabelProvider(new JavaElementLabelProvider(JavaElementLabelProvider.SHOW_DEFAULT));
+		fInputGroup.setContentProvider(treeContentProvider);
+		fInputGroup.setInput(this);
+		
 		fInputGroup.addCheckStateListener(new ICheckStateListener() {
 			public void checkStateChanged(CheckStateChangedEvent e) {
 				doValidation(TREESTATUS);
 			}
 		});
-		fInputGroup.setTreeSorter(new JavaElementSorter());
+		fInputGroup.setSorter(new JavaElementSorter());
 		
 		IJavaElement[] elements= fStore.getInitialElements();
 		setTreeChecked(elements);
 		if (elements.length > 0) {
-			fInputGroup.setTreeSelection(new StructuredSelection(elements[0].getJavaProject()));
+			fInputGroup.setSelection(new StructuredSelection(elements[0].getJavaProject()));
 		}
-
-		fInputGroup.aboutToOpen();
+		
+//		fInputGroup.aboutToOpen();
+		// AspectJ Extension End
 	}
 
 	private void createVisibilitySet(Composite composite) {
@@ -409,18 +417,11 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	 * project is selected.
 	 */
 	private void setTreeChecked(IJavaElement[] sourceElements) {
+		// AspectJ Extension begin - changed due to using a CheckboxTreeViewer
 		for (int i= 0; i < sourceElements.length; i++) {
 			IJavaElement curr= sourceElements[i];
-			if (curr instanceof ICompilationUnit) {
-				fInputGroup.initialCheckListItem(curr);
-			} else if (curr instanceof IPackageFragment) {
-				fInputGroup.initialCheckTreeItem(curr);
-			} else if (curr instanceof IJavaProject) {
-				fInputGroup.initialCheckTreeItem(curr);
-			} else if (curr instanceof IPackageFragmentRoot) {
-				IPackageFragmentRoot root= (IPackageFragmentRoot) curr;
-				if (!root.isArchive())
-					fInputGroup.initialCheckTreeItem(curr);
+			if (curr instanceof IJavaProject) {
+				fInputGroup.setChecked(curr, true);
 			}
 		}
 	}
@@ -486,7 +487,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 	private IJavaElement[] getSourceElements(IJavaProject[] projects) {
 		ArrayList res= new ArrayList();
 		try {
-			Set allChecked= fInputGroup.getAllCheckedTreeItems();
+			Set allChecked= new HashSet(Arrays.asList(fInputGroup.getCheckedElements()));
 
 			Set incompletePackages= new HashSet();
 			for (int h= 0; h < projects.length; h++) {
@@ -501,7 +502,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 							IJavaElement curr= packs[k];
 							if (curr.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
 								// default packages are always incomplete
-								if (curr.getElementName().length() == 0 || !allChecked.contains(curr) || fInputGroup.isTreeItemGreyChecked(curr)) {
+								if (curr.getElementName().length() == 0 || !allChecked.contains(curr)) {
 									incompletePackages.add(curr.getElementName());
 								}
 							}
@@ -510,7 +511,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 				}
 			}
 
-			Iterator checkedElements= fInputGroup.getAllCheckedListItems();
+			Iterator checkedElements= allChecked.iterator();
 			while (checkedElements.hasNext()) {
 				Object element= checkedElements.next();
 				if (element instanceof ICompilationUnit) {
@@ -637,7 +638,7 @@ public class AJdocTreeWizardPage extends AJdocWizardPage {
 
 				fTreeStatus= new StatusInfo();
 //				 AspectJ Extension - message
-				if (fInputGroup.getCheckedElementCount() == 0){
+				if (fInputGroup.getCheckedElements().length == 0){
 					fTreeStatus.setError(AspectJUIPlugin.getResourceString("ajdoc.error.noProjectSelected")); //$NON-NLS-1$
 				}
 				updateStatus(findMostSevereStatus());
