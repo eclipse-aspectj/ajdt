@@ -463,6 +463,6 @@ public class ChangesView extends ViewPart {
 		
 		filterAction = new ChangesViewFilterAction(getSite().getShell(),
 				populatingList, checkedList, defaultCheckedList, dlogTitle,
-				dlogMessage);
+				dlogMessage, AspectJUIPlugin.getResourceString("changesView.filter.action.tooltip"));
 	}
 }

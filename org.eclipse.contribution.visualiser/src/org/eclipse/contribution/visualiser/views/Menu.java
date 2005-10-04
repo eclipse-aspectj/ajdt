@@ -409,7 +409,8 @@ public class Menu extends ViewPart {
 		 		 		 		 throw new NullPointerException(VisualiserPlugin.getResourceString("getColorForError")); //$NON-NLS-1$
 		 		 		 }
 		 		 		 buttons[i] = new Button(canvas, SWT.PUSH);
-		 		 		 shells[i] = buttons[i].getShell();
+		 		 		 buttons[i].setToolTipText(VisualiserPlugin.getResourceString("Change_color_for") + " " + element.getName()); //$NON-NLS-1$		 		 		 
+			 		 	 shells[i] = buttons[i].getShell();
 		 		 		 colorDialogs[i] = new ColorDialog(shells[i]);
 		 		 		 Display display = shells[i].getDisplay();
 		 		 		 colorSquares[i] = new Image(display, imageSize, imageSize);

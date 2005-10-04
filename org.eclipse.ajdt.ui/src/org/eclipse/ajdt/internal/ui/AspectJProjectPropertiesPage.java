@@ -28,6 +28,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
 
 /**
@@ -62,7 +63,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 
         // This will cover the top row of the panel.
         Composite row0Composite = createRowComposite(pageComposite,1);
-		createLabel(
+		createText(
                 row0Composite,
 				AspectJUIPlugin.getResourceString("compilerPropsPage.description")); //$NON-NLS-1$
 
@@ -104,6 +105,20 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		return label;
 	}
 
+	/**
+	 * Helper method that creates a read-only Text.
+	 */
+	private Text createText(Composite parent, String text) {
+		Text label = new Text(parent, SWT.LEFT | SWT.READ_ONLY);
+		label.setText(text);
+
+		GridData data = new GridData();
+		data.horizontalSpan = 3;
+		data.horizontalAlignment = GridData.BEGINNING;
+		label.setLayoutData(data);
+
+		return label;
+	}
 	/**
 	* Creates composite control and sets the default layout data.
 	*

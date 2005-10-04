@@ -139,7 +139,7 @@
             id="org.eclipse.contribution.xref.show.xref">
       </command>
       <keyBinding
-            string="Ctrl+Alt+X"
+            string="Alt+Shift+P"
             scope="org.eclipse.jdt.ui.javaEditorScope"
             command="org.eclipse.contribution.xref.show.xref"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">

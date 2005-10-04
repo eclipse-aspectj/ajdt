@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -413,11 +414,11 @@ public class AJCompilerPreferencePage extends PreferencePage
 		Composite composite = new Composite(folder, SWT.NULL);
 		composite.setLayout(layout);
 
-		Label description = new Label(composite, SWT.WRAP);
+		Text description = new Text(composite, SWT.WRAP | SWT.READ_ONLY);
 		description
 				.setText(AspectJUIPlugin
 						.getResourceString("CompilerConfigurationBlock.aj_5.description")); //$NON-NLS-1$
-		GridData gd = new GridData();
+		GridData gd= new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
 		gd.horizontalSpan = nColumns;
 		//gd.widthHint= fPixelConverter.convertWidthInCharsToPixels(50);
 		description.setLayoutData(gd);

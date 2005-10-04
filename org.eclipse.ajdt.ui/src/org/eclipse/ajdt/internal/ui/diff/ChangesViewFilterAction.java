@@ -31,16 +31,18 @@ public class ChangesViewFilterAction extends Action {
 	private static String dialogMessage;
 
 	private Shell parentShell;
+	private String tooltipText;
 
 	public ChangesViewFilterAction(Shell shell, List items,
 			List checkedItems, List defaultItems, String dlogTitle,
-			String dlogMessage) {
+			String dlogMessage, String tooltip) {
 		populatingList = items;
 		checkedList = checkedItems;
 		defaultCheckedList = defaultItems;
 		dialogTitle = dlogTitle;
 		dialogMessage = dlogMessage;
 		parentShell = shell;
+		tooltipText = tooltip;
 	}
 
 	public void fillActionBars(IActionBars actionBars) {
@@ -62,7 +64,9 @@ public class ChangesViewFilterAction extends Action {
 	}
 
 	private void fillToolBar(IToolBarManager tooBar) {
-		tooBar.add(new ShowFilterDialogAction());
+		Action showDialogAction = new ShowFilterDialogAction();
+		showDialogAction.setToolTipText(tooltipText);
+		tooBar.add(showDialogAction);
 
 	}
 

@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -159,7 +160,7 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 		data.heightHint= 2;
 		separator.setLayoutData(data);
 		
-		createLabel(composite, AspectJUIPlugin.getResourceString("ajmapEditor.description")); //$NON-NLS-1$
+		createText(composite, AspectJUIPlugin.getResourceString("ajmapEditor.description")); //$NON-NLS-1$
 		
 		separator= createCompositeSeparator(composite);
 		data= new GridData(GridData.FILL_HORIZONTAL);
@@ -192,6 +193,15 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 		return label;
 	}
 
+	private Text createText(Composite parent, String text) {
+		Text label = new Text(parent, SWT.READ_ONLY | SWT.MULTI);
+		if (text != null)
+			label.setText(text);
+		label.setBackground(fBackgroundColor);
+		label.setForeground(fForegroundColor);
+		return label;
+	}
+	
 	private Label createTitleLabel(Composite parent, String text) {
 		Label label = new Label(parent, SWT.NONE);
 		if (text != null)

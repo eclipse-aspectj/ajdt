@@ -670,21 +670,14 @@
             id="org.eclipse.ajdt.ui.navigate.open.type">
       </command>
       <keyBinding
-            string="Ctrl+Alt+T"
+            string="Alt+Shift+A"
             scope="org.eclipse.ui.globalScope"
             command="org.eclipse.ajdt.ui.navigate.open.type"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
       </keyBinding>
       <keyBinding
             platform="carbon"
-            string="Ctrl+Alt+T"
-            scope="org.eclipse.ui.globalScope"
-            command=""
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Command+Alt+T"
+            string="Alt+Shift+A"
             scope="org.eclipse.ui.globalScope"
             command="org.eclipse.ajdt.ui.navigate.open.type"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
@@ -696,21 +689,14 @@
             id="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy">
       </command>
       <keyBinding
-            string="Ctrl+Alt+A"
+            string="Alt+Shift+H"
             scope="org.eclipse.ui.globalScope"
             command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
       </keyBinding>
       <keyBinding
             platform="carbon"
-            string="Ctrl+Alt+A"
-            scope="org.eclipse.ui.globalScope"
-            command=""
-            configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
-      </keyBinding>
-      <keyBinding
-            platform="carbon"
-            string="Command+Alt+A"
+            string="Alt+Shift+H"
             scope="org.eclipse.ui.globalScope"
             command="org.eclipse.ajdt.ui.navigate.open.type.in.hierarchy"
             configuration="org.eclipse.ui.defaultAcceleratorConfiguration">
