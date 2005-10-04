@@ -1355,7 +1355,7 @@ public class VisualiserCanvas extends Canvas {
 		gc.setForeground(VIS_BG_COLOUR);
 		gc.drawRectangle(x - 1 - n, y - 1, width + 2 + 2 * n, height);
 		gc.drawRectangle(outer);
-		gc.setForeground(ColorConstants.black);
+		gc.setForeground(ColorConstants.menuForeground);
 		gc.drawRectangle(x - 2 - n, y - 2, width + 4 + 2 * n, height + 2);
 	}
 
