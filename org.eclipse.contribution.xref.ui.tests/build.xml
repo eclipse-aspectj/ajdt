@@ -1,88 +1,207 @@
-<?xml version="1.0" ?>
-<!-- writen for Ant 1.5.1 -->
-<project name="org.eclipse.contribution.xref.ui.tests" default="packaged-plugin">
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="org.eclipse.contribution.xref.ui.tests" default="build.jars" basedir=".">
 
-<description>
-Create a packaged org.eclipse.contribution.xref.ui.tests_version plugin distribution file
-</description>
-<!-- VERSION-STRING -->
-<!-- these property values will be overridden when called from the master build script -->
-<property name="xref.version" value="1.2.0" />
-<property name="build.dir" value="build" />
-<property name="eclipse.build.version" value="3.0.0" />
+	<property name="basews" value="${ws}"/>
+	<property name="baseos" value="${os}"/>
+	<property name="basearch" value="${arch}"/>
+	<property name="basenl" value="${nl}"/>
 
-<!-- To run this script from inside an automated build environment such 
-     as Cruise Control the following properties are expected to have
-     been set and passed in :-
-     * external.build (set to any value) 
-     * eclipse.home (set to the directory where Eclipse has been 
-       installed on the build machine)
-     * eclipse.build.version (override the value default value set above)
--->
+	<!-- Compiler settings. -->
+	<property name="javacFailOnError" value="false"/>
+	<property name="javacDebugInfo" value="on"/>
+	<property name="javacVerbose" value="true"/>
+	<property name="javacSource" value="1.3"/>
+	<property name="javacTarget" value="1.2"/>
+	<property name="compilerArg" value=""/>
+	<path id="path_bootclasspath">
+		<fileset dir="${java.home}/lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	<property name="bootclasspath" refid="path_bootclasspath"/>
 
-<target name="init">
-  <mkdir dir="${build.dir}" />
-  <mkdir dir="dist"/>
-</target>
+	<target name="init" depends="properties">
+		<condition property="pluginTemp" value="${buildTempFolder}/plugins">
+			<isset property="buildTempFolder"/>
+		</condition>
+		<property name="pluginTemp" value="${basedir}"/>
+		<condition property="build.result.folder" value="${pluginTemp}/org.eclipse.contribution.xref.ui.tests">
+			<isset property="buildTempFolder"/>
+		</condition>
+		<property name="build.result.folder" value="${basedir}"/>
+		<property name="temp.folder" value="${basedir}/temp.folder"/>
+		<property name="plugin.destination" value="${basedir}"/>
+	</target>
 
-<target name="clean" depends="init" >
-  <delete dir="${build.dir}"/>
-  <delete dir="dist"/>
-</target>
+	<target name="properties" if="eclipse.running">
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
 
-<target name="externalbuild" if="external.build" >
-	<delete dir="bin"/>
-	<mkdir dir="bin"/>
-	<property file="${eclipse.home}/ajdtworkspace.properties"/>
-	<javac srcdir="src" destdir="bin" classpath="${classpath.org.eclipse.contribution.xref.ui.tests};../org.eclipse.contribution.xref.core/build/xrefcore.jar;../org.eclipse.contribution.xref.ui/build/xrefui.jar"/>
-</target>
+	</target>
 
-<target name="eclipsebuild" unless="external.build" >
-	<eclipse.incrementalBuild project="org.eclipse.contribution.xref.ui.tests" />
-</target>
+	<target name="build.update.jar" depends="init" description="Build the plug-in: org.eclipse.contribution.xref.ui.tests for an update site.">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<zip destfile="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.jar" basedir="${temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" filesonly="false" whenempty="skip" update="false"/>
+		<delete dir="${temp.folder}"/>
+	</target>
 
-<target name="buildproject" depends="externalbuild,eclipsebuild" />
+	<target name="xrefuitest.jar" depends="init" unless="xrefuitest.jar" description="Create jar: org.eclipse.contribution.xref.ui.tests xrefuitest.jar.">
+		<delete dir="${temp.folder}/xrefuitest.jar.bin"/>
+		<mkdir dir="${temp.folder}/xrefuitest.jar.bin"/>
+		<!-- compile the source code -->
+		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051001180338/"/>
+		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051001180338/"/>
+		<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+			<classpath>
+				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
+				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
+			</classpath>
+		</taskdef>
+		<iajc destDir="${temp.folder}/xrefuitest.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+			<forkclasspath>
+				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
+				<pathelement path="../org.eclipse.contribution.xref.ui/xrefui.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.osgi_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.help_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.swt_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.jface_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.commands_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.workbench_3.1.1.jar"/>
+				<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.1.0/compatibility.jar"/>
+				<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.1.0/@dot"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.resources_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
+				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.jdt.ui_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.console_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.jface.text_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.search_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.views_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.update.ui_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.core.filebuffers_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.debug.core_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.debug.ui_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.jdt.launching_3.1.0.jar"/>
+				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/jdi.jar"/>
+				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/jdimodel.jar"/>
+				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/tools.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.compare_3.1.1.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ltk.core.refactoring_3.1.0.jar"/>
+				<pathelement path="..\..\plugins\org.eclipse.ltk.ui.refactoring_3.1.1.jar"/>
+				<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
+				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
+				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
+			</forkclasspath>
+			<srcdir>
+				<pathelement path="src/"/>
+			</srcdir>
+			</iajc>
+		<!-- Copy necessary resources -->
+		<copy todir="${temp.folder}/xrefuitest.jar.bin" failonerror="true" overwrite="false">
+			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
+		</copy>
+		<mkdir dir="${build.result.folder}"/>
+		<jar destfile="${build.result.folder}/xrefuitest.jar" basedir="${temp.folder}/xrefuitest.jar.bin"/>
+		<delete dir="${temp.folder}/xrefuitest.jar.bin"/>
+	</target>
 
-<target name="xrefuitestjar" depends="init"
-  description="Create xrefuitest.jar, the library containing the plug-in
-    class files and properties.">
- <!-- The following ant call is intended to provide the flexibility 
-      to build the Visualiser from within Eclipse or else from a command line
-      run of Ant (e.g. in a Cruise Control environment).
- -->
- <antcall target="buildproject" />
-  <zip destfile= "${build.dir}/xrefuitest.jar" >
-  	<fileset dir="bin"/>
-  </zip>
-</target>
+	<target name="xrefuitestsrc.zip" depends="init" unless="xrefuitestsrc.zip">
+		<mkdir dir="${build.result.folder}"/>
+		<zip destfile="${build.result.folder}/xrefuitestsrc.zip" filesonly="false" whenempty="skip" update="false">
+			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
+		</zip>
+	</target>
 
-<target name="xrefuitestsrcjar" depends="init"
- description="The source jar file for xref ui tests, xrefuitestsrc.jar">
-  <zip destfile= "${build.dir}/xrefuitestsrc.jar" >
-   <fileset dir="src"/>
-  </zip>
-</target>
+	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.xref.ui.tests.">
+		<available property="xrefuitest.jar" file="${build.result.folder}/xrefuitest.jar"/>
+		<antcall target="xrefuitest.jar"/>
+	</target>
 
+	<target name="build.sources" depends="init">
+		<available property="xrefuitestsrc.zip" file="${build.result.folder}/xrefuitestsrc.zip"/>
+		<antcall target="xrefuitestsrc.zip"/>
+	</target>
 
-<target name="packaged-plugin" depends="xrefuitestjar, xrefuitestsrcjar"
- description="Create the plugin jar file from the assembled components in the build dir">
- <copy todir="${build.dir}">
-   <fileset dir=".">
-     <include name="*.xml"/>
-     <exclude name="build.*"/>
-     <include name="*.html"/>
-     <include name="*.properties"/>
-     <exclude name="META-INF/MANIFEST.MF" />
-   </fileset>
- </copy>
- <copy file="META-INF/MANIFEST.MF" tofile="${build.dir}/META-INF/MANIFEST.MF">
- 	<filterset begintoken="9" endtoken="9">
- 		<filter token="2.2.2" value="${xref.version}"/>
- 	</filterset>
- </copy>  
+	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
+		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="true" overwrite="false">
+			<fileset dir="${build.result.folder}" includes="xrefuitest.jar"			/>
+		</copy>
+		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="true" overwrite="false">
+			<fileset dir="${basedir}" includes="plugin.xml,xrefuitest.jar,META-INF/"			/>
+		</copy>
+	</target>
 
- <zip destfile= "dist/org.eclipse.contribution.xref.ui.tests_${xref.version}.jar" >
-   <fileset dir= "build" />
- </zip>
-</target>
+	<target name="build.zips" depends="init">
+	</target>
+
+	<target name="gather.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
+		<copy file="${build.result.folder}/xrefuitestsrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
+		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false">
+			<fileset dir="${basedir}" includes="src/"			/>
+		</copy>
+	</target>
+
+	<target name="gather.logs" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
+		<copy file="${temp.folder}/xrefuitest.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
+	</target>
+
+	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.xref.ui.tests of all the zips, jars and logs created.">
+		<delete file="${build.result.folder}/xrefuitest.jar"/>
+		<delete file="${build.result.folder}/xrefuitestsrc.zip"/>
+		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.jar"/>
+		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.zip"/>
+		<delete dir="${temp.folder}"/>
+	</target>
+
+	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
+		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.1.1-win32/eclipse/workspace/org.eclipse.contribution.xref.ui.tests" property="resourcePath"/>
+		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
+	</target>
+
+	<target name="zip.plugin" depends="init" description="Create a zip containing all the elements for the plug-in: org.eclipse.contribution.xref.ui.tests.">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="build.sources"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<antcall target="gather.sources">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<delete>
+			<fileset dir="${temp.folder}" includes="**/*.bin.log"			/>
+		</delete>
+		<zip destfile="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.zip" basedir="${temp.folder}" filesonly="true" whenempty="skip" update="false"/>
+		<delete dir="${temp.folder}"/>
+	</target>
+
 </project>

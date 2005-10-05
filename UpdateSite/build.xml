@@ -169,37 +169,65 @@ Creates an update site structure for AspectJ
  <ant dir="../org.aspectj.weaver" inheritAll="true" />
  <ant dir="../org.aspectj.ajde" inheritAll="true" />
 	
-	
-	<!--Visualiser -->
+	<!-- Visualiser and tests -->
 	<antcall target="build-plugin">
 		<param name="plugin-name" value="org.eclipse.contribution.visualiser"/>
 		<param name="version" value="${visualiser.version}"/>
 	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.visualiser.tests"/>
+		<param name="version" value="${visualiser.version}"/>
+	</antcall>
 
-			
- <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.core.tests" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true"/>
- <ant dir="../org.eclipse.contribution.xref.ui.tests" inheritAll="true"/>
+	<!-- XREF CORE and tests -->		
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.xref.core"/>
+		<param name="version" value="${xref.version}"/>
+	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.xref.core.tests"/>
+		<param name="version" value="${xref.version}"/>
+	</antcall>
+
+	<!-- XREF UI and tests -->		
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.xref.ui"/>
+		<param name="version" value="${xref.version}"/>
+	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.xref.ui.tests"/>
+		<param name="version" value="${xref.version}"/>
+	</antcall>
 	
-	<!-- AJDT CORE -->
+	<!-- AJDT CORE and tests -->
 	<antcall target="build-plugin">
 		<param name="plugin-name" value="org.eclipse.ajdt.core"/>
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.core.tests"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
 
-	<!-- AJDT UI -->
+	<!-- AJDT UI and tests -->
 	<antcall target="build-plugin">
 		<param name="plugin-name" value="org.eclipse.ajdt.ui"/>
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.ui.tests"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
 		
- <ant dir="../org.eclipse.ajdt.examples" inheritAll="true"/>
+    <!-- Examples plugin -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.examples"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+	
  <ant dir="../org.eclipse.aspectj" inheritAll="true" />
  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
- <ant dir="../org.eclipse.ajdt.core.tests" inheritAll="true" />
- <ant dir="../org.eclipse.ajdt.ui.tests" inheritAll="true" />
+
 <!-- <ant dir="../org.eclipse.ajdt.tests.performance" inheritAll="true" /> -->
 	
  <copy file="site.xml" todir="dist">
@@ -215,7 +243,7 @@ Creates an update site structure for AspectJ
        todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.ui_${ajdt.version}.jar"
 	   todir="dist/plugins" />
- <copy file="../org.eclipse.ajdt.examples/dist/org.eclipse.ajdt.examples_${ajdt.version}.jar"
+ <copy file="../org.eclipse.ajdt.examples/org.eclipse.ajdt.examples_${ajdt.version}.jar"
        todir="dist/plugins" />
  <copy file="../org.aspectj.runtime/dist/org.aspectj.runtime_${ajde.version}.jar"
        todir="dist/plugins" />  
@@ -225,9 +253,9 @@ Creates an update site structure for AspectJ
 	   todir="dist/plugins" />  
  <copy file="../org.eclipse.contribution.visualiser/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
        todir="dist/plugins" />     
- <copy file="../org.eclipse.contribution.xref.core/dist/org.eclipse.contribution.xref.core_${xref.version}.jar"
+ <copy file="../org.eclipse.contribution.xref.core/org.eclipse.contribution.xref.core_${xref.version}.jar"
 	   todir="dist/plugins" />
- <copy file="../org.eclipse.contribution.xref.ui/dist/org.eclipse.contribution.xref.ui_${xref.version}.jar"
+ <copy file="../org.eclipse.contribution.xref.ui/org.eclipse.contribution.xref.ui_${xref.version}.jar"
 	   todir="dist/plugins" />
 </target>
 
