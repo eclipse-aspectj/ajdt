@@ -33,8 +33,8 @@ to run the last two targets you need an account on dev.eclipse.org
 <property name="aspectj.release.name" value="1.5.0.200509301030" />
 <property name="aspectj.version" value="1.5.0" />
 <property name="visualiser.version" value="2.2.0.${cctimestamp}"/>
-
-<property file="ftp.properties" />
+	
+<property name="temp.folder" value="temp-folder" />
 
 <description>
 Creates an update site structure for AspectJ
@@ -127,21 +127,74 @@ Creates an update site structure for AspectJ
 		 basedir="fpack_dist"/>
 </target>
 
+	<target name="insert-version" if="file.to.update">
+		<mkdir dir="${temp.folder}"/>
+		<basename property="filename" file="${file.to.update}"/>
+		<copy file="${file.to.update}" tofile="${temp.folder}/${filename}"/>
+		 <copy file="${temp.folder}/${filename}" tofile="${file.to.update}">
+		 	<filterset begintoken="9" endtoken="9">
+		 		<filter token="2.2.2" value="${version}"/>
+		 	</filterset>
+		 </copy>
+	</target>
+	
+	<target name="restore" if="file.to.update">
+		<basename property="filename" file="${file.to.update}"/>
+		 <move file="${temp.folder}/${filename}" tofile="${file.to.update}"/>
+	</target>
+		 			
+	<target name="build-plugin" if="plugin-name">
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../${plugin-name}/META-INF/MANIFEST.MF"/>
+			<param name="version" value="${version}"/>
+		</antcall>
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../${plugin-name}/build.xml"/>
+			<param name="version" value="${version}"/>
+		</antcall>
+	    <ant dir="../${plugin-name}" target="build.update.jar" inheritAll="true"/>
+		<!-- put originals back -->
+		<antcall target="restore">
+			<param name="file.to.update" value="../${plugin-name}/META-INF/MANIFEST.MF"/>
+		</antcall>
+		<antcall target="restore">
+			<param name="file.to.update" value="../${plugin-name}/build.xml"/>
+		</antcall>
+	</target>
+	
 <target name="update-site" depends="init"
  description="Build the update site structure">
  
  <ant dir="../org.aspectj.runtime" inheritAll="true" />
  <ant dir="../org.aspectj.weaver" inheritAll="true" />
  <ant dir="../org.aspectj.ajde" inheritAll="true" />
- <!--ant dir="../org.eclipse.aosd.relationships" inheritAll="true"/-->
- <ant dir="../org.eclipse.contribution.visualiser" inheritAll="true"/>
+	
+	
+	<!--Visualiser -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.contribution.visualiser"/>
+		<param name="version" value="${visualiser.version}"/>
+	</antcall>
+
+			
  <ant dir="../org.eclipse.contribution.visualiser.tests" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.core" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.core.tests" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.ui" inheritAll="true"/>
  <ant dir="../org.eclipse.contribution.xref.ui.tests" inheritAll="true"/>
- <ant dir="../org.eclipse.ajdt.core" inheritAll="true"/>
- <ant dir="../org.eclipse.ajdt.ui" inheritAll="true"/>
+	
+	<!-- AJDT CORE -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.core"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+
+	<!-- AJDT UI -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.ui"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+		
  <ant dir="../org.eclipse.ajdt.examples" inheritAll="true"/>
  <ant dir="../org.eclipse.aspectj" inheritAll="true" />
  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
@@ -158,9 +211,9 @@ Creates an update site structure for AspectJ
        todir="dist/features" />
  <copy file="../org.eclipse.aspectj/dist/org.eclipse.aspectj_${aspectj.feature.version}.jar"
        todir="dist/plugins" />
- <copy file="../org.eclipse.ajdt.core/dist/org.eclipse.ajdt.core_${ajdt.version}.jar"
+ <copy file="../org.eclipse.ajdt.core/org.eclipse.ajdt.core_${ajdt.version}.jar"
        todir="dist/plugins" />
- <copy file="../org.eclipse.ajdt.ui/dist/org.eclipse.ajdt.ui_${ajdt.version}.jar"
+ <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.ui_${ajdt.version}.jar"
 	   todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.examples/dist/org.eclipse.ajdt.examples_${ajdt.version}.jar"
        todir="dist/plugins" />
@@ -170,77 +223,12 @@ Creates an update site structure for AspectJ
        todir="dist/plugins" />
  <copy file="../org.aspectj.ajde/dist/org.aspectj.ajde_${ajde.version}.jar"
 	   todir="dist/plugins" />  
- <copy file="../org.eclipse.contribution.visualiser/dist/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
+ <copy file="../org.eclipse.contribution.visualiser/org.eclipse.contribution.visualiser_${visualiser.version}.jar"
        todir="dist/plugins" />     
  <copy file="../org.eclipse.contribution.xref.core/dist/org.eclipse.contribution.xref.core_${xref.version}.jar"
 	   todir="dist/plugins" />
  <copy file="../org.eclipse.contribution.xref.ui/dist/org.eclipse.contribution.xref.ui_${xref.version}.jar"
 	   todir="dist/plugins" />
-</target>
-
-<target name="publish" depends="update-site">
-	<ftp server="download.eclipse.org" 
-		remotedir="devupdate"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist">
-			<include name="site.xml"/>
-		</fileset>
-	</ftp>
-	<ftp server="download.eclipse.org" 
-		remotedir="devupdate/features"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist/features"/>
-	</ftp>
-	<ftp server="download.eclipse.org" 
-		remotedir="devupdate/plugins"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist/plugins"/>
-	</ftp>
-</target>
-
-<target name="release" depends="update-site">
-	<fail message="this failure was deliberately inserted to prevent accidental publishing of a release" />
-	<ftp server="download.eclipse.org" 
-		remotedir="update"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist">
-			<include name="site.xml"/>
-		</fileset>
-	</ftp>
-	<ftp server="download.eclipse.org" 
-		remotedir="update/features"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist/features"/>
-	</ftp>
-	<ftp server="download.eclipse.org" 
-		remotedir="update/plugins"
-		userid="${ftp.userid}"
-		password="${ftp.pwd}"
-		binary="true"
-		verbose="true"
-	>
-		<fileset dir="dist/plugins"/>
-	</ftp>
 </target>
 
 </project>
