@@ -152,7 +152,7 @@
 			<fileset dir="${build.result.folder}" includes="visualisertests.jar"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.visualiser.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,visualisertests.jar"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,visualisertests.jar,META-INF/"			/>
 		</copy>
 	</target>
 
