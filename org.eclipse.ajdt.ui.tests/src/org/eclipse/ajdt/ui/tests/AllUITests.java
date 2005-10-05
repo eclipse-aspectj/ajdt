@@ -55,6 +55,7 @@ import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
+import org.eclipse.ajdt.ui.tests.xref.XReferenceViewContentsTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -157,6 +158,7 @@ public class AllUITests {
 		// xref tests
 		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());
 		suite.addTest(org.eclipse.contribution.xref.ui.tests.AllTests.suite());
+		suite.addTest(new TestSuite(XReferenceViewContentsTest.class));
 
 		// visualiser tests
 		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());

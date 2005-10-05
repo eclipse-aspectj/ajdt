@@ -159,11 +159,20 @@ public class XReferenceContentProvider
 					if (!xrc.isEmpty()) {
 						parent.addChild(childNode);
 						addXReferencesToTree(childNode, xrc);
+						JavaElement subJe = (JavaElement)child;
 						hasChildren = true;
+						
+						if ((xreferenceAdapter.getExtraChildren(subJe) != null
+								&& xreferenceAdapter.getExtraChildren(subJe).length > 0) 
+								|| subJe.getChildren().length > 0) {
+							addChildren(childNode,subJe,xreferenceAdapter);
+						}
+						
 					} else {
 						JavaElement subJe = (JavaElement)child;
 						if (addChildren(childNode,subJe,xreferenceAdapter)) {
 							parent.addChild(childNode);
+							hasChildren = true;
 						}
 					}
 				}
