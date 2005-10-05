@@ -49,9 +49,9 @@
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="xreftest.jar" depends="init" unless="xreftest.jar" description="Create jar: org.eclipse.contribution.xref.core.tests xreftest.jar.">
-		<delete dir="${temp.folder}/xreftest.jar.bin"/>
-		<mkdir dir="${temp.folder}/xreftest.jar.bin"/>
+	<target name="xrefcoretest.jar" depends="init" unless="xrefcoretest.jar" description="Create jar: org.eclipse.contribution.xref.core.tests xrefcoretest.jar.">
+		<delete dir="${temp.folder}/xrefcoretest.jar.bin"/>
+		<mkdir dir="${temp.folder}/xrefcoretest.jar.bin"/>
 		<!-- compile the source code -->
 		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051001180338/"/>
 		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051001180338/"/>
@@ -61,7 +61,7 @@
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</classpath>
 		</taskdef>
-		<iajc destDir="${temp.folder}/xreftest.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/xrefcoretest.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
@@ -89,8 +89,6 @@
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
 				<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
-				<pathelement path="xrefcoretest.jar"/>
-				<pathelement path="${build.result.folder}/../org.eclipse.contribution.xref.core.tests/xrefcoretest.jar"/>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</forkclasspath>
@@ -99,38 +97,38 @@
 			</srcdir>
 			</iajc>
 		<!-- Copy necessary resources -->
-		<copy todir="${temp.folder}/xreftest.jar.bin" failonerror="true" overwrite="false">
+		<copy todir="${temp.folder}/xrefcoretest.jar.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
-		<jar destfile="${build.result.folder}/xreftest.jar" basedir="${temp.folder}/xreftest.jar.bin"/>
-		<delete dir="${temp.folder}/xreftest.jar.bin"/>
+		<jar destfile="${build.result.folder}/xrefcoretest.jar" basedir="${temp.folder}/xrefcoretest.jar.bin"/>
+		<delete dir="${temp.folder}/xrefcoretest.jar.bin"/>
 	</target>
 
-	<target name="xreftestsrc.zip" depends="init" unless="xreftestsrc.zip">
+	<target name="xrefcoretestsrc.zip" depends="init" unless="xrefcoretestsrc.zip">
 		<mkdir dir="${build.result.folder}"/>
-		<zip destfile="${build.result.folder}/xreftestsrc.zip" filesonly="false" whenempty="skip" update="false">
+		<zip destfile="${build.result.folder}/xrefcoretestsrc.zip" filesonly="false" whenempty="skip" update="false">
 			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
 		</zip>
 	</target>
 
 	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.xref.core.tests.">
-		<available property="xreftest.jar" file="${build.result.folder}/xreftest.jar"/>
-		<antcall target="xreftest.jar"/>
+		<available property="xrefcoretest.jar" file="${build.result.folder}/xrefcoretest.jar"/>
+		<antcall target="xrefcoretest.jar"/>
 	</target>
 
 	<target name="build.sources" depends="init">
-		<available property="xreftestsrc.zip" file="${build.result.folder}/xreftestsrc.zip"/>
-		<antcall target="xreftestsrc.zip"/>
+		<available property="xrefcoretestsrc.zip" file="${build.result.folder}/xrefcoretestsrc.zip"/>
+		<antcall target="xrefcoretestsrc.zip"/>
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${build.result.folder}" includes="xreftest.jar"			/>
+			<fileset dir="${build.result.folder}" includes="xrefcoretest.jar"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,xreftest.jar,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,xrefcoretest.jar,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -139,7 +137,7 @@
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29"/>
-		<copy file="${build.result.folder}/xreftestsrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="false" overwrite="false"/>
+		<copy file="${build.result.folder}/xrefcoretestsrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="false" overwrite="false"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="false" overwrite="false">
 			<fileset dir="${basedir}" includes="src/"			/>
 		</copy>
@@ -147,12 +145,12 @@
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29"/>
-		<copy file="${temp.folder}/xreftest.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="false" overwrite="false"/>
+		<copy file="${temp.folder}/xrefcoretest.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="false" overwrite="false"/>
 	</target>
 
 	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.xref.core.tests of all the zips, jars and logs created.">
-		<delete file="${build.result.folder}/xreftest.jar"/>
-		<delete file="${build.result.folder}/xreftestsrc.zip"/>
+		<delete file="${build.result.folder}/xrefcoretest.jar"/>
+		<delete file="${build.result.folder}/xrefcoretestsrc.zip"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.core.tests_92.2.29.jar"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.core.tests_92.2.29.zip"/>
 		<delete dir="${temp.folder}"/>
