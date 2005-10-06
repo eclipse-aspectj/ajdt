@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.contribution.xref.ui.tests; singleton:=true
 Bundle-Version: 92.2.29
-Bundle-ClassPath: xrefuitest.jar
+Bundle-ClassPath: xrefuitests.jar
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.xref.ui.tests,

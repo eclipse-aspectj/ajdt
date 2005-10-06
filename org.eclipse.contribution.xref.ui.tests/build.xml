@@ -49,9 +49,9 @@
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="xrefuitest.jar" depends="init" unless="xrefuitest.jar" description="Create jar: org.eclipse.contribution.xref.ui.tests xrefuitest.jar.">
-		<delete dir="${temp.folder}/xrefuitest.jar.bin"/>
-		<mkdir dir="${temp.folder}/xrefuitest.jar.bin"/>
+	<target name="xrefuitests.jar" depends="init" unless="xrefuitests.jar" description="Create jar: org.eclipse.contribution.xref.ui.tests xrefuitests.jar.">
+		<delete dir="${temp.folder}/xrefuitests.jar.bin"/>
+		<mkdir dir="${temp.folder}/xrefuitests.jar.bin"/>
 		<!-- compile the source code -->
 		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051001180338/"/>
 		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051001180338/"/>
@@ -61,7 +61,7 @@
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</classpath>
 		</taskdef>
-		<iajc destDir="${temp.folder}/xrefuitest.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/xrefuitests.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
 				<pathelement path="../org.eclipse.contribution.xref.ui/xrefui.jar"/>
@@ -122,38 +122,38 @@
 			</srcdir>
 			</iajc>
 		<!-- Copy necessary resources -->
-		<copy todir="${temp.folder}/xrefuitest.jar.bin" failonerror="true" overwrite="false">
+		<copy todir="${temp.folder}/xrefuitests.jar.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
-		<jar destfile="${build.result.folder}/xrefuitest.jar" basedir="${temp.folder}/xrefuitest.jar.bin"/>
-		<delete dir="${temp.folder}/xrefuitest.jar.bin"/>
+		<jar destfile="${build.result.folder}/xrefuitests.jar" basedir="${temp.folder}/xrefuitests.jar.bin"/>
+		<delete dir="${temp.folder}/xrefuitests.jar.bin"/>
 	</target>
 
-	<target name="xrefuitestsrc.zip" depends="init" unless="xrefuitestsrc.zip">
+	<target name="xrefuitestssrc.zip" depends="init" unless="xrefuitestssrc.zip">
 		<mkdir dir="${build.result.folder}"/>
-		<zip destfile="${build.result.folder}/xrefuitestsrc.zip" filesonly="false" whenempty="skip" update="false">
+		<zip destfile="${build.result.folder}/xrefuitestssrc.zip" filesonly="false" whenempty="skip" update="false">
 			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
 		</zip>
 	</target>
 
 	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.xref.ui.tests.">
-		<available property="xrefuitest.jar" file="${build.result.folder}/xrefuitest.jar"/>
-		<antcall target="xrefuitest.jar"/>
+		<available property="xrefuitests.jar" file="${build.result.folder}/xrefuitests.jar"/>
+		<antcall target="xrefuitests.jar"/>
 	</target>
 
 	<target name="build.sources" depends="init">
-		<available property="xrefuitestsrc.zip" file="${build.result.folder}/xrefuitestsrc.zip"/>
-		<antcall target="xrefuitestsrc.zip"/>
+		<available property="xrefuitestssrc.zip" file="${build.result.folder}/xrefuitestssrc.zip"/>
+		<antcall target="xrefuitestssrc.zip"/>
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${build.result.folder}" includes="xrefuitest.jar"			/>
+			<fileset dir="${build.result.folder}" includes="xrefuitests.jar"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,xrefuitest.jar,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,xrefuitests.jar,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -162,7 +162,7 @@
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
-		<copy file="${build.result.folder}/xrefuitestsrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
+		<copy file="${build.result.folder}/xrefuitestssrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false">
 			<fileset dir="${basedir}" includes="src/"			/>
 		</copy>
@@ -170,12 +170,12 @@
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29"/>
-		<copy file="${temp.folder}/xrefuitest.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
+		<copy file="${temp.folder}/xrefuitests.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui.tests_92.2.29" failonerror="false" overwrite="false"/>
 	</target>
 
 	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.xref.ui.tests of all the zips, jars and logs created.">
-		<delete file="${build.result.folder}/xrefuitest.jar"/>
-		<delete file="${build.result.folder}/xrefuitestsrc.zip"/>
+		<delete file="${build.result.folder}/xrefuitests.jar"/>
+		<delete file="${build.result.folder}/xrefuitestssrc.zip"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.jar"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui.tests_92.2.29.zip"/>
 		<delete dir="${temp.folder}"/>
