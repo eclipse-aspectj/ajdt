@@ -53,16 +53,9 @@
 		<delete dir="${temp.folder}/xrefcoretests.jar.bin"/>
 		<mkdir dir="${temp.folder}/xrefcoretests.jar.bin"/>
 		<!-- compile the source code -->
-		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051001180338/"/>
-		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051001180338/"/>
-		<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+		<javac destdir="${temp.folder}/xrefcoretests.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}"		>
+			<compilerarg line="${compilerArg}"/>
 			<classpath>
-				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
-				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
-			</classpath>
-		</taskdef>
-		<iajc destDir="${temp.folder}/xrefcoretests.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
-			<forkclasspath>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
@@ -89,16 +82,12 @@
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
 				<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
-				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
-				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
-			</forkclasspath>
-			<srcdir>
-				<pathelement path="src/"/>
-			</srcdir>
-			</iajc>
+			</classpath>
+			<src path="src/"			/>
+			</javac>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/xrefcoretests.jar.bin" failonerror="true" overwrite="false">
-			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
+			<fileset dir="src/" excludes="**/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
 		<jar destfile="${build.result.folder}/xrefcoretests.jar" basedir="${temp.folder}/xrefcoretests.jar.bin"/>
@@ -108,7 +97,7 @@
 	<target name="xrefcoretestssrc.zip" depends="init" unless="xrefcoretestssrc.zip">
 		<mkdir dir="${build.result.folder}"/>
 		<zip destfile="${build.result.folder}/xrefcoretestssrc.zip" filesonly="false" whenempty="skip" update="false">
-			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
+			<fileset dir="src/" includes="**/*.java"			/>
 		</zip>
 	</target>
 
@@ -128,7 +117,7 @@
 			<fileset dir="${build.result.folder}" includes="xrefcoretests.jar"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,xrefcoretests.jar,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,xrefcoretests.jar,META-INF/,plugin.properties"			/>
 		</copy>
 	</target>
 
