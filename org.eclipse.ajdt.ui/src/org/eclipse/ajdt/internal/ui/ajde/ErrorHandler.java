@@ -53,7 +53,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	}
 
 	/**
-	 * Display an error dialog
+	 * Display an error dialog - only called by AspectJ
 	 */
 	public void handleError(final String message) {
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
@@ -75,17 +75,30 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	}
 
 	/**
-	 * Display an error dialog with exception
+	 * Display an error dialog with exception - only called by AspectJ
 	 */
 	public void handleError(String message, Throwable t) {
-		handleError(UIMessages.ajErrorDialogTitle,
+		handleInternalError(UIMessages.ajErrorDialogTitle,
 				message, t);
 	}
 	
 	/**
+	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
+	 */
+	public static void handleAJDTError(String title, String message, CoreException t) {
+		handleInternalError(title, message, t);
+	}
+
+	/**
+	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
+	 */
+	public static void handleAJDTError(String message, CoreException t) {
+		handleInternalError(UIMessages.ajdtErrorDialogTitle, message, t);
+	}
+	/**
 	 * Display an error dialog with exception
 	 */
-	public void handleError(final String title, final String message, Throwable t) {
+	private static void handleInternalError(final String title, final String message, Throwable t) {
 		final IStatus status;
 		final String shortMessage;
 		final String longMessage;
@@ -98,14 +111,16 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 		} else {
 			String newline = System.getProperty("line.separator"); //$NON-NLS-1$
 			shortMessage = UIMessages.ajErrorText;
-			StackTraceElement[] ste = t.getStackTrace();
 			StringBuffer sb = new StringBuffer();
-			sb.append(t.getClass().getName());
-			sb.append(newline);
-			for (int i = 0; i < ste.length; i++) {
-				sb.append("at "); //$NON-NLS-1$
-				sb.append(ste[i].toString());
+			if (t != null) {
+				StackTraceElement[] ste = t.getStackTrace();
+				sb.append(t.getClass().getName());
 				sb.append(newline);
+				for (int i = 0; i < ste.length; i++) {
+					sb.append("at "); //$NON-NLS-1$
+					sb.append(ste[i].toString());
+					sb.append(newline);
+				}
 			}
 			longMessage = sb.toString() + newline + message;
 			status =

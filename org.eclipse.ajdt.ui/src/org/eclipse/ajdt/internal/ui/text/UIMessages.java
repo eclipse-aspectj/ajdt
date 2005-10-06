@@ -37,6 +37,7 @@ public class UIMessages extends NLS {
 	public static String ajWarningDialogTitle;
 	public static String ajErrorDialogTitle;	
 	public static String ajErrorText;
+	public static String ajdtErrorDialogTitle;
 	public static String jmCoreException;	
 	public static String newConfig;	
 	public static String BuildConfig_createLstFile;
@@ -292,7 +293,6 @@ public class UIMessages extends NLS {
 	public static String dynamicBuildConfigurationMenu_job_name;
 	public static String PulldownBuildselectorMenu_no_open_ajproject;
 	public static String PulldownBuildselectorMenu_build_error;
-	public static String PulldownBuildselectorMenu_autobuild_failed;
 	public static String CompilerMonitor_building_Project;
 	public static String CompilerMonitor_weaving;
 	public static String CompilerTaskListManager_Error_creating_marker;
@@ -328,7 +328,6 @@ public class UIMessages extends NLS {
 	public static String AJDTStructureViewNode_runtime_test;
 	public static String AspectJUIPlugin_exception_in_selection_changed;
 	public static String AspectJUIPlugin_exception_retrieving_lst_files;
-	public static String AspectJUIPlugin_exception_retrieving_lst_files2;
 	public static String LTWAspectPathTab_errormessage;
 	public static String LTWAspectPathTab_label;
 	public static String LTWAspectPathTab_title;

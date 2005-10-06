@@ -16,8 +16,8 @@ import java.util.List;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -43,10 +43,7 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 				try {
 					bc.excludeFiles(fileList);
 				} catch (CoreException e) {
-					AspectJUIPlugin
-							.getDefault()
-							.getErrorHandler()
-							.handleError(
+					ErrorHandler.handleAJDTError(
 									UIMessages.buildConfig_exceptionIncluding,
 									e);
 				}

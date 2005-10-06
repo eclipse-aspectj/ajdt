@@ -20,10 +20,10 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
 import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -442,7 +442,10 @@ aspect PreferencePageBuilder {
                                 AspectJPlugin.ID_BUILDER, null,
                                 new SubProgressMonitor(monitor, 2));
                     } catch (CoreException e) {
-                        throw new InvocationTargetException(e);
+                    	ErrorHandler
+								.handleAJDTError(
+										UIMessages.OptionsConfigurationBlock_builderror_message,
+										e);
                     } finally {
                         monitor.done();
                     }
@@ -451,9 +454,6 @@ aspect PreferencePageBuilder {
         } catch (InterruptedException e) {
             // cancelled by user
         } catch (InvocationTargetException e) {
-            String message = UIMessages.OptionsConfigurationBlock_builderror_message;
-            AspectJUIPlugin.getDefault().getErrorHandler().handleError(message,
-                    e);
         }
     }
 

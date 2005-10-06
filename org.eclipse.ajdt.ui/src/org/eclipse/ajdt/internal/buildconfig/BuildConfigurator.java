@@ -17,6 +17,7 @@ import java.util.Vector;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -101,7 +102,7 @@ public class BuildConfigurator implements ISelectionListener {
 								.getActivePage().showView(XReferenceView.ID);
 			                return Status.OK_STATUS;
 				        } catch (PartInitException e) {
-				            AspectJUIPlugin.getDefault().getErrorHandler().handleError(UIMessages.BuildConfigurator_ErrorOpeningXRefView, e);
+				        	ErrorHandler.handleAJDTError(UIMessages.BuildConfigurator_ErrorOpeningXRefView, e);
 				            return Status.OK_STATUS;
 				        }
 					}

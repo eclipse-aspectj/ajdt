@@ -66,6 +66,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
@@ -518,7 +519,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
 		if ((pvi.getMajorComponent() != EclipseVersion.MAJOR_VERSION)
 				|| (pvi.getMinorComponent() != EclipseVersion.MINOR_VERSION)) {
-			getErrorHandler().handleError(NLS.bind(UIMessages.wrong_eclipse_version,
+			MessageDialog.openError(null,
+					UIMessages.ajdtErrorDialogTitle,
+					NLS.bind(UIMessages.wrong_eclipse_version,
 							new String[] {
 									EclipseVersion.MAJOR_VERSION + "." //$NON-NLS-1$
 											+ EclipseVersion.MINOR_VERSION,
@@ -663,7 +666,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			}
 
 		} catch (JavaModelException jme) {
-			getErrorHandler().handleError(
+			ErrorHandler.handleAJDTError(
 					UIMessages.AspectJUIPlugin_exception_in_selection_changed,
 					jme);
 		}
@@ -684,10 +687,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			IResource[] files = AspectJPlugin.getDefault().getCurrentProject().members();
 			getLstFiles(files, allLstFiles);
 		} catch (CoreException ce) {
-			AspectJUIPlugin
-					.getDefault()
-					.getErrorHandler()
-					.handleError(
+			ErrorHandler.handleAJDTError(
 							UIMessages.AspectJUIPlugin_exception_retrieving_lst_files,
 							ce);
 		}
@@ -699,24 +699,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * passed in using recursion to traverse the whole resource hierarchy for
 	 * the project.
 	 */
-	private void getLstFiles(IResource[] resource_list, List allLstFiles) {
-		try {
-			for (int i = 0; i < resource_list.length; i++) {
-				IResource ir = resource_list[i];
-				// Add lst files to the list, but NOT default.lst
-				if (ir.getName().endsWith(".lst") //$NON-NLS-1$
-						&& !ir.getName().equals("default.lst")) //$NON-NLS-1$
-					allLstFiles.add(ir);
-				if (ir instanceof IContainer)
-					getLstFiles(((IContainer) ir).members(), allLstFiles);
-			}
-		} catch (CoreException ce) {
-			AspectJUIPlugin
-					.getDefault()
-					.getErrorHandler()
-					.handleError(
-							UIMessages.AspectJUIPlugin_exception_retrieving_lst_files2,
-							ce);
+	private void getLstFiles(IResource[] resource_list, List allLstFiles) throws CoreException {
+		for (int i = 0; i < resource_list.length; i++) {
+			IResource ir = resource_list[i];
+			// Add lst files to the list, but NOT default.lst
+			if (ir.getName().endsWith(".lst") //$NON-NLS-1$
+					&& !ir.getName().equals("default.lst")) //$NON-NLS-1$
+				allLstFiles.add(ir);
+			if (ir instanceof IContainer)
+				getLstFiles(((IContainer) ir).members(), allLstFiles);
 		}
 	}
 

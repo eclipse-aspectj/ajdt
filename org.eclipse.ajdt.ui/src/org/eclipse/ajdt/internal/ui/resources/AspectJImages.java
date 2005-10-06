@@ -256,11 +256,8 @@ public class AspectJImages extends AbstractIconRegistry {
 		try {
 			URL url = new URL( ajdeIconLocation, "icons/" + path ); //$NON-NLS-1$
 			retVal = new AJDTIcon( url );
-		} catch ( MalformedURLException malEx ) {
-			retVal = AJDTIcon.MISSING_ICON;
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
-				"Missing image resource: icons/" + path, malEx ); //$NON-NLS-1$
-			}
+		} catch (MalformedURLException malEx) {
+		}
 		return retVal;
 	}
 

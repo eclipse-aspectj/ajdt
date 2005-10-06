@@ -22,6 +22,7 @@ import java.util.Iterator;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -72,10 +73,7 @@ public class RenameToJavaAction implements IActionDelegate {
 								try {
 									change.perform(monitor);
 								} catch (CoreException e) {
-									AspectJUIPlugin
-											.getDefault()
-											.getErrorHandler()
-											.handleError(UIMessages.Refactoring_ErrorRenamingResource, e);
+									ErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
 								}
 								if (project != null) {
 									updateBuildConfigs(monitor, project, name);

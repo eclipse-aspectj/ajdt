@@ -29,6 +29,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.builder.MarkerUpdating;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -696,10 +697,7 @@ public class AJDTUtils {
 							AspectJPlugin.RUNTIME_PLUGIN_ID);
 					manEd.doSave(new NullProgressMonitor());
 				} catch (CoreException e) {
-					AspectJUIPlugin
-							.getDefault()
-							.getErrorHandler()
-							.handleError(
+					ErrorHandler.handleAJDTError(
 									UIMessages.AutoPluginRemoveErrorDialog_title,
 									UIMessages.AutoPluginRemoveErrorDialog_message,
 									e);

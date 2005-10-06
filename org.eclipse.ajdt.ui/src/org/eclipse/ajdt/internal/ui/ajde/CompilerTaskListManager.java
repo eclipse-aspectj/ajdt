@@ -309,8 +309,8 @@ public class CompilerTaskListManager implements TaskListManager {
                         }
                     }
                     clearTasks();
-                } catch (Exception e) {
-                    AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+                } catch (CoreException e) {
+                	ErrorHandler.handleAJDTError(
                             UIMessages.CompilerTaskListManager_Error_creating_marker, e);
                 }                
             }
@@ -319,7 +319,7 @@ public class CompilerTaskListManager implements TaskListManager {
         try {
             AspectJPlugin.getWorkspace().run(r, null);
         } catch (CoreException cEx) {
-            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+        	ErrorHandler.handleAJDTError(
                     UIMessages.CompilerTaskListManager_Error_adding_problem_markers, cEx);
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
@@ -509,7 +509,7 @@ public class CompilerTaskListManager implements TaskListManager {
                 }
             }
         } catch (JavaModelException jmEx) {
-        	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+        	ErrorHandler.handleAJDTError(
         			UIMessages.ajErrorDialogTitle,
         			UIMessages.jmCoreException, jmEx);
         }

@@ -25,6 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -185,10 +186,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                 }
             }
         } catch (CoreException ce) {
-            AspectJUIPlugin
-                    .getDefault()
-                    .getErrorHandler()
-                    .handleError(
+        	ErrorHandler.handleAJDTError(
                             UIMessages.AdviceActionDelegate_exception_adding_advice_to_context_menu,
                             ce);
         }
@@ -348,72 +346,62 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 
         public void run() {
 
-            // Fetch the real advice marker from the marker that is attached to
-            // affected sites.
-            try {
-                // Take jumpLocation apart. It is initially: FFFF:::NNNN:::NNNN:::NNNN
-                String[] s = getJumpLocation().split(":::");                                //$NON-NLS-1$
-                final String filepath = s[0];
-                final String linenumber = s[1];
-                // System.err.println("FilePath=" + filepath);
-                // System.err.println("linenum=" + linenumber);
+			// Fetch the real advice marker from the marker that is attached to
+			// affected sites.
 
-                IResource r = AspectJUIPlugin.getDefault()
-                        .getAjdtProjectProperties().findResource(filepath);
-                if(r == null) {
-                	r = AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource(filepath, AspectJPlugin.getDefault().getCurrentProject());
-                }
-                final IResource ir = r;
-                
-                IMarker jumpMarker = null;
+			// Take jumpLocation apart. It is initially:
+			// FFFF:::NNNN:::NNNN:::NNNN
+			String[] s = getJumpLocation().split(":::"); //$NON-NLS-1$
+			final String filepath = s[0];
+			final String linenumber = s[1];
+			// System.err.println("FilePath=" + filepath);
+			// System.err.println("linenum=" + linenumber);
 
-                if ((ir != null) && (ir.exists())) {
-                    try {
-                        jumpMarker = ir.createMarker(IMarker.TEXT);
-                        /*
-                         * GOTCHA: If setting LINE_NUMBER for a marker, you
-                         * *have* to call the version of setAttribute that takes
-                         * an int and not the version that takes a string (even
-                         * if your line number is in a string) - it won't give
-                         * you an error but will *not* be interpreted correctly.
-                         */
-                        jumpMarker.setAttribute(IMarker.LINE_NUMBER,
-                                new Integer(linenumber).intValue());
+			IResource r = AspectJUIPlugin.getDefault()
+					.getAjdtProjectProperties().findResource(filepath);
+			if (r == null) {
+				r = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
+						.findResource(filepath,
+								AspectJPlugin.getDefault().getCurrentProject());
+			}
+			final IResource ir = r;
 
-                    } catch (CoreException ce) {
-                        AspectJUIPlugin
-                                .getDefault()
-                                .getErrorHandler()
-                                .handleError(
-                                        UIMessages.AdviceActionDelegate_unable_to_create_marker,
-                                        ce);
-                    }
+			IMarker jumpMarker = null;
 
-                    try {
-                        IDE.openEditor(AspectJUIPlugin.getDefault()
-                                .getActiveWorkbenchWindow().getActivePage(),
-                                jumpMarker, true);
-                    } catch (Exception e) {
-                        AspectJUIPlugin
-                                .getDefault()
-                                .getErrorHandler()
-                                .handleError(
-                                        UIMessages.AdviceActionDelegate_exception_jumping,
-                                        e);
+			if ((ir != null) && (ir.exists())) {
+				try {
+					jumpMarker = ir.createMarker(IMarker.TEXT);
+					/*
+					 * GOTCHA: If setting LINE_NUMBER for a marker, you *have*
+					 * to call the version of setAttribute that takes an int and
+					 * not the version that takes a string (even if your line
+					 * number is in a string) - it won't give you an error but
+					 * will *not* be interpreted correctly.
+					 */
+					jumpMarker.setAttribute(IMarker.LINE_NUMBER, new Integer(
+							linenumber).intValue());
 
-                    }
-                } else {
-                    report(UIMessages.AdviceActionDelegate_resource_not_found);
-                }
-            } catch (IndexOutOfBoundsException ioobe) {
-                AspectJUIPlugin
-                        .getDefault()
-                        .getErrorHandler()
-                        .handleError(
-                                UIMessages.AdviceActionDelegate_problem_finding_jump_location,
-                                ioobe);
-            }
-        }
+				} catch (CoreException ce) {
+					ErrorHandler
+							.handleAJDTError(
+									UIMessages.AdviceActionDelegate_unable_to_create_marker,
+									ce);
+				}
+
+				try {
+					IDE.openEditor(AspectJUIPlugin.getDefault()
+							.getActiveWorkbenchWindow().getActivePage(),
+							jumpMarker, true);
+				} catch (CoreException e) {
+					ErrorHandler.handleAJDTError(
+							UIMessages.AdviceActionDelegate_exception_jumping,
+							e);
+
+				}
+			} else {
+				report(UIMessages.AdviceActionDelegate_resource_not_found);
+			}
+		}
     }
 	
 	class RelatedLocationMenuAction extends BaseAJDTMenuAction {

@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -147,10 +148,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
         try {
             initialAspectpath = getInitialAspectpathValue(project);
         } catch (CoreException ce) {
-        	AspectJUIPlugin
-					.getDefault()
-					.getErrorHandler()
-					.handleError(UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
+        	ErrorHandler.handleAJDTError(UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message, ce);
         }
 
@@ -232,7 +230,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
                     try {
                         fAspectPathBlock.configureJavaProject(monitor);
                     } catch (CoreException e) {
-                        throw new InvocationTargetException(e);
+                    	ErrorHandler.handleAJDTError(PreferencesMessages.BuildPathsPropertyPage_error_message,e);
                     } 
                 }
             };
@@ -240,6 +238,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
             } catch (InvocationTargetException e) {
+            	
                 String title= PreferencesMessages.BuildPathsPropertyPage_error_title;
                 String message= PreferencesMessages.BuildPathsPropertyPage_error_message;
                 // TODO : Handle exception 

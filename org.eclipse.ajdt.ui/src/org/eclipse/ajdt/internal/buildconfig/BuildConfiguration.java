@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.editor.BuildProperties;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
@@ -39,6 +40,7 @@ import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -616,8 +618,8 @@ public class BuildConfiguration implements Cloneable,
 					file.create(inputStream, IResource.FORCE, null);
 				}
 			} catch (CoreException e) {
-				AspectJUIPlugin.getDefault().getErrorHandler().handleError(
-						UIMessages.buildConfig_exceptionWriting.replaceAll("%fileName", fileName), e); //$NON-NLS-1$
+				ErrorHandler.handleAJDTError(
+						NLS.bind(UIMessages.buildConfig_exceptionWriting,fileName), e); //$NON-NLS-1$
 			}
 
 		}

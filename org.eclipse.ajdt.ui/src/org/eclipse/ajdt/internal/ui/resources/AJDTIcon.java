@@ -55,8 +55,6 @@ public class AJDTIcon extends AbstractIcon {
 			this.descriptor = ImageDescriptor.createFromURL( url );
 		} catch ( MalformedURLException malFormedURL ) {
 			this.descriptor = ImageDescriptor.getMissingImageDescriptor();
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( 
-				"Missing image resource: " + localPath, malFormedURL );	 //$NON-NLS-1$
 		}
 	}
 	

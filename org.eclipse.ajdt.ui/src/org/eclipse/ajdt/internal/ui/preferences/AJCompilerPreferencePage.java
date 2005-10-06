@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.EclipseVersion;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -528,7 +529,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 								IncrementalProjectBuilder.FULL_BUILD,
 								new SubProgressMonitor(monitor, 2));
 					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
+						ErrorHandler.handleAJDTError(UIMessages.OptionsConfigurationBlock_builderror_message, e);
 					} finally {
 						monitor.done();
 					}
@@ -537,8 +538,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 		} catch (InterruptedException e) {
 			// cancelled by user
 		} catch (InvocationTargetException e) {
-			String message = UIMessages.OptionsConfigurationBlock_builderror_message;
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(message, e);
 		}
 	}
 

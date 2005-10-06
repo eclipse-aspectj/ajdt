@@ -22,6 +22,7 @@ import org.aspectj.ajde.ui.BuildConfigNode;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -134,7 +135,7 @@ public class BuildConfigEditor
 			fileInput.getFile().refreshLocal( IResource.DEPTH_ZERO, monitor);
 		} catch ( CoreException cEx ) {
 			// resource update failed...
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+			ErrorHandler.handleAJDTError(
 				UIMessages.BuildConfigEditor_failed_update, cEx );
 		}
 
@@ -173,7 +174,7 @@ public class BuildConfigEditor
 				}
 			}
 		} catch ( CoreException cEx ) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( UIMessages.BuildConfigEditor_unable_to_go_to_marker, cEx);
+			ErrorHandler.handleAJDTError(UIMessages.BuildConfigEditor_unable_to_go_to_marker, cEx);
 		}
 	}
 
@@ -249,7 +250,7 @@ public class BuildConfigEditor
 					true,
 					IResource.DEPTH_INFINITE);
 		} catch (CoreException e) {
-			AspectJUIPlugin.getDefault().getErrorHandler().handleError( e.getMessage(), e);
+			ErrorHandler.handleAJDTError( e.getMessage(), e);
 		}
 	}
 	
