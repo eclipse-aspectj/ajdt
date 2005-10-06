@@ -145,23 +145,17 @@ Creates a packaged plug-in jar for AJDE
 	</target>
 	
 	<target name="weaverjar" description="Construct aspectjweaver.jar and aspectjweaver-src.zip for the aspectjweaver plugin using an AJ build">
-		<!-- copy and unpack an aspectjtools.jar into a local build directory -->
+		<!-- copy and unpack an aspectjweaver.jar into a local build directory -->
 		<delete dir="${ajde.build.dir}"/>
-		<copy file="${aspectj.lib.dir}/aspectjtools.jar" tofile="aspectjtools.jar" overwrite="true" />
+		<copy file="${aspectj.lib.dir}/aspectjweaver.jar" tofile="aspectjweaver.jar" overwrite="true" />
 		<mkdir dir="${ajde.build.dir}" />
-		<unzip dest="${ajde.build.dir}" src="aspectjtools.jar" />
-		
-		<!-- delete everything that isn't in the org.aspectj package -->
-		<delete includeemptydirs="true">
-			<fileset dir="${ajde.build.dir}">
-				<exclude name="org/aspectj/**/*.*" />
-			</fileset>
-		</delete>
+		<unzip dest="${ajde.build.dir}" src="aspectjweaver.jar" />
 		
 		<!-- delete everything which shouldn't be included in the aspectjweaver.jar -->
 		<echo message="Removing files not required in aspectjweaver.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
+				<exclude name="META-INF/*.*" />
 				<exclude name="org/aspectj/apache/bcel/**/*.*" />
 				<exclude name="org/aspectj/asm/**/*.*" />
 				<exclude name="org/aspectj/bridge/**/*.*" />
