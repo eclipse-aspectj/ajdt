@@ -170,7 +170,7 @@
 				<pathelement path="../org.eclipse.contribution.visualiser.tests/bin"/>
 				<pathelement path="../org.eclipse.contribution.visualiser.tests/visualisertests.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.ui.tests/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui.tests/xrefuitest.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.ui.tests/xrefuitests.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.core.tests/bin/"/>
 				<pathelement path="../org.eclipse.contribution.xref.core.tests/xrefcoretests.jar"/>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
