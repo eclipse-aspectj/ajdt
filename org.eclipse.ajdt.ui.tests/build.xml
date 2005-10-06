@@ -212,7 +212,7 @@
 			<fileset dir="${build.result.folder}" includes="ajdtuitests.jar"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui.tests_92.2.29" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,ajdtuitests.jar,META-INF/,doc/,test.xml,workspace/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,ajdtuitests.jar,META-INF/,doc/,test.xml,workspace/,testdata/"			/>
 		</copy>
 	</target>
 
