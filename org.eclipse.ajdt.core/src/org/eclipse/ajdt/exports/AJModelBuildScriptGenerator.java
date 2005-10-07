@@ -167,6 +167,12 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, e));
 		}
 	}
+	
+	private String buildConfig;
+	
+	public void setBuildConfig(String config) {
+		buildConfig = config;
+	}
 //	 AspectJ Change End
 	
 	
@@ -823,7 +829,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		script.printMkdirTask(destdir);
 		script.printComment("compile the source code"); //$NON-NLS-1$
 		// AspectJ Change Begin
-		JavacTask javac = new AJCTask(getModel().getLocation());
+		JavacTask javac = new AJCTask(getModel().getLocation(), buildConfig);
 		// AspectJ Change End
 		javac.setClasspath(classpath);
 		javac.setBootClasspath(Utils.getPropertyFormat(PROPERTY_BOOTCLASSPATH));

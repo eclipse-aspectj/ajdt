@@ -54,7 +54,7 @@ public class AJCTaskTest extends UITestCase {
 		tempFile.createNewFile();
 		os = new FileOutputStream(tempFile);
 		script = new AJAntScript(os);
-		task = new AJCTask(location.getFile());
+		task = new AJCTask(location.getFile(),null);
 		List classpath = new ArrayList();
 		classpath.add(classpathEntry1);
 		classpath.add(classpathEntry2);
