@@ -130,6 +130,7 @@ Creates an update site structure for AspectJ
 	<target name="insert-version" if="file.to.update">
 		<mkdir dir="${temp.folder}"/>
 		<basename property="filename" file="${file.to.update}"/>
+		<delete file="${temp.folder}/${filename}"/>
 		<copy file="${file.to.update}" tofile="${temp.folder}/${filename}"/>
 		 <copy file="${temp.folder}/${filename}" tofile="${file.to.update}">
 		 	<filterset begintoken="9" endtoken="9">

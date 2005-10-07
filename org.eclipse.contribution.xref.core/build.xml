@@ -61,7 +61,8 @@
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</classpath>
 		</taskdef>
-		<iajc destDir="${temp.folder}/xrefcore.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<property file="build.ajproperties"/>
+		<iajc destDir="${temp.folder}/xrefcore.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
@@ -89,9 +90,6 @@
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</forkclasspath>
-			<srcdir>
-				<pathelement path="src/"/>
-			</srcdir>
 			</iajc>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/xrefcore.jar.bin" failonerror="true" overwrite="false">
