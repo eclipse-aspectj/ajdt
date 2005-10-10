@@ -123,6 +123,21 @@ Creates an update site structure for AspectJ
 	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"
 	        src="dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}.jar"/>
 
+	<!-- Add source plugin -->
+	<ant dir="../org.eclipse.ajdt.source"/>
+	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}"/>
+	<copy todir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}">
+		<fileset dir="../org.eclipse.ajdt.source">
+			<exclude name="build.*"/>
+			<exclude name="META-INF/MANIFEST.MF" />
+		</fileset>
+	</copy>
+	 <copy file="../org.eclipse.ajdt.source/META-INF/MANIFEST.MF" tofile="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}/META-INF/MANIFEST.MF">
+	 	<filterset begintoken="9" endtoken="9">
+	 		<filter token="2.2.2" value="${ajdt.version}"/>
+	 	</filterset>
+	 </copy>
+	
 	<zip destfile="ajdt_${aspectj.feature.version}_archive.zip"
 		 basedir="fpack_dist"/>
 </target>
@@ -154,6 +169,7 @@ Creates an update site structure for AspectJ
 			<param name="version" value="${version}"/>
 		</antcall>
 	    <ant dir="../${plugin-name}" target="build.update.jar" inheritAll="true"/>
+	    <ant dir="../${plugin-name}" target="build.sources" inheritAll="true"/>
 		<!-- put originals back -->
 		<antcall target="restore">
 			<param name="file.to.update" value="../${plugin-name}/META-INF/MANIFEST.MF"/>

@@ -46,6 +46,12 @@
          version="@AJFVERSION@"/>
 
    <plugin
+         id="org.eclipse.ajdt.source"
+         download-size="0"
+         install-size="0"
+         version="@AJFVERSION@"/>
+
+   <plugin
          id="org.aspectj.runtime"
          download-size="0"
          install-size="0"
