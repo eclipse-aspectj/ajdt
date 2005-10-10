@@ -125,6 +125,15 @@ Creates an update site structure for AspectJ
 
 	<!-- Add source plugin -->
 	<ant dir="../org.eclipse.ajdt.source"/>
+	<move file="../org.eclipse.ajdt.source/src/org.aspectj.ajde" tofile="../org.eclipse.ajdt.source/src/org.aspectj.ajde_${ajde.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.aspectj.weaver" tofile="../org.eclipse.ajdt.source/src/org.aspectj.weaver_${ajde.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core_${ajdt.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui_${ajdt.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples_${ajdt.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core_${xref.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui_${xref.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.visualiser_${visualiser.version}"/>
+
 	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}"/>
 	<copy todir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}">
 		<fileset dir="../org.eclipse.ajdt.source">
