@@ -132,11 +132,14 @@ Creates an update site structure for AspectJ
 			<exclude name="META-INF/MANIFEST.MF" />
 		</fileset>
 	</copy>
-	 <copy file="../org.eclipse.ajdt.source/META-INF/MANIFEST.MF" tofile="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}/META-INF/MANIFEST.MF">
+	<copy file="../org.eclipse.ajdt.source/META-INF/MANIFEST.MF" tofile="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}/META-INF/MANIFEST.MF">
 	 	<filterset begintoken="9" endtoken="9">
 	 		<filter token="2.2.2" value="${ajdt.version}"/>
 	 	</filterset>
-	 </copy>
+	</copy>
+	<zip destfile= "dist/plugins/org.eclipse.ajdt.source_${ajdt.version}.jar" >
+	    <fileset dir="fpack_dist/plugins/org.eclipse.ajdt.source_${ajdt.version}"/>
+	</zip>
 	
 	<zip destfile="ajdt_${aspectj.feature.version}_archive.zip"
 		 basedir="fpack_dist"/>
