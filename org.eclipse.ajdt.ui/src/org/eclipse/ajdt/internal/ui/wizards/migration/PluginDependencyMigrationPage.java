@@ -12,6 +12,7 @@ package org.eclipse.ajdt.internal.ui.wizards.migration;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -166,10 +167,7 @@ public class PluginDependencyMigrationPage extends WizardPage {
 				AJDTUtils.removeImportFromPDEModel(model, "org.aspectj.ajde"); //$NON-NLS-1$
 				manEd.doSave(new NullProgressMonitor());
 			} catch (CoreException e) {
-				AspectJUIPlugin
-						.getDefault()
-						.getErrorHandler()
-						.handleError(
+				ErrorHandler.handleAJDTError(
 								AspectJUIPlugin
 										.getResourceString("AutoPluginRemoveErrorDialog.title"), //$NON-NLS-1$
 								AspectJUIPlugin

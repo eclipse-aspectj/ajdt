@@ -308,8 +308,8 @@ public class CompilerTaskListManager implements TaskListManager {
                         }
                     }
                     clearTasks();
-                } catch (Exception e) {
-                    AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+                } catch (CoreException e) {
+                    ErrorHandler.handleAJDTError(
                     		AspectJUIPlugin.getResourceString("CompilerTaskListManager.markerError"), e); //$NON-NLS-1$
                 }                
             }
@@ -318,7 +318,7 @@ public class CompilerTaskListManager implements TaskListManager {
         try {
             AspectJPlugin.getWorkspace().run(r, null);
         } catch (CoreException cEx) {
-            AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+            ErrorHandler.handleAJDTError(
                     AspectJUIPlugin.getResourceString("CompilerTaskListManager.markerError"), cEx); //$NON-NLS-1$
         }
  		 // Part of the fix for bug 89793 - editor image is not updated
@@ -403,7 +403,7 @@ public class CompilerTaskListManager implements TaskListManager {
         // FIXME: Remove this horrid hack.
         // Hack the filename off the front and the line number
         // off the end
-        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) {  //$NON-NLS-1$//$NON-NLS-2$
+        if (message.indexOf("\":") != -1 && message.indexOf(", at line") != -1) { //$NON-NLS-1$ //$NON-NLS-2$
             String hackedMessage = message
                     .substring(message.indexOf("\":") + 2); //$NON-NLS-1$
             message = hackedMessage.substring(0, hackedMessage
@@ -508,7 +508,7 @@ public class CompilerTaskListManager implements TaskListManager {
                 }
             }
         } catch (JavaModelException jmEx) {
-        	AspectJUIPlugin.getDefault().getErrorHandler().handleError(
+        	ErrorHandler.handleAJDTError(
 					AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
 					AspectJUIPlugin.getResourceString("jmCoreException"), jmEx); //$NON-NLS-1$
         }

@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -145,10 +146,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
         try {
             initialAspectpath = getInitialAspectpathValue(project);
         } catch (CoreException ce) {
-        	AspectJUIPlugin
-					.getDefault()
-					.getErrorHandler()
-					.handleError(
+        	ErrorHandler.handleAJDTError(
 							AspectJUIPlugin
 									.getResourceString("AspectPathProp.exceptionInitializingAspectpath.title"), //$NON-NLS-1$
 							AspectJUIPlugin

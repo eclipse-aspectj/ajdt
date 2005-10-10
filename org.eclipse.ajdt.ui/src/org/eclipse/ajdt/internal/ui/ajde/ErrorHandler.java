@@ -14,7 +14,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -53,7 +52,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	}
 
 	/**
-	 * Display an error dialog
+	 * Display an error dialog - only called by AspectJ
 	 */
 	public void handleError(final String message) {
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
@@ -75,24 +74,55 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	}
 
 	/**
-	 * Display an error dialog with exception
+	 * Display an error dialog with exception - only called by AspectJ
 	 */
 	public void handleError(String message, Throwable t) {
-		handleError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
+		handleInternalError(AspectJUIPlugin.getResourceString("ajErrorDialogTitle"), //$NON-NLS-1$
 				message, t);
 	}
 	
 	/**
+	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
+	 */
+	public static void handleAJDTError(String title, String message, CoreException t) {
+		handleInternalError(title, message, t);
+	}
+
+	/**
+	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
+	 */
+	public static void handleAJDTError(String message, CoreException t) {
+		handleInternalError(AspectJUIPlugin.getResourceString("ajdtErrorDialogTitle"), //$NON-NLS-1$
+				message, t);
+	}
+	/**
 	 * Display an error dialog with exception
 	 */
-	public void handleError(final String title, final String message, Throwable t) {
+	private static void handleInternalError(final String title, final String message, Throwable t) {
 		final IStatus status;
-
+		final String shortMessage;
+		final String longMessage;
 		// If the throwable is a CoreException then retrieve its status, otherwise
 		// build a new status object
 		if (t instanceof CoreException) {
 			status = ((CoreException) t).getStatus();
+			longMessage = message;
+			shortMessage = message;
 		} else {
+			String newline = System.getProperty("line.separator"); //$NON-NLS-1$
+			shortMessage = AspectJUIPlugin.getResourceString("ajErrorText"); //$NON-NLS-1$
+			StringBuffer sb = new StringBuffer();
+			if (t != null) {
+				StackTraceElement[] ste = t.getStackTrace();
+				sb.append(t.getClass().getName());
+				sb.append(newline);
+				for (int i = 0; i < ste.length; i++) {
+					sb.append("at "); //$NON-NLS-1$
+					sb.append(ste[i].toString());
+					sb.append(newline);
+				}
+			}
+			longMessage = sb.toString() + newline + message;
 			status =
 				new Status(Status.ERROR, AspectJUIPlugin.PLUGIN_ID, Status.OK, message, t);
 		}
@@ -111,13 +141,11 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 					// This really should not be null ...
 					if (iww != null) {
 						Shell shell = iww.getShell();
-						// FIXME - Including message in this openError call and in the status object
-						// causes the messy duplication of the message in the dialog that appears.
-						ErrorDialog.openError(
+						AJDTErrorDialog.openError(
 							shell,
 							title,
-							message,
-							status);
+							shortMessage,
+							longMessage);
 
 					}
 				} catch (Exception e) {

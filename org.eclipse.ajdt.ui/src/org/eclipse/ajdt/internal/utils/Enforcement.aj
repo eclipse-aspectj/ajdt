@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.internal.ajdt.utils;
 
+import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+
 /**
  *
  */
@@ -26,5 +28,8 @@ public aspect Enforcement {
 		&& !within(org.eclipse.ajdt.internal.ui.AJDTEventTraceView)
 		&& !within(org.eclipse.ajdt.internal.ui.EventTraceLogger) :
 		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead"; //$NON-NLS-1$
+
+	declare warning : call(void ErrorHandler.handleError(..)) :
+		"Calls to handleError should not come from within AJDT, use ErrorHandler.handleAJDTError instead"; //$NON-NLS-1$
 
 }
