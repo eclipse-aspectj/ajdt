@@ -21,9 +21,6 @@ The key targets are:
 to run the last two targets you need an account on dev.eclipse.org
 -->
 
-<!-- VERSION-STRING -->
-<!-- visualiser version is set separately by the visualiser plugin itself, must be copied into here when
-     new update site is being constructed -->
 <property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
 <property name="ajdt.version.file" location="ajdtbuildversion.txt" /> <!-- set by CruiseControl -->
 <property name="aspectj.feature.version" value="1.3.0.${cctimestamp}" />
@@ -159,16 +156,25 @@ Creates an update site structure for AspectJ
 		<basename property="filename" file="${file.to.update}"/>
 		<delete file="${temp.folder}/${filename}"/>
 		<copy file="${file.to.update}" tofile="${temp.folder}/${filename}"/>
-		 <copy file="${temp.folder}/${filename}" tofile="${file.to.update}">
+		<replace file="${file.to.update}" token="DEVELOPMENT" value="${cctimestamp}"/>
+		<!--
+		<copy file="${temp.folder}/${filename}" tofile="${file.to.update}">
 		 	<filterset begintoken="9" endtoken="9">
 		 		<filter token="2.2.2" value="${version}"/>
 		 	</filterset>
 		 </copy>
+		 -->
+	</target>
+	
+	<target name="test">
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../org.eclipse.ajdt.core/build.xml"/>
+		</antcall>		
 	</target>
 	
 	<target name="restore" if="file.to.update">
 		<basename property="filename" file="${file.to.update}"/>
-		 <move file="${temp.folder}/${filename}" tofile="${file.to.update}"/>
+		 <move file="${temp.folder}/${filename}" tofile="${file.to.update}" overwrite="true"/>
 	</target>
 		 			
 	<target name="build-plugin" if="plugin-name">
@@ -247,13 +253,13 @@ Creates an update site structure for AspectJ
 		<param name="plugin-name" value="org.eclipse.ajdt.ui.tests"/>
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
-		
+	
     <!-- Examples plugin -->
 	<antcall target="build-plugin">
 		<param name="plugin-name" value="org.eclipse.ajdt.examples"/>
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
-	
+
  <ant dir="../org.eclipse.aspectj" inheritAll="true" />
  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
 
