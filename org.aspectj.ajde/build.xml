@@ -29,6 +29,7 @@ Creates a packaged plug-in jar for AJDE
 	<target name="packaged-plugin" depends="init" description="Create the plugin jar file from the assembled components in the build dir">
 		<copy todir="${build.dir}" includeemptydirs="false">
 			<fileset dir=".">
+				<exclude name="*src.zip" />
 				<exclude name="build.*" />
 				<exclude name=".*" />
 				<exclude name="*/*" />
@@ -63,7 +64,7 @@ Creates a packaged plug-in jar for AJDE
 	</target>
 	
 	
-	<target name="ajdejar" description="Construct ajde.jar and ajde-src.zip for the ajde plugin using an AJ build">
+	<target name="ajdejar" description="Construct ajde.jar and ajdesrc.zip for the ajde plugin using an AJ build">
 		
 		<!-- copy and unpack an aspectjtools.jar into a local build directory -->
 		<delete dir="${ajde.build.dir}"/>
@@ -117,8 +118,8 @@ Creates a packaged plug-in jar for AJDE
            	</fileset>
         </delete>
 		
-		<!-- delete everything which is going to be in aspectjweaver-src.zip -->
-		<echo message="Removing files not required in ajde-src.zip since they're contained in aspectjweaver-src.zip"/>
+		<!-- delete everything which is going to be in aspectjweaversrc.zip -->
+		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjweaversrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
 				<include name="org/aspectj/asm/**/*.*" />
@@ -129,22 +130,24 @@ Creates a packaged plug-in jar for AJDE
 			</fileset>
 		</delete>
 		
-		<!-- delete everything which is going to be in aspectjrt-src.zip -->
-		<echo message="Removing files not required in ajde-src.zip since they're contained in aspectjrt-src.zip"/>
+		<!-- delete everything which is going to be in aspectjrtsrc.zip -->
+		<!-- omitting this step as we don't currently create a aspectjrtsrc.zip file
+		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjrtsrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
 				<include name="org/aspectj/runtime/**/*.*" />
 				<include name="org/aspectj/lang/**/*.*" />
 			</fileset>
 		</delete>
+		-->
 		
-		<zip destfile="ajde-src.zip">
+		<zip destfile="ajdesrc.zip">
 		  <fileset dir="${ajde.build.dir}"/>
 		</zip>
 		<delete dir="${ajde.build.dir}" />
 	</target>
 	
-	<target name="weaverjar" description="Construct aspectjweaver.jar and aspectjweaver-src.zip for the aspectjweaver plugin using an AJ build">
+	<target name="weaverjar" description="Construct aspectjweaver.jar and aspectjweaversrc.zip for the aspectjweaver plugin using an AJ build">
 		<!-- copy and unpack an aspectjweaver.jar into a local build directory -->
 		<delete dir="${ajde.build.dir}"/>
 		<copy file="${aspectj.lib.dir}/aspectjweaver.jar" tofile="aspectjweaver.jar" overwrite="true" />
@@ -180,8 +183,8 @@ Creates a packaged plug-in jar for AJDE
 			  <exclude name="org/aspectj/**/*.*"/>
            	</fileset>
         </delete>
-		<!-- delete everything which shouldn't be included in the aspectjweaver-src.zip -->
-		<echo message="Removing files not required in aspectjweaver-src.jar"/>
+		<!-- delete everything which shouldn't be included in the aspectjweaversrc.zip -->
+		<echo message="Removing files not required in aspectjweaversrc.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
 				<exclude name="org/aspectj/apache/bcel/**/*.*" />
@@ -192,7 +195,7 @@ Creates a packaged plug-in jar for AJDE
 			</fileset>
 		</delete>
 		
-		<zip destfile="../org.aspectj.weaver/aspectjweaver-src.zip">
+		<zip destfile="../org.aspectj.weaver/aspectjweaversrc.zip">
 		  <fileset dir="${ajde.build.dir}"/>
 		</zip>
 		<delete dir="${ajde.build.dir}" />	

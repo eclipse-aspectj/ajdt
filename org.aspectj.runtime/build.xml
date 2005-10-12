@@ -27,6 +27,7 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 	<target name="packaged-plugin" depends="init" description="Create the plugin jar file from the assembled components in the build dir">
 		<copy todir="${build.dir}" includeemptydirs="false">
 			<fileset dir=".">
+				<exclude name="*src.zip" />
 				<exclude name="build.*" />
 				<exclude name=".*" />
 				<exclude name="*/*" />
