@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
@@ -40,7 +39,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.ui.dialogs.PropertyPage;
+import org.eclipse.ui.IWorkbenchPropertyPage;
 
 /**
  * This aspect handles the building of projects whenever OK is pressed on any of
@@ -59,16 +58,19 @@ aspect PreferencePageBuilder {
     private List remainingActivePages = new ArrayList();
 
     // manage buttons on all pages
-    private Hashtable /* PropertyPage -> (Hashtable of Button -> Boolean)*/ buttonOriginalValues = new Hashtable();
+    private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of Button -> Boolean)*/ buttonOriginalValues = new Hashtable();
     // manage combo boxes on all pages
-    private Hashtable /* PropertyPage -> (Hashtable of Combo -> Integer)*/ comboOriginalValues = new Hashtable();
+    private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of Combo -> Integer)*/ comboOriginalValues = new Hashtable();
     // manage string field editors on all pages
-    private Hashtable /* PropertyPage -> (Hashtable of StringFieldEditors -> String)*/ stringFieldEditorsOriginalValues = new Hashtable();
+    private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of StringFieldEditors -> String)*/ stringFieldEditorsOriginalValues = new Hashtable();
     // manage selection buttons on all pages
-    private Hashtable /* PropertyPage -> (Hashtable of SelectionButtonDialogField -> Boolean)*/ selectionButtonOriginalValues = new Hashtable();
+    private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of SelectionButtonDialogField -> Boolean)*/ selectionButtonOriginalValues = new Hashtable();
     // manage tree list dialog fields on all pages
-    private Hashtable /* PropertyPage -> (Hashtable of ListDialogField -> List)*/ dialogFieldOriginalValues = new Hashtable();
-
+    private Hashtable /* IWorkbenchPropertyPage -> (Hashtable of ListDialogField -> List)*/ dialogFieldOriginalValues = new Hashtable();
+    
+    private boolean useProjectSettingsOriginalValue;
+       
+    
     interface AJDTPathBlockPage{}
        
     declare parents: AspectPathBlock implements AJDTPathBlockPage;
@@ -76,35 +78,38 @@ aspect PreferencePageBuilder {
     
     pointcut interestingPage(): 
 	    within(AspectJProjectPropertiesPage) ||
-	    within(CompilerPropertyPage) ||
+	    within(AJCompilerPreferencePage) ||
 	    within(InPathPropertyPage) ||
 	    within(AspectPathPropertyPage);
 
     // interested in when the AJDT property page is created
-    pointcut creationOfAnInterestingPage(PropertyPage page) : 
+    pointcut creationOfAnInterestingPage(IWorkbenchPropertyPage page) : 
 	    (execution(protected Control createContents(Composite)))
 	    && interestingPage() && this(page);
 
     // before the page is created, add the page to the lists
-    before(PropertyPage page) : creationOfAnInterestingPage(page) {
+    before(IWorkbenchPropertyPage page) : creationOfAnInterestingPage(page) {
         activePages.add(page);
         remainingActivePages.add(page);
+        if(page instanceof AJCompilerPreferencePage) {
+        	useProjectSettingsOriginalValue = ((AJCompilerPreferencePage)page).hasProjectSpecificOptions(((AJCompilerPreferencePage)page).getProject());
+        }
     }
 
     // interested in when the AJDT property page is disposed
-    pointcut disposalOfAnInterestingPage(PropertyPage page) :
+    pointcut disposalOfAnInterestingPage(IWorkbenchPropertyPage page) :
 	    (execution(void dispose()))
 	    && interestingPage() && this(page);
 
     // before the page is disposed, remove it from the lists
-    before(PropertyPage page) : disposalOfAnInterestingPage(page) {
+    before(IWorkbenchPropertyPage page) : disposalOfAnInterestingPage(page) {
         buttonOriginalValues.remove(page);
         comboOriginalValues.remove(page);
         stringFieldEditorsOriginalValues.remove(page);
         selectionButtonOriginalValues.remove(page);
         dialogFieldOriginalValues.remove(page);
         activePages.remove(page);
-        if (page instanceof CompilerPropertyPage) {
+        if (page instanceof AJCompilerPreferencePage) {
             compilerPageDoBuild = false;
         }
         remainingActivePages.remove(page);
@@ -112,11 +117,11 @@ aspect PreferencePageBuilder {
     
     pointcut interestingPathBlockPages() : within(AspectPathBlock) || within(InPathBlock);
     
-    pointcut setSelection(Button button, boolean val, PropertyPage page):
+    pointcut setSelection(Button button, boolean val, IWorkbenchPropertyPage page):
         call(* setSelection(boolean)) && args(val) && target(button) && this(page);
 
     // remember the first value put into the buttons
-    before(Button b, boolean val, PropertyPage page):
+    before(Button b, boolean val, IWorkbenchPropertyPage page):
         	setSelection(b,val,page) && interestingPage(){
         if (!buttonOriginalValues.containsKey(page)) {
             Hashtable buttonValues = new Hashtable();
@@ -130,11 +135,11 @@ aspect PreferencePageBuilder {
         }
     }
     
-    pointcut comboSelect(Combo combo, int selection, PropertyPage page) :
+    pointcut comboSelect(Combo combo, int selection, IWorkbenchPropertyPage page) :
         call(* select(int)) && args(selection) && target(combo) && this(page);
     
     // remember the first value put into the combo boxes
-    before(Combo combo, int selection, PropertyPage page) :
+    before(Combo combo, int selection, IWorkbenchPropertyPage page) :
         comboSelect(combo,selection,page) && interestingPage() {
         if (!comboOriginalValues.containsKey(page)) {
             Hashtable comboValues = new Hashtable();
@@ -148,11 +153,11 @@ aspect PreferencePageBuilder {
         }       
     }
             
-    pointcut setStringValue(StringFieldEditor editor, String value, PropertyPage page) :
+    pointcut setStringValue(StringFieldEditor editor, String value, IWorkbenchPropertyPage page) :
         call(* setStringValue(String)) && args(value) && target(editor) && this(page);
     
     // remember the first value put into the StringFieldEditors
-    before(StringFieldEditor editor, String value, PropertyPage page) :
+    before(StringFieldEditor editor, String value, IWorkbenchPropertyPage page) :
         setStringValue(editor,value,page) && interestingPage() {
         if (!stringFieldEditorsOriginalValues.containsKey(page)) {
             Hashtable editorValues = new Hashtable();
@@ -166,23 +171,23 @@ aspect PreferencePageBuilder {
         }       
     }
     
-    pointcut setButtonSelection(SelectionButtonDialogField button, boolean value, PropertyPage page) :
-        call(* setSelection(boolean)) && args(value) && target(button) && this(page);
-    
-    // remember the first value put into the SelectionButtonDialogFields
-    before(SelectionButtonDialogField button, boolean value, PropertyPage page) :
-        setButtonSelection(button,value,page) && interestingPage() {
-        if (!selectionButtonOriginalValues.containsKey(page)) {
-            Hashtable buttonValues = new Hashtable();
-            buttonValues.put(button,new Boolean(value));
-            selectionButtonOriginalValues.put(page,buttonValues);
-        } else {
-            Hashtable buttonValues = (Hashtable)selectionButtonOriginalValues.get(page);
-            if (!buttonValues.containsKey(button)) {
-                buttonValues.put(button, new Boolean(value)); 
-            }
-        }    
-    }
+//    pointcut setButtonSelection(SelectionButtonDialogField button, boolean value, IWorkbenchPropertyPage page) :
+//        call(* setSelection(boolean)) && args(value) && target(button) && this(page);
+//    
+//    // remember the first value put into the SelectionButtonDialogFields
+//    before(SelectionButtonDialogField button, boolean value, IWorkbenchPropertyPage page) :
+//        setButtonSelection(button,value,page) && interestingPage() {
+//        if (!selectionButtonOriginalValues.containsKey(page)) {
+//            Hashtable buttonValues = new Hashtable();
+//            buttonValues.put(button,new Boolean(value));
+//            selectionButtonOriginalValues.put(page,buttonValues);
+//        } else {
+//            Hashtable buttonValues = (Hashtable)selectionButtonOriginalValues.get(page);
+//            if (!buttonValues.containsKey(button)) {
+//                buttonValues.put(button, new Boolean(value)); 
+//            }
+//        }    
+//    }
 
     pointcut setElements(ListDialogField dialogField, Collection elements, AJDTPathBlockPage basePage) :
         call(* setElements(Collection)) && args(elements) && target(dialogField) && this(basePage);
@@ -191,15 +196,15 @@ aspect PreferencePageBuilder {
     before(ListDialogField dialogField, Collection elements, AJDTPathBlockPage basePage) :
         setElements(dialogField,elements,basePage) && interestingPathBlockPages() {
         
-        PropertyPage page = null;
-        // We need to associate the ListDialogField with the related PropertyPage object
+        IWorkbenchPropertyPage page = null;
+        // We need to associate the ListDialogField with the related IWorkbenchPropertyPage object
         // rather than the related AJDTPathBlockPage (so we can check if the contents
-        // of the ListDialogField more easily in settingsHaveChanged(PropertyPage)).
+        // of the ListDialogField more easily in settingsHaveChanged(IWorkbenchPropertyPage)).
         // We therefore iterate through the active pages and if basePage is an
         // AspectPathBlock then we're looking for the AspectPathPropertyPage object, whereas
         // if basePage is an InPathBlock then we're looking for the InPathPropertyPage object.       
         for (Iterator iter = activePages.iterator(); iter.hasNext();) {
-            PropertyPage ajdtPage = (PropertyPage) iter.next();
+            IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter.next();
             if ((basePage instanceof AspectPathBlock)
                     && (ajdtPage instanceof AspectPathPropertyPage )) {
                 page = ajdtPage;
@@ -228,7 +233,7 @@ aspect PreferencePageBuilder {
     private boolean settingsHaveChanged() {
         Iterator iterator = activePages.iterator();
         while (iterator.hasNext()) {
-            PropertyPage page = (PropertyPage) iterator.next();
+            IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) iterator.next();
             if (settingsHaveChangedOnPage(page)) {
                 return true;
             }            
@@ -236,7 +241,7 @@ aspect PreferencePageBuilder {
         return false;
     }
 
-    private boolean settingsHaveChangedOnPage(PropertyPage page) {
+    private boolean settingsHaveChangedOnPage(IWorkbenchPropertyPage page) {
         Hashtable buttonsOnPage = (Hashtable)buttonOriginalValues.get(page);
         if (buttonsOnPage != null) {
             Enumeration buttons = buttonsOnPage.keys();
@@ -294,10 +299,16 @@ aspect PreferencePageBuilder {
                 }               
             }            
         }
+        if(page instanceof AJCompilerPreferencePage) {
+			AJCompilerPreferencePage ajPage = (AJCompilerPreferencePage) page;
+			if(ajPage.useProjectSettings() != useProjectSettingsOriginalValue) {
+				return true;
+			}
+		}
         return false;
     }
     
-    private void resetButtonsOnPage(PropertyPage page) {
+    private void resetButtonsOnPage(IWorkbenchPropertyPage page) {
         Hashtable buttonsOnPage = (Hashtable)buttonOriginalValues.get(page);
         if (buttonsOnPage != null) {
             Enumeration buttons = buttonsOnPage.keys();
@@ -308,7 +319,7 @@ aspect PreferencePageBuilder {
         }
     }
 
-    private void resetComboBoxesOnPage(PropertyPage page) {
+    private void resetComboBoxesOnPage(IWorkbenchPropertyPage page) {
         Hashtable comboBoxesOnPage = (Hashtable)comboOriginalValues.get(page);
         if (comboBoxesOnPage != null) {
             Enumeration boxes = comboBoxesOnPage.keys();
@@ -319,7 +330,7 @@ aspect PreferencePageBuilder {
         }
     }
     
-    private void resetEditorsOnPage(PropertyPage page) {
+    private void resetEditorsOnPage(IWorkbenchPropertyPage page) {
         Hashtable editorsOnPage = (Hashtable)stringFieldEditorsOriginalValues.get(page);
         if (editorsOnPage != null) {
             Enumeration editors = editorsOnPage.keys();
@@ -330,7 +341,7 @@ aspect PreferencePageBuilder {
         }
     }
 
-    private void resetSelectionButtonsOnPage(PropertyPage page) {
+    private void resetSelectionButtonsOnPage(IWorkbenchPropertyPage page) {
         Hashtable buttonsOnPage = (Hashtable)selectionButtonOriginalValues.get(page);
         if (buttonsOnPage != null) {
             Enumeration buttons = buttonsOnPage.keys();
@@ -341,7 +352,7 @@ aspect PreferencePageBuilder {
         }
     }
 
-    private void resetDialogFieldsOnPage(PropertyPage page) {
+    private void resetDialogFieldsOnPage(IWorkbenchPropertyPage page) {
         Hashtable fieldsOnPage = (Hashtable)dialogFieldOriginalValues.get(page);
         if (fieldsOnPage != null) {
             Enumeration fields = fieldsOnPage.keys();
@@ -352,11 +363,11 @@ aspect PreferencePageBuilder {
         }
     }
     
-    pointcut pageCompleting(PropertyPage page) : 
+    pointcut pageCompleting(IWorkbenchPropertyPage page) : 
         execution(boolean performOk()) && interestingPage() && this(page);
 
     // performOk not running because of performApply
-    after(PropertyPage page) returning: pageCompleting(page) && !cflow(execution(* performApply())) {
+    after(IWorkbenchPropertyPage page) returning: pageCompleting(page) && !cflow(execution(* performApply())) {
         if (remainingActivePages.size() == 1) {
             if (wantToBuild() && settingsHaveChanged()) {
                 doProjectBuild(page);
@@ -374,7 +385,7 @@ aspect PreferencePageBuilder {
     }
 
     // performOk running because performApply is running
-    after(PropertyPage page) returning: pageCompleting(page) && cflow(execution(* performApply())) {
+    after(IWorkbenchPropertyPage page) returning: pageCompleting(page) && cflow(execution(* performApply())) {
         if (wantToBuild() && settingsHaveChangedOnPage(page)) {
             doProjectBuild(page);
         }        
@@ -383,16 +394,16 @@ aspect PreferencePageBuilder {
         resetEditorsOnPage(page);
         resetSelectionButtonsOnPage(page);
         resetDialogFieldsOnPage(page);
-        if (page instanceof CompilerPropertyPage) {
+        if (page instanceof AJCompilerPreferencePage) {
             compilerPageDoBuild = false;
         }
     }
   
-    pointcut openingMessageDialog(MessageDialog dialog, PropertyPage page) :
+    pointcut openingMessageDialog(MessageDialog dialog, IWorkbenchPropertyPage page) :
         call(* open()) && target(dialog) && this(page);
     
-    after(MessageDialog dialog, PropertyPage page ) returning : 
-        openingMessageDialog(dialog,page) && within(CompilerPropertyPage) {        
+    after(MessageDialog dialog, IWorkbenchPropertyPage page ) returning : 
+        openingMessageDialog(dialog,page) && within(AJCompilerPreferencePage) {        
         if (dialog.getReturnCode() == 0) {
             compilerPageDoBuild = true;
         } 
@@ -404,8 +415,8 @@ aspect PreferencePageBuilder {
      */
     private boolean wantToBuild() {
         for (Iterator iter = activePages.iterator(); iter.hasNext();) {
-            PropertyPage page = (PropertyPage) iter.next();
-            if ((page instanceof CompilerPropertyPage) && settingsHaveChangedOnPage(page)) {
+            IWorkbenchPropertyPage page = (IWorkbenchPropertyPage) iter.next();
+            if ((page instanceof AJCompilerPreferencePage) && settingsHaveChangedOnPage(page)) {
                 return compilerPageDoBuild;
             }
         }
@@ -415,46 +426,48 @@ aspect PreferencePageBuilder {
     /**
      * Build the project
      */
-    private void doProjectBuild(PropertyPage prefPage) {
+    private void doProjectBuild(IWorkbenchPropertyPage prefPage) {
         IProject tempProject = null;
         if (prefPage instanceof AspectPathPropertyPage) {
             tempProject = ((AspectPathPropertyPage) prefPage).getThisProject();
         } else if (prefPage instanceof InPathPropertyPage) {
             tempProject = ((InPathPropertyPage) prefPage).getThisProject();
-        } else if (prefPage instanceof CompilerPropertyPage) {
-            tempProject = ((CompilerPropertyPage) prefPage).getThisProject();
+        } else if (prefPage instanceof AJCompilerPreferencePage) {
+            tempProject = ((AJCompilerPreferencePage) prefPage).getProject();
         } else if (prefPage instanceof AspectJProjectPropertiesPage) {
             tempProject = ((AspectJProjectPropertiesPage) prefPage)
                     .getThisProject();
         }
         final IProject project = tempProject;
-        ProgressMonitorDialog dialog = new ProgressMonitorDialog(
-                ((PreferencePage) prefPage).getShell());
-        try {
-            dialog.run(true, true, new IRunnableWithProgress() {
-                public void run(IProgressMonitor monitor)
-                        throws InvocationTargetException {
-                    monitor.beginTask("", 2); //$NON-NLS-1$
-                    try {
-                        monitor
-                                .setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
-                        project.build(IncrementalProjectBuilder.FULL_BUILD,
-                                AspectJPlugin.ID_BUILDER, null,
-                                new SubProgressMonitor(monitor, 2));
-                    } catch (CoreException e) {
-                    	ErrorHandler
+        if(project != null) {
+	        ProgressMonitorDialog dialog = new ProgressMonitorDialog(
+	                ((PreferencePage) prefPage).getShell());
+	        try {
+	            dialog.run(true, true, new IRunnableWithProgress() {
+	                public void run(IProgressMonitor monitor)
+	                        throws InvocationTargetException {
+	                    monitor.beginTask("", 2); //$NON-NLS-1$
+	                    try {
+	                        monitor
+	                                .setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
+	                        project.build(IncrementalProjectBuilder.FULL_BUILD,
+	                                AspectJPlugin.ID_BUILDER, null,
+	                                new SubProgressMonitor(monitor, 2));
+	                    } catch (CoreException e) {
+	                       ErrorHandler
 								.handleAJDTError(
 										UIMessages.OptionsConfigurationBlock_builderror_message,
 										e);
-                    } finally {
-                        monitor.done();
-                    }
-                }
-            });
-        } catch (InterruptedException e) {
-            // cancelled by user
-        } catch (InvocationTargetException e) {
-        }
+	                    } finally {
+	                        monitor.done();
+	                    }
+	                }
+	            });
+	        } catch (InterruptedException e) {
+	            // cancelled by user
+	        } catch (InvocationTargetException e) {
+	        }
+    	}
     }
 
 }

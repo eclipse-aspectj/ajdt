@@ -14,25 +14,33 @@ package org.eclipse.ajdt.internal.ui.preferences;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -46,8 +54,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * The AspectJ compiler preferences that appear under the "AspectJ" category
@@ -55,10 +63,18 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * to use the Java mode preference where it exists, and only the AspectJ
  * specific preferences in this page.
  */
-public class AJCompilerPreferencePage extends PreferencePage 
+public class AJCompilerPreferencePage extends PropertyAndPreferencePage 
 		implements
 			IWorkbenchPreferencePage {
-
+	
+	public static final String PREF_ID= "org.eclipse.ajdt.ui.preferences.AJCompilerPreferencePage"; //$NON-NLS-1$
+	public static final String PROP_ID= "org.eclipse.ajdt.ui.propertyPages.AJCompilerPreferencePage"; //$NON-NLS-1$
+	
+	// bug 90174 - leave these as strings to keep the code simple
+	private static final String VALUE_TRUE = "true"; //$NON-NLS-1$
+	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
+	
+	
 	private static final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName;
 	private static final String PREF_AJ_SHADOW_NOT_IN_STRUCTURE = AspectJPreferences.OPTION_ReportShadowNotInStructure;
 	private static final String PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP = AspectJPreferences.OPTION_ReportCannotImplementLazyTJP;
@@ -93,6 +109,82 @@ public class AJCompilerPreferencePage extends PreferencePage
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
 
+	/**
+	 * The default values used when the plugin is first installed or when
+	 * "restore defaults" is clicked.
+	 */
+	private static final Map defaultValueMap = new HashMap();
+	static {
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportShadowNotInStructure, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidWildcardTypeName, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportUnresolvableMember, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportIncompatibleSerialVersion, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, AspectJPreferences.VALUE_WARNING);
+		
+		// these options are being set to "true" or "false" (rather than AspectJPreferences.VALUE_ENABLED
+		// or AspectJPreferences.VALUE_DISABLED) because the underlying code works in true/false
+		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
+		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress,VALUE_FALSE);
+		
+		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, VALUE_TRUE);
+		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, VALUE_TRUE);
+		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages, VALUE_FALSE);
+		
+		defaultValueMap.put(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, AspectJPreferences.VALUE_WARNING);
+
+		defaultValueMap.put(AspectJPreferences.OPTION_invalidTargetForAnnotation, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_elementAlreadyAnnotated, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_adviceDidNotMatch, AspectJPreferences.VALUE_WARNING);
+	}
+
+	/**
+	 * List of all the preference keys for this page
+	 */
+	private static final String[] keys = new String[] {
+		AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
+		AspectJPreferences.OPTION_ReportShadowNotInStructure,
+    	AspectJPreferences.OPTION_ReportCannotImplementLazyTJP,
+    	AspectJPreferences.OPTION_ReportInvalidWildcardTypeName,
+    	AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,
+    	AspectJPreferences.OPTION_ReportUnresolvableMember,
+    	AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall,
+    	AspectJPreferences.OPTION_ReportIncompatibleSerialVersion,
+    	AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField,
+    	AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint,
+    	AspectJPreferences.OPTION_NoWeave,
+    	AspectJPreferences.OPTION_XSerializableAspects,
+    	AspectJPreferences.OPTION_XLazyThisJoinPoint,
+    	AspectJPreferences.OPTION_XNoInline,
+    	AspectJPreferences.OPTION_XReweavable,
+    	AspectJPreferences.OPTION_XReweavableCompress,
+    	AspectJPreferences.OPTION_BuildASM,
+		AspectJPreferences.OPTION_Incremental,
+		AspectJPreferences.OPTION_WeaveMessages,
+		AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
+		AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
+		AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
+		AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
+		AspectJPreferences.OPTION_invalidTargetForAnnotation,
+		AspectJPreferences.OPTION_elementAlreadyAnnotated,
+		AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+		AspectJPreferences.OPTION_adviceDidNotMatch
+	};
+
+	
 	public AJCompilerPreferencePage() {
 		super();
 		setTitle(UIMessages.AJCompilerPreferencePage_aspectj_compiler);
@@ -170,61 +262,6 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(AspectJPreferences.OPTION_adviceDidNotMatch, WARNING);
 
 	}
-
-	/**
-	 * from IWorkbenchPreferencePage
-	 */
-	public void init(IWorkbench workbench) {
-	}
-
-	/**
-	 * from IWorkbenchPreferencePage
-	 */
-	public void createControl(Composite parent) {
-		super.createControl(parent);
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.jface.preference.PreferencePage#createContents(org.eclipse.swt.widgets.Composite)
-	 */
-	protected Control createContents(Composite parent) {
-		TabFolder folder = new TabFolder(parent, SWT.NONE);
-		folder.setLayout(new TabFolderLayout());
-		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		Composite aspectjComposite = createMessagesTabContent(folder);
-		TabItem item = new TabItem(folder, SWT.NONE);
-		item
-				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_tabtitle);
-		item.setControl(aspectjComposite);
-
-		aspectjComposite = createAdvancedTabContent(folder);
-		item = new TabItem(folder, SWT.NONE);
-		item
-				.setText(UIMessages.CompilerConfigurationBlock_aj_advanced_tabtitle);
-		item.setControl(aspectjComposite);
-
-		aspectjComposite = createOtherTabContent(folder);
-		item = new TabItem(folder, SWT.NONE);
-		item
-				.setText(UIMessages.CompilerConfigurationBlock_aj_other_tabtitle);
-		item.setControl(aspectjComposite);
-
-		// AJ5 options do not apply to Eclipse 3.0
-		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
-			aspectjComposite = createAJ5TabContent(folder);
-			item = new TabItem(folder, SWT.NONE);
-			item
-					.setText(UIMessages.CompilerConfigurationBlock_aj_5_tabtitle);
-			item.setControl(aspectjComposite);
-		}
-		
-		return folder;
-	}
-
 
 	private Composite createMessagesTabContent(Composite folder) {
 		String[] errorWarningIgnore = new String[]{ERROR, WARNING, IGNORE};
@@ -459,35 +496,144 @@ public class AJCompilerPreferencePage extends PreferencePage
 	 * (non-Javadoc) Method declared on PreferencePage
 	 */
 	public boolean performOk() {
-		IPreferenceStore store = getPreferenceStore();
+		if(isProjectPreferencePage()) {
+			return projectPerformOK();
+		} else {
+			IPreferenceStore store = getPreferenceStore();
+	
+			boolean lintChanges = false;
+			for (int i = fComboBoxes.size() - 1; i >= 0; i--) {
+				Combo curr = (Combo) fComboBoxes.get(i);
+				ControlData data = (ControlData) curr.getData();
+				String value = data.getValue(curr.getSelectionIndex());
+				if (!value.equals(store.getString(data.getKey()))) {
+					lintChanges = true;
+					store.setValue(data.getKey(), value);
+				}
+			}
+	
+			boolean advancedOrOtherChanges = false;
+			for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
+				Button curr = (Button) fCheckBoxes.get(i);
+				ControlData data = (ControlData) curr.getData();
+				boolean value = curr.getSelection();
+				if (value != store.getBoolean(data.getKey())) {
+					advancedOrOtherChanges = true;
+					store.setValue(data.getKey(), value);
+				}
+			}
+	
+			AspectJUIPlugin.getDefault().savePluginPreferences();
+	
+			if (lintChanges || advancedOrOtherChanges) {
+				boolean doBuild = false;
+				String[] strings = getFullBuildDialogStrings();
+				if (strings != null) {
+					MessageDialog dialog = new MessageDialog(getShell(),
+							strings[0], null, strings[1], MessageDialog.QUESTION,
+							new String[]{IDialogConstants.YES_LABEL,
+									IDialogConstants.NO_LABEL,
+									IDialogConstants.CANCEL_LABEL}, 2);
+					int res = dialog.open();
+					if (res == 0) {
+						doBuild = true;
+					} else if (res != 1) {
+						return false; // cancel pressed
+					}
+				}
+				if (doBuild) {
+					doFullBuild();
+				}
+			}
+	
+			return true;
+		}
+	}
 
-		boolean lintChanges = false;
+	/**
+	 * Checks whether the project settings have changed and 
+	 * updates the store accordingly if there is a change.
+	 */
+	private boolean updateProjectSettings() {
+		List tempComboBoxes = new ArrayList();
+		tempComboBoxes.addAll(fComboBoxes);
+		List tempCheckBoxes = new ArrayList();
+		tempCheckBoxes.addAll(fCheckBoxes);
+
+		boolean settingsChanged = false;
+
 		for (int i = fComboBoxes.size() - 1; i >= 0; i--) {
 			Combo curr = (Combo) fComboBoxes.get(i);
 			ControlData data = (ControlData) curr.getData();
 			String value = data.getValue(curr.getSelectionIndex());
-			if (!value.equals(store.getString(data.getKey()))) {
-				lintChanges = true;
-				store.setValue(data.getKey(), value);
+			if (!value.equals(AspectJPreferences.getStringPrefValue(getProject(), data.getKey()))) {
+				settingsChanged = true;
+				setPrefValue(getProject(), data.getKey(), value);
 			}
 		}
 
-		boolean advancedOrOtherChanges = false;
 		for (int i = fCheckBoxes.size() - 1; i >= 0; i--) {
 			Button curr = (Button) fCheckBoxes.get(i);
 			ControlData data = (ControlData) curr.getData();
 			boolean value = curr.getSelection();
-			if (value != store.getBoolean(data.getKey())) {
-				advancedOrOtherChanges = true;
-				store.setValue(data.getKey(), value);
+			if (value != getBooleanForString(AspectJPreferences.getStringPrefValue(getProject(), data.getKey()))) {
+				settingsChanged = true;
+				setPrefValue(getProject(), data.getKey(), value ? VALUE_TRUE : VALUE_FALSE);
 			}
 		}
+		
+		if (settingsChanged) {
+			flushPrefs(getProject());
+		}
+		return settingsChanged;
+	}
 
+	private void flushPrefs(IProject project) {
+			IScopeContext projectScope = new ProjectScope(project);
+			IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+	       	try {
+				projectNode.flush();
+			} catch (BackingStoreException e) {
+			}
+	}
+	
+	private void setPrefValue(IProject project, String key, String value) {
+    	IScopeContext projectScope = new ProjectScope(project);
+    	IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+    	projectNode.put(key,value);
+}
+	
+	private boolean getBooleanForString(String stringPrefValue) {
+		return stringPrefValue.equals(VALUE_TRUE);
+	}
+
+	/**
+	 * Get the preference store for AspectJ mode
+	 */
+	protected String[] getProjectBuildDialogStrings() {
+		String title = UIMessages.CompilerConfigurationBlock_needsbuild_title;
+		String message = UIMessages.CompilerConfigurationBlock_needsprojectbuild_message;
+		return new String[]{title, message};
+	}
+
+	private boolean projectPerformOK() {
+		boolean projectSettingsChanged = updateProjectSettings();
+
+		boolean projectWorkspaceChanges = false;
+		if(AspectJPreferences.isUsingProjectSettings(getProject()) !=  useProjectSettings()) {
+			projectWorkspaceChanges = true;
+			// don't want to overwrite existing project settings
+			// because have just set them in the above call to 
+			// updateProjectSettings();
+			AspectJPreferences.setUsingProjectSettings(getProject(), useProjectSettings(),false);
+		}
+
+		
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
-		if (lintChanges || advancedOrOtherChanges) {
+		if (projectWorkspaceChanges || (projectSettingsChanged && useProjectSettings())) {
 			boolean doBuild = false;
-			String[] strings = getFullBuildDialogStrings();
+			String[] strings = getProjectBuildDialogStrings();
 			if (strings != null) {
 				MessageDialog dialog = new MessageDialog(getShell(),
 						strings[0], null, strings[1], MessageDialog.QUESTION,
@@ -495,18 +641,21 @@ public class AJCompilerPreferencePage extends PreferencePage
 								IDialogConstants.NO_LABEL,
 								IDialogConstants.CANCEL_LABEL}, 2);
 				int res = dialog.open();
-				if (res == 0) {
+				if ((res == 0)) {
+				    // by only setting compilerSettingsUpdated to be true here, means that
+				    // the user wont select "don't want to build" here and then get a build
+				    // from other pages.
 					doBuild = true;
 				} else if (res != 1) {
+				    doBuild = false;
 					return false; // cancel pressed
+				} else {
+				    doBuild = false;
 				}
-			}
-			if (doBuild) {
-				doFullBuild();
 			}
 		}
 
-		return true;
+		return true;		
 	}
 
 	protected String[] getFullBuildDialogStrings() {
@@ -607,9 +756,16 @@ public class AJCompilerPreferencePage extends PreferencePage
 		gridData.horizontalIndent = 20;
 		l.setLayoutData(gridData);
 		createLabel(parent,"");//filler //$NON-NLS-1$
-		
-
-		boolean currValue = getPreferenceStore().getBoolean(key);
+		boolean currValue;
+		if(isProjectPreferencePage()) {
+			if(hasProjectSpecificOptions(getProject())) {
+				currValue = getBooleanForString(AspectJPreferences.getStringPrefValue(getProject(), key));
+			} else {
+				currValue = getPreferenceStore().getBoolean(key);
+			}
+		} else {
+			currValue = getPreferenceStore().getBoolean(key);
+		}
 		checkBox.setSelection(currValue);
 
 		fCheckBoxes.add(checkBox);
@@ -695,4 +851,109 @@ public class AJCompilerPreferencePage extends PreferencePage
 			reweaveCompressButton.setEnabled(!buttonSelected);
 		}						
 	}
+
+	protected Control createPreferenceContent(Composite composite) {
+		TabFolder folder = new TabFolder(composite, SWT.NONE);
+		folder.setLayout(new TabFolderLayout());
+		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		Composite aspectjComposite = createMessagesTabContent(folder);
+		TabItem item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_tabtitle);
+		item.setControl(aspectjComposite);
+
+		aspectjComposite = createAdvancedTabContent(folder);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(UIMessages.CompilerConfigurationBlock_aj_advanced_tabtitle);
+		item.setControl(aspectjComposite);
+
+		aspectjComposite = createOtherTabContent(folder);
+		item = new TabItem(folder, SWT.NONE);
+		item
+				.setText(UIMessages.CompilerConfigurationBlock_aj_other_tabtitle);
+		item.setControl(aspectjComposite);
+
+		// AJ5 options do not apply to Eclipse 3.0
+		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
+			aspectjComposite = createAJ5TabContent(folder);
+			item = new TabItem(folder, SWT.NONE);
+			item
+					.setText(UIMessages.CompilerConfigurationBlock_aj_5_tabtitle);
+			item.setControl(aspectjComposite);
+		}
+		
+		return folder;
+	}
+
+	protected boolean hasProjectSpecificOptions(IProject project) {
+		return project != null && AspectJPreferences.isUsingProjectSettings(project);
+	}
+
+	public static void setProjectDefaults(IEclipsePreferences projectNode) {
+		for (int i = 0; i < keys.length; i++) {
+			String value = (String)defaultValueMap.get(keys[i]);
+			projectNode.put(keys[i], value);
+		}
+	}
+
+	public static void setProjectDefaultsIfValueNotAlreadySet(IEclipsePreferences projectNode) {
+		List existingKeysList = new ArrayList();
+		try {
+			existingKeysList = Arrays.asList(projectNode.keys());
+		} catch (BackingStoreException e) {
+		}
+		for (int i = 0; i < keys.length; i++) {
+			String value = (String)defaultValueMap.get(keys[i]);
+			boolean keyExists = false;
+			if (existingKeysList.contains(keys[i])) {
+				keyExists = true;
+			}
+			if (!keyExists) {
+				projectNode.put(keys[i], value);				
+			}
+		}
+	}
+
+	public static void removeProjectValues(IEclipsePreferences projectNode) {
+		for (int i = 0; i < keys.length; i++) {
+			projectNode.remove(keys[i]);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage#getPreferencePageID()
+	 */
+	protected String getPreferencePageID() {
+		return PREF_ID;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage#getPropertyPageID()
+	 */
+	protected String getPropertyPageID() {
+		return PROP_ID;
+	}
+	
+	// Override to make visible to PreferencePageBuilder aspect
+	protected IProject getProject() {
+		return super.getProject();
+	}
+	
+//	 Override to make it possible to be advised by PreferencePageBuilder aspect
+	public void dispose() {
+		super.dispose();
+	}
+	
+//	 Override to make it possible to be advised by PreferencePageBuilder aspect
+	protected Control createContents(Composite parent) {
+		return super.createContents(parent);
+	}
+
+//	 Override to make it possible to be called by PreferencePageBuilder aspect
+	protected boolean useProjectSettings() {
+		return super.useProjectSettings();
+	}
+
 }

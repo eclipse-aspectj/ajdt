@@ -244,13 +244,13 @@ public class AspectJPreferences {
 		if (isUsingProjectSettings) {
 			projectNode.putBoolean(OPTION_UseProjectSettings, true);
 			if (overwriteExistingProjectSettings) {
-				CompilerPropertyPage.setDefaults(projectNode);
+				AJCompilerPreferencePage.setProjectDefaults(projectNode);
 			} else {
-				CompilerPropertyPage.setDefaultsIfValueNotAlreadySet(projectNode);
+				AJCompilerPreferencePage.setProjectDefaultsIfValueNotAlreadySet(projectNode);
 			}						
 		} else {
 			projectNode.remove(OPTION_UseProjectSettings);
-			CompilerPropertyPage.removeValues(projectNode);
+			AJCompilerPreferencePage.removeProjectValues(projectNode);
 		}
 		try {
 			projectNode.flush();

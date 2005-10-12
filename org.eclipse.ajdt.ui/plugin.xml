@@ -663,9 +663,9 @@ M4 = Platform-specific fourth key
       <page
             adaptable="true"
             objectClass="org.eclipse.core.resources.IProject"
-            class="org.eclipse.ajdt.internal.ui.CompilerPropertyPage"
+            class="org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage"
             name="%aspectJCompiler"
-            id="org.eclipse.ajdt.ui.Compiler">
+            id="org.eclipse.ajdt.ui.propertyPages.AJCompilerPreferencePage">
          <filter
                value="org.eclipse.ajdt.ui.ajnature"
                name="projectNature"/>
