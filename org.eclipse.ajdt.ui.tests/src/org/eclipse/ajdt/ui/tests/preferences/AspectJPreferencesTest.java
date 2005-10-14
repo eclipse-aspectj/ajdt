@@ -330,6 +330,12 @@ public class AspectJPreferencesTest extends UITestCase {
 				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
+		prefStore.setValue(AspectJPreferences.OPTION_XHasMember,true);
+		assertEquals("should have set -XhasMember option", //$NON-NLS-1$
+				" -XnoInline -XnotReweavable -XhasMember ",  //$NON-NLS-1$
+				AspectJPreferences.getAdvancedOptions(project));
+		
+		prefStore.setValue(AspectJPreferences.OPTION_XHasMember,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,false);
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
@@ -374,8 +380,18 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertEquals("should have set -XnotReweavable option", //$NON-NLS-1$
 				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
+
+		projectNode.put(AspectJPreferences.OPTION_XHasMember,"true")	;			 //$NON-NLS-1$
+		assertEquals("should have set -XhasMember option", //$NON-NLS-1$
+				" -XnoInline -XnotReweavable -XhasMember ",  //$NON-NLS-1$
+				AspectJPreferences.getAdvancedOptions(project));
 		
+		projectNode.put(AspectJPreferences.OPTION_XHasMember,"false")	;			 //$NON-NLS-1$
 		projectNode.put(AspectJPreferences.OPTION_XNotReweavable,"false")	;			 //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XNoInline,"false")	;			 //$NON-NLS-1$
+		
+		assertEquals("should have no advanced options set", //$NON-NLS-1$
+				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
 		AspectJPreferences.setUsingProjectSettings(project,false);
 		assertFalse("should not be using project settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
