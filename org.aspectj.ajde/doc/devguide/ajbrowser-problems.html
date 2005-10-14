@@ -1,17 +1,17 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-   <title>Isolating problems running the AspectJ browser</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJtm Development Environment Guide"><link rel="up" href="ajbrowser.html" title="Chapter 1. AspectJ Browser"><link rel="previous" href="ch01s04.html" title="Running Programs"><link rel="next" href="antTasks.html" title="Chapter 2. AspectJ Ant Tasks"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Isolating problems running the AspectJ browser</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01s04.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 1. AspectJ Browser</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="antTasks.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="ajbrowser-problems"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ajbrowser-problems"></a>Isolating problems running the AspectJ browser</h2></div></div><p>
+   <title>Isolating problems running the AspectJ browser</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJtm Development Environment Guide"><link rel="up" href="ajbrowser.html" title="Chapter 3. AspectJ Browser"><link rel="previous" href="ajbrowser-running.html" title="Running Programs"><link rel="next" href="antTasks.html" title="Chapter 4. AspectJ Ant Tasks"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Isolating problems running the AspectJ browser</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ajbrowser-running.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 3. AspectJ Browser</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="antTasks.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="ajbrowser-problems"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ajbrowser-problems"></a>Isolating problems running the AspectJ browser</h2></div></div><p>
 	If you have problems with the browser not solved by the documentation, 
 	please try to see if you have the same problems when running ajc 
 	directly on the command line.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e1088"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e1231"></a>
 		If the problem occurs on the command line also, then the problem 
 		is not in the browser. 
 		(It may be in the compiler; please send bug reports.)
-		</p></li><li><p><a name="d0e1091"></a>
+		</p></li><li><p><a name="d0e1234"></a>
 		If the problem does not occur on the command line, then it may 
 		lie in the parameters you are supplying in the build options.
-		</p></li><li><p><a name="d0e1094"></a>
+		</p></li><li><p><a name="d0e1237"></a>
 		If the build options look correct and the problem only occurs 
 		when building from the browser, then please submit a bug report.
 		</p></li></ul></div><div class="sect2"><a name="ajbrowser-knownProblems"></a><div class="titlepage"><div><h3 class="title"><a name="ajbrowser-knownProblems"></a>Known issues with the AspectJ browser</h3></div></div><p>
@@ -26,7 +26,7 @@
 			IDE bugs
 			</a>.
 		</p><p>
-		<div class="itemizedlist"><ul><li><p><a name="d0e1114"></a>
+		<div class="itemizedlist"><ul><li><p><a name="d0e1257"></a>
 	    Memory and forking: Users email most about the browser task running 
 	    out of memory. 
 	    This is not a problem with the browser; some compiles take a lot of 
@@ -34,20 +34,20 @@
 	    The browser does not support forking, so the only solution is to
 	    edit the java command line or script that launches the browser
 	    to add memory.
-		</p></li><li><p><a name="d0e1117"></a>
+		</p></li><li><p><a name="d0e1260"></a>
 		Editing build configuration files: this is not currently supported.
-		</p></li><li><p><a name="d0e1120"></a>
+		</p></li><li><p><a name="d0e1263"></a>
 		The structure model is incomplete after incremental compiles.
 		To get a complete structure model requires a full build.
-		</p></li><li><p><a name="d0e1123"></a>
+		</p></li><li><p><a name="d0e1266"></a>
 		If you change the output directory, you must do a
 		full build. 
 		</p></li></ul></div>
 		</p></div><div class="sect2"><a name="ajbrowser-limitations"></a><div class="titlepage"><div><h3 class="title"><a name="ajbrowser-limitations"></a>Limitations</h3></div></div><p>      
-		<div class="itemizedlist"><ul><li><p><a name="d0e1133"></a>
+		<div class="itemizedlist"><ul><li><p><a name="d0e1276"></a>
 		The AJBrowser expects the package and directory structure to match.  If they do not 
 		it will be unable to browse to the corresponding file.
-		</p></li><li><p><a name="d0e1136"></a>
+		</p></li><li><p><a name="d0e1279"></a>
 		The "Run" feature launches applications in the same VM.  As a result, if a Swing application
 		is disposed the AJBrowser will be disposed as well.
 		</p></li></ul></div>
@@ -61,4 +61,4 @@
         <a href="http://bugs.eclipse.org/bugs" target="_top">
            http://bugs.eclipse.org/bugs</a>
         using the AspectJ product and IDE component. 
-		</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01s04.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="antTasks.html">Next</a></td></tr><tr><td width="40%" align="left">Running Programs&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ajbrowser.html">Up</a></td><td width="40%" align="right">&nbsp;Chapter 2. AspectJ Ant Tasks</td></tr></table></div></body></html>
+		</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ajbrowser-running.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="antTasks.html">Next</a></td></tr><tr><td width="40%" align="left">Running Programs&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ajbrowser.html">Up</a></td><td width="40%" align="right">&nbsp;Chapter 4. AspectJ Ant Tasks</td></tr></table></div></body></html>
