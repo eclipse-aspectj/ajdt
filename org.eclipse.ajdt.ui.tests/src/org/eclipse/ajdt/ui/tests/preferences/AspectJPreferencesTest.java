@@ -325,19 +325,13 @@ public class AspectJPreferencesTest extends UITestCase {
 				" -XnoInline ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavable,true);
-		assertEquals("should have set -Xreweavable option", //$NON-NLS-1$
-				" -XnoInline -Xreweavable ",  //$NON-NLS-1$
+		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable,true);
+		assertEquals("should have set -XnotReweavable option", //$NON-NLS-1$
+				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavable,false);
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavableCompress,true);
-		assertEquals("should have set -Xreweavable:compress option", //$NON-NLS-1$
-				" -XnoInline -Xreweavable:compress ",  //$NON-NLS-1$
-				AspectJPreferences.getAdvancedOptions(project));
-
+		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline,false);
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavableCompress,false);
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
 
@@ -376,17 +370,12 @@ public class AspectJPreferencesTest extends UITestCase {
 				" -XnoInline ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
-		projectNode.put(AspectJPreferences.OPTION_XReweavable,"true")	;			 //$NON-NLS-1$
-		assertEquals("should have set -Xreweavable option", //$NON-NLS-1$
-				" -XnoInline -Xreweavable ",  //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XNotReweavable,"true")	;			 //$NON-NLS-1$
+		assertEquals("should have set -XnotReweavable option", //$NON-NLS-1$
+				" -XnoInline -XnotReweavable ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
-		projectNode.put(AspectJPreferences.OPTION_XReweavable,"false")	;			 //$NON-NLS-1$
-		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress,"true")	;			 //$NON-NLS-1$
-		assertEquals("should have set -Xreweavable:compress option", //$NON-NLS-1$
-				" -XnoInline -Xreweavable:compress ",  //$NON-NLS-1$
-				AspectJPreferences.getAdvancedOptions(project));
-	
+		projectNode.put(AspectJPreferences.OPTION_XNotReweavable,"false")	;			 //$NON-NLS-1$
 		AspectJPreferences.setUsingProjectSettings(project,false);
 		assertFalse("should not be using project settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));

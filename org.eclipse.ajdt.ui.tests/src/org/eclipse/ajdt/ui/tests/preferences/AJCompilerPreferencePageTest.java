@@ -7,13 +7,13 @@
  * Contributors: IBM Corporation - initial API and implementation 
  * 				 Helen Hawkins   - iniital version
  ******************************************************************************/
-package org.eclipse.ajdt.ui.tests;
+package org.eclipse.ajdt.ui.tests.preferences;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.CompilerPropertyPage;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -23,9 +23,9 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
- * This class tests CompilerPropertyPage. 
+ * This class tests the AJCompilerPreferencePage. 
  */
-public class CompilerPropertyPageTest extends UITestCase {
+public class AJCompilerPreferencePageTest extends UITestCase {
 
 	IProject project;
 	IJavaProject jp;
@@ -61,7 +61,7 @@ public class CompilerPropertyPageTest extends UITestCase {
 	public void testSetDefaults() throws Exception {
 		IPreferenceStore prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();		
 		AJCompilerPreferencePage.initDefaults(prefStore);
-		CompilerPropertyPage.setDefaults(projectNode);
+		AJCompilerPreferencePage.setProjectDefaults(projectNode);
 
 		String[] keys = projectNode.keys(); 
 		for (int i = 0; i < keys.length; i++) {
@@ -76,7 +76,7 @@ public class CompilerPropertyPageTest extends UITestCase {
 		IPreferenceStore prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();		
 		AJCompilerPreferencePage.initDefaults(prefStore);
 		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"true"); //$NON-NLS-1$
-		CompilerPropertyPage.setDefaultsIfValueNotAlreadySet(projectNode);
+		AJCompilerPreferencePage.setProjectDefaultsIfValueNotAlreadySet(projectNode);
 
 		String[] keys = projectNode.keys(); 
 		for (int i = 0; i < keys.length; i++) {
@@ -93,8 +93,8 @@ public class CompilerPropertyPageTest extends UITestCase {
 	}
 
 	public void testRemoveValues() throws Exception {
-		CompilerPropertyPage.setDefaults(projectNode);
-		CompilerPropertyPage.removeValues(projectNode);
+		AJCompilerPreferencePage.setProjectDefaults(projectNode);
+		AJCompilerPreferencePage.removeProjectValues(projectNode);
 		String[] keys = projectNode.keys();
 		assertEquals("there should be no settings",0,keys.length);		 //$NON-NLS-1$
 	}
