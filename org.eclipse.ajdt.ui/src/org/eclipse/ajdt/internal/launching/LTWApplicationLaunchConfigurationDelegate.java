@@ -13,6 +13,9 @@
 package org.eclipse.ajdt.internal.launching;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,11 +23,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.core.internal.resources.ResourceStatus;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.core.JavaCore;
@@ -89,7 +97,14 @@ public class LTWApplicationLaunchConfigurationDelegate
 		// VM-specific attributes
 		Map vmAttributesMap = getVMSpecificAttributesMap(configuration);
 		
-		String[] ltwClasspath = getLTWClasspath();
+		String[] ltwClasspath = null;
+		try {
+			ltwClasspath = getLTWClasspath();
+		} catch (MalformedURLException e) {
+			throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
+		} catch (IOException e) {
+			throw new CoreException(new ResourceStatus(IStatus.ERROR, null, UIMessages.LTW_error_launching, e));
+		}
 		
 		// Create VM config
 		VMRunnerConfiguration runConfig = new VMRunnerConfiguration(mainTypeName, ltwClasspath);
@@ -140,7 +155,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		for (int i = 0; i < aspectPathEntries.length; i++) {
 			String location = aspectPathEntries[i].getLocation();
 			for (int j = 0; j < workspaceProjects.length; j++) {
-				IProject project = workspaceProjects[i];
+				IProject project = workspaceProjects[j];
 				IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
 				String projectLocation = entry.getLocation();
 				if(projectLocation.equals(location)) {
@@ -196,9 +211,18 @@ public class LTWApplicationLaunchConfigurationDelegate
 		return rtes;
 	}
 
-	private String[] getLTWClasspath() {
-		// TODO: Fill in this method adding the appropriate jar to the classpath
-		return null;
+	private String[] getLTWClasspath() throws IOException {
+		URL resolvedaspectjWeaverJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		URL resolvedaspectjRTJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		String weaverPath = resolvedaspectjWeaverJar.toExternalForm();
+		if(weaverPath.startsWith("file:/")) {  //$NON-NLS-1$
+			weaverPath = weaverPath.substring(6);
+		}
+		String rtPath = resolvedaspectjRTJar.toExternalForm();
+		if(rtPath.startsWith("file:/")) { //$NON-NLS-1$
+			rtPath = rtPath.substring(6);
+		}
+		return new String[] {weaverPath, rtPath};
 	}
 
 	private String addExtraVMArgs(String vmArgs, String[] ajClasspath) {
@@ -206,7 +230,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		sb.append(' '); //$NON-NLS-1$
 		sb.append(classLoaderOption);
 		sb.append('='); //$NON-NLS-1$
-		sb.append("org.aspectj.weaver.WeavingURLClassLoader"); //$NON-NLS-1$
+		sb.append("org.aspectj.weaver.loadtime.WeavingURLClassLoader"); //$NON-NLS-1$
 		sb.append(' '); //$NON-NLS-1$
 		sb.append(ajClasspathOption);
 		sb.append('='); //$NON-NLS-1$

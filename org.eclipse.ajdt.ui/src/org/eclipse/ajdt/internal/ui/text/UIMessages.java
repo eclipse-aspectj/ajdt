@@ -331,6 +331,7 @@ public class UIMessages extends NLS {
 	public static String LTWAspectPathTab_errormessage;
 	public static String LTWAspectPathTab_label;
 	public static String LTWAspectPathTab_title;
+	public static String LTW_error_launching;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);

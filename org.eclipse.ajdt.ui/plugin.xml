@@ -1638,7 +1638,8 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-<!-- Commenting out LTW support as the implementation is not yet finished
+   
+<!-- Load-Time Weaving launch configuration -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
@@ -1675,7 +1676,7 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
--->
+   
 	<!-- Extensions for launch shortcuts -->
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
