@@ -1808,7 +1808,8 @@
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-<!-- Commenting out LTW support as the implementation is not yet finished
+   
+<!-- Load Time Weaving launch support -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
@@ -1832,7 +1833,7 @@
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             type="org.eclipse.ajdt.launching.AspectJLTWApplication"
-            class="org.eclipse.ajdt.internal.launching.AJLTWTabGroup"
+            class="org.eclipse.ajdt.internal.launching.LTWTabGroup"
             id="org.eclipse.ajdt.aspectjLTWLaunchConfigurationTabGroup">
          <launchMode
                perspective="org.eclipse.debug.ui.DebugPerspective"
@@ -1845,7 +1846,7 @@
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
--->
+
 	<!-- Extensions for launch shortcuts -->
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
