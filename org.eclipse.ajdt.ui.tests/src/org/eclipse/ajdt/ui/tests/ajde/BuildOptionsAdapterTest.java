@@ -115,24 +115,24 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XnoInline option", "-XnoInline",
 				nonStandardOptions[2]);
 
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavable, true);
+		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable", "-Xreweavable",
+		assertEquals("should have set -XnotReweavable", "-XnotReweavable",
 				nonStandardOptions[3]);
 
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavable, false);
-		prefStore.setValue(AspectJPreferences.OPTION_XReweavableCompress, true);
+		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable, false);
+		prefStore.setValue(AspectJPreferences.OPTION_XHasMember, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable:compress",
-				"-Xreweavable:compress", nonStandardOptions[3]);
+		assertEquals("should have set -XhasMember",
+				"-XhasMember", nonStandardOptions[3]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline, false);
 		prefStore
-				.setValue(AspectJPreferences.OPTION_XReweavableCompress, false);
+				.setValue(AspectJPreferences.OPTION_XHasMember, false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
@@ -206,23 +206,23 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XnoInline option", "-XnoInline",
 				nonStandardOptions[2]);
 
-		projectNode.put(AspectJPreferences.OPTION_XReweavable, "true");
+		projectNode.put(AspectJPreferences.OPTION_XNotReweavable, "true");
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable", "-Xreweavable",
+		assertEquals("should have set -XnotReweavable", "-XnotReweavable",
 				nonStandardOptions[3]);
 
-		projectNode.put(AspectJPreferences.OPTION_XReweavable, "false");
-		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "true");
+		projectNode.put(AspectJPreferences.OPTION_XNotReweavable, "false");
+		projectNode.put(AspectJPreferences.OPTION_XHasMember, "true");
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -Xreweavable:compress",
-				"-Xreweavable:compress", nonStandardOptions[3]);
+		assertEquals("should have set -XhasMember",
+				"-XhasMember", nonStandardOptions[3]);
 
 		projectNode.put(AspectJPreferences.OPTION_XNoInline, "false");
-		projectNode.put(AspectJPreferences.OPTION_XReweavableCompress, "false");
+		projectNode.put(AspectJPreferences.OPTION_XHasMember, "false");
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);

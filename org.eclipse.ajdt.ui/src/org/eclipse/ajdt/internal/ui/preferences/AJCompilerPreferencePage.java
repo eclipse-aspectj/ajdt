@@ -72,8 +72,8 @@ public class AJCompilerPreferencePage extends PreferencePage
 	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
 	private static final String PREF_ENABLE_LAZY_TJP = AspectJPreferences.OPTION_XLazyThisJoinPoint;
 	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
-	private static final String PREF_ENABLE_REWEAVABLE = AspectJPreferences.OPTION_XReweavable;
-	private static final String PREF_ENABLE_REWEAVABLE_COMPRESS = AspectJPreferences.OPTION_XReweavableCompress;
+	private static final String PREF_ENABLE_NOT_REWEAVABLE = AspectJPreferences.OPTION_XNotReweavable;
+	private static final String PREF_ENABLE_HAS_MEMBER = AspectJPreferences.OPTION_XHasMember;
 	
 	private static final String PREF_ENABLE_INCREMENTAL = AspectJPreferences.OPTION_Incremental;
 	private static final String PREF_ENABLE_BUILD_ASM = AspectJPreferences.OPTION_BuildASM;
@@ -86,7 +86,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 	private static final String ENABLED = JavaCore.ENABLED;
 	private static final String DISABLED = JavaCore.DISABLED;
 	
-	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton; 
+	private Button noweaveButton, lazytjpButton, noinlineButton, notReweaveableButton, hasMemberButton; 
 	
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
@@ -150,8 +150,8 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(PREF_ENABLE_SERIALIZABLE_ASPECTS, false);
 		store.setDefault(PREF_ENABLE_LAZY_TJP, false);
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
-		store.setDefault(PREF_ENABLE_REWEAVABLE, false);
-		store.setDefault(PREF_ENABLE_REWEAVABLE_COMPRESS, false);
+		store.setDefault(PREF_ENABLE_NOT_REWEAVABLE, false);
+		store.setDefault(PREF_ENABLE_HAS_MEMBER, false);
 		
 		store.setDefault(PREF_ENABLE_INCREMENTAL, true);
 		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
@@ -343,13 +343,13 @@ public class AJCompilerPreferencePage extends PreferencePage
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
 		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable.label"); //$NON-NLS-1$
-		reweaveButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE,enableDisableValues, 0);
-		reweaveButton.addSelectionListener(checkBoxListener);
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_not_reweavable.label"); //$NON-NLS-1$
+		notReweaveableButton = addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE,enableDisableValues, 0);
+		notReweaveableButton.addSelectionListener(checkBoxListener);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable_compress.label"); //$NON-NLS-1$
-		reweaveCompressButton = addCheckBox(composite, label, PREF_ENABLE_REWEAVABLE_COMPRESS,enableDisableValues, 0);
-		reweaveCompressButton.addSelectionListener(checkBoxListener);
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_has_member.label"); //$NON-NLS-1$
+		hasMemberButton = addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER,enableDisableValues, 0);
+		hasMemberButton.addSelectionListener(checkBoxListener);
 
 		checkNoWeaveSelection();
 		
@@ -695,24 +695,12 @@ public class AJCompilerPreferencePage extends PreferencePage
 				if (buttonSelected) {
 					lazytjpButton.setSelection(false);
 					noinlineButton.setSelection(false);
-					reweaveButton.setSelection(false);
-					reweaveCompressButton.setSelection(false);
+					notReweaveableButton.setSelection(false);
 				}				
 				lazytjpButton.setEnabled(!buttonSelected);
 				noinlineButton.setEnabled(!buttonSelected);
-				reweaveButton.setEnabled(!buttonSelected);
-				reweaveCompressButton.setEnabled(!buttonSelected);
-			} else if (e.getSource().equals(reweaveButton)) {
-				boolean buttonSelected = reweaveButton.getSelection();
-				if (buttonSelected) {
-					reweaveCompressButton.setSelection(false);
-				}
-			} else if (e.getSource().equals(reweaveCompressButton)) {
-				boolean buttonSelected = reweaveCompressButton.getSelection();
-				if (buttonSelected) {
-					reweaveButton.setSelection(false);
-				}
-			}
+				notReweaveableButton.setEnabled(!buttonSelected);
+			} 
 		}
 		public void widgetDefaultSelected(SelectionEvent e) {
 		}		
@@ -728,8 +716,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		if (buttonSelected) {
 			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
-			reweaveButton.setEnabled(!buttonSelected);
-			reweaveCompressButton.setEnabled(!buttonSelected);
+			notReweaveableButton.setEnabled(!buttonSelected);
 		}						
 	}
 }

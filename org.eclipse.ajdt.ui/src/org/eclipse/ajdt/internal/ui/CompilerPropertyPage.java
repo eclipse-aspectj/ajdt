@@ -62,7 +62,7 @@ public class CompilerPropertyPage extends PropertyPage {
 	private static final String VALUE_TRUE = "true"; //$NON-NLS-1$
 	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
-	private Button noweaveButton, lazytjpButton, noinlineButton, reweaveButton, reweaveCompressButton;  
+	private Button noweaveButton, lazytjpButton, noinlineButton, notReweaveableButton, hasMemberButton;  
 	
 	private IProject thisProject;
 	
@@ -97,8 +97,8 @@ public class CompilerPropertyPage extends PropertyPage {
 		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavable, VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XReweavableCompress,VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XNotReweavable, VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember,VALUE_FALSE);
 		
 		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, VALUE_TRUE);
 		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, VALUE_TRUE);
@@ -133,8 +133,8 @@ public class CompilerPropertyPage extends PropertyPage {
 	    	AspectJPreferences.OPTION_XSerializableAspects,
 	    	AspectJPreferences.OPTION_XLazyThisJoinPoint,
 	    	AspectJPreferences.OPTION_XNoInline,
-	    	AspectJPreferences.OPTION_XReweavable,
-	    	AspectJPreferences.OPTION_XReweavableCompress,
+	    	AspectJPreferences.OPTION_XNotReweavable,
+	    	AspectJPreferences.OPTION_XHasMember,
 	    	AspectJPreferences.OPTION_BuildASM,
 			AspectJPreferences.OPTION_Incremental,
 			AspectJPreferences.OPTION_WeaveMessages,
@@ -447,13 +447,13 @@ public class CompilerPropertyPage extends PropertyPage {
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
 		noinlineButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XNoInline, enableDisableValues, 0);
 		
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable.label"); //$NON-NLS-1$
-		reweaveButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XReweavable, enableDisableValues, 0);
-		reweaveButton.addSelectionListener(checkBoxListener);
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_not_reweavable.label"); //$NON-NLS-1$
+		notReweaveableButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XNotReweavable, enableDisableValues, 0);
+		notReweaveableButton.addSelectionListener(checkBoxListener);
 
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_reweavable_compress.label"); //$NON-NLS-1$
-		reweaveCompressButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XReweavableCompress, enableDisableValues, 0);
-		reweaveCompressButton.addSelectionListener(checkBoxListener);
+		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_has_member.label"); //$NON-NLS-1$
+		hasMemberButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XHasMember, enableDisableValues, 0);
+		hasMemberButton.addSelectionListener(checkBoxListener);
 
 		checkNoWeaveSelection();
 		
@@ -605,7 +605,6 @@ public class CompilerPropertyPage extends PropertyPage {
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
 		if (projectWorkspaceChanges || (projectSettingsChanged && useProjectSettings())) {
-			boolean doBuild = false;
 			String[] strings = getProjectBuildDialogStrings();
 			if (strings != null) {
 				MessageDialog dialog = new MessageDialog(getShell(),
@@ -614,16 +613,8 @@ public class CompilerPropertyPage extends PropertyPage {
 								IDialogConstants.NO_LABEL,
 								IDialogConstants.CANCEL_LABEL}, 2);
 				int res = dialog.open();
-				if ((res == 0)) {
-				    // by only setting compilerSettingsUpdated to be true here, means that
-				    // the user wont select "don't want to build" here and then get a build
-				    // from other pages.
-					doBuild = true;
-				} else if (res != 1) {
-				    doBuild = false;
+				if (res != 1) {
 					return false; // cancel pressed
-				} else {
-				    doBuild = false;
 				}
 			}
 		}
@@ -833,8 +824,8 @@ public class CompilerPropertyPage extends PropertyPage {
 	}
 
 	/**
-	 * Class which listens for selections of the advanced options
-	 * -XnoWeave, -Xreweavable and -Xreweavable:compress and updates
+	 * Class which listens for selections of the
+	 * -XnoWeave option and updates
 	 * the remaining buttons accordingly (to make it less confusing
 	 * for the user)
 	 */	
@@ -846,23 +837,11 @@ public class CompilerPropertyPage extends PropertyPage {
 				if (buttonSelected) {
 					lazytjpButton.setSelection(false);
 					noinlineButton.setSelection(false);
-					reweaveButton.setSelection(false);
-					reweaveCompressButton.setSelection(false);
+					notReweaveableButton.setSelection(false);
 				}				
 				lazytjpButton.setEnabled(!buttonSelected);
 				noinlineButton.setEnabled(!buttonSelected);
-				reweaveButton.setEnabled(!buttonSelected);
-				reweaveCompressButton.setEnabled(!buttonSelected);
-			} else if (e.getSource().equals(reweaveButton)) {
-				boolean buttonSelected = reweaveButton.getSelection();
-				if (buttonSelected) {
-					reweaveCompressButton.setSelection(false);
-				}
-			} else if (e.getSource().equals(reweaveCompressButton)) {
-				boolean buttonSelected = reweaveCompressButton.getSelection();
-				if (buttonSelected) {
-					reweaveButton.setSelection(false);
-				}
+				notReweaveableButton.setEnabled(!buttonSelected);
 			}
 		}
 		public void widgetDefaultSelected(SelectionEvent e) {
@@ -880,8 +859,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		if (buttonSelected) {
 			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
-			reweaveButton.setEnabled(!buttonSelected);
-			reweaveCompressButton.setEnabled(!buttonSelected);
+			notReweaveableButton.setEnabled(!buttonSelected);
 		}						
 	}
 		
@@ -909,13 +887,11 @@ public class CompilerPropertyPage extends PropertyPage {
 			if (buttonSelected) {
 				lazytjpButton.setSelection(false);
 				noinlineButton.setSelection(false);
-				reweaveButton.setSelection(false);
-				reweaveCompressButton.setSelection(false);
+				notReweaveableButton.setSelection(false);
 			}				
 			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
-			reweaveButton.setEnabled(!buttonSelected);
-			reweaveCompressButton.setEnabled(!buttonSelected);
+			notReweaveableButton.setEnabled(!buttonSelected);
 		}
 		else {
 		    readStateForAndDisable(folder);

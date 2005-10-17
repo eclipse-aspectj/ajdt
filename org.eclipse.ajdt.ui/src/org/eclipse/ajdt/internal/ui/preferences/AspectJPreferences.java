@@ -142,9 +142,9 @@ public class AspectJPreferences {
 
 	public static final String OPTION_XNoInline = "org.aspectj.ajdt.core.compiler.weaver.XNoInline"; //$NON-NLS-1$
 
-	public static final String OPTION_XReweavable = "org.aspectj.ajdt.core.compiler.weaver.XReweavable"; //$NON-NLS-1$
+	public static final String OPTION_XNotReweavable = "org.aspectj.ajdt.core.compiler.weaver.XNotReweavable"; //$NON-NLS-1$
 
-	public static final String OPTION_XReweavableCompress = "org.aspectj.ajdt.core.compiler.weaver.XReweavableCompress"; //$NON-NLS-1$
+	public static final String OPTION_XHasMember = "org.aspectj.ajdt.core.compiler.weaver.XHasMember"; //$NON-NLS-1$
 
 	// Other compiler options
 	public static final String OPTION_Incremental = "org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode"; //$NON-NLS-1$
@@ -296,11 +296,11 @@ public class AspectJPreferences {
 		if (getBooleanPrefValue(project, OPTION_XNoInline)) {
 			opts += "-XnoInline "; //$NON-NLS-1$
 		}
-		if (getBooleanPrefValue(project, OPTION_XReweavable)) {
-			opts += "-Xreweavable "; //$NON-NLS-1$
+		if (getBooleanPrefValue(project, OPTION_XNotReweavable)) {
+			opts += "-XnotReweavable "; //$NON-NLS-1$
 		}
-		if (getBooleanPrefValue(project, OPTION_XReweavableCompress)) {
-			opts += "-Xreweavable:compress "; //$NON-NLS-1$
+		if (getBooleanPrefValue(project, OPTION_XHasMember)) {
+			opts += "-XhasMember "; //$NON-NLS-1$
 		}
 		return opts;
 	}
