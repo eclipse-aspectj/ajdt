@@ -123,6 +123,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 				nonStandardOptions[3]);
 
 		prefStore.setValue(AspectJPreferences.OPTION_XNotReweavable, false);
+		prefStore.setValue(AspectJPreferences.OPTION_XHasMember, true);
+		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
+				.getNonStandardOptions();
+		nonStandardOptions = disectOptions(nonStandard);
+		assertEquals("should have set -XhasMember", "-XhasMember", //$NON-NLS-1$ //$NON-NLS-2$
+				nonStandardOptions[3]);
+		
+		prefStore.setValue(AspectJPreferences.OPTION_XHasMember, false);
 		prefStore.setValue(AspectJPreferences.OPTION_XNoInline, false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
@@ -205,7 +213,15 @@ public class BuildOptionsAdapterTest extends UITestCase {
 				nonStandardOptions[3]);
 
 		projectNode.put(AspectJPreferences.OPTION_XNotReweavable, "false"); //$NON-NLS-1$
-		projectNode.put(AspectJPreferences.OPTION_XNoInline, "false"); //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XHasMember, "true"); //$NON-NLS-1$
+		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
+				.getNonStandardOptions();
+		nonStandardOptions = disectOptions(nonStandard);
+		assertEquals("should have set -XhasMember", "-XhasMember", //$NON-NLS-1$ //$NON-NLS-2$
+				nonStandardOptions[3]);
+
+		projectNode.put(AspectJPreferences.OPTION_XHasMember, "false"); //$NON-NLS-1$
+				projectNode.put(AspectJPreferences.OPTION_XNoInline, "false"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
