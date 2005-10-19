@@ -36,6 +36,7 @@ import org.eclipse.ajdt.parserbridge.AJSourceElementParser2;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -115,8 +116,13 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCopyOwner workingCopyOwner) {
 		super(fragment, elementName, workingCopyOwner);
-		IFolder f = (IFolder)fragment.getResource();
-		this.ajFile = (IFile)f.findMember(elementName);
+		if(fragment.getResource() instanceof IProject) {
+			IProject p = (IProject)fragment.getResource();
+			this.ajFile = (IFile)p.findMember(elementName);
+		} else {
+			IFolder f = (IFolder)fragment.getResource();
+			this.ajFile = (IFile)f.findMember(elementName);
+		}
 	}
 	
 	public Object getElementInfo() throws JavaModelException{
