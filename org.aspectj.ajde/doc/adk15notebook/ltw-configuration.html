@@ -6,7 +6,7 @@
         types will be woven. Additional diagnostic options allow the user to debug the configuration and 
         weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
             an application: agents, a command-line launch script, and a set of interfaces for
-            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e4168"></a><span class="term">Agents</span></dt><dd><p><a name="d0e4171"></a>AspectJ 5 ships with a number of load-time weaving agents that
+            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e4180"></a><span class="term">Agents</span></dt><dd><p><a name="d0e4183"></a>AspectJ 5 ships with a number of load-time weaving agents that
                             enable load-time weaving. These agents and their configuration
                             are execution environment dependent. Configuration for the supported environments is discussed
                             later in this chapter.</p><p>
@@ -14,7 +14,7 @@
                             to the JVM.</p><p>
                             Using BEA JRockit and Java 1.3/1.4, the very same behavior can be obtained using BEA JRockit JMAPI features with
                             the <tt>-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent</tt>
-                        </p></dd><dt><a name="d0e4200"></a><span class="term">Custom Integration</span></dt><dd><p><a name="d0e4203"></a> A public interface is provided to allow a user written class loader
+                        </p></dd><dt><a name="d0e4212"></a><span class="term">Custom Integration</span></dt><dd><p><a name="d0e4215"></a> A public interface is provided to allow a user written class loader
                             to instantiate a weaver and weave classes after loading and before
                             defining them in the JVM. This enables load-time weaving to be supported in
                             environments where no weaving agent is available. It also allows the
@@ -96,16 +96,16 @@
                 and to aop.properties files as described in the next section). 
                 The files are merged in the order they are
                 found on the search path (regular <tt>getResourceAsStream</tt> lookup)
-                according to the following rules: </p><div class="itemizedlist"><ul><li><a name="d0e4236"></a> The set of available aspects is the set of all
+                according to the following rules: </p><div class="itemizedlist"><ul><li><a name="d0e4248"></a> The set of available aspects is the set of all
                     declared and defined aspects (<tt>aspect</tt> and
                     <tt>concrete-aspect</tt> elements of the <tt>aspects</tt>
-                    section).</li><li><a name="d0e4247"></a>The set of aspects used for weaving is the subset of the available
+                    section).</li><li><a name="d0e4259"></a>The set of aspects used for weaving is the subset of the available
                     aspects that are matched by at least one include statement and are not matched
                     by any exclude statements. If there are no include statements then all non-excluded
-                    aspects are included.</li><li><a name="d0e4249"></a> The set of types to be woven are those types matched by at
+                    aspects are included.</li><li><a name="d0e4261"></a> The set of types to be woven are those types matched by at
                     least one weaver <tt>include</tt> element and not matched by any 
                     weaver <tt>exclude</tt> element. If there are no weaver include
-                    statements then all non-excluded types are included.</li><li><a name="d0e4257"></a> The weaver options are derived by taking the union of the
+                    statements then all non-excluded types are included.</li><li><a name="d0e4269"></a> The weaver options are derived by taking the union of the
                     options specified in each of the weaver options attribute specifications. Where an
                     option takes a value e.g. <tt>-warn:none</tt> the most recently defined value
                     will be used.</li></ul></div><p>It is not an error for the same aspect to be defined to the weaver in 
@@ -119,7 +119,7 @@
                 using the <tt>-outjar</tt> option of the AspectJ compiler. 
                 It will simply contain a (possibly empty) set of aspect elements, one for
                 each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
-                will be ignored and a warning issued. </p><div class="informaltable" id="d0e4282"><a name="d0e4282"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
+                will be ignored and a warning issued. </p><div class="informaltable" id="d0e4294"><a name="d0e4294"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
                                    when the load time weaving engine is bootstrapped (hence its logger as per <tt>-XmessageHandlerClass:...</tt> not ready yet),
                                    you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line. Messages will then be printed
                                    on stderr as long as the message handler class is not ready.

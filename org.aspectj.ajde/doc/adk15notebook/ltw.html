@@ -4,12 +4,12 @@
             The weaving process itself can take place at one of three different times: compile-time,
             post-compile time, and load-time. The class files produced by the weaving process (and
             hence the run-time behaviour of an application) are the same regardless of the approach
-            chosen. </p><div class="itemizedlist"><ul><li><a name="d0e4126"></a> Compile-time weaving is the simplest approach. When you have the source code
+            chosen. </p><div class="itemizedlist"><ul><li><a name="d0e4138"></a> Compile-time weaving is the simplest approach. When you have the source code
                 for an application, ajc will compile from source and produce woven class files as
                 output. The invocation of the weaver is integral to the ajc compilation process. The
-                aspects themselves may be in source or binary form. </li><li><a name="d0e4128"></a> Post-compile weaving (also sometimes called binary weaving) is used to weave
+                aspects themselves may be in source or binary form. </li><li><a name="d0e4140"></a> Post-compile weaving (also sometimes called binary weaving) is used to weave
                 existing class files and JAR files. As with compile-time weaving,
-                the aspects used for weaving may be in source or binary form. </li><li><a name="d0e4130"></a> Load-time weaving (LTW) is simply binary weaving defered until the point that
+                the aspects used for weaving may be in source or binary form. </li><li><a name="d0e4142"></a> Load-time weaving (LTW) is simply binary weaving defered until the point that
                 a class loader loads a class file and defines the class to the JVM. To support this,
                 one or more "weaving class loaders", either provided explicitly by the run-time
                 environment or enabled through a "weaving agent" are required. </li></ul></div><p> You may also hear the term "run-time weaving". We define this as the weaving of

@@ -256,7 +256,8 @@
         next precedence, or the computation under the join point if
         there is no further advice.  Then the body of the advice will
         run. </p></div></div><div class="sect2"><a name="reflective-access-to-the-join-point"></a><div class="titlepage"><div><h3 class="title"><a name="reflective-access-to-the-join-point"></a>Reflective access to the join point</h3></div></div><p>
-        Three special variables are visible within bodies of advice:
+        Three special variables are visible within bodies of advice
+          and within <tt>if()</tt> pointcut expressions: 
         <tt>thisJoinPoint</tt>,
         <tt>thisJoinPointStaticPart</tt>, and
         <tt>thisEnclosingJoinPointStaticPart</tt>. Each is bound to
