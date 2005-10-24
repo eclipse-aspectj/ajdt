@@ -22,11 +22,16 @@
 			
 			    <h4>Building AJDT</h4>
 			
-			    <p>Note first of all that in order to build AJDT you will probably
+				<p>Many of the plugins which implement AJDT contain aspects, and so are
+				AspectJ projects themselves. This means that you first need to install
+				a recent build of AJDT into your development environment from the
+				update site or zip file.</p>
+							
+			    <p>Note also that in order to build AJDT from source you will probably
 			    need to increase the memory available to Eclipse. This is
 			    typically done by passing something like <code>"-vmargs -Xmx512m"</code> to
 			    the Eclipse launcher.</p>
-			
+			    			
 			    <p>Start with a clean workspace under Eclipse 3.0.2 or
 			    Eclipse 3.1. Now open the CVS Repository Exploring 
 			    perspective. Right-click on the CVS Repositories view, then click "New" > "Repository
@@ -52,6 +57,7 @@
 			    <ul>
 			      <li>org.aspectj.ajde,</li>
 			      <li>org.aspectj.runtime,</li>
+			      <li>org.aspectj.weaver,</li>
 			      <li>org.eclipse.ajdt.core,</li>
 			      <li>org.eclipse.ajdt.examples,</li>
 			      <li>org.eclipse.ajdt.ui,</li>
