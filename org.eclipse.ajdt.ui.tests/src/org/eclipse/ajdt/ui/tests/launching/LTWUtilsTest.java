@@ -45,7 +45,7 @@ public class LTWUtilsTest extends UITestCase{
 	private String aspects = "\t<aspects/>"; //$NON-NLS-1$
 	
 	// abstract aspects (which we don't want to include)
-	public void testGetConcreteAspects() throws Exception {
+	public void testGetAspects() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		ProjectBuildConfigurator bc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
@@ -67,9 +67,10 @@ public class LTWUtilsTest extends UITestCase{
 			}
 		}
 		assertEquals("There should be one src directory",1,srcRoots.size()); //$NON-NLS-1$
-		List aspects = LTWUtils.getConcreteAspects((IPackageFragmentRoot)srcRoots.get(0));
-		assertEquals("There should be one concrete aspect",1,aspects.size()); //$NON-NLS-1$
-		assertEquals("The concrete aspect should be called TraceMyClasses","TraceMyClasses",((AspectElement)aspects.get(0)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
+		List aspects = LTWUtils.getAspects((IPackageFragmentRoot)srcRoots.get(0));
+		assertEquals("There should be two aspects",2,aspects.size()); //$NON-NLS-1$
+		assertEquals("The first aspect should be called TraceMyClasses","TraceMyClasses",((AspectElement)aspects.get(0)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
+		assertEquals("The second aspect should be called AbstractTrace","AbstractTrace",((AspectElement)aspects.get(1)).getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 		
 	}
 	
@@ -222,6 +223,7 @@ public class LTWUtilsTest extends UITestCase{
 				aspectjBegin,
 				aspectsBegin,
 				"\t\t<aspect name=\"tracing.lib.TraceMyClasses\"/>", //$NON-NLS-1$
+				"\t\t<aspect name=\"tracing.lib.AbstractTrace\"/>", //$NON-NLS-1$
 				aspectsEnd,
 				aspectjEnd};
 		
