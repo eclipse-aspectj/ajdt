@@ -68,7 +68,7 @@ public class LTWUtils {
 			for (int i = 0; i < roots.length; i++) {
 				IPackageFragmentRoot root = roots[i];
 				if (!(root instanceof JarPackageFragmentRoot)) {
-					List aspects = getConcreteAspects(root);
+					List aspects = getAspects(root);
 					String path;
 					if (root.getElementName().trim().equals("")) { //$NON-NLS-1$
 						path = AOP_XML_LOCATION;
@@ -229,13 +229,13 @@ public class LTWUtils {
 	}
 	
 	/**
-	 * Get a list of all the concrete aspects found in the given source
+	 * Get a list of all the aspects found in the given source
 	 * directory, which are included in the current build.
 	 * @param root
 	 * @return List of AspectElements
 	 * @throws CoreException
 	 */
-	public static List /* AspectElement */ getConcreteAspects(
+	public static List /* AspectElement */ getAspects(
 			final IPackageFragmentRoot root) throws CoreException {
 		final List aspects = new ArrayList();
 		root.getResource().accept(new IResourceVisitor() {
@@ -256,9 +256,7 @@ public class LTWUtils {
 							IType[] types = ajcu.getAllTypes();
 							for (int i = 0; i < types.length; i++) {
 								IType type = types[i];
-								if (type instanceof AspectElement
-										&& !Flags.isAbstract(((AspectElement) type)
-												.getFlags())) {
+								if (type instanceof AspectElement) {
 									aspects.add(type);
 								}
 							}
