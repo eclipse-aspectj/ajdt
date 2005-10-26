@@ -51,6 +51,9 @@
                <documentation>
                   Renderer class (must implement org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer).
                </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>               
             </annotation>
          </attribute>
          <attribute name="name" type="string">
