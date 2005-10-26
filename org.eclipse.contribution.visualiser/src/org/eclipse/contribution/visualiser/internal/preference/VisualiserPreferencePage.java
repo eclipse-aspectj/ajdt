@@ -40,10 +40,15 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
@@ -292,6 +297,32 @@ public class VisualiserPreferencePage extends PreferencePage implements
 					paint(e.gc);
 				}
 			});
+			// accessibility: add listeners so we can receive focus
+			addFocusListener(new FocusAdapter() {
+	            public void focusGained(FocusEvent e) {
+	            	redraw();
+	            }
+	            public void focusLost(FocusEvent e) {
+	            	redraw();
+	            }
+			});
+			addKeyListener(new KeyAdapter() {});
+			addTraverseListener(new TraverseListener() {
+				public void keyTraversed(TraverseEvent e) {
+					switch (e.detail) {
+					/* Do tab group traversal */
+					case SWT.TRAVERSE_ESCAPE:
+					case SWT.TRAVERSE_RETURN:
+					case SWT.TRAVERSE_TAB_NEXT:
+					case SWT.TRAVERSE_TAB_PREVIOUS:
+					case SWT.TRAVERSE_PAGE_NEXT:
+					case SWT.TRAVERSE_PAGE_PREVIOUS:
+						e.doit = true;
+						break;
+					}
+				}
+			});
+			setToolTipText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.preview"));
 		}
 
 		private void paint(GC gc) {
@@ -347,7 +378,15 @@ public class VisualiserPreferencePage extends PreferencePage implements
 				x += r.getSpacing() + width;
 				r.paintColumnHeader(sgc, m2, x, width);
 				r.paintColumn(sgc, m2, x, y, width, height, false);
-
+				
+				// need to indicate focus for accessibility
+				if (isFocusControl()) {
+					sgc.setForeground(ColorConstants.menuForeground);
+					sgc.setBackground(ColorConstants.menuBackground);
+					sgc.drawFocus(clientRect.x, clientRect.y,
+							clientRect.width, clientRect.height);
+				}
+				
 				gc.drawImage(buffer, 0, 0);
 				sgc.dispose();
 				buffer.dispose();
