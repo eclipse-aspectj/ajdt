@@ -51,6 +51,9 @@
                <documentation>
                   Content Provider class (must implement org.eclipse.contribution.visualiser.interface.IContentProvider).
                </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>
             </annotation>
          </attribute>
          <attribute name="id" type="string" use="required">
@@ -79,6 +82,9 @@
                <documentation>
                   Markup provider class (must implement org.eclipse.contribution.visualiser.interfaces.IMarkupProvider).
                </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>
             </annotation>
          </attribute>
          <attribute name="title" type="string">
