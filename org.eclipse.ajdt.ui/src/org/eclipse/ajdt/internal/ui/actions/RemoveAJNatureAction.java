@@ -13,11 +13,10 @@ package org.eclipse.ajdt.internal.ui.actions;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -67,16 +66,15 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 			IStructuredSelection selection = (IStructuredSelection) sel;
 			for (Iterator iter = selection.iterator(); iter.hasNext();) {
 				Object object = iter.next();
-				if (object instanceof IJavaProject) {
-					object = ((IJavaProject) object).getProject();
-				}
-				if (object instanceof IProject) {
-					IProject project = (IProject) object;
-						if (!project.isOpen() || !AspectJPlugin.isAJProject(project)) {
-							enable = false;
-							break;
-						}
+				if (object instanceof IAdaptable) {
+					IProject project = (IProject) ((IAdaptable)object).getAdapter(IProject.class);	
+					if(project != null) {
 						selected.add(project);
+					} else {
+						enable = false;
+						break;
+					}
+		
 				} else {
 					enable = false;
 					break;
