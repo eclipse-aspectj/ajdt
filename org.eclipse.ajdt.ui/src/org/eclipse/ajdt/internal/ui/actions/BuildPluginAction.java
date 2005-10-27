@@ -12,6 +12,10 @@ package org.eclipse.ajdt.internal.ui.actions;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
+import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -38,6 +42,14 @@ public class BuildPluginAction extends BaseBuildAction {
 		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator.getDefaultConfigInfos());
 		
 		IProject project = fManifestFile.getProject();
+		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
+		if (pbc != null) {
+			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			if (bc != null) {
+				IFile configFile = bc.getFile();
+				generator.setBuildConfig(configFile.getName());
+			}
+		}
 		generator.setWorkingDirectory(project.getLocation().toOSString());
 		String url = ClasspathHelper.getDevEntriesProperties(project.getLocation().addTrailingSeparator().toString() + "dev.properties", false); //$NON-NLS-1$
 		generator.setDevEntries(new DevClassPathHelper(url));

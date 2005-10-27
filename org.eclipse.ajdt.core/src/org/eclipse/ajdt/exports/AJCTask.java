@@ -26,10 +26,13 @@ import org.osgi.framework.Bundle;
 
 public class AJCTask extends JavacTask {
 	private String baseLocation;
-	
-	public AJCTask(String location) {
+
+	private String buildConfig;
+
+	public AJCTask(String location, String config) {
 		super();
 		this.baseLocation = location;
+		this.buildConfig = config;
 	}
 	
 	public void print(AntScript script) {
@@ -54,7 +57,12 @@ public class AJCTask extends JavacTask {
 						"aspectj.weaver.home", weaverLocation.toString()); //$NON-NLS-1$
 			} catch (IOException e) {
 			}
-						
+			
+			// 101041: use includes/excludes from a build config file if one has
+			// been specified, otherwise use all source folders
+			boolean useBuildConfig = (buildConfig != null)
+					&& (buildConfig.length() > 0);
+			
 			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">"); //$NON-NLS-1$
 			ajScript.indent++;
 			ajScript.printStartTag("classpath"); //$NON-NLS-1$
@@ -74,12 +82,26 @@ public class AJCTask extends JavacTask {
 			ajScript.indent--;
 			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
 			
+			if (useBuildConfig) {
+				ajScript.printTab();
+				ajScript.print("<property"); //$NON-NLS-1$
+				ajScript.printAttribute("file", buildConfig, false); //$NON-NLS-1$ //$NON-NLS-2$
+				ajScript.print("/>"); //$NON-NLS-1$
+				ajScript.println();
+			}
+			
 			ajScript.printTab();
 			ajScript.print("<iajc"); //$NON-NLS-1$
 			ajScript.printAttribute("destDir", destdir, false); //$NON-NLS-1$
 			ajScript.printAttribute("failonerror", failonerror, false); //$NON-NLS-1$
 			ajScript.printAttribute("verbose", verbose, false); //$NON-NLS-1$
 			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
+			if (useBuildConfig) {
+				ajScript.printAttribute("srcdir", ".", false); //$NON-NLS-1$ //$NON-NLS-2$
+				ajScript.printAttribute("includes", "${src.includes}", false); //$NON-NLS-1$ //$NON-NLS-2$
+				ajScript.printAttribute("excludes", "${src.excludes}", false); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			ajScript.printAttribute("maxmem", "512m", false); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.printAttribute("debug", debug, false); //$NON-NLS-1$
 			ajScript.printAttribute("bootclasspath", bootclasspath, false); //$NON-NLS-1$
 			ajScript.printAttribute("source", source, false); //$NON-NLS-1$
@@ -114,18 +136,20 @@ public class AJCTask extends JavacTask {
 			ajScript.indent--;
 			ajScript.printEndTag("forkclasspath"); //$NON-NLS-1$
 	
-			ajScript.printStartTag("srcdir"); //$NON-NLS-1$
-			ajScript.indent++;
-			for (int i = 0; i < srcdir.length; i++) {
-				ajScript.printTab();
-				ajScript.print("<pathelement"); //$NON-NLS-1$
-				ajScript.printAttribute("path", srcdir[i], false); //$NON-NLS-1$
-				ajScript.print("/>"); //$NON-NLS-1$
-				ajScript.println();
+			if (!useBuildConfig) {
+				ajScript.printStartTag("srcdir"); //$NON-NLS-1$
+				ajScript.indent++;
+				for (int i = 0; i < srcdir.length; i++) {
+					ajScript.printTab();
+					ajScript.print("<pathelement"); //$NON-NLS-1$
+					ajScript.printAttribute("path", srcdir[i], false); //$NON-NLS-1$
+					ajScript.print("/>"); //$NON-NLS-1$
+					ajScript.println();
+				}
+				ajScript.indent--;
+				ajScript.printEndTag("srcdir"); //$NON-NLS-1$
 			}
-			ajScript.indent--;
-			ajScript.printEndTag("srcdir"); //$NON-NLS-1$
-			
+	
 			ajScript.printEndTag("iajc"); //$NON-NLS-1$
 			ajScript.indent--;
 		}

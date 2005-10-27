@@ -20,10 +20,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.ajdt.ui.tests.UITestCase;
-
 import org.eclipse.ajdt.exports.AJAntScript;
 import org.eclipse.ajdt.exports.AJCTask;
+import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.Platform;
 
 /**
@@ -32,7 +31,7 @@ import org.eclipse.core.runtime.Platform;
  */
 public class AJCTaskTest extends UITestCase {
 
-	private static final String srcdirEntry = "srcdirectory";
+	private static final String srcdirEntry = "srcdirectory"; //$NON-NLS-1$
 
 	private File tempFile;
 
@@ -42,20 +41,20 @@ public class AJCTaskTest extends UITestCase {
 
 	private FileOutputStream os;
 
-	private String classpathEntry1 = "classpathEntry1/entry.jar";
+	private String classpathEntry1 = "classpathEntry1/entry.jar"; //$NON-NLS-1$
 
-	private String classpathEntry2 = "entry2$$hello";
+	private String classpathEntry2 = "entry2$$hello"; //$NON-NLS-1$
 
 	protected void setUp() throws Exception {
 		URL location = Platform.resolve(Platform.getBundle(
-				"org.eclipse.ajdt.ui.tests").getEntry("/"));
-		URL fileURL = new URL(location, "temp.xml");
+				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
+		URL fileURL = new URL(location, "temp.xml"); //$NON-NLS-1$
 		tempFile = new File(fileURL.getPath());
 
 		tempFile.createNewFile();
 		os = new FileOutputStream(tempFile);
 		script = new AJAntScript(os);
-		task = new AJCTask(location.getFile());
+		task = new AJCTask(location.getFile(),null);
 		List classpath = new ArrayList();
 		classpath.add(classpathEntry1);
 		classpath.add(classpathEntry2);
@@ -74,21 +73,21 @@ public class AJCTaskTest extends UITestCase {
 		boolean containsIajc = false;
 		String line = reader.readLine();
 		while (line != null) {
-			if (line.indexOf("fork") != -1) {
-				if (line.indexOf("true") != -1) {
+			if (line.indexOf("fork") != -1) { //$NON-NLS-1$
+				if (line.indexOf("true") != -1) { //$NON-NLS-1$
 					fork = true;
 				}
 			}
-			if (line.indexOf("iajc") != -1) {
+			if (line.indexOf("iajc") != -1) { //$NON-NLS-1$
 				containsIajc = true;
 			}
 			line = reader.readLine();
 		}
 		if (!fork) {
-			fail("fork needs to be set to true");
+			fail("fork needs to be set to true"); //$NON-NLS-1$
 		}
 		if (!containsIajc) {
-			fail("The iajc ant task should be used");
+			fail("The iajc ant task should be used"); //$NON-NLS-1$
 		}
 		stream.close();
 	}
@@ -104,11 +103,11 @@ public class AJCTaskTest extends UITestCase {
 		boolean foundclasspathentry2 = false;
 		String line = reader.readLine();
 		while (line != null) {
-			if (line.indexOf("forkclasspath") != -1) {
+			if (line.indexOf("forkclasspath") != -1) { //$NON-NLS-1$
 				forkclasspath = true;
 			}
 			if (forkclasspath) {
-				if (line.indexOf("path") != -1) {
+				if (line.indexOf("path") != -1) { //$NON-NLS-1$
 					if (line.indexOf(classpathEntry1) != -1) {
 						foundclasspathentry1 = true;
 					} else if (line.indexOf(classpathEntry2) != -1) {
@@ -119,13 +118,13 @@ public class AJCTaskTest extends UITestCase {
 			line = reader.readLine();
 		}
 		if (!forkclasspath) {
-			fail("There should be a forkclasspath entry in the script.");
+			fail("There should be a forkclasspath entry in the script."); //$NON-NLS-1$
 		}
 		if (!foundclasspathentry1) {
-			fail("The classpath should contain \"" + classpathEntry1 + "\"");
+			fail("The classpath should contain \"" + classpathEntry1 + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		if (!foundclasspathentry2) {
-			fail("The classpath should contain \"" + classpathEntry2 + "\"");
+			fail("The classpath should contain \"" + classpathEntry2 + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		stream.close();
 	}
@@ -140,11 +139,11 @@ public class AJCTaskTest extends UITestCase {
 		boolean foundsrcdirEntry = false;
 		String line = reader.readLine();
 		while (line != null) {
-			if (line.indexOf("srcdir") != -1) {
+			if (line.indexOf("srcdir") != -1) { //$NON-NLS-1$
 				srcdir = true;
 			}
 			if (srcdir) {
-				if (line.indexOf("path") != -1
+				if (line.indexOf("path") != -1 //$NON-NLS-1$
 						&& line.indexOf(srcdirEntry) != -1) {
 					foundsrcdirEntry = true;
 				}
@@ -152,11 +151,11 @@ public class AJCTaskTest extends UITestCase {
 			line = reader.readLine();
 		}
 		if (!srcdir) {
-			fail("There should be a srcdir entry in the script.");
+			fail("There should be a srcdir entry in the script."); //$NON-NLS-1$
 		}
 		if (!foundsrcdirEntry) {
-			fail("The srcdir entry should contain the attribute: \""
-					+ srcdirEntry + "\"");
+			fail("The srcdir entry should contain the attribute: \"" //$NON-NLS-1$
+					+ srcdirEntry + "\""); //$NON-NLS-1$
 		}
 		stream.close();
 	}
