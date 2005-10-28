@@ -60,7 +60,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
  */
 public class AJProjectModel {
 
-	private static final int MODEL_VERSION = 101;
+	private static final int MODEL_VERSION = 102;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
