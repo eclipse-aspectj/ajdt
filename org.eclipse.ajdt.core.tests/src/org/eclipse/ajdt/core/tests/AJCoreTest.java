@@ -93,7 +93,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint&around&QPoint;", //$NON-NLS-1$
 							"around", "BoundPoint.aj", "AdviceElement" }, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					{
-							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint¬Point.hasListeners¬QString;", //$NON-NLS-1$
+							"=Bean Example/src<bean*BoundPoint.aj}BoundPoint)Point.hasListeners)QString;", //$NON-NLS-1$
 							"Point.hasListeners", "BoundPoint.aj", //$NON-NLS-1$ //$NON-NLS-2$
 							"IntertypeElement" }, //$NON-NLS-1$
 					{

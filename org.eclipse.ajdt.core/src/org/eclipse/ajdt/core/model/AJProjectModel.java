@@ -62,7 +62,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class AJProjectModel {
 
-	private static final int MODEL_VERSION = 101;
+	private static final int MODEL_VERSION = 102;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
