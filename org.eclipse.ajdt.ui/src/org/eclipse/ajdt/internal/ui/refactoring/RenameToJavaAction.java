@@ -52,7 +52,6 @@ public class RenameToJavaAction implements IActionDelegate {
 	 */
 	public void run(IAction action) {
 		if (selection instanceof StructuredSelection) {
-			AspectJUIPlugin.getDefault().disableBuildConfiguratorResourceChangeListener();		
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
 				public void run(IProgressMonitor monitor) {
 					StructuredSelection sel = (StructuredSelection) selection;
@@ -96,7 +95,6 @@ public class RenameToJavaAction implements IActionDelegate {
 			} catch (InvocationTargetException e) {
 			} catch (InterruptedException e) {
 			}
-			AspectJUIPlugin.getDefault().enableBuildConfiguratorResourceChangeListener();
 		}
 	}
 

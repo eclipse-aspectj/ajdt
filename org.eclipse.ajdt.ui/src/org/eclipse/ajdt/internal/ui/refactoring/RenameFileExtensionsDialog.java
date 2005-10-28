@@ -119,7 +119,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 
 	protected void okPressed() {
 		boolean updateBuildConfigs = updateBuildConfigsButton.getSelection();
-		AspectJUIPlugin.getDefault().disableBuildConfiguratorResourceChangeListener();
 		if (convertAllToAJButton.getSelection()) {
 			convertAllExtensions(true, includeFilesNotInBuildButton
 					.getSelection(), updateBuildConfigs);
@@ -131,7 +130,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 					.getSelection(), updateBuildConfigs);
 		}
 		super.okPressed();
-		AspectJUIPlugin.getDefault().enableBuildConfiguratorResourceChangeListener();
 	}
 
 	/**
