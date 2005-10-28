@@ -51,7 +51,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -243,11 +242,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
-
-	/**
-	 * A resource change listener that will listen for new resource additions.
-	 */
-	IResourceChangeListener resourceChangeListener;
 
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
@@ -442,18 +436,20 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// will be
 		// notified if resources are added/deleted or their content changed.
 
-		if (resourceChangeListener == null) {
-			resourceChangeListener = new BCResourceChangeListener();
-			// listener for build configurator
-			enableBuildConfiguratorResourceChangeListener();
-			// listener for aspectj model
-			AspectJPlugin.getWorkspace().addResourceChangeListener(
-					new ResourceChangeListener(),
-					IResourceChangeEvent.PRE_CLOSE
-							| IResourceChangeEvent.PRE_DELETE
-							| IResourceChangeEvent.POST_CHANGE
-							| IResourceChangeEvent.PRE_BUILD);
-		}
+		// listener for build configurator
+		AspectJPlugin.getWorkspace().addResourceChangeListener(
+				new BCResourceChangeListener(),
+				IResourceChangeEvent.PRE_CLOSE
+						| IResourceChangeEvent.PRE_DELETE
+						| IResourceChangeEvent.POST_CHANGE
+						| IResourceChangeEvent.PRE_BUILD);
+		// listener for aspectj model
+		AspectJPlugin.getWorkspace().addResourceChangeListener(
+				new ResourceChangeListener(),
+				IResourceChangeEvent.PRE_CLOSE
+						| IResourceChangeEvent.PRE_DELETE
+						| IResourceChangeEvent.POST_CHANGE
+						| IResourceChangeEvent.PRE_BUILD);
 
 		// the following came from the 2.x constructor - needs to be put here
 		// because plugin is initialized when start(BundleContext) is called.
@@ -711,27 +707,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		}
 	}
 
-	/**
-	 * Disable the build configurator's resource change listener.
-	 * 
-	 */
-	public void disableBuildConfiguratorResourceChangeListener() {
-		AspectJPlugin.getWorkspace().removeResourceChangeListener(
-				resourceChangeListener);
-	}
 
-	/**
-	 * Enable the build configurator's resource change listener.
-	 * 
-	 */
-	public void enableBuildConfiguratorResourceChangeListener() {
-		AspectJPlugin.getWorkspace().addResourceChangeListener(
-				resourceChangeListener,
-				IResourceChangeEvent.PRE_CLOSE
-						| IResourceChangeEvent.PRE_DELETE
-						| IResourceChangeEvent.POST_CHANGE
-						| IResourceChangeEvent.PRE_BUILD);
-	}
+
 
 	/**
 	 * Attempt to update the project's build classpath with the AspectJ runtime
