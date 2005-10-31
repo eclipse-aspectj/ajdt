@@ -49,9 +49,9 @@
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="xrefui.jar" depends="init" unless="xrefui.jar" description="Create jar: org.eclipse.contribution.xref.ui xrefui.jar.">
-		<delete dir="${temp.folder}/xrefui.jar.bin"/>
-		<mkdir dir="${temp.folder}/xrefui.jar.bin"/>
+	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.contribution.xref.ui @dot.">
+		<delete dir="${temp.folder}/@dot.bin"/>
+		<mkdir dir="${temp.folder}/@dot.bin"/>
 		<!-- compile the source code -->
 		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051010144227/"/>
 		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051010144227/"/>
@@ -62,7 +62,7 @@
 			</classpath>
 		</taskdef>
 		<property file="build.ajproperties"/>
-		<iajc destDir="${temp.folder}/xrefui.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
@@ -84,7 +84,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
 				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
@@ -117,38 +117,40 @@
 			</forkclasspath>
 			</iajc>
 		<!-- Copy necessary resources -->
-		<copy todir="${temp.folder}/xrefui.jar.bin" failonerror="true" overwrite="false">
+		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
-		<jar destfile="${build.result.folder}/xrefui.jar" basedir="${temp.folder}/xrefui.jar.bin"/>
-		<delete dir="${temp.folder}/xrefui.jar.bin"/>
+		<copy todir="${build.result.folder}/@dot" failonerror="true" overwrite="false">
+			<fileset dir="${temp.folder}/@dot.bin"			/>
+		</copy>
+		<delete dir="${temp.folder}/@dot.bin"/>
 	</target>
 
-	<target name="xrefuisrc.zip" depends="init" unless="xrefuisrc.zip">
+	<target name="src.zip" depends="init" unless="src.zip">
 		<mkdir dir="${build.result.folder}"/>
-		<zip destfile="${build.result.folder}/xrefuisrc.zip" filesonly="false" whenempty="skip" update="false">
+		<zip destfile="${build.result.folder}/src.zip" filesonly="false" whenempty="skip" update="false">
 			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
 		</zip>
 	</target>
 
 	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.xref.ui.">
-		<available property="xrefui.jar" file="${build.result.folder}/xrefui.jar"/>
-		<antcall target="xrefui.jar"/>
+		<available property="@dot" file="${build.result.folder}/@dot"/>
+		<antcall target="@dot"/>
 	</target>
 
 	<target name="build.sources" depends="init">
-		<available property="xrefuisrc.zip" file="${build.result.folder}/xrefuisrc.zip"/>
-		<antcall target="xrefuisrc.zip"/>
+		<available property="src.zip" file="${build.result.folder}/src.zip"/>
+		<antcall target="src.zip"/>
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${build.result.folder}" includes="xrefui.jar"			/>
+			<fileset dir="${build.result.folder}/@dot" includes="**"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,xrefui.jar,icons/,about.html,plugin.properties,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,null,icons/,about.html,plugin.properties,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -157,7 +159,7 @@
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT"/>
-		<copy file="${build.result.folder}/xrefuisrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false">
 			<fileset dir="${basedir}" includes="src/"			/>
 		</copy>
@@ -165,12 +167,12 @@
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT"/>
-		<copy file="${temp.folder}/xrefui.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${temp.folder}/@dot.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 	</target>
 
 	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.xref.ui of all the zips, jars and logs created.">
-		<delete file="${build.result.folder}/xrefui.jar"/>
-		<delete file="${build.result.folder}/xrefuisrc.zip"/>
+		<delete dir="${build.result.folder}/@dot"/>
+		<delete file="${build.result.folder}/src.zip"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT.jar"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.ui_1.3.0.DEVELOPMENT.zip"/>
 		<delete dir="${temp.folder}"/>

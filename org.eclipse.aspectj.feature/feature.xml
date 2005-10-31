@@ -73,12 +73,14 @@
          id="org.eclipse.ajdt.core"
          download-size="0"
          install-size="0"
+         unpack="false"
          version="@AJDTVERSION@"/>
 
    <plugin
          id="org.eclipse.ajdt.ui"
          download-size="0"
          install-size="0"
+         unpack="false"
          version="@AJDTVERSION@"/>
 
    <plugin
@@ -97,12 +99,14 @@
          id="org.eclipse.contribution.xref.core"
          download-size="0"
          install-size="0"
+         unpack="false"
          version="@XREFVERSION@"/>
          
    <plugin
          id="org.eclipse.contribution.xref.ui"
          download-size="0"
          install-size="0"
+         unpack="false"
          version="@XREFVERSION@"/>
          
 </feature>

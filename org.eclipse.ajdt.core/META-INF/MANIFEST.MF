@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.ajdt.core; singleton:=true
 Bundle-Version: 1.3.0.DEVELOPMENT
-Bundle-ClassPath: ajdtcore.jar
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin

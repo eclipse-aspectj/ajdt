@@ -84,7 +84,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
 				<pathelement path="../org.eclipse.ajdt.ui/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.ui/ajdtui.jar"/>
+				<pathelement path="../org.eclipse.ajdt.ui/@dot"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.1.0.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.1.0.jar"/>
@@ -163,11 +163,11 @@
 				<pathelement path="../../plugins/org.apache.lucene_1.4.3/parser.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.help.appserver_3.1.0.jar"/>
 				<pathelement path="../org.eclipse.ajdt.core/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.core/ajdtcore.jar"/>
+				<pathelement path="../org.eclipse.ajdt.core/@dot"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
 				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui/xrefui.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.ui/@dot"/>
 				<pathelement path="../org.eclipse.contribution.visualiser.tests/bin"/>
 				<pathelement path="../org.eclipse.contribution.visualiser.tests/visualisertests.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.ui.tests/bin/"/>

@@ -49,9 +49,9 @@
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="xrefcore.jar" depends="init" unless="xrefcore.jar" description="Create jar: org.eclipse.contribution.xref.core xrefcore.jar.">
-		<delete dir="${temp.folder}/xrefcore.jar.bin"/>
-		<mkdir dir="${temp.folder}/xrefcore.jar.bin"/>
+	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.contribution.xref.core @dot.">
+		<delete dir="${temp.folder}/@dot.bin"/>
+		<mkdir dir="${temp.folder}/@dot.bin"/>
 		<!-- compile the source code -->
 		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051010144227/"/>
 		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051010144227/"/>
@@ -62,7 +62,7 @@
 			</classpath>
 		</taskdef>
 		<property file="build.ajproperties"/>
-		<iajc destDir="${temp.folder}/xrefcore.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
@@ -92,38 +92,40 @@
 			</forkclasspath>
 			</iajc>
 		<!-- Copy necessary resources -->
-		<copy todir="${temp.folder}/xrefcore.jar.bin" failonerror="true" overwrite="false">
+		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
-		<jar destfile="${build.result.folder}/xrefcore.jar" basedir="${temp.folder}/xrefcore.jar.bin"/>
-		<delete dir="${temp.folder}/xrefcore.jar.bin"/>
+		<copy todir="${build.result.folder}/@dot" failonerror="true" overwrite="false">
+			<fileset dir="${temp.folder}/@dot.bin"			/>
+		</copy>
+		<delete dir="${temp.folder}/@dot.bin"/>
 	</target>
 
-	<target name="xrefcoresrc.zip" depends="init" unless="xrefcoresrc.zip">
+	<target name="src.zip" depends="init" unless="src.zip">
 		<mkdir dir="${build.result.folder}"/>
-		<zip destfile="${build.result.folder}/xrefcoresrc.zip" filesonly="false" whenempty="skip" update="false">
+		<zip destfile="${build.result.folder}/src.zip" filesonly="false" whenempty="skip" update="false">
 			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
 		</zip>
 	</target>
 
 	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.xref.core.">
-		<available property="xrefcore.jar" file="${build.result.folder}/xrefcore.jar"/>
-		<antcall target="xrefcore.jar"/>
+		<available property="@dot" file="${build.result.folder}/@dot"/>
+		<antcall target="@dot"/>
 	</target>
 
 	<target name="build.sources" depends="init">
-		<available property="xrefcoresrc.zip" file="${build.result.folder}/xrefcoresrc.zip"/>
-		<antcall target="xrefcoresrc.zip"/>
+		<available property="src.zip" file="${build.result.folder}/src.zip"/>
+		<antcall target="src.zip"/>
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${build.result.folder}" includes="xrefcore.jar"			/>
+			<fileset dir="${build.result.folder}/@dot" includes="**"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,xrefcore.jar,about.html,plugin.properties,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,null,about.html,plugin.properties,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -132,7 +134,7 @@
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT"/>
-		<copy file="${build.result.folder}/xrefcoresrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false">
 			<fileset dir="${basedir}" includes="src/,schema/"			/>
 		</copy>
@@ -140,12 +142,12 @@
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT"/>
-		<copy file="${temp.folder}/xrefcore.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${temp.folder}/@dot.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 	</target>
 
 	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.xref.core of all the zips, jars and logs created.">
-		<delete file="${build.result.folder}/xrefcore.jar"/>
-		<delete file="${build.result.folder}/xrefcoresrc.zip"/>
+		<delete dir="${build.result.folder}/@dot"/>
+		<delete file="${build.result.folder}/src.zip"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT.jar"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.xref.core_1.3.0.DEVELOPMENT.zip"/>
 		<delete dir="${temp.folder}"/>

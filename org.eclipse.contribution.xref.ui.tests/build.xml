@@ -57,7 +57,7 @@
 			<compilerarg line="${compilerArg}"/>
 			<classpath>
 				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui/xrefui.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.ui/@dot"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.osgi_3.1.1.jar"/>
@@ -78,7 +78,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
 				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>

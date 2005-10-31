@@ -86,7 +86,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
 				<pathelement path="../org.eclipse.ajdt.core/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.core/ajdtcore.jar"/>
+				<pathelement path="../org.eclipse.ajdt.core/@dot"/>
 				<pathelement path="../../plugins/org.eclipse.pde.build_3.1.0/pdebuild.jar"/>
 				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
 				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
@@ -120,7 +120,7 @@
 				<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
 				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
 				<pathelement path="../org.eclipse.ajdt.ui/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.ui/ajdtui.jar"/>
+				<pathelement path="../org.eclipse.ajdt.ui/@dot"/>
 				<pathelement path="..\..\plugins\org.eclipse.jface.text_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.1.1.jar"/>
@@ -157,9 +157,9 @@
 				<pathelement path="../../plugins/org.apache.lucene_1.4.3/parser.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.help.appserver_3.1.0.jar"/>
 				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/xrefcore.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
 				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui/xrefui.jar"/>
+				<pathelement path="../org.eclipse.contribution.xref.ui/@dot"/>
 			</classpath>
 			<src path="src/"			/>
 			</javac>

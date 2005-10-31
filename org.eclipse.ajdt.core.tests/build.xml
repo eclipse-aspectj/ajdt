@@ -67,7 +67,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.osgi_3.1.1.jar"/>
 				<pathelement path="../org.eclipse.ajdt.core/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.core/ajdtcore.jar"/>
+				<pathelement path="../org.eclipse.ajdt.core/@dot"/>
 				<pathelement path="../../plugins/org.eclipse.pde.build_3.1.0/pdebuild.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
