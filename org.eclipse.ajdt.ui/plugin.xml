@@ -1443,21 +1443,7 @@
              id="ajdtpalette">
          </palette>
    </extension>
-      
-<!-- Joinpoint Probe definitions -->
-<!-- temporarily removed from plugin till Swing Gui can be converted to
-  SWT and user-interaction model worked out.
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            name="Joinpoint Probe"
-            icon="icons/actions/joinPointProbeView.gif"
-            category="org.eclipse.ajdt.ui.cat"
-            class="org.eclipse.ajdt.internal.ui.wizards.JoinPointProbeView"
-            id="org.eclipse.ajdt.internal.ui.wizards.JoinPointProbeView">
-      </view>
-   </extension>
--->
+
 <!-- AJDT Help -->
   <extension point="org.eclipse.help.toc">
    <toc file="toc.xml" primary="true" />
@@ -1851,7 +1837,7 @@
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
-            label="%launcherName"
+            label="%AspectJApplicationShortcut.label"
             icon="icons/actions/aj_app.gif"
             class="org.eclipse.ajdt.internal.launching.AspectJApplicationLaunchShortcut"
             modes="run, debug"
