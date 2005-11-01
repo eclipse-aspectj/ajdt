@@ -64,6 +64,7 @@ public class AJClasspathModel extends ClasspathModel {
 			break;
 		case ASPECTPATH:
 			entryParent = getAspectPathEntry();
+			break;
 		case OUTJAR:
 			entryParent = getOutJarEntry();
 		default:
