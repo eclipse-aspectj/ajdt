@@ -13,7 +13,7 @@ package org.eclipse.contribution.visualiser.renderers;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
 import org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
-import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.contribution.visualiser.utils.ColorConstants;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;

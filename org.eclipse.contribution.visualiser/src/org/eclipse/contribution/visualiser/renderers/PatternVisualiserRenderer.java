@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.contribution.visualiser.palettes.PatternVisualiserPalette;
-import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.contribution.visualiser.utils.ColorConstants;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Pattern;

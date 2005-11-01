@@ -33,10 +33,7 @@ import org.eclipse.contribution.visualiser.internal.preference.VisualiserPrefere
 import org.eclipse.contribution.visualiser.jdtImpl.JDTContentProvider;
 import org.eclipse.contribution.visualiser.renderers.PatternVisualiserRenderer;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
-import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.IFigure;
-import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.ToolTipHelper;
+import org.eclipse.contribution.visualiser.utils.ColorConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
@@ -60,10 +57,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * This class is the core of the visualiser rendering. It manages the view's
@@ -120,10 +121,12 @@ public class VisualiserCanvas extends Canvas {
 
 	private Timer timer = new Timer();
 
+	private TimerTask dismissToolTipTask;
+
 	private TimerTask postToolTipTask;
 
-	private ToolTipHelper toolTipHelper;
-
+	private Shell toolTip;
+	
 	private Menu contextMenu;
 
 		 
@@ -277,20 +280,38 @@ public class VisualiserCanvas extends Canvas {
 						} else {
 							label = ((ISelectable) o).getMember().getToolTip();
 						}
-						IFigure tip = new Label(label);
-						// remove any previous tooltips
-						if (toolTipHelper != null) {
-							toolTipHelper.dispose();
-						}
-						toolTipHelper = new ToolTipHelper(VisualiserCanvas.this);
 						Point dp = toDisplay(event.x, event.y);
-						toolTipHelper.displayToolTipNear(tip, tip, dp.x, dp.y);
+						showToolTip(label,dp);
 					}
 				}
 			});
 		}
 	}
 
+	private void showToolTip(String text, Point point) {
+		cancelToolTip();
+		toolTip = new Shell(getDisplay(), SWT.ON_TOP | SWT.TOOL);
+		toolTip.setLayout(new FillLayout());
+		Label tipLabel = new Label(toolTip, SWT.NONE);
+		tipLabel.setForeground(getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		tipLabel.setBackground(getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		tipLabel.setText(text);
+		Point size = toolTip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		toolTip.setBounds(point.x, point.y + 20, size.x, size.y);
+		toolTip.setVisible (true);
+		
+		dismissToolTipTask = new TimerTask() {
+			public void run() {
+				Display.getDefault().syncExec(new Runnable() {
+					public void run() {
+						cancelToolTip();
+					}
+				});
+			}
+		};
+		timer.schedule(dismissToolTipTask, 5000);
+	}
+	
 	/**
 	 * Cancels any tooltip timers and any showing tooltips
 	 */
@@ -300,10 +321,14 @@ public class VisualiserCanvas extends Canvas {
 			postToolTipTask.cancel();
 			postToolTipTask = null;
 		}
+		if (dismissToolTipTask != null) {
+			dismissToolTipTask.cancel();
+			dismissToolTipTask = null;
+		}
 		// remove any active tooltips
-		if (toolTipHelper != null) {
-			toolTipHelper.dispose();
-			toolTipHelper = null;
+		if (toolTip!=null && !toolTip.isDisposed()) {
+			toolTip.dispose();
+			toolTip = null;
 		}
 	}
 
@@ -362,14 +387,12 @@ public class VisualiserCanvas extends Canvas {
 				if (selectedItem instanceof StripeGeom) {
 					label = ((StripeGeom) selectedItem).stripe.getToolTip();
 				} else {
-					label = selectedItem.getMember().getName();
+					label = ((ISelectable) selectedItem).getMember().getToolTip();
 				}
-				IFigure tip = new Label(label);
-				toolTipHelper = new ToolTipHelper(VisualiserCanvas.this);
 				int x = selectedItem.getBounds().x; // relative to column
 				x += selectedItem.getIndex() * colWidth;
 				Point dp = toDisplay(x, selectedItem.getBounds().y);
-				toolTipHelper.displayToolTipNear(tip, tip, dp.x, dp.y);
+				showToolTip(label,dp);
 			}
 		} else if (ke.keyCode == SWT.ESC) {
 			cancelToolTip();
@@ -697,9 +720,8 @@ public class VisualiserCanvas extends Canvas {
 		lastSelected = null;
 
 		// remove any active tooltips
-		if (toolTipHelper != null) {
-			toolTipHelper.dispose();
-			toolTipHelper = null;
+		if (toolTip!=null && !toolTip.isDisposed()) {
+			toolTip.dispose();
 		}
 
 		calculateGeom();
@@ -1088,7 +1110,6 @@ public class VisualiserCanvas extends Canvas {
 	 * @param gc
 	 */
 	private void paint(GC gc) {
-		cancelToolTip();
 		Rectangle clientRect = getClientArea();
 
 		if ((screenImg == null)

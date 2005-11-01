@@ -30,7 +30,7 @@ import org.eclipse.contribution.visualiser.renderers.PatternVisualiserRenderer;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMarkupProvider;
 import org.eclipse.contribution.visualiser.simpleImpl.SimpleMember;
 import org.eclipse.contribution.visualiser.text.VisualiserMessages;
-import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.contribution.visualiser.utils.ColorConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
