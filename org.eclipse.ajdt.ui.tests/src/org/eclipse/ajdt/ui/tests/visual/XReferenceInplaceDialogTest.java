@@ -5,7 +5,7 @@
  * available at http://www.eclipse.org/legal/cpl-v10.html
  * 
  * Contributors: IBM Corporation - initial API and implementation 
- * 				 Helen Hawkins   - iniital version
+ * 				 Helen Hawkins   - initial version
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
@@ -111,7 +111,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	
 	public void testSelectAll() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
-
 		// In the filter dialog
 		postKey(SWT.TAB);
 		postKey(SWT.CR);
@@ -121,7 +120,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		postKey(SWT.CR);
 		
 		waitForJobsToComplete();
-
+		
 		checkProvidersAgree(xrefAction);
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
@@ -130,7 +129,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
 				// in the populating list are removed in the constructor of the action
-				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedInplaceFilters().size()); //$NON-NLS-1$
+				assertEquals("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size(), provider.getCheckedInplaceFilters().size()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -181,7 +180,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0); //$NON-NLS-1$
+				assertEquals("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size(), 0); //$NON-NLS-1$
 			}
 		}		
 	}
@@ -206,7 +205,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedInplaceFilters().size() == 3); //$NON-NLS-1$
+				assertEquals("provider.getCheckedFilters() should be of size() == 3", 3,  provider.getCheckedInplaceFilters().size()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -231,7 +230,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0); //$NON-NLS-1$
+				assertEquals("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size(), 0); //$NON-NLS-1$
 			}
 		}
 	}
@@ -262,7 +261,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
 			// Only concern ourselves with those providers dealing with the setting and checking of filters
 			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size() == 0); //$NON-NLS-1$
+				assertEquals("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size(), 0); //$NON-NLS-1$
 			}
 		}
 	}

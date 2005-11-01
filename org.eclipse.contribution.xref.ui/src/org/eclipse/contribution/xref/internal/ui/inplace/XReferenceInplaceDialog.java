@@ -7,7 +7,8 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initial version
+ *     Sian January    - removed deprecated API use in 1.3
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.inplace;
 
@@ -25,6 +26,7 @@ import org.eclipse.contribution.xref.internal.ui.providers.XReferenceLabelProvid
 import org.eclipse.contribution.xref.internal.ui.text.XRefMessages;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.core.commands.Command;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
@@ -36,6 +38,10 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.bindings.keys.SWTKeySupport;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.util.Geometry;
@@ -98,15 +104,11 @@ import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ActionHandler;
-import org.eclipse.ui.commands.HandlerSubmission;
-import org.eclipse.ui.commands.ICommand;
-import org.eclipse.ui.commands.ICommandManager;
-import org.eclipse.ui.commands.IKeySequenceBinding;
-import org.eclipse.ui.commands.Priority;
-import org.eclipse.ui.contexts.IWorkbenchContextSupport;
-import org.eclipse.ui.keys.KeySequence;
-import org.eclipse.ui.keys.SWTKeySupport;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.contexts.IContextService;
+import org.eclipse.ui.handlers.IHandlerActivation;
+import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.keys.IBindingService;
 
 /**
  * Class to create and populate the inplace Cross Reference view.
@@ -169,9 +171,9 @@ public class XReferenceInplaceDialog {
 	 */	
 	private final String invokingCommandId = "org.eclipse.contribution.xref.show.xref";	//$NON-NLS-1$
 	private boolean isShowingParentCrosscutting = false;
-	private ICommand invokingCommand;
+	private Command invokingCommand;
 	private KeyAdapter keyAdapter;
-	private KeySequence[] invokingCommandKeySequences;
+	private TriggerSequence[] invokingCommandTriggerSequences;
 	private Label statusField;
 	private List /*IXReferenceAdapter*/ previousXRefAdapterList;
 
@@ -190,9 +192,7 @@ public class XReferenceInplaceDialog {
 	private IKeyBindingService fKeyBindingService;
 	private String[] fKeyBindingScopes;
 	private IAction fShowViewMenuAction;
-	private HandlerSubmission fShowViewMenuHandlerSubmission;
-	private KeySequence[] fInvokingCommandKeySequences;
-	private ICommand fInvokingCommand;
+	private IHandlerActivation handlerActivation;
 
 	/**
 	 * For testing purposes need to be able to get hold 
@@ -221,8 +221,8 @@ public class XReferenceInplaceDialog {
 		XReferenceProviderManager.getManager().setIsInplace(true);
 		
 		if (invokingCommandId != null) {
-			ICommandManager commandManager= PlatformUI.getWorkbench().getCommandSupport().getCommandManager();
-			invokingCommand = commandManager.getCommand(invokingCommandId);
+			ICommandService commandService = (ICommandService)PlatformUI.getWorkbench().getAdapter(ICommandService.class);
+			invokingCommand = commandService.getCommand(invokingCommandId);
 			if (invokingCommand != null && !invokingCommand.isDefined())
 				invokingCommand= null;
 			else
@@ -521,7 +521,7 @@ public class XReferenceInplaceDialog {
 
 		// Remember current scope and then set window context.
 		fKeyBindingScopes= fKeyBindingService.getScopes();
-		fKeyBindingService.setScopes(new String[] {IWorkbenchContextSupport.CONTEXT_ID_WINDOW});
+		fKeyBindingService.setScopes(new String[] {IContextService.CONTEXT_ID_WINDOW});
 
 		// Create show view menu action
 		fShowViewMenuAction= new Action("showViewMenu") { //$NON-NLS-1$
@@ -535,9 +535,9 @@ public class XReferenceInplaceDialog {
 		fShowViewMenuAction.setEnabled(true);
 		fShowViewMenuAction.setActionDefinitionId("org.eclipse.ui.window.showViewMenu"); //$NON-NLS-1$
 
-		// Register action with command support
-		fShowViewMenuHandlerSubmission= new HandlerSubmission(null, dialogShell, null, fShowViewMenuAction.getActionDefinitionId(), new ActionHandler(fShowViewMenuAction), Priority.MEDIUM);
-		PlatformUI.getWorkbench().getCommandSupport().addHandlerSubmission(fShowViewMenuHandlerSubmission);
+		// Register action with handler service
+		IHandlerService handlerService = (IHandlerService)PlatformUI.getWorkbench().getAdapter(IHandlerService.class);
+		handlerActivation = handlerService.activateHandler(fShowViewMenuAction.getActionDefinitionId(), new ActionHandler(fShowViewMenuAction));
 		
 		viewMenuButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -603,7 +603,7 @@ public class XReferenceInplaceDialog {
 	}
 
 	private String getStatusFieldText() {
-		KeySequence[] sequences = getInvokingCommandKeySequences();
+		TriggerSequence[] sequences = getInvokingCommandKeySequences();
 		if (sequences == null || sequences.length == 0)
 			return ""; //$NON-NLS-1$
 		
@@ -614,20 +614,13 @@ public class XReferenceInplaceDialog {
 			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_showParentCrosscutting, keySequence); //$NON-NLS-1$
 	}
 	
-	private KeySequence[] getInvokingCommandKeySequences() {
-		if (invokingCommandKeySequences == null) {
-			if (invokingCommand != null) {
-				List list = invokingCommand.getKeySequenceBindings();
-				if (!list.isEmpty()) {
-					invokingCommandKeySequences= new KeySequence[list.size()];
-					for (int i= 0; i < invokingCommandKeySequences.length; i++) {
-						invokingCommandKeySequences[i]= ((IKeySequenceBinding) list.get(i)).getKeySequence();
-					}
-					return invokingCommandKeySequences;
-				}		
-			}
+	private TriggerSequence[] getInvokingCommandKeySequences() {
+		IBindingService bindingService = (IBindingService)PlatformUI.getWorkbench().getAdapter(IBindingService.class);
+		TriggerSequence[] bindings = bindingService.getActiveBindingsFor(invokingCommandId);
+		if(bindings.length > 0) {
+			invokingCommandTriggerSequences = bindings;
 		}
-		return invokingCommandKeySequences;
+		return invokingCommandTriggerSequences;		
 	}
 	
 	private KeyAdapter getKeyAdapter() {
@@ -636,7 +629,7 @@ public class XReferenceInplaceDialog {
 				public void keyPressed(KeyEvent e) {
 					int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
 					KeySequence keySequence = KeySequence.getInstance(SWTKeySupport.convertAcceleratorToKeyStroke(accelerator));
-					KeySequence[] sequences= getInvokingCommandKeySequences();
+					TriggerSequence[] sequences= getInvokingCommandKeySequences();
 					if (sequences == null)
 						return;
 					for (int i= 0; i < sequences.length; i++) {
@@ -1153,9 +1146,9 @@ public class XReferenceInplaceDialog {
 			composite = null;
 			dialog = null;
 		}
-		// Remove handler submission
-		PlatformUI.getWorkbench().getCommandSupport().removeHandlerSubmission(fShowViewMenuHandlerSubmission);
-
+		IHandlerService handlerService = (IHandlerService)PlatformUI.getWorkbench().getAdapter(IHandlerService.class);
+		handlerService.deactivateHandler(handlerActivation);
+		
 		// Restore editor's key binding scope
 		if (fKeyBindingScopes != null && fKeyBindingService != null) {
 			fKeyBindingService.setScopes(fKeyBindingScopes);

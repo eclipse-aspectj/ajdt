@@ -19,6 +19,7 @@ Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-internal:=tr
  org.eclipse.contribution.xref.ui.views
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
+ org.eclipse.core.commands,
  org.eclipse.contribution.xref.core,
  org.aspectj.runtime,
  org.eclipse.core.resources,
@@ -29,5 +30,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
- org.eclipse.help
+ org.eclipse.help,
+ org.eclipse.core.expressions
 Eclipse-AutoStart: true
