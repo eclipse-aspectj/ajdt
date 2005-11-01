@@ -49,9 +49,9 @@
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="Visualiser.jar" depends="init" unless="Visualiser.jar" description="Create jar: org.eclipse.contribution.visualiser Visualiser.jar.">
-		<delete dir="${temp.folder}/Visualiser.jar.bin"/>
-		<mkdir dir="${temp.folder}/Visualiser.jar.bin"/>
+	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.contribution.visualiser @dot.">
+		<delete dir="${temp.folder}/@dot.bin"/>
+		<mkdir dir="${temp.folder}/@dot.bin"/>
 		<!-- compile the source code -->
 		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051010144227/"/>
 		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051010144227/"/>
@@ -62,7 +62,7 @@
 			</classpath>
 		</taskdef>
 		<property file="build.ajproperties"/>
-		<iajc destDir="${temp.folder}/Visualiser.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<forkclasspath>
 				<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
@@ -110,45 +110,45 @@
 				<pathelement path="..\..\plugins\org.eclipse.ltk.core.refactoring_3.1.0.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ltk.ui.refactoring_3.1.1.jar"/>
 				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
-				<pathelement path="lib/draw2d.jar"/>
-				<pathelement path="${build.result.folder}/../org.eclipse.contribution.visualiser/lib/draw2d.jar"/>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</forkclasspath>
 			</iajc>
 		<!-- Copy necessary resources -->
-		<copy todir="${temp.folder}/Visualiser.jar.bin" failonerror="true" overwrite="false">
+		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
 		</copy>
 		<mkdir dir="${build.result.folder}"/>
-		<jar destfile="${build.result.folder}/Visualiser.jar" basedir="${temp.folder}/Visualiser.jar.bin"/>
-		<delete dir="${temp.folder}/Visualiser.jar.bin"/>
+		<copy todir="${build.result.folder}/@dot" failonerror="true" overwrite="false">
+			<fileset dir="${temp.folder}/@dot.bin"			/>
+		</copy>
+		<delete dir="${temp.folder}/@dot.bin"/>
 	</target>
 
-	<target name="Visualisersrc.zip" depends="init" unless="Visualisersrc.zip">
+	<target name="src.zip" depends="init" unless="src.zip">
 		<mkdir dir="${build.result.folder}"/>
-		<zip destfile="${build.result.folder}/Visualisersrc.zip" filesonly="false" whenempty="skip" update="false">
+		<zip destfile="${build.result.folder}/src.zip" filesonly="false" whenempty="skip" update="false">
 			<fileset dir="src/" includes="**/*.java, **/*.aj"			/>
 		</zip>
 	</target>
 
 	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.contribution.visualiser.">
-		<available property="Visualiser.jar" file="${build.result.folder}/Visualiser.jar"/>
-		<antcall target="Visualiser.jar"/>
+		<available property="@dot" file="${build.result.folder}/@dot"/>
+		<antcall target="@dot"/>
 	</target>
 
 	<target name="build.sources" depends="init">
-		<available property="Visualisersrc.zip" file="${build.result.folder}/Visualisersrc.zip"/>
-		<antcall target="Visualisersrc.zip"/>
+		<available property="src.zip" file="${build.result.folder}/src.zip"/>
+		<antcall target="src.zip"/>
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${build.result.folder}" includes="Visualiser.jar"			/>
+			<fileset dir="${build.result.folder}/@dot" includes="**"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,*.jar,Visualiser.jar,plugin.properties,about.html,doc/,icons/,lib/,Content.vis,Markup.mvis,javadoc.xml,contents_Visualiser.xml,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,null,plugin.properties,about.html,doc/,icons/,Content.vis,Markup.mvis,javadoc.xml,contents_Visualiser.xml,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -157,20 +157,20 @@
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT"/>
-		<copy file="${build.result.folder}/Visualisersrc.zip" todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="false" overwrite="false">
-			<fileset dir="${basedir}" includes="src/"			/>
+			<fileset dir="${basedir}" includes="src/,schema/"			/>
 		</copy>
 	</target>
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
 		<mkdir dir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT"/>
-		<copy file="${temp.folder}/Visualiser.jar.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy file="${temp.folder}/@dot.bin.log" todir="${destination.temp.folder}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 	</target>
 
 	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.contribution.visualiser of all the zips, jars and logs created.">
-		<delete file="${build.result.folder}/Visualiser.jar"/>
-		<delete file="${build.result.folder}/Visualisersrc.zip"/>
+		<delete dir="${build.result.folder}/@dot"/>
+		<delete file="${build.result.folder}/src.zip"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT.jar"/>
 		<delete file="${plugin.destination}/org.eclipse.contribution.visualiser_2.2.0.DEVELOPMENT.zip"/>
 		<delete dir="${temp.folder}"/>

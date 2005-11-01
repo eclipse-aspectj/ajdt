@@ -93,6 +93,7 @@
          id="org.eclipse.contribution.visualiser"
          download-size="0"
          install-size="0"
+         unpack="false"
          version="@VISVERSION@"/>
 
    <plugin

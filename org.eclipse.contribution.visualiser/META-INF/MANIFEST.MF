@@ -3,8 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Visualiser Plug-in
 Bundle-SymbolicName: org.eclipse.contribution.visualiser; singleton:=true
 Bundle-Version: 2.2.0.DEVELOPMENT
-Bundle-ClassPath: Visualiser.jar,
- lib/draw2d.jar
 Bundle-Activator: org.eclipse.contribution.visualiser.VisualiserPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin

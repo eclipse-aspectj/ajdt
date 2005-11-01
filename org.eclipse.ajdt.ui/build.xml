@@ -145,8 +145,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.pde_3.1.0.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.jdt.debug.ui_3.1.1.jar"/>
 				<pathelement path="../org.eclipse.contribution.visualiser/bin"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/lib/draw2d.jar"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/Visualiser.jar"/>
+				<pathelement path="../org.eclipse.contribution.visualiser/@dot"/>
 				<pathelement path="..\..\plugins\org.eclipse.pde.ui_3.1.1.jar"/>
 				<pathelement path="../../plugins/org.eclipse.pde.build_3.1.0/pdebuild.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.ant.ui_3.1.1.jar"/>

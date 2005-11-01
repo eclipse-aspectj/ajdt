@@ -77,8 +77,7 @@
 				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
 				<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
 				<pathelement path="../org.eclipse.contribution.visualiser/bin"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/lib/draw2d.jar"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/Visualiser.jar"/>
+				<pathelement path="../org.eclipse.contribution.visualiser/@dot"/>
 				<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.jface.text_3.1.1.jar"/>
 				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
