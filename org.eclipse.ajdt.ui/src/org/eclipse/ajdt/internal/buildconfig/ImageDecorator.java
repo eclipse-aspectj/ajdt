@@ -25,7 +25,9 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -101,7 +103,6 @@ public class ImageDecorator implements ILabelDecorator {
 	 * @see ILabelDecorator#decorateImage
 	 */
 	public Image decorateImage(Image image, Object element)  {
-	
 		if (preventRecursion)
 			return null;
 		
@@ -312,17 +313,36 @@ public class ImageDecorator implements ILabelDecorator {
 	public static boolean containsIncludedFiles(BuildConfiguration bc, IPackageFragment pack){
 		try {
 			IJavaElement[] javachildren = pack.getChildren();
-			for(int i=0; i<javachildren.length; i++){
-				IResource res = javachildren[i].getCorrespondingResource();
-				if ((res != null) && (res.getType() == IResource.FILE))
-					if (bc.isIncluded(res))
-						return true;
+			if(javachildren.length > 0) {
+				for(int i=0; i<javachildren.length; i++){
+					IResource res = javachildren[i].getCorrespondingResource();
+					if ((res != null) && (res.getType() == IResource.FILE))
+						if (bc.isIncluded(res))
+							return true;
+				}
+			} else { // Bug 88477 - JDT may have refreshed the model
+				IResource res = pack.getResource();
+				if(res instanceof IFolder) {
+					IResource[] children = ((IFolder)res).members();
+					for (int i = 0; i < children.length; i++) {
+						IResource resource = children[i];
+						if (resource instanceof IFile) {
+							IFile file = (IFile)resource;
+							if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
+								if(bc.isIncluded(file)) {
+									return true;
+								}
+							}
+						}
+					}
+				}
 			}
 				
 		} catch (JavaModelException e) {
 			//assume empty
 			// can be ignored
-		}
+		} catch (CoreException e) {
+		}	
 		return false;
 	}
 	
