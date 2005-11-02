@@ -312,6 +312,7 @@ public class ImageDecorator implements ILabelDecorator {
 	
 	public static boolean containsIncludedFiles(BuildConfiguration bc, IPackageFragment pack){
 		try {
+			// Bug 88477 - JDT may have refreshed the model
 			IResource res = pack.getResource();
 			if(res instanceof IFolder) {
 				IResource[] children = ((IFolder)res).members();
@@ -337,7 +338,7 @@ public class ImageDecorator implements ILabelDecorator {
 	
 	public static boolean containsExcludedFiles(BuildConfiguration bc, IPackageFragment pack){
 		try {			
-			 // Bug 88477 - JDT may have refreshed the model
+			// Bug 88477 - JDT may have refreshed the model
 			IResource res = pack.getResource();
 			if(res instanceof IFolder) {
 				IResource[] children = ((IFolder)res).members();
