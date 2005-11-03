@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.ajdt.internal.buildconfig.propertypage.JavaCapabilityConfigurationPage;
 import org.eclipse.core.resources.IFolder;
@@ -28,7 +29,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.util.CoreUtility;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.ClassPathDetector;
@@ -190,6 +193,13 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 				updateProject(true, new SubProgressMonitor(monitor, 1));
 			}
 			configureJavaProject(new SubProgressMonitor(monitor, 2));
+			String compliance= fFirstPage.getJRECompliance();
+			if (compliance != null) {
+				IJavaProject project= JavaCore.create(fCurrProject);
+				Map options= project.getOptions(false);
+				JavaModelUtil.setCompilanceOptions(options, compliance);
+				project.setOptions(options);
+			}
 		} finally {
 			monitor.done();
 //			fCurrProject= null;
