@@ -40,7 +40,6 @@ import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.viewsupport.LibraryFilter;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jdt.ui.JavaElementSorter;
-import org.eclipse.jdt.ui.StandardJavaElementContentProvider;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -483,7 +482,8 @@ public class AJJarPackageWizardPage extends WizardExportResourcesPage implements
 				public boolean hasChildren(Object element) {
 					// prevent the + from being shown in front of packages
 					return !(element instanceof IPackageFragment) && super.hasChildren(element);
-				}
+				}				
+				
 			};
 		fInputGroup= new CheckboxTreeAndListGroup(
 					parent,
