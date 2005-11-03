@@ -182,11 +182,6 @@
                   name="group2">
             </separator>
          </menu>
-          <!--  This appears to be broken on 3.1...
-          <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-          </filter> -->
           <visibility>
              <objectState 
 	            name="projectNature" 
@@ -598,29 +593,7 @@
       <actionSet
             label="%ajActions"
             visible="false"
-            id="ajactionset">
-		 <!--  This action not for public consumption!
-         <action
-               label="%runTestSuite"
-               pulldown="false"
-               icon="icons/actions/perspective.gif"
-               tooltip="Run the org.eclipse.ajdt.ui plugin test suite"
-               class="org.eclipse.ajdt.internal.ui.tests.RunTestSuiteMenuSelection"
-               menubarPath="ajMenu/slot1"
-               id="RunTestSuite">
-         </action>
-         -->
-         <!-- 
-	         <menu
-               label="AspectJ"
-               path="additions"
-               id="ajMenu">
-        	    <separator
-            	      name="slot1">
-    	        </separator>
-         	</menu>
-         -->
-        
+            id="ajactionset">    
 		<action
                label="%OpenTypeInHierarchyAction.label"
                tooltip="%OpenTypeInHierarchyAction.tooltip"
@@ -727,7 +700,19 @@
 					<perspectiveShortcut
                         id="com.ibm.etools.webtools.webperspective.WebToolsPerspective"/>				
     	</perspectiveExtension>
-
+		<perspectiveExtension 
+			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		<perspectiveExtension 
+			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		<perspectiveExtension 
+			targetID="org.eclipse.pde.ui.PDEPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		
 		<!--
 		Below two perspective extensions added for IBM Rational 6.x tooling.
 		-->    	
@@ -1457,35 +1442,12 @@
 <extension 
 	point="org.eclipse.ui.perspectives">
 	<perspective
-		id="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizationPerspective"
+		id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"
 		name="%aspectVisualizationPerspective"
 		icon="icons/aspect_visualization.gif"
 		class="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizerPerspectiveFactory">
 	</perspective>
 </extension>
-
-<!-- Entries for Cross-Reference -->
-<!--extension
-         point="org.eclipse.aosd.relationships.providers">
-        <relationshipProvider
-        	id="org.eclipse.ajdt.ui.xref.pointcutMatches"
-        	class="org.eclipse.ajdt.internal.ui.xref.PointcutMatches"
-        	label="%pointcutMatches"
-        	enabled="true">
-        	<description>
-        	Shows statically determinable matches for AspectJ pointcuts.
-        	</description>
-        </relationshipProvider>          
-        <relationshipProvider
-        	id="org.eclipse.ajdt.ui.xref.adviceXReference"
-        	class="org.eclipse.ajdt.internal.ui.xref.AdviceReferences"
-        	label="%adviceXRef"
-        	enabled="true">
-        	<description>
-        	Shows advises / advised by relationships for AspectJ advice.
-        	</description>  
-        </relationshipProvider>          
-   </extension-->
 
    <extension
          point="org.eclipse.ui.popupMenus">
