@@ -1,5 +1,5 @@
 /**********************************************************************
- Copyright (c) 2002, 2004 IBM Corporation and others.
+ Copyright (c) 2002, 2005 IBM Corporation and others.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Common Public License v1.0
  which accompanies this distribution, and is available at
@@ -338,8 +338,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 			IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
 			if(model != null) { // this is null in a linked source folder due to an eclipse bug..
 				model.connect(document);
+			}	
+			if(isEditingAjFile) { // Fix for 91102 - pass on instruction pointer annotation events
+				model.addAnnotationModelListener(new InstructionPointerAnnotationListener(annotationModel));
 			}
-		} 
+		}
 	}
 	
 	public void doSetInput(IEditorInput input) throws CoreException {
@@ -398,6 +401,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 //			 Part of the fix for 89793 - editor icon is not always correct
 			resetTitleImage();
 		}
+		
 	}
 
 	
