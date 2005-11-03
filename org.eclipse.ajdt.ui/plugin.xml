@@ -590,7 +590,19 @@ M4 = Platform-specific fourth key
 					<perspectiveShortcut
                         id="com.ibm.etools.webtools.webperspective.WebToolsPerspective"/>				
     	</perspectiveExtension>
-
+		<perspectiveExtension 
+			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		<perspectiveExtension 
+			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		<perspectiveExtension 
+			targetID="org.eclipse.pde.ui.PDEPerspective">
+					<actionSet id="ajactionset"/>
+		</perspectiveExtension>
+		
 		<!--
 		Below two perspective extensions added for IBM Rational 6.x tooling.
 		-->    	
@@ -1325,7 +1337,7 @@ M4 = Platform-specific fourth key
 <extension 
 	point="org.eclipse.ui.perspectives">
 	<perspective
-		id="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizationPerspective"
+		id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"
 		name="%aspectVisualizationPerspective"
 		icon="icons/aspect_visualization.gif"
 		class="org.eclipse.ajdt.internal.ui.visualiser.AspectVisualizerPerspectiveFactory">
