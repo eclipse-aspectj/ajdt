@@ -16,6 +16,7 @@ import junit.framework.TestSuite;
 
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
@@ -41,6 +42,8 @@ public class AllCoreTests {
 			suite.addTest(new TestSuite(AJCoreTestJava5.class));
 		}
 
+		// code conversion tests
+		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
 
 		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));

@@ -141,6 +141,9 @@ public class AspectsConvertingParser implements TerminalTokens {
 		// Bug 93248: Count question marks so as to ignore colons that are part of conditional statements		
 		int questionMarkCount = 0; 
 		
+		// Bug 110751: Ignore colons that are part of enhanced "for" loop in Java 5
+		boolean insideFor = false;
+		
 		replacements.clear();
 		typeReferences.clear();
 		usedIdentifiers.clear();
@@ -189,9 +192,16 @@ public class AspectsConvertingParser implements TerminalTokens {
 					usedIdentifiers.add(new String(name));
 				}
 				break;
-
+			case TokenNamefor:
+				insideFor=true;
+				break;
+			case TokenNameRPAREN:
+				insideFor=false;
+				break;
 			case TokenNameCOLON:
 				if (!insideAspect)
+					break;
+				if (insideFor)
 					break;
 				if (questionMarkCount > 0) {
 					questionMarkCount--;
