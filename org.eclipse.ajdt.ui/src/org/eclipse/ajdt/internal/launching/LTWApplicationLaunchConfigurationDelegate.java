@@ -156,10 +156,12 @@ public class LTWApplicationLaunchConfigurationDelegate
 			String location = aspectPathEntries[i].getLocation();
 			for (int j = 0; j < workspaceProjects.length; j++) {
 				IProject project = workspaceProjects[j];
-				IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
-				String projectLocation = entry.getLocation();
-				if(projectLocation.equals(location)) {
-					LTWUtils.generateLTWConfigFile(JavaCore.create(project));
+				if(project.isOpen()) {
+					IRuntimeClasspathEntry entry = JavaRuntime.newProjectRuntimeClasspathEntry(JavaCore.create(project));
+					String projectLocation = entry.getLocation();
+					if(projectLocation != null && projectLocation.equals(location)) {
+						LTWUtils.generateLTWConfigFile(JavaCore.create(project));
+					}
 				}
 			}
 		}
@@ -234,12 +236,14 @@ public class LTWApplicationLaunchConfigurationDelegate
 		sb.append(' '); //$NON-NLS-1$
 		sb.append(ajClasspathOption);
 		sb.append('='); //$NON-NLS-1$
+		sb.append('\"'); //$NON-NLS-1$
 		for (int i = 0; i < ajClasspath.length; i++) {
 			if(i != 0) {
 				sb.append(';'); //$NON-NLS-1$
 			}
 			sb.append(ajClasspath[i]);			
 		}
+		sb.append('\"'); //$NON-NLS-1$
 		
 		return sb.toString();
 	}
