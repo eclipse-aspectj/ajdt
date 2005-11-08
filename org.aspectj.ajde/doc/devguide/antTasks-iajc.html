@@ -47,7 +47,7 @@
 			<span class="strong"><i>
 			AjcTask (iajc) options for specifying sources
 			</i></span>		
-		</p><div class="informaltable" id="d0e1427"><a name="d0e1427"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
+		</p><div class="informaltable" id="d0e1458"><a name="d0e1458"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>argfiles, argfilesRef
 				(<a href="antTasks-iajc.html#antTasks-iajc-paths">Path</a>)
 				</p></td><td><p>
 				An argument file contains a list of arguments read by the compiler. 
@@ -105,7 +105,7 @@
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying output
 			</i></span>		
-		</p><div class="informaltable" id="d0e1530"><a name="d0e1530"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
+		</p><div class="informaltable" id="d0e1561"><a name="d0e1561"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>destDir
 				</p></td><td><p>						
 				The directory in which to place the generated class files. 
 				Only one of <tt>destDir</tt> and 
@@ -150,7 +150,7 @@
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying compiler behavior
 			</i></span>		
-		</p><div class="informaltable" id="d0e1618"><a name="d0e1618"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
+		</p><div class="informaltable" id="d0e1649"><a name="d0e1649"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>fork
 				</p></td><td><p>						
 				Run process in another VM. 
 				This gets the forking classpath either explicitly
@@ -199,7 +199,7 @@
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying compiler side-effects and messages
 			</i></span>		
-		</p><div class="informaltable" id="d0e1707"><a name="d0e1707"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
+		</p><div class="informaltable" id="d0e1738"><a name="d0e1738"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>emacssym
 				</p></td><td><p>
 				If true, emit <tt>.ajesym</tt> symbol files for Emacs support.
 				</p></td></tr><tr><td><p>verbose
@@ -251,7 +251,7 @@
 			<span class="strong"><i>
 		AjcTask (iajc) options for specifying Eclipse compiler options
 			</i></span>		
-		</p><div class="informaltable" id="d0e1822"><a name="d0e1822"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
+		</p><div class="informaltable" id="d0e1853"><a name="d0e1853"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>nowarn
 				</p></td><td><p>		
 				 	If true, same as <tt>warn:none</tt>.
 				</p></td></tr><tr><td><p>deprecation
@@ -389,12 +389,12 @@
 
 		</pre><p>
 		Below is script with most everything in it. The compile process...
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2043"></a>Runs in incremental mode, recompiling when the user hits return;
-	        </p></li><li><p><a name="d0e2046"></a>Reads all the source files from two directories;
-	        </p></li><li><p><a name="d0e2049"></a>Reads binary .class files from input jar and directory; 
-				</p></li><li><p><a name="d0e2052"></a>Uses a binary aspect library for persistence;
-	        </p></li><li><p><a name="d0e2055"></a>Outputs to an application jar; and
-	        </p></li><li><p><a name="d0e2058"></a>Copies resources from the source directories and binary input 
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2074"></a>Runs in incremental mode, recompiling when the user hits return;
+	        </p></li><li><p><a name="d0e2077"></a>Reads all the source files from two directories;
+	        </p></li><li><p><a name="d0e2080"></a>Reads binary .class files from input jar and directory; 
+				</p></li><li><p><a name="d0e2083"></a>Uses a binary aspect library for persistence;
+	        </p></li><li><p><a name="d0e2086"></a>Outputs to an application jar; and
+	        </p></li><li><p><a name="d0e2089"></a>Copies resources from the source directories and binary input 
 				jar and directories to the application jar. </p></li></ol></div><p>
 		When this target is built, the compiler will build once and then 
 		wait for input from the user. 

@@ -52,74 +52,76 @@
           The file is a line-delimited list of arguments.
           These arguments are inserted into the argument list.
         </p></dd><dt><a name="d0e222"></a><span class="term">-outjar <i><tt>output.jar</tt></i></span></dt><dd><p><a name="d0e227"></a>Put output classes in zip file output.jar.
-        </p></dd><dt><a name="d0e230"></a><span class="term">-incremental</span></dt><dd><p><a name="d0e233"></a>Run the compiler continuously.
+        </p></dd><dt><a name="d0e230"></a><span class="term">-outxml</span></dt><dd><p><a name="d0e233"></a>Generate aop.xml file for load-time weaving with default name.
+        </p></dd><dt><a name="d0e236"></a><span class="term">-outxmlfile <i><tt>custom/aop.xml</tt></i></span></dt><dd><p><a name="d0e241"></a>Generate aop.xml file for load-time weaving with custom name.
+        </p></dd><dt><a name="d0e244"></a><span class="term">-incremental</span></dt><dd><p><a name="d0e247"></a>Run the compiler continuously.
         After the initial compilation, the compiler will
         wait to recompile until it reads a newline from the standard
         input, and will quit when it reads a 'q'.
         It will only recompile necessary components, so a recompile
         should be much faster than doing a second compile.
         This requires -sourceroots.
-        </p></dd><dt><a name="d0e236"></a><span class="term">-sourceroots <i><tt>DirPaths</tt></i></span></dt><dd><p><a name="d0e241"></a>Find and build all .java or .aj source files under 
+        </p></dd><dt><a name="d0e250"></a><span class="term">-sourceroots <i><tt>DirPaths</tt></i></span></dt><dd><p><a name="d0e255"></a>Find and build all .java or .aj source files under 
         any directory listed in DirPaths. 
         DirPaths, like classpath, is a single argument containing
         a list of paths to directories, delimited by the platform-
         specific classpath delimiter.
         Required by -incremental.
-        </p></dd><dt><a name="d0e244"></a><span class="term">-emacssym</span></dt><dd><p><a name="d0e247"></a>
+        </p></dd><dt><a name="d0e258"></a><span class="term">-emacssym</span></dt><dd><p><a name="d0e261"></a>
           Generate .ajesym symbol files for emacs support
-        </p></dd><dt><a name="d0e250"></a><span class="term">-Xlint</span></dt><dd><p><a name="d0e253"></a>Same as -Xlint:warning (enabled by default)
-        </p></dd><dt><a name="d0e256"></a><span class="term">-Xlint:{level}</span></dt><dd><p><a name="d0e259"></a>Set default level for messages about potential
+        </p></dd><dt><a name="d0e264"></a><span class="term">-Xlint</span></dt><dd><p><a name="d0e267"></a>Same as -Xlint:warning (enabled by default)
+        </p></dd><dt><a name="d0e270"></a><span class="term">-Xlint:{level}</span></dt><dd><p><a name="d0e273"></a>Set default level for messages about potential
            programming mistakes in crosscutting code.
            {level} may be ignore, warning, or error.
            This overrides entries in 
 	       org/aspectj/weaver/XlintDefault.properties
            from aspectjtools.jar, but does not override levels set
            using the -Xlintfile option.
-        </p></dd><dt><a name="d0e262"></a><span class="term">-Xlintfile <i><tt>PropertyFile</tt></i></span></dt><dd><p><a name="d0e267"></a>Specify properties file to set levels for
+        </p></dd><dt><a name="d0e276"></a><span class="term">-Xlintfile <i><tt>PropertyFile</tt></i></span></dt><dd><p><a name="d0e281"></a>Specify properties file to set levels for
            specific crosscutting messages.   
            PropertyFile is a path to a Java .properties file that
            takes the same property names and values as
 	       org/aspectj/weaver/XlintDefault.properties
            from aspectjtools.jar, which it also overrides.
-        </p></dd><dt><a name="d0e270"></a><span class="term">-help</span></dt><dd><p><a name="d0e273"></a>
+        </p></dd><dt><a name="d0e284"></a><span class="term">-help</span></dt><dd><p><a name="d0e287"></a>
           Emit information on compiler options and usage
-        </p></dd><dt><a name="d0e276"></a><span class="term">-version</span></dt><dd><p><a name="d0e279"></a>
+        </p></dd><dt><a name="d0e290"></a><span class="term">-version</span></dt><dd><p><a name="d0e293"></a>
           Emit the version of the AspectJ compiler
-        </p></dd><dt><a name="d0e282"></a><span class="term">-classpath <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e287"></a>
+        </p></dd><dt><a name="d0e296"></a><span class="term">-classpath <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e301"></a>
           Specify where to find user class files.
         Path is a single argument containing
         a list of paths to zip files or directories, 
         delimited by the platform-specific path delimiter.
-        </p></dd><dt><a name="d0e290"></a><span class="term">-bootclasspath <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e295"></a>
+        </p></dd><dt><a name="d0e304"></a><span class="term">-bootclasspath <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e309"></a>
           Override location of VM's bootclasspath 
           for purposes of evaluating types when compiling.
         Path is a single argument containing
         a list of paths to zip files or directories, 
         delimited by the platform-specific path delimiter.
-        </p></dd><dt><a name="d0e298"></a><span class="term">-extdirs <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e303"></a>
+        </p></dd><dt><a name="d0e312"></a><span class="term">-extdirs <i><tt>Path</tt></i></span></dt><dd><p><a name="d0e317"></a>
           Override location of VM's extension directories 
           for purposes of evaluating types when compiling.
         Path is a single argument containing
         a list of paths to directories, 
         delimited by the platform-specific path delimiter.
-        </p></dd><dt><a name="d0e306"></a><span class="term">-d <i><tt>Directory</tt></i></span></dt><dd><p><a name="d0e311"></a>
+        </p></dd><dt><a name="d0e320"></a><span class="term">-d <i><tt>Directory</tt></i></span></dt><dd><p><a name="d0e325"></a>
           Specify where to place generated .class files.
           If not specified, <i><tt>Directory</tt></i> 
           defaults to the current working dir.
-        </p></dd><dt><a name="d0e317"></a><span class="term">-target <i><tt>[1.1 to 1.4]</tt></i></span></dt><dd><p><a name="d0e322"></a>Specify classfile target setting (1.1 to 1.4, default is 1.2)
-        </p></dd><dt><a name="d0e325"></a><span class="term">-1.3</span></dt><dd><p><a name="d0e328"></a>Set compliance level to 1.3 
-        </p></dd><dt><a name="d0e331"></a><span class="term">-1.4</span></dt><dd><p><a name="d0e334"></a>Set compliance level to 1.4 (default)
-        </p></dd><dt><a name="d0e337"></a><span class="term">-source <i><tt>[1.3|1.4]</tt></i></span></dt><dd><p><a name="d0e342"></a>Toggle assertions (1.3 or 1.4, default is 1.3).
+        </p></dd><dt><a name="d0e331"></a><span class="term">-target <i><tt>[1.1 to 1.4]</tt></i></span></dt><dd><p><a name="d0e336"></a>Specify classfile target setting (1.1 to 1.4, default is 1.2)
+        </p></dd><dt><a name="d0e339"></a><span class="term">-1.3</span></dt><dd><p><a name="d0e342"></a>Set compliance level to 1.3 
+        </p></dd><dt><a name="d0e345"></a><span class="term">-1.4</span></dt><dd><p><a name="d0e348"></a>Set compliance level to 1.4 (default)
+        </p></dd><dt><a name="d0e351"></a><span class="term">-source <i><tt>[1.3|1.4]</tt></i></span></dt><dd><p><a name="d0e356"></a>Toggle assertions (1.3 or 1.4, default is 1.3).
             When using -source 1.3, an assert() statement valid under
             Java 1.4 will result in a compiler error.
           When using -source 1.4, 
           treat <tt>assert</tt> as a keyword and 
           implement assertions according to the 1.4 language spec.
-        </p></dd><dt><a name="d0e348"></a><span class="term">-nowarn</span></dt><dd><p><a name="d0e351"></a>Emit no warnings (equivalent to '-warn:none')
+        </p></dd><dt><a name="d0e362"></a><span class="term">-nowarn</span></dt><dd><p><a name="d0e365"></a>Emit no warnings (equivalent to '-warn:none')
         This does not suppress messages
         generated by <tt>declare warning</tt> or
         <tt>Xlint</tt>.
-        </p></dd><dt><a name="d0e360"></a><span class="term">-warn: <i><tt>items</tt></i></span></dt><dd><p><a name="d0e365"></a>Emit warnings for any instances of
+        </p></dd><dt><a name="d0e374"></a><span class="term">-warn: <i><tt>items</tt></i></span></dt><dd><p><a name="d0e379"></a>Emit warnings for any instances of
         the comma-delimited list of questionable code 
         (eg '-warn:unusedLocals,deprecation'):
         <pre class="programlisting">
@@ -136,11 +138,11 @@
         generated by <tt>declare warning</tt> or
         <tt>Xlint</tt>.
         
-        </p></dd><dt><a name="d0e381"></a><span class="term">-deprecation</span></dt><dd><p><a name="d0e384"></a>Same as -warn:deprecation
-        </p></dd><dt><a name="d0e387"></a><span class="term">-noImportError</span></dt><dd><p><a name="d0e390"></a>Emit no errors for unresolved imports
-        </p></dd><dt><a name="d0e393"></a><span class="term">-proceedOnError</span></dt><dd><p><a name="d0e396"></a>Keep compiling after error, 
+        </p></dd><dt><a name="d0e395"></a><span class="term">-deprecation</span></dt><dd><p><a name="d0e398"></a>Same as -warn:deprecation
+        </p></dd><dt><a name="d0e401"></a><span class="term">-noImportError</span></dt><dd><p><a name="d0e404"></a>Emit no errors for unresolved imports
+        </p></dd><dt><a name="d0e407"></a><span class="term">-proceedOnError</span></dt><dd><p><a name="d0e410"></a>Keep compiling after error, 
                         dumping class files with problem methods
-        </p></dd><dt><a name="d0e399"></a><span class="term">-g<i><tt>:[lines,vars,source]</tt></i></span></dt><dd><p><a name="d0e404"></a>debug attributes level, that may take three forms:
+        </p></dd><dt><a name="d0e413"></a><span class="term">-g<i><tt>:[lines,vars,source]</tt></i></span></dt><dd><p><a name="d0e418"></a>debug attributes level, that may take three forms:
         <pre class="programlisting">
     -g         all debug info ('-g:lines,vars,source')
     -g:none    no debug info
@@ -148,34 +150,34 @@
                -g:lines,source
         </pre>
             
-        </p></dd><dt><a name="d0e410"></a><span class="term">-preserveAllLocals</span></dt><dd><p><a name="d0e413"></a>Preserve all local variables during code generation
+        </p></dd><dt><a name="d0e424"></a><span class="term">-preserveAllLocals</span></dt><dd><p><a name="d0e427"></a>Preserve all local variables during code generation
         (to facilitate debugging).
-        </p></dd><dt><a name="d0e416"></a><span class="term">-referenceInfo</span></dt><dd><p><a name="d0e419"></a>Compute reference information.
-        </p></dd><dt><a name="d0e422"></a><span class="term">-encoding <i><tt>format</tt></i></span></dt><dd><p><a name="d0e427"></a>Specify default source encoding format.
+        </p></dd><dt><a name="d0e430"></a><span class="term">-referenceInfo</span></dt><dd><p><a name="d0e433"></a>Compute reference information.
+        </p></dd><dt><a name="d0e436"></a><span class="term">-encoding <i><tt>format</tt></i></span></dt><dd><p><a name="d0e441"></a>Specify default source encoding format.
             Specify custom encoding on a per file basis by suffixing
 			each input source file/folder name with '[encoding]'.
-        </p></dd><dt><a name="d0e430"></a><span class="term">-verbose</span></dt><dd><p><a name="d0e433"></a>Emit messages about accessed/processed compilation units 
-        </p></dd><dt><a name="d0e436"></a><span class="term">-showWeaveInfo</span></dt><dd><p><a name="d0e439"></a>Emit messages about weaving 
-        </p></dd><dt><a name="d0e442"></a><span class="term">-log <i><tt>file</tt></i></span></dt><dd><p><a name="d0e447"></a>Specify a log file for compiler messages.
-        </p></dd><dt><a name="d0e450"></a><span class="term">-progress</span></dt><dd><p><a name="d0e453"></a>Show progress (requires -log mode).
-        </p></dd><dt><a name="d0e456"></a><span class="term">-time</span></dt><dd><p><a name="d0e459"></a>Display speed information.
-        </p></dd><dt><a name="d0e462"></a><span class="term">-noExit</span></dt><dd><p><a name="d0e465"></a>Do not call System.exit(n) at end of compilation
+        </p></dd><dt><a name="d0e444"></a><span class="term">-verbose</span></dt><dd><p><a name="d0e447"></a>Emit messages about accessed/processed compilation units 
+        </p></dd><dt><a name="d0e450"></a><span class="term">-showWeaveInfo</span></dt><dd><p><a name="d0e453"></a>Emit messages about weaving 
+        </p></dd><dt><a name="d0e456"></a><span class="term">-log <i><tt>file</tt></i></span></dt><dd><p><a name="d0e461"></a>Specify a log file for compiler messages.
+        </p></dd><dt><a name="d0e464"></a><span class="term">-progress</span></dt><dd><p><a name="d0e467"></a>Show progress (requires -log mode).
+        </p></dd><dt><a name="d0e470"></a><span class="term">-time</span></dt><dd><p><a name="d0e473"></a>Display speed information.
+        </p></dd><dt><a name="d0e476"></a><span class="term">-noExit</span></dt><dd><p><a name="d0e479"></a>Do not call System.exit(n) at end of compilation
 			(n=0 if no error)
-        </p></dd><dt><a name="d0e468"></a><span class="term">-repeat <i><tt>N</tt></i></span></dt><dd><p><a name="d0e473"></a>Repeat compilation process N times 
+        </p></dd><dt><a name="d0e482"></a><span class="term">-repeat <i><tt>N</tt></i></span></dt><dd><p><a name="d0e487"></a>Repeat compilation process N times 
         (typically to do performance analysis).
-        </p></dd><dt><a name="d0e476"></a><span class="term">-Xnoweave</span></dt><dd><p><a name="d0e479"></a>(Experimental) produce unwoven class files
+        </p></dd><dt><a name="d0e490"></a><span class="term">-Xnoweave</span></dt><dd><p><a name="d0e493"></a>(Experimental) produce unwoven class files
         for input using -injars.
-        </p></dd><dt><a name="d0e482"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e485"></a>(Experimental) runs weaver in reweavable mode which causes
+        </p></dd><dt><a name="d0e496"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e499"></a>(Experimental) runs weaver in reweavable mode which causes
         it to create woven classes that can be rewoven, subject to the restriction that
         on attempting a reweave all the types that advised the woven type must be accessible.
-        </p></dd><dt><a name="d0e488"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e491"></a>(Experimental) do not inline around advice
-        </p></dd><dt><a name="d0e494"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e499"></a>(Experimental) This works like incremental mode, 
+        </p></dd><dt><a name="d0e502"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e505"></a>(Experimental) do not inline around advice
+        </p></dd><dt><a name="d0e508"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e513"></a>(Experimental) This works like incremental mode, 
         but using a file rather than standard input to control the compiler.  
         It will recompile each time file is changed and
         and halt when file is deleted.
-        </p></dd><dt><a name="d0e502"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e505"></a>(Experimental) Normally it is an error to declare
+        </p></dd><dt><a name="d0e516"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e519"></a>(Experimental) Normally it is an error to declare
         aspects Serializable.  This option removes that restriction.
-        </p></dd></dl></div></div><div class="refsect2"><a name="d0e508"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
+        </p></dd></dl></div></div><div class="refsect2"><a name="d0e522"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
     extension or the <tt>.aj</tt> extension.  We normally use
     <tt>.java</tt> for all of our files in an AspectJ system -- files
     that contain aspects as well as files that contain classes.  However, if
@@ -183,20 +185,20 @@
     additional functionality from those that are pure Java we recommend using
     the <tt>.aj</tt> extension for those files.</p><p>We'd like to discourage other means of mechanical distinction such as
     naming conventions or sub-packages in favor of the <tt>.aj</tt>
-    extension.</p><div class="itemizedlist"><ul><li><p><a name="d0e531"></a>Filename conventions are hard to enforce and lead to awkward names
+    extension.</p><div class="itemizedlist"><ul><li><p><a name="d0e545"></a>Filename conventions are hard to enforce and lead to awkward names
     for your aspects.  Instead of <tt>TracingAspect.java</tt> we
     recommend using <tt>Tracing.aj</tt> (or just
-    <tt>Tracing.java</tt>) instead.</p></li><li><p><a name="d0e543"></a>Sub-packages move aspects out of their natural place in a system
+    <tt>Tracing.java</tt>) instead.</p></li><li><p><a name="d0e557"></a>Sub-packages move aspects out of their natural place in a system
     and can create an artificial need for privileged aspects.  Instead of
     adding a sub-package like <tt>aspects</tt> we recommend using the
     <tt>.aj</tt> extension and including these files in your existing
-    packages instead.</p></li></ul></div></div><div class="refsect2"><a name="d0e552"></a><h3>Compatibility</h3><p>
+    packages instead.</p></li></ul></div></div><div class="refsect2"><a name="d0e566"></a><h3>Compatibility</h3><p>
         AspectJ is a compatible extension to the Java programming language. The
         AspectJ compiler adheres to the <a href="http://java.sun.com/docs/books/jls/index.html" target="_top"> <i>The Java Language Specfication, Second
         Edition</i></a> and to the <a href="http://java.sun.com/docs/books/vmspec/index.html" target="_top"><i>The Java Virtual Machine Specification, Second
         Edition</i></a> and runs on any Java 2 compatible
         platform. The code it generates runs on any Java 1.1 or later
-        compatible platform.</p></div><div class="refsect2"><a name="d0e566"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 2.1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
+        compatible platform.</p></div><div class="refsect2"><a name="d0e580"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 2.1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
         ajc HelloWorld.java Trace.java
         </pre></div><div class="example"><p><a name="exampleusingargfile"></a><b>Example 2.2. An example using -argfile/@</b></p><p>
           To avoid specifying file names on the command line, 
@@ -217,8 +219,8 @@ ajc -argfile sources.lst
 ajc @sources.lst</pre><p>
         Argfiles are also supported by jikes and javac, so you 
         can use the files in hybrid builds.  However, the support varies:
-        </p><div class="itemizedlist"><ul><li><p><a name="d0e593"></a>Only ajc accepts command-line options</p></li><li><p><a name="d0e596"></a>Jikes and Javac do not accept internal @argfile references.
-            </p></li><li><p><a name="d0e599"></a>Jikes and Javac only accept the @file form on the command line.</p></li></ul></div></div><div class="example"><p><a name="examplebytecode"></a><b>Example 2.3. An example using -injars and -aspectpath</b></p><p>Bytecode weaving using -injars:
+        </p><div class="itemizedlist"><ul><li><p><a name="d0e607"></a>Only ajc accepts command-line options</p></li><li><p><a name="d0e610"></a>Jikes and Javac do not accept internal @argfile references.
+            </p></li><li><p><a name="d0e613"></a>Jikes and Javac only accept the @file form on the command line.</p></li></ul></div></div><div class="example"><p><a name="examplebytecode"></a><b>Example 2.3. An example using -injars and -aspectpath</b></p><p>Bytecode weaving using -injars:
           AspectJ 1.1 supports weaving from input zip or jar files containing 
           class files.  Using input jars is like compiling the corresponding 
           source files, and all binaries are emitted to output.  Although 
@@ -277,28 +279,49 @@ commands to your environment as needed.
     ajc -aspectpath tracelib.jar -argfile tracing/notrace.lst -outjar tracedapp.jar 
         </pre><p>Run the application with tracing:</p><pre class="programlisting">
     java -classpath "$ajrt;tracedapp.jar;tracelib.jar" tracing.ExampleMain 
-        </pre><p>Build the application with tracing from binaries in two steps:</p><div class="itemizedlist"><ul><li><p><a name="d0e637"></a>
+        </pre><p>Build the application with tracing from binaries in two steps:</p><div class="itemizedlist"><ul><li><p><a name="d0e651"></a>
 (a) Build the application classes (using javac for demonstration's sake):</p><pre class="programlisting">
     mkdir classes 
     javac -d classes tracing/*.java 
     jar cfM app.jar -C classes . 
-        </pre></li><li><p><a name="d0e642"></a>
+        </pre></li><li><p><a name="d0e656"></a>
 (b) Build the application with tracing:</p><pre class="programlisting">
     ajc -injars app.jar -aspectpath tracelib.jar -outjar tracedapp.jar 
         </pre></li></ul></div><p>Run the application with tracing (same as above):</p><pre class="programlisting">
     java -classpath "$ajrt;tracedapp.jar;tracelib.jar" tracing.ExampleMain 
         </pre><p>Run the application without tracing:</p><pre class="programlisting">
     java -classpath "app.jar" tracing.ExampleMain
-        </pre></div></div><div class="refsect2"><a name="d0e655"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
+        </pre></div></div><div class="refsect2"><a name="d0e669"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
         called as a Java class.  The only interface that should be considered
         public are the public methods in <tt>org.aspectj.tools.ajc.Main</tt>.
         E.g., <tt>main(String[] args)</tt> takes the
         the standard <b>ajc</b> command line arguments. 
         This means that an alternative way to run the
-        compiler is </p><div class="cmdsynopsis" id="d0e669"><a name="d0e669"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
+        compiler is </p><div class="cmdsynopsis" id="d0e683"><a name="d0e683"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
          <tt>setHolder(IMessageHolder holder)</tt> and/or
          <tt>run(String[] args, IMessageHolder holder)</tt>.
-      </p></div><div class="refsect2"><a name="d0e687"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
+		  <tt>ajc</tt> reports each message to the holder
+		  using <tt>IMessageHolder.handleMessage(..)</tt>.
+		  If you just want to collect the messages, use
+		  <tt>MessageHandler</tt> as your		  
+		  <tt>IMessageHolder</tt>.
+		  For example, compile and run the following with 
+		  <tt>aspectjtools.jar</tt> on the classpath:
+      </p><pre class="programlisting">
+import org.aspectj.bridge.*;
+import org.aspectj.tools.ajc.Main;
+import java.util.Arrays;
+
+public class WrapAjc {
+  public static void main(String[] args) {
+    Main compiler = new Main();
+    MessageHandler m = new MessageHandler();
+    compiler.run(args, m);
+    IMessage[] ms = m.getMessages(null, true);
+    System.out.println("messages: " + Arrays.asList(ms));
+  }
+}
+        </pre></div><div class="refsect2"><a name="d0e718"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
             certain cases generate classfiles from multiple source files.
             Unfortunately, the original Java class file format does not support 
             multiple

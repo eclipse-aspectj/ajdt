@@ -18,7 +18,7 @@
          have more confidence in the design will be implemented earlier, providing a 
          framework for user feedback and direction setting on features for which the
          use cases are less obvious at time of writing.
-      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="#jpsigs">Join Point Signatures</a></dt><dd><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></dd><dt>2. <a href="#annotations">Annotations</a></dt><dd><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#using-annotations">Using Annotations</a></dt><dt><a href="#retention-policies">Retention Policies</a></dt><dt><a href="#accessing-annotations-at-runtime">Accessing Annotations at Runtime</a></dt><dt><a href="#annotation-inheritance">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#annotation-patterns">Annotation Patterns</a></dt><dt><a href="#type-patterns">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#example-pointcuts">Example Pointcuts</a></dt><dt><a href="#runtime-type-matching-and-context-exposure">Runtime type matching and context exposure</a></dt><dt><a href="#package-and-parameter-annotations">Package and Parameter Annotations</a></dt><dt><a href="#annotation-inheritance-and-pointcut-matching">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#declare-error-and-declare-warning">Declare error and declare warning</a></dt><dt><a href="#declare-parents">declare parents</a></dt><dt><a href="#declare-precedence">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></dd><dt>3. <a href="#generics">Generics</a></dt><dd><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#declaring-generic-types">Declaring Generic Types</a></dt><dt><a href="#using-generic-and-parameterized-types">Using Generic and Parameterized Types</a></dt><dt><a href="#subtypes-supertypes-and-assignability">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#generic-methods-and-constructors">Generic Methods and Constructors</a></dt><dt><a href="#erasure">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#matching-generic-and-parameterized-types-in-pointcut-expressions">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#inter-type-declarations">Inter-type Declarations</a></dt><dt><a href="#declare-parents">Declare Parents</a></dt><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#generic-aspects">Generic Aspects</a></dt></dl></dd></dl></dd><dt>4. <a href="#autoboxing">Autoboxing and Unboxing</a></dt><dd><dl><dt><a href="#boxing-inJava5">Autoboxing and Unboxing in Java 5</a></dt><dt><a href="#autoboxing-in-aspectj5">Autoboxing and Join Point matching in AspectJ 5</a></dt><dt><a href="#autoboxing-and-method-dispatch">Inter-type method declarations and method dispatch</a></dt></dl></dd><dt>5. <a href="#covariance">Covariance</a></dt><dd><dl><dt><a href="#covariance-inJava5">Covariance in Java 5</a></dt><dt><a href="#covariance-and-join-point-matching">Covariant methods and Join Point matching</a></dt></dl></dd><dt>6. <a href="#varargs">Varargs</a></dt><dd><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#calling-methods-and-constructors-with-variable-length-arguments">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#matching-signatures-based-on-variable-length-argument-types">Matching signatures based on variable length argument types</a></dt><dt><a href="#exposing-variable-length-arguments-as-context-in-pointcuts-and-advice">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></dd><dt>7. <a href="#enumeratedtypes">Enumerated Types</a></dt><dd><dl><dt><a href="#enums-in-java5">Enumerated Types in Java 5</a></dt><dt><a href="#enums-in-aspectj5">Enumerated Types in AspectJ 5</a></dt></dl></dd><dt>8. <a href="#pertypewithin">The pertypewithin Aspect Instantiation Model</a></dt><dt>9. <a href="#ataspectj">An Annotation Based Development Style</a></dt><dd><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></dd><dt>10. <a href="#reflection">New Reflection Interfaces</a></dt><dd><dl><dt><a href="#reflection_api">The Aspect Class</a></dt></dl></dd><dt>11. <a href="#miscellaneous">Other Changes in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e4067">Pointcuts</a></dt><dd><dl><dt><a href="#binding-of-formals">Binding of formals</a></dt><dt><a href="#additional-lint-warnings">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4121">Tools</a></dt><dd><dl><dt><a href="#aspectpath">Aspectpath</a></dt></dl></dd></dl></dd><dt>12. <a href="#ltw">Load-Time Weaving</a></dt><dd><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#weaving-class-files-more-than-once">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#enabling-load-time-weaving">Enabling Load-time Weaving</a></dt><dt><a href="#configuring-load-time-weaving-with-aopxml-files">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#weaver-options">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#jvmti">JVMTI</a></dt><dt><a href="#jrockit">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></dd><dt>A. <a href="#grammar">A Grammar for the AspectJ 5 Language</a></dt></dl></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="jpsigs"></a>Chapter 1. Join Point Signatures</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></div><p>
+      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="#jpsigs">Join Point Signatures</a></dt><dd><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></dd><dt>2. <a href="#annotations">Annotations</a></dt><dd><dl><dt><a href="#annotations-inJava5">Annotations in Java 5</a></dt><dd><dl><dt><a href="#using-annotations">Using Annotations</a></dt><dt><a href="#retention-policies">Retention Policies</a></dt><dt><a href="#accessing-annotations-at-runtime">Accessing Annotations at Runtime</a></dt><dt><a href="#annotation-inheritance">Annotation Inheritance</a></dt></dl></dd><dt><a href="#annotations-aspectmembers">Annotating Aspects</a></dt><dt><a href="#annotations-pointcuts-and-advice">Join Point Matching based on Annotations</a></dt><dd><dl><dt><a href="#annotation-patterns">Annotation Patterns</a></dt><dt><a href="#type-patterns">Type Patterns</a></dt><dt><a href="#signaturePatterns">Signature Patterns</a></dt><dt><a href="#example-pointcuts">Example Pointcuts</a></dt><dt><a href="#runtime-type-matching-and-context-exposure">Runtime type matching and context exposure</a></dt><dt><a href="#package-and-parameter-annotations">Package and Parameter Annotations</a></dt><dt><a href="#annotation-inheritance-and-pointcut-matching">Annotation Inheritance and pointcut matching</a></dt><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#annotations-decp">Using Annotations with declare statements</a></dt><dd><dl><dt><a href="#declare-error-and-declare-warning">Declare error and declare warning</a></dt><dt><a href="#declare-parents">declare parents</a></dt><dt><a href="#declare-precedence">declare precedence</a></dt></dl></dd><dt><a href="#annotations-declare">Declare Annotation</a></dt><dt><a href="#annotations-itds">Inter-type Declarations</a></dt></dl></dd><dt>3. <a href="#generics">Generics</a></dt><dd><dl><dt><a href="#generics-inJava5">Generics in Java 5</a></dt><dd><dl><dt><a href="#declaring-generic-types">Declaring Generic Types</a></dt><dt><a href="#using-generic-and-parameterized-types">Using Generic and Parameterized Types</a></dt><dt><a href="#subtypes-supertypes-and-assignability">Subtypes, Supertypes, and Assignability</a></dt><dt><a href="#generic-methods-and-constructors">Generic Methods and Constructors</a></dt><dt><a href="#erasure">Erasure</a></dt></dl></dd><dt><a href="#generics-inAspectJ5">Generics in AspectJ 5</a></dt><dd><dl><dt><a href="#matching-generic-and-parameterized-types-in-pointcut-expressions">Matching generic and parameterized types in pointcut expressions</a></dt><dt><a href="#inter-type-declarations">Inter-type Declarations</a></dt><dt><a href="#declare-parents">Declare Parents</a></dt><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#generic-aspects">Generic Aspects</a></dt></dl></dd></dl></dd><dt>4. <a href="#autoboxing">Autoboxing and Unboxing</a></dt><dd><dl><dt><a href="#boxing-inJava5">Autoboxing and Unboxing in Java 5</a></dt><dt><a href="#autoboxing-in-aspectj5">Autoboxing and Join Point matching in AspectJ 5</a></dt><dt><a href="#autoboxing-and-method-dispatch">Inter-type method declarations and method dispatch</a></dt></dl></dd><dt>5. <a href="#covariance">Covariance</a></dt><dd><dl><dt><a href="#covariance-inJava5">Covariance in Java 5</a></dt><dt><a href="#covariance-and-join-point-matching">Covariant methods and Join Point matching</a></dt></dl></dd><dt>6. <a href="#varargs">Varargs</a></dt><dd><dl><dt><a href="#varargs-inJava5">Variable-length Argument Lists in Java 5</a></dt><dd><dl><dt><a href="#calling-methods-and-constructors-with-variable-length-arguments">Calling Methods and Constructors with variable-length arguments</a></dt></dl></dd><dt><a href="#varargs-in-pcds">Using Variable-length arguments in advice and pointcut expressions</a></dt><dd><dl><dt><a href="#matching-signatures-based-on-variable-length-argument-types">Matching signatures based on variable length argument types</a></dt><dt><a href="#exposing-variable-length-arguments-as-context-in-pointcuts-and-advice">Exposing variable-length arguments as context in pointcuts and advice</a></dt></dl></dd></dl></dd><dt>7. <a href="#enumeratedtypes">Enumerated Types</a></dt><dd><dl><dt><a href="#enums-in-java5">Enumerated Types in Java 5</a></dt><dt><a href="#enums-in-aspectj5">Enumerated Types in AspectJ 5</a></dt></dl></dd><dt>8. <a href="#pertypewithin">The pertypewithin Aspect Instantiation Model</a></dt><dt>9. <a href="#ataspectj">An Annotation Based Development Style</a></dt><dd><dl><dt><a href="#ataspectj-intro">Introduction</a></dt><dt><a href="#ataspectj-aspects">Aspect Declarations</a></dt><dd><dl><dt><a href="#limitations">Limitations</a></dt></dl></dd><dt><a href="#ataspectj-pcadvice">Pointcuts and Advice</a></dt><dd><dl><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#ataspectj-itds">Inter-type Declarations</a></dt><dt><a href="#ataspectj-declare">Declare statements</a></dt><dt><a href="#ataspectj-aspectof">aspectOf() and hasAspect() methods</a></dt></dl></dd><dt>10. <a href="#reflection">New Reflection Interfaces</a></dt><dd><dl><dt><a href="#reflection_api">The Aspect Class</a></dt></dl></dd><dt>11. <a href="#miscellaneous">Other Changes in AspectJ 5</a></dt><dd><dl><dt><a href="#d0e4067">Pointcuts</a></dt><dd><dl><dt><a href="#binding-of-formals">Binding of formals</a></dt><dt><a href="#additional-lint-warnings">Additional lint warnings</a></dt></dl></dd><dt><a href="#declare-soft">Declare Soft</a></dt><dt><a href="#d0e4121">Tools</a></dt><dd><dl><dt><a href="#aspectpath">Aspectpath</a></dt></dl></dd></dl></dd><dt>12. <a href="#ltw">Load-Time Weaving</a></dt><dd><dl><dt><a href="#ltw-introduction">Introduction</a></dt></dl></dd><dt>A. <a href="#grammar">A Grammar for the AspectJ 5 Language</a></dt></dl></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="jpsigs"></a>Chapter 1. Join Point Signatures</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#join-point-matching">Join Point Matching</a></dt><dt><a href="#join-point-signatures">Join Point Signatures</a></dt><dd><dl><dt><a href="#method-call-join-point-signatures">Method call join point signatures</a></dt><dt><a href="#method-execution-join-point-signatures">Method execution join point signatures</a></dt><dt><a href="#field-get-and-set-join-point-signatures">Field get and set join point signatures</a></dt></dl></dd><dt><a href="#join-point-modifiers">Join Point Modifiers</a></dt><dt><a href="#join-point-matching-summary">Summary of Join Point Matching</a></dt></dl></div><p>
         Many of the extensions to the AspectJ language to address the new features of
         Java 5 are derived from a simple set of principles for join point
         matching. In this section, we outline these principles as a foundation
@@ -1493,7 +1493,7 @@
             // default implementations.
           
             /** list of children maintained by parent */
-            private List&lt;C&gt; ParentHasChildren&lt;C&gt;.children;
+            private List&lt;C&gt; ParentHasChildren&lt;C&gt;.children = new ArrayList&lt;C&gt;();
           
             /** reference to parent maintained by child */        
             private P ChildHasParent&lt;P&gt;.parent;
@@ -1548,7 +1548,7 @@
                 * Matches at a removeChild join point for the parent type P and child type C
                 */    
               public pointcut removingChild(Parent p, Child c) :
-                execution(* Parent.removeChild(C)) &amp;&amp; this(p) &amp;&amp; args(c);
+                execution(* Parent.removeChild(Child)) &amp;&amp; this(p) &amp;&amp; args(c);
 
           }
           
@@ -2580,188 +2580,7 @@
        	
        	}
 		</pre></div><div class="sect1"><a name="d0e4121"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e4121"></a>Tools</h2></div></div><div class="sect2"><a name="aspectpath"></a><div class="titlepage"><div><h3 class="title"><a name="aspectpath"></a>Aspectpath</h3></div></div><p>AspectJ 5 allows the specification of directories (containing .class files) on the aspectpath in
-              addition to jar/zip files.</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ltw"></a>Chapter 12. Load-Time Weaving</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ltw-introduction">Introduction</a></dt><dd><dl><dt><a href="#weaving-class-files-more-than-once">Weaving class files more than once</a></dt></dl></dd><dt><a href="#ltw-rules">Load-time Weaving Requirements</a></dt><dt><a href="#ltw-configuration">Configuration</a></dt><dd><dl><dt><a href="#enabling-load-time-weaving">Enabling Load-time Weaving</a></dt><dt><a href="#configuring-load-time-weaving-with-aopxml-files">Configuring Load-time Weaving with aop.xml files</a></dt><dt><a href="#weaver-options">Weaver Options</a></dt></dl></dd><dt><a href="#ltw-specialcases">Special cases</a></dt><dt><a href="#ltw-packaging">Runtime Requirements for Load-time Weaving</a></dt><dt><a href="#ltw-agents">Supported Agents</a></dt><dd><dl><dt><a href="#jvmti">JVMTI</a></dt><dt><a href="#jrockit">JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</a></dt></dl></dd></dl></div><div class="sect1"><a name="ltw-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-introduction"></a>Introduction</h2></div></div><p> The AspectJ 5 weaver takes class files as input and produces class files as output.
-            The weaving process itself can take place at one of three different times: compile-time,
-            post-compile time, and load-time. The class files produced by the weaving process (and
-            hence the run-time behaviour of an application) are the same regardless of the approach
-            chosen. </p><div class="itemizedlist"><ul><li><a name="d0e4138"></a> Compile-time weaving is the simplest approach. When you have the source code
-                for an application, ajc will compile from source and produce woven class files as
-                output. The invocation of the weaver is integral to the ajc compilation process. The
-                aspects themselves may be in source or binary form. </li><li><a name="d0e4140"></a> Post-compile weaving (also sometimes called binary weaving) is used to weave
-                existing class files and JAR files. As with compile-time weaving,
-                the aspects used for weaving may be in source or binary form. </li><li><a name="d0e4142"></a> Load-time weaving (LTW) is simply binary weaving defered until the point that
-                a class loader loads a class file and defines the class to the JVM. To support this,
-                one or more "weaving class loaders", either provided explicitly by the run-time
-                environment or enabled through a "weaving agent" are required. </li></ul></div><p> You may also hear the term "run-time weaving". We define this as the weaving of
-            classes that have already been defined to the JVM (without reloading those
-            classes). AspectJ 5 does not provide explicit support for run-time weaving although
-            simple coding patterns can support dynamically enabling and disabling advice in aspects. </p><div class="sect2"><a name="weaving-class-files-more-than-once"></a><div class="titlepage"><div><h3 class="title"><a name="weaving-class-files-more-than-once"></a>Weaving class files more than once</h3></div></div><p> By default a class file that has been woven by the AspectJ compiler cannot
-                subsequently be rewoven (passed as input to the weaver). If you are developing
-                AspectJ applications that are to be used in a load-time weaving environment, you
-                need to specify the <tt>-Xreweavable</tt> compiler option when building
-                them. This causes AspectJ to save additional state in the class files that is used
-                to support subsequent reweaving. </p><p>As per AspectJ 1.5.0 M3 aspects (code style or annotation style) are
-            reweavable by default, and weaved classes may be as well in 1.5.0 final.</p></div></div><div class="sect1"><a name="ltw-rules"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-rules"></a>Load-time Weaving Requirements</h2></div></div><p> All load-time weaving is done in the context of a class loader, and hence the set of
-            aspects used for weaving and the types that can be woven are affected by the class
-            loader delegation model. This ensures that LTW complies with the Java 2 security model.
-            The following rules govern the interaction of load-time weaving with class loading: </p><div class="orderedlist"><ol type="1"><li><a name="d0e4163"></a> All aspects to be used for weaving must be defined to the weaver before any
-                types to be woven are loaded.</li><li><a name="d0e4165"></a> All abstract and concrete aspects visible to the weaver
-                are available for extending (abstract aspects) and using for weaving. 
-                A visible aspect is one defined by the
-                weaving class loader or one of its parent class loaders.</li><li><a name="d0e4167"></a>A class loader may only weave classes that it defines. It may not weave
-                classes loaded by a delegate or parent class loader.</li></ol></div></div><div class="sect1"><a name="ltw-configuration"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-configuration"></a>Configuration</h2></div></div><p>AspectJ 5 supports a number of mechanisms designed to make load-time weaving as
-        easy to use as possibe. The load-time weaving mechanism is chosen through JVM startup options. 
-        Configuration files determine the set of aspects to be used for weaving and which 
-        types will be woven. Additional diagnostic options allow the user to debug the configuration and 
-        weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several different ways of enabling load-time weaving for
-            an application: agents, a command-line launch script, and a set of interfaces for
-            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e4180"></a><span class="term">Agents</span></dt><dd><p><a name="d0e4183"></a>AspectJ 5 ships with a number of load-time weaving agents that
-                            enable load-time weaving. These agents and their configuration
-                            are execution environment dependent. Configuration for the supported environments is discussed
-                            later in this chapter.</p><p>
-                            Using Java 5 JVMTI you can specify the <tt>-javaagent:pathto/aspectjweaver.jar</tt> option
-                            to the JVM.</p><p>
-                            Using BEA JRockit and Java 1.3/1.4, the very same behavior can be obtained using BEA JRockit JMAPI features with
-                            the <tt>-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent</tt>
-                        </p></dd><dt><a name="d0e4212"></a><span class="term">Custom Integration</span></dt><dd><p><a name="d0e4215"></a> A public interface is provided to allow a user written class loader
-                            to instantiate a weaver and weave classes after loading and before
-                            defining them in the JVM. This enables load-time weaving to be supported in
-                            environments where no weaving agent is available. It also allows the
-                            user to explicity restrict by class loader which classes can be woven.</p></dd></dl></div></div><div class="sect2"><a name="configuring-load-time-weaving-with-aopxml-files"></a><div class="titlepage"><div><h3 class="title"><a name="configuring-load-time-weaving-with-aopxml-files"></a>Configuring Load-time Weaving with aop.xml files</h3></div></div><p>The weaver is configured using one or more <tt>META-INF/aop.xml</tt>
-                files located on the class loader search path. Each file may define a list of
-                concrete aspects to be used for weaving, type patterns describing which types
-                should woven, and a set of options to be passed to the weaver. In addition AspectJ 5
-                supports the definition of concrete aspects in XML. Aspects defined in this way
-                must extend an abstract aspect visible to the weaver. The abstract aspect
-                may define abstract pointcuts (but not abstract
-                methods). The following example shows a simple aop.xml file: </p><pre class="programlisting">
-          &lt;aspectj&gt;
-
-            &lt;aspects&gt;
-              &lt;!-- declare two existing aspects to the weaver --&gt;
-              &lt;aspect name="com.MyAspect"/&gt;
-              &lt;aspect name="com.MyAspect.Inner"/&gt;
-
-              &lt;!-- define a concrete aspect inline --&gt;
-              &lt;concrete-aspect name="com.xyz.tracing.MyTracing" extends="tracing.AbstractTracing"&gt;
-                &lt;pointcut name="tracingScope" expression="within(org.maw.*)"/&gt;
-              &lt;/concrete-aspect&gt;
-
-              &lt;!-- Of the set of aspects known to the weaver, use aspects matching
-                   the type pattern "com..*" for weaving. --&gt;
-              &lt;include within="com..*"/&gt;
-
-              &lt;!-- Do not use any aspects with the @CoolAspect annotation for weaving --&gt;
-              &lt;exclude within="@CoolAspect *"/&gt;
-
-            &lt;/aspects&gt;
-
-            &lt;weaver options="-verbose -XlazyTjp"&gt;
-              &lt;!-- Weave types that are within the javax.* or org.aspectj.*
-                   packages. Also weave all types in the foo package that do
-                   not have the @NoWeave annotation. --&gt;
-              &lt;include within="javax.*"/&gt;
-              &lt;include within="org.aspectj.*"/&gt;
-              &lt;include within="(!@NoWeave foo.*) AND foo.*"/&gt;
-              &lt;dump within="somepack.*"/&gt;&lt;!-- will dump weaved classes to the "./_ajdump" folder on disk (for diagnostic purpose) --&gt;
-            &lt;/weaver&gt;
-
-          &lt;/aspectj&gt;
-
-		  </pre><p>
-                An aop.xml file contains two key sections: "aspects" defines one
-                or more aspects to the weaver and controls which aspects are to be
-                used in the weaving process; "weaver" defines weaver options and which
-                types should be woven.
-            </p><p>
-                The simplest way to define an aspect to the weaver is to 
-                specify the fully-qualified name of the aspect type in an aspect element. 
-                You can also
-                declare (and define to the weaver) aspects inline in the aop.xml file.
-                This is done using the "concrete-aspect" element. A concrete-aspect
-                declaration must provide a pointcut definition for every abstract 
-                pointcut in the abstract aspect it extends. This mechanism is a 
-                useful way of externalizing configuration for infrastructure and
-                auxiliary aspects where the pointcut definitions themselves can be
-                considered part of the configuration of the service.
-            </p><p>
-                <span class="emphasis"><i>
-                Note: concrete-aspect is not available in AspectJ 1.5 M3.
-                </i></span>
-            </p><p>
-                The aspects element may optionally contain one or more include and
-                exclude elements (by default, all defined aspects are used for weaving).
-                Specifying include or exclude elements restricts the set of defined
-                aspects to be used for weaving to those that are matched by an include
-                pattern, but not by an exclude pattern. The 'within' attribute accepts
-                a type pattern of the same form as a within pcd, except that &amp;&amp;
-                and || are replaced by 'AND' and 'OR'.
-            </p><p>
-                The weaver element is used to pass options to the weaver and to specify
-                the set of types that should be woven. If no include elements are specified
-                then all types seen by the weaver will be woven.
-            </p><p> When several configuration files are visible from a given weaving class loader
-                their contents are conceptually merged (this applies to both aop.xml files
-                and to aop.properties files as described in the next section). 
-                The files are merged in the order they are
-                found on the search path (regular <tt>getResourceAsStream</tt> lookup)
-                according to the following rules: </p><div class="itemizedlist"><ul><li><a name="d0e4248"></a> The set of available aspects is the set of all
-                    declared and defined aspects (<tt>aspect</tt> and
-                    <tt>concrete-aspect</tt> elements of the <tt>aspects</tt>
-                    section).</li><li><a name="d0e4259"></a>The set of aspects used for weaving is the subset of the available
-                    aspects that are matched by at least one include statement and are not matched
-                    by any exclude statements. If there are no include statements then all non-excluded
-                    aspects are included.</li><li><a name="d0e4261"></a> The set of types to be woven are those types matched by at
-                    least one weaver <tt>include</tt> element and not matched by any 
-                    weaver <tt>exclude</tt> element. If there are no weaver include
-                    statements then all non-excluded types are included.</li><li><a name="d0e4269"></a> The weaver options are derived by taking the union of the
-                    options specified in each of the weaver options attribute specifications. Where an
-                    option takes a value e.g. <tt>-warn:none</tt> the most recently defined value
-                    will be used.</li></ul></div><p>It is not an error for the same aspect to be defined to the weaver in 
-                more than one visible <tt>META-INF/aop.xml</tt> file. 
-                However, if a declarative concrete aspect
-                is declared in more than aop.xml file then an error will be issued.
-                 A concrete aspect 
-                defined in this way will be used to weave types loaded by the
-                class loader that loaded the aop.xml file in which it was defined. 
-                </p><p> A <tt>META-INF/aop.xml</tt> file will automatically be generated when
-                using the <tt>-outjar</tt> option of the AspectJ compiler. 
-                It will simply contain a (possibly empty) set of aspect elements, one for
-                each concrete aspect included in the JAR. </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
-                will be ignored and a warning issued. </p><div class="informaltable" id="d0e4294"><a name="d0e4294"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
-                                   when the load time weaving engine is bootstrapped (hence its logger as per <tt>-XmessageHandlerClass:...</tt> not ready yet),
-                                   you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line. Messages will then be printed
-                                   on stderr as long as the message handler class is not ready.
-                            </td></tr><tr><td><tt>-1.5</tt></td><td>Run the weaver in 1.5 mode (supports autoboxing in
-                            join point matching)</td></tr><tr><td><tt>-XlazyTjp</tt></td><td>Performance optimization for aspects making use
-                            of thisJoinPoint (non-static parts)</td></tr><tr><td><tt>-Xlintfile:pathToAResource</tt></td><td>Configure lint messages as specified in the given resource (visible from this aop.xml file' classloader)</td></tr><tr><td><tt>-Xlint:default, -Xlint:ignore, ...</tt></td><td>Configure lint messages, refer to documentation for meaningfull values</td></tr><tr><td><tt>-nowarn, -warn:none</tt></td><td>Suppress warning messages</td></tr><tr><td><tt>-proceedOnError</tt></td><td>Continue weaving even if errors occur (for example,
-                             "... already woven" errors)</td></tr><tr><td><tt>-Xreweavable</tt></td><td>Produce class files that can subsequently be rewoven</td></tr><tr><td><tt>-XnoInline</tt></td><td>Don't inline around advice.</td></tr><tr><td><tt>-showWeaveInfo</tt></td><td>Issue informational messages whenever the weaver touches a class file</td></tr><tr><td><tt>-XmessageHandlerClass:...</tt></td><td>Provide alternative output destination to stdout/stderr for all weaver messages.
-                            The given value must be the full qualified class name of a class that implements
-                            <tt>org.aspectj.bridge.IMessageHandler</tt>
-                            and that is visible from where the <tt>aop.xml</tt> is packed.
-                            If more than one such options are used,
-                            the first occurence only is taken into account.
-                            You must also be very cautious about using a custom handler since it is likely that it will be invoked
-                            (as well as all its third parties) while the weaving is done, which means that f.e. it cannot be weaved
-                            by the aspects that are configured within the same deployment unit.
-                            </td></tr></tbody></table></div></div></div><div class="sect1"><a name="ltw-specialcases"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-specialcases"></a>Special cases</h2></div></div><p>
-            Those classes are not exposed to the LTW infrastructure, no matter
-            the configuration of the <tt>aop.xml</tt> file(s):
-            <div class="itemizedlist"><ul><li><a name="d0e4390"></a>All <tt>org.aspectj.*</tt> classes (and subpackages) - as those are needed by the infrastructure itself</li><li><a name="d0e4395"></a>All <tt>java.*</tt> and <tt>javax.*</tt> classes (and subpackages)</li><li><a name="d0e4403"></a>All <tt>sun.reflect.*</tt> classes - as those are JDK specific classes used when reflective calls occurs</li></ul></div>
-        </p><p>
-            Despite these restrictions, it is perfectly possible to match call join points for calls to these types providing the calling
-            class is exposed to the weaver. Subtypes of these excluded types that are exposed to the weaver may of course be woven.
-        </p><p>
-            Note that dynamic proxy representations are exposed to the LTW infrastructure and are not considered
-            a special case.
-        </p></div><div class="sect1"><a name="ltw-packaging"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-packaging"></a>Runtime Requirements for Load-time Weaving</h2></div></div><p> To use LTW the <tt>aspectjweaver.jar</tt> library must be added to the
-            classpath. This contains the AspectJ 5 runtime, weaver, weaving class loader and
-            weaving agents. It also contains the DTD for parsing XML weaving configuration files. </p></div><div class="sect1"><a name="ltw-agents"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-agents"></a>Supported Agents</h2></div></div><div class="sect2"><a name="jvmti"></a><div class="titlepage"><div><h3 class="title"><a name="jvmti"></a>JVMTI</h3></div></div><p> When using Java 5 the JVMTI agent can be used by starting the JVM with the
-                following option (adapt according to the path to aspectjweaver.jar): </p><pre class="programlisting">
-			-javaagent:pathto/aspectjweaver.jar
-		  </pre></div><div class="sect2"><a name="jrockit"></a><div class="titlepage"><div><h3 class="title"><a name="jrockit"></a>JRockit with Java 1.3/1.4 (use JVMTI on Java 5)</h3></div></div><p> The JRockit agent is configured with the following JVM option: </p><pre class="programlisting">
-			-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent
-		  </pre></div></div></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="grammar"></a>Appendix A. A Grammar for the AspectJ 5 Language</h2></div></div><pre class="programlisting">
+              addition to jar/zip files.</p></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ltw"></a>Chapter 12. Load-Time Weaving</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ltw-introduction">Introduction</a></dt></dl></div><div class="sect1"><a name="ltw-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-introduction"></a>Introduction</h2></div></div><p>See Developer's Guide.</p></div></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="grammar"></a>Appendix A. A Grammar for the AspectJ 5 Language</h2></div></div><pre class="programlisting">
         === type patterns ===
       
         TypePattern := SimpleTypePattern |
