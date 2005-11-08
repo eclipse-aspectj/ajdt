@@ -1683,7 +1683,7 @@ M4 = Platform-specific fourth key
                mode="debug">
          </launchMode>
          <launchMode
-               description="%launcherDescription"
+               description="%ltwLauncherDescription"
                mode="run">
          </launchMode>
       </launchConfigurationTabGroup>
