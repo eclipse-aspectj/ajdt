@@ -223,14 +223,8 @@ public class LTWApplicationLaunchConfigurationDelegate
 	private String[] getLTWClasspath() throws IOException {
 		URL resolvedaspectjWeaverJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 		URL resolvedaspectjRTJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
-		String weaverPath = resolvedaspectjWeaverJar.toExternalForm();
-		if(weaverPath.startsWith("file:/")) {  //$NON-NLS-1$
-			weaverPath = weaverPath.substring(6);
-		}
-		String rtPath = resolvedaspectjRTJar.toExternalForm();
-		if(rtPath.startsWith("file:/")) { //$NON-NLS-1$
-			rtPath = rtPath.substring(6);
-		}
+		String weaverPath = new Path(resolvedaspectjWeaverJar.getFile()).toOSString();
+		String rtPath = new Path(resolvedaspectjRTJar.getFile()).toOSString();
 		return new String[] {weaverPath, rtPath};
 	}
 
@@ -246,7 +240,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 		sb.append('\"'); //$NON-NLS-1$
 		for (int i = 0; i < ajClasspath.length; i++) {
 			if(i != 0) {
-				sb.append(';'); //$NON-NLS-1$
+				sb.append(File.pathSeparator);
 			}
 			sb.append(ajClasspath[i]);			
 		}
