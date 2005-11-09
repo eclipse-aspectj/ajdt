@@ -84,13 +84,11 @@ Creates an update site structure for AspectJ
 	<unzip dest="fpack_dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}"
 	        src="dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}.jar"/>	
 
-	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.core_${ajdt.version}"/>
-	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.core_${ajdt.version}"
-	        src="dist/plugins/org.eclipse.ajdt.core_${ajdt.version}.jar"/>	
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.ajdt.core_${ajdt.version}.jar"/>
 
-	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}"/>
-	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}"
-	        src="dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}.jar"/>	
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}.jar"/>
 
 	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"/>
 	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"
@@ -108,17 +106,14 @@ Creates an update site structure for AspectJ
 	<unzip dest="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"
 	        src="dist/plugins/org.aspectj.ajde_${ajde.version}.jar"/>
 
-	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.xref.core_${xref.version}"/>
-	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.xref.core_${xref.version}"
-	        src="dist/plugins/org.eclipse.contribution.xref.core_${xref.version}.jar"/>
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.contribution.xref.core_${xref.version}.jar"/>
 
-	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}"/>
-	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}"
-	        src="dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}.jar"/>
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.contribution.xref.ui_${xref.version}.jar"/>
 
-	<mkdir dir="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"/>
-	<unzip dest="fpack_dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}"
-	        src="dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}.jar"/>
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.contribution.visualiser_${visualiser.version}.jar"/>
 
 	<!-- Add source plugin -->
 	<ant dir="../org.eclipse.ajdt.source"/>
