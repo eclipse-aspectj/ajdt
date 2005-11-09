@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.eclipse.core.resources.IResource;
 
 /**
@@ -18,13 +20,25 @@ import org.eclipse.core.resources.IResource;
  */
 public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 	
+	private ExtraInformation extraInfo;
+
+	/**
+	 * @param parent
+	 * @param name
+	 * @param parameterTypes
+	 */
+	public AJInjarElement(String name, IProgramElement.ExtraInformation extraInfo) {
+		super(null,0,name); //$NON-NLS-1$
+		this.extraInfo = extraInfo;
+	}
+	
 	/**
 	 * @param parent
 	 * @param name
 	 * @param parameterTypes
 	 */
 	public AJInjarElement(String name) {
-		super(null,0,name); //$NON-NLS-1$
+		super(null,0,name); 
 	}
 	
 	public IResource getResource() {
@@ -48,5 +62,9 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 			return buff.toString();
 		} 
 		return super.getHandleMemento();
+	}
+
+	public ExtraInformation getAJExtraInformation() {
+		return extraInfo;
 	}
 }

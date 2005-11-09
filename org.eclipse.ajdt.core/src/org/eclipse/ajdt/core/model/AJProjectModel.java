@@ -327,8 +327,8 @@ public class AJProjectModel {
 										.getFormattedResourceString(
 												"injarElementLabel", link //$NON-NLS-1$
 														.getName());
-								targetEl = new AJInjarElement(name);
-
+								targetEl = new AJInjarElement(name, link.getExtraInfo());
+								
 								// store this elements, so that it gets saved
 								jeLinkNames.put(targetEl, name);
 								lineNumbers.put(targetEl, new Integer(0));

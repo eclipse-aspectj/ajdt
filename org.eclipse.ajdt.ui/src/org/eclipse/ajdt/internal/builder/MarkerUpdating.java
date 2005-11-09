@@ -20,6 +20,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
+import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
@@ -204,27 +205,38 @@ public class MarkerUpdating {
 		IJavaElement source = relationship.getSource();
 		IJavaElement target = relationship.getTarget();
 		AJRelationshipType type = relationship.getRelationship();
-		if(type.equals(AJRelationshipManager.ADVISED_BY) &&  target instanceof AdviceElement) {
+		if (type.equals(AJRelationshipManager.ADVISED_BY)) {
+			IProgramElement.ExtraInformation extraInfo = null;
 			try {
-				IProgramElement.ExtraInformation extraInfo = ((AdviceElement)target).getAJExtraInformation();
-				if (extraInfo.getExtraAdviceInformation()!=null) {				
-					if(extraInfo.getExtraAdviceInformation().equals("before")) { //$NON-NLS-1$
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
+				if (target instanceof AdviceElement) {
+					extraInfo = ((AdviceElement) target)
+					.getAJExtraInformation();
+				} else if (target instanceof AJInjarElement) {
+					extraInfo = ((AJInjarElement) target)
+					.getAJExtraInformation();
+				}
+				if (extraInfo != null) {
+					if (extraInfo.getExtraAdviceInformation() != null) {
+						if (extraInfo.getExtraAdviceInformation().equals(
+								"before")) { //$NON-NLS-1$
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_BEFORE_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.BEFORE_ADVICE_MARKER;
+							}
+						} else if (extraInfo.getExtraAdviceInformation()
+								.equals("around")) { //$NON-NLS-1$
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.AROUND_ADVICE_MARKER;
+							}
 						} else {
-							return IAJModelMarker.BEFORE_ADVICE_MARKER;
-						}
-					} else if (extraInfo.getExtraAdviceInformation().equals("around")) { //$NON-NLS-1$
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_AROUND_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.AROUND_ADVICE_MARKER;
-						}
-					} else {
-						if(runtimeTest) {
-							return IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
-						} else {
-							return IAJModelMarker.AFTER_ADVICE_MARKER;	
+							if (runtimeTest) {
+								return IAJModelMarker.DYNAMIC_AFTER_ADVICE_MARKER;
+							} else {
+								return IAJModelMarker.AFTER_ADVICE_MARKER;
+							}
 						}
 					}
 				}
