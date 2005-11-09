@@ -14,11 +14,13 @@ import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.views.contentoutline.ContentOutline;
 
 /**
  * Class to activate the Cross References View via the context menu
@@ -51,7 +53,9 @@ public class OpenXReferenceViewAction implements IObjectActionDelegate, IWorkben
      * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
      */
     public void selectionChanged(IAction action, ISelection selection) {
-    }
+    	IWorkbenchPart activePart = JavaPlugin.getActiveWorkbenchWindow().getActivePage().getActivePart();
+		action.setEnabled(activePart instanceof ContentOutline || activePart instanceof IEditorPart);
+	}
 
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
