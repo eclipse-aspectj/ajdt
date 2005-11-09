@@ -20,6 +20,7 @@ import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
+import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
@@ -206,10 +207,16 @@ public class MarkerUpdating {
 		IJavaElement target = relationship.getTarget();
 		AJRelationshipType type = relationship.getRelationship();
 		if (type.equals(AJRelationshipManager.ADVISED_BY)) {
-			if (target instanceof AdviceElement) {
-				try {
-					IProgramElement.ExtraInformation extraInfo = ((AdviceElement) target)
-							.getAJExtraInformation();
+			IProgramElement.ExtraInformation extraInfo = null;
+			try {
+				if (target instanceof AdviceElement) {
+					extraInfo = ((AdviceElement) target)
+					.getAJExtraInformation();
+				} else if (target instanceof AJInjarElement) {
+					extraInfo = ((AJInjarElement) target)
+					.getAJExtraInformation();
+				}
+				if (extraInfo != null) {
 					if (extraInfo.getExtraAdviceInformation() != null) {
 						if (extraInfo.getExtraAdviceInformation().equals(
 								"before")) { //$NON-NLS-1$
@@ -233,8 +240,8 @@ public class MarkerUpdating {
 							}
 						}
 					}
-				} catch (JavaModelException jme) {
-				}
+				}	
+			} catch (JavaModelException jme) {
 			}
 			if (runtimeTest) {
 				return IAJModelMarker.DYNAMIC_ADVICE_MARKER;

@@ -330,8 +330,8 @@ public class AJProjectModel {
 								// have a binary/injar aspect, otherwise we
 								// don't know what it is, so we skip it
 								String name = NLS.bind(CoreMessages.injarElementLabel, link.getName());
-								targetEl = new AJInjarElement(name);
-
+								targetEl = new AJInjarElement(name, link.getExtraInfo());
+								
 								// store this elements, so that it gets saved
 								jeLinkNames.put(targetEl, name);
 								lineNumbers.put(targetEl, new Integer(0));
