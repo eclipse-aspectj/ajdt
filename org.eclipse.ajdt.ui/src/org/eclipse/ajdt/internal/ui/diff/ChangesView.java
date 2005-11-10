@@ -470,22 +470,25 @@ public class ChangesView extends ViewPart {
 			populatingList.add(relationshipTypes[i].getDisplayName());
 		}
 
+		// list of relationships to filter out by default
+		List defaultFilterList = new ArrayList();
+		defaultFilterList.add(AJRelationshipManager.ADVISED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.ASPECT_DECLARATIONS.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.MATCHES_DECLARE.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.ANNOTATED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.SOFTENED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.USES_POINTCUT.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.POINTCUT_USED_BY.getDisplayName());
+
 		List checkedList = new ArrayList();
-
-		List defaultCheckedList = new ArrayList();
-		for (int i = 1; i < relationshipTypes.length; i = i + 2) {
-			defaultCheckedList.add(relationshipTypes[i].getDisplayName());
-		}
-
-		String dlogTitle = UIMessages.changesView_filter_dialog_title;
-		String dlogMessage = UIMessages.changesView_filter_dialog_message;
-
 		if (checkedList.size() == 0) {
-			checkedList = new ArrayList(defaultCheckedList);
+			checkedList = new ArrayList(defaultFilterList);
 		}
 		
+		String dlogTitle = UIMessages.changesView_filter_dialog_title;
+		String dlogMessage = UIMessages.changesView_filter_dialog_message;
 		filterAction = new ChangesViewFilterAction(getSite().getShell(),
-				populatingList, checkedList, defaultCheckedList, dlogTitle,
+				populatingList, checkedList, defaultFilterList, dlogTitle,
 				dlogMessage, UIMessages.changesView_filter_action_tooltip);
 	}
 	

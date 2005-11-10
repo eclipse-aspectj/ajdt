@@ -132,7 +132,12 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	public List getFilterCheckedList() {
-		return AspectJPreferences.getFilterCheckedList();
+		List checked = AspectJPreferences.getFilterCheckedList();
+		if (checked != null) {
+			return checked;
+		}
+		// use defaults
+		return getFilterDefaultList();
 	}
 	
 	public void setCheckedInplaceFilters(List l) {
@@ -157,13 +162,17 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	/*
-	 * Returns the List of items to be filtered from the view by default. At the
-	 * moment we do not wish to filter anything, (i.e. empty List). This may
-	 * change is more relationships are added. (non-Javadoc)
+	 * Returns the List of items to be filtered from the view by default.
 	 * 
 	 * @see org.eclipse.contribution.xref.core.IXReferenceProvider#getFilterDefaultList()
 	 */
 	public List getFilterDefaultList() {
-		return new ArrayList();
+		List defaultFilterList = new ArrayList();
+		
+		// list of relationships to filter out by default
+		defaultFilterList.add(AJRelationshipManager.USES_POINTCUT.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.POINTCUT_USED_BY.getDisplayName());
+
+		return defaultFilterList;
 	}
 }

@@ -57,17 +57,17 @@ public class AJRelationshipManager {
 	public static final AJRelationshipType SOFTENED_BY = new AJRelationshipType(
 			"softened_by", CoreMessages.softened_by_displayName, CoreMessages.softened_by_menuName); //$NON-NLS-1$
 
-	// Enable these lines if we ever want these relationships in the model
-	// NOTE: they also need to be added to the allRelationshipTypes array below
-	//	public static final AJRelationshipType USES_POINTCUT = new AJRelationshipType(
-	//			"uses_pointcut", "uses pointcut", "Uses Pointcut"); //$NON-NLS-1$
-	//	public static final AJRelationshipType POINTCUT_USED_BY = new AJRelationshipType(
-	//			"pointcut_used_by", "pointcut used by", "Pointcut Used By"); //$NON-NLS-1$
+	public static final AJRelationshipType USES_POINTCUT = new AJRelationshipType(
+			"uses_pointcut", CoreMessages.uses_pointcut_displayName, CoreMessages.uses_pointcut_menuName); //$NON-NLS-1$
+
+	public static final AJRelationshipType POINTCUT_USED_BY = new AJRelationshipType(
+			"pointcut_used_by", CoreMessages.pointcut_used_by_displayName, CoreMessages.uses_pointcut_menuName); //$NON-NLS-1$
 
 	/**
 	 * Array of all known relationship types
 	 */
 	public static AJRelationshipType[] allRelationshipTypes = new AJRelationshipType[] {
 			ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
-			MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY };
+			MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY,
+			USES_POINTCUT, POINTCUT_USED_BY };
 }

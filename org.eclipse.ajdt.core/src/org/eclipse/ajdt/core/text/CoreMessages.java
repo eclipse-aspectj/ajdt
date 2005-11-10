@@ -34,6 +34,8 @@ public class CoreMessages extends NLS {
 	public static String annotated_by_displayName;
 	public static String softens_displayName;
 	public static String softened_by_displayName;
+	public static String uses_pointcut_displayName;
+	public static String pointcut_used_by_displayName;
 
 	public static String advises_menuName;
 	public static String advised_by_menuName;
@@ -45,6 +47,8 @@ public class CoreMessages extends NLS {
 	public static String annotated_by_menuName;
 	public static String softens_menuName;
 	public static String softened_by_menuName;
+	public static String uses_pointcut_menuName;
+	public static String pointcut_used_by_menuName;
 
 	public static String injarElementLabel;
 
