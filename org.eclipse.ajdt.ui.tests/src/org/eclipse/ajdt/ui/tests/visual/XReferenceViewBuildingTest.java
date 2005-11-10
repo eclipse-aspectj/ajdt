@@ -400,8 +400,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 * An aspect is the open file.  
 	 */
 	public void testLinkingDisabledAndUpdating4() throws Exception {
-		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		// ensure linking is enabled and show all xrefs is disabled
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
+		assertFalse("show all xrefs should be disabled by default",xrefView.isShowXRefsForFileEnabled()); //$NON-NLS-1$
 		
 		IResource res = project.findMember("src/pack/A.aj");
 		if (res == null || !(res instanceof IFile)) {
@@ -409,14 +410,20 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		} 
 		IFile ajFile = (IFile)res;
 
-		// open C.java and select the first method
+		// open A.aj and select declare warning statement
 		ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(ajFile, true);
 		editorPart.setFocus();
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		Object origContents = xrefView.getTreeViewer().getInput();
+		
 		gotoLine(8);
-		moveCursorRight(13);
+		waitForJobsToComplete();
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(origContents);
+		Object origContents1 = xrefView.getTreeViewer().getInput();
+		moveCursorRight(15);
 		waitForJobsToComplete();
 
-		XRefVisualTestUtils.waitForXRefViewToContainXRefs(1);
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(origContents1);
 		
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
@@ -461,12 +468,13 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		postKeyUp(SWT.CTRL);
 		waitForJobsToComplete();
 		
+		// wait for something suprious to give time for the xref
+		// view to update
 		XRefVisualTestUtils.waitForXRefViewToContainXRefs(2);
 
 		// get the contents of the xref view and check that it has
-		// one reference source with 2 cross references (since changing the
-		// contents of a method currently not showing in the xref view shouldn't
-		// change what's showing in the xref view).
+		// one reference source with 3 cross references (since we've
+		// removed one of the places affected by the declare warning).
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
 		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
 		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"",
@@ -510,9 +518,8 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		XRefVisualTestUtils.waitToContainNumberOfAffectedPlacesForNode(0,0,4);
 
 		// get the contents of the xref view and check that it has
-		// one reference source with 2 cross references (since changing the
-		// contents of a method currently not showing in the xref view shouldn't
-		// change what's showing in the xref view).
+		// one reference source with 4 cross references (since we've
+		// now uncommented a place affected by the declare warning).
 		ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
 		assertEquals("there should be one reference source featured in the xref view",1,newContents1.size());
 		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"",
@@ -532,22 +539,19 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		editorPart.setFocus();
 		waitForJobsToComplete();
 		
-		XRefVisualTestUtils.waitForXRefViewToContainXRefs(1);
+		XRefVisualTestUtils.waitForXRefViewToContainXRefs(2);
 
 		// get the contents of the xref view and check that it has
-		// one reference source with 1 cross reference (since xref view should
+		// one reference source with 2 cross references (since xref view should
 		// now update to current selection).
 		ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size());
-		System.out.println("TEST: name = " + XRefVisualTestUtils.getReferenceSourceNames(newContents2).get(0));
-		assertEquals("the reference source should be:  before",
-				"before",
+		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size()); //$NON-NLS-1$
+		assertEquals("the reference source should be:  before", //$NON-NLS-1$
+				"before", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(newContents2).get(0));
-		assertEquals("declare warning should now affect 4 places",
-				4,
-				XRefVisualTestUtils.getNumberOfAffectedPlacesForRel(newParentNode1,0));
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents2.get(0));
-		assertEquals("There should be 2 cross references shown",2,newParentNode2.getChildren().length);
+		// the two cross references are "advises" and "int-field..."
+		assertEquals("There should be 2 cross references shown",2,newParentNode2.getChildren().length); //$NON-NLS-1$
 		
 	}
 	
@@ -719,16 +723,24 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		if (res == null || !(res instanceof IFile)) {
 			fail("src/pack/A.aj file not found.");
 		} 
-		IFile classFile = (IFile)res;
+		IFile ajFile = (IFile)res;
 
-		// open A.aj and navigate to before advice
-		final ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(classFile, true);
+		// open A.aj and select declare warning statement
+		final ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(ajFile, true);
 		editorPart.setFocus();
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		Object origContents = xrefView.getTreeViewer().getInput();
 		gotoLine(13);
-		waitForJobsToComplete();
-
-		XRefVisualTestUtils.waitForXRefViewToContainXRefs(2);
 		
+		waitForJobsToComplete();
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(origContents);
+		Object origContents1 = xrefView.getTreeViewer().getInput();
+		moveCursorRight(1);
+		waitForJobsToComplete();
+		
+		waitForJobsToComplete();
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(origContents1);		
+
 		// xref view should contain
 		//  - before()
 		//      - advises
@@ -737,7 +749,10 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		//         - matches declare
 		//            - A.declare warning:
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
+		assertEquals("the reference source should be:  before", //$NON-NLS-1$
+				"before", //$NON-NLS-1$
+				XRefVisualTestUtils.getReferenceSourceNames(originalContents).get(0));
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
 		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
 				
@@ -780,12 +795,16 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
 		assertEquals("there should be one reference source featured in the xref view",1,
 				newContents1.size());
+		assertEquals("the reference source should be:  before", //$NON-NLS-1$
+				"before", //$NON-NLS-1$
+				XRefVisualTestUtils.getReferenceSourceNames(newContents1).get(0));
 		TreeParent newParentNode1 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents1.get(0));
 		assertEquals("There should be 2 cross references shown",2,newParentNode1.getChildren().length);
 		
 		// comment out the call to method2() and save	
 		newEditor.setFocus();
+		Object contentsNow = xrefView.getTreeViewer().getInput();
 		gotoLine(7);
 		waitForJobsToComplete();
 		postKey('/');
@@ -794,13 +813,13 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		postKey('s');
 		postKeyUp(SWT.CTRL);
 		waitForJobsToComplete();
-		
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(contentsNow);
+
 		// HELEN XXX having to force build here because the incremental build doesn't pick everything up
 		project.build(IncrementalProjectBuilder.FULL_BUILD,null);
 		waitForJobsToComplete();
 		
 		XRefVisualTestUtils.waitToContainNumberOfAffectedPlacesForNode(0,0,1);
-		
 		// xref view should now contain:
 		//  - before()
         //      - (..) field-get(java.io.PrintStream)
@@ -809,6 +828,10 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
 		assertEquals("there should be one reference source featured in the xref view"
 				,1,newContents2.size());
+		assertEquals("the reference source should be:  before", //$NON-NLS-1$
+				"before", //$NON-NLS-1$
+				XRefVisualTestUtils.getReferenceSourceNames(newContents2).get(0));
+		
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(
 				xrefView,(XReferenceAdapter)newContents2.get(0));
 		assertEquals("There should be 1 cross reference shown",1
@@ -834,6 +857,10 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		ArrayList newContents3 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
 		assertEquals("there should be one reference source featured in the xref view",1,
 				newContents3.size());
+		assertEquals("the reference source should be:  before", //$NON-NLS-1$
+				"before", //$NON-NLS-1$
+				XRefVisualTestUtils.getReferenceSourceNames(newContents3).get(0));
+
 		TreeParent newParentNode3 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents3.get(0));
 		assertEquals("There should be 2 cross references shown",2,newParentNode3.getChildren().length);

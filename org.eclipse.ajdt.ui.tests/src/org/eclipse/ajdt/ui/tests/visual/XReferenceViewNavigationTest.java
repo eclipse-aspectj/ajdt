@@ -211,6 +211,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// turn off "show xrefs for entire file" 
 		a.setChecked(false);
 		a.run();
+		waitForJobsToComplete();
 		
 		// navigate to one of the advised places shown in the xref
 		// view and press return to navigate to the corresponding place
