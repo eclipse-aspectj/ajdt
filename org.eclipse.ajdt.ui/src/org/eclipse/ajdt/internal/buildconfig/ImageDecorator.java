@@ -346,7 +346,7 @@ public class ImageDecorator implements ILabelDecorator {
 					IResource resource = children[i];
 					if (resource instanceof IFile) {
 						IFile file = (IFile)resource;
-						if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
+						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())) {
 							if(!bc.isIncluded(file)) {
 								return true;
 							}
