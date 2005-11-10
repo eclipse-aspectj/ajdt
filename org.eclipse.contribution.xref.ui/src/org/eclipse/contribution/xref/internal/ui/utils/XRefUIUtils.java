@@ -15,11 +15,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
+import org.eclipse.contribution.xref.ui.IDeferredXReference;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;

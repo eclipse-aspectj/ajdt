@@ -10,8 +10,7 @@ Export-Package: org.eclipse.contribution.xref.core,
  org.eclipse.contribution.xref.internal.core.policy;x-internal:=true,
  org.eclipse.contribution.xref.internal.core.ras;x-internal:=true,
  org.eclipse.contribution.xref.ras
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.runtime,
  org.eclipse.jdt.core
 Eclipse-AutoStart: true

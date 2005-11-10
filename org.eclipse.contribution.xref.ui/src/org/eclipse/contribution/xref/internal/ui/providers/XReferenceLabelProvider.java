@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.contribution.xref.internal.ui.providers;
 
-import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReferenceNode;
+import org.eclipse.contribution.xref.ui.IDeferredXReference;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
