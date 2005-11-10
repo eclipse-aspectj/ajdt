@@ -21,7 +21,9 @@ import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeParent;
 import org.eclipse.contribution.xref.internal.ui.providers.XReferenceContentProvider;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -29,6 +31,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
@@ -59,7 +62,9 @@ import org.eclipse.ui.ide.IDE;
  * for both the Cross Reference View and the Cross Reference Inplace View.
  */
 public class XRefUIUtils {
-
+	
+	private static boolean selectedOutsideJavaElement = false;
+	
 	/**
 	 * Computes and returns the source reference.
 	 * 
@@ -136,13 +141,50 @@ public class XRefUIUtils {
 							return children[i];
 						}
 					}
-				} else if (unit.isConsistent())
-					return unit.getElementAt(offset);
+				} else if (unit.isConsistent()) {
+					// Bug 96313 - if there is no IJavaElement for the
+					// given offset, then check whether there are any
+					// children for this CU. There are if you've selected
+					// somewhere in the file and there aren't if there are
+					// compilation errors. Therefore, return one of these
+					// children and calculate the xrefs as though the user
+					// wants to display the xrefs for the entire file
+					IJavaElement elementAt = unit.getElementAt(offset);
+					if (elementAt != null) {
+						// a javaElement has been selected, therefore
+						// no need to go any further
+						return elementAt;
+					} 
+					IResource res = unit.getCorrespondingResource();
+					if (res instanceof IFile) {
+						IFile file = (IFile)res;
+						IProject containingProject = file.getProject();
+						IMarker[] javaModelMarkers = containingProject.findMarkers(
+								IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
+								IResource.DEPTH_INFINITE);
+						for (int i = 0; i < javaModelMarkers.length; i++) {
+							IMarker marker = javaModelMarkers[i];
+							if (marker.getResource().equals(file)) {
+								// there is an error in the file, therefore 
+								// we don't want to return any xrefs
+								return null;
+							}
+						}
+					}
+					// the selection was outside an IJavaElement, however, there
+					// are children for this compilation unit so we think you've
+					// selected outside of a java element.
+					if (elementAt == null && unit.getChildren().length != 0) {
+						selectedOutsideJavaElement = true;
+						return unit.getChildren()[0];	
+					}
+				}
 					
 			} catch (JavaModelException x) {
 				if (!x.isDoesNotExist())
 				JavaPlugin.log(x.getStatus());
 				// nothing found, be tolerant and go on
+			} catch (CoreException e) {
 			}
 		}
 		
@@ -240,7 +282,11 @@ public class XRefUIUtils {
 		if (javaElement != null && !javaElement.exists()) {
 			return xrefAdapterList;
 		}
-    	if (javaElement != null && showParentCrosscutting) {
+		// if we've selected outside a javaElement, for example before
+		// the aspect declaration, or we've opted to show crosscutting for
+		// the entire file then want to return a list of everything.
+	    if (javaElement != null && (showParentCrosscutting || selectedOutsideJavaElement)) {
+
 	    	ICompilationUnit parent = (ICompilationUnit)javaElement.getAncestor(IJavaElement.COMPILATION_UNIT);
 	    	if (parent != null) {
 		    	try {
@@ -262,7 +308,8 @@ public class XRefUIUtils {
 			if (a != null) {
 				xrefAdapterList.add(a.getAdapter(IXReferenceAdapter.class));
 			}
-		}		    	
+		}
+	    selectedOutsideJavaElement = false;
 	    return xrefAdapterList;
 	}
 
