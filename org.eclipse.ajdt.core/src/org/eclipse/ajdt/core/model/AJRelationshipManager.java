@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,10 +65,17 @@ public class AJRelationshipManager {
 			"softened_by", AspectJPlugin //$NON-NLS-1$
 					.getResourceString("softened_by.displayName")); //$NON-NLS-1$
 
+	public static final AJRelationshipType USES_POINTCUT = new AJRelationshipType(
+			"uses_pointcut", AspectJPlugin.getResourceString("uses_pointcut.displayName")); //$NON-NLS-1$
+
+	public static final AJRelationshipType POINTCUT_USED_BY = new AJRelationshipType(
+			"pointcut_used_by", AspectJPlugin.getResourceString("pointcut_used_by.displayName")); //$NON-NLS-1$
+
 	/**
 	 * Array of all known relationship types
 	 */
 	public static AJRelationshipType[] allRelationshipTypes = new AJRelationshipType[] {
 			ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
-			MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY };
+			MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY,
+			USES_POINTCUT, POINTCUT_USED_BY };
 }

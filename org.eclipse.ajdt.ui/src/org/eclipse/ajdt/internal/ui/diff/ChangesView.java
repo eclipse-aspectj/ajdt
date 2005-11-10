@@ -456,11 +456,19 @@ public class ChangesView extends ViewPart {
 			populatingList.add(relationshipTypes[i].getDisplayName());
 		}
 
-		List checkedList = new ArrayList();
+		// list of relationships to filter out by default
+		List defaultFilterList = new ArrayList();
+		defaultFilterList.add(AJRelationshipManager.ADVISED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.ASPECT_DECLARATIONS.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.MATCHES_DECLARE.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.ANNOTATED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.SOFTENED_BY.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.USES_POINTCUT.getDisplayName());
+		defaultFilterList.add(AJRelationshipManager.POINTCUT_USED_BY.getDisplayName());
 
-		List defaultCheckedList = new ArrayList();
-		for (int i = 1; i < relationshipTypes.length; i = i + 2) {
-			defaultCheckedList.add(relationshipTypes[i].getDisplayName());
+		List checkedList = new ArrayList();
+		if (checkedList.size() == 0) {
+			checkedList = new ArrayList(defaultFilterList);
 		}
 
 		String dlogTitle = AspectJUIPlugin
@@ -468,12 +476,10 @@ public class ChangesView extends ViewPart {
 		String dlogMessage = AspectJUIPlugin
 				.getResourceString("changesView.filter.dialog.message"); //$NON-NLS-1$;
 
-		if (checkedList.size() == 0) {
-			checkedList = new ArrayList(defaultCheckedList);
-		}
+
 		
 		filterAction = new ChangesViewFilterAction(getSite().getShell(),
-				populatingList, checkedList, defaultCheckedList, dlogTitle,
+				populatingList, checkedList, defaultFilterList, dlogTitle,
 				dlogMessage, AspectJUIPlugin.getResourceString("changesView.filter.action.tooltip")); //$NON-NLS-1$
 	}
 }

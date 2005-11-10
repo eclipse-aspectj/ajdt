@@ -107,6 +107,8 @@ public class AJProjectModel {
 		kindMap.put(AsmRelationshipProvider.ANNOTATED_BY, AJRelationshipManager.ANNOTATED_BY);
 		kindMap.put(AsmRelationshipProvider.SOFTENS, AJRelationshipManager.SOFTENS);
 		kindMap.put(AsmRelationshipProvider.SOFTENED_BY, AJRelationshipManager.SOFTENED_BY);
+		kindMap.put("uses pointcut", AJRelationshipManager.USES_POINTCUT); //$NON-NLS-1$
+		kindMap.put("pointcut used by", AJRelationshipManager.POINTCUT_USED_BY); //$NON-NLS-1$
 	}
 
 	public IJavaElement getCorrespondingJavaElement(IProgramElement ipe) {

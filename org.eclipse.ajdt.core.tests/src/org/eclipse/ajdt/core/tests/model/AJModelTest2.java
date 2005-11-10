@@ -103,4 +103,60 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 			deleteProject(project);
 		}
 	}
+	
+	public void testUsesPointcutRels() throws Exception {
+		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.USES_POINTCUT };
+			List usesRels = AJModel.getInstance().getAllRelationships(project,
+					rels);
+			boolean gotUsesDemoExces = false;
+			boolean gotUsesGoCut = false;
+			for (Iterator iter = usesRels.iterator(); iter.hasNext();) {
+				AJRelationship rel = (AJRelationship) iter.next();
+				IJavaElement source = rel.getSource();
+				if (source.getElementName().equals("around")) { //$NON-NLS-1$
+					IJavaElement target = rel.getTarget();
+					if (target.getElementName().equals("demoExecs")) { //$NON-NLS-1$
+						gotUsesDemoExces = true;
+					} else if (target.getElementName().equals("goCut")) { //$NON-NLS-1$
+						gotUsesGoCut = true;
+					}
+				}
+			}
+			assertTrue(
+					"Didn't find relationship for around advice using the demoExecs pointcut", //$NON-NLS-1$
+					gotUsesDemoExces);
+			assertTrue(
+					"Didn't find relationship for around advice using the goCut pointcut", //$NON-NLS-1$
+					gotUsesGoCut);
+			
+			// now test pointcut used by relationships
+			rels = new AJRelationshipType[] { AJRelationshipManager.POINTCUT_USED_BY };
+			List usedByRels = AJModel.getInstance().getAllRelationships(project,
+					rels);
+			boolean gotUsedByDemoExces = false;
+			boolean gotUsedByGoCut = false;
+			for (Iterator iter = usedByRels.iterator(); iter.hasNext();) {
+				AJRelationship rel = (AJRelationship) iter.next();
+				IJavaElement target = rel.getTarget();
+				if (target.getElementName().equals("around")) { //$NON-NLS-1$
+					IJavaElement source = rel.getSource();
+					if (source.getElementName().equals("demoExecs")) { //$NON-NLS-1$
+						gotUsedByDemoExces = true;
+					} else if (source.getElementName().equals("goCut")) { //$NON-NLS-1$
+						gotUsedByGoCut = true;
+					}
+				}
+			}
+			assertTrue(
+					"Didn't find relationship for demoExecs pointcut used by around advice", //$NON-NLS-1$
+					gotUsedByDemoExces);
+			assertTrue(
+					"Didn't find relationship for goCut pointcut used by around advice", //$NON-NLS-1$
+					gotUsedByGoCut);
+		} finally {
+			deleteProject(project);
+		}
+	}
 }

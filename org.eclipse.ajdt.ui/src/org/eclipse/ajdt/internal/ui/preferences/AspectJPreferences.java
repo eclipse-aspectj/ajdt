@@ -534,6 +534,7 @@ public class AspectJPreferences {
 	public static void setCheckedFilters(List l) {
 
 		StringBuffer sb = new StringBuffer();
+		sb.append("set: "); //$NON-NLS-1$
 		for (Iterator iter = l.iterator(); iter.hasNext();) {
 			String name = (String) iter.next();
 			sb.append(name);
@@ -550,6 +551,10 @@ public class AspectJPreferences {
 		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		String xRefCheckedFilters = pstore.getString(XREF_CHECKED_FILTERS);
+		if (!xRefCheckedFilters.startsWith("set: ")) { //$NON-NLS-1$
+			return null;
+		}
+		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
 		List checkedList = new ArrayList();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
