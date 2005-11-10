@@ -531,7 +531,7 @@ public class AspectJPreferences {
 		if (!xRefCheckedFilters.startsWith("set: ")) { //$NON-NLS-1$
 			return null;
 		}
-		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length());
+		xRefCheckedFilters = xRefCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
 		List checkedList = new ArrayList();
 		StringTokenizer tokenizer = new StringTokenizer(xRefCheckedFilters, ","); //$NON-NLS-1$
 		while (tokenizer.hasMoreTokens()) {
