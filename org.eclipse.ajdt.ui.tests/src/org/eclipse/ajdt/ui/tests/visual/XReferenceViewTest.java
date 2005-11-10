@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
@@ -294,6 +295,69 @@ public class XReferenceViewTest extends VisualTestCase {
 		defaultEditorPart2.close(false);
 	}
 
+	/**
+	 * Test selection before the aspect declaration and ensure that
+	 * the xref view contains the xrefs for the entire file.
+	 */
+	public void testBug96313() throws Exception {
+		IProject project = createPredefinedProject("bug92895"); //$NON-NLS-1$
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing"); //$NON-NLS-1$
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
+		} 
+		IFile ajFile = (IFile)res;
+
+		// open A.aj and select the pointcut
+		ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(2);
+		waitForJobsToComplete();
+		
+		// add a space and save
+		postKey(' ');
+		// save file by usng "Ctrl+S"
+		postKeyDown(SWT.CTRL);
+		postKey('s');
+		postKeyUp(SWT.CTRL);
+		waitForJobsToComplete();
+		
+		new DisplayHelper() {
+			public boolean condition() {
+				ArrayList contentsOfView = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
+				boolean ret = false;
+				if (contentsOfView != null) {
+					ret = (contentsOfView.size() == 2);
+				}
+				return ret;
+				
+			}
+		}.waitForCondition(Display.getCurrent(), 5000);
+		
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
+
+		ArrayList contentsOfView = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
+		assertEquals("xref view should be showing two high level nodes",2,contentsOfView.size()); //$NON-NLS-1$
+
+		// check that the top level nodes are "A" and "C1"
+		for (Iterator iter = contentsOfView.iterator(); iter.hasNext();) {
+			IXReferenceAdapter element = (IXReferenceAdapter) iter.next();
+			Object o = element.getReferenceSource();
+			assertTrue("reference source should be an IJavaElement, instead it was a " + o.toString(),o instanceof IJavaElement); //$NON-NLS-1$
+			boolean correctName = ((IJavaElement)o).getElementName().equals("A") || ((IJavaElement)o).getElementName().equals("C1");  //$NON-NLS-1$//$NON-NLS-2$
+			assertTrue("reference source should be either A or C1, it is " + ((IJavaElement)o).getElementName(), correctName); //$NON-NLS-1$
+		}
+		
+		editorPart.close(false);
+	}
+
+	
 	private boolean xrefSourceExists(XReferenceView xrefView) {
 		TreeViewer treeViewer = xrefView.getTreeViewer();
 		assertNotNull("xref view should have non null treeviewer",treeViewer); //$NON-NLS-1$
