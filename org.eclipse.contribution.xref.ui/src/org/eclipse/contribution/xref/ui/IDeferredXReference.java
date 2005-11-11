@@ -9,8 +9,9 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - iniital version
  *******************************************************************************/
-package org.eclipse.contribution.xref.core;
+package org.eclipse.contribution.xref.ui;
 
+import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
 /**

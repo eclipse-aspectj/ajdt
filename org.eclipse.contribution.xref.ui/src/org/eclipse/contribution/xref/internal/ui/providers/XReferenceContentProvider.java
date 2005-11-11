@@ -16,9 +16,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.contribution.xref.core.IDeferredXReference;
 import org.eclipse.contribution.xref.core.IXReference;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
+import org.eclipse.contribution.xref.ui.IDeferredXReference;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaElement;
