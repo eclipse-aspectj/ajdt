@@ -62,7 +62,7 @@ public class CompilerPropertyPage extends PropertyPage {
 	private static final String VALUE_TRUE = "true"; //$NON-NLS-1$
 	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
-	private Button noweaveButton, lazytjpButton, noinlineButton, notReweaveableButton, hasMemberButton;  
+	private Button noweaveButton, noinlineButton, notReweaveableButton, hasMemberButton;  
 	
 	private IProject thisProject;
 	
@@ -81,7 +81,7 @@ public class CompilerPropertyPage extends PropertyPage {
 	static {
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportShadowNotInStructure, AspectJPreferences.VALUE_IGNORE);
-		defaultValueMap.put(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidWildcardTypeName, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportUnresolvableMember, AspectJPreferences.VALUE_WARNING);
@@ -95,7 +95,6 @@ public class CompilerPropertyPage extends PropertyPage {
 		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
 		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNotReweavable, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember,VALUE_FALSE);
@@ -131,7 +130,6 @@ public class CompilerPropertyPage extends PropertyPage {
 	    	AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint,
 	    	AspectJPreferences.OPTION_NoWeave,
 	    	AspectJPreferences.OPTION_XSerializableAspects,
-	    	AspectJPreferences.OPTION_XLazyThisJoinPoint,
 	    	AspectJPreferences.OPTION_XNoInline,
 	    	AspectJPreferences.OPTION_XNotReweavable,
 	    	AspectJPreferences.OPTION_XHasMember,
@@ -440,10 +438,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_serializable_aspects.label"); //$NON-NLS-1$
 		addCheckBox(composite, label, AspectJPreferences.OPTION_XSerializableAspects, enableDisableValues, 0);
-		
-		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_lazy_tjp.label"); //$NON-NLS-1$
-		lazytjpButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XLazyThisJoinPoint, enableDisableValues, 0);
-
+	
 		label = AspectJUIPlugin.getResourceString("CompilerConfigurationBlock.aj_x_no_inline.label"); //$NON-NLS-1$
 		noinlineButton = addCheckBox(composite, label, AspectJPreferences.OPTION_XNoInline, enableDisableValues, 0);
 		
@@ -835,11 +830,9 @@ public class CompilerPropertyPage extends PropertyPage {
 			if (e.getSource().equals(noweaveButton)) {
 				boolean buttonSelected = noweaveButton.getSelection();
 				if (buttonSelected) {
-					lazytjpButton.setSelection(false);
 					noinlineButton.setSelection(false);
 					notReweaveableButton.setSelection(false);
 				}				
-				lazytjpButton.setEnabled(!buttonSelected);
 				noinlineButton.setEnabled(!buttonSelected);
 				notReweaveableButton.setEnabled(!buttonSelected);
 			}
@@ -857,7 +850,6 @@ public class CompilerPropertyPage extends PropertyPage {
 	private void checkNoWeaveSelection() {
 		boolean buttonSelected = noweaveButton.getSelection();
 		if (buttonSelected) {
-			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
 			notReweaveableButton.setEnabled(!buttonSelected);
 		}						
@@ -885,11 +877,9 @@ public class CompilerPropertyPage extends PropertyPage {
 		    readStateForAndEnable(folder);
 			boolean buttonSelected = noweaveButton.getSelection();
 			if (buttonSelected) {
-				lazytjpButton.setSelection(false);
 				noinlineButton.setSelection(false);
 				notReweaveableButton.setSelection(false);
 			}				
-			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
 			notReweaveableButton.setEnabled(!buttonSelected);
 		}

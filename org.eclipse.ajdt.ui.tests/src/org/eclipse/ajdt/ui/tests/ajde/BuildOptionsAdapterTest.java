@@ -92,17 +92,9 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XserializableAspects option",
 				"-XserializableAspects", nonStandardOptions[3]);
 
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, true);
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp",
-				nonStandardOptions[4]);
-
 		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, false);
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,
 				false);
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, false);
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
 		assertEquals("should only have -Xlintfile option set", 2,
@@ -183,17 +175,9 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XserializableAspects option",
 				"-XserializableAspects", nonStandardOptions[3]);
 
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "true");
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp",
-				nonStandardOptions[4]);
-
 		projectNode.put(AspectJPreferences.OPTION_NoWeave, "false");
 		projectNode
 				.put(AspectJPreferences.OPTION_XSerializableAspects, "false");
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false");
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
 		assertEquals("should only have -Xlintfile option set", 2,

@@ -308,15 +308,9 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertEquals("should have set -XSerializableAspects option",
 				" -XnoWeave -XserializableAspects ", 
 				AspectJPreferences.getAdvancedOptions(project));
-		
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint,true);
-		assertEquals("should have set -XlazyTjp option",
-				" -XnoWeave -XserializableAspects -XlazyTjp ", 
-				AspectJPreferences.getAdvancedOptions(project));
-		
+				
 		prefStore.setValue(AspectJPreferences.OPTION_NoWeave,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,false);
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint,false);
 		assertEquals("should have no advanced options set",
 				" ",AspectJPreferences.getAdvancedOptions(project));
 		
@@ -359,15 +353,9 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertEquals("should have set -XSerializableAspects option",
 				" -XnoWeave -XserializableAspects ", 
 				AspectJPreferences.getAdvancedOptions(project));
-		
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint,"true");				
-		assertEquals("should have set -XlazyTjp option",
-				" -XnoWeave -XserializableAspects -XlazyTjp ", 
-				AspectJPreferences.getAdvancedOptions(project));
-		
+				
 		projectNode.put(AspectJPreferences.OPTION_NoWeave,"false");
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects,"false")	;	
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint,"false")	;			
 		assertEquals("should have no advanced options set",
 				" ",AspectJPreferences.getAdvancedOptions(project));
 		
