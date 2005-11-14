@@ -92,17 +92,9 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
 				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
 
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, true);
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp", //$NON-NLS-1$ //$NON-NLS-2$
-				nonStandardOptions[4]);
-
 		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, false);
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,
 				false);
-		prefStore.setValue(AspectJPreferences.OPTION_XLazyThisJoinPoint, false);
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
 		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
@@ -182,17 +174,10 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
 				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
 
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "true"); //$NON-NLS-1$
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XlazyTjp option", "-XlazyTjp", //$NON-NLS-1$ //$NON-NLS-2$
-				nonStandardOptions[4]);
 
 		projectNode.put(AspectJPreferences.OPTION_NoWeave, "false"); //$NON-NLS-1$
 		projectNode
 				.put(AspectJPreferences.OPTION_XSerializableAspects, "false"); //$NON-NLS-1$
-		projectNode.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, "false"); //$NON-NLS-1$
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
 				.getAjdtBuildOptionsAdapter().getNonStandardOptions());
 		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$

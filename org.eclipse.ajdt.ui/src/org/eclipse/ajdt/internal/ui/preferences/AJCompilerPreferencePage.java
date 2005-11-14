@@ -88,7 +88,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private static final String PREF_ENABLE_NO_WEAVE = AspectJPreferences.OPTION_NoWeave;
 	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
-	private static final String PREF_ENABLE_LAZY_TJP = AspectJPreferences.OPTION_XLazyThisJoinPoint;
 	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
 	private static final String PREF_ENABLE_NOT_REWEAVABLE = AspectJPreferences.OPTION_XNotReweavable;
 	private static final String PREF_ENABLE_HAS_MEMBER = AspectJPreferences.OPTION_XHasMember;
@@ -104,7 +103,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final String ENABLED = JavaCore.ENABLED;
 	private static final String DISABLED = JavaCore.DISABLED;
 	
-	private Button noweaveButton, lazytjpButton, noinlineButton, noReweaveButton, hasMemberButton; 
+	private Button noweaveButton, noinlineButton, noReweaveButton, hasMemberButton; 
 	
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
@@ -117,7 +116,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	static {
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportShadowNotInStructure, AspectJPreferences.VALUE_IGNORE);
-		defaultValueMap.put(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportInvalidWildcardTypeName, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportUnresolvableMember, AspectJPreferences.VALUE_WARNING);
@@ -131,7 +130,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
 		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XLazyThisJoinPoint, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNotReweavable,VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember,VALUE_FALSE);
@@ -167,7 +165,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
     	AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint,
     	AspectJPreferences.OPTION_NoWeave,
     	AspectJPreferences.OPTION_XSerializableAspects,
-    	AspectJPreferences.OPTION_XLazyThisJoinPoint,
     	AspectJPreferences.OPTION_XNoInline,
     	AspectJPreferences.OPTION_XNotReweavable,
     	AspectJPreferences.OPTION_XHasMember,
@@ -231,7 +228,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	public static void initDefaults(IPreferenceStore store) {
 		store.setDefault(PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME, WARNING);
 		store.setDefault(PREF_AJ_SHADOW_NOT_IN_STRUCTURE, IGNORE);
-		store.setDefault(PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP, WARNING);
+		store.setDefault(PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP, IGNORE);
 		store.setDefault(PREF_AJ_INVALID_WILDCARD_TYPE_NAME, IGNORE);
 		store.setDefault(PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER, WARNING);
 		store.setDefault(PREF_AJ_UNRESOLVABLE_MEMBER, WARNING);
@@ -242,7 +239,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 		store.setDefault(PREF_ENABLE_NO_WEAVE, false);
 		store.setDefault(PREF_ENABLE_SERIALIZABLE_ASPECTS, false);
-		store.setDefault(PREF_ENABLE_LAZY_TJP, false);
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
 		store.setDefault(PREF_ENABLE_NOT_REWEAVABLE, false);
 		store.setDefault(PREF_ENABLE_HAS_MEMBER, false);
@@ -356,9 +352,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_x_lazy_tjp_label;
-		lazytjpButton = addCheckBox(composite, label, PREF_ENABLE_LAZY_TJP,enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
 		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
@@ -812,11 +805,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			if (e.getSource().equals(noweaveButton)) {
 				boolean buttonSelected = noweaveButton.getSelection();
 				if (buttonSelected) {
-					lazytjpButton.setSelection(false);
 					noinlineButton.setSelection(false);
 					noReweaveButton.setSelection(false);
 				}				
-				lazytjpButton.setEnabled(!buttonSelected);
 				noinlineButton.setEnabled(!buttonSelected);
 				noReweaveButton.setEnabled(!buttonSelected);			
 			}
@@ -833,7 +824,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private void checkNoWeaveSelection() {
 		boolean buttonSelected = noweaveButton.getSelection();
 		if (buttonSelected) {
-			lazytjpButton.setEnabled(!buttonSelected);
 			noinlineButton.setEnabled(!buttonSelected);
 			noReweaveButton.setEnabled(!buttonSelected);
 		}						

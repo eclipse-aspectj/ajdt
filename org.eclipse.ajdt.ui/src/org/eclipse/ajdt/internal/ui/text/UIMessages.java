@@ -123,7 +123,6 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_advanced_description;
 	public static String CompilerConfigurationBlock_aj_no_weave_label;
 	public static String CompilerConfigurationBlock_aj_x_serializable_aspects_label;
-	public static String CompilerConfigurationBlock_aj_x_lazy_tjp_label;
 	public static String CompilerConfigurationBlock_aj_x_no_inline_label;
 	public static String CompilerConfigurationBlock_aj_x_not_reweavable_label;
 	public static String CompilerConfigurationBlock_aj_x_has_member_label;

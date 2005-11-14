@@ -137,8 +137,6 @@ public class AspectJPreferences {
 
 	public static final String OPTION_XSerializableAspects = "org.aspectj.ajdt.core.compiler.weaver.XSerializableAspects"; //$NON-NLS-1$
 
-	public static final String OPTION_XLazyThisJoinPoint = "org.aspectj.ajdt.core.compiler.weaver.XLazyThisJoinPoint"; //$NON-NLS-1$
-
 	public static final String OPTION_XNoInline = "org.aspectj.ajdt.core.compiler.weaver.XNoInline"; //$NON-NLS-1$
 
 	public static final String OPTION_XNotReweavable = "org.aspectj.ajdt.core.compiler.weaver.XNotReweavable"; //$NON-NLS-1$
@@ -282,9 +280,6 @@ public class AspectJPreferences {
 		}
 		if (getBooleanPrefValue(project, OPTION_XSerializableAspects)) {
 			opts += "-XserializableAspects "; //$NON-NLS-1$
-		}
-		if (getBooleanPrefValue(project, OPTION_XLazyThisJoinPoint)) {
-			opts += "-XlazyTjp "; //$NON-NLS-1$
 		}
 		if (getBooleanPrefValue(project, OPTION_XNoInline)) {
 			opts += "-XnoInline "; //$NON-NLS-1$
