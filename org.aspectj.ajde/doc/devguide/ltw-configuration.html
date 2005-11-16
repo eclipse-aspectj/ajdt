@@ -6,7 +6,7 @@
         types will be woven. Additional diagnostic options allow the user to debug the configuration and 
         weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several ways of enabling load-time weaving for
             an application: agents, a command-line launch script, and a set of interfaces for
-            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e2755"></a><span class="term">Agents</span></dt><dd><p><a name="d0e2758"></a>AspectJ 5 ships with a number of load-time weaving agents that
+            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e2761"></a><span class="term">Agents</span></dt><dd><p><a name="d0e2764"></a>AspectJ 5 ships with a number of load-time weaving agents that
                             enable load-time weaving. These agents and their configuration
                             are execution environment dependent. Configuration for the supported environments is discussed
                             later in this chapter.</p><p>
@@ -14,11 +14,11 @@
                             to the JVM.</p><p>
                             Using BEA JRockit and Java 1.3/1.4, the very same behavior can be obtained using BEA JRockit JMAPI features with
                             the <tt>-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent</tt>
-                        </p></dd><dt><a name="d0e2771"></a><span class="term">Command-line wrapper script <tt>aj</tt></span></dt><dd><p><a name="d0e2776"></a>The <b>aj</b> command runs Java programs in Java 1.4 or
+                        </p></dd><dt><a name="d0e2777"></a><span class="term">Command-line wrapper script <tt>aj</tt></span></dt><dd><p><a name="d0e2782"></a>The <b>aj</b> command runs Java programs in Java 1.4 or
                         later by setting up <tt>WeavingURLClassLoader</tt> as the 
                             system class loader.  
                             For more information, see <a href="aj-ref.html#aj">aj</a>.
-                        </p></dd><dt><a name="d0e2803"></a><span class="term">Custom class loader</span></dt><dd><p><a name="d0e2806"></a> A public interface is provided to allow a user written class loader
+                        </p></dd><dt><a name="d0e2809"></a><span class="term">Custom class loader</span></dt><dd><p><a name="d0e2812"></a> A public interface is provided to allow a user written class loader
                             to instantiate a weaver and weave classes after loading and before
                             defining them in the JVM. This enables load-time weaving to be supported in
                             environments where no weaving agent is available. It also allows the
@@ -110,16 +110,16 @@
                 and to aop.properties files as described in the next section). 
                 The files are merged in the order they are
                 found on the search path (regular <tt>getResourceAsStream</tt> lookup)
-                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2868"></a>The set of available aspects is the set of all
+                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2874"></a>The set of available aspects is the set of all
                     declared and defined aspects (<tt>aspect</tt> and
                     <tt>concrete-aspect</tt> elements of the <tt>aspects</tt>
-                    section).</p></li><li><p><a name="d0e2880"></a>The set of aspects used for weaving is the subset of the available
+                    section).</p></li><li><p><a name="d0e2886"></a>The set of aspects used for weaving is the subset of the available
                     aspects that are matched by at least one include statement and are not matched
                     by any exclude statements. If there are no include statements then all non-excluded
-                    aspects are included.</p></li><li><p><a name="d0e2883"></a> The set of types to be woven are those types matched by at
+                    aspects are included.</p></li><li><p><a name="d0e2889"></a> The set of types to be woven are those types matched by at
                     least one weaver <tt>include</tt> element and not matched by any 
                     weaver <tt>exclude</tt> element. If there are no weaver include
-                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2892"></a> The weaver options are derived by taking the union of the
+                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2898"></a> The weaver options are derived by taking the union of the
                     options specified in each of the weaver options attribute specifications. Where an
                     option takes a value e.g. <tt>-warn:none</tt> the most recently defined value
                     will be used.</p></li></ul></div><p>It is not an error for the same aspect to be defined to the weaver in 
@@ -171,12 +171,12 @@
                 This aspect (in either of its style) is a good candidate for concretization through <tt>META-INF/aop.xml</tt>.
                 It defines the abstract pointcut <tt>within()</tt>. It is important to remember that
                 concretization in this case must obey to the following rules:
-                <div class="itemizedlist"><ul><li><p><a name="d0e2940"></a>The parent aspect must be abstract. It can be an @AspectJ or a
-                            regular code style aspect.</p></li><li><p><a name="d0e2943"></a>Only simple abstract pointcut can be concretized ie pointcut that don't expose
+                <div class="itemizedlist"><ul><li><p><a name="d0e2946"></a>The parent aspect must be abstract. It can be an @AspectJ or a
+                            regular code style aspect.</p></li><li><p><a name="d0e2949"></a>Only simple abstract pointcut can be concretized ie pointcut that don't expose
                             state (through <tt>args(), this(), target(), if()</tt>). In @AspectJ syntax
                             as illustrated in this sample, this means the method that hosts the pointcut is abstract,
-                            has no arguments, and returns void.</p></li><li><p><a name="d0e2949"></a>Concretization must defines all such abstract pointcuts ie it is not possible
-                            to have <tt>concrete-aspect</tt> inter dependancies.</p></li><li><p><a name="d0e2955"></a>Concretization can only concretize pointcuts ie there cannot be abstract method
+                            has no arguments, and returns void.</p></li><li><p><a name="d0e2955"></a>Concretization must defines all such abstract pointcuts ie it is not possible
+                            to have <tt>concrete-aspect</tt> inter dependancies.</p></li><li><p><a name="d0e2961"></a>Concretization can only concretize pointcuts ie there cannot be abstract method
                             left in the aspect.</p></li></ul></div>
                 If you have requirements for more complex aspect inheritance, you should consider regular aspect
                 inheritance instead of concretization through XML.
@@ -225,7 +225,7 @@
                 that will be then reserved for this concrete-aspect and must not conflict with other classes
                 you deploy.
             </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
-                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3022"><a name="d0e3022"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
+                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3028"><a name="d0e3028"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. If ever you need to have information
                                    when the load time weaving engine is bootstrapped (hence its logger as per <tt>-XmessageHandlerClass:...</tt> not ready yet),
                                    you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line. Messages will then be printed
                                    on stderr as long as the message handler class is not ready.

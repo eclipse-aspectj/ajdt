@@ -4,14 +4,14 @@
 	If you have problems with the browser not solved by the documentation, 
 	please try to see if you have the same problems when running ajc 
 	directly on the command line.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e1262"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e1268"></a>
 		If the problem occurs on the command line also, then the problem 
 		is not in the browser. 
 		(It may be in the compiler; please send bug reports.)
-		</p></li><li><p><a name="d0e1265"></a>
+		</p></li><li><p><a name="d0e1271"></a>
 		If the problem does not occur on the command line, then it may 
 		lie in the parameters you are supplying in the build options.
-		</p></li><li><p><a name="d0e1268"></a>
+		</p></li><li><p><a name="d0e1274"></a>
 		If the build options look correct and the problem only occurs 
 		when building from the browser, then please submit a bug report.
 		</p></li></ul></div><div class="sect2"><a name="ajbrowser-knownProblems"></a><div class="titlepage"><div><h3 class="title"><a name="ajbrowser-knownProblems"></a>Known issues with the AspectJ browser</h3></div></div><p>
@@ -26,7 +26,7 @@
 			IDE bugs
 			</a>.
 		</p><p>
-		<div class="itemizedlist"><ul><li><p><a name="d0e1288"></a>
+		<div class="itemizedlist"><ul><li><p><a name="d0e1294"></a>
 	    Memory and forking: Users email most about the browser task running 
 	    out of memory. 
 	    This is not a problem with the browser; some compiles take a lot of 
@@ -34,20 +34,20 @@
 	    The browser does not support forking, so the only solution is to
 	    edit the java command line or script that launches the browser
 	    to add memory.
-		</p></li><li><p><a name="d0e1291"></a>
+		</p></li><li><p><a name="d0e1297"></a>
 		Editing build configuration files: this is not currently supported.
-		</p></li><li><p><a name="d0e1294"></a>
+		</p></li><li><p><a name="d0e1300"></a>
 		The structure model is incomplete after incremental compiles.
 		To get a complete structure model requires a full build.
-		</p></li><li><p><a name="d0e1297"></a>
+		</p></li><li><p><a name="d0e1303"></a>
 		If you change the output directory, you must do a
 		full build. 
 		</p></li></ul></div>
 		</p></div><div class="sect2"><a name="ajbrowser-limitations"></a><div class="titlepage"><div><h3 class="title"><a name="ajbrowser-limitations"></a>Limitations</h3></div></div><p>      
-		<div class="itemizedlist"><ul><li><p><a name="d0e1307"></a>
+		<div class="itemizedlist"><ul><li><p><a name="d0e1313"></a>
 		The AJBrowser expects the package and directory structure to match.  If they do not 
 		it will be unable to browse to the corresponding file.
-		</p></li><li><p><a name="d0e1310"></a>
+		</p></li><li><p><a name="d0e1316"></a>
 		The "Run" feature launches applications in the same VM.  As a result, if a Swing application
 		is disposed the AJBrowser will be disposed as well.
 		</p></li></ul></div>
