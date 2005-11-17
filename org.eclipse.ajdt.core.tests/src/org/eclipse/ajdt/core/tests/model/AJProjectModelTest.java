@@ -42,8 +42,8 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 	AJCodeElement[] ajCodeElements;
 	AJProjectModel projectModel;
 	
-	private static final int LINE1 = 18;
-	private static final int LINE2 = 19;
+	private static final int LINE1 = 23;
+	private static final int LINE2 = 24;
 	
 	/*
 	 * @see TestCase#setUp()
@@ -89,7 +89,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
             assertTrue("child should be an AJCodeElement",(element instanceof AJCodeElement)); //$NON-NLS-1$
             AJCodeElement aj = (AJCodeElement)element;
             assertEquals("the name should be method-call(void java.io.PrintStream.println(java.lang.String))","method-call(void java.io.PrintStream.println(java.lang.String))" ,aj.getName()); //$NON-NLS-1$ //$NON-NLS-2$
-            assertTrue("the line number should be 18 or 19",aj.getLine() == 18 || aj.getLine() == 19); //$NON-NLS-1$
+            assertTrue("the line number should be 23 or 24",aj.getLine() == 23 || aj.getLine() == 24); //$NON-NLS-1$
         }
         assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(0))); //$NON-NLS-1$
         assertNull("child should have no children",projectModel.getExtraChildren((IJavaElement)extraChildren.get(1)));         //$NON-NLS-1$
