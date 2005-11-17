@@ -157,6 +157,14 @@ public class AspectJImages extends AbstractIconRegistry {
 					"icons/structure/itdmethod_def.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_METHOD_PRO   = new AJDTIcon(
 					"icons/structure/itdmethod_pro.gif"); //$NON-NLS-1$
+	public static final AJDTIcon ITD_CONSTRUCTOR_PUB   = new AJDTIcon(
+					"icons/structure/itdconstructor_pub.gif"); //$NON-NLS-1$
+	public static final AJDTIcon ITD_CONSTRUCTOR_PRI   = new AJDTIcon(
+					"icons/structure/itdconstructor_pri.gif"); //$NON-NLS-1$
+	public static final AJDTIcon ITD_CONSTRUCTOR_DEF   = new AJDTIcon(
+					"icons/structure/itdconstructor_def.gif"); //$NON-NLS-1$
+	public static final AJDTIcon ITD_CONSTRUCTOR_PRO   = new AJDTIcon(
+					"icons/structure/itdconstructor_pro.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_PUB	  = new AJDTIcon(
 					"icons/structure/itdfield_pub.gif"); //$NON-NLS-1$
 	public static final AJDTIcon ITD_FIELD_DEF 	  = new AJDTIcon(
@@ -312,6 +320,8 @@ public class AspectJImages extends AbstractIconRegistry {
 			return ITD_FIELD_DEF;
 		} else if(kind == IProgramElement.Kind.INTER_TYPE_METHOD) {
 			return ITD_METHOD_DEF;
+		} else if(kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+			return ITD_CONSTRUCTOR_DEF;
 		}
 
 		AbstractIcon icon = super.getIcon( kind );
@@ -418,8 +428,7 @@ public class AspectJImages extends AbstractIconRegistry {
 			} else if ( access == IProgramElement.Accessibility.PACKAGE ) {
 				return ITD_FIELD_DEF;
 			} else return AJDTIcon.MISSING_ICON;
-		} else if (kind == IProgramElement.Kind.INTER_TYPE_METHOD ||
-				   kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+		} else if (kind == IProgramElement.Kind.INTER_TYPE_METHOD) {
 			if ( access == IProgramElement.Accessibility.PUBLIC ) {
 				return ITD_METHOD_PUB;
 			} else if ( access == IProgramElement.Accessibility.PROTECTED ) {
@@ -428,6 +437,17 @@ public class AspectJImages extends AbstractIconRegistry {
 				return ITD_METHOD_PRI;
 			} else if ( access == IProgramElement.Accessibility.PACKAGE ) {
 				return ITD_METHOD_DEF;
+			} else return AJDTIcon.MISSING_ICON;
+			
+		} else if (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
+			if ( access == IProgramElement.Accessibility.PUBLIC ) {
+				return ITD_CONSTRUCTOR_PUB;
+			} else if ( access == IProgramElement.Accessibility.PROTECTED ) {
+				return ITD_CONSTRUCTOR_PRO;
+			} else if ( access == IProgramElement.Accessibility.PRIVATE ) {
+				return ITD_CONSTRUCTOR_PRI;
+			} else if ( access == IProgramElement.Accessibility.PACKAGE ) {
+				return ITD_CONSTRUCTOR_DEF;
 			} else return AJDTIcon.MISSING_ICON;
 			
 		} else if (kind == IProgramElement.Kind.ASPECT) {

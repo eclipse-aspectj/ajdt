@@ -122,6 +122,23 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		}
 	}
 
+	// Sian: added test for project with aspects in .java files
+	public void testReloadingModel6() throws Exception {
+		IProject project = createPredefinedProject("MarkersTestWithAspectsInJavaFiles"); //$NON-NLS-1$
+		try {
+			AJRelationshipType[] rels = new AJRelationshipType[] {
+					AJRelationshipManager.ADVISED_BY,
+					AJRelationshipManager.ADVISES,
+					AJRelationshipManager.DECLARED_ON,
+					AJRelationshipManager.ASPECT_DECLARATIONS,
+					AJRelationshipManager.MATCHED_BY,
+					AJRelationshipManager.MATCHES_DECLARE };
+			compareAfterReloadingModel(rels, project);
+		} finally {
+			deleteProject(project);
+		}
+	}
+
 	public void testLoadingModelFromFile() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example");
 		IProject project2 = null;

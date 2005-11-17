@@ -42,6 +42,19 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.AdviceElementInfo;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.AspectElementInfo;
+import org.eclipse.ajdt.core.javaelements.DeclareElementInfo;
+import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
+import org.eclipse.ajdt.core.javaelements.MockAdviceElement;
+import org.eclipse.ajdt.core.javaelements.MockAspectElement;
+import org.eclipse.ajdt.core.javaelements.MockDeclareElement;
+import org.eclipse.ajdt.core.javaelements.MockIntertypeElement;
+import org.eclipse.ajdt.core.javaelements.MockPointcutElement;
+import org.eclipse.ajdt.core.javaelements.MockSourceMethod;
+import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
+import org.eclipse.ajdt.core.javaelements.MockSourceMethod.MethodElementInfo;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -60,7 +73,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
  */
 public class AJProjectModel {
 
-	private static final int MODEL_VERSION = 102;
+	private static final int MODEL_VERSION = 103;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
@@ -91,6 +104,9 @@ public class AJProjectModel {
 	
 	// only for information/diagnosis purposes
 	private int relsCount;
+	
+	// map of ICompilationUnits to List of AspectElements
+	private Map aspectsInJavaFiles = new HashMap();
 	
 	public AJProjectModel(IProject project) {
 		this.project = project;
@@ -334,7 +350,7 @@ public class AJProjectModel {
 								// store this elements, so that it gets saved
 								jeLinkNames.put(targetEl, name);
 								lineNumbers.put(targetEl, new Integer(0));
-							}
+							} 
 						}
 
 						AJRelationshipType ajRel = (AJRelationshipType) kindMap
@@ -458,11 +474,136 @@ public class AJProjectModel {
 						ipeToije.put(node, el);
 						jeLinkNames.put(el, node.toLinkLabelString());
 						lineNumbers.put(el, new Integer(sl.getLine()));
+					} else { 
+						// It's an aspect in a .java file so we mock up the required JavaElements
+						IProgramElement aspectPE = getAspect(node);
+						String aspectName = aspectPE.getName();
+						List l;
+						if(aspectsInJavaFiles.get(unit) instanceof List) {
+							l = (List)aspectsInJavaFiles.get(unit);
+						} else {
+							l = new ArrayList();
+							aspectsInJavaFiles.put(unit, l);
+						}
+						AspectElement aspectEl = null;
+						for (Iterator iter = l.iterator(); iter.hasNext();) {
+							AspectElement element = (AspectElement) iter.next();
+							if(element.getElementName().equals(aspectName)) {
+								aspectEl = element;
+							}								
+						}
+						if(aspectEl == null) {
+							AspectElementInfo info = new AspectElementInfo();
+							info.setAJKind(IProgramElement.Kind.ASPECT);
+							info.setSourceRangeStart(aspectPE.getSourceLocation().getOffset());
+							info.setAJAccessibility(aspectPE.getAccessibility());
+							aspectEl = new MockAspectElement((JavaElement)unit, aspectName, info);						
+							l.add(aspectEl);
+						}
+						List params = node.getParameterNames();
+						String[] parameternames = null;
+						char[][] parameterNames = null;
+						if(params != null) {
+							parameternames = new String[params.size()];
+							parameterNames = new char[params.size()][];
+							for (int i = 0; i < parameternames.length; i++) {
+								parameternames[i] = (String)params.get(i);
+								parameterNames[i] = parameternames[i].toCharArray();
+							}
+						}
+						if (node.getKind() == IProgramElement.Kind.ADVICE) {
+							
+							AdviceElementInfo info = new AdviceElementInfo();
+							info.setAJKind(IProgramElement.Kind.ADVICE);
+							info.setAJExtraInfo(node.getExtraInfo());							
+							info.setSourceRangeStart(node.getSourceLocation().getOffset());
+							info.setName(node.getName().toCharArray());
+							info.setArgumentNames(parameterNames);
+							el = new MockAdviceElement(aspectEl, node.getName(), parameternames, node.getExtraInfo(), info);
+
+						} else if (node.getKind() == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR
+								|| node.getKind() == IProgramElement.Kind.INTER_TYPE_FIELD
+								|| node.getKind() == IProgramElement.Kind.INTER_TYPE_METHOD
+								|| node.getKind() == IProgramElement.Kind.INTER_TYPE_PARENT) {
+							IntertypeElementInfo info = new IntertypeElementInfo();
+							info.setAJKind(node.getKind());
+							info.setAJExtraInfo(node.getExtraInfo());	
+							info.setAJAccessibility(node.getAccessibility());
+							info.setSourceRangeStart(node.getSourceLocation().getOffset());
+							info.setName(node.getName().toCharArray());
+							info.setArgumentNames(parameterNames);
+							el = new MockIntertypeElement(aspectEl, node.getName(), parameternames, node.getExtraInfo(), info);
+
+						} else if (node.getKind() == IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR
+								|| node.getKind() == IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD
+								|| node.getKind() == IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD
+								|| node.getKind() == IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE
+								|| node.getKind() == IProgramElement.Kind.DECLARE_ERROR
+								|| node.getKind() == IProgramElement.Kind.DECLARE_WARNING
+								|| node.getKind() == IProgramElement.Kind.DECLARE_PARENTS
+								|| node.getKind() == IProgramElement.Kind.DECLARE_PRECEDENCE
+								|| node.getKind() == IProgramElement.Kind.DECLARE_SOFT) {
+							DeclareElementInfo info = new DeclareElementInfo();
+							String name = node.getName();
+							if(node.getKind()  == IProgramElement.Kind.DECLARE_ERROR
+								|| node.getKind() == IProgramElement.Kind.DECLARE_WARNING) {
+								name += ": " + node.getDetails();  //$NON-NLS-1$
+							}
+							info.setAJKind(node.getKind());
+							info.setAJExtraInfo(node.getExtraInfo());
+							info.setSourceRangeStart(node.getSourceLocation().getOffset());
+							info.setName(name.toCharArray());
+							info.setArgumentNames(parameterNames);
+							el = new MockDeclareElement(aspectEl, name, parameternames, node.getExtraInfo(), info);
+																
+						} else if (node.getKind() == IProgramElement.Kind.POINTCUT){
+							PointcutElementInfo info = new PointcutElementInfo();
+							info.setAJKind(node.getKind());
+							info.setAJExtraInfo(node.getExtraInfo());							
+							info.setSourceRangeStart(node.getSourceLocation().getOffset());
+							info.setName(node.getName().toCharArray());
+							info.setAJAccessibility(node.getAccessibility());
+							info.setArgumentNames(parameterNames);
+							el = new MockPointcutElement(aspectEl, node.getName(), parameternames, node.getExtraInfo(), info);							
+						} else if (node.getKind() == IProgramElement.Kind.ASPECT) {
+							el = aspectEl;
+						} else if (node.getKind() == IProgramElement.Kind.METHOD) {
+							MethodElementInfo info = new MethodElementInfo();
+							info.setAJKind(node.getKind());
+							info.setAJExtraInfo(node.getExtraInfo());	
+							info.setAJAccessibility(node.getAccessibility());
+							info.setSourceRangeStart(node.getSourceLocation().getOffset());
+							info.setName(node.getName().toCharArray());
+							info.setArgumentNames(parameterNames);
+							el = new MockSourceMethod(aspectEl, node.getName(), parameternames, info);
+						} else {
+							AJLog.log("AJProjectModel not able to create Mock element for " + node.getKind()); //$NON-NLS-1$							
+						}
+						if (el != null) {
+							List l2 = (List) extraChildren.get(unit);
+							if (l2 == null) {
+								l2 = new ArrayList();
+								extraChildren.put(unit, l2);
+							}
+							l2.add(el);
+							ipeToije.put(node, el);
+							jeLinkNames.put(el, node.toLinkLabelString());
+							lineNumbers.put(el, new Integer(sl.getLine()));
+						}
 					}
 				} catch (JavaModelException e1) {
 				}
 			}
 		}
+	}
+
+	private IProgramElement getAspect(IProgramElement node) {
+		if(node.getKind() == IProgramElement.Kind.ASPECT) {
+			return node;
+		} else if (node.getParent() != null){
+			return getAspect(node.getParent());
+		}
+		return null;
 	}
 
 	// for debugging...
@@ -640,7 +781,7 @@ public class AJProjectModel {
 	
 			idMap = new HashMap();
 			idCount = 0;
-	
+			
 			int numElements = lineNumbers.keySet().size();
 			oos.writeInt(numElements);
 			for (Iterator iter = lineNumbers.keySet().iterator(); iter

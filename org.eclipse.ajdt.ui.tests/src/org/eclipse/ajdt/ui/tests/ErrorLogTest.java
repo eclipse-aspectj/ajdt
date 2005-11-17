@@ -25,6 +25,8 @@ import org.eclipse.ui.internal.Workbench;
  * (E.g. bug 106707)
  */
 public class ErrorLogTest extends UITestCase {
+	
+	public void assert(){}
 
 	
 	public void testNoWarningsOnStartup() throws Exception {

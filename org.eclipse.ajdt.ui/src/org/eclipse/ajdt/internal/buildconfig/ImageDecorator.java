@@ -19,7 +19,9 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
@@ -129,6 +131,10 @@ public class ImageDecorator implements ILabelDecorator {
 					if (acceb == null){
 						if (ajElem instanceof AdviceElement) {						
 							icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
+						} else if (ajElem instanceof IntertypeElement) {
+							icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+						} else if (ajElem instanceof DeclareElement) {
+							icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 						} else {
 							icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
 						}
