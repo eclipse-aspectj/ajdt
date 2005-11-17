@@ -305,7 +305,7 @@ public class AspectJCore {
 							}
 							return new MockAdviceElement(aspectEl, offset, split[0], parameterTypes);
 						case AspectElement.JEM_DECLARE:
-							cname = cname.replace("\\", "");  //$NON-NLS-1$//$NON-NLS-2$
+							cname = cname.replaceAll("\\", "");  //$NON-NLS-1$//$NON-NLS-2$
 							return new MockDeclareElement(aspectEl, offset, cname);
 						case AspectElement.JEM_ITD:
 							String kind = extraInfo.length > 1 ? extraInfo[1] : null;
