@@ -38,8 +38,10 @@ public class AspectElement extends SourceType implements IAspectJElement {
 	public static final char JEM_CODEELEMENT = '?';
 	public static final char JEM_ITD = ')';
 	public static final char JEM_DECLARE = '`';
+	public static final char JEM_POINTCUT = '£';
 	// TYPE_PARAMETER is defined in Eclipse 3.1, but not 3.0
 	public static final char JEM_TYPE_PARAMETER = ']';
+	public static final char JEM_EXTRA_INFO = '>';
 	
 	public IMethod createMethod(String contents, IJavaElement sibling,
 			boolean force, IProgressMonitor monitor) throws JavaModelException {
@@ -200,6 +202,34 @@ public class AspectElement extends SourceType implements IAspectJElement {
 				return itd.getHandleFromMemento(token, memento, workingCopyOwner);
 			}
 			return itd.getHandleFromMemento(memento, workingCopyOwner);
+		} else if (token.charAt(0) == AspectElement.JEM_POINTCUT) {
+			String name = memento.nextToken();
+			ArrayList params = new ArrayList();
+			nextParam: while (memento.hasMoreTokens()) {
+				token = memento.nextToken();
+				switch (token.charAt(0)) {
+					case JEM_TYPE:
+					case JEM_TYPE_PARAMETER:
+						break nextParam;
+					case JEM_POINTCUT:
+						if (!memento.hasMoreTokens()) return this;
+						String param = memento.nextToken();
+						StringBuffer buffer = new StringBuffer();
+						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
+							buffer.append(Signature.C_ARRAY);
+							if (!memento.hasMoreTokens()) return this;
+							param = memento.nextToken();
+						}
+						params.add(buffer.toString() + param);
+						break;
+					default:
+						break nextParam;
+				}
+			}
+			String[] parameters = new String[params.size()];
+			params.toArray(parameters);
+			JavaElement pointcut = new PointcutElement(this, name, parameters);
+			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
 		}
 		return super.getHandleFromMemento(token, memento, workingCopyOwner);
 	}

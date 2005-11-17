@@ -20,7 +20,7 @@ import org.eclipse.core.resources.IResource;
 /**
  * Tests for source advice markers
  */
-public class AdviceMarkerTest3 extends UITestCase {
+public class AdviceMarkersTest3 extends UITestCase {
 
 	private IProject project;
 
@@ -34,8 +34,7 @@ public class AdviceMarkerTest3 extends UITestCase {
 		IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER,
 		IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER,
 		IAJModelMarker.SOURCE_DYNAMIC_AROUND_ADVICE_MARKER,
-		IAJModelMarker.SOURCE_ITD_MARKER//,
-//		IAJModelMarker.ADVICE_MARKER
+		IAJModelMarker.SOURCE_ITD_MARKER
 	};
 
 	// expected results:

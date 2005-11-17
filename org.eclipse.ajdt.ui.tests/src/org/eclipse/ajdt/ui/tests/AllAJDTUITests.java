@@ -25,7 +25,7 @@ import org.eclipse.ajdt.ui.tests.buildconfig.BuildConfiguratorTest;
 import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest;
 import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.buildconfig.UtilTests;
-import org.eclipse.ajdt.ui.tests.builder.AdviceMarkerTest3;
+import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
@@ -142,7 +142,7 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
-		suite.addTest(new TestSuite(AdviceMarkerTest3.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
 		

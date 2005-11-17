@@ -24,7 +24,9 @@ import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest;
 import org.eclipse.ajdt.core.tests.model.AJModelTest2;
+import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
+import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -53,8 +55,10 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJComparatorTest.class));
 		suite.addTest(new TestSuite(AJModelTest.class));
 		suite.addTest(new TestSuite(AJModelTest2.class));
+		suite.addTest(new TestSuite(AJModelTest3.class));
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
+		suite.addTest(new TestSuite(AJProjectModelTest2.class));
 
 		// Java Elemenet tests
 		suite.addTest(new TestSuite(AspectElementTests.class));

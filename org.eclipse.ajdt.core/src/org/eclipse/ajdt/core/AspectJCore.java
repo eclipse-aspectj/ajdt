@@ -11,10 +11,25 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.javaelements.AspectElementInfo;
+import org.eclipse.ajdt.core.javaelements.MockAdviceElement;
+import org.eclipse.ajdt.core.javaelements.MockAspectElement;
+import org.eclipse.ajdt.core.javaelements.MockDeclareElement;
+import org.eclipse.ajdt.core.javaelements.MockIntertypeElement;
+import org.eclipse.ajdt.core.javaelements.MockPointcutElement;
+import org.eclipse.ajdt.core.javaelements.MockSourceMethod;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -84,10 +99,12 @@ public class AspectJCore {
 	
 	public static IJavaElement create(String handleIdentifier,
 			WorkingCopyOwner owner) {
+		
 		if (handleIdentifier == null) {
 			return null;
 		}
-
+		Map aspectsInJavaFiles = new HashMap();
+		
 		boolean isCodeElement = false;
 		String codeElementHandle = ""; //$NON-NLS-1$
 
@@ -166,6 +183,92 @@ public class AspectJCore {
 									}
 								}
 								return restEl;
+							} else if (ind2 != -1) { // An aspect in a .java file...
+								int index3 = handleIdentifier
+								.indexOf(AspectElement.JEM_ASPECT_TYPE);
+								String aspectName = handleIdentifier.substring(index3 + 1);
+								boolean identifierIsAspect = true;
+								int ind5b = aspectName.indexOf(AspectElement.JEM_DECLARE);
+								if (ind5b != -1) {
+									aspectName = aspectName.substring(0, ind5b);
+									identifierIsAspect = false;
+								}
+								int ind6 = aspectName.indexOf(AspectElement.JEM_ADVICE);
+								if (ind6 != -1) {
+									aspectName = aspectName.substring(0, ind6);
+									identifierIsAspect = false;
+								}
+								int ind7 = aspectName.indexOf(AspectElement.JEM_ITD);
+								if (ind7 != -1) {
+									aspectName = aspectName.substring(0, ind7);
+									identifierIsAspect = false;
+								}
+								int ind8 = aspectName.indexOf(AspectElement.JEM_ASPECT_TYPE);
+								if (ind8 != -1) {
+									aspectName = aspectName.substring(0, ind8);
+									identifierIsAspect = false;
+								}
+								int ind9 = aspectName.indexOf(AspectElement.JEM_TYPE);
+								if (ind9 != -1) {
+									aspectName = aspectName.substring(0, ind9);
+									identifierIsAspect = false;
+								}
+								int ind10 = aspectName.indexOf(AspectElement.JEM_FIELD);
+								if (ind10 != -1) {
+									aspectName = aspectName.substring(0, ind10);
+									identifierIsAspect = false;
+								}
+								int ind11 = aspectName.indexOf(AspectElement.JEM_METHOD);
+								if (ind11 != -1) {
+									aspectName = aspectName.substring(0, ind11);
+									identifierIsAspect = false;
+								}
+								int ind12 = aspectName.indexOf(AspectElement.JEM_POINTCUT);
+								if (ind12 != -1) {
+									aspectName = aspectName.substring(0, ind12);
+									identifierIsAspect = false;
+								}
+								ICompilationUnit unit = pf.getCompilationUnit(cuName);
+								List l;
+								if(aspectsInJavaFiles.get(unit) instanceof List) {
+									l = (List)aspectsInJavaFiles.get(unit);
+								} else {
+									l = new ArrayList();
+									aspectsInJavaFiles.put(unit, l);
+								}
+								AspectElement aspectEl = null;
+								for (Iterator iter = l.iterator(); iter.hasNext();) {
+									AspectElement element = (AspectElement) iter.next();
+									if(element.getElementName().equals(aspectName)) {
+										aspectEl = element;
+									}								
+								}
+								if(aspectEl == null) {
+									AspectElementInfo info = new AspectElementInfo();
+									info.setAJKind(IProgramElement.Kind.ASPECT);
+									info.setSourceRangeStart(0);
+									aspectEl = new MockAspectElement((JavaElement)unit, aspectName, info);						
+									l.add(aspectEl);
+//									((CompilationUnitElementInfo)((CompilationUnit)unit).getElementInfo()).addChild(aspectEl);
+								}
+								if (identifierIsAspect) {
+									return aspectEl;
+								}
+								IJavaElement mockEl;
+								char[] possibleDelimiters = new char[] {
+										AspectElement.JEM_ADVICE,
+										AspectElement.JEM_DECLARE,
+										AspectElement.JEM_ITD,
+										AspectElement.JEM_METHOD,
+										AspectElement.JEM_POINTCUT
+								};
+								for (int i = 0; i < possibleDelimiters.length; i++) {
+									mockEl = getMockElement(possibleDelimiters[i], handleIdentifier, aspectEl); 
+									if(mockEl != null) {
+										return mockEl;
+									}										
+								}							
+								return null;								
 							}
 						}
 					}
@@ -177,6 +280,67 @@ public class AspectJCore {
 			return new AJInjarElement(codeElementHandle);
 		}
 		return JavaCore.create(handleIdentifier);
+	}
+
+	private static IJavaElement getMockElement(char delimiterChar, String handleIdentifier, AspectElement aspectEl) {
+		String mockElementHandle;
+		int mockElementDelimPos = indexOfIgnoringEscapes(handleIdentifier,
+				delimiterChar);
+		if (mockElementDelimPos != -1) {
+			mockElementHandle = handleIdentifier
+				.substring(mockElementDelimPos + 1);
+			int li = indexOfIgnoringEscapes(mockElementHandle, AspectElement.JEM_EXTRA_INFO);
+			if (li != -1) {
+				String cname = mockElementHandle.substring(0, li);
+				String rest = mockElementHandle.substring(li + 1);
+				String[] extraInfo = rest.split(Character.toString(AspectElement.JEM_EXTRA_INFO));
+				try {
+					int offset = new Integer(extraInfo[0]).intValue();
+					switch (delimiterChar) {
+						case AspectElement.JEM_ADVICE:
+							String[] split = cname.split(Character.toString(AspectElement.JEM_ADVICE)); //$NON-NLS-1$
+							String[] parameterTypes = new String[split.length - 1];
+							for (int i = 0; i < parameterTypes.length; i++) {
+								parameterTypes[i] = split[i + 1];
+							}
+							return new MockAdviceElement(aspectEl, offset, split[0], parameterTypes);
+						case AspectElement.JEM_DECLARE:
+							cname = cname.replace("\\", "");  //$NON-NLS-1$//$NON-NLS-2$
+							return new MockDeclareElement(aspectEl, offset, cname);
+						case AspectElement.JEM_ITD:
+							String kind = extraInfo.length > 1 ? extraInfo[1] : null;
+							String accessibility = extraInfo.length > 2 ? extraInfo[2] : null;
+							split = cname.split("\\" + Character.toString(AspectElement.JEM_ITD)); //$NON-NLS-1$
+							parameterTypes = new String[split.length - 1];
+							for (int i = 0; i < parameterTypes.length; i++) {
+								parameterTypes[i] = split[i + 1];
+							}
+							return new MockIntertypeElement(aspectEl, offset, split[0], parameterTypes, kind, accessibility);
+						case AspectElement.JEM_METHOD:
+							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
+							split = cname.split(Character.toString(AspectElement.JEM_METHOD)); //$NON-NLS-1$
+							parameterTypes = new String[split.length - 1];
+							for (int i = 0; i < parameterTypes.length; i++) {
+								parameterTypes[i] = split[i + 1];
+							}						
+							return new MockSourceMethod(aspectEl, split[0], parameterTypes, offset, accessibility);
+						case AspectElement.JEM_POINTCUT:
+							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
+							split = cname.split(Character.toString(AspectElement.JEM_POINTCUT)); //$NON-NLS-1$
+							parameterTypes = new String[split.length - 1];
+							for (int i = 0; i < parameterTypes.length; i++) {
+								parameterTypes[i] = split[i + 1];
+							}						
+							return new MockPointcutElement(aspectEl, split[0], parameterTypes, offset, accessibility);
+							
+						default:
+							AJLog.log("AspectJCore unable to deserialize: " + mockElementHandle); //$NON-NLS-1$
+					}
+				} catch (NumberFormatException e) {
+				}
+			}
+		}
+		return null;
 	}
 
 }
@@ -242,6 +406,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 	private static final String DECLARE = Character
 		.toString(AspectElement.JEM_DECLARE);
 
+	private static final String POINTCUT = Character
+		.toString(AspectElement.JEM_POINTCUT);
 	// end AspectJ change
 
 	private final char[] memento;
@@ -310,6 +476,8 @@ class AJMementoTokenizer extends MementoTokenizer {
 			return ITD;
 		case AspectElement.JEM_DECLARE:
 			return DECLARE;
+		case AspectElement.JEM_POINTCUT:
+			return POINTCUT;
 		// end AspectJ change
 		}
 		loop: while (this.index < this.length) {
@@ -341,6 +509,7 @@ class AJMementoTokenizer extends MementoTokenizer {
 			case AspectElement.JEM_CODEELEMENT:
 			case AspectElement.JEM_ITD:
 			case AspectElement.JEM_DECLARE:
+			case AspectElement.JEM_POINTCUT:
 			// end AspectJ change
 				break loop;
 			}
