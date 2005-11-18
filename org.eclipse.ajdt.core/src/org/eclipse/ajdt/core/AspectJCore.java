@@ -326,7 +326,7 @@ public class AspectJCore {
 							return new MockSourceMethod(aspectEl, split[0], parameterTypes, offset, accessibility);
 						case AspectElement.JEM_POINTCUT:
 							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
-							split = cname.split(Character.toString(AspectElement.JEM_POINTCUT)); //$NON-NLS-1$
+							split = cname.split("\\" + Character.toString(AspectElement.JEM_POINTCUT)); //$NON-NLS-1$
 							parameterTypes = new String[split.length - 1];
 							for (int i = 0; i < parameterTypes.length; i++) {
 								parameterTypes[i] = split[i + 1];

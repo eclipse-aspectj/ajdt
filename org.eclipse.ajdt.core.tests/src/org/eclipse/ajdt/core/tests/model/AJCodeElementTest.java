@@ -136,7 +136,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 18) ){
+					&& (sl.getLine() == 23) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {
@@ -144,7 +144,7 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 					}					
 				} else if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 19) ){
+					&& (sl.getLine() == 24) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {

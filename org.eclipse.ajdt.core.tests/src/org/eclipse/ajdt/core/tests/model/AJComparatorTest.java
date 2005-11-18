@@ -81,7 +81,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 18) ){
+					&& (sl.getLine() == 23) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {
@@ -89,7 +89,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 					}					
 				} else if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 19) ){
+					&& (sl.getLine() == 24) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (ije instanceof AJCodeElement) {
@@ -132,7 +132,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("A.after(String): tracedPrint..") 
-					&& (sl.getLine() == 25) ){
+					&& (sl.getLine() == 30) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (!(ije instanceof AJCodeElement)) {
@@ -140,7 +140,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 					}					
 				} else if (node.toLinkLabelString()
 						.equals("A.before(String): tracedPrint..") 
-					&& (sl.getLine() == 21) ){
+					&& (sl.getLine() == 26) ){
 					
 					IJavaElement ije = model.getCorrespondingJavaElement(node);
 					if (!(ije instanceof AJCodeElement)) {
@@ -179,7 +179,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
-					&& (sl.getLine() == 18) ){
+					&& (sl.getLine() == 23) ){
 					
 					IJavaElement je = model.getCorrespondingJavaElement(node);
 					if (je instanceof AJCodeElement) {
@@ -204,7 +204,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 				ISourceLocation sl = node.getSourceLocation();
 				if (node.toLinkLabelString()
 						.equals("A.after(String): tracedPrint..") 
-					&& (sl.getLine() == 25) ){
+					&& (sl.getLine() == 30) ){
 					
 					IJavaElement je = model.getCorrespondingJavaElement(node);
 					if (!(je instanceof AJCodeElement)) {
