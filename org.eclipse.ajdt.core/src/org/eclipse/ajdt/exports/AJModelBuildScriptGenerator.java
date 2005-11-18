@@ -38,7 +38,6 @@ import org.eclipse.pde.internal.build.IXMLConstants;
 import org.eclipse.pde.internal.build.Messages;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.FileSet;
-import org.eclipse.pde.internal.build.ant.JavacTask;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer2_1;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
@@ -54,7 +53,11 @@ import org.eclipse.update.core.IPluginEntry;
 public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	public static final String EXPANDED_DOT = "@dot"; //$NON-NLS-1$
 	public static final String DOT = "."; //$NON-NLS-1$
-
+	
+	// AspectJ Change Begin - aspectpath and inpath support
+	protected List aspectpath;
+	protected List inpath;
+	
 	/**
 	 * Represents a entry that must be compiled and which is listed in the build.properties file.
 	 */
@@ -829,7 +832,9 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 		script.printMkdirTask(destdir);
 		script.printComment("compile the source code"); //$NON-NLS-1$
 		// AspectJ Change Begin
-		JavacTask javac = new AJCTask(getModel().getLocation(), buildConfig);
+		AJCTask javac = new AJCTask(getModel().getLocation(), buildConfig);
+		javac.setAspectpath(aspectpath);
+		javac.setInpath(inpath);
 		// AspectJ Change End
 		javac.setClasspath(classpath);
 		javac.setBootClasspath(Utils.getPropertyFormat(PROPERTY_BOOTCLASSPATH));
@@ -1103,4 +1108,13 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator {
 	public void setAssociatedEntry(IPluginEntry associatedEntry) {
 		this.associatedEntry = associatedEntry;
 	}
+	
+	// AspectJ Change Begin - aspectpath and inpath support
+	public void setAspectpath(List aspectpath) {
+		this.aspectpath = aspectpath;
+	}
+	public void setInpath(List inpath) {
+		this.inpath = inpath;
+	}
+	// AspectJ Change End
 }
