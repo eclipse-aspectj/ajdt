@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -28,6 +29,9 @@ public class AJCTask extends JavacTask {
 	private String baseLocation;
 
 	private String buildConfig;
+	
+	protected List aspectpath;
+	protected List inpath;
 
 	public AJCTask(String location, String config) {
 		super();
@@ -136,6 +140,36 @@ public class AJCTask extends JavacTask {
 			ajScript.indent--;
 			ajScript.printEndTag("forkclasspath"); //$NON-NLS-1$
 	
+			// Add aspectpath and inpath
+			if(aspectpath != null) {
+				ajScript.printStartTag("aspectpath"); //$NON-NLS-1$
+				ajScript.indent++;
+				for (Iterator iter = aspectpath.iterator(); iter.hasNext();) {
+					String path = (String) iter.next();
+					ajScript.printTab();
+					ajScript.print("<pathelement"); //$NON-NLS-1$
+					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ //$NON-NLS-2$
+					ajScript.print("/>"); //$NON-NLS-1$
+					ajScript.println();
+				}
+				ajScript.indent--;
+				ajScript.printEndTag("aspectpath"); //$NON-NLS-1$				
+			}
+			if(inpath != null) {
+				ajScript.printStartTag("inpath"); //$NON-NLS-1$
+				ajScript.indent++;
+				for (Iterator iter = inpath.iterator(); iter.hasNext();) {
+					String path = (String) iter.next();
+					ajScript.printTab();
+					ajScript.print("<pathelement"); //$NON-NLS-1$
+					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ //$NON-NLS-2$
+					ajScript.print("/>"); //$NON-NLS-1$
+					ajScript.println();
+				}
+				ajScript.indent--;
+				ajScript.printEndTag("inpath"); //$NON-NLS-1$
+			}
+			
 			if (!useBuildConfig) {
 				ajScript.printStartTag("srcdir"); //$NON-NLS-1$
 				ajScript.indent++;
@@ -149,10 +183,17 @@ public class AJCTask extends JavacTask {
 				ajScript.indent--;
 				ajScript.printEndTag("srcdir"); //$NON-NLS-1$
 			}
-	
-			ajScript.printEndTag("iajc"); //$NON-NLS-1$
 			ajScript.indent--;
+			ajScript.printEndTag("iajc"); //$NON-NLS-1$
 		}
+	}
+
+	public void setAspectpath(List aspectpath) {
+		this.aspectpath = aspectpath;
+	}
+
+	public void setInpath(List inpath) {
+		this.inpath = inpath;
 	}
 
 	

@@ -306,7 +306,7 @@ public class CoreProjectProperties implements IProjectProperties {
 		return mapStringToSet(inpath, false);
 	}
 
-	private String expandVariables(String path, String eKinds) {
+	public String expandVariables(String path, String eKinds) {
 		StringBuffer resultBuffer = new StringBuffer();
 		StringTokenizer strTok = new StringTokenizer(path, File.pathSeparator);
 		StringTokenizer strTok2 = new StringTokenizer(eKinds,
@@ -339,7 +339,7 @@ public class CoreProjectProperties implements IProjectProperties {
 	 * @param inputPath
 	 * @return
 	 */
-	private String fullyQualifyPathEntries(String inputPath) {
+	public String fullyQualifyPathEntries(String inputPath) {
 		StringBuffer resultBuffer = new StringBuffer();
 		StringTokenizer strTok = new StringTokenizer(inputPath,
 				File.pathSeparator);

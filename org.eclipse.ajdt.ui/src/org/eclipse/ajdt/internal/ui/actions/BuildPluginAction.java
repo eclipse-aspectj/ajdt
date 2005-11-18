@@ -9,8 +9,16 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.aspectj.ajde.Ajde;
+import org.aspectj.ajde.ProjectPropertiesAdapter;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
+import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
@@ -50,6 +58,11 @@ public class BuildPluginAction extends BaseBuildAction {
 				generator.setBuildConfig(configFile.getName());
 			}
 		}
+		List inpath = getInpath(project);
+		List aspectpath = getAspectpath(project);
+		generator.setInpath(inpath);
+		generator.setAspectpath(aspectpath);
+		
 		generator.setWorkingDirectory(project.getLocation().toOSString());
 		String url = ClasspathHelper.getDevEntriesProperties(project.getLocation().addTrailingSeparator().toString() + "dev.properties", false); //$NON-NLS-1$
 		generator.setDevEntries(new DevClassPathHelper(url));
@@ -64,6 +77,46 @@ public class BuildPluginAction extends BaseBuildAction {
 		} catch (CoreException e) {
 			throw new InvocationTargetException(e);
 		}
+	}
+
+	private List getAspectpath(IProject project) {
+		String[] v = AspectJCorePreferences.getProjectAspectPath(project);
+
+		// need to expand any variables on the path
+		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+		if (adapter instanceof CoreProjectProperties) {
+			String aspectPath = ((CoreProjectProperties)adapter).expandVariables(v[0], v[2]);
+
+			// Ensure that every entry in the list is a fully qualified one.
+			aspectPath = ((CoreProjectProperties)adapter).fullyQualifyPathEntries(aspectPath);
+	
+			if(aspectPath.length() > 0) {
+				String[] entries = aspectPath.split(File.pathSeparator);
+				List entryList = new ArrayList(Arrays.asList(entries));
+				return entryList;
+			}
+		}
+		return null;		
+	}
+
+	private List getInpath(IProject project) {
+		String[] v = AspectJCorePreferences.getProjectInPath(project);
+
+		// need to expand any variables on the path
+		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+		if (adapter instanceof CoreProjectProperties) {
+			String inPath = ((CoreProjectProperties)adapter).expandVariables(v[0], v[2]);
+
+			// Ensure that every entry in the list is a fully qualified one.
+			inPath = ((CoreProjectProperties)adapter).fullyQualifyPathEntries(inPath);
+	
+			if(inPath.length() > 0) {
+				String[] entries = inPath.split(File.pathSeparator);
+				List entryList = new ArrayList(Arrays.asList(entries));
+				return entryList;
+			}
+		}
+		return null;	
 	}
 
 }
