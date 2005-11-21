@@ -10,9 +10,11 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
+import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
@@ -30,10 +32,14 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 
 public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 
 	AspectJTextTools ajtt = null;
+	
+	private IPreferenceStore prefs;
 	
 	public AJSourceViewerConfiguration(AspectJTextTools textTools, AspectJEditor editor) {
 		super(textTools.getColorManager(), textTools.getPreferenceStore(), editor, EclipseEditorIsolation.JAVA_PARTITIONING);
@@ -59,9 +65,39 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 			compoundProcessor.add(ajProcessor);
 			compoundProcessor.add(wordProcessor);
 			cAssi.setContentAssistProcessor(compoundProcessor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
+			if (prefs == null) {
+				prefs = createPreferenceStore();
+			}
+			configureAJProcessor(prefs, (AJCompletionProcessor)ajProcessor);
 		}
 		return assistant;
 
+	}
+	
+	
+	// Copied from super as no access to super's preference store
+	private IPreferenceStore createPreferenceStore() {
+		IPreferenceStore generalTextStore= EditorsUI.getPreferenceStore();
+		return new ChainedPreferenceStore(new IPreferenceStore[] { ajtt.getPreferenceStore(), generalTextStore});
+	}
+
+	
+	// Fix for bug 111971 - our completion processor is not configured properly by ContentAssistPreferences
+	// so copied ContentAssistPreferences.configureJavaProcessor to here.
+	private void configureAJProcessor(IPreferenceStore store, AJCompletionProcessor jcp) {
+		
+		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
+		if (triggers != null)
+			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
+
+		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
+		jcp.restrictProposalsToVisibility(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
+		jcp.restrictProposalsToMatchingCases(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
+		jcp.orderProposalsAlphabetically(enabled);
 	}
 	
 	/**
