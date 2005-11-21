@@ -101,6 +101,8 @@ public class UICoreOperations implements ICoreOperations {
 		} else if (resname.endsWith(".lst") //$NON-NLS-1$
 				&& !resname.endsWith("/generated.lst")) { //$NON-NLS-1$
 			return true;
+		} else if (resname.endsWith(".classpath")){ //$NON-NLS-1$
+			return true;
 		} else {
 			boolean kids_results = false;
 			int i = 0;
