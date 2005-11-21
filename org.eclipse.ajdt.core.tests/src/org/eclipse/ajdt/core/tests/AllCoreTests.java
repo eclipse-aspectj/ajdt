@@ -15,6 +15,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
+import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
@@ -55,9 +56,10 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AspectElementTests.class));
 		
 		// builder tests
-		suite.addTest(new TestSuite(AJBuilderTest.class));	
-		suite.addTest(new TestSuite(Bug99133Test.class));	
-		
+		suite.addTest(new TestSuite(AJBuilderTest.class));
+		suite.addTest(new TestSuite(AJBuilderTest2.class));
+		suite.addTest(new TestSuite(Bug99133Test.class));
+
 		return suite;
 	}
 }
