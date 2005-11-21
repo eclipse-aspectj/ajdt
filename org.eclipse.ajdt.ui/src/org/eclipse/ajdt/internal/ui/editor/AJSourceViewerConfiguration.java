@@ -10,9 +10,11 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
+import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
@@ -61,9 +63,28 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 			compoundProcessor.add(ajProcessor);
 			compoundProcessor.add(wordProcessor);
 			cAssi.setContentAssistProcessor(compoundProcessor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
+			configureAJProcessor((ContentAssistant)assistant, fPreferenceStore, (AJCompletionProcessor)ajProcessor);
 		}
 		return assistant;
 
+	}
+	
+	// Fix for bug 111971 - our completion processor is not configured properly by ContentAssistPreferences
+	// so copied ContentAssistPreferences.configureJavaProcessor to here.
+	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
+		
+		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
+		if (triggers != null)
+			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
+
+		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
+		jcp.restrictProposalsToVisibility(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
+		jcp.restrictProposalsToMatchingCases(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
+		jcp.orderProposalsAlphabetically(enabled);
 	}
 	
 	/**

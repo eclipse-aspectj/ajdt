@@ -53,6 +53,11 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		if (isInAspectJContext)
 			fManager = new WorkingCopyManagerForCompletionProcessor(fManager, provider);
 		
+//		String triggers= store.getString(AUTOACTIVATION_TRIGGERS_JAVA);
+//		if (triggers != null)
+//			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
+//		setCompletionProposalAutoActivationCharacters()
+		
 	}
 	
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
