@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Renaud Waldura &lt;renaud+eclipse@waldura.com&gt; - New class/interface with wizard
  *******************************************************************************/
-package org.eclipse.jdt.internal.ui.text.correction;
+package org.eclipse.ajdt.internal.ui.editor.quickfix;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,11 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
-
-import org.eclipse.swt.graphics.Image;
-
-import org.eclipse.ui.ISharedImages;
-
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -67,7 +62,6 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportRewrite;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
 import org.eclipse.jdt.internal.corext.dom.ASTNodeFactory;
@@ -77,21 +71,42 @@ import org.eclipse.jdt.internal.corext.dom.ScopeAnalyzer;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.TypeFilter;
-
-import org.eclipse.jdt.ui.JavaElementImageDescriptor;
-import org.eclipse.jdt.ui.text.java.IInvocationContext;
-import org.eclipse.jdt.ui.text.java.IProblemLocation;
-
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
+import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
+import org.eclipse.jdt.internal.ui.text.correction.ASTRewriteCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.AddArgumentCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.AddTypeParameterProposal;
+import org.eclipse.jdt.internal.ui.text.correction.CUCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.CastCompletionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal;
+import org.eclipse.jdt.internal.ui.text.correction.LinkedCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.NameMatcher;
+import org.eclipse.jdt.internal.ui.text.correction.NewCUCompletionUsingWizardProposal;
+import org.eclipse.jdt.internal.ui.text.correction.NewMethodCompletionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.NewVariableCompletionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.RenameNodeCompletionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.ReplaceCorrectionProposal;
+import org.eclipse.jdt.internal.ui.text.correction.SimilarElement;
+import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
+import org.eclipse.jdt.internal.ui.text.correction.TypeMismatchSubProcessor;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal.ChangeDescription;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal.EditDescription;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal.InsertDescription;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal.RemoveDescription;
 import org.eclipse.jdt.internal.ui.text.correction.ChangeMethodSignatureProposal.SwapDescription;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
+import org.eclipse.jdt.ui.JavaElementImageDescriptor;
+import org.eclipse.jdt.ui.text.java.IInvocationContext;
+import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.ISharedImages;
 
+/**
+ * Copied from org.eclipse.jdt.internal.ui.text.correction.UnresolvedElementsSubProcessor
+ * Any changes marked with // AspectJ Change
+ */
 public class UnresolvedElementsSubProcessor {
 	
 	private static final String ADD_IMPORT_ID= "org.eclipse.jdt.ui.correction.addImport"; //$NON-NLS-1$

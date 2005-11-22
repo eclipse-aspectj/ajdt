@@ -132,7 +132,7 @@ public class AJPluginExportJob extends FeatureExportJob {
 	}
 // AspectJ Change Begin - copied from FeatureExportJob
 	private String getBuildScriptName(String featureLocation) {
-		return fFeatureLocation + IPath.SEPARATOR + "build.xml"; //$NON-NLS-1$
+		return featureLocation + IPath.SEPARATOR + "build.xml"; //$NON-NLS-1$
 	}
 
 	private String[] getBuildExecutionTargets() {
@@ -140,5 +140,6 @@ public class AJPluginExportJob extends FeatureExportJob {
 			return new String[] {"build.jars", "build.sources"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return new String[] {"build.jars"}; //$NON-NLS-1$ //$NON-NLS-2$
 	}
+// AspectJ Change End
 	
 }
