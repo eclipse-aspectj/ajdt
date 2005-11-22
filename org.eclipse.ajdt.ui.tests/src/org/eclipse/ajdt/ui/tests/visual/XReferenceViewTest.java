@@ -11,6 +11,9 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
@@ -34,9 +37,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 public class XReferenceViewTest extends VisualTestCase {
-	
-	private int inplaceSize;
-	
+		
 	protected void setUp() throws Exception {	
 		super.setUp();
 	}
@@ -380,28 +381,20 @@ public class XReferenceViewTest extends VisualTestCase {
 		return ((IJavaElement)o1).exists();
 	}
 	
-	public void checkProvidersAgree(XReferenceCustomFilterAction xrefAction) {
-		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
-		XReferenceProviderDefinition contributingProviderDefinition = null;
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
-				if (contributingProviderDefinition == null){
-					contributingProviderDefinition = provider;
-//					inplaceSize = contributingProviderDefinition.getCheckedInplaceFilters().size();
-				} else {
-					assertTrue("Provider 'checked' Lists do not match", //$NON-NLS-1$
-							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()));
-					assertTrue("Provider 'checkedInplace' Lists do not match", //$NON-NLS-1$
-							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters())
-							&& provider.getCheckedInplaceFilters().size() == inplaceSize);
-				}
-			} else {
-				contributingProviderDefinition = provider;
+	private Set getCheckedList(XReferenceCustomFilterAction xrefAction) {
+		Set checkedList = new TreeSet();
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter
+				.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter
+					.next();
+			List checked = provider.getCheckedFilters();;
+			if (checked != null) {
+				checkedList.addAll(checked);
 			}
-		}		
+		}
+		return checkedList;
 	}
-
+	
 	
 	// -------------------- tests for the filter ---------------------
 	
@@ -416,7 +409,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 
 		Runnable r = new Runnable() {
 			public void run() {
@@ -433,8 +426,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		xrefAction.run();
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
-		
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Select all did not increase the number of selected items", second.size() > first.size());
 
 		TreeViewer treeViewer = xrefView.getTreeViewer();
 //		assertTrue("xref view should have non null treeviewer",treeViewer.getInput());
@@ -449,7 +442,7 @@ public class XReferenceViewTest extends VisualTestCase {
 			if (provider.getAllFilters() != null){
 				// Comparing the number of selected items with the populating list at this point is ok because repeated entries
 				// in the populating list are removed in the constructor of the action
-				assertTrue("The number of checked Filtes should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedFilters().size()); //$NON-NLS-1$
+				assertTrue("The number of checked Filters should equal the number of items in the list", xrefAction.getPopulatingList().size() == provider.getCheckedFilters().size()); //$NON-NLS-1$
 			}
 		}
 	}
@@ -465,7 +458,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 
 		Runnable r = new Runnable() {
 			public void run() {
@@ -482,7 +475,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		xrefAction.run();
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Deselect all did not decrease the number of selected items", second.size() < first.size());
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -491,7 +485,6 @@ public class XReferenceViewTest extends VisualTestCase {
 				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
 			}
 		}
-		testSelectAll();
 	}
 	
 	public void testRestoreDefaults() throws CoreException {
@@ -505,7 +498,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 
 		Runnable r = new Runnable() {
 			public void run() {
@@ -522,7 +515,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		xrefAction.run();
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertEquals("Restore defaults changed the number of selected items", second.size(), first.size());
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -545,7 +539,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 		
 		Runnable r = new Runnable() {
 			public void run() {
@@ -564,19 +558,14 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Selecting 3 items all did not increase the number of selected items by 3", (second.size() - first.size()) == 3);
 
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			// Only concern ourselves with those providers dealing with the setting and checking of filters
-			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 3", provider.getCheckedFilters().size() == 3); //$NON-NLS-1$
-			}
-		}
+		doUnChecking();
 	}
 	
 	// CheckedList should now have first three items checked.  Uncheck these...
-	public void testUnChecking() throws CoreException {
+	private void doUnChecking() throws CoreException {
 		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
@@ -587,7 +576,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 		
 		Runnable r = new Runnable() {
 			public void run() {
@@ -606,15 +595,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
-
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			// Only concern ourselves with those providers dealing with the setting and checking of filters
-			if (provider.getAllFilters() != null){
-				assertTrue("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedFilters().size() == 0); //$NON-NLS-1$
-			}
-		}
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Deselecting 3 items all did not decrease the number of selected items by 3", (first.size() - second.size()) == 3);
 	}
 	
 
@@ -630,7 +612,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		XReferenceCustomFilterAction xrefAction = (XReferenceCustomFilterAction)xrefView.getCustomFilterAction();
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set first = getCheckedList(xrefAction);
 		
 		Runnable r = new Runnable() {
 			public void run() {
@@ -655,7 +637,8 @@ public class XReferenceViewTest extends VisualTestCase {
 		
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertEquals("Pressing Cancel changed the number of selected items", second.size(), first.size());
 
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
