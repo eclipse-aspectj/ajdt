@@ -35,7 +35,6 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
-import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageDisposer;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
@@ -62,8 +61,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.help.WorkbenchHelp;
-import org.eclipse.ui.ide.IDE;
 
 
 /**
@@ -79,7 +76,6 @@ public class InPathBlock {
     private IJavaProject fCurrJProject;
     private IPath fOutputLocationPath;
     private IStatusChangeListener fContext;
-    private Control fSWTWidget;
     private int fPageIndex;
     private InPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
@@ -329,11 +325,8 @@ public class InPathBlock {
      * @see org.eclipse.ajdt.internal.ui.wizards.buildpaths.BuildPathsBlock#createControl(org.eclipse.swt.widgets.Composite)
      */
     public Control createControl(Composite parent) {
-        fSWTWidget = parent;
-
-        PixelConverter converter = new PixelConverter(parent);
-
-        Composite composite = new Composite(parent, SWT.NONE);
+        
+    	Composite composite = new Composite(parent, SWT.NONE);
 
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
@@ -350,10 +343,7 @@ public class InPathBlock {
 
         TabItem item;
         IWorkbench workbench = AspectJUIPlugin.getDefault().getWorkbench();
-        Image projectImage =
-            workbench.getSharedImages().getImage(
-                IDE.SharedImages.IMG_OBJ_PROJECT);
-
+       
         fLibrariesPage =
             new InPathLibrariesWorkbookPage(fWorkspaceRoot, fInPathList);
         item = new TabItem(folder, SWT.NONE);
@@ -387,7 +377,7 @@ public class InPathBlock {
             }
         });
 
-        WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK); // GCH change this.
+        workbench.getHelpSystem().setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK); // GCH change this.
         Dialog.applyDialogFont(composite);
         return composite;
     }

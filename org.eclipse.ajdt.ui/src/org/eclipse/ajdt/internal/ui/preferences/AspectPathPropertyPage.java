@@ -237,11 +237,7 @@ public class AspectPathPropertyPage extends PropertyPage implements
             IRunnableWithProgress op= new WorkspaceModifyDelegatingOperation(runnable);
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
-            } catch (InvocationTargetException e) {
-            	
-                String title= PreferencesMessages.BuildPathsPropertyPage_error_title;
-                String message= PreferencesMessages.BuildPathsPropertyPage_error_message;
-                // TODO : Handle exception 
+            } catch (InvocationTargetException e) {            	
                 return false;
             } catch (InterruptedException e) {
                 // cancelled

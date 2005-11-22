@@ -39,12 +39,10 @@ public class TestForPredefinedProjectsTool extends UITestCase {
 		} catch (JavaModelException e) {
 			fail("Project 'Hello World Project' was not imported correctly."); //$NON-NLS-1$
 		}
-		deleteProject(p);
 		
 		p = createPredefinedProject("project name that (hopefully) does not exist"); //$NON-NLS-1$
 		if (p != null)
-			fail("Could import project that does not exist."); //$NON-NLS-1$
-		
+			fail("Could import project that does not exist."); //$NON-NLS-1$		
 		
 	}
 	

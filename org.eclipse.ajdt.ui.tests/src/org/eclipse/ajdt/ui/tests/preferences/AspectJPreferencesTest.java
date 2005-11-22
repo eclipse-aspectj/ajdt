@@ -419,7 +419,7 @@ public class AspectJPreferencesTest extends UITestCase {
 			prefStore.setValue(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,JavaCore.IGNORE);
 		
 			// recheck
-			boolean gotIgnore = checkXlintOption(file,"typeNotExposedToWeaver","ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+			checkXlintOption(file,"typeNotExposedToWeaver","ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 			assertTrue("Did not find typeNotExpostedToWeaver entry set to ignore",gotWarning); //$NON-NLS-1$
 		} finally {
 			// restore settings

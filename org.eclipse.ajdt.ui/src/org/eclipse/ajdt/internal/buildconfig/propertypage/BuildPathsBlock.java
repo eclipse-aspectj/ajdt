@@ -143,9 +143,6 @@ public class BuildPathsBlock {
 	
 	private String fUserSettingsTimeStamp;
 	private long fFileTimeStamp;
-    
-    private IRunnableContext fRunnableContext;
-    private boolean fUseNewPage;
 
 	private final IWorkbenchPreferenceContainer fPageContainer; // null when invoked from a non-property page context
 		
@@ -153,7 +150,6 @@ public class BuildPathsBlock {
 		fPageContainer= pageContainer;
 		fWorkspaceRoot= JavaPlugin.getWorkspace().getRoot();
 		fContext= context;
-		fUseNewPage= useNewPage;
 		
 		fPageIndex= pageToShow;
 		
@@ -161,8 +157,7 @@ public class BuildPathsBlock {
 		fLibrariesPage= null;
 		fProjectsPage= null;
 		fCurrPage= null;
-        fRunnableContext= runnableContext;
-				
+       		
 		BuildPathAdapter adapter= new BuildPathAdapter();			
 	
 		String[] buttonLabels= new String[] {

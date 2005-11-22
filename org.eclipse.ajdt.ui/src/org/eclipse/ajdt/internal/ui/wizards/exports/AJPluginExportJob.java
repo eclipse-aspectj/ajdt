@@ -24,7 +24,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
-import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.TargetPlatform;
 import org.eclipse.pde.internal.ui.PDEUIMessages;
@@ -39,8 +38,6 @@ public class AJPluginExportJob extends FeatureExportJob {
 
 	private String fFeatureLocation;
 	
-	private String fDevProperties;
-
 	private FeatureExportInfo info;
 	
 	/**
@@ -143,13 +140,5 @@ public class AJPluginExportJob extends FeatureExportJob {
 			return new String[] {"build.jars", "build.sources"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return new String[] {"build.jars"}; //$NON-NLS-1$ //$NON-NLS-2$
 	}
-	
-	 private String getDevProperties() {
-		if (fDevProperties == null) {
-			fDevProperties = ClasspathHelper.getDevEntriesProperties(fBuildTempLocation + "/dev.properties", false); //$NON-NLS-1$
-		}
-		return fDevProperties;
-	}
-// AspectJ Change End
 	
 }

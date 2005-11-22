@@ -625,7 +625,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 
 		if (projectWorkspaceChanges || (projectSettingsChanged && useProjectSettings())) {
-			boolean doBuild = false;
 			String[] strings = getProjectBuildDialogStrings();
 			if (strings != null) {
 				MessageDialog dialog = new MessageDialog(getShell(),
@@ -638,16 +637,11 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				    // by only setting compilerSettingsUpdated to be true here, means that
 				    // the user wont select "don't want to build" here and then get a build
 				    // from other pages.
-					doBuild = true;
 				} else if (res != 1) {
-				    doBuild = false;
 					return false; // cancel pressed
-				} else {
-				    doBuild = false;
 				}
 			}
 		}
-
 		return true;		
 	}
 

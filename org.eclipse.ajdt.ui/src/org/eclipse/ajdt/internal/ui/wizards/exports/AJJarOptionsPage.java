@@ -11,6 +11,7 @@
 
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -42,7 +43,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.SaveAsDialog;
-import org.eclipse.ui.help.WorkbenchHelp;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.jarpackager.JarOptionsPage.
@@ -111,7 +111,7 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 		update();
 
 		Dialog.applyDialogFont(composite);
-		WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.JAROPTIONS_WIZARD_PAGE);								
+		AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.JAROPTIONS_WIZARD_PAGE);								
 	}
 
 	/**

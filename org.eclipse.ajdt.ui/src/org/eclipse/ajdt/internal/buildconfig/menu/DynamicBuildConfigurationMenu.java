@@ -60,7 +60,7 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	public void buildConfigurationChanged(final ProjectBuildConfigurator pbc) {
 		Job job = new UIJob(UIMessages.dynamicBuildConfigurationMenu_job_name) {
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final IAction addAction = new AddBuildConfigurationAction();
+				new AddBuildConfigurationAction();
 				rebuildMenu(pbc);
 				return Status.OK_STATUS;
 			}

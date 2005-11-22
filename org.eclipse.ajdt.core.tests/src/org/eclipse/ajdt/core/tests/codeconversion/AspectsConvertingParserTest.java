@@ -18,19 +18,19 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 
 	public void testBug110751() {
-		String source = "public aspect Aspect {\n"
-				+ "	private void Cloneable.loop(Object[] objects) throws IOException {\n"
-				+ "		for (Object obj : objects) {\n"
-				+ "			obj.toString();\n"
-				+ "		}\n"
-				+ "	}\n"
-				+ "};\n";
+		String source = "public aspect Aspect {\n" //$NON-NLS-1$
+				+ "	private void Cloneable.loop(Object[] objects) throws IOException {\n" //$NON-NLS-1$
+				+ "		for (Object obj : objects) {\n" //$NON-NLS-1$
+				+ "			obj.toString();\n" //$NON-NLS-1$
+				+ "		}\n" //$NON-NLS-1$
+				+ "	}\n" //$NON-NLS-1$
+				+ "};\n"; //$NON-NLS-1$
 		ConversionOptions conversionOptions = ConversionOptions.STANDARD;
 		AspectsConvertingParser conv = new AspectsConvertingParser(source
 				.toCharArray());
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
-		assertTrue("Parser failed to handle enhancement for loop",
-				converted.indexOf("for (Object obj : objects)")!=-1);
+		assertTrue("Parser failed to handle enhancement for loop", //$NON-NLS-1$
+				converted.indexOf("for (Object obj : objects)")!=-1); //$NON-NLS-1$
 	}
 }

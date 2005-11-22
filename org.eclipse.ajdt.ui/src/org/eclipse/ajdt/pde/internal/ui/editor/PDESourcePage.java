@@ -16,17 +16,25 @@
  */
 package org.eclipse.ajdt.pde.internal.ui.editor;
 
+import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContext;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.pde.internal.ui.*;
-import org.eclipse.ajdt.pde.internal.ui.editor.context.*;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.pde.internal.ui.IHelpContextIds;
+import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.model.IEditingModel;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.editor.*;
-import org.eclipse.ui.help.WorkbenchHelp;
-import org.eclipse.ui.ide.*;
+import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.forms.editor.IFormPage;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.texteditor.DefaultRangeIndicator;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -131,7 +139,7 @@ public abstract class PDESourcePage extends TextEditor implements IFormPage, IGo
 		Control[] children = parent.getChildren();
 		control = children[children.length - 1];
 		
-		WorkbenchHelp.setHelp(control, IHelpContextIds.MANIFEST_SOURCE_PAGE);
+		AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(control, IHelpContextIds.MANIFEST_SOURCE_PAGE);
 	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.forms.editor.IFormPage#getPartControl()

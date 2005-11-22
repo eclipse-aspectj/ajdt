@@ -476,7 +476,6 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
 
         NewContainerDialog dialog = new NewContainerDialog(getShell(), title,
                 currProject, getUsedContainers(existing), existing);
-        IPath projpath = currProject.getFullPath();
         dialog.setMessage(UIMessages.InPathLibrariesWorkbookPage_NewClassFolderDialog_description);
         if (dialog.open() == Window.OK) {
             IFolder folder = dialog.getFolder();

@@ -236,10 +236,7 @@ public class InPathPropertyPage extends PropertyPage implements
             try {
                 new ProgressMonitorDialog(shell).run(true, true, op);
             } catch (InvocationTargetException e) {
-                String title= PreferencesMessages.BuildPathsPropertyPage_error_title;
-                String message= PreferencesMessages.BuildPathsPropertyPage_error_message;
-                // TODO : Handle exception 
-                return false;
+            	return false;
             } catch (InterruptedException e) {
                 // cancelled
                 return false;

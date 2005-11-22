@@ -13,9 +13,17 @@
 
 package org.eclipse.ajdt.internal.ui.navigator;
  
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-import org.aspectj.asm.*;
+import org.aspectj.asm.AsmManager;
+import org.aspectj.asm.HierarchyWalker;
+import org.aspectj.asm.IHierarchy;
+import org.aspectj.asm.IHierarchyListener;
+import org.aspectj.asm.IProgramElement;
+import org.aspectj.asm.IRelationship;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
@@ -25,16 +33,36 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.viewers.*;
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.IFontProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.part.DrillDownAdapter;
@@ -169,7 +197,6 @@ public class PointcutNavigatorView extends ViewPart {
 
 	class ViewContentProvider implements IStructuredContentProvider, 
 										   ITreeContentProvider {
-		private TreeParent invisibleRoot;
 
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {	}
 		
@@ -288,9 +315,9 @@ public class PointcutNavigatorView extends ViewPart {
 			return false;
 		}
 
-		private void initialize() {
-			invisibleRoot.addChild(new TreeParent(AsmManager.getDefault().getHierarchy().getRoot()));
-		}
+//		private void initialize() {
+//			invisibleRoot.addChild(new TreeParent(AsmManager.getDefault().getHierarchy().getRoot()));
+//		}
 	}
 	class ViewLabelProvider extends LabelProvider implements IColorProvider, IFontProvider {
 
@@ -492,12 +519,12 @@ public class PointcutNavigatorView extends ViewPart {
 //			}
 //		});
 	}
-	private void showMessage(String message) {
-		MessageDialog.openInformation(
-			viewer.getControl().getShell(),
-			"Sample View", //$NON-NLS-1$
-			message);
-	}
+//	private void showMessage(String message) {
+//		MessageDialog.openInformation(
+//			viewer.getControl().getShell(),
+//			"Sample View", //$NON-NLS-1$
+//			message);
+//	}
 
 	/**
 	 * Passing the focus request to the viewer's control.

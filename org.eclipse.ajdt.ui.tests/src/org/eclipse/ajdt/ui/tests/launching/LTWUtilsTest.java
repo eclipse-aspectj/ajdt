@@ -310,16 +310,16 @@ public class LTWUtilsTest extends UITestCase{
 	}
 	
 	
-	private void printFileContents(IFile file) throws IOException, CoreException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
-		String line = br.readLine();
-		System.out.println("----------"); //$NON-NLS-1$
-		while (line != null) {
-			System.out.println("line: " + line); //$NON-NLS-1$
-			line = br.readLine();
-		}
-		br.close();
-	}
+//	private void printFileContents(IFile file) throws IOException, CoreException {
+//		BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
+//		String line = br.readLine();
+//		System.out.println("----------"); //$NON-NLS-1$
+//		while (line != null) {
+//			System.out.println("line: " + line); //$NON-NLS-1$
+//			line = br.readLine();
+//		}
+//		br.close();
+//	}
 	
 	private void compareFileContentsWithExpected(IFile file, String[] expectedLines) throws CoreException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(file

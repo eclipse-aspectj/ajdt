@@ -327,7 +327,7 @@ public class UtilTests extends UITestCase {
         IPath lstFile = new Path(new File(pwd, "doesnotexist.lst") //$NON-NLS-1$
                 .getAbsolutePath());
         try {
-            IPath result = Util.getInlinedLstFile(lstFile);
+            Util.getInlinedLstFile(lstFile);
             fail("Preceeding call should have thrown FileNotFoundException"); //$NON-NLS-1$
         } catch (FileNotFoundException e) {
             // NO OP

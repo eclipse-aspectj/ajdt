@@ -26,13 +26,6 @@ import org.eclipse.ui.forms.editor.IFormPage;
  */
 public abstract class ModelUndoManager
 	implements IModelUndoManager, IModelChangedListener {
-	private static final String KEY_NO_UNDO = "UpdateManager.noUndo"; //$NON-NLS-1$
-	private static final String KEY_NO_REDO = "UpdateManager.noRedo"; //$NON-NLS-1$
-	private static final String KEY_UNDO = "UpdateManager.undo"; //$NON-NLS-1$
-	private static final String KEY_REDO = "UpdateManager.redo"; //$NON-NLS-1$
-	private static final String KEY_OP_ADD = "UpdateManager.op.add"; //$NON-NLS-1$
-	private static final String KEY_OP_REMOVE = "UpdateManager.op.remove"; //$NON-NLS-1$
-	private static final String KEY_OP_CHANGE = "UpdateManager.op.change"; //$NON-NLS-1$
 	private boolean ignoreChanges;
 	private List operations;
 	private int undoLevelLimit = 10;

@@ -36,14 +36,12 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
-import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageDisposer;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListLabelProvider;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.ClasspathOrderingWorkbookPage;
-import org.eclipse.jdt.internal.ui.wizards.buildpaths.SourceContainerWorkbookPage;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IStringButtonAdapter;
@@ -60,13 +58,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.help.WorkbenchHelp;
-import org.eclipse.ui.ide.IDE;
 
 
 /**
@@ -81,9 +76,7 @@ public class AspectPathBlock {
     private IJavaProject fCurrJProject;
     private IPath fOutputLocationPath;
     private IStatusChangeListener fContext;
-    private Control fSWTWidget;
     private int fPageIndex;
-    private SourceContainerWorkbookPage fSourceContainerPage;
     private AspectPathLibrariesWorkbookPage fLibrariesPage;
     private BuildPathBasePage fCurrPage;
 	private List existingAspectPath;
@@ -92,7 +85,6 @@ public class AspectPathBlock {
         fWorkspaceRoot= AspectJPlugin.getWorkspace().getRoot();
         fContext= context;
         fPageIndex= pageToShow;
-        fSourceContainerPage= null;
         fLibrariesPage= null;
         fCurrPage= null;
         
@@ -204,12 +196,6 @@ public class AspectPathBlock {
         fContext.statusChanged(res);
     }
 
-    private Shell getShell() {
-        if (fSWTWidget != null) {
-            return fSWTWidget.getShell();
-        }
-        return AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
-    }
 
     private IPath getDefaultBuildPath(IJavaProject jproj) {
         IPreferenceStore store = PreferenceConstants.getPreferenceStore();
@@ -328,10 +314,7 @@ public class AspectPathBlock {
      * @see org.eclipse.ajdt.internal.ui.wizards.buildpaths.BuildPathsBlock#createControl(org.eclipse.swt.widgets.Composite)
      */
     public Control createControl(Composite parent) {
-        fSWTWidget = parent;
-
-        PixelConverter converter = new PixelConverter(parent);
-
+        
         Composite composite = new Composite(parent, SWT.NONE);
 
         GridLayout layout = new GridLayout();
@@ -349,10 +332,7 @@ public class AspectPathBlock {
 
         TabItem item;
         IWorkbench workbench = AspectJUIPlugin.getDefault().getWorkbench();
-        Image projectImage =
-            workbench.getSharedImages().getImage(
-                IDE.SharedImages.IMG_OBJ_PROJECT);
-
+        
         fLibrariesPage =
             new AspectPathLibrariesWorkbookPage(fWorkspaceRoot, fAspectPathList);
         item = new TabItem(folder, SWT.NONE);
@@ -386,7 +366,7 @@ public class AspectPathBlock {
             }
         });
 
-        WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK); // GCH change this.
+        workbench.getHelpSystem().setHelp(composite, IJavaHelpContextIds.BUILD_PATH_BLOCK); // GCH change this.
         Dialog.applyDialogFont(composite);
         return composite;
     }

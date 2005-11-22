@@ -154,13 +154,9 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		TreeObject[] originalChildren = originalParentNode.getChildren();
 		TreeObject[] newChildren = newParentNode3.getChildren();
 		
-		TreeObject aroundAdvice = null;
 			
 		for (int i = 0; i < newChildren.length; i++) {
 			JavaElement child = (JavaElement)newChildren[i].getData();	
-			if ((child instanceof AdviceElement) && child.getElementName().equals("around")) { //$NON-NLS-1$
-				aroundAdvice = newChildren[i];
-			}
 			boolean foundMatch = false;
 			for (int j = 0; j < originalChildren.length; j++) {
 				JavaElement oldChild = (JavaElement)originalChildren[j].getData();

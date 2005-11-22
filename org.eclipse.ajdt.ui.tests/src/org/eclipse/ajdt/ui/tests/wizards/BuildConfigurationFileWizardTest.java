@@ -49,7 +49,7 @@ public class BuildConfigurationFileWizardTest extends UITestCase {
 		dialog.open();
 		dialog.finishPressed();
 		Collection newconfigs = pbc.getBuildConfigurations();
-		assertTrue("The new project should have two build configurations", configs.size() == 2); //$NON-NLS-1$
+		assertTrue("The new project should have two build configurations", newconfigs.size() == 2); //$NON-NLS-1$
 	}
 
 	

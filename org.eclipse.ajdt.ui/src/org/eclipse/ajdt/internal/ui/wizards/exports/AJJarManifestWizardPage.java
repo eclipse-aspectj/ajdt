@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -77,7 +78,6 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.ISelectionStatusValidator;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.dialogs.SelectionDialog;
-import org.eclipse.ui.help.WorkbenchHelp;
 
 
 /**
@@ -188,7 +188,7 @@ class AJJarManifestWizardPage extends WizardPage implements IJarPackageWizardPag
 		update();
 
 		Dialog.applyDialogFont(composite);
-		WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.JARMANIFEST_WIZARD_PAGE);								
+		AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.JARMANIFEST_WIZARD_PAGE);								
 			
 	}
 	/**

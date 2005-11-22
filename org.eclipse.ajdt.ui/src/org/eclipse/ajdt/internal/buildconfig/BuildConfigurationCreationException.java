@@ -16,4 +16,7 @@ package org.eclipse.ajdt.internal.buildconfig;
  */
 public class BuildConfigurationCreationException extends Exception {
 
+	private static final long serialVersionUID = 6334629352889509802L;
+
+
 }

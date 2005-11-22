@@ -224,8 +224,6 @@ public class AspectJProjectWizardTest extends UITestCase {
 		dialog.setBlockOnOpen(false);
 		dialog.create();
 		dialog.open();
-		JavaProjectWizardFirstPage curPage = (JavaProjectWizardFirstPage) dialog
-				.getCurrentPage();
 		dialog.finishPressed();
 		IProject wizardCreatedProject = AspectJPlugin.getWorkspace().getRoot()
 				.getProject(projectName);

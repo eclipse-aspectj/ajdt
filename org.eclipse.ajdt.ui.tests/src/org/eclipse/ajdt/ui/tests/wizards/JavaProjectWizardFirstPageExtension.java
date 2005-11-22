@@ -316,14 +316,14 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 		private final Link fPreferenceLink;
 		
 		public JREGroup(Composite composite) {
-			fComplianceLabels= new String[] { NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_13"), NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_14"), NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_50") };
+			fComplianceLabels= new String[] { NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_13"), NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_14"), NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_compliance_50") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			fComplianceData= new String[] { JavaCore.VERSION_1_3,  JavaCore.VERSION_1_4,  JavaCore.VERSION_1_5 };
 			
 			fGroup= new Group(composite, SWT.NONE);
 			fGroup.setFont(composite.getFont());
 			fGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			fGroup.setLayout(initGridLayout(new GridLayout(3, false), true));
-			fGroup.setText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_title")); 
+			fGroup.setText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_title"));  //$NON-NLS-1$
 						
 			fUseDefaultJRE= new SelectionButtonDialogField(SWT.RADIO);
 			fUseDefaultJRE.setLabelText(getDefaultComplianceLabel());
@@ -331,12 +331,12 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 			
 			fPreferenceLink= new Link(fGroup, SWT.NONE);
 			fPreferenceLink.setFont(fGroup.getFont());
-			fPreferenceLink.setText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_link_description"));
+			fPreferenceLink.setText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_link_description")); //$NON-NLS-1$
 			fPreferenceLink.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
 			fPreferenceLink.addSelectionListener(this);
 		
 			fUseProjectJRE= new SelectionButtonDialogField(SWT.RADIO);
-			fUseProjectJRE.setLabelText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_specific_compliance"));
+			fUseProjectJRE.setLabelText(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_specific_compliance")); //$NON-NLS-1$
 			fUseProjectJRE.doFillIntoGrid(fGroup, 1);
 			fUseProjectJRE.setDialogFieldListener(this);
 						
@@ -365,7 +365,7 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 		}
 
 		private String getDefaultComplianceLabel() {
-			return Messages.format(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_default_compliance"), getCurrentCompliance());
+			return Messages.format(NewWizardMessages.getString("JavaProjectWizardFirstPage_JREGroup_default_compliance"), getCurrentCompliance()); //$NON-NLS-1$
 		}
 
 		public void update(Observable o, Object arg) {
@@ -564,8 +564,6 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 
 	private String fInitialName;
 	
-	private static final String PAGE_NAME= NewWizardMessages.getString("JavaProjectWizardFirstPage.page.pageName"); //$NON-NLS-1$
-
 	/**
 	 * Create a new <code>SimpleProjectFirstPage</code>.
 	 */

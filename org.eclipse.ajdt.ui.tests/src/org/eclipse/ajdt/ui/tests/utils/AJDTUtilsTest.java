@@ -12,11 +12,9 @@
 package org.eclipse.ajdt.ui.tests.utils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -192,35 +190,6 @@ public class AJDTUtilsTest extends UITestCase {
 		waitForJobsToComplete();
 		assertFalse("project.java.Y should not have ajrt on build path", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
-	}
-
-	private String checkDependencyType(IJavaProject projectToHaveDependency,
-			IProject projectDependedOn) {
-		try {
-			IClasspathEntry[] cpEntry = projectToHaveDependency
-					.getRawClasspath();
-			for (int i = 0; i < cpEntry.length; i++) {
-				IClasspathEntry entry = cpEntry[i];
-				if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT
-						&& entry.getPath().equals(
-								projectDependedOn.getFullPath())) {
-					return "project"; //$NON-NLS-1$
-				} else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
-					List outputLocationPaths = CoreUtils
-							.getOutputLocationPaths(projectDependedOn);
-					for (Iterator iterator = outputLocationPaths.iterator(); iterator
-							.hasNext();) {
-						IPath path = (IPath) iterator.next();
-						if (entry.getPath().equals(path)) {
-							return "classfolder"; //$NON-NLS-1$
-						}
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
-		return "none"; //$NON-NLS-1$
 	}
 
 	private boolean hasAjrtOnBuildPath(IJavaProject javaProject) {

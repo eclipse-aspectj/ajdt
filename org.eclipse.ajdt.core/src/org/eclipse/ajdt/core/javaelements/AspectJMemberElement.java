@@ -22,7 +22,6 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
-import org.eclipse.jdt.core.jdom.IDOMMethod;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
@@ -154,7 +153,7 @@ public String[] getParameterTypes() {
 	return fParameterTypes;
 }
 
-/**
+/*
  * @see IMethod#getTypeParameterSignatures()
  * @since 3.0
  */
@@ -229,42 +228,6 @@ public boolean isSimilar(IMethod method) {
 			null);
 }
 
-/**
- * Returns <code>true</code> if the signature of this <code>SourceMethod</code> matches that of the given
- * <code>IDOMMethod</code>, otherwise <code>false</code>. 
- * @deprecated JDOM is obsolete
- */
-// TODO - JDOM - remove once model ported off of JDOM
-protected boolean signatureEquals(IDOMMethod method) {
-	String[] otherTypes= method.getParameterTypes();
-	String[] types= getParameterTypes();
-	boolean ok= true;
-
-	// ensure the number of parameters match
-	if (otherTypes == null || otherTypes.length == 0) {
-		ok= (types == null || types.length == 0);
-	} else if (types != null) {
-		ok= (otherTypes.length == types.length);
-	} else {
-		return false;
-	}
-
-	// ensure the parameter type signatures match
-	if (ok) {
-		if (types != null) {
-			int i;
-			for (i= 0; i < types.length; i++) {
-				String otherType= Signature.createTypeSignature(otherTypes[i].toCharArray(), false);
-				if (!types[i].equals(otherType)) {
-					ok= false;
-					break;
-				}
-			}
-		}
-	}
-
-	return ok;
-}
 /**
  * @private Debugging purposes
  */
