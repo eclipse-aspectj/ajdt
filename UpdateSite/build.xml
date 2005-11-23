@@ -12,15 +12,17 @@ running a master build.
 
 The key targets are:
 * clean (obvious),
-* ajdejars (which recreates the jars in the ajde plugin from an aspectj
-  distribution
-* update-site which builds everything and creates an update-site
-* publish, which uploads the update-site to ajdt/dev/update on eclipse.org
-* release, which uploads the update-site to ajdt/update on eclipse.org
+* feature-pack which builds everything and creates an update-site
 
-to run the last two targets you need an account on dev.eclipse.org
 -->
 
+<!--
+  The AJDE and weaver plugins from an installed build of AJDT are
+  need to compile AspectJ-enabled projects. Their locations are set
+  by each individual build file, but they can be overriden here.
+<property name="aspectj.plugin.home" value="../org.aspectj.ajde/"/>
+<property name="aspectj.weaver.home" value="../org.aspectj.weaver/"/>
+-->	
 <property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
 <property name="ajdt.version.file" location="ajdtbuildversion.txt" /> <!-- set by CruiseControl -->
 <property name="aspectj.feature.version" value="1.3.0.${cctimestamp}" />
