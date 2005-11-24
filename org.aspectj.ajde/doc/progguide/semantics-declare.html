@@ -10,13 +10,13 @@
           associated with other types.
         </p><p>
         An inter-type method declaration looks like
-      </p><div class="itemizedlist"><ul><li><a name="d0e6373"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6392"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i> <i><tt>OnType</tt></i>
         .
         <i><tt>Id</tt></i>(<i><tt>Formals</tt></i>)
         [ <i><tt>ThrowsClause</tt></i> ]
-        { <i><tt>Body</tt></i> }</tt></li><li><a name="d0e6397"></a><tt>abstract
+        { <i><tt>Body</tt></i> }</tt></li><li><a name="d0e6416"></a><tt>abstract
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i> <i><tt>OnType</tt></i>
         .  <i><tt>Id</tt></i>(<i><tt>Formals</tt></i>)
@@ -41,7 +41,7 @@
   }
 </pre><p>
         An inter-type constructor declaration looks like
-      </p><div class="itemizedlist"><ul><li><a name="d0e6431"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6450"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>OnType</tt></i> . new (
         <i><tt>Formals</tt></i> )
@@ -65,11 +65,11 @@
         constructor is defined.
       </p><p>
         An inter-type field declaration looks like one of
-      </p><div class="itemizedlist"><ul><li><a name="d0e6476"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6495"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i>
         <i><tt>OnType</tt></i> . <i><tt>Id</tt></i>
-        = <i><tt>Expression</tt></i>;</tt></li><li><a name="d0e6494"></a><tt>
+        = <i><tt>Expression</tt></i>;</tt></li><li><a name="d0e6513"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i>
         <i><tt>OnType</tt></i> . <i><tt>Id</tt></i>;</tt></li></ul></div><p>
@@ -160,9 +160,9 @@
       </p><p>
         Conflicts are resolved as much as possible as per Java's conflict
         resolution rules:
-      </p><div class="itemizedlist"><ul><li><a name="d0e6629"></a>A subclass can inherit multiple <span class="emphasis"><i>fields</i></span> from its superclasses,
+      </p><div class="itemizedlist"><ul><li><a name="d0e6648"></a>A subclass can inherit multiple <span class="emphasis"><i>fields</i></span> from its superclasses,
         all with the same name and type.  However, it is an error to have an ambiguous
-        <span class="emphasis"><i>reference</i></span> to a field.</li><li><a name="d0e6637"></a>A subclass can only inherit multiple
+        <span class="emphasis"><i>reference</i></span> to a field.</li><li><a name="d0e6656"></a>A subclass can only inherit multiple
         <span class="emphasis"><i>methods</i></span> with the same name and argument types from
         its superclasses if only zero or one of them is concrete (i.e., all but
         one is abstract, or all are abstract).
@@ -177,7 +177,7 @@
         An aspect may change the inheritance hierarchy of a system by changing
         the superclass of a type or adding a superinterface onto a type, with
         the <tt>declare parents</tt> form.
-      </p><div class="itemizedlist"><ul><li><a name="d0e6656"></a><tt>declare parents: <i><tt>TypePattern</tt></i> extends <i><tt>Type</tt></i>;</tt></li><li><a name="d0e6665"></a><tt>declare parents: <i><tt>TypePattern</tt></i> implements <i><tt>TypeList</tt></i>;</tt></li></ul></div><p>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6675"></a><tt>declare parents: <i><tt>TypePattern</tt></i> extends <i><tt>Type</tt></i>;</tt></li><li><a name="d0e6684"></a><tt>declare parents: <i><tt>TypePattern</tt></i> implements <i><tt>TypeList</tt></i>;</tt></li></ul></div><p>
         For example, if an aspect wished to make a particular class runnable,
         it might define appropriate inter-type <tt>void
         run()</tt> method, but it should also declare that the class
@@ -219,7 +219,7 @@
       </p><pre class="programlisting">
     Object M C O N D Q P E
 </pre></div><div class="sect2"><a name="warnings-and-errors"></a><div class="titlepage"><div><h3 class="title"><a name="warnings-and-errors"></a>Warnings and Errors</h3></div></div><p>An aspect may specify that a particular join point should never be
-      reached.  </p><div class="itemizedlist"><ul><li><a name="d0e6740"></a><tt>declare error: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li><li><a name="d0e6749"></a><tt>declare warning: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li></ul></div><p>If the compiler determines that a join point in
+      reached.  </p><div class="itemizedlist"><ul><li><a name="d0e6759"></a><tt>declare error: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li><li><a name="d0e6768"></a><tt>declare warning: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li></ul></div><p>If the compiler determines that a join point in
       <i><tt>Pointcut</tt></i> could possibly be reached, then it
       will signal either an error or warning, as declared, using the
       <i><tt>String</tt></i> for its message.   </p></div><div class="sect2"><a name="softened-exceptions"></a><div class="titlepage"><div><h3 class="title"><a name="softened-exceptions"></a>Softened exceptions</h3></div></div><p>An aspect may specify that a particular kind of exception, if
@@ -227,7 +227,7 @@
       checking system and instead be thrown as a
       <tt>org.aspectj.lang.SoftException</tt>, which is subtype of
       <tt>RuntimeException</tt> and thus does not need to be
-      declared.  </p><div class="itemizedlist"><ul><li><a name="d0e6778"></a><tt>declare soft: <i><tt>Type</tt></i>: <i><tt>Pointcut</tt></i>;</tt></li></ul></div><p>For example, the aspect</p><pre class="programlisting">
+      declared.  </p><div class="itemizedlist"><ul><li><a name="d0e6797"></a><tt>declare soft: <i><tt>Type</tt></i>: <i><tt>Pointcut</tt></i>;</tt></li></ul></div><p>For example, the aspect</p><pre class="programlisting">
   aspect A {
       declare soft: Exception: execution(void main(String[] args));
   }
@@ -260,7 +260,7 @@
 </pre></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice Precedence</h3></div></div><p>
         An aspect may declare a precedence relationship between concrete
         aspects with the <tt>declare precedence</tt> form:
-      </p><div class="itemizedlist"><ul><li><a name="d0e6818"></a><tt>declare precedence :
+      </p><div class="itemizedlist"><ul><li><a name="d0e6837"></a><tt>declare precedence :
         <i><tt>TypePatternList</tt></i> ; </tt></li></ul></div><p>This signifies that if any join point has advice from two
       concrete aspects matched by some pattern in
       <i><tt>TypePatternList</tt></i>, then the precedence of
@@ -297,7 +297,7 @@
 	  count++;
       }
   }
-</pre><div class="sect3"><a name="d0e6842"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6842"></a>Various cycles</h4></div></div><p>
+</pre><div class="sect3"><a name="d0e6861"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6861"></a>Various cycles</h4></div></div><p>
           It is an error for any aspect to be matched by more than one
           TypePattern in a single decare precedence, so:
         </p><pre class="programlisting">
@@ -314,7 +314,7 @@
           legal, so long as advice from A and B don't share a join
           point. So this is an idiom that can be used to enforce that A and
           B are strongly independent.
-        </p></div><div class="sect3"><a name="d0e6855"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6855"></a>Applies to concrete aspects</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e6874"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6874"></a>Applies to concrete aspects</h4></div></div><p>
           Consider the following library aspects:
         </p><pre class="programlisting">
   abstract aspect Logging {
@@ -361,4 +361,4 @@
       points, but they do so in a way that is statically determinable.  </p><p>Consequently, such pointcuts may not include, directly or
       indirectly (through user-defined pointcut declarations) pointcuts that
       discriminate based on dynamic (runtime) context.  Therefore, such
-      pointcuts may not be defined in terms of</p><div class="itemizedlist"><ul><li><a name="d0e6883"></a>cflow</li><li><a name="d0e6885"></a>cflowbelow</li><li><a name="d0e6887"></a>this</li><li><a name="d0e6889"></a>target</li><li><a name="d0e6891"></a>args</li><li><a name="d0e6893"></a>if</li></ul></div><p> all of which can discriminate on runtime information. </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="semantics-advice.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="semantics-aspects.html">Next</a></td></tr><tr><td width="40%" align="left">Advice&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="semantics.html">Up</a></td><td width="40%" align="right">&nbsp;Aspects</td></tr></table></div></body></html>
+      pointcuts may not be defined in terms of</p><div class="itemizedlist"><ul><li><a name="d0e6902"></a>cflow</li><li><a name="d0e6904"></a>cflowbelow</li><li><a name="d0e6906"></a>this</li><li><a name="d0e6908"></a>target</li><li><a name="d0e6910"></a>args</li><li><a name="d0e6912"></a>if</li></ul></div><p> all of which can discriminate on runtime information. </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="semantics-advice.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="semantics-aspects.html">Next</a></td></tr><tr><td width="40%" align="left">Advice&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="semantics.html">Up</a></td><td width="40%" align="right">&nbsp;Aspects</td></tr></table></div></body></html>
