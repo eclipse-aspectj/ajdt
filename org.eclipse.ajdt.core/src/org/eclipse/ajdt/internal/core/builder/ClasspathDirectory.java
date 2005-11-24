@@ -55,7 +55,7 @@ class ClasspathDirectory extends ClasspathLocation {
 
 		try {
 			IResource container = binaryFolder.findMember(qualifiedPackageName); // this is a case-sensitive check
-			if (container instanceof IContainer && !isExcluded(container)) {
+			if (container instanceof IContainer) {
 				IResource[] members = ((IContainer) container).members();
 				dirList = new String[members.length];
 				int index = 0;
@@ -77,7 +77,7 @@ class ClasspathDirectory extends ClasspathLocation {
 		return null;
 	}
 
-	boolean doesFileExist(String fileName, String qualifiedPackageName, String qualifiedFullName) {
+	boolean doesFileExist(String fileName, String qualifiedPackageName) {
 		String[] dirList = directoryList(qualifiedPackageName);
 		if (dirList == null) return false; // most common case
 
@@ -99,7 +99,7 @@ class ClasspathDirectory extends ClasspathLocation {
 	} 
 
 	public NameEnvironmentAnswer findClass(String binaryFileName, String qualifiedPackageName, String qualifiedBinaryFileName) {
-		if (!doesFileExist(binaryFileName, qualifiedPackageName, qualifiedBinaryFileName)) return null; // most common case
+		if (!doesFileExist(binaryFileName, qualifiedPackageName)) return null; // most common case
 
 		try {
 			ClassFileReader reader = ClassFileReader.read(binaryLocation + qualifiedBinaryFileName);
@@ -135,9 +135,6 @@ class ClasspathDirectory extends ClasspathLocation {
 		return binaryFolder.getProjectRelativePath();
 	}
 
-	protected boolean isExcluded(IResource resource) {
-		return false;
-	}
 
 	public boolean isOutputFolder() {
 		return isOutputFolder;

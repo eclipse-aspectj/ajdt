@@ -88,7 +88,7 @@ public class CompilationUnitTools {
 			acc = IProgramElement.Accessibility.PROTECTED;
 		} else if ((code & FieldDeclaration.AccPrivate) != 0) {
 			acc = IProgramElement.Accessibility.PRIVATE;
-		} else if ((code & FieldDeclaration.AccDefault) != 0){
+		} else {
 			acc = IProgramElement.Accessibility.PACKAGE;
 		}
 		return acc;

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
+import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
@@ -881,6 +882,10 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 	}
 	if (isInRange) {
 		int currentModifiers = methodDeclaration.modifiers;
+		// Fix for 116846 - incorrect icons for itds - use declaredModifiers instead
+		if (methodDeclaration instanceof InterTypeDeclaration) {
+			currentModifiers = ((InterTypeDeclaration)methodDeclaration).declaredModifiers;
+		}
 		if (isVarArgs)
 			currentModifiers |= AccVarargs;
 		boolean deprecated = (currentModifiers & AccDeprecated) != 0; // remember deprecation so as to not lose it below

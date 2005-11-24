@@ -64,6 +64,7 @@ public class AJCompilationUnitProblemFinder extends
 			IErrorHandlingPolicy policy, Map settings,
 			ICompilerRequestor requestor, IProblemFactory problemFactory, AJCompilationUnit unit) {
 		super(environment, policy, settings, requestor, problemFactory);
+		ajcu = unit;
 	}
 
 	/* (non-Javadoc)
