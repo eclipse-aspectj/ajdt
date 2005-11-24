@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
 
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
@@ -22,6 +23,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -37,6 +39,13 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	protected void setUp() throws Exception {	
 		super.setUp();
 		project = createPredefinedProject("bug84317"); //$NON-NLS-1$
+		
+		// set defaults
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+			.getPreferenceStore();
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS, ""); //$NON-NLS-1$
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS_INPLACE, ""); //$NON-NLS-1$
+		
 		view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {

@@ -14,6 +14,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 import java.util.ArrayList;
 
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileAction;
@@ -24,6 +25,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -34,6 +36,15 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class XReferenceViewNavigationTest extends VisualTestCase {
 
+	protected void setUp() throws Exception {	
+		super.setUp();
+		// set defaults
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+			.getPreferenceStore();
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS, ""); //$NON-NLS-1$
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS_INPLACE, ""); //$NON-NLS-1$
+	}
+	
 	/**
 	 * Tests the use of the "Show xrefs for entire file" button,
 	 * note that have to call the run method directly on the action
@@ -59,7 +70,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// open BoundPoint.aj and select the pointcut
 		IResource res = project.findMember("src/bean/BoundPoint.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
+			fail("src/bean/BoundPoint.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;				
 		final ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);

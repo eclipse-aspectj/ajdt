@@ -10,6 +10,9 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.contribution.xref.core.XReferenceProviderDefinition;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterActionInplace;
@@ -30,7 +33,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class XReferenceInplaceDialogTest extends VisualTestCase {
 
 	private IProject project;
-	private int viewSize;
 	private ITextEditor editor;
 	
 	protected void setUp() throws Exception {	
@@ -92,8 +94,6 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
 		waitForJobsToComplete();	
 		
-		checkProvidersAgree(xrefAction);
-
 		//Opens the inplace view menu
 		postKeyDown(SWT.CTRL);
 		postKey(SWT.F10);
@@ -111,6 +111,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	
 	public void testSelectAll() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+		Set first = getCheckedList(xrefAction);
+		
 		// In the filter dialog
 		postKey(SWT.TAB);
 		postKey(SWT.CR);
@@ -121,7 +123,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		
 		waitForJobsToComplete();
 		
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Select all did not increase the number of selected items", second.size() > first.size());
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -136,7 +139,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	
 	public void testDeselectAll() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
-
+		Set first = getCheckedList(xrefAction);
+		
 		// In the filter dialog
 		postKey(SWT.TAB);
 		postKey(SWT.TAB);
@@ -147,7 +151,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Deselect all did not decrease the number of selected items", second.size() < first.size());
 				
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -163,6 +168,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	
 	public void testRestoreDefaults() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+		Set first = getCheckedList(xrefAction);
 
 		// In the filter dialog
 		postKey(SWT.TAB);
@@ -174,7 +180,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertEquals("Restore defaults changed the number of selected items", second.size(), first.size());
 						
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -188,6 +195,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 	// CheckedList should now be empty
 	public void testChecking() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
+		Set first = getCheckedList(xrefAction);
 
 		// In the filter dialog
 		postKey(' ');
@@ -199,7 +207,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Selecting 3 items all did not increase the number of selected items by 3", (second.size() - first.size()) == 3);
 						
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -208,12 +217,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				assertEquals("provider.getCheckedFilters() should be of size() == 3", 3,  provider.getCheckedInplaceFilters().size()); //$NON-NLS-1$
 			}
 		}
+		
+		doUnChecking();
 	}
 	
 	// CheckedList should now have first three items checked.  Uncheck these...
-	public void testUnChecking() throws CoreException {
+	private void doUnChecking() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
-
+		Set first = getCheckedList(xrefAction);
+		
 		// In the filter dialog
 		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
@@ -224,21 +236,15 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
-						
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			// Only concern ourselves with those providers dealing with the setting and checking of filters
-			if (provider.getAllFilters() != null){
-				assertEquals("provider.getCheckedFilters() should be of size() == 0", provider.getCheckedInplaceFilters().size(), 0); //$NON-NLS-1$
-			}
-		}
+		Set second = getCheckedList(xrefAction);
+		assertTrue("Deselecting 3 items all did not decrease the number of selected items by 3", (first.size() - second.size()) == 3);
 	}
 
 	// CheckedList should now be empty
 	public void testCancelDoesNotUpdate() throws CoreException {
 		XReferenceCustomFilterActionInplace xrefAction = setupDialog();
-
+		Set first = getCheckedList(xrefAction);
+		
 		// In the filter dialog
 		postKey(' ');
 		postKey(SWT.ARROW_DOWN);
@@ -255,7 +261,8 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 				
 		waitForJobsToComplete();
 
-		checkProvidersAgree(xrefAction);
+		Set second = getCheckedList(xrefAction);
+		assertEquals("Pressing Cancel changed the number of selected items", second.size(), first.size());
 						
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -450,12 +457,7 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		// open inplace xref view
 		final XReferenceInplaceDialog dialog = openInplaceXRef(null);
 		waitForJobsToComplete();
-		// get the filter action
-		XReferenceCustomFilterActionInplace xrefAction = getFilterAction(dialog);
-		waitForJobsToComplete();	
 		
-		checkProvidersAgree(xrefAction);
-
 		//Opens the inplace view menu
 		postKeyDown(SWT.CTRL);
 		postKey(SWT.F10);
@@ -601,25 +603,18 @@ public class XReferenceInplaceDialogTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 	}
 	
-	private void checkProvidersAgree(XReferenceCustomFilterActionInplace xrefAction) {
-		// If any providers return Lists from getCheckedFilters(), they should all agree on the stored Lists
-		XReferenceProviderDefinition contributingProviderDefinition = null;
-		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
-			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
-			if (provider.getCheckedFilters() != null || provider.getCheckedInplaceFilters() != null) {
-				if (contributingProviderDefinition == null){
-					contributingProviderDefinition = provider;
-					viewSize = contributingProviderDefinition.getCheckedFilters().size();
-				} else {
-					assertTrue("Provider 'checked' Lists do not match", //$NON-NLS-1$
-							provider.getCheckedFilters().equals(contributingProviderDefinition.getCheckedFilters()) && provider.getCheckedFilters().size() == viewSize);
-					assertTrue("Provider 'checkedInplace' Lists do not match", //$NON-NLS-1$
-							provider.getCheckedInplaceFilters().equals(contributingProviderDefinition.getCheckedInplaceFilters()));
-				}
-			} else {
-				contributingProviderDefinition = provider;
+	private Set getCheckedList(XReferenceCustomFilterActionInplace xrefAction) {
+		Set checkedList = new TreeSet();
+		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter
+				.hasNext();) {
+			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter
+					.next();
+			List checked = provider.getCheckedInplaceFilters();;
+			if (checked != null) {
+				checkedList.addAll(checked);
 			}
-		}		
+		}
+		return checkedList;
 	}
 	
 	private XReferenceCustomFilterActionInplace getFilterAction(XReferenceInplaceDialog inplaceDialog) {
