@@ -133,8 +133,7 @@ public class LocalDeclarationVisitor extends ASTVisitor {
 
 public AJSourceElementParser2(
 		final AJCompilationUnitStructureRequestor requestor, 
-		IProblemFactory problemFactory,
-		CompilerOptions options, ProblemReporter problemReporter, boolean optimizeStringLiterals) {
+				CompilerOptions options, ProblemReporter problemReporter, boolean optimizeStringLiterals) {
 			super(problemReporter, optimizeStringLiterals);
 			this.requestor = requestor;
 			typeNames = new char[4][];
@@ -149,7 +148,7 @@ public AJSourceElementParser2(
 		CompilerOptions options, boolean optimizeStringLiterals) {
 
 		//To do so, we define the record method of the ProblemReporter
-		this(requestor, problemFactory, options, new ProblemReporter(
+		this(requestor, options, new ProblemReporter(
 			DefaultErrorHandlingPolicies.exitAfterAllProblems(),
 			options, 
 			problemFactory) {

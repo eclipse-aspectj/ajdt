@@ -61,7 +61,7 @@ public class DynamicBuildConfigurationMenu extends MenuManager implements
 	public void buildConfigurationChanged(final ProjectBuildConfigurator pbc) {
 		Job job = new UIJob(AspectJUIPlugin.getResourceString("dynamicBuildConfigurationMenu.job.name")) { //$NON-NLS-1$
 			public IStatus runInUIThread(IProgressMonitor monitor) {
-				final IAction addAction = new AddBuildConfigurationAction();
+				new AddBuildConfigurationAction();
 				rebuildMenu(pbc);
 				return Status.OK_STATUS;
 			}

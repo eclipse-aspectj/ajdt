@@ -43,7 +43,7 @@ public class EditorAdapter implements org.aspectj.ajde.EditorAdapter {
 		return ""; //$NON-NLS-1$
 	}
 
-	public void saveContents() throws IOException {
+	public void saveContents() {
 		System.err.println( "EditorAdapter::saveContents NOT IMPLEMENTED"); //$NON-NLS-1$
 	}
 

@@ -14,7 +14,6 @@ package org.eclipse.ajdt.core.javaelements;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -43,11 +42,11 @@ public class MockDeclareElement extends DeclareElement implements IMockElement {
 		elementInfo.setAJKind(getKindForString(name));
 	}
 	
-	public ExtraInformation getAJExtraInformation() throws JavaModelException {
+	public ExtraInformation getAJExtraInformation() {
 		return extraInfo;
 	}
 	
-	public Object getElementInfo() throws JavaModelException {
+	public Object getElementInfo() {
 		return elementInfo;
 	}
 	

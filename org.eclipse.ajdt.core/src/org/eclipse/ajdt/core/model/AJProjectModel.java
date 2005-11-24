@@ -607,66 +607,66 @@ public class AJProjectModel {
 	}
 
 	// for debugging...
-	private void dumpModel() {
-		System.out.println("AJDT model for project: " + project.getName()); //$NON-NLS-1$
-		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
-			String kind = (String) iter.next();
-			AJRelationshipType rel = (AJRelationshipType) kindMap.get(kind);
-			for (int i = 0; i <= 1; i++) { // with and without runtime test
-				Map relMap = (Map) perRelMaps[i].get(rel);
-				if (relMap != null) {
-					for (Iterator iter2 = relMap.keySet().iterator(); iter2
-							.hasNext();) {
-						IJavaElement je = (IJavaElement) iter2.next();
-						List related = (List) relMap.get(je);
-						for (Iterator iter3 = related.iterator(); iter3
-								.hasNext();) {
-							IJavaElement el = (IJavaElement) iter3.next();
-							System.out.println(""); //$NON-NLS-1$
-							System.out.println("    " //$NON-NLS-1$
-									+ getJavaElementLinkName(je) + " --" + kind //$NON-NLS-1$
-									+ "-> " + getJavaElementLinkName(el)); //$NON-NLS-1$
-							System.out.println("    " + je.hashCode() + " --" //$NON-NLS-1$ //$NON-NLS-2$
-									+ kind + "-> " + el.hashCode()); //$NON-NLS-1$
-							System.out.println("    " //$NON-NLS-1$
-									+ je.getHandleIdentifier() + " --" + kind //$NON-NLS-1$
-									+ "-> " + el.getHandleIdentifier()); //$NON-NLS-1$
-						}
-					}
-				}
-			}
-		}
-		System.out.println("End of model"); //$NON-NLS-1$
-	}
+//	private void dumpModel() {
+//		System.out.println("AJDT model for project: " + project.getName()); //$NON-NLS-1$
+//		for (Iterator iter = kindMap.keySet().iterator(); iter.hasNext();) {
+//			String kind = (String) iter.next();
+//			AJRelationshipType rel = (AJRelationshipType) kindMap.get(kind);
+//			for (int i = 0; i <= 1; i++) { // with and without runtime test
+//				Map relMap = (Map) perRelMaps[i].get(rel);
+//				if (relMap != null) {
+//					for (Iterator iter2 = relMap.keySet().iterator(); iter2
+//							.hasNext();) {
+//						IJavaElement je = (IJavaElement) iter2.next();
+//						List related = (List) relMap.get(je);
+//						for (Iterator iter3 = related.iterator(); iter3
+//								.hasNext();) {
+//							IJavaElement el = (IJavaElement) iter3.next();
+//							System.out.println(""); //$NON-NLS-1$
+//							System.out.println("    " //$NON-NLS-1$
+//									+ getJavaElementLinkName(je) + " --" + kind //$NON-NLS-1$
+//									+ "-> " + getJavaElementLinkName(el)); //$NON-NLS-1$
+//							System.out.println("    " + je.hashCode() + " --" //$NON-NLS-1$ //$NON-NLS-2$
+//									+ kind + "-> " + el.hashCode()); //$NON-NLS-1$
+//							System.out.println("    " //$NON-NLS-1$
+//									+ je.getHandleIdentifier() + " --" + kind //$NON-NLS-1$
+//									+ "-> " + el.getHandleIdentifier()); //$NON-NLS-1$
+//						}
+//					}
+//				}
+//			}
+//		}
+//		System.out.println("End of model"); //$NON-NLS-1$
+//	}
 
 	// for debugging...
-	private void dumpAJDEStructureModel() {
-		System.out.println("AJDE structure model for project: " + project.getName()); //$NON-NLS-1$
-		
-		IRelationshipMap asmRelMap = AsmManager.getDefault().getRelationshipMap();
-		for (Iterator iter = asmRelMap.getEntries().iterator(); iter.hasNext();) {
-			String sourceOfRelationship = (String) iter.next();
-			IProgramElement ipe = AsmManager.getDefault().getHierarchy()
-									.findElementForHandle(sourceOfRelationship);
-			List relationships = asmRelMap.get(ipe);
-			if (relationships != null) {
-				for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
-					Relationship rel = (Relationship) iterator.next();
-					List targets = rel.getTargets();
-					for (Iterator iterator2 = targets.iterator(); iterator2.hasNext();) {
-						String t = (String) iterator2.next();
-						IProgramElement link = AsmManager.getDefault().getHierarchy().findElementForHandle(t);
-						System.out.println(""); //$NON-NLS-1$
-						System.out.println("      sourceOfRelationship " + sourceOfRelationship); //$NON-NLS-1$
-						System.out.println("          relationship " + rel.getName()); //$NON-NLS-1$
-						System.out.println("              target " + link.getName()); //$NON-NLS-1$
-					}
-				}
-				
-			}
-		}
-		System.out.println("End of AJDE structure model"); //$NON-NLS-1$
-	}
+//	private void dumpAJDEStructureModel() {
+//		System.out.println("AJDE structure model for project: " + project.getName()); //$NON-NLS-1$
+//		
+//		IRelationshipMap asmRelMap = AsmManager.getDefault().getRelationshipMap();
+//		for (Iterator iter = asmRelMap.getEntries().iterator(); iter.hasNext();) {
+//			String sourceOfRelationship = (String) iter.next();
+//			IProgramElement ipe = AsmManager.getDefault().getHierarchy()
+//									.findElementForHandle(sourceOfRelationship);
+//			List relationships = asmRelMap.get(ipe);
+//			if (relationships != null) {
+//				for (Iterator iterator = relationships.iterator(); iterator.hasNext();) {
+//					Relationship rel = (Relationship) iterator.next();
+//					List targets = rel.getTargets();
+//					for (Iterator iterator2 = targets.iterator(); iterator2.hasNext();) {
+//						String t = (String) iterator2.next();
+//						IProgramElement link = AsmManager.getDefault().getHierarchy().findElementForHandle(t);
+//						System.out.println(""); //$NON-NLS-1$
+//						System.out.println("      sourceOfRelationship " + sourceOfRelationship); //$NON-NLS-1$
+//						System.out.println("          relationship " + rel.getName()); //$NON-NLS-1$
+//						System.out.println("              target " + link.getName()); //$NON-NLS-1$
+//					}
+//				}
+//				
+//			}
+//		}
+//		System.out.println("End of AJDE structure model"); //$NON-NLS-1$
+//	}
 	
 	private class Persistence {
 	

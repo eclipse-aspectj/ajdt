@@ -13,7 +13,6 @@ package org.eclipse.ajdt.core.javaelements;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -43,7 +42,7 @@ public class MockAdviceElement extends AdviceElement implements IMockElement {
 		this.extraInfo.setExtraAdviceInformation(name);
 	}
 		
-	public ExtraInformation getAJExtraInformation() throws JavaModelException {
+	public ExtraInformation getAJExtraInformation() {
 		return extraInfo;
 	}
 	
@@ -58,7 +57,7 @@ public class MockAdviceElement extends AdviceElement implements IMockElement {
 		return super.hashCode() + elementInfo.hashCode();
 	}
 	
-	public Object getElementInfo() throws JavaModelException {
+	public Object getElementInfo() {
 		return elementInfo;
 	}
 	

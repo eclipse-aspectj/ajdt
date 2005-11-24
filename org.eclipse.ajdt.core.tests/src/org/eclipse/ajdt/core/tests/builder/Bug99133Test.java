@@ -10,7 +10,6 @@
 package org.eclipse.ajdt.core.tests.builder;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -476,17 +475,6 @@ public class Bug99133Test extends AJDTCoreTestCase {
 				1, projectDependedOn.getReferencingProjects().length);
 	}
 	
-	private void printFileContents(IFile file) throws IOException, CoreException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
-		String line = br.readLine();
-		System.out.println("----------");
-		while (line != null) {
-			System.out.println("line: " + line);
-			line = br.readLine();
-		}
-		br.close();
-	}
-	
 	private boolean listContainsString(List l, String msg) {
         for (Iterator iter = l.iterator(); iter.hasNext();) {
             String logEntry = (String) iter.next();
@@ -495,15 +483,6 @@ public class Bug99133Test extends AJDTCoreTestCase {
             }
         }
         return false;
-	}
-	
-	private void printListOfStrings(List l) {
-		System.out.println("");
-		for (Iterator iter = l.iterator(); iter.hasNext();) {
-			String element = (String) iter.next();
-			System.out.println("LIST: " + element);
-		}
-		System.out.println("");
 	}
 	
 }

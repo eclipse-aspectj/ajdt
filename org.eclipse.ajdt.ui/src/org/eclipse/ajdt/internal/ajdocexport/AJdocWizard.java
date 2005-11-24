@@ -623,7 +623,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 	public void addPages() {
 
 		fJTWPage = new AJdocTreeWizardPage(TREE_PAGE_DESC, fStore);
-		fJSWPage = new AJdocSpecificsWizardPage(SPECIFICS_PAGE_DESC,fJTWPage, fStore);
+		fJSWPage = new AJdocSpecificsWizardPage(SPECIFICS_PAGE_DESC, fStore);
 		fJSpWPage= new AJdocStandardWizardPage(STANDARD_PAGE_DESC, fJTWPage, fStore);
 
 		super.addPage(fJTWPage);

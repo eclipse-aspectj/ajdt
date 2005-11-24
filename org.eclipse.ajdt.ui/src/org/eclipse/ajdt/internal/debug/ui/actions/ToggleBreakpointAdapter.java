@@ -56,13 +56,10 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 
-	private IEditorStatusLine fStatusLine;
-	
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleLineBreakpoints(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
-	public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+	public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) {
 		if(selection instanceof ITextSelection && part instanceof ITextEditor) {
 			ITextEditor editor = (ITextEditor)part;
 			ITextSelection textSelection = ((ITextSelection)selection);
@@ -161,7 +158,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleMethodBreakpoints(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
-	public void toggleMethodBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+	public void toggleMethodBreakpoints(IWorkbenchPart part, ISelection selection) {
 	}
 
 	/* (non-Javadoc)
@@ -174,7 +171,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
 	/* (non-Javadoc)
 	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleWatchpoints(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
-	public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+	public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) {
 	}
 
 	/* (non-Javadoc)

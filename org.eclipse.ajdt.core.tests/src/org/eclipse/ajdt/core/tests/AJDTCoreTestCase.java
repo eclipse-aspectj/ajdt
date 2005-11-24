@@ -74,10 +74,6 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	
 	protected IJavaProject setUpJavaProject(final String projectName) throws CoreException, IOException {
-		return setUpJavaProject(projectName, "1.4");
-	}
-	
-	protected IJavaProject setUpJavaProject(final String projectName, String compliance) throws CoreException, IOException {
 		// copy files in project from source workspace to target workspace
 		String sourceWorkspacePath = getSourceWorkspacePath();
 		String targetWorkspacePath = getWorkspaceRoot().getLocation().toFile().getCanonicalPath();

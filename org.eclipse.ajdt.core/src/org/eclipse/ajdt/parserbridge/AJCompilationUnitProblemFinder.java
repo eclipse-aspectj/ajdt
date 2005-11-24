@@ -64,6 +64,7 @@ public class AJCompilationUnitProblemFinder extends
 			IErrorHandlingPolicy policy, Map settings,
 			ICompilerRequestor requestor, IProblemFactory problemFactory, AJCompilationUnit unit) {
 		super(environment, policy, settings, requestor, problemFactory);
+		ajcu = unit;
 	}
 
 	/* (non-Javadoc)
@@ -75,7 +76,7 @@ public class AJCompilationUnitProblemFinder extends
 		 Map options = ajcu.getJavaProject().getOptions(true);
 		 CompilerOptions compilerOptions = new CompilerOptions(options);
          try {
-			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
+			this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), compilerOptions, this.problemReporter, this.options.parseLiteralExpressionsAsConstants);
 		} catch (JavaModelException e) {
 		}
 		// AspectJ Change End

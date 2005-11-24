@@ -11,9 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.ras;
 
-import org.eclipse.ajdt.ras.PluginFFDC;
 import org.eclipse.ajdt.core.AspectJPlugin;
-
+import org.eclipse.ajdt.core.builder.CoreErrorHandler;
+import org.eclipse.ajdt.ras.PluginFFDC;
 import org.eclipse.core.runtime.IStatus;
 
 /**
@@ -33,6 +33,7 @@ public aspect CoreFFDC extends PluginFFDC {
     }
 	
     /* XXX Move to FFDC/PluginFFDC when 78615 fixed */
-    declare warning : call(void Throwable.printStackTrace(..)) :
+    declare warning : call(void Throwable.printStackTrace(..)) 
+		&& !within(CoreErrorHandler):	
     	"Don't dump stack trace"; //$NON-NLS-1$
 }

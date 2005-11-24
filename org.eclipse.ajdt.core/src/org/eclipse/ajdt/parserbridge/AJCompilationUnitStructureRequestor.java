@@ -93,54 +93,37 @@ public class AJCompilationUnitStructureRequestor extends
 			char[][] exceptionTypes,
 			AbstractMethodDeclaration methodDeclaration) {
 
-				enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
-					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false, methodDeclaration);
+		if (methodDeclaration instanceof AdviceDeclaration){
+			enterAdvice(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (AdviceDeclaration)methodDeclaration);
+			return;
 		}
+		
+		if (methodDeclaration instanceof PointcutDeclaration){
+			enterPointcut(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (PointcutDeclaration)methodDeclaration);
+			return;
+		}
+		
+		if (methodDeclaration instanceof DeclareDeclaration){
+			enterDeclare(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (DeclareDeclaration)methodDeclaration);
+			return;
+		}
+		
+		if (methodDeclaration instanceof InterTypeDeclaration){
+			enterInterTypeDeclaration(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (InterTypeDeclaration)methodDeclaration);
+			return;
+		}
+		
+		super.enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
+					nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false);
+	}
 	
 	public void enterMethod(MethodInfo mi) {
-		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,null);
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,null);
 	}
 	
 	public void enterMethod(MethodInfo mi,AbstractMethodDeclaration mdecl) {
-		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,false,mdecl);
+		enterMethod(mi.declarationStart,mi.modifiers,mi.returnType,mi.name,mi.nameSourceStart,mi.nameSourceEnd,mi.parameterTypes,mi.parameterNames,mi.exceptionTypes,mdecl);
 	}
-	
-	protected void enterMethod(
-			int declarationStart,
-			int modifiers,
-			char[] returnType,
-			char[] name,
-			int nameSourceStart,
-			int nameSourceEnd,
-			char[][] parameterTypes,
-			char[][] parameterNames,
-			char[][] exceptionTypes,
-			boolean isConstructor,
-			AbstractMethodDeclaration methodDeclaration) {
-		
-			if (methodDeclaration instanceof AdviceDeclaration){
-				enterAdvice(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (AdviceDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof PointcutDeclaration){
-				enterPointcut(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (PointcutDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof DeclareDeclaration){
-				enterDeclare(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (DeclareDeclaration)methodDeclaration);
-				return;
-			}
-			
-			if (methodDeclaration instanceof InterTypeDeclaration){
-				enterInterTypeDeclaration(declarationStart, modifiers, returnType, name, nameSourceStart, nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, (InterTypeDeclaration)methodDeclaration);
-				return;
-			}
-			
-			super.enterMethod(declarationStart, modifiers, returnType, name, nameSourceStart,
-						nameSourceEnd, parameterTypes, parameterNames, exceptionTypes, false);
-		}
 	
 	/**
 	 * Common processing for classes and interfaces.
@@ -315,8 +298,9 @@ public class AJCompilationUnitStructureRequestor extends
 				else
 					info.setAJKind(IProgramElement.Kind.INTER_TYPE_PARENT);
 				
-				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.modifiers));
-				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.modifiers));
+				// Fix for 116846 - incorrect icons for itds - use declaredModifiers instead
+				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.declaredModifiers));
+				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.declaredModifiers));
 				
 				info.setSourceRangeStart(nameSourceStart /*declarationStart*/);
 				int flags = modifiers;

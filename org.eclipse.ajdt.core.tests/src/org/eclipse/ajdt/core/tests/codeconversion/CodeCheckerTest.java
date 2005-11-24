@@ -21,7 +21,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.runtime.CoreException;
 
 /**
  *  
@@ -50,7 +49,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 		trueList.add("Coordinator"); // abstract aspect with inner classes
 
 		project.accept(new IResourceVisitor() {
-			public boolean visit(IResource resource) throws CoreException {
+			public boolean visit(IResource resource) {
 				if (resource.getType() == IResource.FILE) {
 					String name = resource.getName();
 					if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {
@@ -94,7 +93,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("bug95370");
 		try {
 			project.accept(new IResourceVisitor() {
-				public boolean visit(IResource resource) throws CoreException {
+				public boolean visit(IResource resource) {
 					if (resource.getType() == IResource.FILE) {
 						String name = resource.getName();
 						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(name)) {

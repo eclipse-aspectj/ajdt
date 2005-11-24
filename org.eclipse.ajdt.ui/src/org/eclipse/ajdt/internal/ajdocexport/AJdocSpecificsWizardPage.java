@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ajdocexport;
 
-import org.eclipse.ajdt.internal.ajdocexport.AJdocTreeWizardPage;
-import org.eclipse.ajdt.internal.ajdocexport.AJdocWizardPage;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
@@ -49,14 +47,12 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 	//private StatusInfo fOverviewStatus;
 	//private StatusInfo fAntStatus;
 	
-	private AJdocTreeWizardPage fFirstPage;
-
 	private AJdocOptionsManager fStore;
 
 	//private final int OVERVIEWSTATUS= 1;
 	//private final int ANTSTATUS= 2;
 
-	protected AJdocSpecificsWizardPage(String pageName, AJdocTreeWizardPage firstPage, AJdocOptionsManager store) {
+	protected AJdocSpecificsWizardPage(String pageName, AJdocOptionsManager store) {
 		super(pageName);
 		setDescription(AspectJUIPlugin.getResourceString("ajdocSpecificsWizardPage.description")); //$NON-NLS-1$
 		fStore= store;
@@ -64,7 +60,6 @@ public class AJdocSpecificsWizardPage extends AJdocWizardPage {
 //		 AspectJ Extension - commenting out unused code
 		//fOverviewStatus= new StatusInfo();
 		//fAntStatus= new StatusInfo();
-		fFirstPage= firstPage;
 	}
 
 	/*

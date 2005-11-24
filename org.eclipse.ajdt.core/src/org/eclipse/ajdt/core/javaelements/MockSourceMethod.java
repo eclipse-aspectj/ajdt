@@ -17,10 +17,9 @@ import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.Member;
-;
+
 
 /**
  *
@@ -68,7 +67,7 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 		elementInfo.setAJKind(Kind.METHOD);
 	}
 
-	public Object getElementInfo() throws JavaModelException {
+	public Object getElementInfo() {
 		return elementInfo;
 	}
 	
@@ -85,19 +84,19 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 			+ AspectElement.JEM_EXTRA_INFO + elementInfo.accessibility.toString();
 	}
 	
-	public Kind getAJKind() throws JavaModelException {
+	public Kind getAJKind() {
 		return Kind.METHOD;
 	}
 	
-	public Accessibility getAJAccessibility() throws JavaModelException {
+	public Accessibility getAJAccessibility() {
 		return elementInfo.accessibility;
 	}
 	
-	public List getAJModifiers() throws JavaModelException {
+	public List getAJModifiers() {
 		return elementInfo.modifiers;
 	}
 	
-	public ExtraInformation getAJExtraInformation() throws JavaModelException {
+	public ExtraInformation getAJExtraInformation() {
 		return elementInfo.extra;
 	}
 
@@ -108,15 +107,14 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#getExceptionTypes()
 	 */
-	public String[] getExceptionTypes() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public String[] getExceptionTypes() {
 		return null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#getTypeParameterSignatures()
 	 */
-	public String[] getTypeParameterSignatures() throws JavaModelException {
+	public String[] getTypeParameterSignatures() {
 		return new String[0];
 	}
 
@@ -130,8 +128,7 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#getParameterNames()
 	 */
-	public String[] getParameterNames() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public String[] getParameterNames() {
 		return null;
 	}
 
@@ -145,32 +142,28 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#getReturnType()
 	 */
-	public String getReturnType() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public String getReturnType() {
 		return null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#getSignature()
 	 */
-	public String getSignature() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public String getSignature() {
 		return null;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#isConstructor()
 	 */
-	public boolean isConstructor() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public boolean isConstructor() {
 		return false;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IMethod#isMainMethod()
 	 */
-	public boolean isMainMethod() throws JavaModelException {
-		// TODO Auto-generated method stub
+	public boolean isMainMethod() {
 		return false;
 	}
 
@@ -178,7 +171,6 @@ public class MockSourceMethod extends Member implements IMethod, IMockElement {
 	 * @see org.eclipse.jdt.core.IMethod#isSimilar(org.eclipse.jdt.core.IMethod)
 	 */
 	public boolean isSimilar(IMethod method) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

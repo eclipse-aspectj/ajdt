@@ -21,8 +21,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
-import org.eclipse.jdt.core.jdom.IDOMMethod;
-import org.eclipse.jdt.core.jdom.IDOMNode;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.Member;
@@ -64,27 +62,7 @@ public boolean equals(Object o) {
 	if (!(o instanceof AspectJMemberElement)) return false;
 	return super.equals(o) && Util.equalArraysOrNull(fParameterTypes, ((AspectJMemberElement)o).fParameterTypes);
 }
-/**
- * @see JavaElement#equalsDOMNode
- * @deprecated JDOM is obsolete
- */
-// TODO - JDOM - remove once model ported off of JDOM
-protected boolean equalsDOMNode(IDOMNode node) {
-	if (node.getNodeType() == IDOMNode.METHOD) {
-		try {
-			IDOMMethod m = (IDOMMethod)node;
-			if (isConstructor()) {
-				return 
-					(m.isConstructor() || m.getName().equals(this.getElementName()) /* case of a constructor that is being renamed */) 
-						&& signatureEquals(m);
-			}
-			return super.equalsDOMNode(node) && signatureEquals(m);
-		} catch (JavaModelException e) {
-			return false;
-		}
-	} 
-	return false;
-}
+
 /**
  * @see IJavaElement
  */
@@ -233,42 +211,6 @@ public boolean isSimilar(IMethod method) {
 			null);
 }
 
-/**
- * Returns <code>true</code> if the signature of this <code>SourceMethod</code> matches that of the given
- * <code>IDOMMethod</code>, otherwise <code>false</code>. 
- * @deprecated JDOM is obsolete
- */
-// TODO - JDOM - remove once model ported off of JDOM
-protected boolean signatureEquals(IDOMMethod method) {
-	String[] otherTypes= method.getParameterTypes();
-	String[] types= getParameterTypes();
-	boolean ok= true;
-
-	// ensure the number of parameters match
-	if (otherTypes == null || otherTypes.length == 0) {
-		ok= (types == null || types.length == 0);
-	} else if (types != null) {
-		ok= (otherTypes.length == types.length);
-	} else {
-		return false;
-	}
-
-	// ensure the parameter type signatures match
-	if (ok) {
-		if (types != null) {
-			int i;
-			for (i= 0; i < types.length; i++) {
-				String otherType= Signature.createTypeSignature(otherTypes[i].toCharArray(), false);
-				if (!types[i].equals(otherType)) {
-					ok= false;
-					break;
-				}
-			}
-		}
-	}
-
-	return ok;
-}
 /**
  * @private Debugging purposes
  */

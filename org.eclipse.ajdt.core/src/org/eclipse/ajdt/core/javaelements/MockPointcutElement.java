@@ -15,7 +15,6 @@ import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.Accessibility;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -54,11 +53,11 @@ public class MockPointcutElement extends PointcutElement implements IMockElement
 		elementInfo.setAJKind(Kind.POINTCUT);
 	}
 
-	public ExtraInformation getAJExtraInformation() throws JavaModelException {
+	public ExtraInformation getAJExtraInformation() {
 		return extraInfo;
 	}
 	
-	public Object getElementInfo() throws JavaModelException {
+	public Object getElementInfo() {
 		return elementInfo;
 	}
 	

@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
 
 /**
@@ -29,7 +28,7 @@ public class MockAspectElement extends AspectElement implements IMockElement {
 		info.setHandle(this);
 	}
 	
-	public Object getElementInfo() throws JavaModelException {
+	public Object getElementInfo() {
 		return info;
 	}
 
