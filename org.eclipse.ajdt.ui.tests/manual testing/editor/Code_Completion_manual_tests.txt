@@ -15,3 +15,15 @@ different situations:
 - in a .java (CC_5)
 - in a .aj file (1-4 assumed to be done in a .aj file)
 - in an aspect which extends an abstract aspect (CC_6)
+
+Auto activation
+----------------
+
+Install the Spacewar Example and open Coordinator.  In one of the methods
+or constructor type "exclusions.".  Possible completions should appear. (CC_7)
+
+Switch off auto-activation by clicking 'Window' > 'Preferences' > 'Java'
+> 'Editor' > 'Code Assist' and unchecking 'Enable Auto Activation'.  Type
+"exclusions." again in the editor and the completions should not appear (CC_8)
+
+Switch auto-activation back on and check that it works as in CC_7 (CC_9)

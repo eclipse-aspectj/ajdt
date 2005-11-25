@@ -9,7 +9,7 @@ and "tracing.version2" are activated (filled icon), the others not (empty icon) 
 
 Double-click tracev2.ajproperties to open editor, open version2 in resource tree and 
 untick Trace.aj, save file	Project gets rebuilt. In package explorer view, package 
-"tracing.version2" gets half-filled and the "J" in the icon next to "Trace.aj" gets empty (BC_2)
+"tracing.version2" gets half-filled and the "AJ" in the icon next to "Trace.aj" gets empty (BC_2)
 
 Try including and excluding source files and packages in the package explorer view and in 
 the editor.	Changes in package explorer view should immediately be reflected in editor. 
