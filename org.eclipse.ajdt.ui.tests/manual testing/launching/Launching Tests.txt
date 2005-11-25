@@ -76,7 +76,7 @@ projects in the workspace.
 
 
 For the following tests you will need to check out ‘Simple Project’ and ‘Tracing Aspect
-Project’ from the ‘test projects’ directory of the org.eclipse.ajdt.tests plug-in.
+Project’ from the ‘workspace’ directory of the org.eclipse.ajdt.ui.tests plug-in.
 
 6. Test the aspect path support
 
