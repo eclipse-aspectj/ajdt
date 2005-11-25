@@ -145,7 +145,12 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 	}
 
 	public List getFilterCheckedInplaceList() {
-		return AspectJPreferences.getFilterCheckedInplaceList();
+		List checked = AspectJPreferences.getFilterCheckedInplaceList();
+		if (checked != null) {
+			return checked;
+		}
+		// use defaults
+		return getFilterDefaultList();
 	}
 	
 	/*

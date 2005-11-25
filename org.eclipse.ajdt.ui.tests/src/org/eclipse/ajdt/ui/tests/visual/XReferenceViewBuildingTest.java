@@ -13,6 +13,7 @@ package org.eclipse.ajdt.ui.tests.visual;
 
 import java.util.ArrayList;
 
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.core.XReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
@@ -22,6 +23,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -36,11 +38,18 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	
 	protected void setUp() throws Exception {	
 		super.setUp();
-		project = createPredefinedProject("bug84317");
+		project = createPredefinedProject("bug84317"); //$NON-NLS-1$
+		
+		// set defaults
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+			.getPreferenceStore();
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS, ""); //$NON-NLS-1$
+		pstore.setValue(AspectJPreferences.XREF_CHECKED_FILTERS_INPLACE, ""); //$NON-NLS-1$
+		
 		view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
 			.getActivePage().findView(XReferenceView.ID);
 		if (view == null || !(view instanceof XReferenceView)) {
-			fail("xrefView should be showing");
+			fail("xrefView should be showing"); //$NON-NLS-1$
 		}
 		xrefView = (XReferenceView)view;
 	}
@@ -57,11 +66,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 **/
 	public void testLinkingEnabledAndViewUpdating() throws Exception {
 		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
-		IResource res = project.findMember("src/pack/C.java");
+		IResource res = project.findMember("src/pack/C.java"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/C.java file not found.");
+			fail("src/pack/C.java file not found."); //$NON-NLS-1$
 		} 
 		IFile classFile = (IFile)res;
 
@@ -76,9 +85,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 
 		// comment out the currently selected line and save
 		postKey('/');
@@ -93,9 +102,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 1 cross references
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length);
+		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length); //$NON-NLS-1$
 	}
 
 
@@ -105,11 +114,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 */
 	public void testLinkingEnabledAndViewUpdating2() throws Exception {
 		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -124,9 +133,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 
 		
 		
@@ -147,9 +156,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 1 cross references
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length);
+		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length); //$NON-NLS-1$
 	}
 	
 	/**
@@ -166,11 +175,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 */
 	public void testLinkingDisabledAndUpdating1() throws Exception {
 		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
-		IResource res = project.findMember("src/pack/C.java");
+		IResource res = project.findMember("src/pack/C.java"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/C.java file not found.");
+			fail("src/pack/C.java file not found."); //$NON-NLS-1$
 		} 
 		IFile classFile = (IFile)res;
 
@@ -185,15 +194,15 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();	
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
 		// comment out the currently selected line and save
 		postKey('/');
@@ -208,14 +217,14 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 1 cross references
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length);
+		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length); //$NON-NLS-1$
 		
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 			
 	}
 	
@@ -232,9 +241,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 *    
 	 */
 	public void testLinkingDisabledAndUpdating2() throws Exception {
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -249,15 +258,15 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();	
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
 		// comment out the currently selected line and save
 		postKey('/');
@@ -272,14 +281,14 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 1 cross references
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length);
+		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length); //$NON-NLS-1$
 		
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 	}
 	
 	/**
@@ -296,11 +305,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 */
 	public void testLinkingDisabledAndUpdating3() throws Exception {
 		// ensure linking is enabled
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
-		IResource res = project.findMember("src/pack/C.java");
+		IResource res = project.findMember("src/pack/C.java"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/C.java file not found.");
+			fail("src/pack/C.java file not found."); //$NON-NLS-1$
 		} 
 		IFile classFile = (IFile)res;
 
@@ -315,15 +324,15 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();	
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
 		
 		// go to another method in the file and comment out
@@ -348,9 +357,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// contents of a method currently not showing in the xref view shouldn't
 		// change what's showing in the xref view).
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 2 cross reference shown",2,newParentNode.getChildren().length);
+		assertEquals("There should be 2 cross reference shown",2,newParentNode.getChildren().length); //$NON-NLS-1$
 		
 		// uncomment line 11
 		gotoLine(11);
@@ -372,7 +381,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		editorPart.setFocus();
 		waitForJobsToComplete();
 		
@@ -382,9 +391,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// one reference source with 1 cross reference (since xref view should
 		// now update to current selection).
 		ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size());
+		assertEquals("there should be one reference source featured in the xref view",1,newContents2.size()); //$NON-NLS-1$
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents2.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode2.getChildren().length);
+		assertEquals("There should be 1 cross reference shown",1,newParentNode2.getChildren().length); //$NON-NLS-1$
 		
 	}
 	
@@ -404,9 +413,9 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		assertFalse("show all xrefs should be disabled by default",xrefView.isShowXRefsForFileEnabled()); //$NON-NLS-1$
 		
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -428,13 +437,13 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// get the contents of the xref view and check that it has
 		// one reference source with 2 different cross references
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
-		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"",
-				"declare warning: \"There should be no printlns\"",
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
+		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"", //$NON-NLS-1$
+				"declare warning: \"There should be no printlns\"", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(originalContents).get(0));
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 1 cross references shown",1,originalParentNode.getChildren().length);
-		assertEquals("declare warning should affect 4 places",
+		assertEquals("There should be 1 cross references shown",1,originalParentNode.getChildren().length); //$NON-NLS-1$
+		assertEquals("declare warning should affect 4 places", //$NON-NLS-1$
 				4,
 				XRefVisualTestUtils.getNumberOfAffectedPlacesForRel(originalParentNode,0));
 		
@@ -443,8 +452,8 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();
 		waitForJobsToComplete();
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
-		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
+		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked()); //$NON-NLS-1$
 		
 		// go to the advice and comment it out
 		gotoLine(12);
@@ -476,13 +485,13 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// one reference source with 3 cross references (since we've
 		// removed one of the places affected by the declare warning).
 		ArrayList newContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents.size());
-		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"",
-				"declare warning: \"There should be no printlns\"",
+		assertEquals("there should be one reference source featured in the xref view",1,newContents.size()); //$NON-NLS-1$
+		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"", //$NON-NLS-1$
+				"declare warning: \"There should be no printlns\"", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(newContents).get(0));
 		TreeParent newParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)newContents.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length);
-		assertEquals("declare warning should now affect 3 places",
+		assertEquals("There should be 1 cross reference shown",1,newParentNode.getChildren().length); //$NON-NLS-1$
+		assertEquals("declare warning should now affect 3 places", //$NON-NLS-1$
 				3,
 				XRefVisualTestUtils.getNumberOfAffectedPlacesForRel(newParentNode,0));
 		
@@ -521,21 +530,21 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		// one reference source with 4 cross references (since we've
 		// now uncommented a place affected by the declare warning).
 		ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,newContents1.size());
-		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"",
-				"declare warning: \"There should be no printlns\"",
+		assertEquals("there should be one reference source featured in the xref view",1,newContents1.size()); //$NON-NLS-1$
+		assertEquals("the reference source should be:  declare warning: \"There should be no printlns\"", //$NON-NLS-1$
+				"declare warning: \"There should be no printlns\"", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(newContents1).get(0));
 		TreeParent newParentNode1 = XRefVisualTestUtils.getTopLevelNodeInXRefView
 				(xrefView,(XReferenceAdapter)newContents1.get(0));
-		assertEquals("There should be 1 cross reference shown",1,newParentNode1.getChildren().length);
-		assertEquals("declare warning should now affect 4 places",
+		assertEquals("There should be 1 cross reference shown",1,newParentNode1.getChildren().length); //$NON-NLS-1$
+		assertEquals("declare warning should now affect 4 places", //$NON-NLS-1$
 				4,
 				XRefVisualTestUtils.getNumberOfAffectedPlacesForRel(newParentNode1,0));
 
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		editorPart.setFocus();
 		waitForJobsToComplete();
 		
@@ -568,11 +577,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 */
 	public void testLinkingIsDisabledAndUpdatingOtherEditor1() throws Exception {
 		
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
-		IResource res = project.findMember("src/pack/C.java");
+		IResource res = project.findMember("src/pack/C.java"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/C.java file not found.");
+			fail("src/pack/C.java file not found."); //$NON-NLS-1$
 		} 
 		IFile classFile = (IFile)res;
 
@@ -593,17 +602,17 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		//         - advised by
 		//            - A.before(): p
 		ArrayList originalContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size());
+		assertEquals("there should be one reference source featured in the xref view",1,originalContents.size()); //$NON-NLS-1$
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 				
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();
 		waitForJobsToComplete();
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
-		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
+		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked()); //$NON-NLS-1$
 
 		
 		// navigate to declare warning in A.aj (via the xref view)
@@ -628,18 +637,18 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
 		final IEditorPart newEditor = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		assertTrue("A.aj should have been opened in the editor",!(newEditor.equals(editorPart))); 
+		assertTrue("A.aj should have been opened in the editor",!(newEditor.equals(editorPart)));  //$NON-NLS-1$
 		
 		// xref view should still contain contents of method1(), however just wait a bit to 
 		// give it a chance to change if its going to
 		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(xrefView.getTreeViewer().getInput());
 		
 		ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,
+		assertEquals("there should be one reference source featured in the xref view",1, //$NON-NLS-1$
 				newContents1.size());
 		TreeParent newParentNode1 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents1.get(0));
-		assertEquals("There should be 2 cross references shown",2,newParentNode1.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,newParentNode1.getChildren().length); //$NON-NLS-1$
 		
 		// comment out the declare warning statement and save		
 		newEditor.setFocus();
@@ -664,11 +673,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		//         - advised by
 		//            - A.before(): p
 		ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view"
+		assertEquals("there should be one reference source featured in the xref view" //$NON-NLS-1$
 				,1,newContents2.size());
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(
 				xrefView,(XReferenceAdapter)newContents2.get(0));
-		assertEquals("There should be 1 cross reference shown",1
+		assertEquals("There should be 1 cross reference shown",1 //$NON-NLS-1$
 				,newParentNode2.getChildren().length);
 		
 		// uncomment the declare warning statement and save
@@ -689,19 +698,19 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		
 		// xref view should contain what it originally contained
 		ArrayList newContents3 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,
+		assertEquals("there should be one reference source featured in the xref view",1, //$NON-NLS-1$
 				newContents3.size());
 		TreeParent newParentNode3 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents3.get(0));
-		assertEquals("There should be 2 cross references shown",2,newParentNode3.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,newParentNode3.getChildren().length); //$NON-NLS-1$
 
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
-		assertEquals("xref view should be showing the xrefs for A",
-				"A",XRefVisualTestUtils.getReferenceSourceNamesInXRefView(xrefView).get(0));
+		assertEquals("xref view should be showing the xrefs for A", //$NON-NLS-1$
+				"A",XRefVisualTestUtils.getReferenceSourceNamesInXRefView(xrefView).get(0)); //$NON-NLS-1$
 
 	}
 	
@@ -717,11 +726,11 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 	 */	
 	public void testLinkingIsDisabledAndUpdatingOtherEditor2() throws Exception {
 		
-		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should be enabled by default",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
-		IResource res = project.findMember("src/pack/A.aj");
+		IResource res = project.findMember("src/pack/A.aj"); //$NON-NLS-1$
 		if (res == null || !(res instanceof IFile)) {
-			fail("src/pack/A.aj file not found.");
+			fail("src/pack/A.aj file not found."); //$NON-NLS-1$
 		} 
 		IFile ajFile = (IFile)res;
 
@@ -754,15 +763,15 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 				"before", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(originalContents).get(0));
 		TreeParent originalParentNode = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)originalContents.get(0));
-		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,originalParentNode.getChildren().length); //$NON-NLS-1$
 				
 		// disable link with editor
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();
 		waitForJobsToComplete();
-		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled());
-		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked());
+		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
+		assertFalse("link with editor action should not be checked", linkWithEditorAction.isChecked()); //$NON-NLS-1$
 
 		
 		// navigate to the C: method-call in C.java (via the xref view)
@@ -786,21 +795,21 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
 		final IEditorPart newEditor = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		assertTrue("C.java should have been opened in the editor",!(newEditor.equals(editorPart))); 
+		assertTrue("C.java should have been opened in the editor",!(newEditor.equals(editorPart)));  //$NON-NLS-1$
 		
 		// xref view should still contain contents of before(), however, first wait for
 		// a bit to see if the contents does change
 		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(xrefView.getTreeViewer().getInput());
 		
 		ArrayList newContents1 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,
+		assertEquals("there should be one reference source featured in the xref view",1, //$NON-NLS-1$
 				newContents1.size());
 		assertEquals("the reference source should be:  before", //$NON-NLS-1$
 				"before", //$NON-NLS-1$
 				XRefVisualTestUtils.getReferenceSourceNames(newContents1).get(0));
 		TreeParent newParentNode1 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents1.get(0));
-		assertEquals("There should be 2 cross references shown",2,newParentNode1.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,newParentNode1.getChildren().length); //$NON-NLS-1$
 		
 		// comment out the call to method2() and save	
 		newEditor.setFocus();
@@ -826,7 +835,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		//         - matches declare
 		//            - A.declare warning:
 		ArrayList newContents2 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view"
+		assertEquals("there should be one reference source featured in the xref view" //$NON-NLS-1$
 				,1,newContents2.size());
 		assertEquals("the reference source should be:  before", //$NON-NLS-1$
 				"before", //$NON-NLS-1$
@@ -834,7 +843,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		
 		TreeParent newParentNode2 = XRefVisualTestUtils.getTopLevelNodeInXRefView(
 				xrefView,(XReferenceAdapter)newContents2.get(0));
-		assertEquals("There should be 1 cross reference shown",1
+		assertEquals("There should be 1 cross reference shown",1 //$NON-NLS-1$
 				,newParentNode2.getChildren().length);
 		
 		// uncomment the call to method2()
@@ -855,7 +864,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		
 		// xref view should contain what it originally contained
 		ArrayList newContents3 = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-		assertEquals("there should be one reference source featured in the xref view",1,
+		assertEquals("there should be one reference source featured in the xref view",1, //$NON-NLS-1$
 				newContents3.size());
 		assertEquals("the reference source should be:  before", //$NON-NLS-1$
 				"before", //$NON-NLS-1$
@@ -863,15 +872,15 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 
 		TreeParent newParentNode3 = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,
 				(XReferenceAdapter)newContents3.get(0));
-		assertEquals("There should be 2 cross references shown",2,newParentNode3.getChildren().length);
+		assertEquals("There should be 2 cross references shown",2,newParentNode3.getChildren().length); //$NON-NLS-1$
 
 		// set linking enabled (which is the default)
 		linkWithEditorAction.setChecked(true);
 		linkWithEditorAction.run();	
-		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled());
+		assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 
-		assertEquals("xref view should be showing the xrefs for method1()",
-				"method1",XRefVisualTestUtils.getReferenceSourceNamesInXRefView(xrefView).get(0));
+		assertEquals("xref view should be showing the xrefs for method1()", //$NON-NLS-1$
+				"method1",XRefVisualTestUtils.getReferenceSourceNamesInXRefView(xrefView).get(0)); //$NON-NLS-1$
 			
 	}
 	
