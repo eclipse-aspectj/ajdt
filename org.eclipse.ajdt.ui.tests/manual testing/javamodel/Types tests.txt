@@ -1,4 +1,4 @@
 
 1. [Bug 103131] Install the Spacewar example. Convert Exclusion.java in the coordination package to have the .aj file extension.
-Now press Ctrl+Alt+T and type "Exclusion" into the text box.  Check that Exclusion
+Now press Alt+Shift+A and type "Exclusion" into the text box.  Check that Exclusion
 appears and has the right icon. (TYPES_1)
