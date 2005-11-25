@@ -24,7 +24,7 @@ c. Test all of the actions in the AspectJ editor to ensure they perform as expec
 
 a. Checkout the "OpenDeclaration" project from org.eclipse.ajdt.ui.tests/workspace
 b. Open all files in the editor (Note: the tests will fail if you don't do this)
-c. Select the following elements in the source file and press F3.
+c. In GetInfo.aj select the following elements in the source file and press F3.
    Check that this results in navigation to that element:
    		"goCut" on line 27 -> the definition of the pointcut (line 25 same file) 
         "executeGo" on line 25 -> the definition from the supertype (line 7 of AbstractGetInfo.aj)
@@ -35,7 +35,7 @@ c. Select the following elements in the source file and press F3.
 
 a. Checkout the "OpenDeclaration" project from org.eclipse.ajdt.ui.tests/workspace
 b. Open all files in the editor (Note: the tests will fail if you don't do this)
-c. Hover over various elements in the source file to check that source code
+c. In GetInfo.aj hover over various elements in the source file to check that source code
    hovers appear as appropriate. Hovering over the following should show the
    given source code, which should be highlighted the same as it is in the 
    AspectJ editor (i.e. with "pointcut" being recognised as a keyboard):
