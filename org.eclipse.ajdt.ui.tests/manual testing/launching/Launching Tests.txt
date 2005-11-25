@@ -68,9 +68,9 @@ projects in the workspace.
     tracing.version1, tracing.version2 and tracing.version3 packages and save the file.
  b.	Click ‘Run’ > ‘Run..’, select ‘AspectJ/Java Application’ and then click ‘New’.
     “Tracing Example” should be in the project text field.  If not click ‘Browse’ and then
-    select it.  Click ‘Search’.  The list should contain ExampleMain and TraceMyClasses. 
-    If you select TraceMyClasses you should see three packages in the lower list –
-    tracing.version1, tracing.version2 and tracing.version3.  Select tracing.version3,
+    select it.  Click ‘Search’.  The list should contain ExampleMain and two TraceMyClasses. 
+    If you select the first TraceMyClasses you should see two packages in the lower list –
+    tracing.version2 and tracing.version3.  Select tracing.version3,
     click ‘OK’ and ensure that the Main Class field is filled with the correct package
     name. (LAUNCH_10)
 
