@@ -45,7 +45,7 @@ New > Aspect.  The editor should now show the code for the created Aspect.
 
 The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a light bulb error in the margin on the same line. (QFIX_7)
 
-The quick qix offered should be 'Convert to AspectJ Project'. (QFIX_8)
+The quick fix offered should be 'Convert to AspectJ Project'. (QFIX_8)
 
 Double clicking the quick fix should convert the Java project to an AJ project. In the package explorer, the project will have an AJ logo. (QFIX_9)
 
@@ -62,7 +62,7 @@ Replace the word, 'class' with 'aspect.
 
 The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a lightbulb error in the margin on the same line. (QFIX_11)
 
-The quick qix offered should be 'Convert to AspectJ Project'. (QFIX_12)
+The quick fix offered should be 'Convert to AspectJ Project'. (QFIX_12)
 
 Double clicking the quick fix should convert the Java project to an AJ project. In the package explorer, the project will have an AJ logo. (QFIX_13)
 
@@ -72,7 +72,7 @@ Example project used for next test in current state...
 
 Test 7
 ------
-With the project left over from Test 6, turn your attention to the Java Editor window which should be open.
+With the project left over from Test 6, turn your attention to the Java Editor window, which should be open.
 
 Add a single space to the body of the aspect so that the file has changed.  There should now be a star next to the file name on the editor tab. (QFIX_15)
 

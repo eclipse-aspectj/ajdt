@@ -187,7 +187,7 @@ Testing build cancelling with project dependencies
 		- for org.eclipse.contribution.visualiser: there should be one warning
 		  message saying that the build was cancelled
 		- for org.eclipse.contribution.visualiser.tests: there should be an 
-		  error message saying you need to rebuild prerequiste project
+		  error message saying you need to rebuild prerequisite project
 		  org.eclipse.contribution.visualiser (there may also be other error
 		  markers)  (DEPS_18)
 		  
