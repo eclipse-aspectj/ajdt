@@ -91,15 +91,20 @@ public class ProjectBuildConfigurator{
 	}
 	public void setActiveBuildConfiguration(BuildConfiguration bc) {
 		if (buildconfigs.containsKey(bc.getFile())) {
-			IFile oldActive = activeBuildConfiguration;
-			activeBuildConfiguration = bc.getFile();
-			storeActiveBuildConfigurationName(bc.getFile().getName());
-			bc.update(false);
-			if (!activeBuildConfiguration.equals(oldActive)){
-				try {
-					requestFullBuild(true);
-					activeBuildConfiguration.touch(null);
-				} catch (CoreException e) {
+			if(!bc.getFile().exists()) {
+				buildconfigs.remove(bc.getFile());
+				makeSureThereIsAtLeastOneActiveConfiguration();
+			} else {
+				IFile oldActive = activeBuildConfiguration;
+				activeBuildConfiguration = bc.getFile();
+				storeActiveBuildConfigurationName(bc.getFile().getName());
+				bc.update(false);
+				if (!activeBuildConfiguration.equals(oldActive)){
+					try {
+						requestFullBuild(true);
+						activeBuildConfiguration.touch(null);
+					} catch (CoreException e) {
+					}
 				}
 			}
 		}
