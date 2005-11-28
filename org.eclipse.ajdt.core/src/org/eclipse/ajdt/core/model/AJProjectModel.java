@@ -64,6 +64,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
@@ -470,7 +471,7 @@ public class AJProjectModel {
 						}
 						l.add(el);
 					}
-					if (el != null) {
+					if (el != null && suitableMatch(el, node)) {
 						ipeToije.put(node, el);
 						jeLinkNames.put(el, node.toLinkLabelString());
 						lineNumbers.put(el, new Integer(sl.getLine()));
@@ -597,6 +598,26 @@ public class AJProjectModel {
 		}
 	}
 
+	/**
+	 * Tests for a suitable match between IProgramElements and IJavaElements
+	 * @param el
+	 * @param node
+	 * @return
+	 */
+	private boolean suitableMatch(IJavaElement el, IProgramElement node) {
+		if(el instanceof IType) {
+			if(node.getKind() != IProgramElement.Kind.ASPECT
+					&& node.getKind() != IProgramElement.Kind.CLASS
+					&& node.getKind() != IProgramElement.Kind.ANNOTATION
+					&& node.getKind() != IProgramElement.Kind.INTERFACE
+					&& node.getKind() != IProgramElement.Kind.ENUM) {
+				return false;
+			}
+				
+		}
+		return true;
+	}
+	
 	private IProgramElement getAspect(IProgramElement node) {
 		if(node.getKind() == IProgramElement.Kind.ASPECT) {
 			return node;
