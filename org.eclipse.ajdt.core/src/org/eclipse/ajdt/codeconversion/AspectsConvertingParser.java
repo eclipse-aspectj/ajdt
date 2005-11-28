@@ -80,6 +80,8 @@ public class AspectsConvertingParser implements TerminalTokens {
 
 	private static final char[] issingleton = "issingleton".toCharArray(); //$NON-NLS-1$
 
+	private static final char[] pertypewithin = "pertypewithin".toCharArray(); //$NON-NLS-1$
+
 	private static final char[] classs = "class ".toCharArray(); //$NON-NLS-1$
 
 	private static final char[] privileged = "          ".toCharArray(); //$NON-NLS-1$
@@ -174,6 +176,8 @@ public class AspectsConvertingParser implements TerminalTokens {
 					else if (CharOperation.equals(pertarget, name))
 						startPointcutDesignator();
 					else if (CharOperation.equals(issingleton, name))
+						startPointcutDesignator();
+					else if (CharOperation.equals(pertypewithin, name))
 						startPointcutDesignator();
 				}
 
