@@ -302,6 +302,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			String aspectjrtDir = CoreUtils.getAspectjrtClasspath();
 			String aspectjtoolsDir = ""; //$NON-NLS-1$
 			URL ajdeURL = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID).getEntry("ajde.jar"); //$NON-NLS-1$
+			URL weaverURL = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("aspectjweaver.jar"); //$NON-NLS-1$
 			URL coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("runtime.jar"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (coreURL==null) {
 				// From Eclipse 3.1M6 onwards, the runtime plugin is itself a JAR file
@@ -319,6 +320,18 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 							NLS.bind(UIMessages.ajdocWizard_error_cant_find_ajde_jar, 
 									ajdeFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
 									ajdeFile.getAbsolutePath().substring((lengthOfPath/2))));
+					return true;
+				}
+				File weaverFile = new File(Platform.asLocalURL(weaverURL).getFile());
+				if (weaverFile.exists()) {
+					aspectjtoolsDir += File.pathSeparator + weaverFile.getAbsolutePath();
+				} else {
+					int lengthOfPath = weaverFile.getAbsolutePath().length();
+					MessageDialog.openError(getShell(),
+							UIMessages.ajdocWizard_error_title,
+							NLS.bind(UIMessages.ajdocWizard_error_cant_find_weaver_jar, 
+									weaverFile.getAbsolutePath().substring(0,(lengthOfPath/2)),
+									weaverFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
 				}
 				File coreFile = new File(Platform.asLocalURL(coreURL).getFile());
