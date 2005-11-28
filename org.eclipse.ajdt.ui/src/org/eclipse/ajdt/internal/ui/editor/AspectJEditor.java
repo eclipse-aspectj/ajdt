@@ -330,9 +330,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
 			if(model != null) { // this is null in a linked source folder due to an eclipse bug..
 				model.connect(document);
-			}	
-			if(isEditingAjFile) { // Fix for 91102 - pass on instruction pointer annotation events
-				model.addAnnotationModelListener(new InstructionPointerAnnotationListener(annotationModel));
+				if(isEditingAjFile) { // Fix for 91102 - pass on instruction pointer annotation events
+					model.addAnnotationModelListener(new InstructionPointerAnnotationListener(annotationModel));
+				}
 			}
 		} 
 	}
