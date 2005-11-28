@@ -382,7 +382,10 @@ public class ChangesView extends ViewPart {
 
 		AJProjectModel fromModel = getModelFromName(fromProject, fromName);
 		AJProjectModel toModel = getModelFromName(toProject, toName);
-
+		if ((fromModel == null) || (toModel == null)) {
+			return;
+		}
+		
 		List[] ret = ModelComparison.compare(fromModel, toModel);
 		List addedList = filterRelationshipList(ret[0]);
 		List removedList = filterRelationshipList(ret[1]);
