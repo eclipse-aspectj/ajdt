@@ -86,6 +86,9 @@ Create a packaged org.eclipse.ajdt.ui_version plugin distribution file
   <copy file="src/org/eclipse/ajdt/internal/ui/wizards/exports/AJJarPackagerMessages.properties"
 	tofile="bin/org/eclipse/ajdt/internal/ui/wizards/exports/AJJarPackagerMessages.properties"
 	overwrite="true"/>
+  <copy file="src/org/eclipse/ajdt/internal/ui/editor/quickfix/CorrectionMessages.properties"
+	tofile="bin/org/eclipse/ajdt/internal/ui/editor/quickfix/CorrectionMessages.properties"
+	overwrite="true"/>
   <zip destfile= "${build.dir}/ajdtui.jar" >
   	<fileset dir="bin"/>
   </zip>
