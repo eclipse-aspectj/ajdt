@@ -30,7 +30,7 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				.toCharArray());
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
-		assertTrue("Parser failed to handle enhancement for loop", //$NON-NLS-1$
+		assertTrue("Parser failed to handle enhanced for loop", //$NON-NLS-1$
 				converted.indexOf("for (Object obj : objects)")!=-1); //$NON-NLS-1$
 	}
 	
@@ -44,7 +44,6 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 				.toCharArray());
 		conv.convert(conversionOptions);
 		String converted = new String(conv.content);
-		System.out.println(converted);
 		assertTrue("Parser failed to handle pertypewithin", //$NON-NLS-1$
 				converted.indexOf("pertypewithin")==-1); //$NON-NLS-1$
 	}
