@@ -33,4 +33,19 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 		assertTrue("Parser failed to handle enhancement for loop", //$NON-NLS-1$
 				converted.indexOf("for (Object obj : objects)")!=-1); //$NON-NLS-1$
 	}
+	
+	public void testBug118052() {
+		String source = "public aspect Aspect pertypewithin(type_pattern){\n" //$NON-NLS-1$
+				+ "	public static void main(String[] args) {\n" //$NON-NLS-1$
+				+ "	}\n" //$NON-NLS-1$
+				+ "};\n"; //$NON-NLS-1$
+		ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+		AspectsConvertingParser conv = new AspectsConvertingParser(source
+				.toCharArray());
+		conv.convert(conversionOptions);
+		String converted = new String(conv.content);
+		System.out.println(converted);
+		assertTrue("Parser failed to handle pertypewithin", //$NON-NLS-1$
+				converted.indexOf("pertypewithin")==-1); //$NON-NLS-1$
+	}
 }
