@@ -42,6 +42,7 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
+import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
@@ -72,6 +73,8 @@ public class AllUITests {
 	public static Test suite() {
 		TestSuite suite = new TestSuite(AllUITests.class.getName());
 		//$JUnit-BEGIN$
+		
+		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
@@ -156,6 +159,9 @@ public class AllUITests {
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
+		if(is50) {
+			suite.addTest(new TestSuite(Bug117327Test.class));
+		}
 		
 		// ras tests
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
