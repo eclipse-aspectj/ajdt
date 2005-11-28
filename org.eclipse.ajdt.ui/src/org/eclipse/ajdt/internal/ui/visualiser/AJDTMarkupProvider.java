@@ -115,7 +115,7 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 							if(!(aspectPackageName.equals(""))) { //$NON-NLS-1$
 								aspectFullName = aspectPackageName + "." + aspectFullName; //$NON-NLS-1$
 							}
-						} else { // It's an injar aspect so we wno't be able to find the parents
+						} else { // It's an injar aspect so we won't be able to find the parents
 							aspectFullName = target.getElementName();
 							String[] parts = aspectFullName.split(" "); //$NON-NLS-1$
 							String aNameWithExtension = parts[parts.length - 1];
@@ -127,36 +127,41 @@ public class AJDTMarkupProvider extends SimpleMarkupProvider {
 						}
 						
 						int lineNum = AJModel.getInstance().getJavaElementLineNumber(element.getSource());
-						String memberName = element.getSource().getAncestor(IJavaElement.COMPILATION_UNIT).getElementName();
-						memberName = memberName.substring(0, memberName.lastIndexOf(".")); //$NON-NLS-1$
-						String packageName = element.getSource().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
-						if(!(packageName.equals(""))) { //$NON-NLS-1$
-							memberName = packageName + "." + memberName; //$NON-NLS-1$
-						}
-						IMarkupKind markupKind = null;
-						if(kindMap == null) {
-							kindMap = new HashMap();
-						}
-						if(element.getRelationship().equals(AJRelationshipManager.MATCHES_DECLARE)) {
-							String sourceName = element.getTarget().getElementName();					
-							boolean errorKind = sourceName.startsWith(aspectJErrorKind);
-							if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
-								markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
-							} else {
-								markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
-								kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
+						if(element.getSource() != null) {
+							IJavaElement compilationUnitAncestor = element.getSource().getAncestor(IJavaElement.COMPILATION_UNIT);
+							if(compilationUnitAncestor != null) {
+								String memberName = compilationUnitAncestor.getElementName();
+								memberName = memberName.substring(0, memberName.lastIndexOf(".")); //$NON-NLS-1$
+								String packageName = element.getSource().getAncestor(IJavaElement.PACKAGE_FRAGMENT).getElementName();
+								if(!(packageName.equals(""))) { //$NON-NLS-1$
+									memberName = packageName + "." + memberName; //$NON-NLS-1$
+								}
+								IMarkupKind markupKind = null;
+								if(kindMap == null) {
+									kindMap = new HashMap();
+								}
+								if(element.getRelationship().equals(AJRelationshipManager.MATCHES_DECLARE)) {
+									String sourceName = element.getTarget().getElementName();					
+									boolean errorKind = sourceName.startsWith(aspectJErrorKind);
+									if(kindMap.get(sourceName + ":::" + aspectFullName) instanceof IMarkupKind) { //$NON-NLS-1$
+										markupKind = (IMarkupKind)kindMap.get(sourceName + ":::" + aspectFullName); //$NON-NLS-1$
+									} else {
+										markupKind = new ErrorOrWarningMarkupKind(sourceName + ":::" + aspectName, errorKind); //$NON-NLS-1$
+										kindMap.put(sourceName + ":::" + aspectFullName, markupKind); //$NON-NLS-1$
+									}
+								} else {
+									if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
+										markupKind = (IMarkupKind)kindMap.get(aspectFullName);
+									} else {
+										markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
+										kindMap.put(aspectFullName, markupKind);
+									}
+								} 
+								kinds.add(markupKind);
+								Stripe stripe = new Stripe(kinds, lineNum, 1);
+								addMarkup(memberName, stripe);
 							}
-						} else {
-							if(kindMap.get(aspectFullName) instanceof IMarkupKind) {
-								markupKind = (IMarkupKind)kindMap.get(aspectFullName);
-							} else {
-								markupKind = new SimpleMarkupKind(aspectName, aspectFullName);
-								kindMap.put(aspectFullName, markupKind);
-							}
-						} 
-						kinds.add(markupKind);
-						Stripe stripe = new Stripe(kinds, lineNum, 1);
-						addMarkup(memberName, stripe);
+						}
 					}
 				}
 			}
