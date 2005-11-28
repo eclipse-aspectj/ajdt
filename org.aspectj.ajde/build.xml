@@ -131,7 +131,6 @@ Creates a packaged plug-in jar for AJDE
 		</delete>
 		
 		<!-- delete everything which is going to be in aspectjrtsrc.zip -->
-		<!-- omitting this step as we don't currently create a aspectjrtsrc.zip file
 		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjrtsrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
@@ -139,7 +138,6 @@ Creates a packaged plug-in jar for AJDE
 				<include name="org/aspectj/lang/**/*.*" />
 			</fileset>
 		</delete>
-		-->
 		
 		<zip destfile="ajdesrc.zip">
 		  <fileset dir="${ajde.build.dir}"/>
@@ -184,7 +182,7 @@ Creates a packaged plug-in jar for AJDE
            	</fileset>
         </delete>
 		<!-- delete everything which shouldn't be included in the aspectjweaversrc.zip -->
-		<echo message="Removing files not required in aspectjweaversrc.jar"/>
+		<echo message="Removing files not required in aspectjweaversrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
 				<exclude name="org/aspectj/apache/bcel/**/*.*" />
@@ -208,7 +206,23 @@ Creates a packaged plug-in jar for AJDE
 			tofile="../org.aspectj.runtime/aspectjrt.jar" 
 			overwrite="true" />
 	
+		<delete dir="${ajde.build.dir}" />
+		<!-- build a src zip -->
+		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/jdtcore-for-aspectj-src.zip"/>
+		<unzip dest="${ajde.build.dir}" src="${aspectj.lib.dir}/../../ide/eclipse/org.aspectj.ajde.source/src/aspectjsrc.zip"/>
+		<!-- delete everything which shouldn't be included in the aspectjrtsrc.zip -->
+		<echo message="Removing files not required in aspectjrtsrc.zip"/>
+		<delete includeemptydirs="true">
+			<fileset dir="${ajde.build.dir}">
+				<exclude name="org/aspectj/runtime/**/*.*" />
+				<exclude name="org/aspectj/lang/**/*.*" />
+			</fileset>
+		</delete>
 		
+		<zip destfile="../org.aspectj.runtime/aspectjrtsrc.zip">
+		  <fileset dir="${ajde.build.dir}"/>
+		</zip>
+		<delete dir="${ajde.build.dir}" />	
 	</target>
 
 	<!-- target name="plugin jars" depends="weaverjar" -->		
