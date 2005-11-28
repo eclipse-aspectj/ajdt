@@ -19,6 +19,7 @@
 package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -212,14 +213,18 @@ public class ProjectProperties extends CoreProjectProperties  {
 			}
 		} catch (JavaModelException ex) {
 		}
-
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IPath rootPath = root.getLocation();
-		IPath path = new Path(fullPath);
-		if (rootPath.isPrefixOf(path)) {
-			path = path.removeFirstSegments(rootPath.segmentCount());
+		
+		String projectPathStr = p.getLocation().toString();
+		try {
+			projectPathStr = p.getLocation().toFile().getCanonicalPath();
+		} catch (IOException e) {
 		}
-		IResource ret = p.findMember(path);
+		IPath projectPath = new Path(projectPathStr);
+		IPath filePath = new Path(fullPath);
+		if (projectPath.isPrefixOf(filePath)) {
+			filePath = filePath.removeFirstSegments(projectPath.segmentCount());
+		}
+		IResource ret = p.findMember(filePath);
 		return ret;
 	}
 
