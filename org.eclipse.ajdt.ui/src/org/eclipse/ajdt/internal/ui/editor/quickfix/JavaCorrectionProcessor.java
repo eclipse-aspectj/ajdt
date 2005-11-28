@@ -254,6 +254,8 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 						}
 					}
 				}
+			} catch (NullPointerException e) {
+				// bug 118073: avoid showing status line error
 			} catch (Exception e) {
 				fErrorMessage= CorrectionMessages.getString("JavaCorrectionProcessor.error.quickfix.message"); //$NON-NLS-1$
 			}
