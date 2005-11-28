@@ -40,8 +40,8 @@
 	            <group id="t-links">
 	            
 				<link 
-					label="developerWorks : AOP@Work series" 
-					url="http://org.eclipse.ui.intro/openBrowser?url=http://www-128.ibm.com/developerworks/views/java/libraryview.jsp\?search_by=AOP@work:"  
+					label="developerWorks : AOP@Work AJDT Article" 
+					url="http://org.eclipse.ui.intro/openBrowser?url=http://www-128.ibm.com/developerworks/java/library/j-aopwork9/index.html"  
 					id="developerWorks-aopAtWorkSeries">
       
 					<text>
