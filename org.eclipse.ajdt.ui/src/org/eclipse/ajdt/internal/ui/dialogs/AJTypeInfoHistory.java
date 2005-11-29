@@ -63,7 +63,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 // Copied from TypeInfoHistory to keep AJ type info separate
-// No changes
 public class AJTypeInfoHistory {
 		
 	private static final String NODE_ROOT= "typeInfoHistroy"; //$NON-NLS-1$

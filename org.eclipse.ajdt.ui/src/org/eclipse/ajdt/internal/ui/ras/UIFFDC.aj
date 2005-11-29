@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.ras;
 
+import org.eclipse.ajdt.internal.ui.dialogs.AJTypeInfoFactory;
+import org.eclipse.ajdt.internal.ui.dialogs.AJTypeInfoHistory;
 import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;
 import org.eclipse.ajdt.pde.internal.ui.editor.context.FileDocumentProvider;
@@ -29,6 +31,7 @@ public aspect UIFFDC extends PluginFFDC {
 		// Exclude programming by exception cases
 		&& !within(OpenTypeSelectionDialog)
 		&& !within(FileDocumentProvider)
+		&& !within(AJTypeInfoHistory) && !within(AJTypeInfoFactory)
 		&& !(within(AspectJBreakpointRulerAction) && handler(BadLocationException));
 		
     protected String getPluginId () {
