@@ -120,6 +120,7 @@ Creates an update site structure for AspectJ
 	<!-- Add source plugin -->
 	<ant dir="../org.eclipse.ajdt.source"/>
 	<move file="../org.eclipse.ajdt.source/src/org.aspectj.ajde" tofile="../org.eclipse.ajdt.source/src/org.aspectj.ajde_${ajde.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.aspectj.runtime" tofile="../org.eclipse.ajdt.source/src/org.aspectj.runtime_${ajde.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.aspectj.weaver" tofile="../org.eclipse.ajdt.source/src/org.aspectj.weaver_${ajde.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui_${ajdt.version}"/>
