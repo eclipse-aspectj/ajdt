@@ -75,6 +75,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		public void buildSuccessful(boolean arg0) {
 			AJLog.log("AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
+
+		public void detectedAspectDeleted(File f) {
 		}};
 	  AjState.stateListener = isl;
 	}

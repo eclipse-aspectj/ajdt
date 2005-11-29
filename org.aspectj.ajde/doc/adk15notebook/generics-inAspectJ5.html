@@ -511,13 +511,13 @@
                 * Matches at an addChild join point for the parent type P and child type C
                 */    
               public pointcut addingChild(Parent p, Child c) :
-                execution(* Parent.addChild(Child)) &amp;&amp; this(p) &amp;&amp; args(c);
+                execution(* ParentHasChildren.addChild(ChildHasParent)) &amp;&amp; this(p) &amp;&amp; args(c);
                 
               /**
                 * Matches at a removeChild join point for the parent type P and child type C
                 */    
               public pointcut removingChild(Parent p, Child c) :
-                execution(* Parent.removeChild(Child)) &amp;&amp; this(p) &amp;&amp; args(c);
+                execution(* ParentHasChildren.removeChild(ChildHasParent)) &amp;&amp; this(p) &amp;&amp; args(c);
 
           }
           
