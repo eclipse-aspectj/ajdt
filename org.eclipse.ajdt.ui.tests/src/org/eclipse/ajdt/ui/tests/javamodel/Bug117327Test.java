@@ -31,9 +31,14 @@ public class Bug117327Test extends UITestCase {
 					IResource.DEPTH_INFINITE);
 		assertEquals("Expected two declaration markers", 2, markers.length); //$NON-NLS-1$
 		Integer lineNumber = (Integer)markers[0].getAttribute(IMarker.LINE_NUMBER);
-		assertEquals("Expected a declaration marker at line 15", 15, lineNumber.intValue()); //$NON-NLS-1$
-		lineNumber = (Integer)markers[1].getAttribute(IMarker.LINE_NUMBER);
-		assertEquals("Expected a declaration marker at line 18", 18, lineNumber.intValue()); //$NON-NLS-1$	
+		assertTrue("Expected a declaration marker at line 15 or 18", 15 == lineNumber.intValue() || 18 == lineNumber.intValue()); //$NON-NLS-1$
+		if(lineNumber.intValue() == 15) {
+			lineNumber = (Integer)markers[1].getAttribute(IMarker.LINE_NUMBER);
+			assertEquals("Expected a declaration marker at line 18", 18, lineNumber.intValue()); //$NON-NLS-1$				
+		} else {
+			lineNumber = (Integer)markers[1].getAttribute(IMarker.LINE_NUMBER);
+			assertEquals("Expected a declaration marker at line 15", 15, lineNumber.intValue()); //$NON-NLS-1$	
+		}
 	}
 	
 	
