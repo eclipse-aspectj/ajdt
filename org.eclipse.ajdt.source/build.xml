@@ -18,6 +18,9 @@
 			<param name="plugin-name" value="org.aspectj.ajde"/>
 		</antcall>
 		<antcall target="copy.source">
+			<param name="plugin-name" value="org.aspectj.runtime"/>
+		</antcall>
+		<antcall target="copy.source">
 			<param name="plugin-name" value="org.aspectj.weaver"/>
 		</antcall>
 		<antcall target="copy.source">
