@@ -427,7 +427,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertTrue("Select all did not increase the number of selected items", second.size() > first.size());
+		assertTrue("Select all did not increase the number of selected items", second.size() > first.size()); //$NON-NLS-1$
 
 		TreeViewer treeViewer = xrefView.getTreeViewer();
 //		assertTrue("xref view should have non null treeviewer",treeViewer.getInput());
@@ -476,7 +476,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertTrue("Deselect all did not decrease the number of selected items", second.size() < first.size());
+		assertTrue("Deselect all did not decrease the number of selected items", second.size() < first.size()); //$NON-NLS-1$
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -516,7 +516,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertEquals("Restore defaults changed the number of selected items", second.size(), first.size());
+		assertEquals("Restore defaults changed the number of selected items", second.size(), first.size()); //$NON-NLS-1$
 		
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
@@ -559,7 +559,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertTrue("Selecting 3 items all did not increase the number of selected items by 3", (second.size() - first.size()) == 3);
+		assertTrue("Selecting 3 items all did not increase the number of selected items by 3", (second.size() - first.size()) == 3); //$NON-NLS-1$
 
 		doUnChecking();
 	}
@@ -596,7 +596,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertTrue("Deselecting 3 items all did not decrease the number of selected items by 3", (first.size() - second.size()) == 3);
+		assertTrue("Deselecting 3 items all did not decrease the number of selected items by 3", (first.size() - second.size()) == 3); //$NON-NLS-1$
 	}
 	
 
@@ -638,7 +638,7 @@ public class XReferenceViewTest extends VisualTestCase {
 		waitForJobsToComplete();
 
 		Set second = getCheckedList(xrefAction);
-		assertEquals("Pressing Cancel changed the number of selected items", second.size(), first.size());
+		assertEquals("Pressing Cancel changed the number of selected items", second.size(), first.size()); //$NON-NLS-1$
 
 		for (Iterator iter = xrefAction.getProviderDefns().iterator(); iter.hasNext();) {
 			XReferenceProviderDefinition provider = (XReferenceProviderDefinition) iter.next();
