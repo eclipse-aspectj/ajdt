@@ -23,6 +23,7 @@
       <import plugin="org.eclipse.team.core" optional="true"/>
       <import plugin="org.aspectj.runtime"/>
       <import plugin="org.aspectj.weaver"/>
+      <import plugin="org.eclipse.text"/>
    </requires>
 
    <!-- ASPECTJRT_LIB classpath variable -->

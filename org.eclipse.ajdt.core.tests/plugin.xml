@@ -22,6 +22,7 @@
       <import plugin="org.aspectj.ajde"/>
       <import plugin="org.aspectj.runtime"/>
       <import plugin="org.aspectj.weaver"/>
+      <import plugin="org.eclipse.text"/>
    </requires>
 
 </plugin>
