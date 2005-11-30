@@ -19,6 +19,7 @@ import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
+import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
 import org.eclipse.ajdt.core.tests.model.AJCodeElementTest;
 import org.eclipse.ajdt.core.tests.model.AJComparatorTest;
@@ -69,6 +70,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJBuilderTest2.class));
 		suite.addTest(new TestSuite(Bug99133Test.class));
 
+		// AST tests
+		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		return suite;
 	}
 }

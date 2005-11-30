@@ -9,6 +9,7 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.codeconversion,
  org.eclipse.ajdt.core,
  org.eclipse.ajdt.core.builder,
+ org.eclipse.ajdt.core.dom.rewrite,
  org.eclipse.ajdt.core.javaelements,
  org.eclipse.ajdt.core.model,
  org.eclipse.ajdt.core.text,
@@ -28,5 +29,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.core,
  org.eclipse.team.core;resolution:=optional,
  org.aspectj.runtime,
- org.aspectj.weaver
+ org.aspectj.weaver,
+ org.eclipse.jface.text
 Eclipse-AutoStart: true
