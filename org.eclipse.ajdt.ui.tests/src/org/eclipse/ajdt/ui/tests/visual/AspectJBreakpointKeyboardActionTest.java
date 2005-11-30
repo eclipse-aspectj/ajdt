@@ -71,6 +71,18 @@ public class AspectJBreakpointKeyboardActionTest extends VisualTestCase {
 		//toggling breakpoint on line 18 should remove it agin
 		setBreakpoint(18, true, sourcefile, editorPart);		
 		waitForJobsToComplete();			
+
+		//toggling breakpoint on line 17 should add it to line 18
+		setBreakpoint(17, true, sourcefile, editorPart);		
+		waitForJobsToComplete();
+		setBreakpoint(17, false, sourcefile, editorPart);	// check nothing on 17	
+		waitForJobsToComplete();
+		setBreakpoint(18, true, sourcefile, editorPart);		
+		waitForJobsToComplete();
+		
+		//toggling breakpoint on line 21 should have no effect
+		setBreakpoint(21, false, sourcefile, editorPart);		
+		waitForJobsToComplete();
 		
 		editorPart.close(false);
 	}
