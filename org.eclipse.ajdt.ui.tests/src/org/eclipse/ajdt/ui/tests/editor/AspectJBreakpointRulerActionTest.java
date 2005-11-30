@@ -91,7 +91,7 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 		
 		waitForJobsToComplete();
 		
-		//toggling breakpoint on line 17 should remove it agin
+		//toggling breakpoint on line 17 should remove it again
 		setBreakpoint(17, true, sourcefile, editorPart);
 		
 		waitForJobsToComplete();
@@ -105,14 +105,15 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 	private void setBreakpoint(int line, boolean hasEffect, IFile file, ITextEditor editor) throws Exception{
 		CompositeRuler rulerInfo= (CompositeRuler) editor.getAdapter(IVerticalRulerInfo.class);
 		clickLine(line, rulerInfo);
+		waitForJobsToComplete();
 		int numOfMarkers = getNumOfMarkers(file, editor);
 		(new AspectJBreakpointRulerAction(rulerInfo, editor, editor)).run();
 		waitForJobsToComplete();
+		waitForJobsToComplete();
 		
 		int newNumOfMarkers = getNumOfMarkers(file, editor);
-		//hasBreakpointOnCurrentLine(file, editor);
 		if ((numOfMarkers == newNumOfMarkers) == hasEffect)
-			fail(hasEffect?"Could not toggle breakpoint.":"Could set breakpoint in illegal position.");
+			fail(hasEffect?"Could not toggle breakpoint." + " in file " + file.getName() + " at line " + line:"Could set breakpoint in illegal position." + " in file " + file.getName() + " at line " + line); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 	}
 	
 	private void clickLine(int desiredline, CompositeRuler rulerInfo){
