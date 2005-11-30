@@ -114,7 +114,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
      * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleLineBreakpoints(IWorkbenchPart,
      *      ISelection)
      */
-    public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+    public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) {
         toggleLineBreakpoints(part, selection, false);
     }
 
@@ -214,7 +214,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
                                 removeBreakpoint(existingBreakpoint, true);
                                 return Status.OK_STATUS;
                             }
-                            createLineBreakpoint(resource, typeName, offset, lineNumber, -1, -1, 0, true, attributes, document, bestMatch, type, editorPart);
+                            createLineBreakpoint(resource, typeName, offset, lineNumber, -1, -1, 0, true, attributes, document, type, editorPart);
                         }
                     } catch (CoreException ce) {
                         return ce.getStatus();
@@ -227,7 +227,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
         job.schedule();
     }
 
-    private void createLineBreakpoint(IResource resource, String typeName, int offset, int lineNumber, int charStart, int charEnd, int hitCount, boolean register, Map attributes, IDocument document, boolean bestMatch, IType type, IEditorPart editorPart) throws CoreException {
+    private void createLineBreakpoint(IResource resource, String typeName, int offset, int lineNumber, int charStart, int charEnd, int hitCount, boolean register, Map attributes, IDocument document, IType type, IEditorPart editorPart) throws CoreException {
         IJavaLineBreakpoint breakpoint = JDIDebugModel.createLineBreakpoint(resource, typeName, lineNumber, charStart, charEnd, hitCount, register, attributes);
         new BreakpointLocationVerifierJob(document, breakpoint, offset, lineNumber, typeName, type, resource, editorPart).schedule();
     }
@@ -275,7 +275,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTarget {
     	return false;
     }
 
-    public void toggleBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+    public void toggleBreakpoints(IWorkbenchPart part, ISelection selection) {
         toggleLineBreakpoints(part, selection, true);
     }
 
