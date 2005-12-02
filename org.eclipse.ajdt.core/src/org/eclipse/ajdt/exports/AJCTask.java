@@ -111,17 +111,9 @@ public class AJCTask extends JavacTask {
 			
 			ajScript.indent++;
 	
+			ajScript.println("<forkclasspath refid=\"" + classpathId + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.printStartTag("forkclasspath"); //$NON-NLS-1$
 			ajScript.indent++;
-			for (Iterator iter = classpath.iterator(); iter.hasNext();) {
-				String path = (String) iter.next();
-				ajScript.printTab();
-				ajScript.print("<pathelement"); //$NON-NLS-1$
-				ajScript.printAttribute("path", path, false); //$NON-NLS-1$
-				ajScript.print("/>"); //$NON-NLS-1$
-				ajScript.println();
-			}
-			
 			// Add ajde.jar and aspectjweaver.jar to this classpath too because we have forked
 			ajScript.printTab();
 			ajScript.print("<pathelement"); //$NON-NLS-1$
