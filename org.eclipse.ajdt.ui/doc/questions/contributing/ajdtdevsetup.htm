@@ -14,11 +14,9 @@
     </h1>
 
 			    <p>There are several stages to this: building AJDT, running the
-			    correctness tests, running the performance tests, and creating an
+			    correctness tests, and creating an
 			    Eclipse update site. The first two stages are probably sufficient
-			    for most purposes.
-			    Note that an additional step is required for Eclipse 3.0.2, as
-			    the source code is contained in a CVS branch.</p>
+			    for most purposes.</p>
 			
 			    <h4>Building AJDT</h4>
 			
@@ -32,7 +30,7 @@
 			    typically done by passing something like <code>"-vmargs -Xmx512m"</code> to
 			    the Eclipse launcher.</p>
 			    			
-			    <p>Start with a clean workspace under Eclipse 3.0.2 or
+			    <p>Start with a clean workspace under
 			    Eclipse 3.1. Now open the CVS Repository Exploring 
 			    perspective. Right-click on the CVS Repositories view, then click "New" > "Repository
 			    Location". Host = dev.eclipse.org, Repository path =
@@ -41,14 +39,14 @@
 			    Use the CVS Repositories view to navigate to
 			    HEAD/org.eclipse.ajdt/AJDT_src. </p>
 			    
-			    <p>If you are using Eclipse 3.0.2 you now need to switch to the
-			    "ajdt1_2" branch in CVS. To discover the branch, you need to
+			    <p>You now need to switch to the
+			    "ajdt1_3" branch in CVS. To discover the branch, you need to
 			    right-click on org.eclipse.ajdt and select "Configure Branches
 			    and Versions...", and in the dialog that opens navigate to
 			    AJDT_src/org.aspect.ajde/.project. Various tags should appear in
 			    the right hand side of the dialog. Press "Add Checked Tags", then
 			    "OK". Back in the CVS Repositories view you should now be able to
-			    navigate to Branches/ajdt1_2/org.eclipse.ajdt ajdt1_2/AJDT_src.
+			    navigate to Branches/ajdt1_3/org.eclipse.ajdt/AJDT_src.
 			    </p>
 			    
 			    <p>Select the following projects,
@@ -129,15 +127,6 @@
 			   also be run, and new tests written to accompany fixes or new
 			   features.</p>
 			
-			   <h4>Running the performance tests</h4>
-			
-			   <p>Work is underway on a new plugin,
-			   org.eclipse.ajdt.tests.performance, to monitor the performance of
-			   every build of AJDT. This plugin has dependencies on a number of
-			   Eclipse test projects, which are not shipped in the base Eclipse
-			   SDK. These instructions will be updated later when the plugin is
-			   fully up and running.
-			
 			   <h4>Creating an update site</h4>
 			
 			   <p>Each of the AJDT plugin projects also contains an Ant build
@@ -147,21 +136,18 @@
 			   build that builds an entire update site structure in its "dist"
 			   directory. To run the build.xml file inside Eclipse, you need to do
 			   "Run As > Ant Build..." to bring up the run configuration dialog,
-			   then go to the "JRE" tab and select "Run in the same JRE as the
-			   workspace". This is required for the "eclipse.incrementalBuild" Ant
-			   task to work.</p>
+			   then go to the "JRE" tab and choose to run in a separate JRE.</p>
 			
-			   <p>You can now test the built update site as follows:</p>
-			
-			   <ul>
-			     <li>Copy the contents of the dist directory to a clean directory,
-			     outside of your workspace. For example, "ajupdate."</li>
-			
-			     <li>From the help menu of the Eclipse in which you wish to
-			     install the AspectJ feature, choose "Help" &gt; "Software
-			     Updates" &gt; "Find and Install..." and follow the steps outlined
-			     earlier in this section.</li>
-			   </ul>
+			   <p>Those plugins that use aspects in their implementation need
+			   to be built using the AspectJ compiler. To do this the
+			   "iajc" Ant task is used in each of the relevant build.xml files.
+			   For this to run successfully, it needs to be able to locate
+			   the org.aspectj.ajde and org.aspectj.weaver plugins from the
+			   installed version of AJDT. Each build.xml file refers to the
+			   specific version on AJDT installed on the build machine, so unless
+			   you have exactly the same version installed, you need to uncomment
+			   and override the "aspectj.plugin.home" and "aspectj.weaver.home"
+			   properties in the build.xml file from the "UpdateSite" project.</p>
 
     <p>
        <a href="../../notices.html"><img src="../../cpy.gif" border="0" alt="Legal notices" width="324" height="14"></a>
