@@ -66,6 +66,8 @@ import org.eclipse.jdt.launching.IVMInstallType;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.launching.LibraryLocation;
 import org.eclipse.jdt.ui.JavaElementLabels;
+import org.eclipse.jdt.ui.dialogs.ITypeInfoFilterExtension;
+import org.eclipse.jdt.ui.dialogs.ITypeInfoImageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
@@ -135,8 +137,7 @@ public class TypeInfoViewer {
 			TypeInfo type= factory.create(packageName, simpleTypeName, enclosingTypeNames, modifiers, path);
 			if (fHistory.contains(type))
 				return;
-			if (fFilter.matchesSearchResult(type))
-				fResult.add(type);
+			fResult.add(type);
 		}
 	}
 	
@@ -198,7 +199,7 @@ public class TypeInfoViewer {
 				return 0;
 			if (!fFilter.isCamcelCasePattern())
 				return 0;
-			return fFilter.matchesNameExact(type) ? 0 : 1;
+			return fFilter.matchesRawNamePattern(type) ? 0 : 1;
 		}
 	}
 	
@@ -844,6 +845,7 @@ public class TypeInfoViewer {
 	private SyncJob fSyncJob;
 	
 	private TypeInfoFilter fTypeInfoFilter;
+	private ITypeInfoFilterExtension fFilterExtension;
 	private TypeInfo[] fLastCompletedResult;
 	private TypeInfoFilter fLastCompletedFilter;
 	
@@ -866,12 +868,14 @@ public class TypeInfoViewer {
 	// only needed when in virtual table mode
 	private static final TypeInfo DASH_LINE= new UnresolvableTypeInfo(null, null, null, 0, null);
 	
-	public TypeInfoViewer(Composite parent, int flags, Label progressLabel, IJavaSearchScope scope, int elementKind, String initialFilter) {
+	public TypeInfoViewer(Composite parent, int flags, Label progressLabel, IJavaSearchScope scope, int elementKind, String initialFilter,
+			ITypeInfoFilterExtension filterExtension, ITypeInfoImageProvider imageExtension) {
 		Assert.isNotNull(scope);
 		fDisplay= parent.getDisplay();
 		fProgressLabel= progressLabel;
 		fSearchScope= scope;
 		fElementKind= elementKind;
+		fFilterExtension= filterExtension;
 		fFullyQualifySelection= (flags & SWT.MULTI) != 0;
 		fTable= new Table(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FLAT | flags | (VIRTUAL ? SWT.VIRTUAL : SWT.NONE));
 		fTable.setFont(parent.getFont());
@@ -1081,7 +1085,7 @@ public class TypeInfoViewer {
 		fDashLineIndex= -1;
 		TypeInfoFilter filter= (fTypeInfoFilter != null)
 			? fTypeInfoFilter
-			: new TypeInfoFilter("*", fSearchScope, fElementKind); //$NON-NLS-1$
+			: new TypeInfoFilter("*", fSearchScope, fElementKind, fFilterExtension); //$NON-NLS-1$
 		if (VIRTUAL) {
 			fHistoryMatches= fHistory.getFilteredTypeInfos(filter);
 			fExpectedItemCount= fHistoryMatches.length;
@@ -1117,7 +1121,7 @@ public class TypeInfoViewer {
 	protected TypeInfoFilter createTypeInfoFilter(String text) {
 		if ("**".equals(text)) //$NON-NLS-1$
 			text= "*"; //$NON-NLS-1$
-		return new TypeInfoFilter(text, fSearchScope, fElementKind);
+		return new TypeInfoFilter(text, fSearchScope, fElementKind, fFilterExtension);
 	}
 	
 	protected TypeInfoLabelProvider createLabelProvider() {

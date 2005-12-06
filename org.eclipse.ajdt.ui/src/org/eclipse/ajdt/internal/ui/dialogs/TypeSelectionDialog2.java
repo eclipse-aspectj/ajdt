@@ -50,6 +50,7 @@ import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
+import org.eclipse.jdt.ui.dialogs.TypeSelectionExtension;
 
 // Copied from org.eclipse.jdt.ui.dialogs - changes marked // AspectJ Change
 public class TypeSelectionDialog2 extends SelectionStatusDialog {
@@ -65,6 +66,7 @@ public class TypeSelectionDialog2 extends SelectionStatusDialog {
 	private int fSelectionMode;
 	private ISelectionStatusValidator fValidator;
 	private TypeSelectionComponent fContent;
+	private TypeSelectionExtension fExtension;
 	
 	public static final int NONE= TypeSelectionComponent.NONE;
 	public static final int CARET_BEGINNING= TypeSelectionComponent.CARET_BEGINNING;
@@ -84,7 +86,13 @@ public class TypeSelectionDialog2 extends SelectionStatusDialog {
 		}
 	}
 	
-	public TypeSelectionDialog2(Shell parent, boolean multi, IRunnableContext context, IJavaSearchScope scope, int elementKinds) {
+	public TypeSelectionDialog2(Shell parent, boolean multi, IRunnableContext context, 
+			IJavaSearchScope scope, int elementKinds) {
+		this(parent, multi, context, scope, elementKinds, null);
+	}
+
+	public TypeSelectionDialog2(Shell parent, boolean multi, IRunnableContext context, 
+			IJavaSearchScope scope, int elementKinds, TypeSelectionExtension extension) {
 		super(parent);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 		fMultipleSelection= multi;
@@ -92,6 +100,10 @@ public class TypeSelectionDialog2 extends SelectionStatusDialog {
 		fScope= scope;
 		fElementKind= elementKinds;
 		fSelectionMode= NONE;
+		fExtension= extension;
+		if (fExtension != null) {
+			fValidator= fExtension.getSelectionValidator();
+		}
 	}
 	
 	public void setFilter(String filter) {
@@ -122,8 +134,8 @@ public class TypeSelectionDialog2 extends SelectionStatusDialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite area= (Composite)super.createDialogArea(parent);
 		fContent= new TypeSelectionComponent(area, SWT.NONE, getMessage(), 
-			fMultipleSelection, fScope, fElementKind, fInitialFilter,
-			new TitleLabel());
+				fMultipleSelection, fScope, fElementKind, fInitialFilter,
+				new TitleLabel(), fExtension);
 		GridData gd= new GridData(GridData.FILL_BOTH);
 		fContent.setLayoutData(gd);
 		fContent.addSelectionListener(new SelectionListener() {

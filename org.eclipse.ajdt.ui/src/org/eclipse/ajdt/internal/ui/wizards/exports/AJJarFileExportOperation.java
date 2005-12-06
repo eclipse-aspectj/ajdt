@@ -61,7 +61,8 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.jarpackager.ConfirmSaveModifiedResourcesDialog;
+import org.eclipse.jdt.internal.ui.jarpackager.JarPackagerMessages;
+import org.eclipse.jdt.internal.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jdt.internal.ui.util.BusyIndicatorRunnableContext;
 import org.eclipse.jdt.ui.StandardJavaElementContentProvider;
 import org.eclipse.jdt.ui.jarpackager.IJarDescriptionWriter;
@@ -948,14 +949,21 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			return false;
 		}
 		
-		if (fParentShell == null)
-			// no checking if shell is null
-			return true;
-
-		IFile[] unsavedFiles= getUnsavedFiles();
-		if (unsavedFiles.length > 0)
-			return saveModifiedResourcesIfUserConfirms(unsavedFiles);
-
+		if (fParentShell != null) {
+			final boolean[] res= { false };
+			fParentShell.getDisplay().syncExec(new Runnable() {
+				public void run() {
+					RefactoringSaveHelper refactoringSaveHelper= new RefactoringSaveHelper(false);
+					res[0]= refactoringSaveHelper.saveEditors(fParentShell);
+					fFilesSaved= refactoringSaveHelper.hasFilesSaved();
+				}
+			});
+			if (!res[0]) {
+				addError(JarPackagerMessages.JarFileExportOperation_fileUnsaved, null); 
+				return false;
+			}
+		}
+		
 		return true;
 	}
 
@@ -980,49 +988,6 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			}
 		}
 		return (IFile[])unsavedFiles.toArray(new IFile[unsavedFiles.size()]);
-	}
-
-	/**
-	 * Asks the user to confirm to save the modified resources.
-	 * 
-	 * @return true if user pressed OK.
-	 */
-	private boolean confirmSaveModifiedResources(final IFile[] dirtyFiles) {
-		if (dirtyFiles == null || dirtyFiles.length == 0)
-			return true;
-
-		// Get display for further UI operations
-		Display display= fParentShell.getDisplay();
-		if (display == null || display.isDisposed())
-			return false;
-
-		// Ask user to confirm saving of all files
-		final int[] intResult= new int[1];
-		Runnable runnable= new Runnable() {
-			public void run() {
-				ConfirmSaveModifiedResourcesDialog dlg= new ConfirmSaveModifiedResourcesDialog(fParentShell, dirtyFiles);
-				intResult[0]= dlg.open();
-			}
-		};
-		display.syncExec(runnable);
-
-		return intResult[0] == IDialogConstants.OK_ID;
-	}
-
-	/**
-	 * Asks to confirm to save the modified resources
-	 * and save them if OK is pressed.
-	 * 
-	 * @return true if user pressed OK and save was successful.
-	 */
-	private boolean saveModifiedResourcesIfUserConfirms(IFile[] dirtyFiles) {
-		if (confirmSaveModifiedResources(dirtyFiles))
-			return saveModifiedResources(dirtyFiles);
-
-		// Report unsaved files
-		for (int i= 0; i < dirtyFiles.length; i++)
-			addError(Messages.format(JarPackagerMessages.JarFileExportOperation_fileUnsaved, dirtyFiles[i].getFullPath()), null); 
-		return false;
 	}
 
 	/**

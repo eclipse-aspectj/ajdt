@@ -182,7 +182,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 			if (Flags.isPrivate(flags) || Flags.isStatic(flags) || method.isConstructor()) {
 				return declaringType;
 			}
-			IMethod res= JavaModelUtil.findMethodDeclarationInHierarchy(hierarchy, declaringType, method.getElementName(), method.getParameterTypes(), false);
+			IMethod res= findMethodDeclarationInHierarchy(hierarchy, declaringType, method.getElementName(), method.getParameterTypes(), false);
 			if (res == null || method.equals(res)) {
 				return declaringType;
 			}
@@ -190,6 +190,34 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		}
 	}
 
+	// copied from JavaModelUtil in 3.2M2
+	/**
+	 * Finds a method declaration in a type's hierarchy. The search is top down, so this
+	 * returns the first declaration of the method in the hierarchy.
+	 * This searches for a method with a name and signature. Parameter types are only
+	 * compared by the simple name, no resolving for the fully qualified type name is done.
+	 * Constructors are only compared by parameters, not the name.
+	 * @param type Searches in this type's supertypes.
+	 * @param name The name of the method to find
+	 * @param paramTypes The type signatures of the parameters e.g. <code>{"QString;","I"}</code>
+	 * @param isConstructor If the method is a constructor
+	 * @return The first method found or null, if nothing found
+	 */
+	private static IMethod findMethodDeclarationInHierarchy(ITypeHierarchy hierarchy, IType type, String name, String[] paramTypes, boolean isConstructor) throws JavaModelException {
+		IType[] superTypes= hierarchy.getAllSupertypes(type);
+		for (int i= superTypes.length - 1; i >= 0; i--) {
+			IMethod first= JavaModelUtil.findMethod(name, paramTypes, isConstructor, superTypes[i]);
+			if (first != null && !Flags.isPrivate(first.getFlags())) {
+				// the order getAllSupertypes does make assumptions of the order of inner elements -> search recursively
+				IMethod res= findMethodDeclarationInHierarchy(hierarchy, first.getDeclaringType(), name, paramTypes, isConstructor);
+				if (res != null) {
+					return res;
+				}
+				return first;
+			}
+		}
+		return null;
+	}
 	
 	private class OutlineTreeViewer extends TreeViewer {
 		
@@ -487,7 +515,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 				return null;
 			}
 		
-			IMethod res= JavaModelUtil.findMethodDeclarationInHierarchy(getSuperTypeHierarchy(declaringType), declaringType, method.getElementName(), method.getParameterTypes(), false);
+			IMethod res= findMethodDeclarationInHierarchy(getSuperTypeHierarchy(declaringType), declaringType, method.getElementName(), method.getParameterTypes(), false);
 			if (res == null || method.equals(res)) {
 				return null;
 			}

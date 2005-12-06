@@ -193,7 +193,7 @@ public class AspectJProjectWizardSecondPage extends JavaCapabilityConfigurationP
 				updateProject(true, new SubProgressMonitor(monitor, 1));
 			}
 			configureJavaProject(new SubProgressMonitor(monitor, 2));
-			String compliance= fFirstPage.getJRECompliance();
+			String compliance= fFirstPage.getCompilerCompliance();
 			if (compliance != null) {
 				IJavaProject project= JavaCore.create(fCurrProject);
 				Map options= project.getOptions(false);

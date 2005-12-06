@@ -20,11 +20,13 @@ import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
+import org.eclipse.jdt.internal.ui.dialogs.TypeSelectionComponent.ITitleLabel;
 import org.eclipse.jdt.internal.ui.search.JavaSearchScopeFactory;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.util.TypeInfoLabelProvider;
 import org.eclipse.jdt.internal.ui.workingsets.WorkingSetFilterActionGroup;
+import org.eclipse.jdt.ui.dialogs.TypeSelectionExtension;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -77,6 +79,7 @@ public class TypeSelectionComponent extends Composite {
 	private MenuManager fMenuManager;
 	private WorkingSetFilterActionGroup fFilterActionGroup;
 	
+	private TypeSelectionExtension fTypeSelectionExtension;
 	private Text fFilter;
 	private String fInitialFilterText;
 	private IJavaSearchScope fScope;
@@ -135,13 +138,16 @@ public class TypeSelectionComponent extends Composite {
 		public void setText(String text);
 	}
 	
-	public TypeSelectionComponent(Composite parent, int style, String message, boolean multi, IJavaSearchScope scope, int elementKind, String initialFilter, ITitleLabel titleLabel) {
+	public TypeSelectionComponent(Composite parent, int style, String message, boolean multi, 
+			IJavaSearchScope scope, int elementKind, String initialFilter, ITitleLabel titleLabel,
+			TypeSelectionExtension extension) {
 		super(parent, style);
 		setFont(parent.getFont());
 		fMultipleSelection= multi;
 		fScope= scope;
 		fInitialFilterText= initialFilter;
 		fTitleLabel= titleLabel;
+		fTypeSelectionExtension= extension;
 		IDialogSettings settings= JavaPlugin.getDefault().getDialogSettings();
 		fSettings= settings.getSection(DIALOG_SETTINGS);
 		if (fSettings == null) {
@@ -208,7 +214,10 @@ public class TypeSelectionComponent extends Composite {
 		label.setFont(font);
 		gd= new GridData(GridData.FILL_HORIZONTAL);
 		label.setLayoutData(gd);
-		fViewer= new TypeInfoViewer(this, fMultipleSelection ? SWT.MULTI : SWT.NONE, label, fScope, elementKind, fInitialFilterText);
+		fViewer= new TypeInfoViewer(this, fMultipleSelection ? SWT.MULTI : SWT.NONE, label, 
+				fScope, elementKind, fInitialFilterText, 
+				fTypeSelectionExtension != null ? fTypeSelectionExtension.getFilterExtension() : null,
+				fTypeSelectionExtension != null ? fTypeSelectionExtension.getImageProvider() : null);
 		gd= new GridData(GridData.FILL_BOTH);
 		PixelConverter converter= new PixelConverter(fViewer.getTable());
 		gd.widthHint= converter.convertWidthInCharsToPixels(70);

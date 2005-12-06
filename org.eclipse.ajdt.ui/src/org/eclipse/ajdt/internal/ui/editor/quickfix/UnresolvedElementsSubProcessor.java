@@ -1280,7 +1280,7 @@ public class UnresolvedElementsSubProcessor {
 				ITypeBinding binding= nodeToCast.resolveTypeBinding();
 				if (binding == null || binding.isCastCompatible(castType)) {
 					String castTypeName= castType.getQualifiedName();
-					ASTRewriteCorrectionProposal proposal= TypeMismatchSubProcessor.createCastProposal(context, castTypeName, castType, nodeToCast, 6);
+					ASTRewriteCorrectionProposal proposal= TypeMismatchSubProcessor.createCastProposal(context, castType, nodeToCast, 6);
 					String[] arg= new String[] { getArgumentName(cu, arguments, idx), castTypeName};
 					proposal.setDisplayName(Messages.format(CorrectionMessages.UnresolvedElementsSubProcessor_addargumentcast_description, arg));
 					proposals.add(proposal);
