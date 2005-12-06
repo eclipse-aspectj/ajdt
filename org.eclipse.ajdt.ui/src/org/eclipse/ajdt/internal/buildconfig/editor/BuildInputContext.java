@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -15,16 +15,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.eclipse.ajdt.internal.buildconfig.editor.model.BuildModel;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileEditorInput;
 import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContext;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.pde.core.IBaseModel;
 import org.eclipse.pde.core.IModelChangedEvent;
-import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
-import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileEditorInput;
-import org.eclipse.pde.internal.ui.model.AbstractEditingModel;
-import org.eclipse.pde.internal.ui.model.IDocumentKey;
+import org.eclipse.pde.internal.core.text.AbstractEditingModel;
+import org.eclipse.pde.internal.core.text.IDocumentKey;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.ReplaceEdit;
@@ -65,7 +66,7 @@ public class BuildInputContext extends InputContext {
 				model.setInstallLocation(file.getParent());
 				model.setCharset(getDefaultCharset());
 			} else {
-				model.setCharset(getDefaultCharset());
+				model.setCharset(getDefaultCharset());				
 			}
 			model.load();
 		}
@@ -78,7 +79,7 @@ public class BuildInputContext extends InputContext {
 	public String getId() {
 		return CONTEXT_ID;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.neweditor.context.InputContext#addTextEditOperation(java.util.ArrayList, org.eclipse.pde.core.IModelChangedEvent)
 	 */
@@ -111,7 +112,18 @@ public class BuildInputContext extends InputContext {
 	
 	private void insertKey(IDocumentKey key, ArrayList ops) {
 		IDocument doc = getDocumentProvider().getDocument(getInput());
-		InsertEdit op = new InsertEdit(doc.getLength(), key.write());
+		String preTermination = ""; //$NON-NLS-1$
+		if (doc.getNumberOfLines() > 0) {
+			try {
+				if (doc.getLineDelimiter(doc.getNumberOfLines() - 1) == null
+						&& doc.getLineLength(doc.getNumberOfLines() - 1) > 0) {
+					preTermination = getLineDelimiter(); 
+				}
+			} catch (BadLocationException ble) {
+			}
+		}
+		InsertEdit op = new InsertEdit(doc.getLength(), preTermination
+				+ key.write());
 		fOperationTable.put(key, op);
 		ops.add(op);
 	}
@@ -138,9 +150,9 @@ public class BuildInputContext extends InputContext {
 		fOperationTable.clear();
 		AbstractEditingModel model = (AbstractEditingModel)getModel();
 		model.reconciled(model.getDocument());
-	}	
-	
+	}
+
 	protected String getPartitionName() {
 		return "___build_partition"; //$NON-NLS-1$
-	}
+	}	
 }

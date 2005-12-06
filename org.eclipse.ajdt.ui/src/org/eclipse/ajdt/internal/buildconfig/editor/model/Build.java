@@ -21,7 +21,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.pde.core.IModelChangedEvent;
 import org.eclipse.pde.core.ModelChangedEvent;
-import org.eclipse.pde.internal.ui.model.IDocumentKey;
+import org.eclipse.pde.internal.core.text.IDocumentKey;
 
 public class Build implements IBuild {
 	

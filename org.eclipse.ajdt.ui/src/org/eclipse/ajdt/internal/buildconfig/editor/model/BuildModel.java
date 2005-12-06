@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.pde.internal.core.NLResourceHelper;
-import org.eclipse.pde.internal.ui.model.AbstractEditingModel;
+import org.eclipse.pde.internal.core.text.AbstractEditingModel;
 
 
 public class BuildModel extends AbstractEditingModel implements IBuildModel {

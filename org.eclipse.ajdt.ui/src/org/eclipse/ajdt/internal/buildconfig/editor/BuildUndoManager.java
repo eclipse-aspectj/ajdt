@@ -1,24 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2003 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 
-import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuild;
-import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuildEntry;
-import org.eclipse.ajdt.internal.buildconfig.editor.model.IBuildModel;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.pde.core.IModelChangedEvent;
-import org.eclipse.pde.internal.core.build.BuildObject;
-import org.eclipse.pde.internal.core.build.IBuildObject;
 import org.eclipse.ajdt.pde.internal.ui.editor.ModelUndoManager;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.pde.core.IModelChangedEvent;
+import org.eclipse.pde.core.build.IBuild;
+import org.eclipse.pde.core.build.IBuildEntry;
+import org.eclipse.pde.core.build.IBuildModel;
+import org.eclipse.pde.internal.core.build.BuildObject;
+import org.eclipse.pde.internal.core.build.IBuildObject;
 
 public class BuildUndoManager extends ModelUndoManager {
 

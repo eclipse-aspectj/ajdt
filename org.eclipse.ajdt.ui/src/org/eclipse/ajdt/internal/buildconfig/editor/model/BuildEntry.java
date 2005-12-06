@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.internal.buildconfig.editor.PropertiesUtil;
-import org.eclipse.pde.internal.ui.model.IDocumentKey;
+import org.eclipse.pde.internal.core.text.IDocumentKey;
 
 public class BuildEntry implements IBuildEntry, IDocumentKey {
 

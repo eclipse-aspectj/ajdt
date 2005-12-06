@@ -1,16 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.editor;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.pde.internal.ui.editor.ISortableContentOutlinePage;
 import org.eclipse.ajdt.pde.internal.ui.editor.MultiSourceEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormPage;
@@ -47,7 +48,7 @@ public class BuildEditor extends MultiSourceEditor {
 		manager.putContext(input, new BuildInputContext(this, input, true));
 		manager.monitorFile(file);
 	}
-
+	
 	protected InputContextManager createInputContextManager() {
 		BuildInputContextManager manager =  new BuildInputContextManager(this);
 		manager.setUndoManager(new BuildUndoManager(this));
@@ -138,6 +139,10 @@ public class BuildEditor extends MultiSourceEditor {
 		return new BuildSourcePage(editor, title, name);
 	}
 	
+	protected ISortableContentOutlinePage createContentOutline() {
+		return new BuildOutlinePage(this);
+	}
+	
 	protected IPropertySheetPage getPropertySheet(PDEFormPage page) {
 		return null;
 	}
@@ -171,7 +176,7 @@ public class BuildEditor extends MultiSourceEditor {
 			return null;
 		}
 		return super.getAdapter(key);
-	}
+	}	
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.editor.PDEFormEditor#getInputContext(java.lang.Object)

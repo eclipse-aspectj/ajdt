@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
+import org.eclipse.pde.internal.build.BuildScriptGenerator;
 import org.eclipse.pde.internal.build.builder.DevClassPathHelper;
 import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
@@ -36,19 +37,21 @@ import org.eclipse.pde.internal.core.TargetPlatform;
 import org.eclipse.pde.internal.ui.build.BaseBuildAction;
 
 /**
- * 
+ * copied from org.eclipse.pde.internal.ui.build.BuildPluginAction
  */
 public class BuildPluginAction extends BaseBuildAction {
 
 	protected void makeScripts(IProgressMonitor monitor)
-		throws InvocationTargetException, CoreException {
-	
+			throws InvocationTargetException, CoreException {
+
 		AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
-//		AJModelBuildScriptGenerator.setOutputFormat(AbstractScriptGenerator.getDefaultOutputFormat());
-		AJModelBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator.getDefaultEmbeddedSource());
-		AJModelBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator.getForceUpdateJarFormat());
-		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator.getDefaultConfigInfos());
-		
+		AJModelBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator
+				.getDefaultEmbeddedSource());
+		AJModelBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator
+				.getForceUpdateJarFormat());
+		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator
+				.getDefaultConfigInfos());
+
 		IProject project = fManifestFile.getProject();
 		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		if (pbc != null) {
@@ -62,21 +65,24 @@ public class BuildPluginAction extends BaseBuildAction {
 		List aspectpath = getAspectpath(project);
 		generator.setInpath(inpath);
 		generator.setAspectpath(aspectpath);
-		
+
 		generator.setWorkingDirectory(project.getLocation().toOSString());
-		String url = ClasspathHelper.getDevEntriesProperties(project.getLocation().addTrailingSeparator().toString() + "dev.properties", false); //$NON-NLS-1$
-		generator.setDevEntries(new DevClassPathHelper(url));
-		generator.setPluginPath(TargetPlatform.createPluginPath());
-		generator.setBuildingOSGi(PDECore.getDefault().getModelManager().isOSGiRuntime());
-		try {
-			IPluginModelBase model = PDECore.getDefault().getModelManager().findModel(project);
-			if (model != null) {
-				generator.setModelId(model.getPluginBase().getId());
-				generator.generate();
-			}
-		} catch (CoreException e) {
-			throw new InvocationTargetException(e);
-		}
+		String url = ClasspathHelper.getDevEntriesProperties(project
+				.getLocation().addTrailingSeparator().toString()
+				+ "dev.properties", false); //$NON-NLS-1$
+		generator.setDevEntries(url);
+		generator.setPDEState(TargetPlatform.getState());
+		generator.setNextId(TargetPlatform.getPDEState().getNextId());
+		generator.setStateExtraData(TargetPlatform
+				.getBundleClasspaths(TargetPlatform.getPDEState()));
+		generator.setBuildingOSGi(PDECore.getDefault().getModelManager()
+				.isOSGiRuntime());
+		IPluginModelBase model = PDECore.getDefault().getModelManager()
+				.findModel(project);
+//		generator
+//				.setElements(new String[] { "plugin@" + model.getPluginBase().getId() }); //$NON-NLS-1$
+		generator.setModelId(model.getPluginBase().getId());
+		generator.generate();
 	}
 
 	private List getAspectpath(IProject project) {
