@@ -76,7 +76,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		private String[] output;
 		private String[] extraClasspath;
 		private String excludedFromJar;
-		private byte type;
+		byte type;
 
 		protected CompiledEntry(String entryName, String[] entrySource, String[] entryOutput, String[] entryExtraClasspath, String excludedFromJar, byte entryType) {
 			// AspectJ Change Begin
@@ -580,11 +580,11 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		Properties bundleProperties = (Properties) model.getUserObject();
 		if (bundleProperties == null)
 			return;
-		
+
 		String qualifier = bundleProperties.getProperty(PROPERTY_QUALIFIER);
 		if (qualifier == null)
 			return;
-		script.print("<eclipse.versionReplacer path=\"" + location + "\" version=\"" + model.getVersion() + "\"/>"); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+		script.println("<eclipse.versionReplacer path=\"" + location + "\" version=\"" + model.getVersion() + "\"/>"); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
 	}
 
 	private void generatePermissionProperties(String directory) throws CoreException {
@@ -994,6 +994,10 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			// AspectJ Change End
 
 		script.printCopyTask(null, destdir, fileSets, true, false);
+
+		if (customBuildCallbacks != null) {
+			script.printAntTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), null, PROPERTY_POST_COMPILE + name, null, null, params, references);
+		}
 
 		String jarLocation = getJARLocation(entry.getName(true));
 		script.printMkdirTask(new Path(jarLocation).removeLastSegments(1).toString());

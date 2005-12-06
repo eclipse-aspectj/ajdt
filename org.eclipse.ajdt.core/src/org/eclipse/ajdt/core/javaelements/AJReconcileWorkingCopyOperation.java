@@ -78,7 +78,7 @@ public class AJReconcileWorkingCopyOperation extends
 				JavaElementDeltaBuilder deltaBuilder = new JavaElementDeltaBuilder(workingCopy);
 				
 				// update the element infos with the content of the working copy
-				this.ast = workingCopy.makeConsistent(this.createAST, this.astLevel, this.progressMonitor);
+				this.ast = workingCopy.makeConsistent(this.astLevel, false, null, this.progressMonitor);
 				deltaBuilder.buildDeltas();
 	
 				if (progressMonitor != null) progressMonitor.worked(2);

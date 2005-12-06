@@ -20,7 +20,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.PackageFragment;
 
@@ -55,38 +55,38 @@ public class CompilationUnitTools {
 		List others = elem.getModifiers();
 		int modifiers = 0;
 		if (acc == IProgramElement.Accessibility.PUBLIC){
-			modifiers |= FieldDeclaration.AccPublic;
+			modifiers |= ClassFileConstants.AccPublic;
 		} else if (acc ==  IProgramElement.Accessibility.PROTECTED) {
-			modifiers |= FieldDeclaration.AccProtected;
+			modifiers |= ClassFileConstants.AccProtected;
 		} else if (acc == IProgramElement.Accessibility.PRIVATE) {
-			modifiers |= FieldDeclaration.AccPrivate;
+			modifiers |= ClassFileConstants.AccPrivate;
 		}
 
 		if (others.contains(IProgramElement.Modifiers.ABSTRACT))
-			modifiers |= FieldDeclaration.AccAbstract;
+			modifiers |= ClassFileConstants.AccAbstract;
 		if (others.contains(IProgramElement.Modifiers.FINAL))
-			modifiers |= FieldDeclaration.AccFinal;
+			modifiers |= ClassFileConstants.AccFinal;
 		if (others.contains(IProgramElement.Modifiers.NATIVE))
-			modifiers |= FieldDeclaration.AccNative;
+			modifiers |= ClassFileConstants.AccNative;
 		if (others.contains(IProgramElement.Modifiers.STATIC))
-			modifiers |= FieldDeclaration.AccStatic;
+			modifiers |= ClassFileConstants.AccStatic;
 		if (others.contains(IProgramElement.Modifiers.SYNCHRONIZED))
-			modifiers |= FieldDeclaration.AccSynchronized;
+			modifiers |= ClassFileConstants.AccSynchronized;
 		if (others.contains(IProgramElement.Modifiers.TRANSIENT))
-			modifiers |= FieldDeclaration.AccTransient;
+			modifiers |= ClassFileConstants.AccTransient;
 		if (others.contains(IProgramElement.Modifiers.VOLATILE))
-			modifiers |= FieldDeclaration.AccVolatile;
+			modifiers |= ClassFileConstants.AccVolatile;
 		
 		return modifiers;
 	}
 	
 	public static IProgramElement.Accessibility getAccessibilityFromModifierCode(int code){
 		IProgramElement.Accessibility acc = null;
-		if ((code & FieldDeclaration.AccPublic) != 0){
+		if ((code & ClassFileConstants.AccPublic) != 0){
 			acc = IProgramElement.Accessibility.PUBLIC;
-		} else if ((code & FieldDeclaration.AccProtected) != 0) {
+		} else if ((code & ClassFileConstants.AccProtected) != 0) {
 			acc = IProgramElement.Accessibility.PROTECTED;
-		} else if ((code & FieldDeclaration.AccPrivate) != 0) {
+		} else if ((code & ClassFileConstants.AccPrivate) != 0) {
 			acc = IProgramElement.Accessibility.PRIVATE;
 		} else {
 			acc = IProgramElement.Accessibility.PACKAGE;
@@ -96,25 +96,25 @@ public class CompilationUnitTools {
 	
 	public static List getModifiersFromModifierCode(int code){
 		List mods = new ArrayList(2);
-		if ((code & FieldDeclaration.AccAbstract) != 0){
+		if ((code & ClassFileConstants.AccAbstract) != 0){
 			mods.add(IProgramElement.Modifiers.ABSTRACT);
 		}
-		if ((code & FieldDeclaration.AccFinal) != 0) {
+		if ((code & ClassFileConstants.AccFinal) != 0) {
 			mods.add(IProgramElement.Modifiers.FINAL);
 		}
-		if ((code & FieldDeclaration.AccStatic) != 0) {
+		if ((code & ClassFileConstants.AccStatic) != 0) {
 			mods.add(IProgramElement.Modifiers.STATIC);
 		}
-		if ((code & FieldDeclaration.AccVolatile) != 0){
+		if ((code & ClassFileConstants.AccVolatile) != 0){
 			mods.add(IProgramElement.Modifiers.VOLATILE);
 		}
-		if ((code & FieldDeclaration.AccTransient) != 0){
+		if ((code & ClassFileConstants.AccTransient) != 0){
 			mods.add(IProgramElement.Modifiers.TRANSIENT);
 		}
-		if ((code & FieldDeclaration.AccSynchronized) != 0){
+		if ((code & ClassFileConstants.AccSynchronized) != 0){
 			mods.add(IProgramElement.Modifiers.SYNCHRONIZED);
 		}
-		if ((code & FieldDeclaration.AccNative) != 0){
+		if ((code & ClassFileConstants.AccNative) != 0){
 			mods.add(IProgramElement.Modifiers.NATIVE);
 		}
 		return mods;

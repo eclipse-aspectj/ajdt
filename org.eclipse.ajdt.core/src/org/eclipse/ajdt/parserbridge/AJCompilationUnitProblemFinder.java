@@ -62,8 +62,8 @@ public class AJCompilationUnitProblemFinder extends
 	 */
 	public AJCompilationUnitProblemFinder(INameEnvironment environment,
 			IErrorHandlingPolicy policy, Map settings,
-			ICompilerRequestor requestor, IProblemFactory problemFactory, AJCompilationUnit unit) {
-		super(environment, policy, settings, requestor, problemFactory);
+			ICompilerRequestor requestor, IProblemFactory problemFactory, boolean parseLiteralExpressionsAsConstants, AJCompilationUnit unit) {
+		super(environment, policy, settings, requestor, problemFactory, parseLiteralExpressionsAsConstants);
 		ajcu = unit;
 	}
 
@@ -121,6 +121,7 @@ public class AJCompilationUnitProblemFinder extends
 					project.getOptions(true),
 					getRequestor(),
 					problemFactory,
+					true,
 					(AJCompilationUnit)unitElement);
 			// AspectJ Change End
 			if (parser != null) {

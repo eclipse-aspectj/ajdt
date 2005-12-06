@@ -299,4 +299,8 @@ public ITypeParameter getTypeParameter(String name) {
 	return null;
 }
 
+public String[] getRawParameterNames() throws JavaModelException {
+	return getParameterNames();
+}
+
 }
