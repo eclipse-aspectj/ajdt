@@ -418,8 +418,8 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 		public boolean isUseSpecific() {
 			return fUseProjectJRE.isSelected();
 		}
-		
-		public String getJRECompliance() {
+				
+		public String getSelectedCompilerCompliance() {
 			if (fUseProjectJRE.isSelected()) {
 				int index= fJRECombo.getSelectionIndex();
 				if (index >= 0 && index < fComplianceData.length) { // paranoia
@@ -658,8 +658,11 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 		return fLayoutGroup.isSrcBin();
 	}
 	
-	public String getJRECompliance() {
-		return fJREGroup.getJRECompliance();
+	/**
+	 * @return the selected Compiler Compliance, or <code>null</code> iff the default Compiler Compliance should be used
+	 */
+	public String getCompilerCompliance() {
+		return fJREGroup.getSelectedCompilerCompliance();
 	}
 	
 	/*

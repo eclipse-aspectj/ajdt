@@ -41,10 +41,6 @@ public class AJCTaskTest extends UITestCase {
 
 	private FileOutputStream os;
 
-	private String classpathEntry1 = "classpathEntry1/entry.jar"; //$NON-NLS-1$
-
-	private String classpathEntry2 = "entry2$$hello"; //$NON-NLS-1$
-
 	protected void setUp() throws Exception {
 		URL location = Platform.resolve(Platform.getBundle(
 				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -55,10 +51,6 @@ public class AJCTaskTest extends UITestCase {
 		os = new FileOutputStream(tempFile);
 		script = new AJAntScript(os);
 		task = new AJCTask(location.getFile(),null);
-		List classpath = new ArrayList();
-		classpath.add(classpathEntry1);
-		classpath.add(classpathEntry2);
-		task.setClasspath(classpath);
 		task.setSrcdir(new String[] { srcdirEntry });
 		task.print(script);
 		script.close();
@@ -99,32 +91,15 @@ public class AJCTaskTest extends UITestCase {
 		BufferedReader reader = new BufferedReader(
 				new InputStreamReader(stream));
 		boolean forkclasspath = false;
-		boolean foundclasspathentry1 = false;
-		boolean foundclasspathentry2 = false;
 		String line = reader.readLine();
 		while (line != null) {
 			if (line.indexOf("forkclasspath") != -1) { //$NON-NLS-1$
 				forkclasspath = true;
 			}
-			if (forkclasspath) {
-				if (line.indexOf("path") != -1) { //$NON-NLS-1$
-					if (line.indexOf(classpathEntry1) != -1) {
-						foundclasspathentry1 = true;
-					} else if (line.indexOf(classpathEntry2) != -1) {
-						foundclasspathentry2 = true;
-					}
-				}
-			}
 			line = reader.readLine();
 		}
 		if (!forkclasspath) {
 			fail("There should be a forkclasspath entry in the script."); //$NON-NLS-1$
-		}
-		if (!foundclasspathentry1) {
-			fail("The classpath should contain \"" + classpathEntry1 + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (!foundclasspathentry2) {
-			fail("The classpath should contain \"" + classpathEntry2 + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		stream.close();
 	}

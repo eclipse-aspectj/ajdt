@@ -46,7 +46,8 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 
 		final AJOutlineInformationControl info = AJOutlineInformationControl.getInfoControl();
 
-		final Rectangle r = info.getBounds();
+		// TODO: 3.2M3+
+		final Rectangle r = info.getShell().getBounds();
 		
 		final Shell shell = info.getShell();
 		moveShell(shell,r.x + 50,r.y + 50,r.width + 100,r.height + 100);
@@ -88,7 +89,7 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		assertNotNull("AJOutlineInformationControl shouldn't be null",info2); //$NON-NLS-1$
 		assertFalse("should have a new copy of the AJOutlineInformationControl",info2.equals(info)); //$NON-NLS-1$
 		
-		Rectangle r2 = info2.getBounds();
+		Rectangle r2 = info2.getShell().getBounds();
 		assertEquals("the inplace view should have remembered the changed height", r1.height, r2.height); //$NON-NLS-1$
 		assertEquals("the inplace view should have remembered the changed width", r1.width, r2.width); //$NON-NLS-1$
 		// for some bizarre reason, on windows, or if this test is run standalone, it always seems to 
