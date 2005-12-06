@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others.
+ * Copyright (c) 2000, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -14,6 +14,7 @@ import org.eclipse.jface.action.*;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.pde.internal.ui.parts.*;
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -29,11 +30,18 @@ public abstract class StructuredViewerSection extends PDESection {
 	 * @param formPage
 	 */
 	public StructuredViewerSection(PDEFormPage formPage, Composite parent, int style, String [] buttonLabels) {
-		super(formPage, parent, style);
+		this(formPage, parent, style, true, buttonLabels);
+	}
+
+	/**
+	 * Constructor for StructuredViewerSection.
+	 * @param formPage
+	 */
+	public StructuredViewerSection(PDEFormPage formPage, Composite parent, int style, boolean titleBar, String [] buttonLabels) {
+		super(formPage, parent, style, titleBar);
 		viewerPart = createViewerPart(buttonLabels);
 		viewerPart.setMinimumSize(50, 50);
 		FormToolkit toolkit = formPage.getManagedForm().getToolkit();
-		//toolkit.createCompositeSeparator(getSection());
 		createClient(getSection(), toolkit);
 	}
 
@@ -94,7 +102,7 @@ public abstract class StructuredViewerSection extends PDESection {
 		if (objects!=null && objects.length>0) {
 			return canPaste(target, objects);
 		}
-		else return false;
+		return clipboard.getContents(TextTransfer.getInstance()) != null;
 	}
 	protected ISelection getViewerSelection() {
 		return viewerPart.getViewer().getSelection();

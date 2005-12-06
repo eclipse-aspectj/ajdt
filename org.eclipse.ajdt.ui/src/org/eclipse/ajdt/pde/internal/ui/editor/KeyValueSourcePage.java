@@ -1,25 +1,36 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.ajdt.pde.internal.ui.editor;
 
-import org.eclipse.jface.text.*;
-import org.eclipse.jface.text.reconciler.*;
-import org.eclipse.jface.text.source.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.pde.internal.ui.editor.text.*;
-import org.eclipse.pde.internal.ui.model.*;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.source.IAnnotationHover;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.pde.internal.core.text.IDocumentKey;
+import org.eclipse.pde.internal.core.text.IReconcilingParticipant;
+import org.eclipse.pde.internal.core.util.PropertiesUtil;
+import org.eclipse.pde.internal.ui.editor.text.AnnotationHover;
+import org.eclipse.pde.internal.ui.editor.text.ReconcilingStrategy;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 public abstract class KeyValueSourcePage extends PDESourcePage {
 
-	class KeyValueSourceViewerConfiguration extends SourceViewerConfiguration {
+	class KeyValueSourceViewerConfiguration extends TextSourceViewerConfiguration {
+		private AnnotationHover fAnnotationHover;
 		public IReconciler getReconciler(ISourceViewer sourceViewer) {
 			ReconcilingStrategy strategy = new ReconcilingStrategy();
 			strategy.addParticipant((IReconcilingParticipant) getInputContext()
@@ -28,6 +39,11 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 			MonoReconciler reconciler = new MonoReconciler(strategy, false);
 			reconciler.setDelay(500);
 			return reconciler;
+		}
+		public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+			if (fAnnotationHover == null)
+				fAnnotationHover = new AnnotationHover();
+			return fAnnotationHover;
 		}
 	}
 	public KeyValueSourcePage(PDEFormEditor editor, String id, String title) {
@@ -38,7 +54,7 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 	/* (non-Javadoc)
 	 * @see org.eclipse.pde.internal.ui.neweditor.PDESourcePage#createViewerSorter()
 	 */
-	protected ViewerSorter createViewerSorter() {
+	protected ViewerSorter createDefaultOutlineSorter() {
 		return new ViewerSorter() {
 			public int compare(Viewer viewer, Object e1, Object e2) {
 				IDocumentKey key1 = (IDocumentKey)e1;
@@ -73,7 +89,16 @@ public abstract class KeyValueSourcePage extends PDESourcePage {
 		int offset = key.getOffset();
 		int length = key.getLength();
 		setHighlightRange(offset, length, true);
-		sourceViewer.setSelectedRange(offset, key.getName().length());
+		int nameLength = PropertiesUtil.createWritableName(key.getName())
+				.length();
+		sourceViewer.setSelectedRange(offset, Math.min(nameLength, length));
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.pde.internal.ui.editor.PDESourcePage#createOutlineSorter()
+	 */
+	protected ViewerSorter createOutlineSorter() {
+		return new ViewerSorter();
 	}
 
 }

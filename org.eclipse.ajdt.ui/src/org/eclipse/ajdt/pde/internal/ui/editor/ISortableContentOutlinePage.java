@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2005 IBM Corporation and others.
+ * Copyright (c) 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,15 @@
  *******************************************************************************/
 package org.eclipse.ajdt.pde.internal.ui.editor;
 
-import org.eclipse.pde.core.IModelChangedListener;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public interface IContextPart extends IModelChangedListener {
-	boolean isEditable();
-	PDEFormPage getPage();
-	String getContextId();
-	void fireSaveNeeded();
-	void cancelEdit();
+/**
+ * IConentOutlinePage with externally enabled/disabled element sorting
+ */
+public interface ISortableContentOutlinePage extends IContentOutlinePage {
+	/**
+	 * Turns sorting on or off
+	 * @param sorting - boolean value indicating if sorting should be enabled
+	 */
+	public void sort(boolean sorting);
 }

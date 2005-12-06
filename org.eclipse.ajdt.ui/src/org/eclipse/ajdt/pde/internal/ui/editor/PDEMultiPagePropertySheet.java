@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
@@ -36,6 +36,16 @@ public class PDEMultiPagePropertySheet implements IPropertySheetPage {
 			else
 				bars.deactivate();
 		}
+		void dispose() {
+			if (bars!=null) {
+				bars.dispose();
+				bars = null;
+			}
+			if (page!=null) {
+				page.dispose();
+				page = null;
+			}
+		}
 	}
 
 	public PDEMultiPagePropertySheet() {
@@ -43,6 +53,7 @@ public class PDEMultiPagePropertySheet implements IPropertySheetPage {
 	}
 
 	public void createControl(Composite parent) {
+		disposed = false;
 		pagebook = new PageBook(parent, SWT.NULL);
 		defaultPage.createControl(pagebook);
 		if (currentPage != null)
@@ -63,9 +74,20 @@ public class PDEMultiPagePropertySheet implements IPropertySheetPage {
 	}
 	public void dispose() {
 		updateActionBars();
+		
+		for (Enumeration enm=recMap.elements(); enm.hasMoreElements();) {
+			PageRec rec = (PageRec)enm.nextElement();
+			rec.dispose();
+		}
+		recMap.clear();
 
-		if (pagebook != null && !pagebook.isDisposed())
+		if (pagebook != null && !pagebook.isDisposed()) {
 			pagebook.dispose();
+		}
+		if (defaultPage!=null) {
+			defaultPage.dispose();
+			defaultPage=null;
+		}
 		pagebook = null;
 		disposed = true;
 	}

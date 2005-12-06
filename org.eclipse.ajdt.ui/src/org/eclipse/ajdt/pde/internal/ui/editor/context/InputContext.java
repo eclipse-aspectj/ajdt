@@ -1,23 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2004 IBM Corporation and others.
+ * Copyright (c) 2003, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-/*
- * Created on Jan 26, 2004
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package org.eclipse.ajdt.pde.internal.ui.editor.context;
 import java.util.ArrayList;
 
 import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.ajdt.pde.internal.ui.editor.StorageDocumentProvider;
+import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileDocumentProvider;
+import org.eclipse.ajdt.pde.internal.ui.editor.SystemFileEditorInput;
+import org.eclipse.core.filebuffers.*;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -27,17 +25,15 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.pde.core.IBaseModel;
 import org.eclipse.pde.core.IEditable;
 import org.eclipse.pde.core.IModelChangeProvider;
 import org.eclipse.pde.core.IModelChangedEvent;
 import org.eclipse.pde.core.IModelChangedListener;
+import org.eclipse.pde.internal.core.text.IEditingModel;
 import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.pde.internal.ui.editor.StorageDocumentProvider;
-import org.eclipse.pde.internal.ui.editor.SystemFileDocumentProvider;
-import org.eclipse.pde.internal.ui.editor.SystemFileEditorInput;
-import org.eclipse.pde.internal.ui.model.IEditingModel;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MoveSourceEdit;
@@ -46,23 +42,29 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.editors.text.*;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IElementStateListener;
 /**
  * This class maintains objects associated with a single editor input.
  */
+/*
+ * Changes marked // AspectJ change
+ */
 public abstract class InputContext {
-	private PDEFormEditor editor;
-	private IEditorInput input;
-	private IBaseModel model;
-	private IModelChangedListener modelListener;
-	private IDocumentProvider documentProvider;
-	private IElementStateListener elementListener;
-	private boolean validated;
-	private boolean primary;
+	
+	private PDEFormEditor fEditor;
+	private IEditorInput fEditorInput;
+	private IBaseModel fModel;
+	private IModelChangedListener fModelListener;
+	private IDocumentProvider fDocumentProvider;
+	private IElementStateListener fElementListener;
 	protected ArrayList fEditOperations = new ArrayList();
+	
+	private boolean fValidated;
+	private boolean fPrimary;
 	private boolean fIsSourceMode;
-	private boolean mustSynchronize;
+	private boolean fMustSynchronize;
 
 	class ElementListener implements IElementStateListener {
 		public void elementContentAboutToBeReplaced(Object element) {
@@ -71,58 +73,76 @@ public abstract class InputContext {
 			doRevert();
 		}
 		public void elementDeleted(Object element) {
+            dispose();
 		}
 		public void elementDirtyStateChanged(Object element, boolean isDirty) {
-			mustSynchronize=true;
+			fMustSynchronize=true;
 		}
 		public void elementMoved(Object originalElement, Object movedElement) {
-			editor.close(true);
+            dispose();
+			fEditor.close(true);
 		}
 	}
 	public InputContext(PDEFormEditor editor, IEditorInput input, boolean primary) {
-		this.editor = editor;
-		this.input = input;
+		this.fEditor = editor;
+		this.fEditorInput = input;
 		setPrimary(primary);
 	}
 	public abstract String getId();
 
 	public IEditorInput getInput() {
-		return input;
+		return fEditorInput;
 	}
 	public PDEFormEditor getEditor() {
-		return editor;
+		return fEditor;
 	}
 	public IBaseModel getModel() {
-		return model;
+		return fModel;
 	}
 	public IDocumentProvider getDocumentProvider() {
-		return documentProvider;
+		return fDocumentProvider;
 	}
-	protected IDocumentProvider createDocumentProvider(IEditorInput input) {
-		IDocumentProvider documentProvider = null;
+	private IDocumentProvider createDocumentProvider(IEditorInput input) {
 		if (input instanceof IFileEditorInput) {
-			// Now using local FileDocumentProvider class to fix 86467
-			documentProvider = new FileDocumentProvider() {
-				public IDocument createDocument(Object element) throws CoreException {
-					IDocument document = super.createDocument(element);
-					if (document != null) {
-						IDocumentPartitioner partitioner = createDocumentPartitioner();
-						if (partitioner != null) {
-							partitioner.connect(document);
-							document.setDocumentPartitioner(partitioner);
-						}
-					}
-					return document;
-				}
-			};
+			return createFileDocumentProvider();
 		} else if (input instanceof SystemFileEditorInput) {
 			return new SystemFileDocumentProvider(createDocumentPartitioner(), getDefaultCharset());
 		} else if (input instanceof IStorageEditorInput) {
-			documentProvider = new StorageDocumentProvider(createDocumentPartitioner(), getDefaultCharset());
+			return new StorageDocumentProvider(createDocumentPartitioner(), getDefaultCharset());
 		}
-		return documentProvider;
+		return null;
 	}
 	
+	private IDocumentProvider createFileDocumentProvider() {
+		// AspectJ change begin
+		// use our own document provider
+		return new FileDocumentProvider() {
+			public IDocument createDocument(Object element) throws CoreException {
+				IDocument document = super.createDocument(element);
+				if (document != null) {
+					IDocumentPartitioner partitioner = createDocumentPartitioner();
+					if (partitioner != null) {
+						partitioner.connect(document);
+						document.setDocumentPartitioner(partitioner);
+					}
+				}
+				return document;
+			}
+		};
+//		return new ForwardingDocumentProvider(getPartitionName(),
+//				getDocumentSetupParticipant(), new TextFileDocumentProvider());
+		// AspectJ change end
+	}
+	
+	protected IDocumentSetupParticipant getDocumentSetupParticipant() {
+		return new IDocumentSetupParticipant() {
+			public void setup(IDocument document) {
+			}			
+		};
+	}
+	
+	protected abstract String getPartitionName();
+		
 	protected IDocumentPartitioner createDocumentPartitioner() {
 		return null;
 	}
@@ -132,18 +152,18 @@ public abstract class InputContext {
 	protected abstract IBaseModel createModel(IEditorInput input) throws CoreException;
 	
 	protected void create() {
-		documentProvider = createDocumentProvider(input);
-		if (documentProvider == null)
+		fDocumentProvider = createDocumentProvider(fEditorInput);
+		if (fDocumentProvider == null)
 			return;
 		try {
-			documentProvider.connect(input);
-			model = createModel(input);
-			if (model instanceof IModelChangeProvider) {
-				modelListener = new IModelChangedListener() {
+			fDocumentProvider.connect(fEditorInput);
+			fModel = createModel(fEditorInput);
+			if (fModel instanceof IModelChangeProvider) {
+				fModelListener = new IModelChangedListener() {
 					public void modelChanged(IModelChangedEvent e) {
 						if (e.getChangeType() != IModelChangedEvent.WORLD_CHANGED) {
-							if (!editor.getLastDirtyState())
-								editor.fireSaveNeeded(input, true);
+							if (!fEditor.getLastDirtyState())
+								fEditor.fireSaveNeeded(fEditorInput, true);
 							if (!fIsSourceMode) {
 								IModelChangeProvider provider = e.getChangeProvider();
 								if (provider instanceof IEditingModel) {
@@ -157,15 +177,15 @@ public abstract class InputContext {
 						} 
 					}
 				};
-				((IModelChangeProvider) model).addModelChangedListener(modelListener);
+				((IModelChangeProvider) fModel).addModelChangedListener(fModelListener);
 			}
 
-			IAnnotationModel amodel = documentProvider
-					.getAnnotationModel(input);
-			if (amodel != null) 
-				amodel.connect(documentProvider.getDocument(input));
-			elementListener = new ElementListener();
-			documentProvider.addElementStateListener(elementListener);
+			IAnnotationModel amodel = fDocumentProvider
+					.getAnnotationModel(fEditorInput);
+			if (amodel != null)
+				amodel.connect(fDocumentProvider.getDocument(fEditorInput));
+			fElementListener = new ElementListener();
+			fDocumentProvider.addElementStateListener(fElementListener);
 		} catch (CoreException e) {
 			PDEPlugin.logException(e);
 		}
@@ -173,16 +193,16 @@ public abstract class InputContext {
 	}
 	
 	public synchronized boolean validateEdit() {
-		if (!validated) {
-			if (input instanceof IFileEditorInput) {
-				IFile file = ((IFileEditorInput) input).getFile();
+		if (!fValidated) {
+			if (fEditorInput instanceof IFileEditorInput) {
+				IFile file = ((IFileEditorInput) fEditorInput).getFile();
 				if (file.isReadOnly()) {
-					Shell shell = editor.getEditorSite().getShell();
+					Shell shell = fEditor.getEditorSite().getShell();
 					IStatus validateStatus = PDEPlugin.getWorkspace().validateEdit(
 						new IFile[]{file}, shell);
-					validated=true; // to prevent loops
+					fValidated=true; // to prevent loops
 					if (validateStatus.getSeverity() != IStatus.OK)
-						ErrorDialog.openError(shell, editor.getTitle(), null,
+						ErrorDialog.openError(shell, fEditor.getTitle(), null,
 							validateStatus);
 					return validateStatus.getSeverity() == IStatus.OK;
 				}
@@ -191,37 +211,13 @@ public abstract class InputContext {
 		return true;
 	}
 	public void doSave(IProgressMonitor monitor) {
-		/*
-		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
-		public void execute(final IProgressMonitor monitor)
-				throws CoreException {
-			flushModel(documentProvider.getDocument(input));
-			documentProvider.saveDocument(
-					monitor,
-					input,
-					documentProvider.getDocument(input),
-					true);
-			}
-		};
-
 		try {
-			documentProvider.aboutToChange(input);
-			op.run(monitor);
-			documentProvider.changed(input);
-		} catch (InterruptedException x) {
-		} catch (InvocationTargetException x) {
-			PDEPlugin.logException(x);
-		}
-		*/
-		//Removed unnecessary usage of workspace modify operation
-		// as per defect #62225
-		try {
-			IDocument doc = documentProvider.getDocument(input);
-			documentProvider.aboutToChange(input);
+			IDocument doc = fDocumentProvider.getDocument(fEditorInput);
+			fDocumentProvider.aboutToChange(fEditorInput);
 			flushModel(doc);			
-			documentProvider.saveDocument(monitor, input, doc, true);
-			documentProvider.changed(input);
-			validated=false;
+			fDocumentProvider.saveDocument(monitor, fEditorInput, doc, true);
+			fDocumentProvider.changed(fEditorInput);
+			fValidated=false;
 		}
 		catch (CoreException e) {
 			PDEPlugin.logException(e);
@@ -237,12 +233,12 @@ public abstract class InputContext {
 				for (int i = 0; i < fEditOperations.size(); i++) {
 					insert(edit, (TextEdit)fEditOperations.get(i));
 				}
-				if (model instanceof IEditingModel)
-					((IEditingModel)model).setStale(true);				
+				if (fModel instanceof IEditingModel)
+					((IEditingModel)fModel).setStale(true);				
 				edit.apply(doc);
 				fEditOperations.clear();
-				if (model instanceof IEditable)
-					((IEditable)model).setDirty(false);
+				if (fModel instanceof IEditable)
+					((IEditable)fModel).setDirty(false);
 			} catch (MalformedTreeException e) {
 				PDEPlugin.logException(e);
 			} catch (BadLocationException e) {
@@ -292,50 +288,49 @@ public abstract class InputContext {
 		if (otherEdit.getLength() == 0) {
 			int otherOffset= otherEdit.getOffset();
 			return thisOffset < otherOffset && otherOffset < thisEnd;
-		} else {
-			int otherOffset= otherEdit.getOffset();
-			int otherEnd= otherEdit.getExclusiveEnd();
-			return thisOffset <= otherOffset && otherEnd <= thisEnd;
 		}
+		int otherOffset= otherEdit.getOffset();
+		int otherEnd= otherEdit.getExclusiveEnd();
+		return thisOffset <= otherOffset && otherEnd <= thisEnd;
 	}		
 
 	public boolean mustSave() {
 		if (!fIsSourceMode) {
-			if (model instanceof IEditable) {
-				if (((IEditable)model).isDirty()) {
+			if (fModel instanceof IEditable) {
+				if (((IEditable)fModel).isDirty()) {
 					return true;
 				}
 			}
 		}
-		return documentProvider.canSaveDocument(input);
+		return fDocumentProvider.canSaveDocument(fEditorInput);
 	}
 	
 	public void dispose() {
-		IAnnotationModel amodel = documentProvider.getAnnotationModel(input);
+		IAnnotationModel amodel = fDocumentProvider.getAnnotationModel(fEditorInput);
 		if (amodel != null)
-			amodel.disconnect(documentProvider.getDocument(input));
-		documentProvider.removeElementStateListener(elementListener);
-		documentProvider.disconnect(input);
-		if (modelListener != null && model instanceof IModelChangeProvider) {
-			((IModelChangeProvider) model)
-					.removeModelChangedListener(modelListener);
+			amodel.disconnect(fDocumentProvider.getDocument(fEditorInput));
+		fDocumentProvider.removeElementStateListener(fElementListener);
+		fDocumentProvider.disconnect(fEditorInput);
+		if (fModelListener != null && fModel instanceof IModelChangeProvider) {
+			((IModelChangeProvider) fModel)
+					.removeModelChangedListener(fModelListener);
 			//if (undoManager != null)
 			//undoManager.disconnect((IModelChangeProvider) model);
 		}
-		if (model!=null)
-			model.dispose();
+		if (fModel!=null)
+			fModel.dispose();
 	}
 	/**
 	 * @return Returns the primary.
 	 */
 	public boolean isPrimary() {
-		return primary;
+		return fPrimary;
 	}
 	/**
 	 * @param primary The primary to set.
 	 */
 	public void setPrimary(boolean primary) {
-		this.primary = primary;
+		this.fPrimary = primary;
 	}
 	
 	public boolean setSourceEditingMode(boolean sourceMode) {
@@ -346,30 +341,28 @@ public abstract class InputContext {
 			// in the source editor. All changes in the model
 			// are caused by reconciliation and should not be 
 			// fired to the world.
-			flushModel(documentProvider.getDocument(input));
-			mustSynchronize=true;
+			flushModel(fDocumentProvider.getDocument(fEditorInput));
+			fMustSynchronize=true;
 			return true;
 		}
-		else {
-			// leaving source editing mode; if the document
-			// has been modified while in this mode,
-			// fire the 'world changed' event from the model
-			// to cause all the model listeners to become stale.
-			return synchronizeModelIfNeeded();
-		}
+		// leaving source editing mode; if the document
+		// has been modified while in this mode,
+		// fire the 'world changed' event from the model
+		// to cause all the model listeners to become stale.
+		return synchronizeModelIfNeeded();
 	}
 	
 	private boolean synchronizeModelIfNeeded() {
-		if (mustSynchronize) {
-			boolean result = synchronizeModel(documentProvider.getDocument(input));
-			mustSynchronize=false;
+		if (fMustSynchronize) {
+			boolean result = synchronizeModel(fDocumentProvider.getDocument(fEditorInput));
+			fMustSynchronize=false;
 			return result;
 		}
 		return true;
 	}
 
 	public void doRevert() {
-		mustSynchronize=true;
+		fMustSynchronize=true;
 		synchronizeModelIfNeeded();
 		/*
 		if (model instanceof IEditable) {
@@ -384,15 +377,15 @@ public abstract class InputContext {
 
 	public boolean isModelCorrect() {
 		synchronizeModelIfNeeded();
-		return model!=null ? model.isValid() : false;
+		return fModel!=null ? fModel.isValid() : false;
 	}
 	
 	protected boolean synchronizeModel(IDocument doc) {
 		return true;
 	}
 	public boolean matches(IResource resource) {
-		if (input instanceof IFileEditorInput) {
-			IFileEditorInput finput = (IFileEditorInput)input;
+		if (fEditorInput instanceof IFileEditorInput) {
+			IFileEditorInput finput = (IFileEditorInput)fEditorInput;
 			IFile file = finput.getFile();
 			if (file.equals(resource))
 				return true;
@@ -403,12 +396,22 @@ public abstract class InputContext {
 	 * @return Returns the validated.
 	 */
 	public boolean isValidated() {
-		return validated;
+		return fValidated;
 	}
 	/**
 	 * @param validated The validated to set.
 	 */
 	public void setValidated(boolean validated) {
-		this.validated = validated;
+		this.fValidated = validated;
+	}
+	
+	public String getLineDelimiter() {
+		if (fDocumentProvider != null) {
+			IDocument document = fDocumentProvider.getDocument(fEditorInput);
+			if (document != null) {
+				return TextUtilities.getDefaultLineDelimiter(document);
+			}
+		}
+		return System.getProperty("line.separator"); //$NON-NLS-1$
 	}
 }

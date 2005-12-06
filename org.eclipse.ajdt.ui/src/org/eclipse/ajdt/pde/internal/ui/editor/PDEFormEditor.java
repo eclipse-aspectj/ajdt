@@ -1,39 +1,72 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.ajdt.pde.internal.ui.editor;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.action.*;
+import org.eclipse.ajdt.pde.internal.ui.editor.context.IInputContextListener;
+import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContext;
+import org.eclipse.ajdt.pde.internal.ui.editor.context.InputContextManager;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.pde.core.*;
-import org.eclipse.pde.internal.ui.*;
-import org.eclipse.ajdt.pde.internal.ui.editor.context.*;
-import org.eclipse.pde.internal.ui.editor.plugin.*;
-import org.eclipse.pde.internal.ui.preferences.EditorPreferencePage;
-import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.*;
+import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.pde.core.IBaseModel;
+import org.eclipse.pde.core.IWritable;
+import org.eclipse.pde.internal.ui.IPDEUIConstants;
+import org.eclipse.pde.internal.ui.PDEPlugin;
+import org.eclipse.search.ui.text.ISearchEditorAccess;
+import org.eclipse.search.ui.text.Match;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IEditorActionBarContributor;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.editors.text.ILocationProvider;
 import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.editor.*;
+import org.eclipse.ui.forms.editor.FormEditor;
+import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.ide.*;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IGotoMarker;
-import org.eclipse.ui.part.*;
+import org.eclipse.ui.part.MultiPageEditorPart;
 import org.eclipse.ui.part.MultiPageEditorSite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
@@ -45,11 +78,78 @@ import org.eclipse.ui.views.properties.IPropertySheetPage;
 public abstract class PDEFormEditor extends FormEditor
 		implements
 			IInputContextListener,
-			IGotoMarker {
+			IGotoMarker, ISearchEditorAccess {
+	/**
+	 * Updates the OutlinePage selection.
+	 * 
+	 * @since 3.0
+	 */
+	private class PDEFormEditorChangeListener implements
+			ISelectionChangedListener {
+
+		/**
+		 * Installs this selection changed listener with the given selection
+		 * provider. If the selection provider is a post selection provider,
+		 * post selection changed events are the preferred choice, otherwise
+		 * normal selection changed events are requested.
+		 * 
+		 * @param selectionProvider
+		 */
+		public void install(ISelectionProvider selectionProvider) {
+			if (selectionProvider == null) {
+				return;
+			}
+
+			if (selectionProvider instanceof IPostSelectionProvider) {
+				IPostSelectionProvider provider = (IPostSelectionProvider) selectionProvider;
+				provider.addPostSelectionChangedListener(this);
+			} else {
+				selectionProvider.addSelectionChangedListener(this);
+			}
+		}
+
+		/*
+		 * @see org.eclipse.jface.viewers.ISelectionChangedListener#selectionChanged(org.eclipse.jface.viewers.SelectionChangedEvent)
+		 */
+		public void selectionChanged(SelectionChangedEvent event) {
+			if (PDEPlugin.getDefault().getPreferenceStore().getBoolean(
+					"ToggleLinkWithEditorAction.isChecked")) //$NON-NLS-1$
+				if (getFormOutline() != null) {
+					getFormOutline().setSelection(event.getSelection());
+				}
+		}
+
+		/**
+		 * Removes this selection changed listener from the given selection
+		 * provider.
+		 * 
+		 * @param selectionProviderstyle
+		 */
+		public void uninstall(ISelectionProvider selectionProvider) {
+			if (selectionProvider == null) {
+				return;
+			}
+
+			if (selectionProvider instanceof IPostSelectionProvider) {
+				IPostSelectionProvider provider = (IPostSelectionProvider) selectionProvider;
+				provider.removePostSelectionChangedListener(this);
+			} else {
+				selectionProvider.removeSelectionChangedListener(this);
+			}
+		}
+
+	}
+
+	/**
+	 * The editor selection changed listener.
+	 * 
+	 * @since 3.0
+	 */
+	private PDEFormEditorChangeListener fEditorSelectionChangedListener;
 	private Clipboard clipboard;
 	private Menu contextMenu;
 	protected InputContextManager inputContextManager;
-	private IContentOutlinePage formOutline;
+	private ISortableContentOutlinePage formOutline;
 	private PDEMultiPagePropertySheet propertySheet;
 	private PDEMultiPageContentOutline contentOutline;
 	private String lastActivePageId;
@@ -64,6 +164,10 @@ public abstract class PDEFormEditor extends FormEditor
 			PDEFormEditor editor = (PDEFormEditor) getMultiPageEditor();
 			PDEFormEditorContributor contributor = editor.getContributor();
 			return contributor.getSourceContributor();
+		}
+		
+		public IWorkbenchPart getPart() {
+			return getMultiPageEditor();
 		}
 	}
 	/**
@@ -187,8 +291,6 @@ public abstract class PDEFormEditor extends FormEditor
 		String storedFirstPageId = loadDefaultPage();
 		if (storedFirstPageId != null)
 			firstPageId = storedFirstPageId;
-		else if (EditorPreferencePage.getUseSourcePage())
-			firstPageId = getSourcePageId();
 		// Regardless what is the stored value,
 		// use source page if model is not valid
 		String invalidContextId = getFirstInvalidContextId();
@@ -196,12 +298,7 @@ public abstract class PDEFormEditor extends FormEditor
 			return invalidContextId;
 		return firstPageId;
 	}
-	private String getSourcePageId() {
-		InputContext context = inputContextManager.getPrimaryContext();
-		if (context != null)
-			return context.getId();
-		return null;
-	}
+
 	private String getFirstInvalidContextId() {
 		InputContext[] invalidContexts = inputContextManager
 				.getInvalidContexts();
@@ -250,11 +347,7 @@ public abstract class PDEFormEditor extends FormEditor
 		IFormPage[] pages = getPages();
 		for (int i = 0; i < pages.length; i++) {
 			if (pages[i] instanceof PDESourcePage) {
-				PDESourcePage page = (PDESourcePage) pages[i];
-			    inputContextManager.findContext(page.getId());
-			    //context.setBlocked(true);
-			    page.doRevertToSaved();
-			    //context.setBlocked(false);
+				((PDESourcePage) pages[i]).doRevertToSaved();
 			}
 		}
 		editorDirtyStateChanged();
@@ -346,6 +439,10 @@ public abstract class PDEFormEditor extends FormEditor
 	}
 	public void dispose() {
 		storeDefaultPage();
+		if (fEditorSelectionChangedListener != null)  {
+			fEditorSelectionChangedListener.uninstall(getSite().getSelectionProvider());
+			fEditorSelectionChangedListener= null;
+		}
 		//setSelection(new StructuredSelection());
 		PDEPlugin.getDefault().getLabelProvider().disconnect(this);
 		if (clipboard != null) {
@@ -417,25 +514,21 @@ public abstract class PDEFormEditor extends FormEditor
 		InputContext context = inputContextManager.findContext(resource);
 		if (context == null)
 			return;
-		IFormPage page = setActivePage(context.getId());
+		IFormPage page = getActivePageInstance();
+		if (!context.getId().equals(page.getId()))
+			page = setActivePage(context.getId());
 		IDE.gotoMarker(page, marker);
 	}
-	public void openTo(Object obj, IMarker marker) {
-		//TODO hack until the move to the new search
-		PDESourcePage sourcePage = (PDESourcePage) setActivePage(PluginInputContext.CONTEXT_ID);
-		if (sourcePage != null)
-			sourcePage.selectReveal(marker);
-
-		/*
-		 * if (EditorPreferencePage.getUseSourcePage() || getEditorInput()
-		 * instanceof SystemFileEditorInput) { if (marker != null) { IResource
-		 * resource = marker.getResource(); InputContext context =
-		 * getContextManager() .findContext(resource); if (context != null) {
-		 * PDESourcePage sourcePage = (PDESourcePage) setActivePage(context
-		 * .getId()); sourcePage.selectReveal(marker); } } } else {
-		 * selectReveal(obj); }
-		 */
+	
+	public void openToSourcePage(Object object, int offset, int length) {
+		InputContext context = getInputContext(object);
+		if (context != null) {
+			PDESourcePage page = (PDESourcePage)setActivePage(context.getId());
+			if (page != null)
+				page.selectAndReveal(offset, length);
+		}
 	}
+
 	public void setSelection(ISelection selection) {
 		getSite().getSelectionProvider().setSelection(selection);
 		getContributor().updateSelectableActions(selection);
@@ -453,6 +546,9 @@ public abstract class PDEFormEditor extends FormEditor
 		if (key.equals(IGotoMarker.class)) {
 			return this;
 		}
+		if (key.equals(ISearchEditorAccess.class)) {
+			return this;
+		}
 		return super.getAdapter(key);
 	}
 	public Menu getContextMenu() {
@@ -460,7 +556,7 @@ public abstract class PDEFormEditor extends FormEditor
 	}
 	public PDEMultiPageContentOutline getContentOutline() {
 		if (contentOutline == null || contentOutline.isDisposed()) {
-			contentOutline = new PDEMultiPageContentOutline();
+			contentOutline = new PDEMultiPageContentOutline(this);
 			updateContentOutline(getActivePageInstance());
 		}
 		return contentOutline;
@@ -472,27 +568,45 @@ public abstract class PDEFormEditor extends FormEditor
 		}
 		return propertySheet;
 	}
-	protected IContentOutlinePage getFormOutline() {
+	/**
+	 * 
+	 * @return outline page or null
+	 */
+	protected ISortableContentOutlinePage getFormOutline() {
 		if (formOutline == null) {
 			formOutline = createContentOutline();
+			if (formOutline != null) {
+				fEditorSelectionChangedListener = new PDEFormEditorChangeListener();
+				fEditorSelectionChangedListener.install(getSite()
+						.getSelectionProvider());
+			}
 		}
 		return formOutline;
 	}
-	protected IContentOutlinePage createContentOutline() {
-		return new FormOutlinePage(this);
-	}
+	abstract protected ISortableContentOutlinePage createContentOutline();
+	
 	private void updateContentOutline(IFormPage page) {
 		if (contentOutline == null)
 			return;
-		IContentOutlinePage outline = null;
+		ISortableContentOutlinePage outline = null;
 		if (page instanceof PDESourcePage) {
 			outline = ((PDESourcePage) page).getContentOutline();
 		} else {
 			outline = getFormOutline();
-			if (outline instanceof FormOutlinePage)
+			if (outline != null && outline instanceof FormOutlinePage)
 				((FormOutlinePage) outline).refresh();
 		}
 		contentOutline.setPageActive(outline);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.forms.editor.FormEditor#setActivePage(java.lang.String)
+	 */
+	public IFormPage setActivePage(String pageId) {
+		IFormPage page = super.setActivePage(pageId);
+		if (page != null)
+			updateContentOutline(page);
+		return page;
 	}
 	protected IPropertySheetPage getPropertySheet(PDEFormPage page) {
 		return page.getPropertySheetPage();
@@ -612,4 +726,32 @@ public abstract class PDEFormEditor extends FormEditor
 		if (undoManager != null)
 			undoManager.setActions(undoAction, redoAction);
 	}
+	void synchronizeOutlinePage() {
+		if (getFormOutline() != null) {
+			getFormOutline().setSelection(getSelection());
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.search.ui.text.ISearchEditorAccess#getDocument(org.eclipse.search.ui.text.Match)
+	 */
+	public IDocument getDocument(Match match) {
+		InputContext context = getInputContext(match.getElement());
+		return context == null ? null : context.getDocumentProvider().getDocument(context.getInput());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.search.ui.text.ISearchEditorAccess#getAnnotationModel(org.eclipse.search.ui.text.Match)
+	 */
+	public IAnnotationModel getAnnotationModel(Match match) {
+		InputContext context = getInputContext(match.getElement());
+		return context == null ? null : context.getDocumentProvider().getAnnotationModel(context.getInput());
+	}
+	
+	protected abstract InputContext getInputContext(Object object);
+	
+	public int getOrientation() {
+		return SWT.LEFT_TO_RIGHT;
+	}
+
 }

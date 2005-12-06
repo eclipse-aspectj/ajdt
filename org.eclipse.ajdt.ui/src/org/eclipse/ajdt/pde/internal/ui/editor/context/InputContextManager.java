@@ -1,28 +1,37 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2004 IBM Corporation and others.
+ * Copyright (c) 2003, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-/*
- * Created on Feb 26, 2004
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package org.eclipse.ajdt.pde.internal.ui.editor.context;
-import java.util.*;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.pde.core.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
+import org.eclipse.ajdt.pde.internal.ui.editor.IModelUndoManager;
+import org.eclipse.ajdt.pde.internal.ui.editor.PDEFormEditor;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.pde.core.IBaseModel;
+import org.eclipse.pde.core.IModelChangeProvider;
 import org.eclipse.pde.internal.ui.PDEPlugin;
-import org.eclipse.ajdt.pde.internal.ui.editor.*;
-import org.eclipse.ui.*;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 
 public abstract class InputContextManager implements IResourceChangeListener {
 	private PDEFormEditor editor;
@@ -54,9 +63,9 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	public void dispose() {
 		PDEPlugin.getWorkspace().removeResourceChangeListener(this);
 		// dispose input contexts
-		for (Enumeration enum11 = inputContexts.elements(); enum11
+		for (Enumeration contexts = inputContexts.elements(); contexts
 				.hasMoreElements();) {
-			InputContext context = (InputContext) enum11.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			unhookUndo(context);
 			context.dispose();
 		}
@@ -68,17 +77,17 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	 * @param monitor
 	 */
 	public void save(IProgressMonitor monitor) {
-		for (Enumeration enum11 = inputContexts.elements(); enum11
+		for (Enumeration contexts = inputContexts.elements(); contexts
 				.hasMoreElements();) {
-			InputContext context = (InputContext) enum11.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			if (context.mustSave())
 				context.doSave(monitor);
 		}
 	}
 	public IProject getCommonProject() {
-		for (Enumeration enum11 = inputContexts.elements(); enum11
+		for (Enumeration contexts = inputContexts.elements(); contexts
 		.hasMoreElements();) {
-			InputContext context = (InputContext) enum11.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			IEditorInput input = context.getInput();
 			if (input instanceof IFileEditorInput) 
 				return ((IFileEditorInput)input).getFile().getProject();
@@ -89,26 +98,26 @@ public abstract class InputContextManager implements IResourceChangeListener {
 		return findContext(id) != null;
 	}
 	public InputContext findContext(String id) {
-		for (Enumeration enum1 = inputContexts.elements(); enum1
+		for (Enumeration contexts = inputContexts.elements(); contexts
 				.hasMoreElements();) {
-			InputContext context = (InputContext) enum1.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			if (context.getId().equals(id))
 				return context;
 		}
 		return null;
 	}
 	public InputContext findContext(IResource resource) {
-		for (Enumeration enum1 = inputContexts.elements(); enum1
+		for (Enumeration contexts = inputContexts.elements(); contexts
 		.hasMoreElements();) {
-			InputContext context = (InputContext) enum1.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			if (context.matches(resource))
 				return context;
 		}
 		return null;
 	}
-	public IBaseModel getAggregateModel() {
-		return null;
-	}
+	
+	public abstract IBaseModel getAggregateModel();
+	
 	public InputContext getContext(IEditorInput input) {
 		return (InputContext)inputContexts.get(input);
 	}
@@ -117,9 +126,9 @@ public abstract class InputContextManager implements IResourceChangeListener {
 		fireContextChange(context, true);
 	}
 	public InputContext getPrimaryContext() {
-		for (Enumeration enum1 = inputContexts.elements(); enum1
+		for (Enumeration contexts = inputContexts.elements(); contexts
 				.hasMoreElements();) {
-			InputContext context = (InputContext) enum1.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			if (context.isPrimary())
 				return context;
 		}
@@ -127,9 +136,9 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	}
 	public InputContext [] getInvalidContexts() {
 		ArrayList result = new ArrayList();
-		for (Enumeration enum1 = inputContexts.elements(); enum1
+		for (Enumeration contexts = inputContexts.elements(); contexts
 				.hasMoreElements();) {
-			InputContext context = (InputContext) enum1.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			if (context.isModelCorrect()==false)
 				result.add(context);
 		}
@@ -137,8 +146,8 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	}
 	
 	public boolean isDirty() {
-		for (Enumeration enum1=inputContexts.elements(); enum1.hasMoreElements();) {
-			InputContext context = (InputContext)enum1.nextElement();
+		for (Enumeration contexts=inputContexts.elements(); contexts.hasMoreElements();) {
+			InputContext context = (InputContext)contexts.nextElement();
 			if (context.mustSave())
 				return true;
 		}
@@ -178,7 +187,10 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	private void asyncStructureChanged(final IFile file, final boolean added) {
 		if (editor == null || editor.getEditorSite() == null)
 			return;
-		editor.getEditorSite().getShell().getDisplay().asyncExec(new Runnable() {
+		Shell shell = editor.getEditorSite().getShell();
+		Display display = shell != null ? shell.getDisplay() : Display.getDefault();
+
+		display.asyncExec(new Runnable() {
 			public void run() {
 				structureChanged(file, added);
 			}
@@ -202,9 +214,9 @@ public abstract class InputContextManager implements IResourceChangeListener {
 	}
 	
 	private void removeContext(IFile file) {
-		for (Enumeration enum1 = inputContexts.elements(); enum1
+		for (Enumeration contexts = inputContexts.elements(); contexts
 		.hasMoreElements();) {
-			InputContext context = (InputContext) enum1.nextElement();
+			InputContext context = (InputContext) contexts.nextElement();
 			IEditorInput input = context.getInput();
 			if (input instanceof IFileEditorInput) {
 				IFileEditorInput fileInput = (IFileEditorInput)input;

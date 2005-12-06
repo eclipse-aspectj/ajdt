@@ -1,19 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2004 IBM Corporation and others.
+ * Copyright (c) 2003, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-/*
- * Created on Jan 27, 2004
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package org.eclipse.ajdt.pde.internal.ui.editor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
@@ -36,12 +30,7 @@ import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
-/**
- * @author dejan
- * 
- * To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Generation - Code and Comments
- */
+
 public abstract class PDEFormPage extends FormPage {
 	/**
 	 * @param editor
@@ -68,7 +57,7 @@ public abstract class PDEFormPage extends FormPage {
 					});
 				}
 			};
-			helpAction.setToolTipText(PDEUIMessages.PDEFormPage_help); //$NON-NLS-1$
+			helpAction.setToolTipText(PDEUIMessages.PDEFormPage_help); 
 			helpAction.setImageDescriptor(PDEPluginImages.DESC_HELP);
 			manager.add(helpAction);
 			form.updateToolBar();
@@ -87,7 +76,10 @@ public abstract class PDEFormPage extends FormPage {
 	}
 	
 	protected Control getFocusControl() {
-		Control control = getManagedForm().getForm();
+		IManagedForm form = getManagedForm();
+		if (form == null)
+			return null;
+		Control control = form.getForm();
 		if (control == null || control.isDisposed())
 			return null;
 		Display display = control.getDisplay();

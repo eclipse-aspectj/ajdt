@@ -1,22 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.ajdt.pde.internal.ui.editor;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.pde.core.IModelChangeProvider;
-import org.eclipse.pde.core.IModelChangedEvent;
-import org.eclipse.pde.core.IModelChangedListener;
+import org.eclipse.pde.core.*;
 import org.eclipse.pde.internal.ui.PDEUIMessages;
 import org.eclipse.ui.forms.editor.IFormPage;
 
@@ -171,7 +168,7 @@ public abstract class ModelUndoManager
 			redoAction.setText(getRedoText());
 		}
 	}
-
+	
 	private String getUndoText() {
 		IModelChangedEvent op = getCurrentOperation();
 		if (op == null) {
@@ -179,7 +176,7 @@ public abstract class ModelUndoManager
 		}
 		return NLS.bind(PDEUIMessages.UpdateManager_undo, getOperationText(op));	
 	}
-	
+
 	private String getRedoText() {
 		IModelChangedEvent op = getNextOperation();
 		if (op == null) {
