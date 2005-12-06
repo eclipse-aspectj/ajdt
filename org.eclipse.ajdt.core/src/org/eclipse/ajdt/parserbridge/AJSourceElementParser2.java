@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
+import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilerModifiers;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.compiler.IProblem;
@@ -26,6 +27,7 @@ import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
 import org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.eclipse.jdt.internal.compiler.ast.*;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 import org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.eclipse.jdt.internal.compiler.env.ISourceType;
@@ -418,17 +420,17 @@ public MethodDeclaration convertToMethodDeclaration(ConstructorDeclaration c, Co
 }
 protected CompilationUnitDeclaration endParse(int act) {
 	if (sourceType != null) {
-		switch (sourceType.getKind()) {
-			case IGenericType.CLASS_DECL :
+		switch (TypeDeclaration.kind(sourceType.getModifiers())) {
+			case TypeDeclaration.CLASS_DECL:
 				consumeClassDeclaration();
 				break;
-			case IGenericType.INTERFACE_DECL :
+			case TypeDeclaration.INTERFACE_DECL:
 				consumeInterfaceDeclaration();
 				break;
-			case IGenericType.ENUM_DECL :
+			case TypeDeclaration.ENUM_DECL:
 				consumeEnumDeclaration();
 				break;
-			case IGenericType.ANNOTATION_TYPE_DECL :
+			case TypeDeclaration.ANNOTATION_TYPE_DECL:
 				consumeAnnotationTypeDeclaration();
 				break;
 		}
@@ -802,12 +804,12 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		if (isInRange){
 			int currentModifiers = methodDeclaration.modifiers;
 			if (isVarArgs)
-				currentModifiers |= AccVarargs;
-			boolean deprecated = (currentModifiers & AccDeprecated) != 0; // remember deprecation so as to not lose it below
+				currentModifiers |= ClassFileConstants.AccVarargs;
+			boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0; // remember deprecation so as to not lose it below
 			ISourceElementRequestor.MethodInfo methodInfo = new ISourceElementRequestor.MethodInfo();
 			methodInfo.isConstructor = true;
 			methodInfo.declarationStart = methodDeclaration.declarationSourceStart;
-			methodInfo.modifiers = deprecated ? (currentModifiers & AccJustFlag) | AccDeprecated : currentModifiers & AccJustFlag;
+			methodInfo.modifiers = deprecated ? (currentModifiers & CompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated : currentModifiers & CompilerModifiers.AccJustFlag;
 			methodInfo.name = methodDeclaration.selector;
 			methodInfo.nameSourceStart = methodDeclaration.sourceStart;
 			methodInfo.nameSourceEnd = selectorSourceEnd;
@@ -856,15 +858,15 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 	if (isInRange) {
 		int currentModifiers = methodDeclaration.modifiers;
 		if (isVarArgs)
-			currentModifiers |= AccVarargs;
-		boolean deprecated = (currentModifiers & AccDeprecated) != 0; // remember deprecation so as to not lose it below
+			currentModifiers |= ClassFileConstants.AccVarargs;
+		boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0; // remember deprecation so as to not lose it below
 		TypeReference returnType = methodDeclaration instanceof MethodDeclaration
 			? ((MethodDeclaration) methodDeclaration).returnType
 			: null;
 		ISourceElementRequestor.MethodInfo methodInfo = new ISourceElementRequestor.MethodInfo();
 		methodInfo.isAnnotation = methodDeclaration instanceof AnnotationMethodDeclaration;
 		methodInfo.declarationStart = methodDeclaration.declarationSourceStart;
-		methodInfo.modifiers = deprecated ? (currentModifiers & AccJustFlag) | AccDeprecated : currentModifiers & AccJustFlag;
+		methodInfo.modifiers = deprecated ? (currentModifiers & CompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated : currentModifiers & CompilerModifiers.AccJustFlag;
 		methodInfo.returnType = returnType == null ? null : CharOperation.concatWith(returnType.getParameterizedTypeName(), '.');
 		methodInfo.name = methodDeclaration.selector;
 		methodInfo.nameSourceStart = methodDeclaration.sourceStart;
@@ -957,12 +959,12 @@ public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, Type
 			}
 			if (isInRange) {
 				int currentModifiers = fieldDeclaration.modifiers;
-				boolean deprecated = (currentModifiers & AccDeprecated) != 0; // remember deprecation so as to not lose it below
+				boolean deprecated = (currentModifiers & ClassFileConstants.AccDeprecated) != 0; // remember deprecation so as to not lose it below
 				char[] typeName = null;
 				if (fieldDeclaration.type == null) {
 					// enum constant
 					typeName = declaringType.name;
-					currentModifiers |= AccEnum;
+					currentModifiers |= ClassFileConstants.AccEnum;
 				} else {
 					// regular field
 					typeName = CharOperation.concatWith(fieldDeclaration.type.getParameterizedTypeName(), '.');
@@ -970,7 +972,7 @@ public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, Type
 				ISourceElementRequestor.FieldInfo fieldInfo = new ISourceElementRequestor.FieldInfo();
 				fieldInfo.declarationStart = fieldDeclaration.declarationSourceStart;
 				fieldInfo.name = fieldDeclaration.name;
-				fieldInfo.modifiers = deprecated ? (currentModifiers & AccJustFlag) | AccDeprecated : currentModifiers & AccJustFlag;
+				fieldInfo.modifiers = deprecated ? (currentModifiers & CompilerModifiers.AccJustFlag) | ClassFileConstants.AccDeprecated : currentModifiers & CompilerModifiers.AccJustFlag;
 				fieldInfo.type = typeName;
 				fieldInfo.nameSourceStart = fieldDeclaration.sourceStart;
 				fieldInfo.nameSourceEnd = fieldDeclaration.sourceEnd;
@@ -1057,7 +1059,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 			superInterfacesLength = superInterfaces.length;
 			interfaceNames = new char[superInterfacesLength][];
 		} else {
-			if ((typeDeclaration.bits & ASTNode.IsAnonymousTypeMASK) != 0) {
+			if ((typeDeclaration.bits & ASTNode.IsAnonymousType) != 0) {
 				// see PR 3442
 				QualifiedAllocationExpression alloc = typeDeclaration.allocation;
 				if (alloc != null && alloc.type != null) {
@@ -1073,24 +1075,23 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 					CharOperation.concatWith(superInterfaces[i].getParameterizedTypeName(), '.'); 
 			}
 		}
-		int kind = typeDeclaration.kind();
+		int kind = TypeDeclaration.kind(typeDeclaration.modifiers);
 		char[] implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_OBJECT;
 		if (isInRange) {
 			int currentModifiers = typeDeclaration.modifiers;
-			boolean deprecated = (currentModifiers & AccDeprecated) != 0; // remember deprecation so as to not lose it below
+			boolean deprecated = (currentModifiers & CompilerModifiers.AccDeprecated) != 0; // remember deprecation so as to not lose it below
 			boolean isEnumInit = typeDeclaration.allocation != null && typeDeclaration.allocation.enumConstant != null;
 			char[] superclassName;
 			if (isEnumInit) {
-				currentModifiers |= AccEnum;
+				currentModifiers |= CompilerModifiers.AccEnum;
 				superclassName = declaringType.name;
 			} else {
 				TypeReference superclass = typeDeclaration.superclass;
 				superclassName = superclass != null ? CharOperation.concatWith(superclass.getParameterizedTypeName(), '.') : null;
 			}
 			ISourceElementRequestor.TypeInfo typeInfo = new ISourceElementRequestor.TypeInfo();
-			typeInfo.kind = kind;
 			typeInfo.declarationStart = typeDeclaration.declarationSourceStart;
-			typeInfo.modifiers = deprecated ? (currentModifiers & AccJustFlag) | AccDeprecated : currentModifiers & AccJustFlag;
+			typeInfo.modifiers = deprecated ? (currentModifiers & CompilerModifiers.AccJustFlag) | CompilerModifiers.AccDeprecated : currentModifiers & CompilerModifiers.AccJustFlag;
 			typeInfo.name = typeDeclaration.name;
 			typeInfo.nameSourceStart = typeDeclaration.sourceStart;
 			typeInfo.nameSourceEnd = sourceEnd(typeDeclaration);
@@ -1100,20 +1101,20 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 			typeInfo.annotationPositions = collectAnnotationPositions(typeDeclaration.annotations);
 			requestor.enterType(typeInfo,isAspect);
 			switch (kind) {
-				case IGenericType.CLASS_DECL :
+				case TypeDeclaration.CLASS_DECL:
 					if (superclassName != null)
 						implicitSuperclassName = superclassName;
 					break;
-				case IGenericType.INTERFACE_DECL :
+				case TypeDeclaration.INTERFACE_DECL:
 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_OBJECT;
 					break;
-				case IGenericType.ENUM_DECL :
+				case TypeDeclaration.ENUM_DECL:
 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_ENUM;
 					break;
-				case IGenericType.ANNOTATION_TYPE_DECL :
+				case TypeDeclaration.ANNOTATION_TYPE_DECL:
 					implicitSuperclassName = TypeConstants.CharArray_JAVA_LANG_ANNOTATION_ANNOTATION;
 					break;
-			}
+				}
 		}
 		if (this.nestedTypeIndex == this.typeNames.length) {
 			// need a resize
@@ -1175,7 +1176,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 	}
 }
 private int sourceEnd(TypeDeclaration typeDeclaration) {
-	if ((typeDeclaration.bits & ASTNode.IsAnonymousTypeMASK) != 0) {
+	if ((typeDeclaration.bits & ASTNode.IsAnonymousType) != 0) {
 		QualifiedAllocationExpression allocation = typeDeclaration.allocation;
 		if (allocation.type == null) // case of enum constant body
 			return typeDeclaration.sourceEnd;
@@ -1386,7 +1387,7 @@ public void addUnknownRef(NameReference nameRef) {
 
 private void visitIfNeeded(AbstractMethodDeclaration method) {
 	if (this.localDeclarationVisitor != null 
-		&& (method.bits & ASTNode.HasLocalTypeMASK) != 0) {
+		&& (method.bits & ASTNode.HasLocalType) != 0) {
 			if (method instanceof ConstructorDeclaration) {
 				ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) method;
 				if (constructorDeclaration.constructorCall != null) {
@@ -1403,7 +1404,7 @@ private void visitIfNeeded(AbstractMethodDeclaration method) {
 
 private void visitIfNeeded(FieldDeclaration field, TypeDeclaration declaringType) {
 	if (this.localDeclarationVisitor != null 
-		&& (field.bits & ASTNode.HasLocalTypeMASK) != 0) {
+		&& (field.bits & ASTNode.HasLocalType) != 0) {
 			if (field.initialization != null) {
 				try {
 					this.localDeclarationVisitor.pushDeclaringType(declaringType);
@@ -1417,7 +1418,7 @@ private void visitIfNeeded(FieldDeclaration field, TypeDeclaration declaringType
 
 private void visitIfNeeded(Initializer initializer) {
 	if (this.localDeclarationVisitor != null 
-		&& (initializer.bits & ASTNode.HasLocalTypeMASK) != 0) {
+		&& (initializer.bits & ASTNode.HasLocalType) != 0) {
 			if (initializer.block != null) {
 				initializer.block.traverse(this.localDeclarationVisitor, null);
 			}
