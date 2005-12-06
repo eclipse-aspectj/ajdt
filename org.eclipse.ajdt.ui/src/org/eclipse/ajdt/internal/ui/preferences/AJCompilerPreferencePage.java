@@ -124,6 +124,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportIncompatibleSerialVersion, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_noGuardForLazyTjp, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_noExplicitConstructorCall, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_aspectExcludedByConfiguration, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_unorderedAdviceAtShadow, AspectJPreferences.VALUE_IGNORE);
 		
 		// these options are being set to "true" or "false" (rather than AspectJPreferences.VALUE_ENABLED
 		// or AspectJPreferences.VALUE_DISABLED) because the underlying code works in true/false
@@ -145,8 +151,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 		defaultValueMap.put(AspectJPreferences.OPTION_invalidTargetForAnnotation, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_elementAlreadyAnnotated, AspectJPreferences.VALUE_WARNING);
-		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_adviceDidNotMatch, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_unmatchedTargetKind, AspectJPreferences.VALUE_WARNING); 
+		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedArgument, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedAdviceConversion, AspectJPreferences.VALUE_WARNING);
 	}
 
 	/**
@@ -178,7 +186,15 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		AspectJPreferences.OPTION_invalidTargetForAnnotation,
 		AspectJPreferences.OPTION_elementAlreadyAnnotated,
 		AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
-		AspectJPreferences.OPTION_adviceDidNotMatch
+		AspectJPreferences.OPTION_adviceDidNotMatch,
+		AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP,
+		AspectJPreferences.OPTION_noGuardForLazyTjp,
+		AspectJPreferences.OPTION_noExplicitConstructorCall,
+		AspectJPreferences.OPTION_aspectExcludedByConfiguration,
+		AspectJPreferences.OPTION_unorderedAdviceAtShadow,
+		AspectJPreferences.OPTION_unmatchedTargetKind, 
+		AspectJPreferences.OPTION_uncheckedArgument,
+		AspectJPreferences.OPTION_uncheckedAdviceConversion
 	};
 
 	
@@ -251,12 +267,19 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs, IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, WARNING);
-
+		store.setDefault(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_noGuardForLazyTjp, IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_noExplicitConstructorCall, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_aspectExcludedByConfiguration, IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_unorderedAdviceAtShadow, IGNORE);
+		
 		store.setDefault(AspectJPreferences.OPTION_invalidTargetForAnnotation, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_elementAlreadyAnnotated, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_adviceDidNotMatch, WARNING);
-
+		store.setDefault(AspectJPreferences.OPTION_unmatchedTargetKind, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_uncheckedArgument, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_uncheckedAdviceConversion, WARNING);
 	}
 
 	private Composite createMessagesTabContent(Composite folder) {
@@ -322,7 +345,30 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		label = UIMessages.CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
 		addComboBox(composite, label, PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_runtimeExceptionNotSoftened;
+		addComboBox(composite, label, AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
+		label = UIMessages.CompilerConfigurationBlock_multiple_advice_stopping_lazy_tjp;
+		addComboBox(composite, label, AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_no_guard_for_lazy_tjp;
+		addComboBox(composite, label, AspectJPreferences.OPTION_noGuardForLazyTjp,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_no_explicit_constructor_call;
+		addComboBox(composite, label, AspectJPreferences.OPTION_noExplicitConstructorCall,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aspect_excluded_by_configuration;
+		addComboBox(composite, label, AspectJPreferences.OPTION_aspectExcludedByConfiguration,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_unordered_advice_at_shadow;
+		addComboBox(composite, label, AspectJPreferences.OPTION_unorderedAdviceAtShadow,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		return composite;
 	}
 
@@ -467,13 +513,23 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addComboBox(composite, label, AspectJPreferences.OPTION_elementAlreadyAnnotated,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = UIMessages.CompilerConfigurationBlock_runtimeExceptionNotSoftened;
-		addComboBox(composite, label, AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
 		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
 		addComboBox(composite, label, AspectJPreferences.OPTION_adviceDidNotMatch,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_unmatchedTargetKind;
+		addComboBox(composite, label, AspectJPreferences.OPTION_unmatchedTargetKind,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_uncheckedArgument;
+		addComboBox(composite, label, AspectJPreferences.OPTION_uncheckedArgument,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_uncheckedAdviceConversion;
+		addComboBox(composite, label, AspectJPreferences.OPTION_uncheckedAdviceConversion,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+
 
 		return composite;
 	}

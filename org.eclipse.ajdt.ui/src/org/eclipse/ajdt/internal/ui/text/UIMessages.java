@@ -19,7 +19,7 @@ import org.eclipse.osgi.util.NLS;
 public class UIMessages extends NLS {
 
 	private static final String BUNDLE_NAME= UIMessages.class.getName();
-
+	
 	private UIMessages() {
 		// Do not instantiate
 	}
@@ -141,6 +141,14 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_elementAlreadyAnnotated;
 	public static String CompilerConfigurationBlock_adviceDidNotMatch;
 	public static String CompilerConfigurationBlock_runtimeExceptionNotSoftened;
+	public static String CompilerConfigurationBlock_unmatchedTargetKind;
+	public static String CompilerConfigurationBlock_uncheckedArgument;
+	public static String CompilerConfigurationBlock_uncheckedAdviceConversion;
+	public static String CompilerConfigurationBlock_unordered_advice_at_shadow;
+	public static String CompilerConfigurationBlock_aspect_excluded_by_configuration;
+	public static String CompilerConfigurationBlock_no_explicit_constructor_call;
+	public static String CompilerConfigurationBlock_no_guard_for_lazy_tjp;
+	public static String CompilerConfigurationBlock_multiple_advice_stopping_lazy_tjp;
 	public static String InPathBlock_tab_inpath_order;
 	public static String InPathBlock_tab_libraries;
 	public static String InPathBlock_order_up_button;
@@ -332,9 +340,11 @@ public class UIMessages extends NLS {
 	public static String LTWAspectPathTab_label;
 	public static String LTWAspectPathTab_title;
 	public static String LTW_error_launching;
+	public static String AspectJEditor_mark_occurrences;
 	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}
+
 
 }
