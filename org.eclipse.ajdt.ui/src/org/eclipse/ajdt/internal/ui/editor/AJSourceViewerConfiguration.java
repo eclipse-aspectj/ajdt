@@ -4,12 +4,12 @@
  */
 package org.eclipse.ajdt.internal.ui.editor;
 
-import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
+//import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
+//import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
-import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
+//import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
@@ -53,39 +53,40 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	 */
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		IContentAssistant assistant = super.getContentAssistant(sourceViewer);
-		if ((assistant != null) && (assistant instanceof ContentAssistant)) {
-			ContentAssistant cAssi = (ContentAssistant)assistant;
-			IContentAssistProcessor ajProcessor= new AJCompletionProcessor(getEditor());
-			cAssi.setContentAssistProcessor(ajProcessor, IDocument.DEFAULT_CONTENT_TYPE);
-			// Register the java processor for single line comments to get the NLS template working inside comments
-			IContentAssistProcessor wordProcessor= new WordCompletionProcessor();
-			CompoundContentAssistProcessor compoundProcessor= new CompoundContentAssistProcessor();
-			compoundProcessor.add(ajProcessor);
-			compoundProcessor.add(wordProcessor);
-			cAssi.setContentAssistProcessor(compoundProcessor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
-			configureAJProcessor((ContentAssistant)assistant, fPreferenceStore, (AJCompletionProcessor)ajProcessor);
-		}
+//		TODO: temporarily disabled for 3.2M3
+//		if ((assistant != null) && (assistant instanceof ContentAssistant)) {
+//			ContentAssistant cAssi = (ContentAssistant)assistant;
+//			IContentAssistProcessor ajProcessor= new AJCompletionProcessor(getEditor());
+//			cAssi.setContentAssistProcessor(ajProcessor, IDocument.DEFAULT_CONTENT_TYPE);
+//			// Register the java processor for single line comments to get the NLS template working inside comments
+//			IContentAssistProcessor wordProcessor= new WordCompletionProcessor();
+//			CompoundContentAssistProcessor compoundProcessor= new CompoundContentAssistProcessor();
+//			compoundProcessor.add(ajProcessor);
+//			compoundProcessor.add(wordProcessor);
+//			cAssi.setContentAssistProcessor(compoundProcessor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
+//			configureAJProcessor((ContentAssistant)assistant, fPreferenceStore, (AJCompletionProcessor)ajProcessor);
+//		}
 		return assistant;
-
 	}
 	
 	// Fix for bug 111971 - our completion processor is not configured properly by ContentAssistPreferences
 	// so copied ContentAssistPreferences.configureJavaProcessor to here.
-	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
-		
-		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
-		if (triggers != null)
-			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
-
-		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
-		jcp.restrictProposalsToVisibility(enabled);
-
-		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
-		jcp.restrictProposalsToMatchingCases(enabled);
-
-		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
-		jcp.orderProposalsAlphabetically(enabled);
-	}
+//	TODO: temporarily disabled for 3.2M3
+//	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
+//		
+//		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
+//		if (triggers != null)
+//			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
+//
+//		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
+//		jcp.restrictProposalsToVisibility(enabled);
+//
+//		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
+//		jcp.restrictProposalsToMatchingCases(enabled);
+//
+//		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
+//		jcp.orderProposalsAlphabetically(enabled);
+//	}
 	
 	/**
 	 * Determines whether the preference change encoded by the given event

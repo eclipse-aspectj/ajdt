@@ -89,12 +89,13 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 						| JavaElementLabelProvider.SHOW_OVERLAY_ICONS),
 				new PackageRenderer());
 		this.types = types;
-		setMessage(LauncherMessages
-				.MainTypeSelectionDialog_Choose_a_type);
-		setUpperListLabel(LauncherMessages
-				.MainTypeSelectionDialog_Matching_types);
-		setLowerListLabel(LauncherMessages
-				.MainTypeSelectionDialog_Qualifier);
+		// TODO: 3.2M4
+//		setMessage(LauncherMessages
+//				.MainTypeSelectionDialog_Choose_a_type);
+//		setUpperListLabel(LauncherMessages
+//				.MainTypeSelectionDialog_Matching_types);
+//		setLowerListLabel(LauncherMessages
+//				.MainTypeSelectionDialog_Qualifier);
 
 	}
 
