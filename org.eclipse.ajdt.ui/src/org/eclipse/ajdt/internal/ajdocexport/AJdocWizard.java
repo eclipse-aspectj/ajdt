@@ -59,9 +59,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.OpenBrowserUtil;
-import org.eclipse.jdt.internal.ui.jarpackager.ConfirmSaveModifiedResourcesDialog;
 import org.eclipse.jdt.internal.ui.javadocexport.JavadocExportMessages;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
+import org.eclipse.jdt.internal.ui.refactoring.RefactoringSaveHelper;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
@@ -162,8 +162,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			fStore.updateDialogSettings(getDialogSettings(), checkedProjects);
 		}
 
-		// Wizard will not run with unsaved files.
-		if (!checkPreconditions(fStore.getSourceElements())) {
+		// Wizard should not run with dirty editors
+		if (!new RefactoringSaveHelper(false).saveEditors(getShell())) {
 			return false;
 		}
 
@@ -479,29 +479,6 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 	}
 
 	/**
-	 * Creates a list of all CompilationUnits and extracts from that list a list
-	 * of dirty files. The user is then asked to confirm if those resources
-	 * should be saved or not.
-	 * 
-	 * @param elements
-	 * @return <code>true</code> if all preconditions are satisfied otherwise
-	 *         false
-	 */
-	private boolean checkPreconditions(IJavaElement[] elements) {
-
-		ArrayList resources = new ArrayList();
-		for (int i = 0; i < elements.length; i++) {
-			if (elements[i] instanceof ICompilationUnit) {
-				resources.add(elements[i].getResource());
-			}
-		}
-
-		//message could be null
-		IFile[] unSavedFiles = getUnsavedFiles(resources);
-		return saveModifiedResourcesIfUserConfirms(unSavedFiles);
-	}
-
-	/**
 	 * Returns the files which are not saved and which are part of the files
 	 * being exported.
 	 * 
@@ -523,72 +500,6 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			}
 		}
 		return (IFile[]) unsavedFiles.toArray(new IFile[unsavedFiles.size()]);
-	}
-
-	/**
-	 * Asks to confirm to save the modified resources and save them if OK is
-	 * pressed. Must be run in the display thread.
-	 * 
-	 * @param dirtyFiles
-	 * @return true if user pressed OK and save was successful.
-	 */
-	private boolean saveModifiedResourcesIfUserConfirms(IFile[] dirtyFiles) {
-		if (confirmSaveModifiedResources(dirtyFiles)) {
-			try {
-				if (saveModifiedResources(dirtyFiles))
-					return true;
-			} catch (CoreException e) {
-//				 AspectJ Extension - message
-//				ExceptionHandler
-//						.handle(
-//								e,
-//								getShell(),
-//								JavadocExportMessages
-//										.getString("AJdocWizard.saveresourcedialogCE.title"), JavadocExportMessages.getString("AJdocWizard.saveresourcedialogCE.message")); //$NON-NLS-1$ //$NON-NLS-2$
-				ExceptionHandler.handle(e, getShell(), JavadocExportMessages.JavadocWizard_saveresourcedialogCE_title, JavadocExportMessages.JavadocWizard_saveresourcedialogCE_message); 
-
-			} catch (InvocationTargetException e) {
-//				 AspectJ Extension - message
-//				ExceptionHandler
-//						.handle(
-//								e,
-//								getShell(),
-//								JavadocExportMessages
-//										.getString("AJdocWizard.saveresourcedialogITE.title"), JavadocExportMessages.getString("AJdocWizard.saveresourcedialogITE.message")); //$NON-NLS-1$ //$NON-NLS-2$
-				ExceptionHandler.handle(e, getShell(), JavadocExportMessages.JavadocWizard_saveresourcedialogITE_title, JavadocExportMessages.JavadocWizard_saveresourcedialogITE_message); 
-
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Asks the user to confirm to save the modified resources.
-	 * 
-	 * @param dirtyFiles
-	 * @return true if user pressed OK.
-	 */
-	private boolean confirmSaveModifiedResources(IFile[] dirtyFiles) {
-		if (dirtyFiles == null || dirtyFiles.length == 0)
-			return true;
-
-		// Get display for further UI operations
-		Display display = getShell().getDisplay();
-		if (display == null || display.isDisposed())
-			return false;
-
-		// Ask user to confirm saving of all files
-		final ConfirmSaveModifiedResourcesDialog dlg = new ConfirmSaveModifiedResourcesDialog(
-				getShell(), dirtyFiles);
-		final int[] intResult = new int[1];
-		Runnable runnable = new Runnable() {
-			public void run() {
-				intResult[0] = dlg.open();
-			}
-		};
-		display.syncExec(runnable);
-
-		return intResult[0] == IDialogConstants.OK_ID;
 	}
 
 	/**
