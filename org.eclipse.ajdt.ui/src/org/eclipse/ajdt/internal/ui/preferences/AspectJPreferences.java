@@ -116,23 +116,33 @@ public class AspectJPreferences {
 
 	public static final String OPTION_ReportNoInterfaceCtorJoinpoint = "org.aspectj.ajdt.core.compiler.lint.NoInterfaceCtorJoinpoint"; //$NON-NLS-1$
 
-	// AspectJ 5 Lint Options
-	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
-
-	public static final String OPTION_cantMatchArrayTypeOnVarargs = "org.aspectj.ajdt.core.compiler.lint.cantMatchArrayTypeOnVarargs"; //$NON-NLS-1$
-
-	public static final String OPTION_enumAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.enumAsTargetForDecpIgnored"; //$NON-NLS-1$
-
-	public static final String OPTION_annotationAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.annotationAsTargetForDecpIgnored"; //$NON-NLS-1$
-
-	public static final String OPTION_adviceDidNotMatch = "org.aspectj.ajdt.core.compiler.lint.adviceDidNotMatch"; //$NON-NLS-1$
-
-	public static final String OPTION_invalidTargetForAnnotation = "org.aspectj.ajdt.core.compiler.lint.invalidTargetForAnnotation"; //$NON-NLS-1$
-
-	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
+//	// AspectJ 5 Lint Options
+//	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
+//
+//	public static final String OPTION_cantMatchArrayTypeOnVarargs = "org.aspectj.ajdt.core.compiler.lint.cantMatchArrayTypeOnVarargs"; //$NON-NLS-1$
+//
+//	public static final String OPTION_enumAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.enumAsTargetForDecpIgnored"; //$NON-NLS-1$
+//
+//	public static final String OPTION_annotationAsTargetForDecpIgnored = "org.aspectj.ajdt.core.compiler.lint.annotationAsTargetForDecpIgnored"; //$NON-NLS-1$
+//
+//	public static final String OPTION_adviceDidNotMatch = "org.aspectj.ajdt.core.compiler.lint.adviceDidNotMatch"; //$NON-NLS-1$
+//
+//	public static final String OPTION_invalidTargetForAnnotation = "org.aspectj.ajdt.core.compiler.lint.invalidTargetForAnnotation"; //$NON-NLS-1$
+//
+//	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
 
 	public static final String OPTION_runtimeExceptionNotSoftened = "org.aspectj.ajdt.core.compiler.lint.runtimeExceptionNotSoftened"; //$NON-NLS-1$
-		
+
+	public static final String OPTION_multipleAdviceStoppingLazyTJP = "org.aspectj.ajdt.core.compiler.lint.multipleAdviceStoppingLazyTjp"; //$NON-NLS-1$
+	
+	public static final String OPTION_noGuardForLazyTjp = "org.aspectj.ajdt.core.compiler.lint.noGuardForLazyTjp"; //$NON-NLS-1$
+	
+	public static final String OPTION_noExplicitConstructorCall = "org.aspectj.ajdt.core.compiler.lint.noExplicitConstructorCall"; //$NON-NLS-1$
+	
+	public static final String OPTION_aspectExcludedByConfiguration ="org.aspectj.ajdt.core.complier.lint.aspectExcludedByConfiguration";  //$NON-NLS-1$
+	
+	public static final String OPTION_unorderedAdviceAtShadow ="org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow"; //$NON-NLS-1$
+
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
 
@@ -165,15 +175,13 @@ public class AspectJPreferences {
 			{ OPTION_ReportIncompatibleSerialVersion,
 					"brokeSerialVersionCompatibility" }, //$NON-NLS-1$
 			{ OPTION_ReportNoInterfaceCtorJoinpoint, "noInterfaceCtorJoinpoint" }, //$NON-NLS-1$
-			{ OPTION_noJoinpointsForBridgeMethods,
-					"noJoinpointsForBridgeMethods" }, //$NON-NLS-1$
-			{ OPTION_cantMatchArrayTypeOnVarargs, "cantMatchArrayTypeOnVarargs" }, //$NON-NLS-1$
-			{ OPTION_enumAsTargetForDecpIgnored, "enumAsTargetForDecpIgnored" }, //$NON-NLS-1$
-			{ OPTION_annotationAsTargetForDecpIgnored,
-					"annotationAsTargetForDecpIgnored" }, //$NON-NLS-1$
-			{ OPTION_adviceDidNotMatch, "adviceDidNotMatch" }, //$NON-NLS-1$
-			{ OPTION_invalidTargetForAnnotation, "invalidTargetForAnnotation" }, //$NON-NLS-1$
-			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" }, //$NON-NLS-1$
+			{ OPTION_multipleAdviceStoppingLazyTJP,
+					"multipleAdviceStoppingLazyTjp" }, //$NON-NLS-1$
+			{ OPTION_noGuardForLazyTjp, "noGuardForLazyTjp" }, //$NON-NLS-1$
+			{ OPTION_noExplicitConstructorCall, "noExplicitConstructorCall" }, //$NON-NLS-1$
+			{ OPTION_aspectExcludedByConfiguration,
+					"aspectExcludedByConfiguration" }, //$NON-NLS-1$
+			{ OPTION_unorderedAdviceAtShadow, "unorderedAdviceAtShadow" }, //$NON-NLS-1$
 			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" } //$NON-NLS-1$
 	};
 
