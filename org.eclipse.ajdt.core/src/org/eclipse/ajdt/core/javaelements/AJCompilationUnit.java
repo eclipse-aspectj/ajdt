@@ -354,6 +354,22 @@ public class AJCompilationUnit extends CompilationUnit{
 		return convertBuffer(super.getBuffer());
 	}
 
+	/*
+	 * copied from super, but changed to remove the extension, instead of
+	 * calling Util.getNameWithoutJavaLikeExtension(). We can remove this if we
+	 * register .aj as a java like extension.
+	 */
+	public IType findPrimaryType() {
+		String typeName = getElementName();
+		// remove the .aj
+		typeName = typeName.substring(0, typeName.lastIndexOf('.'));
+		IType primaryType = getType(typeName);
+		if (primaryType.exists()) {
+			return primaryType;
+		}
+		return null;
+	}
+	
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))
 			return buf;
