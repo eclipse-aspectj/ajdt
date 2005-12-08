@@ -27,12 +27,12 @@ declare parents on the FigureElement interface.  (CCDIFF_5)
 Double-click on the before advice entry and check that it is opened
 in the editor.   (CCDIFF_6)
 
-Filtering: The description should say "Showing 3 of 6 items". Press the
+Filtering: The description should say "Showing 3 of 10 items". Press the
 Filters... button to bring up the relationship filter dialog. Press "Deselect
-All", then press OK. Check that the view now shows all 6 entries.   (CCDIFF_7)
+All", then press OK. Check that the view now shows all 10 entries.   (CCDIFF_7)
 
 In the editor comment out the before advice, and save. A build
-should occur, and the 2 corresponding entries should disappear from
+should occur, and the corresponding entries should disappear from
 the view.  (CCDIFF_8)
 
 

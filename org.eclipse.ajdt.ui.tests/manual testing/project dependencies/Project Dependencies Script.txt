@@ -3,19 +3,12 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 
 (1) Ensure that "Build Automatically" is selected in the Project drop down menu and that
 	the workbench settings are aborting builds due to classpath errors:
-
-   Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is checked.
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- "Abort build when classpath errors occur" option is checked.
  
 (2) check out the following projects from org.eclipse.ajdt/AJDT_src 
-    (on Eclipse 3.0 need to check out the versions from the ajdt1_2 branch):
+    (on Eclipse 3.1 may need to check out the versions from the ajdt1_3 branch):
 
 	     org.eclipse.contribution.visualiser
 	     org.eclipse.contribution.visualiser.tests
@@ -33,16 +26,7 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 
 (5) Check that org.eclipse.contribution.visualiser.tests is using the workspace compiler
     settings
-    
-    Eclipse 3.0:
-    
-    	- right click on org.eclipse.contribution.visualiser.tests
-    	- select properties
-    	- navigate to Java Compiler
-    	- check that "use workspace settings" is checked    (DEPS_3)
-    	
-    Eclipse 3.1:
-       
+
     	- right click on org.eclipse.contribution.visualiser.tests
     	- select properties
     	- navigate to Java Compiler > Building
@@ -50,29 +34,11 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
     	
     
 (6) Check that the workbench settings have switched to not aborting due to classpath errors:
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked. (DEPS_4)
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- "Abort build when classpath errors occur" option is unchecked. (DEPS_4)
 
 (7) Switch org.eclipse.contribution.visualiser.tests to use project settings:
-
-    Eclipse 3.0:
-
-    	- right click on org.eclipse.contribution.visualiser.tests
-    	- select properties
-    	- navigate to Java Compiler
-    	- check "use project settings"
-    	- click "OK"
-    	- choose to build project NOW
-
-    Eclipse 3.1:
        
     	- right click on org.eclipse.contribution.visualiser.tests
     	- select properties
@@ -85,15 +51,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
     build errors (DEPS_5)
 
 (9) Switch the workbench settings to abort if there are classpath errors
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- Check the "Abort build when classpath errors occur" option
-		- click "OK"
-		- choose to rebuild workspace NOW
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- Check the "Abort build when classpath errors occur" option
@@ -105,17 +62,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
      
 (11) Choose to let org.eclipse.contribution.visualiser.tests now use the 
      workspace settings
-
-    Eclipse 3.0:
-
-    	- right click on org.eclipse.contribution.visualiser.tests
-    	- select properties
-    	- navigate to Java Compiler
-    	- check "use workspace settings"
-    	- click "OK"
-    	- choose to build project NOW
-    	
-    Eclipse 3.1:
        
     	- right click on org.eclipse.contribution.visualiser.tests
     	- select properties
@@ -138,13 +84,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
      
 (15) Check that the workbench settings have switched to not aborting due 
      to classpath errors:
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked.  (DEPS_9)
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- "Abort build when classpath errors occur" option is unchecked. (DEPS_9)
@@ -152,15 +91,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 (16) Convert org.eclipse.contribution.visualiser.tests to be an AJ project
 
 (17) Switch the workbench settings to abort if there are classpath errors
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- Check the "Abort build when classpath errors occur" option
-		- click "OK"
-		- choose to rebuild workspace NOW
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- Check the "Abort build when classpath errors occur" option
@@ -172,13 +102,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
          	  
 (19) Check that the workbench settings have NOT switched to not aborting due to
      classpath errors:  (DEPS_11)
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is still checked.
-
-    Eclipse 3.1:
     
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- "Abort build when classpath errors occur" option is still checked.
@@ -197,31 +120,12 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
      
 (24) Check that the workbench settings have switched to not aborting due to 
      classpath errors:
-
-    Eclipse 3.0:
-    
-		- Window > Preferences > Java > Compiler > Build Path  
-		- "Abort build when classpath errors occur" option is unchecked.  (DEPS_14)
-
-    Eclipse 3.1:
-    
+   
 		- Window > Preferences > Java > Compiler > Building > Build path problems  
 		- "Abort build when classpath errors occur" option is unchecked. (DEPS_14)
 
 (25) Switch org.eclipse.contribution.visualiser.tests to use project settings and
      to abort on classpath errors
-
-    Eclipse 3.0:
-
-    	- right click on org.eclipse.contribution.visualiser.tests
-    	- select properties
-    	- navigate to Java Compiler
-    	- check "use project settings"
-    	- check the "Abort build when classpath errors occur" option 
-    	- click "OK"
-    	- choose to build project NOW
-
-    Eclipse 3.1:
        
     	- right click on org.eclipse.contribution.visualiser.tests
     	- select properties
@@ -231,7 +135,7 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
  		- click "OK"
     	- choose to build project NOW
     	
-(26) org.eclipse.contribution.visualiser should now not build due to error 
+(26) org.eclipse.contribution.visualiser.tests should now not build due to error 
      in problems view saying that prerequisite project 
      org.eclipse.contribution.visualiser needs to be
      built first (DEPS_15) 
@@ -242,8 +146,6 @@ Testing Project dependencies from checkout of CVS (Bug 73435)
 (28) both org.eclipse.contribution.visualiser and org.eclipse.contribution.visualiser.tests
      should now have no build errors on them. (DEPS_16)  
      
-Eclipse 3.1 further tests:
-
 (29) return org.eclipse.contribution.visualiser.tests to using workspace settings
      for building, but project settings for one of other compiler pages (Compiler,
      Errors/Warnings, Javadoc or TaskTags). 

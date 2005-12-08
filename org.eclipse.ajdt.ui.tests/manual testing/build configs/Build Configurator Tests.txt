@@ -9,7 +9,7 @@ and "tracing.version2" are activated (filled icon), the others not (empty icon) 
 
 Double-click tracev2.ajproperties to open editor, open version2 in resource tree and 
 untick Trace.aj, save file	Project gets rebuilt. In package explorer view, package 
-"tracing.version2" gets half-filled and the "J" in the icon next to "Trace.aj" gets empty (BC_2)
+"tracing.version2" gets half-filled and the "AJ" in the icon next to "Trace.aj" gets empty (BC_2)
 
 Try including and excluding source files and packages in the package explorer view and in 
 the editor.	Changes in package explorer view should immediately be reflected in editor. 
@@ -20,7 +20,7 @@ and save - there should be problem markers in the problems view and the package 
 exclude this file and the problem markers should be cleared.
 (BC_3)
 
-Use pulldown menu to select "tracelib"	Before clicking on "traclib": is there a tick next to 
+Use pulldown menu to select "tracelib"	Before clicking on "tracelib": is there a tick next to 
 "tracev2"? After having clicked on it the project should get rebuilt and the package explorer 
 view updated (tracing and tracing.lib are now included) (BC_4)
 
@@ -31,8 +31,8 @@ and "tracing.version1" should be included. (BC_5)
 source file into it.	The copied file should be shown to be excluded from the build configuration
 Right-click the new file to display the context menu	It should NOT be possible to include 
 this file – the include option must be disabled, or absent.
-Now make “nonsrc” into a source file (via project properties)	It should now be possible to 
-include and exclude this file  (BC_6)
+Now make “nonsrc” into a source file (right click > Build Path > Use as Source Folder)	
+It should now be possible to include and exclude this file  (BC_6)
 	
 (bug 77179) Remove AspectJ nature from the project	
 Refactor > Rename the tracing.version1 package to tracing.version10	The rename operation should 
