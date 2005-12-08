@@ -374,13 +374,13 @@ Testing output jar switch with "external" jars (part of 43674)
     	- in the resulting wizard, highlight "AspectJ"
     	- enter a fully qualified string in the outjar field i.e. c:\TEMP\secondjar.jar
     	  (note the change in case of "c" and "TEMP" - the outjar entry should pick
-    	  the correct place - this is part of the test)
+    	  the correct place - this is part of the test for Windows)
     	- click "ok"
 
 (9) Build project.java.Y by pressing the build button
 
 (10) project.java.X should now have jar file "C:\temp\secondjar.jar" on it's 
-     classpath (note the case)  (DEPS_23)
+     classpath (note the case on Windows)  (DEPS_23)
 
 		- a new node entitled "secondjar.jar - C:\temp" should appear in the
 		  package explorer under project.java.X
