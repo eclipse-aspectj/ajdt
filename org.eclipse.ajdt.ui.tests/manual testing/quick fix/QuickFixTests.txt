@@ -45,7 +45,7 @@ New > Aspect.  The editor should now show the code for the created Aspect.
 
 The AspectJ keyword 'aspect' should be underlined with a red squiggle and there should be a light bulb error in the margin on the same line. (QFIX_7)
 
-The quick qix offered should be 'Convert to AspectJ Project'. (QFIX_8)
+The quick fix offered should be 'Convert to AspectJ Project'. (QFIX_8)
 
 Double clicking the quick fix should convert the Java project to an AJ project. In the package explorer, the project will have an AJ logo. (QFIX_9)
 

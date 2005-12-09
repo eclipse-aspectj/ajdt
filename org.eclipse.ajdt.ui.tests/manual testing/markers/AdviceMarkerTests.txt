@@ -17,10 +17,3 @@ method that is being advised.  Right click on one of the advice markers,
 click 'Advised by..', then click on one of the entries from Coordinator
 in the sub-menu.  The file containing the advice, Coordinator.aj, should be opened
 in the editor (at the location of the advice). (ADVICE_1)
-
-
-Missing markers (bug 70658)
--------------------------------
-Open a file in the editor that has some advice markers.  Close the outline view
-then restart the workbench.  The advice markers should still be able to be
-seen on the open file. (ADVICE_2)

@@ -308,7 +308,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void waitForBuildCompletion(IAJCompilerMonitor monitor) {
 		while (!monitor.finished()) {
 			try {
-				checkAndHandleCancelation();
+				if (checkAndHandleCancelation()) {
+					return;
+				}
 				Thread.sleep(100);
 			} catch (Exception e) { }
 		}
@@ -317,12 +319,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	/**
 	 * Check whether the user has pressed "cancel" and act accordingly
 	 */
-	private void checkAndHandleCancelation() {
+	private boolean checkAndHandleCancelation() {
 		if (progressMonitor != null && buildManager != null && progressMonitor.isCanceled()) {
 			buildManager.abortBuild();
 			buildCancelled = true;
 			AJLog.log("build: Build cancelled as requested"); //$NON-NLS-1$
+			return true;
 		}
+		return false;
 	}
 
 	/**

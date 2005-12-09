@@ -115,6 +115,18 @@ public class AspectJPreferences {
 
 	public static final String OPTION_ReportNoInterfaceCtorJoinpoint = "org.aspectj.ajdt.core.compiler.lint.NoInterfaceCtorJoinpoint"; //$NON-NLS-1$
 
+	public static final String OPTION_runtimeExceptionNotSoftened = "org.aspectj.ajdt.core.compiler.lint.runtimeExceptionNotSoftened"; //$NON-NLS-1$
+	
+	public static final String OPTION_multipleAdviceStoppingLazyTJP = "org.aspectj.ajdt.core.compiler.lint.multipleAdviceStoppingLazyTjp"; //$NON-NLS-1$
+	
+	public static final String OPTION_noGuardForLazyTjp = "org.aspectj.ajdt.core.compiler.lint.noGuardForLazyTjp"; //$NON-NLS-1$
+	
+	public static final String OPTION_noExplicitConstructorCall = "org.aspectj.ajdt.core.compiler.lint.noExplicitConstructorCall"; //$NON-NLS-1$
+	
+	public static final String OPTION_aspectExcludedByConfiguration ="org.aspectj.ajdt.core.complier.lint.aspectExcludedByConfiguration";  //$NON-NLS-1$
+	
+	public static final String OPTION_unorderedAdviceAtShadow ="org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow"; //$NON-NLS-1$
+	
 	// AspectJ 5 Lint Options
 	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
 
@@ -130,7 +142,11 @@ public class AspectJPreferences {
 
 	public static final String OPTION_elementAlreadyAnnotated = "org.aspectj.ajdt.core.compiler.lint.elementAlreadyAnnotated"; //$NON-NLS-1$
 
-	public static final String OPTION_runtimeExceptionNotSoftened = "org.aspectj.ajdt.core.compiler.lint.runtimeExceptionNotSoftened"; //$NON-NLS-1$
+	public static final String OPTION_unmatchedTargetKind = "org.aspectj.ajdt.core.compiler.lint.unmatchedTargetKind";  //$NON-NLS-1$
+	
+	public static final String OPTION_uncheckedArgument = "org.aspectj.ajdt.core.compiler.lint.uncheckedArgument"; //$NON-NLS-1$
+	
+	public static final String OPTION_uncheckedAdviceConversion = "org.aspectj.ajdt.core.compiler.lint.uncheckedAdviceConversion";	 //$NON-NLS-1$
 		
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
@@ -164,6 +180,12 @@ public class AspectJPreferences {
 			{ OPTION_ReportIncompatibleSerialVersion,
 					"brokeSerialVersionCompatibility" }, //$NON-NLS-1$
 			{ OPTION_ReportNoInterfaceCtorJoinpoint, "noInterfaceCtorJoinpoint" }, //$NON-NLS-1$
+			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" }, //$NON-NLS-1$
+			{ OPTION_multipleAdviceStoppingLazyTJP, "multipleAdviceStoppingLazyTjp" }, //$NON-NLS-1$
+			{ OPTION_noGuardForLazyTjp, "noGuardForLazyTjp" }, //$NON-NLS-1$
+			{ OPTION_noExplicitConstructorCall, "noExplicitConstructorCall" }, //$NON-NLS-1$
+			{ OPTION_aspectExcludedByConfiguration, "aspectExcludedByConfiguration" }, //$NON-NLS-1$
+			{ OPTION_unorderedAdviceAtShadow, "unorderedAdviceAtShadow" }, //$NON-NLS-1$
 			{ OPTION_noJoinpointsForBridgeMethods,
 					"noJoinpointsForBridgeMethods" }, //$NON-NLS-1$
 			{ OPTION_cantMatchArrayTypeOnVarargs, "cantMatchArrayTypeOnVarargs" }, //$NON-NLS-1$
@@ -172,8 +194,10 @@ public class AspectJPreferences {
 					"annotationAsTargetForDecpIgnored" }, //$NON-NLS-1$
 			{ OPTION_adviceDidNotMatch, "adviceDidNotMatch" }, //$NON-NLS-1$
 			{ OPTION_invalidTargetForAnnotation, "invalidTargetForAnnotation" }, //$NON-NLS-1$
-			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" }, //$NON-NLS-1$
-			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" } //$NON-NLS-1$
+			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" },  //$NON-NLS-1$
+			{ OPTION_unmatchedTargetKind, "unmatchedTargetKind" }, //$NON-NLS-1$
+			{ OPTION_uncheckedArgument, "uncheckedArgument" }, //$NON-NLS-1$
+			{ OPTION_uncheckedAdviceConversion, "uncheckedAdviceConversion" } //$NON-NLS-1$
 	};
 
 	// name of the file to write the Xlint options to

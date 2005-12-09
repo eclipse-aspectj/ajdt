@@ -36,6 +36,7 @@
 			&nbsp;&nbsp; &lt;target name="init.variables" description="init variables"&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="plugins.dir" location="${basedir}/../../plugins" /&gt; <br>
 			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="aspectjrt.jar" location="${plugins.dir}/org.aspectj.runtime_1.5.0.20050610/aspectjrt.jar" /&gt; <br>
+			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="aspectjweaver.jar" location="${plugins.dir}/org.aspectj.weaver_1.5.0.20050610/aspectjweaver.jar" /&gt; <br>
 			&nbsp;&nbsp;&nbsp;&nbsp; &lt;property name="ajde.jar" location="${plugins.dir}/org.aspectj.ajde_1.5.0.20050610/ajde.jar" /&gt; <br>				
 			&nbsp;&nbsp; &lt;/target&gt;<br><br>				
 					
@@ -51,12 +52,13 @@
 			&nbsp;&nbsp; &lt;target name="build" depends="init" description="build spacewar example"&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp; &lt;iajc destDir="${basedir}/bin" classpath="${aspectjrt.jar}" fork="true"&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;forkclasspath&gt;<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.boot_3.0.0/boot.jar"/&gt;<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.resources_3.0.2/resources.jar"/&gt;<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.runtime_3.0.2/runtime.jar"/&gt;<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.runtime.compatibility_3.0.2/compatibility.jar"/&gt;<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.apache.ant_1.6.2/lib/ant.jar"/&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.boot_3.1.0/boot.jar"/&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.resources_3.1.0/resources.jar"/&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.runtime_3.1.1/runtime.jar"/&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.eclipse.core.runtime.compatibility_3.1.0/compatibility.jar"/&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${plugins.dir}/org.apache.ant_1.6.5/lib/ant.jar"/&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${ajde.jar}" /&gt;<br>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="${aspectjweaver.jar}" /&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/forkclasspath&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;srcdir&gt;<br>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;pathelement path="src/" /&gt;<br>
@@ -70,7 +72,7 @@
       </li>
       <li>
       <strong>Note: </strong>The path to the 'plugins' directory may be different on your machine and you may need
-		to add other paths to the classpath.  Correct these to reflect the correct values.	You may also need to check the version numbers.	
+		to add other paths to the classpath.  Correct these to reflect the correct values.	You will also need to change the version numbers as appropriate.	
       </li>
     </ol>
     <p>
