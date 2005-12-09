@@ -13,10 +13,10 @@ package org.eclipse.ajdt.internal.ui.diff;
 
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJProjectModel;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -50,11 +50,11 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 	 * @see org.eclipse.ui.IActionDelegate#run(org.eclipse.jface.action.IAction)
 	 */
 	public void run(IAction action) {
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getActiveProjectBuildConfigurator();
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getActiveProjectBuildConfigurator();
 		if (pbc == null) {
 			return;
 		}
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (bc == null) {
 			return;
 		}

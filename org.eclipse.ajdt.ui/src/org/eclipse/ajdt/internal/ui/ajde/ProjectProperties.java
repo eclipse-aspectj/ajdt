@@ -29,11 +29,11 @@ import java.util.Map;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -72,7 +72,7 @@ public class ProjectProperties extends CoreProjectProperties  {
 	public List getProjectSourceFiles(IProject project,
 			CoreUtils.FilenameFilter filter) {
 
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		if (pbc != null) {
 			return pbc.getActiveBuildConfiguration().getIncludedJavaFiles(

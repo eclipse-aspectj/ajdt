@@ -19,12 +19,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -101,7 +101,7 @@ public class RenameToAJAction implements IActionDelegate {
 	 */
 	private void updateBuildConfigs(IProgressMonitor monitor, IProject project,
 			String name) {
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		if(pbc != null) {
 			IFile[] buildConfigs = pbc.getConfigurationFiles();

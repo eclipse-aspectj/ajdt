@@ -20,17 +20,15 @@ import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
-import org.eclipse.pde.internal.build.BuildScriptGenerator;
-import org.eclipse.pde.internal.build.builder.DevClassPathHelper;
 import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.TargetPlatform;
@@ -53,9 +51,9 @@ public class BuildPluginAction extends BaseBuildAction {
 				.getDefaultConfigInfos());
 
 		IProject project = fManifestFile.getProject();
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		if (pbc != null) {
-			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			if (bc != null) {
 				IFile configFile = bc.getFile();
 				generator.setBuildConfig(configFile.getName());

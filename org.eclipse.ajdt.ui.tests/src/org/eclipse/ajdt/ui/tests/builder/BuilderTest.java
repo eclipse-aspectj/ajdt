@@ -20,9 +20,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.core.resources.IFile;
@@ -95,7 +95,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -175,7 +175,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -255,7 +255,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -333,7 +333,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -411,7 +411,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -528,7 +528,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(project);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -596,7 +596,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
@@ -671,7 +671,7 @@ public class BuilderTest extends UITestCase {
 		// need to set this because otherwise a full build is
 		// forced (which isn't how it behaves when run this test
 		// manually)
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
 		pbc.requestFullBuild(false);
 		waitForJobsToComplete();

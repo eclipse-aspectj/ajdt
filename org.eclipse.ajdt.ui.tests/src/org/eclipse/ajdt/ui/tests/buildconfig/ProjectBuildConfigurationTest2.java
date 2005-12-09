@@ -11,9 +11,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.buildconfig;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 
@@ -26,13 +27,13 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 		final String expected = "build"; //$NON-NLS-1$
 		IProject project = createPredefinedProject("bug84310a"); //$NON-NLS-1$
 
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc = conf
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc = conf
 				.getProjectBuildConfigurator(project);
 		assertNotNull(
 				"Didn't get a project build configurator for our project", pbc); //$NON-NLS-1$
 
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (!bc.getName().equals(expected)) {
 			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: " //$NON-NLS-1$ //$NON-NLS-2$
 					+ bc.getName());
@@ -43,13 +44,13 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 		final String expected = "aardvark"; //$NON-NLS-1$
 		IProject project = createPredefinedProject("bug84310b"); //$NON-NLS-1$
 
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc = conf
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc = conf
 				.getProjectBuildConfigurator(project);
 		assertNotNull(
 				"Didn't get a project build configurator for our project", pbc); //$NON-NLS-1$
 
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (!bc.getName().equals(expected)) {
 			fail("The active build configuration for project bug84310a should be \""+expected+"\". Instead it's: " //$NON-NLS-1$ //$NON-NLS-2$
 					+ bc.getName());
@@ -62,13 +63,13 @@ public class ProjectBuildConfigurationTest2 extends UITestCase {
 		// directory indicating the active build configuration
 		IProject project = createPredefinedProject("DotSettings"); //$NON-NLS-1$
 
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc = conf
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc = conf
 				.getProjectBuildConfigurator(project);
 		assertNotNull(
 				"Didn't get a project build configurator for our project", pbc); //$NON-NLS-1$
 
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (!bc.getName().equals(expected)) {
 			fail("The active build configuration for project DotSettings should be \""+expected+"\". Instead it's: " //$NON-NLS-1$ //$NON-NLS-2$
 					+ bc.getName());

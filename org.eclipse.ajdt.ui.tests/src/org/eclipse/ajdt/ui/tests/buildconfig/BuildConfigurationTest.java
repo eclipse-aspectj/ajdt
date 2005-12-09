@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -103,11 +105,11 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 	
 	public void testBuildConfigurationIsincluded(){
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 		
 		pbc = conf.getProjectBuildConfigurator(ajProject);
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		
 		//test: are all new files included?
 		waitForJobsToComplete();
@@ -121,11 +123,11 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 	
 	public void testBuildConfigurationExclude() throws CoreException{
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 		
 		pbc = conf.getProjectBuildConfigurator(ajProject);
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		BuildConfiguration bc = (BuildConfiguration)pbc.getActiveBuildConfiguration();
 		
 		//prerequisite
 		testBuildConfigurationIsincluded();
@@ -179,11 +181,11 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 	
 	public void testBuildConfigurationInclude() throws CoreException{
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 		
 		pbc = conf.getProjectBuildConfigurator(ajProject);
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		BuildConfiguration bc = (BuildConfiguration)pbc.getActiveBuildConfiguration();
 			
 		waitForJobsToComplete();
 			List l = new ArrayList(3);

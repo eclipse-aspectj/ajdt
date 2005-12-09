@@ -26,7 +26,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -246,7 +246,7 @@ public class LTWUtils {
 					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
 							.getAJCompilationUnit((IFile) resource);
 					if (ajcu != null
-							&& BuildConfigurator.getBuildConfigurator()
+							&& DefaultBuildConfigurator.getBuildConfigurator()
 									.getProjectBuildConfigurator(
 											root.getJavaProject())
 									.getActiveBuildConfiguration().isIncluded(

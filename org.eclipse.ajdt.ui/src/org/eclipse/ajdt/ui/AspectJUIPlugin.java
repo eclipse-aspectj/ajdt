@@ -23,8 +23,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.buildconfig.BCResourceChangeListener;
-import org.eclipse.ajdt.internal.buildconfig.BCWorkbenchWindowInitializer;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.javamodel.FileFilter;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
@@ -426,9 +424,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// listen for builds of AJ projects
 		AJBuilder.addAJBuildListener(new UIBuildListener());
 		
-		// Update project menu and listen for project selections
-		new BCWorkbenchWindowInitializer();
-
 		// BUG 23955. getCurrent() returned null if invoked from a menu.
 		display = Display.getDefault();
 
@@ -436,13 +431,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// will be
 		// notified if resources are added/deleted or their content changed.
 
-		// listener for build configurator
-		AspectJPlugin.getWorkspace().addResourceChangeListener(
-				new BCResourceChangeListener(),
-				IResourceChangeEvent.PRE_CLOSE
-						| IResourceChangeEvent.PRE_DELETE
-						| IResourceChangeEvent.POST_CHANGE
-						| IResourceChangeEvent.PRE_BUILD);
 		// listener for aspectj model
 		AspectJPlugin.getWorkspace().addResourceChangeListener(
 				new ResourceChangeListener(),

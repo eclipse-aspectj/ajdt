@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
+import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardSecondPage;
 import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -46,7 +47,7 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 public class AspectJProjectWizard extends NewElementWizard implements IExecutableExtension {
     
     protected JavaProjectWizardFirstPage fFirstPage;
-    protected AspectJProjectWizardSecondPage fSecondPage;
+    protected JavaProjectWizardSecondPage fSecondPage;
     
     private IConfigurationElement fConfigElement;
     
@@ -65,7 +66,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
         addPage(fFirstPage);
         fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
 		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
-        fSecondPage= new AspectJProjectWizardSecondPage(fFirstPage);
+		fSecondPage= new JavaProjectWizardSecondPage(fFirstPage);
         fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
         fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
         addPage(fSecondPage);

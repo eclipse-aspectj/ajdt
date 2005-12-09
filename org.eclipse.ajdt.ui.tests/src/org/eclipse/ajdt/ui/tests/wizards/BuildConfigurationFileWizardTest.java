@@ -13,9 +13,9 @@ package org.eclipse.ajdt.ui.tests.wizards;
 
 import java.util.Collection;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizard;
+import org.eclipse.ajdt.internal.buildconfig.wizards.BuildConfigurationFileWizard;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -36,7 +36,7 @@ public class BuildConfigurationFileWizardTest extends UITestCase {
 	public void testWizardPerformFinish() throws CoreException {
 		
 		testSrcProject = createPredefinedProject("AJ Project For BuildConfigurationTest"); //$NON-NLS-1$
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(testSrcProject);
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(testSrcProject);
 		assertNotNull("The new project should have a build configurator", pbc); //$NON-NLS-1$
 		Collection configs = pbc.getBuildConfigurations();
 		assertTrue("The new project should have one build configuration", configs.size() == 1); //$NON-NLS-1$

@@ -326,14 +326,6 @@
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
       </editor>
-      <editor
-            name="%ajPropertiesEditor"
-            icon="icons/buildconfig/buildconfig_file.gif"
-            extensions="ajproperties"
-            contributorClass="org.eclipse.ajdt.internal.buildconfig.editor.BuildEditorContributor"
-            class="org.eclipse.ajdt.internal.buildconfig.editor.BuildEditor"
-            id="AJPropertiesEditor">
-      </editor>
 <!-- do we need to duplicate these next 3 editors from JDT??? org.eclipse.jdt.ui.ClassFileEditor -->
 	  <!--editor
             name="Class File Editor"
@@ -406,19 +398,7 @@
             %ajAspectWizard.description
          </description>
       </wizard>
-      
-      <!-- Define wizard for creating new build configurations -->
-      <wizard
-            name="%buildConfigFile"
-            icon="icons/structure/new_build_config_wizard.gif"
-            category="org.eclipse.ajdt.wizards"
-            class="org.eclipse.ajdt.internal.ui.wizards.BuildConfigurationFileWizard"
-            finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
-            id="ajbuildconfigwizard">
-         <description>
-            %buildConfigDescription
-         </description>
-      </wizard>
+
    </extension>
 
    <extension
@@ -485,10 +465,9 @@
          </action>         
          <action
                label="%buildConfig"
-               style="pulldown"
                icon="icons/actions/ajdt-build.gif"
                disabledIcon="icons/actions/disabled_build.gif"
-               tooltip="Build AspectJ Project / Select Configuration"
+               tooltip="Build AspectJ Project"
                class="org.eclipse.ajdt.internal.ui.PulldownBuildselectorMenu"
                toolbarPath="org.eclipse.ui.workbench.file/build.ext"
                id="SelectBuildConfiguration">
@@ -633,17 +612,6 @@ M4 = Platform-specific fourth key
             name="%aspectj"
             class="org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage"
             id="org.eclipse.ajdt.ui.ProjectPage">
-         <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-         </filter>
-      </page>
-      <page
-            objectClass="org.eclipse.core.resources.IProject"
-            adaptable="true"
-            name="%javaBuildPath"
-            class="org.eclipse.ajdt.internal.buildconfig.propertypage.BCPropertyPage"
-            id="org.eclipse.ajdt.ui.ConfiguratorPage">
          <filter
                name="projectNature"
                value="org.eclipse.ajdt.ui.ajnature">
@@ -1344,135 +1312,7 @@ M4 = Platform-specific fourth key
 	</perspective>
 </extension>
 
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            objectClass="org.eclipse.jdt.core.IJavaElement"
-            id="Build Configurator Plugin.objectContribution2">
-         <menu
-               label="%org.eclipse.ajdt.ui.tools"
-               id="org.eclipse.ajdt.ui.feature.tools">
-            <separator
-                  name="group0">
-            </separator>
-            <separator
-                  name="group1">
-            </separator>
-            <separator
-                  name="group2">
-            </separator>
-         </menu>
-         <action
-               label="%excludeFromBuildConfig"
-               class="org.eclipse.ajdt.internal.buildconfig.actions.ExcludeAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
-               icon="icons/buildconfig/exclusion_filter_attrib.gif"
-               id="exclude">
-         </action>
-        <visibility>
-           <and>
-             <objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
-             <or>
-               <objectClass name="org.eclipse.jdt.core.ICompilationUnit"/>
-               <objectClass name="org.eclipse.jdt.core.IPackageFragment"/>
-             </or>
-           </and>
-         </visibility>
-      </objectContribution>
-      <objectContribution
-            objectClass="org.eclipse.jdt.core.IJavaElement"
-            id="Build Configurator Plugin.objectContribution1">
-         <menu
-               label="%org.eclipse.ajdt.ui.tools"
-               id="org.eclipse.ajdt.ui.feature.tools">
-            <separator
-                  name="group0">
-            </separator>
-            <separator
-                  name="group1">
-            </separator>
-            <separator
-                  name="group2">
-            </separator>
-         </menu>
-         <action
-               label="%includeInActiveBuildConfig"
-               class="org.eclipse.ajdt.internal.buildconfig.actions.IncludeAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
-               icon="icons/buildconfig/inclusion_filter_attrib.gif"
-               id="include">
-         </action>
-        <visibility>
-           <and>
-             <objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
-             <or>
-               <objectClass name="org.eclipse.jdt.core.ICompilationUnit"/>
-               <objectClass name="org.eclipse.jdt.core.IPackageFragment"/>
-             </or>
-           </and>
-         </visibility>
-      </objectContribution>
-            <objectContribution
-            objectClass="org.eclipse.core.resources.IFile"
-            nameFilter="*.lst"
-            id="buildfilecontributions">
-         <visibility>
-            <objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
-         </visibility>
-         <menu
-               label="%org.eclipse.ajdt.ui.tools"
-               id="org.eclipse.ajdt.ui.feature.tools">
-            <separator
-                  name="group0">
-            </separator>
-            <separator
-                  name="group1">
-            </separator>
-            <separator
-                  name="group2">
-            </separator>
-         </menu>
-         <action
-               label="%saveAsAJProperties"
-               class="org.eclipse.ajdt.internal.buildconfig.actions.ImportAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-               id="buildselectorpopup">
-         </action>
-      </objectContribution>
 
-      <objectContribution
-            objectClass="org.eclipse.core.resources.IFile"
-            nameFilter="*.ajproperties"
-            id="ajproperties">
-         <visibility>
-            <objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
-         </visibility>
-         <menu
-               label="%org.eclipse.ajdt.ui.tools"
-               id="org.eclipse.ajdt.ui.feature.tools">
-            <separator
-                  name="group0">
-            </separator>
-            <separator
-                  name="group1">
-            </separator>
-            <separator
-                  name="group2">
-            </separator>
-         </menu>
-         <action
-               label="%activateConfig"
-               class="org.eclipse.ajdt.internal.buildconfig.actions.ActivateAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
-               id="ajpropertiespopup">
-         </action>
-         <action
-               label="%saveAsLst"
-               class="org.eclipse.ajdt.internal.buildconfig.actions.ExportAction"
-               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-               id="org.eclipse.ajdt.buildconfigurator.exportAction"/>
-      </objectContribution>
-   </extension>
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
@@ -1489,15 +1329,13 @@ M4 = Platform-specific fourth key
    </extension>
 
    <extension
-         id="dec1"
-         name="dec1"
          point="org.eclipse.ui.decorators">
       <decorator
             lightweight="false"
             label="%BuildConfigDecorator.label"
-            class="org.eclipse.ajdt.internal.buildconfig.ImageDecorator"
+            class="org.eclipse.ajdt.internal.ui.ImageDecorator"
             state="true"
-            id="org.eclipse.ajdt.buildconfig.decorator">
+            id="org.eclipse.ajdt.ui.decorator">
          <description>
 			%BuildConfigDecorator.description
 		 </description>

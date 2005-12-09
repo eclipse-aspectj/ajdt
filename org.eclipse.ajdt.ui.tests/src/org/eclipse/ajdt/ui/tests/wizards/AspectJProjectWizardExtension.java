@@ -13,7 +13,7 @@ package org.eclipse.ajdt.ui.tests.wizards;
 
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
-import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardSecondPage;
+import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardSecondPage;
 import org.eclipse.swt.widgets.Composite;
 
 
@@ -41,7 +41,7 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
 		fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
 		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
         addPage(fFirstPage);
-        fSecondPage= new AspectJProjectWizardSecondPage(fFirstPage);
+        fSecondPage= new JavaProjectWizardSecondPage(fFirstPage);
         fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
         fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
         addPage(fSecondPage);

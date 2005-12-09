@@ -18,7 +18,6 @@ import java.io.IOException;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
-import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizardSecondPage;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -29,6 +28,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
+import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardSecondPage;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -41,7 +41,7 @@ public class AspectJProjectWizardTest extends UITestCase {
 
 	JavaProjectWizardFirstPage testPage;
 
-	AspectJProjectWizardSecondPage secondTestPage;
+	JavaProjectWizardSecondPage secondTestPage;
 
 	/*
 	 * @see TestCase#setUp()

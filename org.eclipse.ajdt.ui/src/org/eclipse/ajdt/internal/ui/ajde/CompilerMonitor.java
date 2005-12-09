@@ -18,10 +18,10 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -146,7 +146,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                 public void run() {
                     if (monitor != null) {
                         if (isLocalBuild) {
-                            ProjectBuildConfigurator pbc = BuildConfigurator
+                            IProjectBuildConfigurator pbc = DefaultBuildConfigurator
                                     .getBuildConfigurator()
                                     .getActiveProjectBuildConfigurator();
                             if (pbc != null) {

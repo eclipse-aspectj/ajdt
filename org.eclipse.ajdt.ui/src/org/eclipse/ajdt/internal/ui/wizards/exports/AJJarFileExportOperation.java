@@ -29,8 +29,9 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipException;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -69,7 +70,6 @@ import org.eclipse.jdt.ui.jarpackager.IJarDescriptionWriter;
 import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
 import org.eclipse.jdt.ui.jarpackager.JarWriter2;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.util.Assert;
@@ -468,8 +468,8 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	private void exportClassFiles(IProgressMonitor progressMonitor, IPackageFragmentRoot pkgRoot, IResource resource, IJavaProject jProject, IPath destinationPath) {
 		if (fJarPackage.areClassFilesExported() && isJavaFile(resource) && pkgRoot != null) {
 			// AspectJ Change Begin
-			BuildConfigurator bc = BuildConfigurator.getBuildConfigurator();
-			ProjectBuildConfigurator pbc = bc.getProjectBuildConfigurator(resource.getProject());
+			IBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator();
+			IProjectBuildConfigurator pbc = bc.getProjectBuildConfigurator(resource.getProject());
 			if(pbc.getActiveBuildConfiguration().isIncluded(resource)) {
 			// AspectJ Change End
 				try {

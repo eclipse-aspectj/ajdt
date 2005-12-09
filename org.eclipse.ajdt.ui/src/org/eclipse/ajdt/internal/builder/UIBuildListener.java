@@ -66,7 +66,7 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
 		ProjectProperties props = AspectJUIPlugin.getDefault().getAjdtProjectProperties();
-		ensureBuildConfigFileIsValid(props, project);
+		//ensureBuildConfigFileIsValid(props, project);
 		
 		// checking to see if the current project has been marked as needing
 		// a required project to be rebuilt.

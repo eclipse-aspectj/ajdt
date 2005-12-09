@@ -16,9 +16,9 @@ import java.util.List;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.ICoreOperations;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.IPath;
@@ -40,7 +40,7 @@ public class UICoreOperations implements ICoreOperations {
 	 */
 	public boolean isFullBuildRequested(IProject project) {
 		//check if full build needed
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		if (pbc != null) {
 			if (pbc.fullBuildRequested()) {
@@ -53,13 +53,13 @@ public class UICoreOperations implements ICoreOperations {
 	
 	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
 		if (delta!=null && delta.getAffectedChildren().length!=0) {
-			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+			IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 		                               .getProjectBuildConfigurator(project);
 			if (pbc == null) {
 				// may not be an AJ project, better assume there might be changes
 				return true;
 			}
-			BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
 			IJavaProject ijp = JavaCore.create(project);		
 			if (ijp == null) {

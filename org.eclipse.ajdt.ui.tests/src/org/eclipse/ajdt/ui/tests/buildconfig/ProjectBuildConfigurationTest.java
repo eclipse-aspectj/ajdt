@@ -17,9 +17,11 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -113,20 +115,20 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 	public void testGetBuildConfigurator() {
 		//TODO: test could be improved using threads to do accesses
 		// simultanously
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		BuildConfigurator conf2 = BuildConfigurator.getBuildConfigurator();
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IBuildConfigurator conf2 = DefaultBuildConfigurator.getBuildConfigurator();
 		if (conf != conf2) {
 			fail("Build Configurator not unique."); //$NON-NLS-1$
 		}
 	}
 
 	public void testGetBuildConfiguration() {
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 
 		pbc = conf.getProjectBuildConfigurator(ajProject);
 
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (bc == null)
 			fail("Could not get active BuildConfiguration."); //$NON-NLS-1$
 
@@ -158,8 +160,8 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 	}
 
 	public void testNatureConversion() throws CoreException {
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 		AJDTUtils.removeAspectJNature(ajProject);
 		waitForJobsToComplete();
 
@@ -197,7 +199,7 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 			fail("No ProjectBuildConfigurator was created after adding aj nature."); //$NON-NLS-1$
 		}
 
-		BuildConfiguration bc = pbc.getActiveBuildConfiguration();
+		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
 		if (bc == null) {
 			fail("No active build configuration was created when added aj nature to project."); //$NON-NLS-1$
 		}

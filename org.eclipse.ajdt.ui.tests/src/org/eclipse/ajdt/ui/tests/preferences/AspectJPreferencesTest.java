@@ -19,11 +19,12 @@ import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesUtils;
 import org.eclipse.core.resources.IFile;
@@ -80,8 +81,8 @@ public class AspectJPreferencesTest extends UITestCase {
 	}
 
 	public void testBuildConfigSetting() throws Exception {
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc = conf
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc = conf
 				.getProjectBuildConfigurator(project);
 		assertNotNull("Didn't get a project build configurator", pbc); //$NON-NLS-1$
 

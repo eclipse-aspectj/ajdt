@@ -26,7 +26,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.builder.MarkerUpdating;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
@@ -35,6 +34,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -211,7 +211,7 @@ public class AJDTUtils {
 		// changeProjectDependencies(project);
 
 		//Luzius: set up build configuration
-		BuildConfigurator.getBuildConfigurator().setup(project);
+		DefaultBuildConfigurator.getBuildConfigurator().setup(project);
 
 		//crete compilation units for .aj files
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
@@ -635,7 +635,7 @@ public class AJDTUtils {
 		removeMarkerOnReferencingProjects(project);
 
 		//Luzius: tell build configurator aj nature has been removed
-		BuildConfigurator.getBuildConfigurator().restoreJDTState(project);
+		DefaultBuildConfigurator.getBuildConfigurator().restoreJDTState(project);
 
 		//Ensures the project icon refreshes
 		AJDTUtils.refreshPackageExplorer();

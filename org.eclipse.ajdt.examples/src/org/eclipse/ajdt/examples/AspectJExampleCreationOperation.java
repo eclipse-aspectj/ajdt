@@ -13,11 +13,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -145,7 +145,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		//In case Build Configurator got initialized before we created the
 		// build configuration files,
 		//let's reinitailize it
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator()
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(proj);
 		pbc.reInit();
 		
@@ -158,15 +158,15 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			int buildfiles = 0;
 			for (int i = 0; i < files.length; i++) {
 				if ((files[i].getType() != IResource.FOLDER)
-						&& BuildConfiguration.EXTENSION.equals(files[i]
+						&& IBuildConfiguration.EXTENSION.equals(files[i]
 								.getFileExtension())
 						&& files[i].exists()) {
 					buildfiles++;
 				}
 			}
 			if (buildfiles > 1) {
-				IFile f = (IFile)proj.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_NAME + "." + BuildConfiguration.EXTENSION); //$NON-NLS-1$
-				BuildConfiguration bc = pbc.getBuildConfiguration(f);
+				IFile f = (IFile)proj.findMember(IBuildConfiguration.STANDARD_BUILD_CONFIGURATION_NAME + "." + IBuildConfiguration.EXTENSION); //$NON-NLS-1$
+				IBuildConfiguration bc = pbc.getBuildConfiguration(f);
 				if (bc != null){
 					pbc.removeBuildConfiguration(bc);
 				}

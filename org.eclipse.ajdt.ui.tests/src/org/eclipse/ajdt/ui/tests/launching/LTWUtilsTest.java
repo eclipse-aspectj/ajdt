@@ -21,10 +21,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.launching.LTWUtils;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -48,10 +48,10 @@ public class LTWUtilsTest extends UITestCase{
 	public void testGetAspects() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		ProjectBuildConfigurator bc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
+		IProjectBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		Collection c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			BuildConfiguration element = (BuildConfiguration) iter.next();
+			IBuildConfiguration element = (IBuildConfiguration) iter.next();
 			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
@@ -200,10 +200,10 @@ public class LTWUtilsTest extends UITestCase{
 	public void testGenerateLTWConfigFile6() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		ProjectBuildConfigurator bc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
+		IProjectBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
 		Collection c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			BuildConfiguration element = (BuildConfiguration) iter.next();
+			IBuildConfiguration element = (IBuildConfiguration) iter.next();
 			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
@@ -232,7 +232,7 @@ public class LTWUtilsTest extends UITestCase{
 		// activate a different build config to see if aop.xml updates correctly
 		c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			BuildConfiguration element = (BuildConfiguration) iter.next();
+			IBuildConfiguration element = (IBuildConfiguration) iter.next();
 			if (element.getName().equals("tracev1")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};
@@ -259,7 +259,7 @@ public class LTWUtilsTest extends UITestCase{
 		// clear the "aspects" part of the aop.xml file.
 		c = bc.getBuildConfigurations();
 		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			BuildConfiguration element = (BuildConfiguration) iter.next();
+			IBuildConfiguration element = (IBuildConfiguration) iter.next();
 			if (element.getName().equals("notrace")) { //$NON-NLS-1$
 				bc.setActiveBuildConfiguration(element);
 			};

@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -316,7 +316,7 @@ public class AspectJApplicationLaunchShortcut extends
 		List mainTypes = new ArrayList();
 		AJCompilationUnit element = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		try {
-			if (BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(element.getJavaProject()).getActiveBuildConfiguration().isIncluded(element.getCorrespondingResource())) {
+			if (DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(element.getJavaProject()).getActiveBuildConfiguration().isIncluded(element.getCorrespondingResource())) {
 				IType[] types = element.getAllTypes();
 				for (int i = 0; i < types.length; i++) {
 					IType type = types[i];

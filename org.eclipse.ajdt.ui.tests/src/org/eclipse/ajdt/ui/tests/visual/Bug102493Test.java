@@ -12,7 +12,7 @@
 package org.eclipse.ajdt.ui.tests.visual;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -40,7 +40,7 @@ public class Bug102493Test extends VisualTestCase {
 		final IFile class3 = src2.getFile("pack/Class3.java"); //$NON-NLS-1$
 		assertTrue("Should have found a file called Class3.java", class3 //$NON-NLS-1$
 				.exists());
-		assertTrue("Class3 should be included in the build", BuildConfigurator //$NON-NLS-1$
+		assertTrue("Class3 should be included in the build", DefaultBuildConfigurator //$NON-NLS-1$
 				.getBuildConfigurator().getProjectBuildConfigurator(project)
 				.getActiveBuildConfiguration().isIncluded(class3));
 
@@ -70,7 +70,7 @@ public class Bug102493Test extends VisualTestCase {
 
 		new DisplayHelper() {
 			protected boolean condition() {
-				return !BuildConfigurator.getBuildConfigurator()
+				return !DefaultBuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(project)
 						.getActiveBuildConfiguration().isIncluded(class3);
 			}
@@ -78,7 +78,7 @@ public class Bug102493Test extends VisualTestCase {
 		}.waitForCondition(Display.getDefault(), 5000);
 
 		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
-				BuildConfigurator.getBuildConfigurator()
+				DefaultBuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(project)
 						.getActiveBuildConfiguration().isIncluded(class3));
 
@@ -113,7 +113,7 @@ public class Bug102493Test extends VisualTestCase {
 		IFolder src3 = project.getFolder("src3"); //$NON-NLS-1$
 		assertTrue("Should have found a folder called src3", src3.exists()); //$NON-NLS-1$
 		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
-				BuildConfigurator.getBuildConfigurator()
+				DefaultBuildConfigurator.getBuildConfigurator()
 						.getProjectBuildConfigurator(project)
 						.getActiveBuildConfiguration().isIncluded(class3));
 

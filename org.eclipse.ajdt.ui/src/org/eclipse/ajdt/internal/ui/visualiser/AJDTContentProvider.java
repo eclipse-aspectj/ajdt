@@ -13,9 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
@@ -167,8 +167,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 					currentGroups.add(group);					
 				}
 			} else if (currentlySelectedJE instanceof ICompilationUnit) {
-				ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
-				BuildConfiguration bc = null;
+				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
+				IBuildConfiguration bc = null;
 				if(pbc != null) {
 					bc = pbc.getActiveBuildConfiguration();
 				}
@@ -267,8 +267,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 		List returningClasses = new ArrayList();
 		try {
 			if (containsUsefulStuff(PF)) {
-				ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
-				BuildConfiguration bc = null;
+				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
+				IBuildConfiguration bc = null;
 				if(pbc != null) {
 					bc = pbc.getActiveBuildConfiguration();
 				}

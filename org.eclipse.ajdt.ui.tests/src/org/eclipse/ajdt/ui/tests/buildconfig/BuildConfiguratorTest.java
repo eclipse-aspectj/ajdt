@@ -13,8 +13,9 @@ package org.eclipse.ajdt.ui.tests.buildconfig;
 
 import java.io.ByteArrayInputStream;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -108,8 +109,8 @@ public class BuildConfiguratorTest extends UITestCase {
 	}
 
 	public void testGetProjectBuildConfigurator() throws CoreException {
-		BuildConfigurator conf = BuildConfigurator.getBuildConfigurator();
-		ProjectBuildConfigurator pbc;
+		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
+		IProjectBuildConfigurator pbc;
 
 		pbc = conf.getProjectBuildConfigurator(javaProject);
 		if (pbc != null)

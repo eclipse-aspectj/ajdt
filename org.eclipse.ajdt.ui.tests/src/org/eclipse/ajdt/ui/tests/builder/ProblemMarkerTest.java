@@ -14,8 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -70,8 +71,8 @@ public class ProblemMarkerTest extends UITestCase {
 		IFile newAspect = createFile(p1,"newAspect.aj","blah blah blah"); //$NON-NLS-1$ //$NON-NLS-2$
 		assertNotNull("newAspect should not be null", newAspect); //$NON-NLS-1$
 		
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(myProject);
-		BuildConfiguration buildConfig = pbc.getActiveBuildConfiguration();
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(myProject);
+		BuildConfiguration buildConfig = (BuildConfiguration)pbc.getActiveBuildConfiguration();
 
 		List newFiles = new ArrayList();
 		newFiles.add(newAspect);

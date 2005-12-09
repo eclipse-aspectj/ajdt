@@ -13,10 +13,10 @@ package org.eclipse.ajdt.ui.tests.launching;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.launching.AJMainMethodSearchEngine;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -34,12 +34,12 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
-		ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
+		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
 		Collection bcs = pbc.getBuildConfigurations();
-		BuildConfiguration notrace = null;
-		BuildConfiguration tracev1 = null;
+		IBuildConfiguration notrace = null;
+		IBuildConfiguration tracev1 = null;
 		for (Iterator iter = bcs.iterator(); iter.hasNext();) {
-			BuildConfiguration bc = (BuildConfiguration) iter.next();
+			IBuildConfiguration bc = (IBuildConfiguration) iter.next();
 			if(bc.getName().equals("notrace")) { //$NON-NLS-1$
 				notrace = bc;
 			} else if(bc.getName().equals("tracev1")) { //$NON-NLS-1$

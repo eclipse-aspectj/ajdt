@@ -10,9 +10,9 @@ Contributors:
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor.contentassist;
 
-import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
-import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.bc.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jface.text.ITextViewer;
@@ -47,7 +47,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		IEditorInput input = editor.getEditorInput();
 		if (input instanceof FileEditorInput){
 			IFile file = ((FileEditorInput)input).getFile();
-			ProjectBuildConfigurator pbc = BuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
+			ProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
 			isInAspectJContext = (pbc != null);
 		}
 		if (isInAspectJContext)
