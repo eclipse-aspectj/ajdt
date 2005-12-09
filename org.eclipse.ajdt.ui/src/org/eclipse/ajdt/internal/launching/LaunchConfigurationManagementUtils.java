@@ -179,7 +179,7 @@ public class LaunchConfigurationManagementUtils {
 	 */
 	private static List getLaunchConfigsForProject(String projectName) {
 		ILaunchConfigurationType configType = AspectJApplicationLaunchShortcut
-				.getAJLaunchConfigType();
+				.getAJConfigurationType();
 		List candidateConfigs = new ArrayList();
 		try {
 			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
