@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ui;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-//import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
+import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IProject;
@@ -215,8 +215,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 				new IClasspathAttribute[0] // extra attributes?
         		);
 		}
-		// TODO: 3.2M4
-//		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
+		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
 		AJLog.log("Compiler properties changed for project: " + thisProject.getName()); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
 		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());

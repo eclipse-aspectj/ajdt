@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.launching;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.internal.debug.ui.launcher.LauncherMessages;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
@@ -89,14 +88,6 @@ public class AJMainTypeSelectionDialog extends TwoPaneElementSelector {
 						| JavaElementLabelProvider.SHOW_OVERLAY_ICONS),
 				new PackageRenderer());
 		this.types = types;
-		// TODO: 3.2M4
-//		setMessage(LauncherMessages
-//				.MainTypeSelectionDialog_Choose_a_type);
-//		setUpperListLabel(LauncherMessages
-//				.MainTypeSelectionDialog_Matching_types);
-//		setLowerListLabel(LauncherMessages
-//				.MainTypeSelectionDialog_Qualifier);
-
 	}
 
 	/**

@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 //import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
+import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -288,8 +289,7 @@ public class AspectPathBlock {
         AspectJCorePreferences.setProjectAspectPath(fCurrJProject.getProject(),aspectpathBuffer.toString(),
         		contentKindBuffer.toString(),entryKindBuffer.toString());
   
-        // TODO: 3.2M4
-//        LaunchConfigurationManagementUtils.updateAspectPaths(fCurrJProject, existingAspectPath, aspectPathEntries);
+        LaunchConfigurationManagementUtils.updateAspectPaths(fCurrJProject, existingAspectPath, aspectPathEntries);
     }
    
     /**
