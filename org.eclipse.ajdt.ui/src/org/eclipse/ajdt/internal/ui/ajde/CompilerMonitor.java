@@ -21,6 +21,7 @@ import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -150,9 +151,13 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                                     .getBuildConfigurator()
                                     .getActiveProjectBuildConfigurator();
                             if (pbc != null) {
-								String configName = pbc
-										.getActiveBuildConfiguration()
-										.getName();
+								String configName;
+								IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+								if (bc!=null) {
+									configName = bc.getName();
+								} else {
+									configName = UIMessages.CompilerMonitor_default_config;
+								}
 								monitor
 										.setTaskName(NLS
 												.bind(

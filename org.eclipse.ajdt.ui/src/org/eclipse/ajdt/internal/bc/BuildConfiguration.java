@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.core.CoreUtils.FilenameFilter;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -37,7 +38,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 	}
 	
 	public String getName() {
-		return "<default>";
+		return UIMessages.CompilerMonitor_default_config;
 	}
 
 	public IFile getFile() {

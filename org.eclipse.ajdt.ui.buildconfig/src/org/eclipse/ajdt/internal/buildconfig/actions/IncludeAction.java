@@ -67,9 +67,11 @@ public class IncludeAction extends BuildConfigurationChangeAction {
 						.getName())) {
 					IProjectBuildConfigurator pbc = buildConfigurator
 						.getProjectBuildConfigurator(file.getProject());
-					if ((pbc!=null) && pbc.getActiveBuildConfiguration().isIncluded(
-							file)) {
-						return false;
+					if (pbc != null) {
+						IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+						if ((bc!=null) && bc.isIncluded(file)) {
+							return false;
+						}
 					}
 					
 					// the file is not currently included but we only give the

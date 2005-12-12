@@ -27,6 +27,8 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -245,21 +247,23 @@ public class LTWUtils {
 								.getFileExtension())) {
 					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
 							.getAJCompilationUnit((IFile) resource);
-					if (ajcu != null
-							&& DefaultBuildConfigurator.getBuildConfigurator()
-									.getProjectBuildConfigurator(
-											root.getJavaProject())
-									.getActiveBuildConfiguration().isIncluded(
-											ajcu.getResource())) {
-						try {
-							IType[] types = ajcu.getAllTypes();
-							for (int i = 0; i < types.length; i++) {
-								IType type = types[i];
-								if (type instanceof AspectElement) {
-									aspects.add(type);
+					IProjectBuildConfigurator pbc = DefaultBuildConfigurator
+							.getBuildConfigurator()
+							.getProjectBuildConfigurator(root.getJavaProject());
+					if ((ajcu != null) && (pbc != null)) {
+						IBuildConfiguration bc = pbc
+								.getActiveBuildConfiguration();
+						if ((bc == null) || bc.isIncluded(ajcu.getResource())) {
+							try {
+								IType[] types = ajcu.getAllTypes();
+								for (int i = 0; i < types.length; i++) {
+									IType type = types[i];
+									if (type instanceof AspectElement) {
+										aspects.add(type);
+									}
 								}
+							} catch (JavaModelException e) {
 							}
-						} catch (JavaModelException e) {
 						}
 					}
 				}

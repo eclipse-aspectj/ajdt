@@ -31,6 +31,10 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		return new BuildConfiguration(project);
 	}
 
+	public IBuildConfiguration getActiveBuildConfiguration(boolean create) {
+		return new BuildConfiguration(project);
+	}
+	
 	public IJavaProject getJavaProject() {
 		// TODO Auto-generated method stub
 		return null;
@@ -84,4 +88,5 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		// TODO Auto-generated method stub
 		
 	}
+
 }

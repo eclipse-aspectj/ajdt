@@ -20,6 +20,8 @@ public interface IProjectBuildConfigurator {
 
 	public IBuildConfiguration getActiveBuildConfiguration();
 
+	public IBuildConfiguration getActiveBuildConfiguration(boolean create);
+
 	public IJavaProject getJavaProject();
 
 	public Collection getBuildConfigurations();

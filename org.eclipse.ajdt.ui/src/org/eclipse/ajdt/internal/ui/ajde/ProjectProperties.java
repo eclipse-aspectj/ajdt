@@ -33,6 +33,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -75,8 +76,13 @@ public class ProjectProperties extends CoreProjectProperties  {
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 				.getProjectBuildConfigurator(project);
 		if (pbc != null) {
-			return pbc.getActiveBuildConfiguration().getIncludedJavaFiles(
-					filter);
+			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			if (bc != null) {
+				return bc.getIncludedJavaFiles(filter);
+			} else {
+				// no build.ajproperties, revert to default behaviour (build everything)
+				return super.getProjectSourceFiles();
+			}
 		}
 		return new ArrayList(0);
 

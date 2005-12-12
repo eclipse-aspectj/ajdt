@@ -209,7 +209,7 @@ public class BuildConfigurator implements IBuildConfigurator, ISelectionListener
 		return null;
 	}
 	
-	private synchronized ProjectBuildConfigurator createPBC(IJavaProject proj){
+	private ProjectBuildConfigurator createPBC(IJavaProject proj){
 		//check if already there
 		ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) projectConfigurators
 		.get(proj.getProject().getName());

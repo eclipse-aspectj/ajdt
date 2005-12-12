@@ -65,9 +65,7 @@ public class ImageDecorator implements ILabelDecorator {
 	private ImageDescriptor halfFilledPackageID;
 	private ImageDescriptor activeConfigFileImage;
 	private IBuildConfigurator buildConfor;
-	
-	private AspectJImages iconRegistry = AspectJImages.instance();
-	
+		
 	/**
 	 *
 	 */
@@ -120,8 +118,8 @@ public class ImageDecorator implements ILabelDecorator {
 				
 				if (pbc == null)
 					return null;
-				
-				if (pbc.getActiveBuildConfiguration().isIncluded(file)){
+				IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+				if ((bc==null) || bc.isIncluded(file)){
 					Rectangle rect = image.getBounds();
 					img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
 				} else {
@@ -133,8 +131,8 @@ public class ImageDecorator implements ILabelDecorator {
 				
 				if (pbc == null)
 					return null;
-				
-				if (pbc.getActiveBuildConfiguration().isIncluded(file)){
+				IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+				if ((bc==null) || bc.isIncluded(file)){
 					Rectangle rect = image.getBounds();
 					img = getImageLabel(getJavaImageDescriptor(JavaPluginImages.DESC_OBJS_CUNIT, rect, 0));
 				} else {
@@ -145,7 +143,8 @@ public class ImageDecorator implements ILabelDecorator {
 				if (BuildConfiguration.EXTENSION.equals(file.getFileExtension())){
 					IProjectBuildConfigurator pbc = buildConfor.getProjectBuildConfigurator(file.getProject());
 					if (pbc != null){
-						if (file.equals(pbc.getActiveBuildConfiguration().getFile())){
+						IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+						if ((bc!=null) && file.equals(bc.getFile())){
 							img = getImageLabel(getJavaImageDescriptor(activeConfigFileImage, image.getBounds(), 0));
 						}
 					}
@@ -272,7 +271,7 @@ public class ImageDecorator implements ILabelDecorator {
 					if (resource instanceof IFile) {
 						IFile file = (IFile)resource;
 						if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(file.getName())) {
-							if(bc.isIncluded(file)) {
+							if((bc==null) || bc.isIncluded(file)) {
 								return true;
 							}
 						}
@@ -288,6 +287,9 @@ public class ImageDecorator implements ILabelDecorator {
 	}
 	
 	public static boolean containsExcludedFiles(IBuildConfiguration bc, IPackageFragment pack){
+		if (bc==null) {
+			return false;
+		}
 		try {			
 			// Bug 88477 - JDT may have refreshed the model
 			IResource res = pack.getResource();
@@ -356,41 +358,6 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		}
 		return null;
-	}
-	
-	private int computeJavaAdornmentFlags(IJavaElement element) {
-		int flags= 0;
-		if (true && element instanceof IMember) {
-			try {
-				IMember member= (IMember) element;
-				
-				if (element.getElementType() == IJavaElement.METHOD && ((IMethod)element).isConstructor())
-					flags |= JavaElementImageDescriptor.CONSTRUCTOR;
-					
-				int modifiers= member.getFlags();
-				if (Flags.isAbstract(modifiers) && confirmAbstract(member))
-					flags |= JavaElementImageDescriptor.ABSTRACT;
-				if (Flags.isFinal(modifiers) || isInterfaceField(member))
-					flags |= JavaElementImageDescriptor.FINAL;
-				if (Flags.isSynchronized(modifiers) && confirmSynchronized(member))
-					flags |= JavaElementImageDescriptor.SYNCHRONIZED;
-				if (Flags.isStatic(modifiers) || isInterfaceField(member))
-					flags |= JavaElementImageDescriptor.STATIC;
-				
-				if (Flags.isDeprecated(modifiers))
-					flags |= JavaElementImageDescriptor.DEPRECATED;
-				
-				if (member.getElementType() == IJavaElement.TYPE) {
-					if (JavaModelUtil.hasMainMethod((IType) member)) {
-						flags |= JavaElementImageDescriptor.RUNNABLE;
-					}
-				}
-			} catch (JavaModelException e) {
-				// do nothing. Can't compute runnable adornment or get flags
-				// can be ignored
-			}
-		}
-		return flags;
 	}
 	
 	private static boolean confirmAbstract(IMember element) throws JavaModelException {

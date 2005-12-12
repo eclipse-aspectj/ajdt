@@ -69,9 +69,14 @@ public class ExcludeAction extends BuildConfigurationChangeAction {
 						.getName())) {
 					IProjectBuildConfigurator pbc = buildConfigurator
 							.getProjectBuildConfigurator(file.getProject());
-					if (pbc != null)
-						return pbc.getActiveBuildConfiguration().isIncluded(
-								file);
+					if (pbc != null) {
+						IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+						if (bc != null) {
+							return bc.isIncluded(file);
+						} else {
+							return true;
+						}
+					}
 				}
 			}
 		} catch (CoreException e) {

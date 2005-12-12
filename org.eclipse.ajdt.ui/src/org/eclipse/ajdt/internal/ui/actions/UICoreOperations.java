@@ -59,11 +59,16 @@ public class UICoreOperations implements ICoreOperations {
 				// may not be an AJ project, better assume there might be changes
 				return true;
 			}
-			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			List includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
 			IJavaProject ijp = JavaCore.create(project);		
 			if (ijp == null) {
 				return true;
+			}
+			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+			List includedFileNames;
+			if (bc == null) {
+				includedFileNames = null;
+			} else {
+				includedFileNames = bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER);
 			}
 			
 			try {
@@ -93,7 +98,7 @@ public class UICoreOperations implements ICoreOperations {
 		}
 		
 		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
+		    if ((includedFileNames==null) || includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
                 return true;
             } else {
                 return false;

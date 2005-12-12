@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.internal.buildconfig.editor.BuildProperties;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
@@ -32,6 +33,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -335,7 +337,6 @@ public class BuildConfiguration implements IBuildConfiguration, Cloneable,
 				String newName = md.getValue();
 				this.name = newName;
 	
-				IFile origFile = origBC.getFile();
 				IFile newFile = this.getFile();
 				if (newFile.exists()) {
 					if (!askUserOverwrite(newFile.getName())) {
@@ -347,13 +348,23 @@ public class BuildConfiguration implements IBuildConfiguration, Cloneable,
 					}
 					
 				}
-				try {
-					origFile.copy(newFile.getFullPath(), true, null);
-					this.propertiesFile = new BuildProperties(newFile);
-				} catch (CoreException e) {
-					//could not copy file, try another way to create it
+				
+				if (origBC != null) {
+					IFile origFile = origBC.getFile();
+					try {
+						origFile.copy(newFile.getFullPath(), true, null);
+						this.propertiesFile = new BuildProperties(newFile);
+					} catch (CoreException e) {
+						// could not copy file, try another way to create it
+						this.propertiesFile = new BuildProperties(
+								getFileFromName(name), new ArrayList(
+										getFileList()));
+					}
+				} else {
+					// new file, include everything
 					this.propertiesFile = new BuildProperties(
-							getFileFromName(name), new ArrayList(getFileList()));
+							getFileFromName(name), 
+							getProjectSourceFolders(pbc.getJavaProject()));
 				}
 				fileList = new HashSet(propertiesFile.getFiles(false));
 				pbc.addBuildConfiguration(this);
@@ -374,6 +385,26 @@ public class BuildConfiguration implements IBuildConfiguration, Cloneable,
 			}
 		}
 	}
+	
+	private List getProjectSourceFolders(IJavaProject jp) {
+		List sourceFolders = new ArrayList();
+		try {
+			IClasspathEntry[] cpes = jp.getRawClasspath();
+			for (int i = 0; i < cpes.length; i++) {
+				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath path = cpes[i].getPath();
+					IResource res = jp.getProject().findMember(path
+							.removeFirstSegments(1));
+					if ((res != null) && (res instanceof IContainer)) {
+						sourceFolders.add(res);
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return sourceFolders;
+	}
+
 	
 	/**
 	 * Creates a build configuration with the given name

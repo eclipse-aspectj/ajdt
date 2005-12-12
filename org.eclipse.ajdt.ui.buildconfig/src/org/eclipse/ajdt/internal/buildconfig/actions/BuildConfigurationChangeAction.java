@@ -98,8 +98,8 @@ public abstract class BuildConfigurationChangeAction implements
 					}
 				}
 			}
-			doMySpecificAction(pbc.getActiveBuildConfiguration(),
-					itemsToManipulate);
+			IBuildConfiguration bc = pbc.getActiveBuildConfiguration(true);
+			doMySpecificAction(bc,itemsToManipulate);
 		}
 
 	}
@@ -125,9 +125,7 @@ public abstract class BuildConfigurationChangeAction implements
 			myAction.setEnabled(true);
 			Job job = new Job(UIMessages.buildConfigurationChangeAction_job_name) {
 				protected IStatus run(IProgressMonitor monitor) {
-					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-					myAction.setText(actionText.replaceAll("%bcname", bc //$NON-NLS-1$
-							.getName()));
+					myAction.setText(actionText);
 					return Status.OK_STATUS;
 				}
 			};
@@ -184,12 +182,7 @@ public abstract class BuildConfigurationChangeAction implements
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (myAction == null) {
 			myAction = action;
-			IProjectBuildConfigurator pbc = buildConfigurator
-					.getActiveProjectBuildConfigurator();
-			if (pbc != null) {
-				myAction.setText(actionText.replaceAll("%bcname", pbc //$NON-NLS-1$
-						.getActiveBuildConfiguration().getName()));
-			}
+			myAction.setText(actionText);
 		}
 		if (selection instanceof IStructuredSelection) {
 			strucSel = (IStructuredSelection) selection;

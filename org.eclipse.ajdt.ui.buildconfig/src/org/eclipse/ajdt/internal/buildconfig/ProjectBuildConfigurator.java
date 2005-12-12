@@ -43,6 +43,7 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		this.javaProject = project;
 		buildConfigurator = DefaultBuildConfigurator.getBuildConfigurator();
 		buildconfigs = new HashMap();
+		init();
 	}
 	
 	public void reInit(){
@@ -54,6 +55,13 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 			readBuildConfigurationsFromFileSystem();
 			activeBuildConfiguration = getStoredBuildConfiguration();
 			initialized = true;
+			
+			if (buildconfigs.size() > 0) {
+				if ((activeBuildConfiguration == null) || !buildconfigs.containsKey(activeBuildConfiguration)) {
+					// choose the active configuration
+					setActiveBuildConfiguration(getDefaultBuildConfiguration());
+				}
+			}
 		}
 	}
 	
@@ -90,14 +98,14 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 	}
 
 	public IBuildConfiguration getActiveBuildConfiguration() {
-		makeSureThereIsAtLeastOneActiveConfiguration();
+		//makeSureThereIsAtLeastOneActiveConfiguration();
 		return (BuildConfiguration) buildconfigs.get(activeBuildConfiguration);
 	}
 	public void setActiveBuildConfiguration(IBuildConfiguration bc) {
 		if (buildconfigs.containsKey(bc.getFile())) {
 			if(!bc.getFile().exists()) {
 				buildconfigs.remove(bc.getFile());
-				makeSureThereIsAtLeastOneActiveConfiguration();
+				//makeSureThereIsAtLeastOneActiveConfiguration();
 			} else {
 				IFile oldActive = activeBuildConfiguration;
 				activeBuildConfiguration = bc.getFile();
@@ -164,7 +172,7 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		this.javaProject = project;
 	}
 	public IFile[] getConfigurationFiles() {
-		makeSureThereIsAtLeastOneActiveConfiguration();
+		//makeSureThereIsAtLeastOneActiveConfiguration();
 		IFile[] z = new IFile[0];
 		return (IFile[]) buildconfigs.keySet().toArray(z);
 	}
@@ -172,7 +180,7 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 	 * @return
 	 */
 	public Collection getBuildConfigurations() {
-		makeSureThereIsAtLeastOneActiveConfiguration();
+		//makeSureThereIsAtLeastOneActiveConfiguration();
 		return buildconfigs.values();
 	}
 	public void addBuildConfiguration(IBuildConfiguration bc) {
@@ -234,7 +242,7 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		if (bc.getFile().equals(activeBuildConfiguration))
 			activeBuildConfiguration = null;
 		buildconfigs.remove(bc.getFile());
-		makeSureThereIsAtLeastOneActiveConfiguration();
+		//makeSureThereIsAtLeastOneActiveConfiguration();
 		((BuildConfigurator)buildConfigurator).notifyChangeListeners();
 	}
 
@@ -257,5 +265,12 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		IBuildConfiguration bc = getBuildConfiguration(file);
 		if (bc != null)
 			this.removeBuildConfiguration(bc);
+	}
+
+	public IBuildConfiguration getActiveBuildConfiguration(boolean create) {
+		if (create) {
+			makeSureThereIsAtLeastOneActiveConfiguration();
+		}
+		return getActiveBuildConfiguration();
 	}
 }

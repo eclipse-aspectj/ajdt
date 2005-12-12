@@ -142,21 +142,21 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 
 		bc = pbc.getActiveBuildConfiguration();
 
-		//recover old configuration
-		iter = bcs.iterator();
-		boolean isIncluded = false;
-		while (iter.hasNext()) {
-			BuildConfiguration tempbc = (BuildConfiguration) iter.next();
-			pbc.addBuildConfiguration(tempbc);
-			if (tempbc.getFile().equals(bc.getFile())) {
-				isIncluded = true;
-			}
-		}
-		if (!isIncluded)
-			pbc.removeBuildConfiguration(bc);
+//		//recover old configuration
+//		iter = bcs.iterator();
+//		boolean isIncluded = false;
+//		while (iter.hasNext()) {
+//			BuildConfiguration tempbc = (BuildConfiguration) iter.next();
+//			pbc.addBuildConfiguration(tempbc);
+//			if (tempbc.getFile().equals(bc.getFile())) {
+//				isIncluded = true;
+//			}
+//		}
+//		if (!isIncluded)
+//			pbc.removeBuildConfiguration(bc);
 
-		if (bc == null)
-			fail("No new build configuration was created when removing all old ones."); //$NON-NLS-1$
+		if (bc != null)
+			fail("A new build configuration should NOT have been created after removing all old ones."); //$NON-NLS-1$
 	}
 
 	public void testNatureConversion() throws CoreException {
@@ -200,33 +200,33 @@ public class ProjectBuildConfigurationTest extends UITestCase {
 		}
 
 		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-		if (bc == null) {
-			fail("No active build configuration was created when added aj nature to project."); //$NON-NLS-1$
+		if (bc != null) {
+			fail("An active build configuration was created when added aj nature to project."); //$NON-NLS-1$
 		}
 
 		waitForJobsToComplete();
 		//this cannot be tested because the file writing thread may still not
 		// have written its file
-		if (bc.isIncluded(fileA)) {
-			fail("jdt exclusion filter not taken into account when converted to aj project."); //$NON-NLS-1$
-		}
-
-		if (!bc.isIncluded(fileDef) || !bc.isIncluded(fileB)) {
-			fail("not all desired files included after conversion to aj project."); //$NON-NLS-1$
-		}
-
-		if (!bc.getFile().exists()) {
-			fail("New build configuration was created when adding aj nature, but file not written."); //$NON-NLS-1$
-		}
-
-		jp.getRawClasspath();
-		cpes = jp.getRawClasspath();
-		for (int i = 0; i < cpes.length; i++) {
-			if (cpes[i].getPath().equals(fileDef.getParent().getFullPath())) {
-				if (cpes[i].getExclusionPatterns().length > 0)
-					fail("Exclusion patterns not reset when converting to aj project."); //$NON-NLS-1$
-			}
-		}
+//		if (bc.isIncluded(fileA)) {
+//			fail("jdt exclusion filter not taken into account when converted to aj project."); //$NON-NLS-1$
+//		}
+//
+//		if (!bc.isIncluded(fileDef) || !bc.isIncluded(fileB)) {
+//			fail("not all desired files included after conversion to aj project."); //$NON-NLS-1$
+//		}
+//
+//		if (!bc.getFile().exists()) {
+//			fail("New build configuration was created when adding aj nature, but file not written."); //$NON-NLS-1$
+//		}
+//
+//		jp.getRawClasspath();
+//		cpes = jp.getRawClasspath();
+//		for (int i = 0; i < cpes.length; i++) {
+//			if (cpes[i].getPath().equals(fileDef.getParent().getFullPath())) {
+//				if (cpes[i].getExclusionPatterns().length > 0)
+//					fail("Exclusion patterns not reset when converting to aj project."); //$NON-NLS-1$
+//			}
+//		}
 
 	}
 
