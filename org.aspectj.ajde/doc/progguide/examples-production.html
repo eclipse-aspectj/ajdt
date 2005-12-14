@@ -34,7 +34,7 @@
         makes <tt>Point</tt> a serializable class and makes
         its <tt>get</tt> and <tt>set</tt> methods
         support the bound property protocol.
-      </p><div class="sect3"><a name="d0e2758"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2758"></a>The <tt>Point</tt> class</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e2767"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2767"></a>The <tt>Point</tt> class</h4></div></div><p>
         The <tt>Point</tt> class is a very simple class with
         trivial getters and setters, and a simple vector offset method.
       </p><pre class="programlisting">
@@ -72,7 +72,7 @@ class Point {
     return "(" + getX() + ", " + getY() + ")" ;
   }
 }
-</pre></div><div class="sect3"><a name="d0e2771"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2771"></a>The <tt>BoundPoint</tt> aspect</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e2780"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2780"></a>The <tt>BoundPoint</tt> aspect</h4></div></div><p>
         The <tt>BoundPoint</tt> aspect is responsible for
         <tt>Point</tt>'s "beanness". The first thing it does is
         privately declare that each <tt>Point</tt> has a
@@ -185,7 +185,7 @@ aspect BoundPoint {
                                  new Double(newval));
   }
 }
-</pre></div><div class="sect3"><a name="d0e2856"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2856"></a>The Test Program</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e2865"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2865"></a>The Test Program</h4></div></div><p>
         The test program registers itself as a property change listener to
         a <tt>Point</tt> object that it creates and then performs
         simple manipulation of that point: calling its set methods and the
@@ -220,7 +220,7 @@ aspect BoundPoint {
       }
     ...
   }
-</pre></div><div class="sect3"><a name="d0e2866"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2866"></a>Compiling and Running the Example</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e2875"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2875"></a>Compiling and Running the Example</h4></div></div><p>
         To compile and run this example, go to the examples directory and type:
       </p><pre class="programlisting">
 ajc -argfile bean/files.lst
@@ -246,7 +246,7 @@ java bean.Demo
         The demo is designed and implemented using the Subject/Observer
         design pattern. The remainder of this example explains the classes
         and aspects of this demo, and tells you how to run it.
-      </p><div class="sect3"><a name="d0e2892"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2892"></a>Generic Components</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e2901"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2901"></a>Generic Components</h4></div></div><p>
         The generic parts of the protocol are the interfaces
         <tt>Subject</tt> and <tt>Observer</tt>,
         and the abstract aspect
@@ -309,7 +309,7 @@ java bean.Demo
         that should run after the join points of the pointcut. And it
         declares an inter-tpye field and two inter-type methods so that
         each <tt>Observer</tt> can hold onto its <tt>Subject</tt>. 
-      </p></div><div class="sect3"><a name="d0e2942"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2942"></a>Application Classes</h4></div></div><p>
+      </p></div><div class="sect3"><a name="d0e2951"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2951"></a>Application Classes</h4></div></div><p>
         <tt>Button</tt> objects extend
         <tt>java.awt.Button</tt>, and all they do is make
         sure the <tt>void click()</tt> method is called whenever
@@ -394,7 +394,7 @@ aspect SubjectObserverProtocolImpl extends SubjectObserverProtocol {
         <tt>Button</tt> is clicked, all
         <tt>ColorLabel</tt> objects observing that button
         will <tt>colorCycle</tt>.
-      </p></div><div class="sect3"><a name="d0e2997"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2997"></a>Compiling and Running</h4></div></div><p> 
+      </p></div><div class="sect3"><a name="d0e3006"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3006"></a>Compiling and Running</h4></div></div><p> 
         <tt>Demo</tt> is the top class that starts this
         demo. It instantiates a two buttons and three observers and links
         them together as subjects and observers. So to run the demo, go to
@@ -411,21 +411,21 @@ aspect SubjectObserverProtocolImpl extends SubjectObserverProtocol {
 	model of telephone connections to which timing and billing features
 	are added using aspects, where the billing feature depends upon the
 	timing feature.
-      </p><div class="sect3"><a name="d0e3023"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3023"></a>The Application</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e3032"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3032"></a>The Application</h4></div></div><p>
 	  The example application is a simple simulation of a telephony
 	  system in which customers make, accept, merge and hang-up both
 	  local and long distance calls. The application architecture is in
 	  three layers.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e3029"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e3038"></a>
 	      The basic objects provide basic functionality to simulate
 	      customers, calls and connections (regular calls have one
 	      connection, conference calls have more than one).
-	    </p></li><li><p><a name="d0e3032"></a>
+	    </p></li><li><p><a name="d0e3041"></a>
 	      The timing feature is concerned with timing the connections
 	      and keeping the total connection time per customer. Aspects
 	      are used to add a timer to each connection and to manage the
 	      total time per customer.
-	    </p></li><li><p><a name="d0e3035"></a>
+	    </p></li><li><p><a name="d0e3044"></a>
 	      The billing feature is concerned with charging customers for
 	      the calls they make. Aspects are used to calculate a charge
 	      per connection and, upon termination of a connection, to add
@@ -442,7 +442,7 @@ aspect SubjectObserverProtocolImpl extends SubjectObserverProtocol {
           superclass <tt>AbstractSimulation</tt>, which
           defines the method run with the simulation itself and the method
           wait used to simulate elapsed time.
-        </p></div><div class="sect3"><a name="d0e3052"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3052"></a>The Basic Objects</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e3061"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3061"></a>The Basic Objects</h4></div></div><p>
           The telecom simulation comprises the classes
           <tt>Customer</tt>, <tt>Call</tt> and
           the abstract class <tt>Connection</tt> with its two
@@ -456,7 +456,7 @@ aspect SubjectObserverProtocolImpl extends SubjectObserverProtocol {
           customer may be involved in many calls at one time.
 
           <span class="inlinemediaobject"><img src="telecom.gif"></span>
-        </p></div><div class="sect3"><a name="d0e3079"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3079"></a>The <tt>Customer</tt> class</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e3088"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3088"></a>The <tt>Customer</tt> class</h4></div></div><p>
           <tt>Customer</tt> has methods
           <tt>call</tt>, <tt>pickup</tt>,
           <tt>hangup</tt> and <tt>merge</tt> for
@@ -514,7 +514,7 @@ public class Customer {
           removeCall(call2);
       }
   }
-</pre></div><div class="sect3"><a name="d0e3104"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3104"></a>The <tt>Call</tt> class</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3113"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3113"></a>The <tt>Call</tt> class</h4></div></div><p>
         Calls are created with a caller and receiver who are customers. If
         the caller and receiver have the same area code then the call can
         be established with a <tt>Local</tt> connection (see
@@ -523,7 +523,7 @@ public class Customer {
         customers. Initially there is only the connection between the
         caller and receiver but additional connections can be added if
         calls are merged to form conference calls.
-      </p></div><div class="sect3"><a name="d0e3118"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3118"></a>The <tt>Connection</tt> class</h4></div></div><p>
+      </p></div><div class="sect3"><a name="d0e3127"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3127"></a>The <tt>Connection</tt> class</h4></div></div><p>
         The class <tt>Connection</tt> models the physical
         details of establishing a connection between customers. It does
         this with a simple state machine (connections are initially
@@ -571,7 +571,7 @@ public class Customer {
       }
 
   }
-</pre></div><div class="sect3"><a name="d0e3146"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3146"></a>The <tt>Local</tt> and <tt>LongDistance</tt> classes</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3155"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3155"></a>The <tt>Local</tt> and <tt>LongDistance</tt> classes</h4></div></div><p>
         The two kinds of connections supported by our simulation are
         <tt>Local</tt> and <tt>LongDistance</tt>
         connections.
@@ -591,19 +591,19 @@ public class Customer {
               a + " to " + b + "]");
       }
   }
-</pre></div><div class="sect3"><a name="d0e3167"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3167"></a>Compiling and Running the Basic Simulation</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3176"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3176"></a>Compiling and Running the Basic Simulation</h4></div></div><p>
         The source files for the basic system are listed in the file
         <tt>basic.lst</tt>. To build and run the basic system,
         in a shell window, type these commands:
       </p><pre class="programlisting">
 ajc -argfile telecom/basic.lst
 java telecom.BasicSimulation
-</pre></div><div class="sect3"><a name="d0e3177"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3177"></a>The Timing aspect</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3186"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3186"></a>The Timing aspect</h4></div></div><p>
         The <tt>Timing</tt> aspect keeps track of total
         connection time for each <tt>Customer</tt> by
         starting and stopping a timer associated with each connection. It
         uses some helper classes:
-      </p><div class="sect4"><a name="d0e3188"></a><div class="titlepage"><div><h5 class="title"><a name="d0e3188"></a>The <tt>Timer</tt> class</h5></div></div><p>
+      </p><div class="sect4"><a name="d0e3197"></a><div class="titlepage"><div><h5 class="title"><a name="d0e3197"></a>The <tt>Timer</tt> class</h5></div></div><p>
           A <tt>Timer</tt> object simply records the current
           time when it is started and stopped, and returns their difference
           when asked for the elapsed time. The aspect
@@ -626,7 +626,7 @@ java telecom.BasicSimulation
           return stopTime - startTime;
       }
   }
-</pre></div></div><div class="sect3"><a name="d0e3204"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3204"></a>The <tt>TimerLog</tt> aspect</h4></div></div><p>
+</pre></div></div><div class="sect3"><a name="d0e3213"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3213"></a>The <tt>TimerLog</tt> aspect</h4></div></div><p>
           The <tt>TimerLog</tt> aspect can be included in a
           build to get the timer to announce when it is started and
           stopped.
@@ -641,7 +641,7 @@ public aspect TimerLog {
       System.err.println("Timer stopped: " + t.stopTime);
     }
 }
-</pre></div><div class="sect3"><a name="d0e3217"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3217"></a>The <tt>Timing</tt> aspect</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3226"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3226"></a>The <tt>Timing</tt> aspect</h4></div></div><p>
           The <tt>Timing</tt> aspect is declares an
           inter-type field <tt>totalConnectTime</tt> for 
           <tt>Customer</tt> to store the accumulated connection
@@ -680,7 +680,7 @@ public aspect Timing {
         c.getCaller().totalConnectTime += getTimer(c).getTime();
         c.getReceiver().totalConnectTime += getTimer(c).getTime();
     }
-}</pre></div><div class="sect3"><a name="d0e3251"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3251"></a>The <tt>Billing</tt> aspect</h4></div></div><p>
+}</pre></div><div class="sect3"><a name="d0e3260"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3260"></a>The <tt>Billing</tt> aspect</h4></div></div><p>
         The Billing system adds billing functionality to the telecom
         application on top of timing.
       </p><p>
@@ -734,7 +734,7 @@ public aspect Billing {
         totalCharge += charge;
     }
 }
-</pre></div><div class="sect3"><a name="d0e3296"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3296"></a>Accessing the inter-type state</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3305"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3305"></a>Accessing the inter-type state</h4></div></div><p>
         Both the aspects <tt>Timing</tt> and
         <tt>Billing</tt> contain the definition of operations
         that the rest of the system may want to access. For example, when
@@ -757,7 +757,7 @@ public aspect Billing {
       Timing t = Timing.aspectOf();
       System.out.println(c + " spent " + t.getTotalConnectTime(c));
   }
-</pre></div><div class="sect3"><a name="d0e3323"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3323"></a>Compiling and Running</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3332"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3332"></a>Compiling and Running</h4></div></div><p>
         The files timing.lst and billing.lst contain file lists for the
         timing and billing configurations. To build and run the application
         with only the timing feature, go to the directory examples and
@@ -771,17 +771,17 @@ public aspect Billing {
       </p><pre class="programlisting">
   ajc -argfile telecom/billing.lst
   java telecom.BillingSimulation
-</pre></div><div class="sect3"><a name="d0e3334"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3334"></a>Discussion</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e3343"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3343"></a>Discussion</h4></div></div><p>
         There are some explicit dependencies between the aspects Billing
         and Timing:
 
-        <div class="itemizedlist"><ul><li><p><a name="d0e3340"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e3349"></a>
               Billing is declared more precedent than Timing so that Billing's
               after advice runs after that of Timing when they are on the
               same join point.
-            </p></li><li><p><a name="d0e3343"></a>
+            </p></li><li><p><a name="d0e3352"></a>
               Billing uses the pointcut Timing.endTiming.
-            </p></li><li><p><a name="d0e3346"></a>
+            </p></li><li><p><a name="d0e3355"></a>
               Billing needs access to the timer associated with a connection.
             </p></li></ul></div>
       </p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="examples-development.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="examples-reusable.html">Next</a></td></tr><tr><td width="40%" align="left">Development Aspects&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="examples.html">Up</a></td><td width="40%" align="right">&nbsp;Reusable Aspects</td></tr></table></div></body></html>

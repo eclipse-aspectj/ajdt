@@ -8,19 +8,19 @@
     </p><p>
       A join point is a well-defined point in the execution of a
       program. The join points defined by AspectJ are:
-    </p><div class="variablelist"><dl><dt><a name="d0e4532"></a><span class="term">Method call</span></dt><dd>
+    </p><div class="variablelist"><dl><dt><a name="d0e4541"></a><span class="term">Method call</span></dt><dd>
           When a method is called, not including super calls of
           non-static methods.
-        </dd><dt><a name="d0e4537"></a><span class="term">Method execution</span></dt><dd>
+        </dd><dt><a name="d0e4546"></a><span class="term">Method execution</span></dt><dd>
           When the body of code for an actual method executes.
-        </dd><dt><a name="d0e4542"></a><span class="term">Constructor call</span></dt><dd>
+        </dd><dt><a name="d0e4551"></a><span class="term">Constructor call</span></dt><dd>
           When an object is built and that object's initial constructor is
           called (i.e., not for "super" or "this" constructor calls).  The
           object being constructed is returned at a constructor call join
           point, so its return type is considered to be the type of the
           object, and the object itself may be accessed with <tt>after
           returning</tt> advice.
-        </dd><dt><a name="d0e4550"></a><span class="term">Constructor execution</span></dt><dd>
+        </dd><dt><a name="d0e4559"></a><span class="term">Constructor execution</span></dt><dd>
           When the body of code for an actual constructor executes, after
           its this or super constructor call.  The object being constructed
           is the currently executing object, and so may be accessed with
@@ -29,11 +29,11 @@
           includes any non-static initializers of enclosing class.  No
           value is returned from a constructor execution join point, so its
           return type is considered to be void.
-        </dd><dt><a name="d0e4558"></a><span class="term">Static initializer execution</span></dt><dd>
+        </dd><dt><a name="d0e4567"></a><span class="term">Static initializer execution</span></dt><dd>
           When the static initializer for a class executes.  No value is
           returned from a static initializer execution join point, so its
           return type is considered to be void.
-        </dd><dt><a name="d0e4563"></a><span class="term">Object pre-initialization</span></dt><dd>
+        </dd><dt><a name="d0e4572"></a><span class="term">Object pre-initialization</span></dt><dd>
          Before the object initialization code for a particular class runs.
          This encompasses the time between the start of its first called
          constructor and the start of its parent's constructor.  Thus, the
@@ -42,7 +42,7 @@
          <tt>super()</tt> constructor calls.  No value is
          returned from an object pre-initialization join point, so its
          return type is considered to be void.
-       </dd><dt><a name="d0e4574"></a><span class="term">Object initialization</span></dt><dd>
+       </dd><dt><a name="d0e4583"></a><span class="term">Object initialization</span></dt><dd>
           When the object initialization code for a particular class runs.
           This encompasses the time between the return of its parent's
           constructor and the return of its first called constructor. It
@@ -52,12 +52,12 @@
           <tt>this</tt> pointcut.  No value is returned from a
           constructor execution join point, so its return type is
           considered to be void.
-        </dd><dt><a name="d0e4582"></a><span class="term">Field reference</span></dt><dd>
+        </dd><dt><a name="d0e4591"></a><span class="term">Field reference</span></dt><dd>
           When a non-constant field is referenced.  [Note that references
           to constant fields (static final fields bound to a constant
           string object or primitive value) are not join points, since Java
           requires them to be inlined.]
-        </dd><dt><a name="d0e4587"></a><span class="term">Field set</span></dt><dd>
+        </dd><dt><a name="d0e4596"></a><span class="term">Field set</span></dt><dd>
           When a field is assigned to.
           Field set join points are considered to have one argument,
           the value the field is being set to.
@@ -67,13 +67,13 @@
           final fields where the initializer is a constant string object or
           primitive value) are not join points, since Java requires their
           references to be inlined.]
-        </dd><dt><a name="d0e4592"></a><span class="term">Handler execution</span></dt><dd>
+        </dd><dt><a name="d0e4601"></a><span class="term">Handler execution</span></dt><dd>
           When an exception handler executes.
           Handler execution join points are considered to have one argument,
           the exception being handled.
           No value is returned from a field set join point, so
           its return type is considered to be void.
-        </dd><dt><a name="d0e4597"></a><span class="term">Advice execution</span></dt><dd>
+        </dd><dt><a name="d0e4606"></a><span class="term">Advice execution</span></dt><dd>
           When the body of code for a piece of advice executes.
         </dd></dl></div><p>
       Each join point potentially has three pieces of state associated
@@ -88,7 +88,7 @@
       point.  The target object is where control or attention is
       transferred to by the join point.  The arguments are those
       values passed for that transfer of control or attention. 
-    </p><div class="informaltable" id="d0e4618"><a name="d0e4618"></a><table border="1"><colgroup><col><col><col><col></colgroup><thead valign="top"><tr><th><span class="bold"><b>Join Point</b></span></th><th><span class="bold"><b>Current Object</b></span></th><th><span class="bold"><b>Target Object</b></span></th><th><span class="bold"><b>Arguments</b></span></th></tr></thead><tbody><tr><td>Method Call</td><td>executing object*</td><td>target object**</td><td>method arguments</td></tr><tr><td>Method Execution</td><td>executing object*</td><td>executing object*</td><td>method arguments</td></tr><tr><td>Constructor Call</td><td>executing object*</td><td>None</td><td>constructor arguments</td></tr><tr><td>Constructor Execution</td><td>executing object</td><td>executing object</td><td>constructor arguments</td></tr><tr><td>Static initializer execution</td><td>None</td><td>None</td><td>None</td></tr><tr><td>Object pre-initialization</td><td>None</td><td>None</td><td>constructor arguments</td></tr><tr><td>Object initialization</td><td>executing object</td><td>executing object</td><td>constructor arguments</td></tr><tr><td>Field reference</td><td>executing object*</td><td>target object**</td><td>None</td></tr><tr><td>Field assignment</td><td>executing object*</td><td>target object**</td><td>assigned value</td></tr><tr><td>Handler execution</td><td>executing object*</td><td>executing object*</td><td>caught exception</td></tr><tr><td>Advice execution</td><td>executing aspect</td><td>executing aspect</td><td>advice arguments</td></tr></tbody></table></div><p>* There is no executing object in static contexts such as
+    </p><div class="informaltable" id="d0e4627"><a name="d0e4627"></a><table border="1"><colgroup><col><col><col><col></colgroup><thead valign="top"><tr><th><span class="bold"><b>Join Point</b></span></th><th><span class="bold"><b>Current Object</b></span></th><th><span class="bold"><b>Target Object</b></span></th><th><span class="bold"><b>Arguments</b></span></th></tr></thead><tbody><tr><td>Method Call</td><td>executing object*</td><td>target object**</td><td>method arguments</td></tr><tr><td>Method Execution</td><td>executing object*</td><td>executing object*</td><td>method arguments</td></tr><tr><td>Constructor Call</td><td>executing object*</td><td>None</td><td>constructor arguments</td></tr><tr><td>Constructor Execution</td><td>executing object</td><td>executing object</td><td>constructor arguments</td></tr><tr><td>Static initializer execution</td><td>None</td><td>None</td><td>None</td></tr><tr><td>Object pre-initialization</td><td>None</td><td>None</td><td>constructor arguments</td></tr><tr><td>Object initialization</td><td>executing object</td><td>executing object</td><td>constructor arguments</td></tr><tr><td>Field reference</td><td>executing object*</td><td>target object**</td><td>None</td></tr><tr><td>Field assignment</td><td>executing object*</td><td>target object**</td><td>assigned value</td></tr><tr><td>Handler execution</td><td>executing object*</td><td>executing object*</td><td>caught exception</td></tr><tr><td>Advice execution</td><td>executing aspect</td><td>executing aspect</td><td>advice arguments</td></tr></tbody></table></div><p>* There is no executing object in static contexts such as
      static method bodies or static initializers.
      </p><p>** There is no target object for join points associated
      with static methods or fields. 
