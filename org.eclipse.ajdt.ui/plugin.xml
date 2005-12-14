@@ -188,14 +188,14 @@
          <action
                label="%JavaBreakpointProperties.label"
                helpContextId="breakpoint_properties_action_context"
-               class="org.eclipse.jdt.internal.debug.ui.actions.JavaBreakpointPropertiesRulerActionDelegate"
-               menubarPath="debug"
+               class="org.eclipse.jdt.debug.ui.actions.JavaBreakpointPropertiesRulerActionDelegate"
+               menubarPath="group.properties"
                id="org.eclipse.jdt.debug.ui.actions.JavaBreakpointPropertiesRulerActionDelegate">
          </action>
          <action
                label="%EnableBreakpoint.label"
                helpContextId="enable_disable_breakpoint_action_context"
-               class="org.eclipse.jdt.internal.debug.ui.actions.EnableDisableBreakpointRulerActionDelegate"
+               class="org.eclipse.debug.ui.actions.RulerEnableDisableBreakpointActionDelegate"
                menubarPath="debug"
                id="org.eclipse.jdt.debug.ui.actions.EnableDisableBreakpointRulerActionDelegate">
          </action>
