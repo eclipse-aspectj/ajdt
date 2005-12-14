@@ -56,6 +56,7 @@ Creates an update site structure for AspectJ
   <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
   <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.ui.buildconfig" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.ajdt.examples" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj" inheritAll="true" target="clean"/>
   <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" target="clean"/>
@@ -91,6 +92,8 @@ Creates an update site structure for AspectJ
 
 	<copy todir="fpack_dist/plugins/"
 		file="dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}.jar"/>
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.ajdt.ui.buildconfig_${ajdt.version}.jar"/>
 
 	<mkdir dir="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"/>
 	<unzip dest="fpack_dist/plugins/org.eclipse.ajdt.examples_${ajdt.version}"
@@ -124,6 +127,7 @@ Creates an update site structure for AspectJ
 	<move file="../org.eclipse.ajdt.source/src/org.aspectj.weaver" tofile="../org.eclipse.ajdt.source/src/org.aspectj.weaver_${ajde.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.core_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui_${ajdt.version}"/>
+	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui.buildconfig" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.ui.buildconfig_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples" tofile="../org.eclipse.ajdt.source/src/org.eclipse.ajdt.examples_${ajdt.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.core_${xref.version}"/>
 	<move file="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui" tofile="../org.eclipse.ajdt.source/src/org.eclipse.contribution.xref.ui_${xref.version}"/>
@@ -248,6 +252,10 @@ Creates an update site structure for AspectJ
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
 	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.ui.buildconfig"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+	<antcall target="build-plugin">
 		<param name="plugin-name" value="org.eclipse.ajdt.ui.tests"/>
 		<param name="version" value="${ajdt.version}"/>
 	</antcall>
@@ -275,6 +283,8 @@ Creates an update site structure for AspectJ
  <copy file="../org.eclipse.ajdt.core/org.eclipse.ajdt.core_${ajdt.version}.jar"
        todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.ui_${ajdt.version}.jar"
+	   todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.ui.buildconfig/org.eclipse.ajdt.ui.buildconfig_${ajdt.version}.jar"
 	   todir="dist/plugins" />
  <copy file="../org.eclipse.ajdt.examples/org.eclipse.ajdt.examples_${ajdt.version}.jar"
        todir="dist/plugins" />

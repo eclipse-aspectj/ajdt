@@ -39,6 +39,9 @@
 			<param name="plugin-name" value="org.eclipse.ajdt.ui"/>
 		</antcall>
 		<antcall target="copy.source">
+			<param name="plugin-name" value="org.eclipse.ajdt.ui.buildconfig"/>
+		</antcall>
+		<antcall target="copy.source">
 			<param name="plugin-name" value="org.eclipse.ajdt.examples"/>
 		</antcall>
 	</target>

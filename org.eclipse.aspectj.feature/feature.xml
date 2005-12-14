@@ -84,6 +84,12 @@
          version="@AJDTVERSION@"/>
 
    <plugin
+         id="org.eclipse.ajdt.ui.buildconfig"
+         download-size="0"
+         install-size="0"
+         unpack="false"
+         version="@AJDTVERSION@"/>
+   <plugin
          id="org.eclipse.ajdt.examples"
          download-size="0"
          install-size="0"
