@@ -400,12 +400,11 @@
   	    since the definition of <tt>aMethod</tt> in <tt>C2</tt>
   	    does not have the annotation.
   	</p><p>
-  	    The pointcut <tt>c1MethodCall</tt> matches both 
-  	    <tt>c1.aMethod()</tt> and <tt>c2.aMethod()</tt>. The call
-  	    to <tt>c2.aMethod</tt> is matched because the call join point has
-  	    multiple signatures (<tt>@SomeAnnotation C1.aMethod()</tt> and
-  	    <tt>C2.aMethod()</tt>), and the former of those signatures is
-  	    exactly matched by the pattern.
+  	    The pointcut <tt>annotatedMethodCall</tt> matches  
+  	    <tt>c1.aMethod()</tt> but not <tt>c2.aMethod()</tt>. The call
+  	    to <tt>c2.aMethod</tt> is not matched because join point matching for
+  	    modifiers (the visibility modifiers, annotations, and throws clause) is based on
+  	    the subject of the join point (the method actually being called).
   	</p></div><div class="sect2"><a name="limitations"></a><div class="titlepage"><div><h3 class="title"><a name="limitations"></a>Limitations</h3></div></div><p>
         It would be useful to be able to match join points based on  
         annotation values, rather than merely the presence of a
