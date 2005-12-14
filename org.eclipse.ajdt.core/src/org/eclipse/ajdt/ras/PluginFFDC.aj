@@ -12,10 +12,13 @@
 package org.eclipse.ajdt.ras;
 
 import org.aspectj.lang.JoinPoint;
+import org.eclipse.core.internal.resources.ResourceException;
+import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.JavaModelException;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -52,7 +55,13 @@ public abstract aspect PluginFFDC extends FFDC {
 	 */
 	public void logException (Throwable th, String sourceId, Object obj) {
 		IStatus status = null;
-		if (th instanceof CoreException) {
+		if (th instanceof JavaModelException && ((JavaModelException)th).isDoesNotExist()) {
+			// Ignore ".. does not exist" Exceptions
+			return;
+		} else if (th instanceof ResourceException && (((ResourceException)th).getStatus().getCode() == IResourceStatus.RESOURCE_NOT_FOUND || ((ResourceException)th).getStatus().getCode() == IResourceStatus.PROJECT_NOT_OPEN)) {
+			// Ignore "resource does not exist" and "resource is not open" Exceptions
+			return;
+		} else if (th instanceof CoreException) {
 			status = ((CoreException) th).getStatus();
 		} else {
 			try {
