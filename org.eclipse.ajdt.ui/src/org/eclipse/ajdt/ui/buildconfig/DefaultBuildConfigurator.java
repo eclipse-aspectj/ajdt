@@ -27,15 +27,15 @@ public class DefaultBuildConfigurator implements IBuildConfigurator {
 		INSTANCE = bc;
 	}
 
-	public ProjectBuildConfigurator getProjectBuildConfigurator(IProject project) {
+	public IProjectBuildConfigurator getProjectBuildConfigurator(IProject project) {
 		return new ProjectBuildConfigurator(project);
 	}
 
-	public ProjectBuildConfigurator getActiveProjectBuildConfigurator() {
+	public IProjectBuildConfigurator getActiveProjectBuildConfigurator() {
 		return getProjectBuildConfigurator(AspectJPlugin.getDefault().getCurrentProject());
 	}
 
-	public ProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject jp) {
+	public IProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject jp) {
 		return getProjectBuildConfigurator(jp.getProject());
 	}
 

@@ -23,6 +23,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -155,7 +156,7 @@ public class BuildConfigurator implements IBuildConfigurator, ISelectionListener
 		if (notificationType == -1) {
 			try {
 				notificationType = 0;
-				ProjectBuildConfigurator pbc = getActiveProjectBuildConfigurator();
+				IProjectBuildConfigurator pbc = getActiveProjectBuildConfigurator();
 				Iterator iter = changeListeners.iterator();
 				while (iter.hasNext()) {
 					((IBuildConfigurationChangedListener) iter.next())
@@ -187,7 +188,7 @@ public class BuildConfigurator implements IBuildConfigurator, ISelectionListener
 	/**
 	 * @return Returns the activeBuildConfigurator or null if none are active
 	 */
-	public ProjectBuildConfigurator getActiveProjectBuildConfigurator() {
+	public IProjectBuildConfigurator getActiveProjectBuildConfigurator() {
 		return getProjectBuildConfigurator(currentProj);
 	}
 	
@@ -198,7 +199,7 @@ public class BuildConfigurator implements IBuildConfigurator, ISelectionListener
 /**
  * @return The ProjectBuildConfigurator for the given Project if it is an open aj project or null otherwise
  */
-	public ProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject proj) {
+	public IProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject proj) {
 		if ((proj != null) && (this.canManage(proj.getProject()))) {
 			ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) projectConfigurators
 					.get(proj.getProject().getName());
@@ -224,7 +225,7 @@ public class BuildConfigurator implements IBuildConfigurator, ISelectionListener
 	/**
 	 * @return The ProjectBuildConfigurator for the given Project if it is an open aj project or null otherwise
 	 */
-	public ProjectBuildConfigurator getProjectBuildConfigurator(IProject proj) {
+	public IProjectBuildConfigurator getProjectBuildConfigurator(IProject proj) {
 		return getProjectBuildConfigurator(JavaCore.create(proj));
 	}
 	
