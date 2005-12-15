@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsOperation.IChooseImportQuery;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -262,7 +263,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	private static ICompilationUnit getCompilationUnit(JavaEditor editor) {
-		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
+		IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
 		ICompilationUnit cu= manager.getWorkingCopy(editor.getEditorInput());
 		return cu;
 	}

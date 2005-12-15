@@ -1,4 +1,2 @@
 src.includes = src/
-src.excludes = src/org/eclipse/ajdt/internal/utils/Enforcement.aj,\
-               src/org/eclipse/ajdt/internal/ui/editor/contentassist/AJCompletionProcessor.java,\
-               src/org/eclipse/ajdt/internal/ui/editor/quickfix/UnresolvedElementsSubProcessor.java
+src.excludes = src/org/eclipse/ajdt/internal/utils/Enforcement.aj
