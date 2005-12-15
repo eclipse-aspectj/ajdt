@@ -13,7 +13,9 @@ package org.eclipse.contribution.xref.internal.ui.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.internal.ui.providers.TreeObject;
@@ -63,6 +65,8 @@ import org.eclipse.ui.ide.IDE;
  */
 public class XRefUIUtils {
 	
+	private static Map workingCopyManagersForEditors = new HashMap();
+
 	private static boolean selectedOutsideJavaElement = false;
 	
 	/**
@@ -120,7 +124,12 @@ public class XRefUIUtils {
 	 * in the CompilationUnitEditor class.
 	 */
 	private static IJavaElement getElementAt(JavaEditor editor, int offset, boolean reconcile) {
-		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
+		IWorkingCopyManager manager;
+		if(workingCopyManagersForEditors.get(editor) instanceof IWorkingCopyManager) {
+			manager = (IWorkingCopyManager) workingCopyManagersForEditors.get(editor);
+		} else {
+			manager= JavaPlugin.getDefault().getWorkingCopyManager();
+		}
 		ICompilationUnit unit= manager.getWorkingCopy(editor.getEditorInput());
 		
 		if (unit != null) {
@@ -385,5 +394,25 @@ public class XRefUIUtils {
 			viewer.setSelection(selection,true);
 			viewer.reveal(selection);
 		}		
+	}
+
+	/**
+	 * Clients should call this if an editor is not managed by the default Java
+	 * WorkingCopyManager.  This enables elements in the editor to be found.
+	 * @param editor
+	 * @param workingCopyManager
+	 */
+	public static void addWorkingCopyManagerForEditor(IEditorPart editor, IWorkingCopyManager workingCopyManager) {
+		workingCopyManagersForEditors.put(editor, workingCopyManager);
+	}
+
+	/**
+	 * Clients should call this when an editor added to the set
+	 * of editors with different working copy managers is being disposed.
+	 * @param editor
+	 * @param workingCopyManager
+	 */
+	public static void removeWorkingCopyManagerForEditor(IEditorPart editor) {
+		workingCopyManagersForEditors.remove(editor);
 	}
 }

@@ -8,9 +8,15 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.util.HashMap;
+
+import org.eclipse.jdt.core.dom.CompilationUnit;
+
 public class ASTHolderAJCUInfo extends AJCompilationUnitInfo {
 
 	int astLevel;
-	org.eclipse.jdt.core.dom.CompilationUnit ast;
+	boolean resolveBindings;
+	HashMap problems = null;
+	CompilationUnit ast;
 
 }
