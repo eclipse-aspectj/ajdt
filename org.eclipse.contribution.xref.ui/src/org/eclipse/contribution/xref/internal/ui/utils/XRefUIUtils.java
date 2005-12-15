@@ -34,6 +34,7 @@ import org.eclipse.jdt.core.IImportContainer;
 import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
@@ -273,8 +274,10 @@ public class XRefUIUtils {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object first = structuredSelection.getFirstElement();
 			if (first instanceof IJavaElement) {
-				return (IJavaElement)first;
-			} 
+				if (!(first instanceof IJavaProject)) {
+					return (IJavaElement)first;
+				}
+			}
 		} else if (part instanceof IEditorPart && selection instanceof ITextSelection) {
  		    if (part instanceof JavaEditor) {
 			    JavaEditor je = (JavaEditor)part;
