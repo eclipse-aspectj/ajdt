@@ -1,15 +1,21 @@
-/*
- * Created on 09-Apr-2004
- *
- */
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
-//import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
+import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-//import org.eclipse.jdt.internal.ui.text.CompoundContentAssistProcessor;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
-//import org.eclipse.jdt.internal.ui.text.spelling.WordCompletionProcessor;
+import org.eclipse.jdt.internal.ui.text.JavaReconciler;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
@@ -28,12 +34,14 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.InformationPresenter;
+import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 
@@ -53,40 +61,32 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	 */
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		IContentAssistant assistant = super.getContentAssistant(sourceViewer);
-//		TODO: temporarily disabled for 3.2M3
-//		if ((assistant != null) && (assistant instanceof ContentAssistant)) {
-//			ContentAssistant cAssi = (ContentAssistant)assistant;
-//			IContentAssistProcessor ajProcessor= new AJCompletionProcessor(getEditor());
-//			cAssi.setContentAssistProcessor(ajProcessor, IDocument.DEFAULT_CONTENT_TYPE);
-//			// Register the java processor for single line comments to get the NLS template working inside comments
-//			IContentAssistProcessor wordProcessor= new WordCompletionProcessor();
-//			CompoundContentAssistProcessor compoundProcessor= new CompoundContentAssistProcessor();
-//			compoundProcessor.add(ajProcessor);
-//			compoundProcessor.add(wordProcessor);
-//			cAssi.setContentAssistProcessor(compoundProcessor, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
-//			configureAJProcessor((ContentAssistant)assistant, fPreferenceStore, (AJCompletionProcessor)ajProcessor);
-//		}
+		if ((assistant != null) && (assistant instanceof ContentAssistant)) {
+			ContentAssistant cAssi = (ContentAssistant)assistant;
+			IContentAssistProcessor ajProcessor= new AJCompletionProcessor(getEditor(), (ContentAssistant) assistant, IDocument.DEFAULT_CONTENT_TYPE);
+			cAssi.setContentAssistProcessor(ajProcessor, IDocument.DEFAULT_CONTENT_TYPE);
+			configureAJProcessor((ContentAssistant)assistant, fPreferenceStore, (AJCompletionProcessor)ajProcessor);
+		}
 		return assistant;
 	}
 	
 	// Fix for bug 111971 - our completion processor is not configured properly by ContentAssistPreferences
 	// so copied ContentAssistPreferences.configureJavaProcessor to here.
-//	TODO: temporarily disabled for 3.2M3
-//	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
-//		
-//		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
-//		if (triggers != null)
-//			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
-//
-//		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
-//		jcp.restrictProposalsToVisibility(enabled);
-//
-//		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
-//		jcp.restrictProposalsToMatchingCases(enabled);
-//
-//		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
-//		jcp.orderProposalsAlphabetically(enabled);
-//	}
+	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
+		
+		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
+		if (triggers != null)
+			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
+
+		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
+		jcp.restrictProposalsToVisibility(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
+		jcp.restrictProposalsToMatchingCases(enabled);
+
+		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
+		jcp.orderProposalsAlphabetically(enabled);
+	}
 	
 	/**
 	 * Determines whether the preference change encoded by the given event
@@ -204,4 +204,23 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		return detectors;
 	}
 	
+	/*
+	 * @see SourceViewerConfiguration#getReconciler(ISourceViewer)
+	 */
+	public IReconciler getReconciler(ISourceViewer sourceViewer) {
+
+		final ITextEditor editor= getEditor();
+		if (editor != null && editor.isEditable()) {
+
+			AJCompositeReconcilingStrategy strategy= new AJCompositeReconcilingStrategy(editor, getConfiguredDocumentPartitioning(sourceViewer));
+			JavaReconciler reconciler= new JavaReconciler(editor, strategy, false);
+			reconciler.setIsIncrementalReconciler(false);
+			reconciler.setIsAllowedToModifyDocument(false);
+			reconciler.setProgressMonitor(new NullProgressMonitor());
+			reconciler.setDelay(500);
+
+			return reconciler;
+		}
+		return null;
+	}
 }

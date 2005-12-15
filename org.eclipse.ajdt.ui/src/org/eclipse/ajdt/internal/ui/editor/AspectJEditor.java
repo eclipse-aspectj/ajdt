@@ -27,6 +27,7 @@ import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -40,8 +41,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaModelManager;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
@@ -59,15 +60,12 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
-import org.eclipse.jface.text.source.IAnnotationModel;
-import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -98,8 +96,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 		super();	
 		setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$	
+		setDocumentProvider(AspectJUIPlugin.getDefault().getCompilationUnitDocumentProvider());
 		// Bug 78182
 		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
+		XRefUIUtils.addWorkingCopyManagerForEditor(this, AspectJUIPlugin.getDefault().getWorkingCopyManager());
 	}
 	
 	// Existing in this map means the modification has occurred
@@ -109,10 +109,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	private boolean isEditingAjFile = false;
 
-	private AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
-
-	private IAnnotationModel annotationModel;
-	
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
 
@@ -163,9 +159,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	}
 
-	public IDocumentProvider getDocumentProvider() {
-		return super.getDocumentProvider();
-	}
 	
 	public Object getAdapter(Class key) {
 		if (key.equals(ITextOperationTarget.class)) {
@@ -236,7 +229,17 @@ public class AspectJEditor extends CompilationUnitEditor {
 			return wrapped.getSupertypes(annotationType);
 		}
 	}
-
+	
+	/*
+	 * @see JavaEditor#setOutlinePageInput(JavaOutlinePage, IEditorInput)
+	 */
+	protected void setOutlinePageInput(JavaOutlinePage page, IEditorInput input) {
+		if (page != null) {
+			IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+			page.setInput(manager.getWorkingCopy(input));
+		}
+	}
+	
 	/**
 	 * Override of doSave to comment-out call to getStatusLineManager - always
 	 * returns null (why?) in our environment. Also ask the contentOutlinePage
@@ -276,7 +279,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 		} else {
 
-			IWorkingCopyManager manager = JavaPlugin.getDefault()
+			IWorkingCopyManager manager = AspectJUIPlugin.getDefault()
 					.getWorkingCopyManager();
 			ICompilationUnit unit = manager.getWorkingCopy(getEditorInput());
 
@@ -321,30 +324,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		super.setSourceViewerConfiguration(configuration);
 	}
 
-	public void createPartControl(Composite parent) {
-		super.createPartControl(parent);
-		if(annotationModel != null) {
-			if(annotationModel instanceof CompilationUnitAnnotationModelWrapper) {
-				((CompilationUnitAnnotationModelWrapper)annotationModel).setDelegate(getSourceViewer().getAnnotationModel());
-			}
-			if(fGlobalAnnotationModelListener == null) {
-				fGlobalAnnotationModelListener = new AJCompilationUnitAnnotationModel.GlobalAnnotationModelListener();
-				fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
-			}
-			annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);			
-			IDocument document = getDocumentProvider().getDocument(getEditorInput());
-			ISourceViewer sourceViewer= getSourceViewer();		
-			sourceViewer.setDocument(document, annotationModel);
-			IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
-			if(model != null) { // this is null in a linked source folder due to an eclipse bug..
-				model.connect(document);
-			}	
-			if(isEditingAjFile) { // Fix for 91102 - pass on instruction pointer annotation events
-				model.addAnnotationModelListener(new InstructionPointerAnnotationListener(annotationModel));
-			}
-		}
-	}
-	
 	public void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		if (input instanceof IFileEditorInput) {
@@ -359,26 +338,19 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 				if (unit != null){
 					isEditingAjFile = true;
-	
-					annotationModel = new AJCompilationUnitAnnotationModel(unit.getResource());
-					((AJCompilationUnitAnnotationModel)annotationModel).setCompilationUnit(unit);
-					
 				}
 			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
 					.getFile().getName())){
 				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
-				annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
 			}
-			
-						
-			if(annotationModel != null) {
-				if(unit instanceof CompilationUnit) {
-					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
-				}
-				unit.becomeWorkingCopy((IProblemRequestor)annotationModel, null);
-				((IWorkingCopyManagerExtension) JavaPlugin.getDefault()
-						.getWorkingCopyManager()).setWorkingCopy(input, unit);
+
+			if(unit instanceof CompilationUnit) {
+				JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
 			}
+			unit.becomeWorkingCopy((IProblemRequestor)getDocumentProvider().getAnnotationModel(input), null);
+			((IWorkingCopyManagerExtension) AspectJUIPlugin.getDefault()
+					.getWorkingCopyManager()).setWorkingCopy(input, unit);
+
 
 			AJLog.log("Editor opened on " + fInput.getFile().getName()); //$NON-NLS-1$
 			// Ensure any advice markers are created since they are not
@@ -395,7 +367,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 					EclipseEditorIsolation.JAVA_PARTITIONING);
 
 			if ("aj".equals(fInput.getFile().getFileExtension())) { //$NON-NLS-1$
-				JavaPlugin.getDefault().getWorkingCopyManager().connect(input);
+				AspectJUIPlugin.getDefault().getWorkingCopyManager().connect(input);
 			}
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
@@ -424,7 +396,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;			
 			// Fix for bug 79633 - editor buffer is not refreshed
-			JavaPlugin.getDefault().getWorkingCopyManager().disconnect(input);
+			AspectJUIPlugin.getDefault().getWorkingCopyManager().disconnect(input);
 			
 			AJLog.log("Editor closed - " + fInput.getFile().getName()); //$NON-NLS-1$
 			synchronized(activeEditorList) {
@@ -444,6 +416,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 			aspectJEditorErrorTickUpdater.dispose();
 			aspectJEditorErrorTickUpdater = null;
 		}
+		XRefUIUtils.removeWorkingCopyManagerForEditor(this);
 		super.dispose();
 	}
 	
