@@ -10,7 +10,7 @@ Test1 - bug 102865 - NPE
 - have the error log view visible
 - open spacewar/debug.aj in the editor
 - position the cursor below "aspect Debug"
-- press Ctrl+Alt+X and the inplace view appears				
+- press Shift+Alt+P and the inplace view appears				
 - type 'f' into the text filter box at the top
 - there should be nothing matching this and the view
   shouldn't contain anything
@@ -23,29 +23,29 @@ Test1 - bug 102865 - NPE
 - to close the view, press "esc".					
 
 
-Test3 - Ctrl+Alt+X twice shows xrefs for entire file
+Test3 - Shift+Alt+P twice shows xrefs for entire file
 ----------------------------------------------------
 
 - open spacewar/debug.aj in the editor
 - position the cursor somewhere in the editor
-- press Ctrl+Alt+X and the inplace view appears showing
+- press Shift+Alt+P and the inplace view appears showing
   the xrefs for the current selection
 					(XREF_INPLACE_3)
 
 - there is a message at the bottom of the inplace view
-	"Press 'Ctrl+Alt+X' to show cross references
+	"Press 'Shift+Alt+P' to show cross references
 	 for entire file"
 					(XREF_INPLACE_4)
 
-- press Ctrl+Alt+x again
+- press Shift+Alt+P again
 - the view now shows xrefs for the entire file
 					(XREF_INPLACE_5)
 - there is a message at the bottom of the inplace view
-	"Press 'Ctrl+Alt+X' to hide cross references
+	"Press 'Shift+Alt+P' to hide cross references
 	 for entire file"
 					(XREF_INPLACE_6)
 
-- press Ctrl+Alt+x again
+- press Shift+Alt+P again
 - the view now shows the xrefs for the original selection
   (provided you haven't changed selection in the view)
 					(XREF_INPLACE_7)
@@ -55,16 +55,16 @@ Test4 - Scroll bar - should show current selection
 
 - open spacewar/debug.aj in the editor
 - position the cursor towards the end of the file
-- press Ctrl+Alt+X and the inplace view appears showing
+- press Shift+Alt+P and the inplace view appears showing
   the xrefs for the current selection with the current 
   selection highlighted in the view
 					(XREF_INPLACE_8)
-- press Ctrl+Alt+x again
+- press Shift+Alt+P again
 - the view now shows xrefs for the entire file with the 
   selection from test 13 highlighted and showing
 					(XREF_INPLACE_9)
 
-- press Ctrl+Alt+x again
+- press Shift+Alt+P again
 - the view now shows the xrefs for the original selection
   (provided you haven't changed selection in the view) 
   and this is highlighted in the view
@@ -144,7 +144,7 @@ Test Exclude, (Not for whole document)
 - If it is not already, activate the demo build configuration
 - Open the Display1.aj file from within the spacewar package, in an editor window
 - Navigate to line 85, (some after advice)
-- press Ctrl+Alt+X and the inplace cross reference view appears showing
+- press Shift+Alt+P and the inplace cross reference view appears showing
   the xrefs for the current selection
 - The inplace cross reference view should now have a tree like this:
 
@@ -169,7 +169,7 @@ Test Exclude, (Not for whole document)
   							(XREF_INPLACE_21)
 
 - Close the inplace cross reference view
-- press Ctrl+Alt+X and the inplace cross reference view appears showing
+- press Shift+Alt+P and the inplace cross reference view appears showing
   the xrefs for the current selection
 - Make sure the inplace cross reference view still has a tree like this:
 
@@ -179,7 +179,7 @@ Test Exclude, (Not for whole document)
 Test Include, (Not for whole document)
 --------------------------------------
 
-- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- Bring up the inplace cross reference view, (press Shift+Alt+P)
 - Bring up the View Menu from the drop down button in the inplace cross reference view
 - Select the 'Filters...' button
 - In the presented dialog, the 'advises' relationship checkbox should be checked
@@ -199,7 +199,7 @@ Test Include, (Not for whole document)
 Test Persistence of Filters, (Not for whole document)
 -----------------------------------------------------
 
-- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- Bring up the inplace cross reference view, (press Shift+Alt+P)
 - Bring up the View Menu from the drop down button in the inplace cross reference view
 - Select the 'Filters...' button
 - In the presented dialog, press 'Select All' and click OK
@@ -210,7 +210,7 @@ Test Persistence of Filters, (Not for whole document)
 
 - Close and reopen Eclipse
 - Navigate to Display1.aj and line 85
-- Bring up the inplace cross reference view, (press Ctrl+Alt+X)
+- Bring up the inplace cross reference view, (press Shift+Alt+P)
 - The inplace cross reference view should still have a tree like this:
 
 	- afterReturning(Pilot)
