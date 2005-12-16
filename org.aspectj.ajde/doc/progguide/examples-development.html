@@ -32,7 +32,7 @@
         is doing. Therefore tracing is one of those kind of system
         aspects that can potentially be plugged in and unplugged without
         any side-effects in the basic functionality of the system.
-      </p><div class="sect3"><a name="d0e2512"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2512"></a>An Example Application</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e2521"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2521"></a>An Example Application</h4></div></div><p>
           Throughout this example we will use a simple application that
           contains only four classes. The application is about shapes. The
           <tt>TwoDShape</tt> class is the root of the shape
@@ -116,7 +116,7 @@ s1.area() = 1.0
 c2.distance(c1) = 4.242640687119285
 s1.distance(c1) = 2.23606797749979
 s1.toString(): Square side = 1.0 @ (1.0, 2.0)
-</pre></div><div class="sect3"><a name="d0e2554"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2554"></a>Tracing&#8212;Version 1</h4></div></div><p>
+</pre></div><div class="sect3"><a name="d0e2563"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2563"></a>Tracing&#8212;Version 1</h4></div></div><p>
         In a first attempt to insert tracing in this application, we will
         start by writing a <tt>Trace</tt> class that is
         exactly what we would write if we didn't have aspects.  The
@@ -230,7 +230,7 @@ s1.toString(): Square side = 1.0 @ (1.0, 2.0)
         When <tt>TraceMyClasses.java</tt> is not provided to
         <b>ajc</b>, the aspect does not have any affect on the
         system and the tracing is unplugged.
-      </p></div><div class="sect3"><a name="d0e2614"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2614"></a>Tracing&#8212;Version 2</h4></div></div><p>
+      </p></div><div class="sect3"><a name="d0e2623"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2623"></a>Tracing&#8212;Version 2</h4></div></div><p>
         Another way to accomplish the same thing would be to write a
         reusable tracing aspect that can be used not only for these
         application classes, but for any class. One way to do this is to
