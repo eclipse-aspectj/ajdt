@@ -27,7 +27,6 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFacto
 import org.eclipse.ajdt.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
-import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.internal.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
@@ -58,7 +57,6 @@ import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -304,7 +302,6 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 
 	
-	@Override
 	public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(int astLevel, boolean resolveBindings, HashMap problems, IProgressMonitor monitor) throws JavaModelException {
 		if (isConsistent()) return null;
 		
@@ -390,12 +387,6 @@ public class AJCompilationUnit extends CompilationUnit{
 		return javaCompBuffer;
 	}	
 	
-	@Override
-	public void reconcile(boolean forceProblemDetection, IProgressMonitor monitor) throws JavaModelException {
-		// TODO Auto-generated method stub
-		super.reconcile(forceProblemDetection, monitor);
-	}
-	
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
 			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
@@ -466,57 +457,45 @@ public class AJCompilationUnit extends CompilationUnit{
 		return super.getAllTypes();
 	}
 
-//	/**
-//	 * Hook for code completion support for AspectJ content.
-//	 * 
-//     * A description of how code completion works in AJDT can be found in bug 74419.
-//     * 
-//	 *  (non-Javadoc)
-//	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
-//	 */
-//	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
-//		ConversionOptions myConversionOptions; int pos;
-//		
-//		if(javaCompBuffer == null) {
-//			convertBuffer(super.getBuffer());
-//		}
-//		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
-//		ProposalRequestorWrapper wrappedRequestor;
-//		
-//		//check if inside intertype method declaration
-//		char[] targetType = isInIntertypeMethodDeclaration(position, this);
-//		if (targetType != null){
-//			
-//			//we are inside an intertype method declaration -> simulate context switch to target class
-//			myConversionOptions = ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType);
-//			javaCompBuffer.setConversionOptions(myConversionOptions);
-//			pos = javaCompBuffer.translatePositionToFake(position);
-//			
-//			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
-//			ProposalRequestorFilter filter = new ProposalRequestorFilter(requestor, javaCompBuffer);
-//			filter.setAcceptMemberMode(true);
-//			
-//			super.codeComplete(cu, unitToSkip, pos, filter, owner);
-//			
-//			//set up filter to filter away all the proposals that would be wrong because of missing context switch
-//			filter.setAcceptMemberMode(false);
-//			if (filter.getProposalCounter() > 0){
-//				//got proposals -> trick worked
-//				wrappedRequestor = filter;
-//			} else {
-//				//don't got any, better use unfiltered alternative instead
-//				//-> risk of getting wrong proposals, but better than none (?)
-//				wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);	
-//			}
-//		} else {
-//			wrappedRequestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
-//		}
-//		myConversionOptions = ConversionOptions.CODE_COMPLETION;
-//		javaCompBuffer.setConversionOptions(myConversionOptions);
-//		pos = javaCompBuffer.translatePositionToFake(position);
-//		super.codeComplete(cu, unitToSkip, pos, wrappedRequestor, owner);
-//		javaCompBuffer.setConversionOptions(optionsBefore);
-//	}
+	/**
+	 * Hook for code completion support for AspectJ content.
+	 * 
+     * A description of how code completion works in AJDT can be found in bug 74419.
+     * 
+	 *  (non-Javadoc)
+	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
+	 */
+	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
+		ConversionOptions myConversionOptions; int pos;
+		
+		if(javaCompBuffer == null) {
+			convertBuffer(super.getBuffer());
+		}
+		ConversionOptions optionsBefore = javaCompBuffer.getConversionOptions();
+		
+		//check if inside intertype method declaration
+		char[] targetType = isInIntertypeMethodDeclaration(position, this);
+		if (targetType != null){
+			
+			//we are inside an intertype method declaration -> simulate context switch to target class
+			myConversionOptions = ConversionOptions.getCodeCompletionOptionWithContextSwitch(position, targetType);
+			javaCompBuffer.setConversionOptions(myConversionOptions);
+			pos = javaCompBuffer.translatePositionToFake(position);
+			// we call codeComplete twice in this case to combine the context specific completions with the
+			// completions for things like local variables.
+			super.codeComplete(cu, unitToSkip, pos, requestor, owner);				
+			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
+			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
+			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
+		}
+			myConversionOptions = ConversionOptions.CODE_COMPLETION;
+		
+		javaCompBuffer.setConversionOptions(myConversionOptions);
+		pos = javaCompBuffer.translatePositionToFake(position);
+		super.codeComplete(cu, unitToSkip, pos, requestor, owner);
+		javaCompBuffer.setConversionOptions(optionsBefore);
+		
+	}
 
 	//return null if outside intertype method declaration or the name of the target type otherwise
 	private char[] isInIntertypeMethodDeclaration(int pos, JavaElement elem) throws JavaModelException{

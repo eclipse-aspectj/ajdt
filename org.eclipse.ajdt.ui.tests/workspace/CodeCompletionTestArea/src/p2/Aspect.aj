@@ -13,7 +13,7 @@ package p2;
 
 public aspect Aspect {
 	
-	int x;
+	int x37;
 	
 	public int Foo.bar;
 	

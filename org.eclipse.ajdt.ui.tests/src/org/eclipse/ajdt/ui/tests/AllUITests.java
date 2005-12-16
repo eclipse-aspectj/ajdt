@@ -38,6 +38,7 @@ import org.eclipse.ajdt.ui.tests.editor.AspectJBreakpointRulerActionTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorIconTest;
 import org.eclipse.ajdt.ui.tests.editor.AspectJEditorTest;
 import org.eclipse.ajdt.ui.tests.editor.codeformat.CodeFormatTest;
+import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
@@ -130,8 +131,7 @@ public class AllUITests {
 		
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
-		// TODO: disabled for 3.2M3
-		//suite.addTest(new TestSuite(ContentAssistTest.class));
+		suite.addTest(new TestSuite(ContentAssistTest.class));
 		
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));

@@ -7,12 +7,15 @@
  * 
  * Contributors:
  *     Luzius Meisser - initial implementation
+ *     Sian January - changed for Eclipse 3.2
  *******************************************************************************/
 package org.eclipse.ajdt.internal.contentassist;
 
 import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.jdt.core.CompletionContext;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
+import org.eclipse.jdt.core.compiler.IProblem;
 
 /**
  * Translates code positions from fakeBuffer into realBuffer before
@@ -39,14 +42,24 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	}
 	
 	public void accept(CompletionProposal proposal) {
-		int s = proposal.getReplaceStart();
-		int e = proposal.getReplaceEnd();
-		proposal.setReplaceRange(trans(s), trans(e));
 		wrapped.accept(proposal);
 	}
 	
-	private int trans(int pos){
-		return buffer.translatePositionToReal(pos);
+	public void acceptContext(CompletionContext context) {
+		wrapped.acceptContext(context);
+	}
+	
+	public void endReporting() {
+		wrapped.endReporting();
+	}
+	
+	public void beginReporting() {
+		// This is empty because we want to combine two sets of proposals
+		// so we don't want the wrapped requestor to clear the list
+	}
+	
+	public void completionFailure(IProblem problem) {
+		wrapped.completionFailure(problem);
 	}
 
 	public boolean equals(Object obj) {

@@ -1,2 +1,1 @@
 src.includes = src/
-src.excludes = src/org/eclipse/ajdt/ui/tests/editor/contentassist/ContentAssistTest.java

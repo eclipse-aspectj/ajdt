@@ -23,7 +23,16 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.ui.text.java.ContentAssistProcessor;
+import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
+import org.eclipse.jdt.internal.ui.text.javadoc.JavadocCompletionProcessor;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Tests for completion proposals.
@@ -49,8 +58,8 @@ public class ContentAssistTest extends UITestCase {
 		ICompletionProposal[] props = getCompletionProposals(file, "/*completion test pos A*/"); //$NON-NLS-1$
 		if (contains(props, "bar")) //$NON-NLS-1$
 			fail("The intertype declaration Foo.bar should not be visible here."); //$NON-NLS-1$
-		if (!contains(props, "x")) //$NON-NLS-1$
-			fail("Field x missing in completion proposals."); //$NON-NLS-1$
+		if (!contains(props, "x37")) //$NON-NLS-1$
+			fail("Field x37 missing in completion proposals."); //$NON-NLS-1$
 		if (!contains(props, "limited AspectJ")) //$NON-NLS-1$
 			fail("Limited AspectJ support note missing"); //$NON-NLS-1$
 	}
@@ -62,8 +71,8 @@ public class ContentAssistTest extends UITestCase {
 			fail("local variable not visible."); //$NON-NLS-1$
 		if (!contains(props, "desiredAssertionStatus")) //$NON-NLS-1$
 			fail("Not all methods from java.lang.Class available."); //$NON-NLS-1$
-		if (contains(props, "x")) //$NON-NLS-1$
-			fail("Field x should not be visible."); //$NON-NLS-1$
+		if (contains(props, "x37")) //$NON-NLS-1$
+			fail("Field x37 should not be visible."); //$NON-NLS-1$
 	}
 	
 	public void testContentAssistC() throws JavaModelException{
@@ -97,7 +106,7 @@ public class ContentAssistTest extends UITestCase {
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
 		AspectJEditor editor = (AspectJEditor)openFileInDefaultEditor(file, false);
-		AJCompletionProcessor proc = new AJCompletionProcessor(editor);
+		AJCompletionProcessor proc = new AJCompletionProcessor(editor, getContentAssistant(editor), IDocument.DEFAULT_CONTENT_TYPE);
 		AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		String content;
 		if (unit != null){
@@ -111,6 +120,27 @@ public class ContentAssistTest extends UITestCase {
 		}
 		int offset = content.indexOf(marker);
 		return proc.computeCompletionProposals(editor.getViewer(), offset);
+	}
+	
+	private ContentAssistant getContentAssistant(ITextEditor editor) {
+		ContentAssistant assistant= new ContentAssistant();
+		IContentAssistProcessor javaProcessor= new JavaCompletionProcessor(editor, assistant, IDocument.DEFAULT_CONTENT_TYPE);
+		assistant.setContentAssistProcessor(javaProcessor, IDocument.DEFAULT_CONTENT_TYPE);
+	
+		ContentAssistProcessor singleLineProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+		assistant.setContentAssistProcessor(singleLineProcessor, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+	
+		ContentAssistProcessor stringProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_STRING);
+		assistant.setContentAssistProcessor(stringProcessor, IJavaPartitions.JAVA_STRING);
+		
+		ContentAssistProcessor multiLineProcessor= new JavaCompletionProcessor(editor, assistant, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
+		assistant.setContentAssistProcessor(multiLineProcessor, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
+	
+		ContentAssistProcessor javadocProcessor= new JavadocCompletionProcessor(editor, assistant);
+		assistant.setContentAssistProcessor(javadocProcessor, IJavaPartitions.JAVA_DOC);
+	
+		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
+		return assistant;
 	}
 	
 	private boolean contains(ICompletionProposal[] props, String what){
