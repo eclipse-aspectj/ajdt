@@ -405,6 +405,7 @@ public class XRefUIUtils {
 	 * @param editor
 	 * @param workingCopyManager
 	 */
+	// TODO: Is there a nicer way of doing this?
 	public static void addWorkingCopyManagerForEditor(IEditorPart editor, IWorkingCopyManager workingCopyManager) {
 		workingCopyManagersForEditors.put(editor, workingCopyManager);
 	}
