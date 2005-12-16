@@ -45,7 +45,6 @@ public class AspectJApplicationLaunchShortcut extends
 	public static final String JAVA_FILE_EXTENSION = "java"; //$NON-NLS-1$
 
 	
-	@Override
 	protected IType[] findTypes(Object[] elements, IRunnableContext context) throws InterruptedException, CoreException {
 		try {
 			IJavaElement[] javaElements = getJavaElements(elements);
@@ -94,7 +93,6 @@ public class AspectJApplicationLaunchShortcut extends
 		return DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurationType(ASPECTJ_LAUNCH_ID);
 	}
 
-	@Override
 	protected ILaunchConfiguration createConfiguration(IType type) {
 		ILaunchConfiguration config = null;
 		ILaunchConfigurationWorkingCopy wc = null;
