@@ -10,15 +10,18 @@
 	<property name="javacFailOnError" value="false"/>
 	<property name="javacDebugInfo" value="on"/>
 	<property name="javacVerbose" value="true"/>
+	<property name="compilerArg" value=""/>
 	<property name="javacSource" value="1.3"/>
 	<property name="javacTarget" value="1.2"/>
-	<property name="compilerArg" value=""/>
 	<path id="path_bootclasspath">
 		<fileset dir="${java.home}/lib">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
 	<property name="bootclasspath" refid="path_bootclasspath"/>
+	<property name="bundleJavacSource" value="${javacSource}"/>
+	<property name="bundleJavacTarget" value="${javacTarget}"/>
+	<property name="bundleBootClasspath" value="${bootclasspath}"/>
 
 	<target name="init" depends="properties">
 		<condition property="pluginTemp" value="${buildTempFolder}/plugins">
@@ -52,9 +55,65 @@
 	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.ajdt.core @dot.">
 		<delete dir="${temp.folder}/@dot.bin"/>
 		<mkdir dir="${temp.folder}/@dot.bin"/>
+		<path id="@dot.classpath">
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_1.0.0.v20051214a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20051212a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20051211.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20051208.jar"/>
+			<pathelement path="../../plugins/org.eclipse.pde.build_3.2.0.v20051212/pdebuild.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.100.v20051215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.100.v20051214.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bcel.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bsf.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-log4j.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-oro.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-regexp.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-resolver.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-logging.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-net.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-icontract.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jai.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-javamail.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jdepend.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jmf.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jsch.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-junit.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-launcher.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-netrexx.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-nodeps.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-starteam.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-stylebook.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-swing.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-trax.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-vaj.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-weblogic.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xalan1.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xslp.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v200511211912.jar"/>
+			<pathelement path="../org.aspectj.ajde/ajde.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20051121.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20051212-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.text_3.1.100.v20051212-0800.jar"/>
+			<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
+			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_631.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I20051213.jar"/>
+		</path>
 		<!-- compile the source code -->
-		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051010144227/"/>
-		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051010144227/"/>
+		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051217120000/"/>
+		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051217120000/"/>
 		<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
 			<classpath>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
@@ -62,58 +121,13 @@
 			</classpath>
 		</taskdef>
 		<property file="build.ajproperties"/>
-		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
+		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}">
+			<forkclasspath refid="@dot.classpath" />
 			<forkclasspath>
-				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.osgi_3.1.1.jar"/>
-				<pathelement path="../../plugins/org.eclipse.pde.build_3.1.0/pdebuild.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.0.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bcel.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bsf.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-log4j.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-oro.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-regexp.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-resolver.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-logging.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-net.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-icontract.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jai.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-javamail.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jdepend.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jmf.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jsch.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-junit.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-launcher.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-netrexx.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-nodeps.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-starteam.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-stylebook.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-swing.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-trax.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-vaj.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-weblogic.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xalan1.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xslp.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.jar"/>
-				<pathelement path="../org.aspectj.ajde/ajde.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
-				<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
-				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</forkclasspath>
-			</iajc>
+		</iajc>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.aj, **/*.java, **/package.htm*,null"			/>
@@ -177,7 +191,7 @@
 	</target>
 
 	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
-		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.1.1-win32/eclipse/workspace/org.eclipse.ajdt.core" property="resourcePath"/>
+		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.2M4-win32/eclipse/workspace/org.eclipse.ajdt.core" property="resourcePath"/>
 		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
 	</target>
 

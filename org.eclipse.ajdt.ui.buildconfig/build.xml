@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="org.eclipse.ajdt.ui" default="build.jars" basedir=".">
+<project name="org.eclipse.ajdt.ui.buildconfig" default="build.jars" basedir=".">
 
 	<property name="basews" value="${ws}"/>
 	<property name="baseos" value="${os}"/>
@@ -28,7 +28,7 @@
 			<isset property="buildTempFolder"/>
 		</condition>
 		<property name="pluginTemp" value="${basedir}"/>
-		<condition property="build.result.folder" value="${pluginTemp}/org.eclipse.ajdt.ui">
+		<condition property="build.result.folder" value="${pluginTemp}/org.eclipse.ajdt.ui.buildconfig">
 			<isset property="buildTempFolder"/>
 		</condition>
 		<property name="build.result.folder" value="${basedir}"/>
@@ -41,60 +41,21 @@
 
 	</target>
 
-	<target name="build.update.jar" depends="init" description="Build the plug-in: org.eclipse.ajdt.ui for an update site.">
+	<target name="build.update.jar" depends="init" description="Build the plug-in: org.eclipse.ajdt.ui.buildconfig for an update site.">
 		<delete dir="${temp.folder}"/>
 		<mkdir dir="${temp.folder}"/>
 		<antcall target="build.jars"/>
 		<antcall target="gather.bin.parts">
 			<param name="destination.temp.folder" value="${temp.folder}/"/>
 		</antcall>
-		<zip destfile="${plugin.destination}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT.jar" basedir="${temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" filesonly="false" whenempty="skip" update="false"/>
+		<zip destfile="${plugin.destination}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT.jar" basedir="${temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" filesonly="false" whenempty="skip" update="false"/>
 		<delete dir="${temp.folder}"/>
 	</target>
 
-	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.ajdt.ui @dot.">
+	<target name="@dot" depends="init" unless="@dot" description="Create jar: org.eclipse.ajdt.ui.buildconfig @dot.">
 		<delete dir="${temp.folder}/@dot.bin"/>
 		<mkdir dir="${temp.folder}/@dot.bin"/>
 		<path id="@dot.classpath">
-			<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.2.0.v20051213.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_1.0.0.v20051214a.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20051205.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20051212a.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20051211.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.jface_3.2.0.I20051214-0010.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.swt_3.2.0.v3218f.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.2.0.v3218.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.swt.gtk.linux.x86_3.2.0.v3218.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.commands_3.2.0.I20051212-2000.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui_3.2.0.I20051214-1200.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.help_3.2.0.v20051215.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.workbench_3.2.0.I20051214-1200.jar"/>
-			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/compatibility.jar"/>
-			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/@dot"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20051212-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20051128.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20051121.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v200511211912.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.100.v20051214.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20051205.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20051128.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.2.0.I20051214-1200.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.2.0.I20051212-0010.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.views_3.2.0.I20051129-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.100.v20051215a.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.100.v20051205.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.update.ui_3.1.100.v20051215.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.jface.text_3.2.0.v20051214-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.text_3.1.100.v20051212-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.2.0.v20051214-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.2.0.v20051214-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.filebuffers_3.2.0.v20051214-0800.jar"/>
 			<pathelement path="../org.aspectj.ajde/ajde.jar"/>
 			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
 			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
@@ -124,13 +85,57 @@
 			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-weblogic.jar"/>
 			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xalan1.jar"/>
 			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xslp.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20051212a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20051121.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v200511211912.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_1.0.0.v20051214a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20051211.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.100.v20051214.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20051212-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.text_3.1.100.v20051212-0800.jar"/>
 			<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
 			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
+			<pathelement path="../org.eclipse.ajdt.core/bin/"/>
+			<pathelement path="../org.eclipse.ajdt.core/@dot"/>
+			<pathelement path="../../plugins/org.eclipse.pde.build_3.2.0.v20051212/pdebuild.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.100.v20051215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_631.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I20051213.jar"/>
+			<pathelement path="../org.eclipse.ajdt.ui/bin/"/>
+			<pathelement path="../org.eclipse.ajdt.ui/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.2.0.v20051213.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jface_3.2.0.I20051214-0010.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt_3.2.0.v3218f.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.2.0.v3218.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt.gtk.linux.x86_3.2.0.v3218.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.commands_3.2.0.I20051212-2000.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.help_3.2.0.v20051215.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.workbench_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/compatibility.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.2.0.I20051212-0010.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.views_3.2.0.I20051129-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.ui_3.1.100.v20051215.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jface.text_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filebuffers_3.2.0.v20051214-0800.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.search_3.2.0.v20051212-0800.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.jdt.ui_3.2.0.v20051215-0910.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.ui.console_3.1.100.v20051214b.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_631.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I20051213.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.debug.core_3.2.0.v20051215a.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.debug.ui_3.2.0.v20051215a.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.jdt.launching_3.2.0.v20051213.jar"/>
@@ -150,7 +155,6 @@
 			<pathelement path="../org.eclipse.contribution.visualiser/bin"/>
 			<pathelement path="../org.eclipse.contribution.visualiser/@dot"/>
 			<pathelement path="..\..\plugins\org.eclipse.pde.ui_3.2.0.v20051215-1500.jar"/>
-			<pathelement path="../../plugins/org.eclipse.pde.build_3.2.0.v20051212/pdebuild.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.ant.ui_3.1.100.v20051205.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.ui.externaltools_3.1.0.v20051205.jar"/>
 			<pathelement path="../../plugins/org.eclipse.jdt.junit_3.2.0.v20051212-0800/junitsupport.jar"/>
@@ -162,8 +166,6 @@
 			<pathelement path="../../plugins/org.apache.lucene_1.4.103.v20051212/parser.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.help.appserver_3.1.100.v20051212.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.ui.cheatsheets_3.2.0.v20051213.jar"/>
-			<pathelement path="../org.eclipse.ajdt.core/bin/"/>
-			<pathelement path="../org.eclipse.ajdt.core/@dot"/>
 			<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
 			<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
 			<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
@@ -204,7 +206,7 @@
 		</zip>
 	</target>
 
-	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.ajdt.ui.">
+	<target name="build.jars" depends="init" description="Build all the jars for the plug-in: org.eclipse.ajdt.ui.buildconfig.">
 		<available property="@dot" file="${build.result.folder}/@dot"/>
 		<antcall target="@dot"/>
 	</target>
@@ -215,12 +217,12 @@
 	</target>
 
 	<target name="gather.bin.parts" depends="init" if="destination.temp.folder">
-		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT"/>
-		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
+		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT"/>
+		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
 			<fileset dir="${build.result.folder}/@dot" includes="**"			/>
 		</copy>
-		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="null,about.html,aspectj_code_templates.xml,cheatsheets/,doc/,faq.html,icons/,intro/,plugin.properties,plugin.xml,toc.xml,toc_ajdevguide.xml,toc_ajdt.xml,toc_ajdtuguide.xml,toc_ajprogguide.xml,toc_aspectj.xml,topics_Concepts.xml,topics_GettingStarted.xml,topics_Tasks.xml,META-INF/,contexts_AJDT.xml,contexts_XRef.xml"			/>
+		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" failonerror="true" overwrite="false">
+			<fileset dir="${basedir}" includes="META-INF/,null,plugin.xml,plugin.properties,icons/,about.html"			/>
 		</copy>
 	</target>
 
@@ -228,32 +230,32 @@
 	</target>
 
 	<target name="gather.sources" depends="init" if="destination.temp.folder">
-		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT"/>
-		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
-		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false">
+		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT"/>
+		<copy file="${build.result.folder}/src.zip" todir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<copy todir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false">
 			<fileset dir="${basedir}" includes="src/"			/>
 		</copy>
 	</target>
 
 	<target name="gather.logs" depends="init" if="destination.temp.folder">
-		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT"/>
-		<copy file="${temp.folder}/@dot.bin.log" todir="${destination.temp.folder}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
+		<mkdir dir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT"/>
+		<copy file="${temp.folder}/@dot.bin.log" todir="${destination.temp.folder}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT" failonerror="false" overwrite="false"/>
 	</target>
 
-	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.ajdt.ui of all the zips, jars and logs created.">
+	<target name="clean" depends="init" description="Clean the plug-in: org.eclipse.ajdt.ui.buildconfig of all the zips, jars and logs created.">
 		<delete dir="${build.result.folder}/@dot"/>
 		<delete file="${build.result.folder}/src.zip"/>
-		<delete file="${plugin.destination}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT.jar"/>
-		<delete file="${plugin.destination}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT.zip"/>
+		<delete file="${plugin.destination}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT.jar"/>
+		<delete file="${plugin.destination}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT.zip"/>
 		<delete dir="${temp.folder}"/>
 	</target>
 
 	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
-		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.2M4-win32/eclipse/workspace/org.eclipse.ajdt.ui" property="resourcePath"/>
+		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.2M4-win32/eclipse/workspace/org.eclipse.ajdt.ui.buildconfig" property="resourcePath"/>
 		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
 	</target>
 
-	<target name="zip.plugin" depends="init" description="Create a zip containing all the elements for the plug-in: org.eclipse.ajdt.ui.">
+	<target name="zip.plugin" depends="init" description="Create a zip containing all the elements for the plug-in: org.eclipse.ajdt.ui.buildconfig.">
 		<delete dir="${temp.folder}"/>
 		<mkdir dir="${temp.folder}"/>
 		<antcall target="build.jars"/>
@@ -267,7 +269,7 @@
 		<delete>
 			<fileset dir="${temp.folder}" includes="**/*.bin.log"			/>
 		</delete>
-		<zip destfile="${plugin.destination}/org.eclipse.ajdt.ui_1.3.0.DEVELOPMENT.zip" basedir="${temp.folder}" filesonly="true" whenempty="skip" update="false"/>
+		<zip destfile="${plugin.destination}/org.eclipse.ajdt.ui.buildconfig_1.3.0.DEVELOPMENT.zip" basedir="${temp.folder}" filesonly="true" whenempty="skip" update="false"/>
 		<delete dir="${temp.folder}"/>
 	</target>
 

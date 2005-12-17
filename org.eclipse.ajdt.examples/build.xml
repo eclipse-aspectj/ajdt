@@ -10,15 +10,18 @@
 	<property name="javacFailOnError" value="false"/>
 	<property name="javacDebugInfo" value="on"/>
 	<property name="javacVerbose" value="true"/>
+	<property name="compilerArg" value=""/>
 	<property name="javacSource" value="1.3"/>
 	<property name="javacTarget" value="1.2"/>
-	<property name="compilerArg" value=""/>
 	<path id="path_bootclasspath">
 		<fileset dir="${java.home}/lib">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
 	<property name="bootclasspath" refid="path_bootclasspath"/>
+	<property name="bundleJavacSource" value="${javacSource}"/>
+	<property name="bundleJavacTarget" value="${javacTarget}"/>
+	<property name="bundleBootClasspath" value="${bootclasspath}"/>
 
 	<target name="init" depends="properties">
 		<condition property="pluginTemp" value="${buildTempFolder}/plugins">
@@ -52,118 +55,129 @@
 	<target name="ajdtExamples.jar" depends="init" unless="ajdtExamples.jar" description="Create jar: org.eclipse.ajdt.examples ajdtExamples.jar.">
 		<delete dir="${temp.folder}/ajdtExamples.jar.bin"/>
 		<mkdir dir="${temp.folder}/ajdtExamples.jar.bin"/>
+		<path id="ajdtExamples.jar.classpath">
+			<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.2.0.I20051212-0010.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20051121.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v200511211912.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_1.0.0.v20051214a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20051212a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20051211.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.100.v20051214.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20051128.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20051212-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.help_3.2.0.v20051215.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt_3.2.0.v3218f.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.2.0.v3218.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt.gtk.linux.x86_3.2.0.v3218.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jface_3.2.0.I20051214-0010.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.commands_3.2.0.I20051212-2000.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.workbench_3.2.0.I20051214-1200.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/compatibility.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.2.0.I20051212-0010/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.views_3.2.0.I20051129-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.100.v20051215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.update.ui_3.1.100.v20051215.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.2.0.v20051213.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_631.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.text_3.1.100.v20051212-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I20051213.jar"/>
+			<pathelement path="../org.eclipse.ajdt.core/bin/"/>
+			<pathelement path="../org.eclipse.ajdt.core/@dot"/>
+			<pathelement path="../../plugins/org.eclipse.pde.build_3.2.0.v20051212/pdebuild.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bcel.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bsf.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-log4j.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-oro.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-regexp.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-resolver.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-logging.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-net.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-icontract.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jai.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-javamail.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jdepend.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jmf.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jsch.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-junit.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-launcher.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-netrexx.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-nodeps.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-starteam.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-stylebook.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-swing.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-trax.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-vaj.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-weblogic.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xalan1.jar"/>
+			<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xslp.jar"/>
+			<pathelement path="../org.aspectj.ajde/ajde.jar"/>
+			<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
+			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
+			<pathelement path="../org.eclipse.ajdt.ui/bin/"/>
+			<pathelement path="../org.eclipse.ajdt.ui/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.jface.text_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filebuffers_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.search_3.2.0.v20051212-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.ui_3.2.0.v20051215-0910.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.console_3.1.100.v20051214b.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.debug.core_3.2.0.v20051215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.debug.ui_3.2.0.v20051215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.launching_3.2.0.v20051213.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.debug_3.2.0.v20051214c/jdi.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.debug_3.2.0.v20051214c/jdimodel.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.debug_3.2.0.v20051214c/tools.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.compare_3.2.0.v20051213.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.team.ui_3.2.0.I20051213.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ui.navigator_3.2.0.I20051215-1200/navigator.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ltk.core.refactoring_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ltk.ui.refactoring_3.2.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.core.manipulation_1.0.0.v20051214-0800.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.pde.core_3.2.0.v20051215-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.pde.runtime_3.2.0.v20051206.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.pde_3.2.0.v20051213.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.debug.ui_3.2.0.v20051214c.jar"/>
+			<pathelement path="../org.eclipse.contribution.visualiser/bin"/>
+			<pathelement path="../org.eclipse.contribution.visualiser/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.pde.ui_3.2.0.v20051215-1500.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ant.ui_3.1.100.v20051205.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.externaltools_3.1.0.v20051205.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.junit_3.2.0.v20051212-0800/junitsupport.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.junit.runtime_3.2.0.v20051212-0800/junitruntime.jar"/>
+			<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.intro_3.2.0.v20051212.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.help.base_3.2.0.v20051215.jar"/>
+			<pathelement path="../../plugins/org.apache.lucene_1.4.103.v20051212/lucene-1.4.3.jar"/>
+			<pathelement path="../../plugins/org.apache.lucene_1.4.103.v20051212/parser.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.help.appserver_3.1.100.v20051212.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ui.cheatsheets_3.2.0.v20051213.jar"/>
+			<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
+			<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
+			<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
+			<pathelement path="../org.eclipse.contribution.xref.ui/@dot"/>
+		</path>
 		<!-- compile the source code -->
-		<javac destdir="${temp.folder}/ajdtExamples.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}"		>
+		<javac destdir="${temp.folder}/ajdtExamples.jar.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}"		>
 			<compilerarg line="${compilerArg}"/>
-			<classpath>
-				<pathelement path="..\..\plugins\org.eclipse.ui.ide_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.win32_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.osgi_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.help_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.swt_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.swt.gtk.linux.x86_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jface_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.commands_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.workbench_3.1.1.jar"/>
-				<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.1.0/compatibility.jar"/>
-				<pathelement path="../../plugins/org.eclipse.ui.workbench.compatibility_3.1.0/@dot"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.views_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.core.win32_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.update.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.forms_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.text_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.team.core_3.1.1.jar"/>
-				<pathelement path="../org.eclipse.ajdt.core/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.core/@dot"/>
-				<pathelement path="../../plugins/org.eclipse.pde.build_3.1.0/pdebuild.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-antlr.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bcel.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-bsf.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-log4j.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-oro.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-regexp.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-apache-resolver.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-logging.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-commons-net.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-icontract.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jai.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-javamail.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jdepend.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jmf.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-jsch.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-junit.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-launcher.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-netrexx.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-nodeps.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-starteam.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-stylebook.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-swing.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-trax.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-vaj.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-weblogic.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xalan1.jar"/>
-				<pathelement path="../../plugins/org.apache.ant_1.6.5/lib/ant-xslp.jar"/>
-				<pathelement path="../org.aspectj.ajde/ajde.jar"/>
-				<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
-				<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
-				<pathelement path="../org.eclipse.ajdt.ui/bin/"/>
-				<pathelement path="../org.eclipse.ajdt.ui/@dot"/>
-				<pathelement path="..\..\plugins\org.eclipse.jface.text_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.workbench.texteditor_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.editors_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.core.filebuffers_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.search_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jdt.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.console_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.debug.core_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.debug.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jdt.launching_3.1.0.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/jdi.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/jdimodel.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.debug_3.1.1/tools.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.compare_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ltk.core.refactoring_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ltk.ui.refactoring_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.pde.core_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.pde.runtime_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.pde_3.1.0.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.jdt.debug.ui_3.1.1.jar"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/bin"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/lib/draw2d.jar"/>
-				<pathelement path="../org.eclipse.contribution.visualiser/Visualiser.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.pde.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ant.ui_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.externaltools_3.1.1.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.junit_3.1.1/junitsupport.jar"/>
-				<pathelement path="../../plugins/org.eclipse.jdt.junit.runtime_3.1.0/junitruntime.jar"/>
-				<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.intro_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.ui.cheatsheets_3.1.1.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.help.base_3.1.0.jar"/>
-				<pathelement path="../../plugins/org.apache.lucene_1.4.3/lucene-1.4.3.jar"/>
-				<pathelement path="../../plugins/org.apache.lucene_1.4.3/parser.jar"/>
-				<pathelement path="..\..\plugins\org.eclipse.help.appserver_3.1.0.jar"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui/bin/"/>
-				<pathelement path="../org.eclipse.contribution.xref.ui/@dot"/>
-			</classpath>
+			<classpath refid="ajdtExamples.jar.classpath" />
 			<src path="src/"			/>
-			</javac>
+			<compilerarg value="@${basedir}/javaCompiler.ajdtExamples.jar.args" compiler="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+		</javac>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/ajdtExamples.jar.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.java, **/package.htm*,null"			/>
@@ -225,7 +239,7 @@
 	</target>
 
 	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
-		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.1.1-win32/eclipse/workspace/org.eclipse.ajdt.examples" property="resourcePath"/>
+		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.2M4-win32/eclipse/workspace/org.eclipse.ajdt.examples" property="resourcePath"/>
 		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
 	</target>
 
