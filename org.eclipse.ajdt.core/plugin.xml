@@ -26,12 +26,11 @@
       </builder>
    </extension>
 
-<!-- declares java source as a content type for .aj files -->
-<!-- Should fix 98547 but depends on JDT bug 71460 so commented out for now
-<extension point="org.eclipse.core.runtime.contentTypes">
-	<file-association 
+   <!-- declares java source as a content type for .aj files -->
+   <extension point="org.eclipse.core.runtime.contentTypes">
+	  <file-association 
 		content-type="org.eclipse.jdt.core.javaSource"
 		file-extensions="aj"/>
-</extension>
--->
+   </extension>
+
 </plugin>
