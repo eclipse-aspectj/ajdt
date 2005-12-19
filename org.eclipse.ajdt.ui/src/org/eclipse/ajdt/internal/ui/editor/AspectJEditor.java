@@ -499,6 +499,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	}
 	
+	protected IJavaElement getInputJavaElement() {
+		return AspectJUIPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput()); 	
+	}
+	
 	/**
 	 * @return Returns the activeEditorList.
 	 */
