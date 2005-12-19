@@ -42,7 +42,14 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	}
 	
 	public void accept(CompletionProposal proposal) {
+		int s = proposal.getReplaceStart();
+		int e = proposal.getReplaceEnd();
+		proposal.setReplaceRange(trans(s), trans(e));
 		wrapped.accept(proposal);
+	}
+	
+	private int trans(int pos){
+		return buffer.translatePositionToReal(pos);
 	}
 	
 	public void acceptContext(CompletionContext context) {
@@ -54,8 +61,7 @@ public class ProposalRequestorWrapper extends CompletionRequestor {
 	}
 	
 	public void beginReporting() {
-		// This is empty because we want to combine two sets of proposals
-		// so we don't want the wrapped requestor to clear the list
+		wrapped.beginReporting();
 	}
 	
 	public void completionFailure(IProblem problem) {

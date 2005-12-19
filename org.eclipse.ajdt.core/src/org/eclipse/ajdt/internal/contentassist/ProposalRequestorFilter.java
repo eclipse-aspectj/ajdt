@@ -56,6 +56,11 @@ public class ProposalRequestorFilter extends ProposalRequestorWrapper {
 		}
 	}
 	
+	public void beginReporting() {
+		// This is empty because we want to combine two sets of proposals
+		// so we don't want the wrapped requestor to clear the list
+	}
+	
 	/**
 	 * @return Returns the filterMembers.
 	 */

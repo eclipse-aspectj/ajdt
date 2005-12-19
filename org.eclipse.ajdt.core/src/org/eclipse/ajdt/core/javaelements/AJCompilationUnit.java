@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFacto
 import org.eclipse.ajdt.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
+import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.internal.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
@@ -487,8 +488,10 @@ public class AJCompilationUnit extends CompilationUnit{
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
+		} else {
+			requestor = new ProposalRequestorWrapper(requestor, javaCompBuffer);
 		}
-			myConversionOptions = ConversionOptions.CODE_COMPLETION;
+		myConversionOptions = ConversionOptions.CODE_COMPLETION;
 		
 		javaCompBuffer.setConversionOptions(myConversionOptions);
 		pos = javaCompBuffer.translatePositionToFake(position);
