@@ -14,7 +14,6 @@ import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.internal.ui.text.JavaReconciler;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
@@ -152,16 +151,14 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 			presenter= new InformationPresenter(getOutlinePresenterControlCreator(IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
 		presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 		presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-		IInformationProvider provider= new JavaElementProvider(getEditor(), doCodeResolve);
+		IInformationProvider provider= new AJElementProvider(getEditor(), doCodeResolve);
 		presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_DOC);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_MULTI_LINE_COMMENT);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_STRING);
 		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_CHARACTER);
-		presenter.setSizeConstraints(20, 20, true, false);
-		// bug 80239 - the following line was missing
-		presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
+		presenter.setSizeConstraints(50, 20, true, false);
 		return presenter;
 	}
 	

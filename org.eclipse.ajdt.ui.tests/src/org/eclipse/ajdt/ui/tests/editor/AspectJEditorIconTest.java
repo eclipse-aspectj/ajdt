@@ -59,13 +59,13 @@ public class AspectJEditorIconTest extends UITestCase {
 		// Open each of the files in the editor and check that the title images are correct 
 		ITextEditor editor1 = (ITextEditor)openFileInAspectJEditor(boundPointFile, false);
 		waitForJobsToComplete();
-		assertTrue("Boundpoint.aj should have the plain editor image", editor1.getTitleImage().equals(plainAJEditorImage)); //$NON-NLS-1$
+		assertEquals("Boundpoint.aj should have the plain editor image", plainAJEditorImage, editor1.getTitleImage()); //$NON-NLS-1$
 		ITextEditor editor2 = (ITextEditor)openFileInAspectJEditor(demoFile, false);
 		waitForJobsToComplete();
-		assertTrue("Demo.java should have the error editor image", editor2.getTitleImage().equals(errorAJEditorImage));			 //$NON-NLS-1$
+		assertEquals("Demo.java should have the error editor image", errorAJEditorImage, editor2.getTitleImage());			 //$NON-NLS-1$
 		ITextEditor editor3 = (ITextEditor)openFileInAspectJEditor(pointFile, false);
 		waitForJobsToComplete();
-		assertTrue("Point.java should have the warning editor image", editor3.getTitleImage().equals(warningAJEditorImage)); //$NON-NLS-1$
+		assertEquals("Point.java should have the warning editor image", warningAJEditorImage, editor3.getTitleImage()); //$NON-NLS-1$
 		
 		// Do a full build
 		project.build(IncrementalProjectBuilder.CLEAN_BUILD, new NullProgressMonitor());
