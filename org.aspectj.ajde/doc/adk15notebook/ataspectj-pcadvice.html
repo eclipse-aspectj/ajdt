@@ -39,13 +39,14 @@
      void someCall(int i, Foo callee) {}
          </pre><p>is equivalent to...</p><pre class="programlisting">
      pointcut anyCall(int i, Foo callee) : call(* *.*(int)) &amp;&amp; args(i) &amp;&amp; target(callee);
-             </pre><p>An example with modifiers (it is also good to remember that Java 5 annotations are not
-                inherited):</p><pre class="programlisting">
+             </pre><p>An example with modifiers (Remember that Java 5 annotations are not
+                inherited, so the <tt>@Pointcut</tt> annotation must be
+                present on the extending aspect's pointcut declaration too):</p><pre class="programlisting">
      @Pointcut("")
      protected abstract void anyCall();
          </pre><p>is equivalent to...</p><pre class="programlisting">
      protected abstract pointcut anyCall();
-             </pre><div class="sect3"><a name="d0e3702"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3702"></a>Type references inside @AspectJ annotations</h4></div></div><p>
+             </pre><div class="sect3"><a name="d0e3681"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3681"></a>Type references inside @AspectJ annotations</h4></div></div><p>
                     Using the code style, types referenced in pointcut expressions are
                     resolved with respect to the imported types in the compilation unit.
                     When using the annotation style, types referenced in pointcut
@@ -87,7 +88,7 @@
        void anyUtilityCall() {}
 
      }
-             </pre></div><div class="sect3"><a name="d0e3718"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3718"></a>if() pointcut expressions</h4></div></div><p>In code style, it is possible to use the
+             </pre></div><div class="sect3"><a name="d0e3697"></a><div class="titlepage"><div><h4 class="title"><a name="d0e3697"></a>if() pointcut expressions</h4></div></div><p>In code style, it is possible to use the
                     <tt>if(...)</tt>
                     poincut to define
                     a conditional pointcut expression which will be evaluated at runtime for each candidate join point.
@@ -98,15 +99,16 @@
                     <tt>thisJoinPoint, thisJoinPointStaticPart and thisJoinPointEnclosingStaticPart</tt>
                     .
                 </p><p>
-                    When using the annotation style, it would be really a pain to write a valid Java expression within
-                    the annotation value so the syntax differs sligthly, whilst providing the very same
+                    When using the annotation style, it is not possible to write a full Java expression
+                    within
+                    the annotation value so the syntax differs slightly, whilst providing the very same
                     semantics and runtime behaviour. An
                     <tt>if()</tt>
                     pointcut expression can be
                     declared in an
                     <tt>@Pointcut</tt>
-                    , but must either an empty body, or be one
-                    of the expression
+                    , but must have either an empty body (<tt>if()</tt>, or be one
+                    of the expression forms
                     <tt>if(true)</tt>
                     or
                     <tt>if(false)</tt>

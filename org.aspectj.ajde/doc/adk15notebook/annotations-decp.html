@@ -23,10 +23,10 @@
 		specification, it is now possible to match types based on the presence
 		of annotations <span class="emphasis"><i>with either class-file or runtime retention</i></span>.
 		For example:
-	</p><div class="variablelist"><dl><dt><a name="d0e1512"></a><span class="term">declare parents : (@Secured *) implements SecuredObject;</span></dt><dd><p><a name="d0e1515"></a>
+	</p><div class="variablelist"><dl><dt><a name="d0e1498"></a><span class="term">declare parents : (@Secured *) implements SecuredObject;</span></dt><dd><p><a name="d0e1501"></a>
 	            	All types with the <tt>@Secured</tt> annotation
 	            	implement the <tt>SecuredObject</tt> inteface.
-	            </p></dd><dt><a name="d0e1524"></a><span class="term">declare parents : (@Secured BankAccount+) implements SecuredObject;</span></dt><dd><p><a name="d0e1527"></a>
+	            </p></dd><dt><a name="d0e1510"></a><span class="term">declare parents : (@Secured BankAccount+) implements SecuredObject;</span></dt><dd><p><a name="d0e1513"></a>
 	            	The subset of types drawn from the <tt>BankAccount</tt> type and any subtype of
 	            	<tt>BankAccount</tt>, where the 
 	            	<tt>@Secured</tt> annotation is present, implement the
@@ -42,7 +42,7 @@
 	</pre><p>
 		AspectJ 5 allows the type patterns in the list to include annotation information
 		as part of the pattern specification. For example:
-	</p><div class="variablelist"><dl><dt><a name="d0e1554"></a><span class="term">declare precedence : (@Security *),*;</span></dt><dd><p><a name="d0e1557"></a>
+	</p><div class="variablelist"><dl><dt><a name="d0e1540"></a><span class="term">declare precedence : (@Security *),*;</span></dt><dd><p><a name="d0e1543"></a>
             	All aspects with the <tt>@Security</tt> annotation
             	take precedence over any other aspects in the system. (Or, more
             	informally, all security-related aspects take precedence).

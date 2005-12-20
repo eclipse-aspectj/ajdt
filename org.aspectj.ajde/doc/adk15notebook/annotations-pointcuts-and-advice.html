@@ -8,43 +8,35 @@
   </p><div class="sect2"><a name="annotation-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-patterns"></a>Annotation Patterns</h3></div></div><p>
           For any kind of annotated element (type, method, constructor, package, etc.), 
           an annotation pattern can be used to match against the set of annotations
-          on the annotated element. Annotation patterns are defined by the following
-          grammar.
-      </p><pre class="programlisting">
-		AnnotationPattern := '!'? '@' AnnotationTypePattern AnnotationPattern* 
-        
-		AnnotationTypePattern := FullyQualifiedName |
-		                         '(' TypePattern ')'
-  		                     
-  		FullyQualifiedName := JavaIdentifierCharacter+ ('.' JavaIdentifierCharacter+)*  		
-      </pre><p>In simple terms, an annotation pattern element has one of two basic
-      forms:</p><div class="itemizedlist"><ul><li><a name="d0e792"></a>@&lt;qualified-name&gt;, for example, @Foo, or 
-          @org.xyz.Foo.</li><li><a name="d0e794"></a>@(&lt;type-pattern&gt;), for example, @(org.xyz..*), or
+          on the annotated element.An annotation pattern element has one of two basic
+          forms:
+      </p><div class="itemizedlist"><ul><li><a name="d0e783"></a>@&lt;qualified-name&gt;, for example, @Foo, or 
+          @org.xyz.Foo.</li><li><a name="d0e785"></a>@(&lt;type-pattern&gt;), for example, @(org.xyz..*), or
           @(Foo || Boo)</li></ul></div><p>These simple elements may be negated using <tt>!</tt>, and
       combined by simple concatentation. The pattern <tt>@Foo @Boo</tt>
       matches an annotated element that has both an annotation of type <tt>Foo</tt>
-      and an annotation of type <tt>Boo</tt>.</p><p>Some examples of annotation patterns follow:</p><div class="variablelist"><dl><dt><a name="d0e813"></a><span class="term">@Immutable</span></dt><dd><p><a name="d0e816"></a>
+      and an annotation of type <tt>Boo</tt>.</p><p>Some examples of annotation patterns follow:</p><div class="variablelist"><dl><dt><a name="d0e804"></a><span class="term">@Immutable</span></dt><dd><p><a name="d0e807"></a>
             	Matches any annotated element which has an annotation of 
       			type <tt>Immutable</tt>.
-            </p></dd><dt><a name="d0e822"></a><span class="term">!@Persistent</span></dt><dd><p><a name="d0e825"></a>
+            </p></dd><dt><a name="d0e813"></a><span class="term">!@Persistent</span></dt><dd><p><a name="d0e816"></a>
 				Matches any annotated element which does not have an annotation of 
       			type <tt>Persistent</tt>.
-            </p></dd><dt><a name="d0e831"></a><span class="term">@Foo @Goo</span></dt><dd><p><a name="d0e834"></a>
+            </p></dd><dt><a name="d0e822"></a><span class="term">@Foo @Goo</span></dt><dd><p><a name="d0e825"></a>
 				Matches any annotated element which has both an annotation of type <tt>Foo</tt> and
       			an annotation of type <tt>Goo</tt>.
-            </p></dd><dt><a name="d0e843"></a><span class="term">@(Foo || Goo)</span></dt><dd><p><a name="d0e846"></a>
+            </p></dd><dt><a name="d0e834"></a><span class="term">@(Foo || Goo)</span></dt><dd><p><a name="d0e837"></a>
 				  Matches any annotated element which has either an annotation of a type matching
 			      the type pattern <tt>(Foo || Goo)</tt>. 
 			      In other words, an annotated element with either an
 			      annotation of type <tt>Foo</tt> or
 			      an annotation of type <tt>Goo</tt> (or both). (The parenthesis are required in this example).
-            </p></dd><dt><a name="d0e858"></a><span class="term">@(org.xyz..*)</span></dt><dd><p><a name="d0e861"></a>
+            </p></dd><dt><a name="d0e849"></a><span class="term">@(org.xyz..*)</span></dt><dd><p><a name="d0e852"></a>
 		      Matches any annotated element which has either an annotation of a type matching
 		      the type pattern <tt>(org.xyz..*)</tt>. 
 		      In other words, an annotated element with an annotation that is declared in the
 		      org.xyz package or a sub-package. (The parenthesis are required in this example).
             </p></dd></dl></div></div><div class="sect2"><a name="type-patterns"></a><div class="titlepage"><div><h3 class="title"><a name="type-patterns"></a>Type Patterns</h3></div></div><p>AspectJ 1.5 extends type patterns to allow an optional <tt>AnnotationPattern</tt>
-	prefix. (Extensions to this definition for generics are shown in the next chapter).</p><pre class="programlisting">
+	prefix.</p><pre class="programlisting">
   	  	TypePattern := SimpleTypePattern |
   	  	               '!' TypePattern |
   	  	               '(' AnnotationPattern? TypePattern ')'
@@ -65,38 +57,39 @@
   		FullyQualifiedName := JavaIdentifierCharacter+ ('.' JavaIdentifierCharacter+)*  				  		  		  		               									 				  		             
 	</pre><p>Note that in most cases when annotations are used as part of a type pattern,
         the parenthesis are required (as in <tt>(@Foo Hello+)</tt>). In
-        some cases (such as a type pattern used within a <tt>this</tt>
-        pointcut expression, the parenthesis are optional:</p><pre class="programlisting">
+        some cases (such as a type pattern used within a <tt>within</tt> or
+        <tt>handler</tt>
+        pointcut expression), the parenthesis are optional:</p><pre class="programlisting">
         OptionalParensTypePattern := AnnotationPattern? TypePattern
       </pre><p>
 		The following examples illustrate the use of annotations in type
 		patterns:
-	</p><div class="variablelist"><dl><dt><a name="d0e890"></a><span class="term">(@Immutable *)</span></dt><dd><p><a name="d0e893"></a>
+	</p><div class="variablelist"><dl><dt><a name="d0e884"></a><span class="term">(@Immutable *)</span></dt><dd><p><a name="d0e887"></a>
             	Matches any type with an <tt>@Immutable</tt> annotation.
-            </p></dd><dt><a name="d0e899"></a><span class="term">(!@Immutable *)</span></dt><dd><p><a name="d0e902"></a>
+            </p></dd><dt><a name="d0e893"></a><span class="term">(!@Immutable *)</span></dt><dd><p><a name="d0e896"></a>
             	Matches any type which does not have an <tt>@Immutable</tt> annotation.
-            </p></dd><dt><a name="d0e908"></a><span class="term">  (@Immutable (org.xyz.* || org.abc.*))</span></dt><dd><p><a name="d0e911"></a>
+            </p></dd><dt><a name="d0e902"></a><span class="term">  (@Immutable (org.xyz.* || org.abc.*))</span></dt><dd><p><a name="d0e905"></a>
             	Matches any type in the <tt>org.xyz</tt> or <tt>org.abc</tt>
  			    packages with the <tt>@Immutable</tt> annotation.
-            </p></dd><dt><a name="d0e923"></a><span class="term">((@Immutable Foo+) || Goo)</span></dt><dd><p><a name="d0e926"></a>
+            </p></dd><dt><a name="d0e917"></a><span class="term">((@Immutable Foo+) || Goo)</span></dt><dd><p><a name="d0e920"></a>
             	Matches a type <tt>Foo</tt> or any of its subtypes, which have the <tt>@Immutable</tt>
      			annotation, or a type <tt>Goo</tt>.
-            </p></dd><dt><a name="d0e938"></a><span class="term">((@(Immutable || NonPersistent) org.xyz..*)</span></dt><dd><p><a name="d0e941"></a>
+            </p></dd><dt><a name="d0e932"></a><span class="term">((@(Immutable || NonPersistent) org.xyz..*)</span></dt><dd><p><a name="d0e935"></a>
             	Matches any type in a package beginning with the prefix <tt>org.xyz</tt>,
      			which has either the <tt>@Immutable</tt> annotation or the
      			<tt>@NonPersistent</tt> annotation.            	
-            </p></dd><dt><a name="d0e953"></a><span class="term">(@Immutable @NonPersistent org.xyz..*)</span></dt><dd><p><a name="d0e956"></a>
+            </p></dd><dt><a name="d0e947"></a><span class="term">(@Immutable @NonPersistent org.xyz..*)</span></dt><dd><p><a name="d0e950"></a>
             	 Matches any type in a package beginning with the prefix <tt>org.xyz</tt>,
 			     which has both an <tt>@Immutable</tt> annotation and an
 			     <tt>@NonPersistent</tt> annotation.
-            </p></dd><dt><a name="d0e968"></a><span class="term">  (@(@Inherited *) org.xyz..*)</span></dt><dd><p><a name="d0e971"></a>
+            </p></dd><dt><a name="d0e962"></a><span class="term">  (@(@Inherited *) org.xyz..*)</span></dt><dd><p><a name="d0e965"></a>
             	Matches any type in a package beginning with the prefix <tt>org.xyz</tt>,
 			     which has an inheritable annotation. The annotation pattern 
 			     <tt>@(@Inherited *)</tt> matches any annotation of a type matching the
 			     type pattern <tt>@Inherited *</tt>, which in turn matches any type with the
 			     <tt>@Inherited</tt> annotation.
-            </p></dd></dl></div></div><div class="sect2"><a name="signaturePatterns"></a><div class="titlepage"><div><h3 class="title"><a name="signaturePatterns"></a>Signature Patterns</h3></div></div><p>A <tt>FieldPattern</tt> is described by the following
-  	grammar:</p><pre class="programlisting">  	
+            </p></dd></dl></div></div><div class="sect2"><a name="signaturePatterns"></a><div class="titlepage"><div><h3 class="title"><a name="signaturePatterns"></a>Signature Patterns</h3></div></div><div class="sect3"><a name="fieldPatterns"></a><div class="titlepage"><div><h4 class="title"><a name="fieldPatterns"></a>Field Patterns</h4></div></div><p>A <tt>FieldPattern</tt> can optionally specify an annotation-matching
+  	pattern as the first element:</p><pre class="programlisting">  	
   		FieldPattern := 
   		    AnnotationPattern? FieldModifiersPattern? 
   		    TypePattern (TypePattern DotOrDotDot)? SimpleNamePattern
@@ -110,26 +103,27 @@
 		            		      		            			
 		SimpleNamePattern := JavaIdentifierChar+ ('*' SimpleNamePattern)?		            
 	</pre><p>
-  	    The optional <tt>AnnotationPattern</tt> restricts matches to fields with
+  	    If present, the <tt>AnnotationPattern</tt> restricts matches to fields with
   	    annotations that match the pattern. For example:
-  	</p><div class="variablelist"><dl><dt><a name="d0e1002"></a><span class="term">@SensitiveData * *</span></dt><dd><p><a name="d0e1005"></a>
+  	</p><div class="variablelist"><dl><dt><a name="d0e999"></a><span class="term">@SensitiveData * *</span></dt><dd><p><a name="d0e1002"></a>
             	Matches a field of any type and any name, that has an annotation of
             	type <tt>@SensitiveData</tt>
-            </p></dd><dt><a name="d0e1011"></a><span class="term">@SensitiveData List org.xyz..*.*</span></dt><dd><p><a name="d0e1014"></a>
+            </p></dd><dt><a name="d0e1008"></a><span class="term">@SensitiveData List org.xyz..*.*</span></dt><dd><p><a name="d0e1011"></a>
             	Matches a member field of a type in a package with prefix <tt>org.xzy</tt>,
             	where the field is of type <tt>List</tt>, and has an annotation of type
             	<tt>@SensitiveData</tt>
-            </p></dd><dt><a name="d0e1026"></a><span class="term">(@SensitiveData *) org.xyz..*.*</span></dt><dd><p><a name="d0e1029"></a>
+            </p></dd><dt><a name="d0e1023"></a><span class="term">(@SensitiveData *) org.xyz..*.*</span></dt><dd><p><a name="d0e1026"></a>
             	Matches a member field of a type in a package with prefix <tt>org.xzy</tt>,
             	where the field is of a type which has a <tt>@SensitiveData</tt> annotation.
-            </p></dd><dt><a name="d0e1038"></a><span class="term">@Foo (@Goo *) (@Hoo *).*</span></dt><dd><p><a name="d0e1041"></a>
+            </p></dd><dt><a name="d0e1035"></a><span class="term">@Foo (@Goo *) (@Hoo *).*</span></dt><dd><p><a name="d0e1038"></a>
             	Matches a field with an annotation <tt>@Foo</tt>, of a type with an 
             	annotation <tt>@Goo</tt>, declared in a type with annotation
             	<tt>@Hoo</tt>.
-            </p></dd><dt><a name="d0e1053"></a><span class="term">@Persisted @Classified * *</span></dt><dd><p><a name="d0e1056"></a>
+            </p></dd><dt><a name="d0e1050"></a><span class="term">@Persisted @Classified * *</span></dt><dd><p><a name="d0e1053"></a>
             	Matches a field with an annotation <tt>@Persisted</tt> and
             	an annotation <tt>@Classified</tt>.
-            </p></dd></dl></div><p>A <tt>MethodPattern</tt> is of the form</p><pre class="programlisting">  	
+            </p></dd></dl></div></div><div class="sect3"><a name="methodPatterns"></a><div class="titlepage"><div><h4 class="title"><a name="methodPatterns"></a>Method and Constructor Patterns</h4></div></div><p>A <tt>MethodPattern</tt> can optionally specify an annotation-matching
+  	pattern as the first element.</p><pre class="programlisting">  	
   		MethodPattern := 
   		    AnnotationPattern? MethodModifiersPattern? TypePattern 
   		                       (TypePattern DotOrDotDot)? SimpleNamePattern 
@@ -152,8 +146,7 @@
 		
 		TypePatternList := TypePattern (',' TypePattern)*
 		            					            
-	</pre><p><span class="emphasis"><i>Note: compared to the previous version, this definition of MethodPattern does
-  	not allow parameter annotation matching (only matching on annotations of parameter types).</i></span></p><p>A <tt>ConstructorPattern</tt> has the form</p><pre class="programlisting">  	
+	</pre><p>A <tt>ConstructorPattern</tt> has the form</p><pre class="programlisting">  	
   		ConstructorPattern := 
   		    AnnotationPattern? ConstructorModifiersPattern?  
   		                       (TypePattern DotOrDotDot)? 'new' '(' FormalsPattern ')'
@@ -167,35 +160,35 @@
   	    The optional <tt>AnnotationPattern</tt> at the beginning of a 
   	    method or constructor pattern restricts matches to methods/constructors with
   	    annotations that match the pattern. For example:
-  	</p><div class="variablelist"><dl><dt><a name="d0e1088"></a><span class="term">@Oneway * *(..)</span></dt><dd><p><a name="d0e1091"></a>
+  	</p><div class="variablelist"><dl><dt><a name="d0e1085"></a><span class="term">@Oneway * *(..)</span></dt><dd><p><a name="d0e1088"></a>
             	Matches a method with any return type and any name, that has an annotation of
             	type <tt>@Oneway</tt>.
-            </p></dd><dt><a name="d0e1097"></a><span class="term">@Transaction * (@Persistent org.xyz..*).*(..)</span></dt><dd><p><a name="d0e1100"></a>
+            </p></dd><dt><a name="d0e1094"></a><span class="term">@Transaction * (@Persistent org.xyz..*).*(..)</span></dt><dd><p><a name="d0e1097"></a>
             	Matches a method with the <tt>@Transaction</tt> annotation,
             	declared in a type with the <tt>@Persistent</tt> annotation, and
             	in a package beginning with the <tt>org.xyz</tt> prefix.
-            </p></dd><dt><a name="d0e1112"></a><span class="term">* *.*(@Immutable *,..)</span></dt><dd><p><a name="d0e1115"></a>
+            </p></dd><dt><a name="d0e1109"></a><span class="term">* *.*(@Immutable *,..)</span></dt><dd><p><a name="d0e1112"></a>
             	Matches any method taking at least one parameter, where the parameter
             	type has an annotation <tt>@Immutable</tt>.
-            </p></dd></dl></div></div><div class="sect2"><a name="example-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="example-pointcuts"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1125"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1128"></a>
+            </p></dd></dl></div></div></div><div class="sect2"><a name="example-pointcuts"></a><div class="titlepage"><div><h3 class="title"><a name="example-pointcuts"></a>Example Pointcuts</h3></div></div><div class="variablelist"><dl><dt><a name="d0e1122"></a><span class="term">within(@Secure *)</span></dt><dd><p><a name="d0e1125"></a>
             	Matches any join point where the code executing is declared in a 
             	type with an <tt>@Secure</tt>
             	annotation. The format of the <tt>within</tt> pointcut designator
             	in AspectJ 5 is <tt>'within' '(' OptionalParensTypePattern ')'</tt>.
-            </p></dd><dt><a name="d0e1140"></a><span class="term">staticinitialization(@Persistent *)</span></dt><dd><p><a name="d0e1143"></a>
+            </p></dd><dt><a name="d0e1137"></a><span class="term">staticinitialization(@Persistent *)</span></dt><dd><p><a name="d0e1140"></a>
             	Matches the staticinitialization join point of any type with the
             	<tt>@Persistent</tt> annotation. The format of the 
             	<tt>staticinitialization</tt> pointcut designator
             	in AspectJ 5 is <tt>'staticinitialization' '(' OptionalParensTypePattern ')'</tt>.
-            </p></dd><dt><a name="d0e1155"></a><span class="term">call(@Oneway * *(..))</span></dt><dd><p><a name="d0e1158"></a>
+            </p></dd><dt><a name="d0e1152"></a><span class="term">call(@Oneway * *(..))</span></dt><dd><p><a name="d0e1155"></a>
             	Matches a call to a method with a <tt>@Oneway</tt> annotation.
-            </p></dd><dt><a name="d0e1164"></a><span class="term">execution(public (@Immutable *) org.xyz..*.*(..))</span></dt><dd><p><a name="d0e1167"></a>
+            </p></dd><dt><a name="d0e1161"></a><span class="term">execution(public (@Immutable *) org.xyz..*.*(..))</span></dt><dd><p><a name="d0e1164"></a>
                 The execution of any public method in a package with prefix 
                 <tt>org.xyz</tt>, where the method returns an 
                 immutable result.
-            </p></dd><dt><a name="d0e1173"></a><span class="term">set(@Cachable * *)</span></dt><dd><p><a name="d0e1176"></a>
+            </p></dd><dt><a name="d0e1170"></a><span class="term">set(@Cachable * *)</span></dt><dd><p><a name="d0e1173"></a>
                 Matches the set of any cachable field.
-            </p></dd><dt><a name="d0e1179"></a><span class="term">handler(!@Catastrophic *)</span></dt><dd><p><a name="d0e1182"></a>
+            </p></dd><dt><a name="d0e1176"></a><span class="term">handler(!@Catastrophic *)</span></dt><dd><p><a name="d0e1179"></a>
                 Matches the handler join point for the handling of any exception that is
                 not <tt>Catastrophic</tt>. The format of the <tt>handler</tt>
                 pointcut designator in AspectJ 5 is <tt>'handler' '(' OptionalParensTypePattern ')'</tt>.
@@ -243,10 +236,10 @@
         a single type name. They match at join points where the object bound to 
         <tt>this</tt> (or <tt>target</tt>, respectively) has an
         annotation of the specified type. For example: 
-    </p><div class="variablelist"><dl><dt><a name="d0e1252"></a><span class="term">@this(Foo)</span></dt><dd><p><a name="d0e1255"></a>
+    </p><div class="variablelist"><dl><dt><a name="d0e1249"></a><span class="term">@this(Foo)</span></dt><dd><p><a name="d0e1252"></a>
             	Matches any join point where the object currently bound to 'this'
             	has an annotation of type <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e1261"></a><span class="term">call(* *(..)) &amp;&amp; @target(Classified)</span></dt><dd><p><a name="d0e1264"></a>
+            </p></dd><dt><a name="d0e1258"></a><span class="term">call(* *(..)) &amp;&amp; @target(Classified)</span></dt><dd><p><a name="d0e1261"></a>
             	Matches a call to any object where the target of the call has
             	a <tt>@Classified</tt> annotation.
             </p></dd></dl></div><p>
@@ -281,12 +274,8 @@
   	 */
   	pointcut untrustedData(Untrusted untrustedDataSource) : 
   	    @args(*,*,untrustedDataSource);
-	</pre><p>
-        <span class="emphasis"><i>Note: an alternative design would be to allow both annotation
-        patterns and type patterns to be specified in the existing args pcd.
-        This works well for matching, but is more awkward when it comes to
-        exposing context.</i></span>
-    </p><p>Access to <tt>AnnotatedElement</tt> information is available
+	</pre><p>In addition to accessing annotation information at runtime through context binding,
+    access to <tt>AnnotatedElement</tt> information is also available
     reflectively with the body of advice through the <tt>thisJoinPoint</tt>,
     <tt>thisJoinPointStaticPart</tt>, and 
     <tt>thisEnclosingJoinPointStaticPart</tt> variables. To access 
@@ -296,14 +285,6 @@
   	Annotation[] targetAnnotations = thisJoinPoint.getTarget().getClass().getAnnotations();
   	Annotation[] firstParamAnnotations = thisJoinPoint.getArgs()[0].getClass().getAnnotations();
 	</pre><p>
-        <span class="emphasis"><i>Note: it would be nicer to provide direct helper methods in
-        the JoinPoint interface or a sub-interface that provide the annotations
-        directly, something like "AnnotatedElement getThisAnnotationInfo()".
-        The problem here is that the "AnnotatedElement" type is only in the
-        Java 5 runtime libraries, and we don't want to tie the AspectJ runtime
-        library to Java 5. A sub-interface and downcast solution could be used
-        if these helpers were felt to be sufficiently important.</i></span>
-    </p><p>
     The <tt>@within</tt> and <tt>@withincode</tt> pointcut designators
     match any join point where the executing code is defined within a type (<tt>@within</tt>),
      or a method/constructor (<tt>@withincode</tt>) that has an annotation of the specified 
@@ -311,11 +292,11 @@
     </p><pre class="programlisting">  	
         AtWithin := '@within' '(' AnnotationOrIdentifier ')'
         AtWithinCode := '@withincode' '(' AnnotationOrIdentifier ')'        
-    </pre><p>Some examples of using these designators follow:</p><div class="variablelist"><dl><dt><a name="d0e1344"></a><span class="term">@within(Foo)</span></dt><dd><p><a name="d0e1347"></a>
+    </pre><p>Some examples of using these designators follow:</p><div class="variablelist"><dl><dt><a name="d0e1331"></a><span class="term">@within(Foo)</span></dt><dd><p><a name="d0e1334"></a>
             	Matches any join point where the executing code is defined 
             	within a type which has an annotation of type <tt>Foo</tt>.
-            </p></dd><dt><a name="d0e1353"></a><span class="term">pointcut insideCriticalMethod(Critical c) : 
-                  @withincode(c);</span></dt><dd><p><a name="d0e1356"></a>
+            </p></dd><dt><a name="d0e1340"></a><span class="term">pointcut insideCriticalMethod(Critical c) : 
+                  @withincode(c);</span></dt><dd><p><a name="d0e1343"></a>
             	Matches any join point where the executing code is defined
             	in a method or constructor which has an annotation of type <tt>@Critical</tt>,
             	and exposes the value of the annotation in the parameter 
@@ -353,15 +334,9 @@
         to match against annotations that have at least class-file retention, and
         if used in the binding form the annotation must have runtime retention. 
     </p></div><div class="sect2"><a name="package-and-parameter-annotations"></a><div class="titlepage"><div><h3 class="title"><a name="package-and-parameter-annotations"></a>Package and Parameter Annotations</h3></div></div><p>
-          <span class="emphasis"><i>Note: A previous design allowed package annotation patterns to be specified
-          directly in type patterns, and parameter annotation patterns to be
-          specified directly in method and constructor signature patterns. Because
-          this made some pointcut expressions hard to read and understand, we moved
-          in favour of the design presented below, which also has its drawbacks. 
-          Matching on package and parameter annotations will be
-          deferred until after the 1.5.0 release so that we can gain more understanding
-          of the kinds of uses AspectJ users are making of annotations in pointcut
-          expressions before commiting to any one approach.</i></span>
+          <span class="emphasis"><i>Matching on package and parameter annotations is not supported
+          in AspectJ 1.5.0. Support for this capability may be considered in a future
+          release.</i></span>
       </p></div><div class="sect2"><a name="annotation-inheritance-and-pointcut-matching"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance-and-pointcut-matching"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
   	    According to the Java 5 specification, non-type annotations are not
   	    inherited, and annotations on types are only inherited if they have the 
@@ -405,12 +380,11 @@
   	    to <tt>c2.aMethod</tt> is not matched because join point matching for
   	    modifiers (the visibility modifiers, annotations, and throws clause) is based on
   	    the subject of the join point (the method actually being called).
-  	</p></div><div class="sect2"><a name="limitations"></a><div class="titlepage"><div><h3 class="title"><a name="limitations"></a>Limitations</h3></div></div><p>
-        It would be useful to be able to match join points based on  
-        annotation values, rather than merely the presence of a
-        class-file retention annotation of a given type. This facility may be supported in a future version of AspectJ, by expanding the
-        definition of <tt>AnnotationPattern</tt>. Matching annotation values for
-        annotations with runtime retention can be done by exposing the annotation value
-        as a pointcut parameter and then using an <tt>if</tt> pointcut expression
-        to test the value. 
-    </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="annotations-aspectmembers.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="annotations-decp.html">Next</a></td></tr><tr><td width="40%" align="left">Annotating Aspects&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="annotations.html">Up</a></td><td width="40%" align="right">&nbsp;Using Annotations with declare statements</td></tr></table></div></body></html>
+  	</p></div><div class="sect2"><a name="matchingOnAnnotationValues"></a><div class="titlepage"><div><h3 class="title"><a name="matchingOnAnnotationValues"></a>Matching based on annotation values</h3></div></div><p>
+    	The <tt>if</tt> pointcut designator can be used to write pointcuts
+    	that match based on the values annotation members. For example:    	
+    </p><pre class="programlisting">
+  	pointcut txRequiredMethod(Tx transactionAnnotation) :
+  	    execution(* *(..)) &amp;&amp; @this(transactionAnnotation) 
+  	    &amp;&amp; if(transactionAnnotation.policy() == TxPolicy.REQUIRED);
+	</pre></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="annotations-aspectmembers.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="annotations-decp.html">Next</a></td></tr><tr><td width="40%" align="left">Annotating Aspects&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="annotations.html">Up</a></td><td width="40%" align="right">&nbsp;Using Annotations with declare statements</td></tr></table></div></body></html>
