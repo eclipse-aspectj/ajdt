@@ -13,19 +13,10 @@ package org.eclipse.ajdt.internal.ui.editor.contentassist;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.codeconversion.ConversionOptions;
-import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
-import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
-import org.eclipse.jdt.internal.ui.text.java.AbstractJavaCompletionProposal;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jdt.ui.text.java.JavaContentAssistInvocationContext;
 import org.eclipse.jface.text.ITextViewer;
@@ -34,7 +25,6 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.TextContentAssistInvocationContext;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Code completion processor for the AspectJ editor
