@@ -1,15 +1,12 @@
 <html><head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
    <title>Declare statements</title><link rel="stylesheet" href="aspectj-docs.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.44"><link rel="home" href="index.html" title="The AspectJTM 5 Development Kit Developer's Notebook"><link rel="up" href="ataspectj.html" title="Chapter 9. An Annotation Based Development Style"><link rel="previous" href="ataspectj-itds.html" title="Inter-type Declarations"><link rel="next" href="ataspectj-aspectof.html" title="aspectOf() and hasAspect() methods"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Declare statements</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ataspectj-itds.html">Prev</a>&nbsp;</td><th width="60%" align="center">Chapter 9. An Annotation Based Development Style</th><td width="20%" align="right">&nbsp;<a accesskey="n" href="ataspectj-aspectof.html">Next</a></td></tr></table><hr></div><div class="sect1"><a name="ataspectj-declare"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ataspectj-declare"></a>Declare statements</h2></div></div><p>The previous section on inter-type declarations covered the case
-            of declare parents ... implements. The 1.5.0 release of AspectJ 5 will
+            of declare parents ... implements. The 1.5.0 release of AspectJ 5 does
             not support annotation style declarations for declare parents ... extends
             and declare soft (programs with these declarations would not in general
             be compilable by a regular Java 5 compiler, reducing the priority of
             their implementation). These may be supported in a future release.</p><p>
-            Declare annotation is not supported neither in the 1.5.0 release of AspectJ 5. Given that Java 5
-            compilers enforce the annotation target (@java.lang.annotation.Target) to be respected, this would cause
-            adding a lot of dummy members in the aspect (such as dummy constructors, methods etc), which would break the
-            object oriented design of the @AspectJ aspect itself.
+            Declare annotation is also not supported in the 1.5.0 release of AspectJ 5.
         </p><p>Declare precedence <span class="emphasis"><i>is</i></span>
             supported. For declare precedence, use the
             <tt>@DeclarePrecedence</tt>
@@ -34,7 +31,7 @@
             weave time, not when the aspects containing the declarations are compiled.
             (This is the same behaviour as when using declare warning or error with the
             code style). Declare warning and error declarations are made by annotating
-            a string constant whose value is the message to be issued.</p><p>Note that the String must be a constant and not the result of the invocation
+            a string constant whose value is the message to be issued.</p><p>Note that the String must be a literal and not the result of the invocation
             of a static method for example.</p><pre class="programlisting">
        declare warning : call(* javax.sql..*(..)) &amp;&amp; !within(org.xyz.daos..*)
                        : "Only DAOs should be calling JDBC.";
@@ -50,7 +47,7 @@
        @DeclareError("execution(* IFoo+.*(..)) &amp;&amp; !within(org.foo..*)")
        static final String badIFooImplementors = "Only foo types can implement IFoo";
 
-       // the following is not valid since the message is not a String constant
+       // the following is not valid since the message is not a String literal
        @DeclareError("execution(* IFoo+.*(..)) &amp;&amp; !within(org.foo..*)")
        static final String badIFooImplementorsCorrupted = getMessage();
        static String getMessage() {

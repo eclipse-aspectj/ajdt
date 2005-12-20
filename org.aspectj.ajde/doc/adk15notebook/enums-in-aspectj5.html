@@ -4,12 +4,12 @@
       AspectJ 5 supports the declaration of enumerated types just as Java 5
       does. Because of the special restrictions Java 5 places around enumerated
       types, AspectJ makes the following additional restrictions:
-      </p><div class="itemizedlist"><ul><li><a name="d0e3506"></a>You cannot use declare parents to change the super type of
-          an enum.</li><li><a name="d0e3508"></a>You cannot use declare parents to declare java.lang.Enum as
-          the parent of any type.</li><li><a name="d0e3510"></a>You cannot make inter-type constructor declarations on an
-          enum.</li><li><a name="d0e3512"></a>You cannot extend the set of values in an enum via any
-          ITD-like construct.</li><li><a name="d0e3514"></a>You cannot make inter-type method or field declarations on 
-          an enum.</li><li><a name="d0e3516"></a>You cannot use declare parents to make an enum type implement
+      </p><div class="itemizedlist"><ul><li><a name="d0e3486"></a>You cannot use declare parents to change the super type of
+          an enum.</li><li><a name="d0e3488"></a>You cannot use declare parents to declare java.lang.Enum as
+          the parent of any type.</li><li><a name="d0e3490"></a>You cannot make inter-type constructor declarations on an
+          enum.</li><li><a name="d0e3492"></a>You cannot extend the set of values in an enum via any
+          ITD-like construct.</li><li><a name="d0e3494"></a>You cannot make inter-type method or field declarations on 
+          an enum.</li><li><a name="d0e3496"></a>You cannot use declare parents to make an enum type implement
           an interface.</li></ul></div><p>In theory, the last of these two items <span class="emphasis"><i>could</i></span>
       be supported. However, AspectJ 5 follows the simple rule that <span class="emphasis"><i>
       an enum type cannot be the target of an inter-type declaration or declare
