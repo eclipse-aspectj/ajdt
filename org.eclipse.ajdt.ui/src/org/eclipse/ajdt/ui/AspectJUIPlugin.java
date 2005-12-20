@@ -35,7 +35,6 @@ import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
@@ -63,12 +62,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ClassFileDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
-import org.eclipse.jdt.internal.ui.propertiesfileeditor.PropertiesFileDocumentProvider;
-import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -84,7 +77,6 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -248,10 +240,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
-
-	private ICompilationUnitDocumentProvider fCompilationUnitDocumentProvider;
-
-	private IWorkingCopyManager fWorkingCopyManager;
 
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
@@ -769,19 +757,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		}
 	}
 
-	public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
-		if (fCompilationUnitDocumentProvider == null)
-			fCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
-		return fCompilationUnitDocumentProvider;
-	}
-
-
-	public synchronized IWorkingCopyManager getWorkingCopyManager() {
-		if (fWorkingCopyManager == null) {
-			ICompilationUnitDocumentProvider provider= getCompilationUnitDocumentProvider();
-			fWorkingCopyManager= new WorkingCopyManager(provider);
-		}
-		return fWorkingCopyManager;
-	}
+//	public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
+//		if (fCompilationUnitDocumentProvider == null)
+//			fCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
+//		return fCompilationUnitDocumentProvider;
+//	}
+//
+//
+//	public synchronized IWorkingCopyManager getWorkingCopyManager() {
+//		if (fWorkingCopyManager == null) {
+//			ICompilationUnitDocumentProvider provider= getCompilationUnitDocumentProvider();
+//			fWorkingCopyManager= new WorkingCopyManager(provider);
+//		}
+//		return fWorkingCopyManager;
+//	}
 
 }

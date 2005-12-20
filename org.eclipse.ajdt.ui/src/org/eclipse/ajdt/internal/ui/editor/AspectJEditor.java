@@ -47,6 +47,7 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
@@ -96,10 +97,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 		super();	
 		setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$	
-		setDocumentProvider(AspectJUIPlugin.getDefault().getCompilationUnitDocumentProvider());
 		// Bug 78182
 		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
-		XRefUIUtils.addWorkingCopyManagerForEditor(this, AspectJUIPlugin.getDefault().getWorkingCopyManager());
+		XRefUIUtils.addWorkingCopyManagerForEditor(this, JavaUI.getWorkingCopyManager());
 	}
 	
 	// Existing in this map means the modification has occurred
@@ -235,7 +235,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	 */
 	protected void setOutlinePageInput(JavaOutlinePage page, IEditorInput input) {
 		if (page != null) {
-			IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+			IWorkingCopyManager manager= JavaUI.getWorkingCopyManager();
 			page.setInput(manager.getWorkingCopy(input));
 		}
 	}
@@ -279,7 +279,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 		} else {
 
-			IWorkingCopyManager manager = AspectJUIPlugin.getDefault()
+			IWorkingCopyManager manager = JavaUI
 					.getWorkingCopyManager();
 			ICompilationUnit unit = manager.getWorkingCopy(getEditorInput());
 
@@ -348,7 +348,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 				JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
 			}
 			unit.becomeWorkingCopy((IProblemRequestor)getDocumentProvider().getAnnotationModel(input), null);
-			((IWorkingCopyManagerExtension) AspectJUIPlugin.getDefault()
+			((IWorkingCopyManagerExtension) JavaUI
 					.getWorkingCopyManager()).setWorkingCopy(input, unit);
 
 
@@ -367,7 +367,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 					EclipseEditorIsolation.JAVA_PARTITIONING);
 
 			if ("aj".equals(fInput.getFile().getFileExtension())) { //$NON-NLS-1$
-				AspectJUIPlugin.getDefault().getWorkingCopyManager().connect(input);
+				JavaUI.getWorkingCopyManager().connect(input);
 			}
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
@@ -396,7 +396,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		if (input instanceof IFileEditorInput) {
 			IFileEditorInput fInput = (IFileEditorInput) input;			
 			// Fix for bug 79633 - editor buffer is not refreshed
-			AspectJUIPlugin.getDefault().getWorkingCopyManager().disconnect(input);
+			JavaUI.getWorkingCopyManager().disconnect(input);
 			
 			AJLog.log("Editor closed - " + fInput.getFile().getName()); //$NON-NLS-1$
 			synchronized(activeEditorList) {
@@ -500,7 +500,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	}
 	
 	protected IJavaElement getInputJavaElement() {
-		return AspectJUIPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(getEditorInput()); 	
+		return JavaUI.getWorkingCopyManager().getWorkingCopy(getEditorInput()); 	
 	}
 	
 	/**

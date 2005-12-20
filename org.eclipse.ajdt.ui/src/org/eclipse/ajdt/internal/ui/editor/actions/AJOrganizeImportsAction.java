@@ -263,7 +263,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	private static ICompilationUnit getCompilationUnit(JavaEditor editor) {
-		IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+		IWorkingCopyManager manager= JavaUI.getWorkingCopyManager();
 		ICompilationUnit cu= manager.getWorkingCopy(editor.getEditorInput());
 		return cu;
 	}

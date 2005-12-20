@@ -27,6 +27,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.text.java.AbstractJavaCompletionProposal;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.text.java.JavaContentAssistInvocationContext;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
@@ -91,7 +92,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		 * @return the compilation unit that content assist is invoked in, possibly <code>null</code>
 		 */
 		public ICompilationUnit getCompilationUnit() {
-			return AspectJUIPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(fEditor.getEditorInput());
+			return JavaUI.getWorkingCopyManager().getWorkingCopy(fEditor.getEditorInput());
 		}
 
 	}
