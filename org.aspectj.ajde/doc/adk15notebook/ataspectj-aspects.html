@@ -10,9 +10,6 @@
      public class Foo {}
          </pre><p>Is equivalent to:</p><pre class="programlisting">
      public aspect Foo {}
-         </pre><p>And since issingleton() is the default aspect instantiation model it is equivalent to:</p><pre class="programlisting">
-      @Aspect("issingleton()")
-      public class Foo {}
          </pre><p>To specify an aspect an aspect instantiation model (the default is
             singleton), provide the perclause as the
             <tt>@Aspect</tt>
