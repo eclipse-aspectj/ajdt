@@ -155,6 +155,7 @@ public class AJCompilationUnitManager {
 		try {
 			OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
 					.getParent()).getElementInfo();
+			info.removeChild(unit); // Remove identical CompilationUnit if it exists
 			info.addChild(unit);
 
 			//enable java search (experimental) - leads to exceptions when
