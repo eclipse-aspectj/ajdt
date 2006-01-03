@@ -28,6 +28,7 @@ import org.eclipse.ajdt.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
+import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.ajdt.internal.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
@@ -61,7 +62,6 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.JavaModelStatus;
@@ -105,7 +105,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 
 	public AJCompilationUnit(IFile ajFile){
-		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), DefaultWorkingCopyOwner.PRIMARY);
+		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), AJWorkingCopyOwner.INSTANCE);
 		this.ajFile = ajFile;
 	}
 
@@ -298,6 +298,10 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	}
 
+	public boolean isPrimary() {
+		return this.owner == AJWorkingCopyOwner.INSTANCE;
+	}
+
 	protected Object createElementInfo() {
 		return new AJCompilationUnitInfo();
 	}
@@ -393,7 +397,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
 			IProgressMonitor monitor) throws JavaModelException {
 		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
-		if (workingCopyOwner == null) workingCopyOwner = DefaultWorkingCopyOwner.PRIMARY;
+		if (workingCopyOwner == null) workingCopyOwner = AJWorkingCopyOwner.INSTANCE;
 		
 		boolean createAST = false;
 		if (astLevel == AST.JLS2) {

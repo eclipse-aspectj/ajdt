@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.buildconfig;
 
+import java.util.HashMap;
+
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.bc.ProjectBuildConfigurator;
 import org.eclipse.core.resources.IProject;
@@ -18,6 +20,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 public class DefaultBuildConfigurator implements IBuildConfigurator {
 	private static IBuildConfigurator INSTANCE = new DefaultBuildConfigurator();
+	private HashMap projectConfigurators = new HashMap();
 	
 	public static synchronized IBuildConfigurator getBuildConfigurator() {
 		return INSTANCE;
@@ -28,7 +31,17 @@ public class DefaultBuildConfigurator implements IBuildConfigurator {
 	}
 
 	public IProjectBuildConfigurator getProjectBuildConfigurator(IProject project) {
-		return new ProjectBuildConfigurator(project);
+		if ((project == null) || (!project.isOpen()) || !AspectJPlugin.isAJProject(project)) {
+			return null;
+		} else {
+			ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) projectConfigurators
+				.get(project.getName());
+			if (pbc == null) {
+				pbc =  new ProjectBuildConfigurator(project);
+				projectConfigurators.put(project.getName(), pbc);
+			}
+			return pbc;
+		}
 	}
 
 	public IProjectBuildConfigurator getActiveProjectBuildConfigurator() {

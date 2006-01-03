@@ -12,8 +12,12 @@
 package org.eclipse.ajdt.internal.bc;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.CoreUtils.FilenameFilter;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
@@ -28,6 +32,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.corext.buildpath.ClasspathModifier;
 
 public class BuildConfiguration implements IBuildConfiguration {
 
@@ -42,13 +47,10 @@ public class BuildConfiguration implements IBuildConfiguration {
 	}
 
 	public IFile getFile() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public List getIncludedJavaFiles(FilenameFilter filter) {
-		// TODO Process JDT's include/exclude mechanism
-		// include all source files for now
 		List sourceFiles = new ArrayList();
 		try {
 			IJavaProject jp = JavaCore.create(project);
@@ -60,7 +62,12 @@ public class BuildConfiguration implements IBuildConfiguration {
 							.removeFirstSegments(1));
 					if ((res != null) && (res instanceof IContainer)) {
 						List l = allFiles((IContainer) res, filter);
-						sourceFiles.addAll(l);
+						for (Iterator iter = l.iterator(); iter.hasNext();) {
+							IFile file = (IFile) iter.next();
+							if(!(ClasspathModifier.isExcluded(file, jp))) {
+								sourceFiles.add(file.getLocation().toFile());
+							}
+						}
 					}
 				}
 			}
@@ -69,7 +76,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 		return sourceFiles;
 	}
 
-	//return a list of all file resources in the given folder, including all
+	//return a list of all IFiles in the given folder, including all
 	// sub-folders
 	private List allFiles(IContainer folder, final FilenameFilter filter) {
 		final List contents = new ArrayList();
@@ -79,7 +86,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 					if (res.getType() == IResource.FILE
 							&& filter.accept(res
 									.getName())) {
-						contents.add(res.getLocation().toFile());
+						contents.add(res);
 					}
 					return true;
 				}
@@ -90,18 +97,63 @@ public class BuildConfiguration implements IBuildConfiguration {
 	}
 	
 	public boolean isIncluded(IResource correspondingResource) {
-		// TODO Auto-generated method stub
-		return true;
+		return getFiles().contains(correspondingResource);
+	}
+
+	private Set getFiles() {
+		Set sourceFiles = new HashSet();
+		try {
+			IJavaProject jp = JavaCore.create(project);
+			IClasspathEntry[] cpes = jp.getRawClasspath();
+			for (int i = 0; i < cpes.length; i++) {
+				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath path = cpes[i].getPath();
+					IResource res = project.findMember(path
+							.removeFirstSegments(1));
+					if ((res != null) && (res instanceof IContainer)) {
+						List l = allFiles((IContainer) res, CoreUtils.ASPECTJ_SOURCE_FILTER);
+						for (Iterator iter = l.iterator(); iter.hasNext();) {
+							IFile file = (IFile) iter.next();
+							if(!(ClasspathModifier.isExcluded(file, jp))) {
+								sourceFiles.add(file);
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return sourceFiles;
 	}
 
 	public List getIncludedJavaFileNames(FilenameFilter filter) {
-		// TODO Auto-generated method stub
-		return null;
+		List sourceFileNames = new ArrayList();
+		try {
+			IJavaProject jp = JavaCore.create(project);
+			IClasspathEntry[] cpes = jp.getRawClasspath();
+			for (int i = 0; i < cpes.length; i++) {
+				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath path = cpes[i].getPath();
+					IResource res = project.findMember(path
+							.removeFirstSegments(1));
+					if ((res != null) && (res instanceof IContainer)) {
+						List l = allFiles((IContainer) res, CoreUtils.ASPECTJ_SOURCE_FILTER);
+						for (Iterator iter = l.iterator(); iter.hasNext();) {
+							IFile file = (IFile) iter.next();
+							if(!(ClasspathModifier.isExcluded(file, jp))) {
+								sourceFileNames.add(file.getName());
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return sourceFileNames;
 	}
 
 	public void update(boolean b) {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub		
 	}
 
 }

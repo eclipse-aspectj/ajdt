@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.internal.bc;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
@@ -42,12 +43,12 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 
 	public Collection getBuildConfigurations() {
 		// TODO Auto-generated method stub
-		return null;
+		return Collections.EMPTY_LIST;
 	}
 
 	public IFile[] getConfigurationFiles() {
 		// TODO Auto-generated method stub
-		return null;
+		return new IFile[0];
 	}
 
 	public boolean fullBuildRequested() {

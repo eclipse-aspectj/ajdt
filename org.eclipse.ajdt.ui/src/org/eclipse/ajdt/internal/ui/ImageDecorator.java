@@ -103,35 +103,58 @@ public class ImageDecorator implements ILabelDecorator {
 	public Image decorateImage(Image image, Object element)  {
 		if (preventRecursion)
 			return null;
-		
+
+		Image img = null;
 		if (element instanceof ICompilationUnit){
 			ICompilationUnit comp = (ICompilationUnit)element;
+			IFile file = null;
 			try {
-				element = comp.getCorrespondingResource();
+				file = (IFile) comp.getCorrespondingResource();
 			} catch (JavaModelException e) {
-				element = null;
 			}
+			if(file != null) {
+				if(comp instanceof AJCompilationUnit) {
+					IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
+					
+					if (pbc == null)
+						return null;
+					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+					if ((bc==null) || bc.isIncluded(file)){
+						Rectangle rect = image.getBounds();
+						img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+					} else {
+						Rectangle rect = image.getBounds();
+						img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+					}
+				}
+			}
+				
+				
+//			try {
+//				element = comp.getCorrespondingResource();
+//			} catch (JavaModelException e) {
+//				element = null;
+//			}
 		}
 		
-		Image img = null;
-		if (element instanceof IFile){ 
-			IFile file= (IFile) element;
-			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
-				// Fix for 108961 - use different icons for .aj files
-				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
-				
-				if (pbc == null)
-					return null;
-				IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-				if ((bc==null) || bc.isIncluded(file)){
-					Rectangle rect = image.getBounds();
-					img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
-				} else {
-					Rectangle rect = image.getBounds();
-					img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
-				}			
-			}
-		}
+//		if (element instanceof IFile){ 
+//			IFile file= (IFile) element;
+//			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
+//				// Fix for 108961 - use different icons for .aj files
+//				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
+//				
+//				if (pbc == null)
+//					return null;
+//				IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+//				if ((bc==null) || bc.isIncluded(file)){
+//					Rectangle rect = image.getBounds();
+//					img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+//				} else {
+//					Rectangle rect = image.getBounds();
+//					img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+//				}			
+//			}
+//		}
 		//hook for AspectJElements (unrelated to buidconfigurator)
 		//-> TODO: refactor
 		if (element instanceof AJCodeElement) {

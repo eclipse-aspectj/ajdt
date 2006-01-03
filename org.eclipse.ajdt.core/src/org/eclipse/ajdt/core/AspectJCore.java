@@ -29,6 +29,7 @@ import org.eclipse.ajdt.core.javaelements.MockDeclareElement;
 import org.eclipse.ajdt.core.javaelements.MockIntertypeElement;
 import org.eclipse.ajdt.core.javaelements.MockPointcutElement;
 import org.eclipse.ajdt.core.javaelements.MockSourceMethod;
+import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
@@ -50,7 +51,7 @@ public class AspectJCore {
 	 * @return the Java element corresponding to the handle identifier
 	 */
 	public static IJavaElement create(String handleIdentifier) {
-		return create(handleIdentifier, DefaultWorkingCopyOwner.PRIMARY);
+		return create(handleIdentifier, AJWorkingCopyOwner.INSTANCE);
 	}
 
 	private static int indexOfIgnoringEscapes(String str, char ch) {
@@ -171,8 +172,9 @@ public class AspectJCore {
 								return restEl;
 							}
 						} else {
+							// Use the default working copy owner for Java elements
 							IJavaElement restEl = pf.getHandleFromMemento(
-									token, memento, owner);
+									token, memento, DefaultWorkingCopyOwner.PRIMARY);
 							if (restEl != null) {
 								if (isCodeElement) {
 									// there was an AJCodeElement at the end of

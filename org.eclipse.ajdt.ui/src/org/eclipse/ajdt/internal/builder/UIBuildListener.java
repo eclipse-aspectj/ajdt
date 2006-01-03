@@ -150,7 +150,7 @@ public class UIBuildListener implements IAJBuildListener {
 	}
 
 	private void ensureBuildConfigFileIsValid(ProjectProperties props, IProject project) {
-		if (!props.isProjectSourceFileListKnown(project)) {
+//		if (!props.isProjectSourceFileListKnown(project)) {
 			// optimization: only determine the list of source files and write the .lst file
 			// if the list has changed
 			List projectFiles = props.getProjectSourceFiles(project,
@@ -158,8 +158,8 @@ public class UIBuildListener implements IAJBuildListener {
 			writeBuildConfigFile(projectFiles, project);
 			// Mark the list as known so we don't have to rewrite the lst file for every build.
 			// We then need to set this to false anytime the build config does change.
-			props.setProjectSourceFileListKnown(project,true);
-		}
+//			props.setProjectSourceFileListKnown(project,true);
+//		}
 	}
 	
 	/**

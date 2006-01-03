@@ -40,7 +40,9 @@ import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
+import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
@@ -286,10 +288,21 @@ public class AspectJEditor extends CompilationUnitEditor {
 			if (unit != null) {
 				synchronized (unit) {
 					performSave(false, progressMonitor);
+//					OpenableElementInfo info;
+//					try {
+//						info = (OpenableElementInfo) ((JavaElement) unit
+//								.getParent()).getElementInfo();
+//						info.removeChild(unit); // Remove identical CompilationUnit if it exists
+//						info.addChild(unit);
+//					} catch (JavaModelException e) {
+//					}					
 				}
-			} else
+			} else {
 				performSave(false, progressMonitor);
+				System.out.println("null unit");
+			}
 		}
+
 	}
 	
 	/**

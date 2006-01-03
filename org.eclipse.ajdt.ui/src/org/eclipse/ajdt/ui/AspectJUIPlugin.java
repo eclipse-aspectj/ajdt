@@ -22,9 +22,9 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
-import org.eclipse.ajdt.internal.javamodel.FileFilter;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.EventTraceLogger;
 import org.eclipse.ajdt.internal.ui.actions.UICoreOperations;
@@ -56,11 +56,16 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
+import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -478,13 +483,30 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		
 		checkAspectJVersion();
 
-		// check on startup for .aj resource filter
-		FileFilter.checkIfFileFilterEnabledAndAsk();
-
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
+		
+//		JavaCore.addElementChangedListener(new IElementChangedListener(){
+//
+//			public void elementChanged(ElementChangedEvent event) {
+//				IJavaElementDelta delta= event.getDelta();
+//				IJavaElement elem= delta.getElement();
+//				if(delta.getKind() == IJavaElementDelta.CHANGED) {
+//					if(elem instanceof AJCompilationUnit) {
+//						OpenableElementInfo info;
+//						try {
+//							info = (OpenableElementInfo) ((JavaElement) elem
+//									.getParent()).getElementInfo();
+//							info.removeChild(elem); // Remove identical CompilationUnit if it exists
+//							info.addChild(elem);
+//						} catch (JavaModelException e) {
+//						}
+//					}
+//				}
+//				
+//			}});
 	}
 	
 	/**

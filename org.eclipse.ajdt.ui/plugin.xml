@@ -284,10 +284,10 @@
       <filter
             targetId="org.eclipse.jdt.ui.PackageExplorer"
             enabled="true"
-            class="org.eclipse.ajdt.internal.javamodel.FileFilter"
+            class="org.eclipse.ajdt.internal.javamodel.CompilationUnitFilter"
             description="%ajFileFilterDesc"
             name="%ajFileFilter"
-            id="org.eclipse.ajdt.javamodel.FileFilter"/>
+            id="org.eclipse.ajdt.javamodel.CompilationUnitFilter"/>
       <filter
             id="org.eclipse.ajdt.ui.editor.outline.PointcutFilter"
             name="%pointcutFilter.name"
