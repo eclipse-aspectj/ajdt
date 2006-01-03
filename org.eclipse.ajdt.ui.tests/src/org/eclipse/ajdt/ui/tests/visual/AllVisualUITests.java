@@ -21,16 +21,16 @@ public class AllVisualUITests {
 		TestSuite suite = new TestSuite(AllVisualUITests.class.getName());
 				
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest3.class));
+//		suite.addTest(new TestSuite(BuildConfigurationTest.class));
+//		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
+//		suite.addTest(new TestSuite(BuildConfigurationTest3.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		suite.addTest(new TestSuite(NewAspectWizardTest.class));
 		suite.addTest(new TestSuite(Bug98663Test.class));
 		suite.addTest(new TestSuite(Bug98911Test.class));
 		suite.addTest(new TestSuite(Bug100018Test.class));
-		suite.addTest(new TestSuite(Bug102493Test.class));
+//		suite.addTest(new TestSuite(Bug102493Test.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 		suite.addTest(new TestSuite(OpenDeclarationTest.class));

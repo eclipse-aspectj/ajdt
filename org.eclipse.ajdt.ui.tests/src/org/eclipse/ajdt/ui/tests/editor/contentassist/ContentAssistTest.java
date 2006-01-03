@@ -105,7 +105,7 @@ public class ContentAssistTest extends UITestCase {
 	}
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
-		AspectJEditor editor = (AspectJEditor)openFileInDefaultEditor(file, false);
+		AspectJEditor editor = (AspectJEditor)openFileInAspectJEditor(file, false);
 		AJCompletionProcessor proc = new AJCompletionProcessor(editor, getContentAssistant(editor), IDocument.DEFAULT_CONTENT_TYPE);
 		AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		String content;

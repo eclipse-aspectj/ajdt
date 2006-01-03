@@ -1,1 +1,11 @@
 src.includes = src/
+src.excludes = src/org/eclipse/ajdt/ui/tests/buildconfig/BuildConfigurationTest.java,\
+               src/org/eclipse/ajdt/ui/tests/buildconfig/ProjectBuildConfigurationTest.java,\
+               src/org/eclipse/ajdt/ui/tests/buildconfig/UtilTests.java,\
+               src/org/eclipse/ajdt/ui/tests/builder/ProblemMarkerTest.java,\
+               src/org/eclipse/ajdt/ui/tests/visual/Bug102493Test.java,\
+               src/org/eclipse/ajdt/ui/tests/visual/BuildConfigurationTest.java,\
+               src/org/eclipse/ajdt/ui/tests/visual/BuildConfigurationTest2.java,\
+               src/org/eclipse/ajdt/ui/tests/visual/BuildConfigurationTest3.java,\
+               src/org/eclipse/ajdt/ui/tests/preferences/AspectJPreferencesTest.java,\
+               src/org/eclipse/ajdt/ui/tests/wizards/BuildConfigurationFileWizardTest.java
