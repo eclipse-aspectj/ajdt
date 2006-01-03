@@ -33,18 +33,26 @@
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
             id="iprojectcontributions">
+         <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.project.tools">
+            <separator
+               name="group0">
+            </separator>
+         </menu>     
          <visibility>
          	<and>
 	         	<objectState name="nature" value="org.eclipse.jdt.core.javanature"/>
 	         	<not>
 		         	<objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
 		        </not>
+		        <objectState name="open" value="true"/>
 		    </and>
          </visibility>
          <action
                label="%convertToAJP"
                class="org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction"
-               menubarPath="additions"
+               menubarPath="org.eclipse.ajdt.ui.project.tools/group0"
                id="addajnatureaction">
          </action>
       </objectContribution>
