@@ -139,19 +139,18 @@ public abstract class UITestCase extends TestCase {
 	 * Opens a file in its associated editor.
 	 */
 	protected IEditorPart openFileInDefaultEditor(IFile file, boolean activate){
-//		if (file != null) {
-//			IWorkbenchPage p= JavaPlugin.getActivePage();
-//			if (p != null) {
-//				try {
-//					IEditorPart editorPart= IDE.openEditor(p, file, activate);
-//					initializeHighlightRange(editorPart);
-//					return editorPart;
-//				} catch (PartInitException e) {
-//				}
-//			}
-//		}
-//		return null;
-		return openFileInAspectJEditor(file, activate);
+		if (file != null) {
+			IWorkbenchPage p= JavaPlugin.getActivePage();
+			if (p != null) {
+				try {
+					IEditorPart editorPart= IDE.openEditor(p, file, activate);
+					initializeHighlightRange(editorPart);
+					return editorPart;
+				} catch (PartInitException e) {
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
