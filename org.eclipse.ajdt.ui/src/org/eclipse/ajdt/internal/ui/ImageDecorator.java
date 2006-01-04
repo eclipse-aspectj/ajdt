@@ -14,8 +14,6 @@ package org.eclipse.ajdt.internal.ui;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
@@ -23,36 +21,25 @@ import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.TreeHierarchyLayoutProblemsDecorator;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
-import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.internal.WorkbenchPlugin;
@@ -147,26 +134,6 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		}
 
-		// add the orange triangle to the icon if this method, 
-		// class or aspect is advised
-		if ((element instanceof IMethod || element instanceof SourceType)
-				&& AspectJPreferences.isAdviceDecoratorActive()) {
-			IJavaElement je = (IJavaElement) element;
-			IJavaProject jp = je.getJavaProject();
-			// only query the model if the element is in an AJ project
-			if ((jp != null) && AspectJPlugin.isAJProject(jp.getProject())) {
-				if (AJModel.getInstance().isAdvised(je)) {
-					Image baseImage = img;
-					if (baseImage == null) {
-						baseImage = image;
-					}
-					MyCompositeImageDesc overlay = new MyCompositeImageDesc(
-							baseImage);
-					img = getRegistry().get(overlay);
-				}
-			}
-		}
-
 		if (img != null){			
 			preventRecursion = true;
 			
@@ -182,68 +149,6 @@ public class ImageDecorator implements ILabelDecorator {
 		}
 		return null;
 	}
-	
-	class MyCompositeImageDesc extends CompositeImageDescriptor {
-		private Image fBaseImage;
-
-		private Point fSize;
-
-		public MyCompositeImageDesc(Image baseImage) {
-			this.fBaseImage = baseImage;
-
-			fSize = new Point(baseImage.getBounds().width,
-					baseImage.getBounds().height);
-			//System.out.println("size=" + size);
-		}
-
-		protected void drawCompositeImage(int width, int height) {
-			// To draw a composite image, the base image should be
-			// drawn first (first layer) and then the overlay image
-			// (second layer)
-
-			// Draw the base image using the base image's image data
-			drawImage(fBaseImage.getImageData(), 0, 0);
-
-			// Method to create the overlay image data
-			// Get the image data from the Image store or by other means
-			ImageData overlayImageData = AspectJImages.ADVICE_OVERLAY.getImageDescriptor().getImageData();
-				//adviceDescriptor.getImageData();
-
-			// Overlaying the icon in the top left corner i.e. x and y
-			// coordinates are both zero
-			int xValue = 0;
-			int yValue = 0;
-			drawImage(overlayImageData, xValue, yValue);
-		}
-		
-		/* (non-Javadoc)
-		 * Method declared on Object.
-		 */
-		public boolean equals(Object object) {
-			if (object == null || !MyCompositeImageDesc.class.equals(object.getClass()))
-				return false;
-				
-			MyCompositeImageDesc other= (MyCompositeImageDesc)object;
-			return (fBaseImage.equals(other.fBaseImage) && fSize.equals(other.fSize));
-		}
-		
-		/* (non-Javadoc)
-		 * Method declared on Object.
-		 */
-		public int hashCode() {
-			return fBaseImage.hashCode() | fSize.hashCode();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.jface.resource.CompositeImageDescriptor#getSize()
-		 */
-		protected Point getSize() {
-			return fSize;
-		}
-	}
-
 	
 	private Image getImageLabel(ImageDescriptor descriptor){
 		if (descriptor == null) 

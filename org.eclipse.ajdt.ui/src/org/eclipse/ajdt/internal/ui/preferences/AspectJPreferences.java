@@ -52,8 +52,6 @@ public class AspectJPreferences {
 
 	public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt"; //$NON-NLS-1$
 
-	public static final String ADVICE_DECORATOR = "aspectjPreferences.adviceDec"; //$NON-NLS-1$
-
 	public static final String ACTIVE_CONFIG = "org.eclipse.ajdt.ui.activeBuildConfiguration"; //$NON-NLS-1$
 
 	public static final String AUTOBUILD_SUPPRESSED = "org.eclipse.ajdt.ui.preferences.autobuildSuppressed"; //$NON-NLS-1$
@@ -222,6 +220,22 @@ public class AspectJPreferences {
 		return ".aj";  //$NON-NLS-1$
 	}
 
+	/**
+	 * The default values used when the plugin is first installed or when
+	 * "restore defaults" is clicked.
+	 */
+	public static void initDefaults(IPreferenceStore store) {
+		store.setDefault(AspectJPreferences.JAVA_OR_AJ_EXT, false);
+		store.setDefault(AspectJPreferences.AUTOBUILD_SUPPRESSED, true);
+		store.setDefault(AspectJPreferences.PDE_AUTO_IMPORT_CONFIG_DONE, false);
+		store.setDefault(AspectJPreferences.ASK_PDE_AUTO_IMPORT, true);
+		store.setDefault(AspectJPreferences.DO_PDE_AUTO_IMPORT, false);
+		store.setDefault(AspectJPreferences.PDE_AUTO_REMOVE_IMPORT_CONFIG_DONE,
+				false);
+		store.setDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT, true);
+		store.setDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT, false);
+	}
+		
 	public static String getLintOptions(IProject thisProject) {
 		File optsFile = AspectJUIPlugin.getDefault().getStateLocation().append(
 				XlintProperties).toFile();
@@ -315,12 +329,6 @@ public class AspectJPreferences {
 			opts += "-XhasMember "; //$NON-NLS-1$
 		}
 		return opts;
-	}
-
-	static public boolean isAdviceDecoratorActive() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(ADVICE_DECORATOR);
 	}
 
 	static public boolean isAutobuildSuppressed() {
