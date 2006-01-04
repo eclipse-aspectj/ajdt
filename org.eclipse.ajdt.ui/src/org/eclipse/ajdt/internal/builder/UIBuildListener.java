@@ -26,10 +26,10 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
+import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -42,6 +42,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -60,6 +61,8 @@ public class UIBuildListener implements IAJBuildListener {
 	 * to their outjar
 	 */
 	private HashMap outjars = null;
+
+	private ListenerList fListeners;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
@@ -213,16 +216,19 @@ public class UIBuildListener implements IAJBuildListener {
 
 		MarkerUpdating.addNewMarkers(project);
 		
-		if (AspectJPreferences.isAdviceDecoratorActive()) {
-			AJModelUtils.refreshOutlineViews();
-		}
-
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
 			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
 		} else {
 			AspectJUIPlugin.getDefault().getDisplay().syncExec(
 				new Runnable() {
 					public void run() {
+						// TODO: can we determine whether there were
+						// actually changes to the set of advised elements?
+						Object[] listeners= fListeners.getListeners();
+						for (int i= 0; i < listeners.length; i++) {
+							((IAdviceChangedListener) listeners[i]).adviceChanged();
+						}
+
 						// refresh Cross References
 						XReferenceUIPlugin.refresh();
 						
@@ -241,7 +247,18 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 	}
 
+	public void addAdviceListener(IAdviceChangedListener adviceListener) {
+		if (fListeners == null) {
+			fListeners= new ListenerList();
+		}
+		fListeners.add(adviceListener);
+	}
 
+	public void removeAdviceListener(IAdviceChangedListener adviceListener) {
+		if (fListeners != null) {
+			fListeners.remove(adviceListener);
+		}
+	}
 
 	/**
 	 * If the build has been aborted then mark any referencing projects with a
