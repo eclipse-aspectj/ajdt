@@ -258,15 +258,9 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            name="%AspectJ"
-            class="org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage"
-            id="ajpreferencespage">
-      </page>
-      <page
             name="%ajCompilerOptionsPrefName"
-            category="ajpreferencespage"
             class="org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage"
-            id="org.eclipse.ajdt.ui.preferences.AJCompilerPreferencePage">
+            id="AJCompilerPreferencePage">
       </page>      
       
    </extension>
@@ -1340,20 +1334,34 @@ M4 = Platform-specific fourth key
          point="org.eclipse.ui.decorators">
       <decorator
             lightweight="false"
-            label="%BuildConfigDecorator.label"
+            label="%ajElementDecorator.label"
             class="org.eclipse.ajdt.internal.ui.ImageDecorator"
             state="true"
             id="org.eclipse.ajdt.ui.decorator">
          <description>
-			%BuildConfigDecorator.description
+			%ajElementDecorator.description
 		 </description>
          <enablement>
             <objectClass
                   name="java.lang.Object">
             </objectClass>
          </enablement>
+      </decorator>
+      <decorator
+            lightweight="true"
+            label="%advisesDecorator.label"
+            class="org.eclipse.ajdt.internal.ui.AdviceImageDecorator"
+            state="true"
+            adaptable="true"
+            id="org.eclipse.ajdt.ui.advicedecorator">
          <description>
-         </description>
+			%advisesDecorator.description
+		 </description>
+         <enablement>
+            <objectClass
+                  name="java.lang.Object">
+            </objectClass>
+         </enablement>
       </decorator>
    </extension>
    <extension
