@@ -94,9 +94,6 @@ public class CompilerTaskListManager implements TaskListManager {
         // It is missing extra source locations and info about whether the
         // message
         // has resulted from a declare statement.
-        //TODO: Chuck this:
-        //	throw new RuntimeException("Why the hell are we in here? We should
-        // always be using the other addSourcelineTask() method");
         if (AspectJUIPlugin.DEBUG_COMPILER)
             System.err.println("CompilerMessage received ]" + message + "["); //$NON-NLS-1$ //$NON-NLS-2$
 
