@@ -10,19 +10,26 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.actions;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
-import org.eclipse.ajdt.internal.buildconfig.editor.BuildProperties;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,38 +48,63 @@ public class ApplyBCAction implements IWorkbenchWindowActionDelegate {
 	 *  Executed when "Apply Build Configuration" in the context menu is clicked
 	 */
 	public void run(IAction action) {
+		// TODO: Get this to work with build configuration files in the old style
 		if (currentlySelectedFile != null) {
-			BuildProperties properties = new BuildProperties(currentlySelectedFile);
-			List files = properties.getFiles(true);
-			List currentlyIncludedFiles = ((BuildConfiguration)DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentlySelectedFile.getProject()).getActiveBuildConfiguration()).getIncludedIResourceFiles(CoreUtils.ASPECTJ_SOURCE_FILTER);
-			List newFiles = getNewFiles(currentlyIncludedFiles, files);
-			List removedFiles = getRemovedFiles(currentlyIncludedFiles, files);
-			List newJavaElements = new ArrayList();
-			for (Iterator iter = newFiles.iterator(); iter.hasNext();) {
-				IFile file = (IFile) iter.next();
-				IJavaElement element;
-				if(CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
-					element = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
-				} else {
-					element = JavaCore.create(file);
-				}
-				newJavaElements.add(element);	
-			}
-			List removedJavaElements = new ArrayList();
-			for (Iterator iter = removedFiles.iterator(); iter.hasNext();) {
-				IFile file = (IFile) iter.next();
-				IJavaElement element;
-				if(CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
-					element = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
-				} else {
-					element = JavaCore.create(file);
-				}
-				removedJavaElements.add(element);	
-			}	
+			File file = currentlySelectedFile.getLocation().toFile();
+			BufferedReader br = null;
 			try {
-				new ClasspathModifier().include(newJavaElements, JavaCore.create(currentlySelectedFile.getProject()), null);
-				new ClasspathModifier().exclude(removedJavaElements, JavaCore.create(currentlySelectedFile.getProject()), null);
+				IJavaProject project = JavaCore.create(currentlySelectedFile.getProject());
+				List classpathEntries = new ArrayList();
+				List cplistelements = ClasspathModifier.getExistingEntries(project);
+				for (Iterator iter = cplistelements.iterator(); iter.hasNext();) {
+					CPListElement element = (CPListElement) iter.next();
+					if (element.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
+						classpathEntries.add(element.getClasspathEntry());
+					}
+				}
+				br = new BufferedReader(new FileReader(file));
+				String line = br.readLine();
+				while (line != null) {
+					if (line.startsWith("src.includes")) {
+						String pathStr = line.substring(15);
+						IPath path = project.getPath().append(pathStr);
+						line = br.readLine();						
+						List exclusions = new ArrayList();
+						while (line != null && line.startsWith("src.excludes")) {
+							String exclusionPathStr = line.substring(15);
+							if (exclusionPathStr.startsWith(pathStr)) {
+								exclusionPathStr = exclusionPathStr.substring(pathStr.length());
+							}
+							IPath exclusionPath = //project.getPath().append(exclusionPathStr);
+							new Path(exclusionPathStr);
+							exclusions.add(exclusionPath);
+							line = br.readLine();
+						}
+						IPath[] exclusionPatterns = new IPath[exclusions.size()];
+						for (int i = 0; i < exclusionPatterns.length; i++) {
+							exclusionPatterns[i] = (IPath) exclusions.get(i);
+						}
+						IClasspathEntry classpathEntry = new ClasspathEntry(IPackageFragmentRoot.K_SOURCE, IClasspathEntry.CPE_SOURCE, path, ClasspathEntry.INCLUDE_ALL, exclusionPatterns, null, null, null, true, ClasspathEntry.NO_ACCESS_RULES, false, ClasspathEntry.NO_EXTRA_ATTRIBUTES);
+						classpathEntries.add(classpathEntry);
+					} else {
+						line = br.readLine();
+					}
+				}
+				IClasspathEntry[] entries = new IClasspathEntry[classpathEntries.size()];
+				for (int i = 0; i < entries.length; i++) {
+					entries[i] = (IClasspathEntry) classpathEntries.get(i);
+				}
+				((JavaProject)project).setRawClasspath(entries, null);
+			} catch (FileNotFoundException e) {
 			} catch (JavaModelException e) {
+			} catch (IOException e) {
+			} finally {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e) {
+					}
+				}
 			}
 		}
 	}

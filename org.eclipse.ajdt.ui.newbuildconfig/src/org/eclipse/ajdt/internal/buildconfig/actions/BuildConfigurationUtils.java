@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.internal.buildconfig.actions;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,76 +21,14 @@ import org.eclipse.ajdt.internal.bc.ProjectBuildConfigurator;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 public class BuildConfigurationUtils {
-
-	
-	public static List minimizeIncludes(List files) {
-		//if all files of a folder are included, include folder instead of
-		// files seperately
-		HashSet fileList = new HashSet(files);
-		HashSet temp1 = (HashSet) fileList.clone();
-		HashSet temp2 = new HashSet();
-		HashSet temp3;
-		boolean hasChanged = true;
-		Iterator iter = temp1.iterator();
-
-		while (hasChanged) {
-
-			hasChanged = false;
-			iter = temp1.iterator();
-			while (iter.hasNext()) {
-				IResource f = (IResource) iter.next();
-				IContainer cont = f.getParent();
-				if (cont.getType() != IResource.PROJECT) {
-					try {
-						IResource[] mems = cont.members();
-						boolean containsAll = true;
-						for (int i = 0; i < mems.length; i++) {
-							if (!temp1.contains(mems[i])
-									&& CoreUtils.ASPECTJ_SOURCE_FILTER
-											.accept(mems[i].getName())) {
-								containsAll = false;
-								break;
-							} else if (!temp1.contains(mems[i])
-									&& (mems[i].getType() == IResource.FOLDER)) {
-								containsAll = false;
-								break;
-							}
-						}
-						if (!containsAll) {
-							for (int i = 0; i < mems.length; i++) {
-								if (temp1.remove(mems[i]))
-									temp2.add(mems[i]);
-							}
-						} else {
-							for (int i = 0; i < mems.length; i++) {
-								temp1.remove(mems[i]);
-							}
-							hasChanged = true;
-							temp2.add(cont);
-						}
-					} catch (CoreException e1) {
-					}
-				} else {
-					temp1.remove(f);
-					temp2.add(f);
-				}
-				iter = temp1.iterator();
-			}
-
-			temp3 = temp2;
-			temp2 = temp1;
-			temp1 = temp3;
-		}
-
-		return new ArrayList(temp1);
-	}
 	
 	/**
 	 * Get a new filename for the given project.  Returns the name without the file extension.
@@ -122,5 +59,34 @@ public class BuildConfigurationUtils {
 		ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
 		BuildConfiguration bc = (BuildConfiguration) pbc.getActiveBuildConfiguration();
 		return bc.getIncludedIResourceFiles(CoreUtils.ASPECTJ_SOURCE_FILTER);
+	}
+
+
+	public static List getCurrentFilters(IProject project) {
+		List stringList = new ArrayList();
+		try {
+			List cpListEntries = ClasspathModifier.getExistingEntries(JavaCore.create(project));
+			for (Iterator iter = cpListEntries.iterator(); iter.hasNext();) {
+				CPListElement element = (CPListElement) iter.next();
+				if (element.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IClasspathEntry entry = element.getClasspathEntry();
+					IPath srcpath = entry.getPath();
+					srcpath = srcpath.removeFirstSegments(1);
+					stringList.add("src.includes = " + srcpath + "/");
+					// TODO: Should probably include these...
+//					IPath[] inclusions = entry.getInclusionPatterns();
+//					for (int i = 0; i < inclusions.length; i++) {
+//						stringList.add("src.includes = " + srcpath + "/" + inclusions[i]);	
+//					}
+					IPath[] exclusions = entry.getExclusionPatterns();
+					for (int i = 0; i < exclusions.length; i++) {
+						stringList.add("src.excludes = " + srcpath + "/" + exclusions[i]); 
+					}					
+				}
+			}
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+		return stringList;
 	}
 }
