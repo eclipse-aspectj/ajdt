@@ -10,13 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.buildconfig.actions;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
@@ -85,27 +78,7 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 						}
 						
 					}
-					List filters = BuildConfigurationUtils.getCurrentFilters(currentProject);
-					File file = newFile.getLocation().toFile();
-					BufferedWriter bw = null;
-					try {
-						bw = new BufferedWriter(new FileWriter(file));
-						for (Iterator iter = filters.iterator(); iter.hasNext();) {
-							String filter = (String) iter.next();
-							bw.write(filter);
-							bw.newLine();
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					} finally {
-						if (bw != null) {				
-							try {
-								bw.close();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-					}
+					BuildConfigurationUtils.saveBuildConfiguration(newFile);
 				}
 			} 
 			try {
