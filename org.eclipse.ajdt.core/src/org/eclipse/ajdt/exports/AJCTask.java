@@ -18,7 +18,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.pde.internal.build.IXMLConstants;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.AntScript;
 import org.eclipse.pde.internal.build.ant.JavacTask;
