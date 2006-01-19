@@ -49,7 +49,6 @@ import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
-import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
@@ -105,7 +104,6 @@ public class AllUITests {
 		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
 		
 		// internal.ui.preferences tests
-		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
 		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
 		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
 
