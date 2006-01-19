@@ -64,7 +64,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 						List l = allFiles((IContainer) res, filter);
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
-							if(!(ClasspathModifier.isExcluded(file, jp))) {
+							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
 								sourceFiles.add(file.getLocation().toFile());
 							}
 						}
@@ -90,7 +90,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 						List l = allFiles((IContainer) res, filter);
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
-							if(!(ClasspathModifier.isExcluded(file, jp))) {
+							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
 								sourceFiles.add(file);
 							}
 						}
@@ -122,7 +122,8 @@ public class BuildConfiguration implements IBuildConfiguration {
 	}
 	
 	public boolean isIncluded(IResource correspondingResource) {
-		return getFiles().contains(correspondingResource);
+		Set files = getFiles();		
+		return files.contains(correspondingResource);
 	}
 
 	private Set getFiles() {
@@ -139,7 +140,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 						List l = allFiles((IContainer) res, CoreUtils.ASPECTJ_SOURCE_FILTER);
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
-							if(!(ClasspathModifier.isExcluded(file, jp))) {
+							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
 								sourceFiles.add(file);
 							}
 						}
@@ -165,7 +166,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 						List l = allFiles((IContainer) res, CoreUtils.ASPECTJ_SOURCE_FILTER);
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
-							if(!(ClasspathModifier.isExcluded(file, jp))) {
+							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
 								sourceFileNames.add(file.getName());
 							}
 						}
