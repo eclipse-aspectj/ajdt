@@ -572,15 +572,22 @@ public class AJCompilationUnit extends CompilationUnit{
 			// neeed to perform the delete ourselves (bug 74426)
 			IResource res = getResource();
 			IContainer parent = res.getParent();
-			if (parent.getType() == IResource.FOLDER) {
-				IFolder folder = (IFolder) parent;
+			boolean isProject = (parent.getType() == IResource.PROJECT);
+			if ((parent.getType() == IResource.FOLDER) || isProject) {
+				IProject project = null;
+				IFolder folder = null;
+				if (isProject) {
+					project = (IProject) parent;
+				} else {
+					folder = (IFolder) parent;
+				}
 				String newName = CompilationUnitTools
 						.convertAJToJavaFileName(res.getName());
-				IFile dummyFile = folder.getFile(newName);
+				IFile dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
 				while (dummyFile.exists()) {
 					newName = newName.substring(0, newName.lastIndexOf('.'))
 							.concat("9").concat(".java"); //$NON-NLS-1$ //$NON-NLS-2$
-					dummyFile = folder.getFile(newName);
+					dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
 				}
 				try {
 					// create an empty file
