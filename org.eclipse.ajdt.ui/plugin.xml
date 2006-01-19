@@ -167,19 +167,6 @@
           </action>
        </objectContribution>
 	-->
-	
-	<!-- Adding our own rename action for .aj files -->
-	  <objectContribution
-           objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
-           adaptable="true"
-           id="ajfileContribution"> 
-         <action
-             label="%renameAJFiles"
-             class="org.eclipse.ajdt.internal.ui.actions.RenameAJFileAction"
-             menubarPath="org.eclipse.jdt.ui.refactoring.menu"
-             id="renameAJFile">
-         </action>
-      </objectContribution>
       
       <!-- Build configuration actions -->
       <objectContribution

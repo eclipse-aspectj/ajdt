@@ -33,4 +33,9 @@
 		file-extensions="aj"/>
    </extension>
 
+   <extension point="org.eclipse.jdt.core.compilationUnitProvider">
+     <compilationUnitProvider file-extensions="aj"
+       class="org.eclipse.ajdt.internal.core.AspectJCompilationUnitProvider"/>
+   </extension>
+   
 </plugin>

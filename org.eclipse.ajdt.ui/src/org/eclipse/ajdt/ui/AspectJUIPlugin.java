@@ -22,10 +22,8 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
-import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
-import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.EventTraceLogger;
 import org.eclipse.ajdt.internal.ui.actions.UICoreOperations;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
@@ -48,7 +46,6 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -56,16 +53,11 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
-import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -435,14 +427,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// Create and register the resource change listener if necessary, it
 		// will be
 		// notified if resources are added/deleted or their content changed.
-
-		// listener for aspectj model
-		AspectJPlugin.getWorkspace().addResourceChangeListener(
-				new ResourceChangeListener(),
-				IResourceChangeEvent.PRE_CLOSE
-						| IResourceChangeEvent.PRE_DELETE
-						| IResourceChangeEvent.POST_CHANGE
-						| IResourceChangeEvent.PRE_BUILD);
 
 		// the following came from the 2.x constructor - needs to be put here
 		// because plugin is initialized when start(BundleContext) is called.

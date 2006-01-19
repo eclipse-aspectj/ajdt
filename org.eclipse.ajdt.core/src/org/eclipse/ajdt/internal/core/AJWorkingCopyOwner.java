@@ -22,8 +22,8 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  */
 public class AJWorkingCopyOwner extends WorkingCopyOwner {
 	
-		
-	public static final AJWorkingCopyOwner INSTANCE =  new AJWorkingCopyOwner();
+	//public static final AJWorkingCopyOwner INSTANCE = new AJWorkingCopyOwner();
+	public static final DefaultWorkingCopyOwner INSTANCE =  DefaultWorkingCopyOwner.PRIMARY;
 	
 	private AJWorkingCopyOwner() {
 		// singleton - so use a private constructor

@@ -34,26 +34,18 @@ import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser2;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.AST;
@@ -64,7 +56,6 @@ import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
-import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
@@ -87,11 +78,8 @@ import org.eclipse.jdt.internal.core.util.MementoTokenizer;
 public class AJCompilationUnit extends CompilationUnit{
 	
 	int originalContentMode = 0;
-	private IFile ajFile;
 	protected JavaCompatibleBuffer javaCompBuffer;
-	
-
-	
+		
 	public boolean isInOriginalContentMode(){
 		return originalContentMode > 0;
 	}
@@ -106,7 +94,6 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	public AJCompilationUnit(IFile ajFile){
 		super(CompilationUnitTools.getParentPackage(ajFile), ajFile.getName(), AJWorkingCopyOwner.INSTANCE);
-		this.ajFile = ajFile;
 	}
 
 	/**
@@ -116,64 +103,14 @@ public class AJCompilationUnit extends CompilationUnit{
 	 */
 	public AJCompilationUnit(PackageFragment fragment, String elementName, WorkingCopyOwner workingCopyOwner) {
 		super(fragment, elementName, workingCopyOwner);
-		if(fragment.getResource() instanceof IProject) {
-			IProject p = (IProject)fragment.getResource();
-			this.ajFile = (IFile)p.findMember(elementName);
-		} else {
-			IFolder f = (IFolder)fragment.getResource();
-			this.ajFile = (IFile)f.findMember(elementName);
-		}
 	}
-	
-	public Object getElementInfo() throws JavaModelException{
-		Object info = super.getElementInfo();
-		return info;
-	}
-	
-	public char[] getMainTypeName(){
-		String elementName = name;
-		//remove the .aj
-		elementName = elementName.substring(0, elementName.length() - 3);
-		return elementName.toCharArray();
-	}
-	
-	/* Eclispe 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
-	 * override validateCompilationUnit, otherwise the check for valid name will fail on
-	 * .aj files
-	 */
-	protected IStatus validateCompilationUnit(IResource resource) {
-		IPackageFragmentRoot root = getPackageFragmentRoot();
-		try {
-			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE) 
-				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
-		} catch (JavaModelException e) {
-			return e.getJavaModelStatus();
-		}
-		return JavaModelStatus.OK_STATUS;
-	}
-	
-	public IResource getResource(){
-		return ajFile;
-	}
-	
-	/*
-	 * needs to return real path for organize imports 
-	 */
-	public IPath getPath() {
-		return ajFile.getFullPath();
-	}
-	
-	public IResource getUnderlyingResource() throws JavaModelException {
-		return ajFile;
-	}
-	
+		
 	protected void generateInfos(Object info, HashMap newElements, IProgressMonitor monitor) throws JavaModelException {
 		if (!(info instanceof AJCompilationUnitInfo)){
 			info = new AJCompilationUnitInfo();
 		}
 		super.generateInfos(info, newElements, monitor);
 	}
-	
 	
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
 
@@ -359,22 +296,6 @@ public class AJCompilationUnit extends CompilationUnit{
 	public IBuffer getBuffer() throws JavaModelException {
 		return convertBuffer(super.getBuffer());
 	}
-
-	/*
-	 * copied from super, but changed to remove the extension, instead of
-	 * calling Util.getNameWithoutJavaLikeExtension(). We can remove this if we
-	 * register .aj as a java like extension.
-	 */
-	public IType findPrimaryType() {
-		String typeName = getElementName();
-		// remove the .aj
-		typeName = typeName.substring(0, typeName.lastIndexOf('.'));
-		IType primaryType = getType(typeName);
-		if (primaryType.exists()) {
-			return primaryType;
-		}
-		return null;
-	}
 	
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))
@@ -420,25 +341,6 @@ public class AJCompilationUnit extends CompilationUnit{
 			WorkingCopyOwner workingCopyOwner) throws JavaModelException {
 		IJavaElement[] res = super.codeSelect(offset, length, workingCopyOwner);
 		return res;
-	}
-	
-	//unfortunately, the following three methods do not seem to get called at all
-	//how could we make these refactoring operations work? (related bug: 74426)
-	public void move(IJavaElement container, IJavaElement sibling,
-			String rename, boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		// TODO make move work for .aj files
-		super.move(container, sibling, rename, force, monitor);
-	}
-	public void rename(String newName, boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		// TODO make rename work for .aj files
-		super.rename(newName, force, monitor);
-	}
-	
-	public void delete(boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		super.delete(force, monitor);
 	}
 	
 	
@@ -563,51 +465,5 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
-	
-	/**
-	 * @see JavaElement#getHandleMementoDelimiter()
-	 */
-	protected char getHandleMementoDelimiter() {
-		return AspectElement.JEM_ASPECT_CU;
-	}
-	
-	public String getHandleIdentifier() {
-		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
-		String callerName = (new RuntimeException()).getStackTrace()[1]
-				.getClassName();
-		// are we being called in the context of a delete operation?
-		if (callerName.equals(deletionClass)) {
-			// neeed to perform the delete ourselves (bug 74426)
-			IResource res = getResource();
-			IContainer parent = res.getParent();
-			if (parent.getType() == IResource.FOLDER) {
-				IFolder folder = (IFolder) parent;
-				String newName = CompilationUnitTools
-						.convertAJToJavaFileName(res.getName());
-				IFile dummyFile = folder.getFile(newName);
-				while (dummyFile.exists()) {
-					newName = newName.substring(0, newName.lastIndexOf('.'))
-							.concat("9").concat(".java"); //$NON-NLS-1$ //$NON-NLS-2$
-					dummyFile = folder.getFile(newName);
-				}
-				try {
-					// create an empty file
-					dummyFile.create(null, false, null);
 
-					// this avoids exceptions caused by clients responding
-					// to the file creation
-					dummyFile.setTeamPrivateMember(true);
-										
-					// delete the real .aj file
-					res.delete(true, null);
-				} catch (CoreException e) {
-				}
-				ICompilationUnit dummyUnit = JavaCore
-						.createCompilationUnitFrom(dummyFile);
-				return dummyUnit.getHandleIdentifier();
-			}
-		}
-		return super.getHandleIdentifier();
-	}
-	
 }
