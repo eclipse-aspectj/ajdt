@@ -99,11 +99,11 @@ public class BuildConfigurationUtils {
 					srcIncludes.add(srcpath.toString() + "/");
 					IPath[] inclusions = entry.getInclusionPatterns();
 					for (int i = 0; i < inclusions.length; i++) {
-						srcInclusionpatterns.add(srcpath + "/" + inclusions[i]);	
+						srcInclusionpatterns.add((srcpath.toString().length() > 0 ? srcpath + "/" : "" ) + inclusions[i]);	
 					}
 					IPath[] exclusions = entry.getExclusionPatterns();
 					for (int i = 0; i < exclusions.length; i++) {
-						srcExcludes.add(srcpath + "/" + exclusions[i]); 
+						srcExcludes.add((srcpath.toString().length() > 0 ? srcpath + "/" : "" ) + exclusions[i]); 
 					}					
 				}
 			}
@@ -182,7 +182,9 @@ public class BuildConfigurationUtils {
 				if (name.equals("src.includes")) {
 					for (int i = 0; i < values.length; i++) {
 						String inc = values[i];
-						if(inc.indexOf("/") == inc.length() - 1) {
+						if(inc.equals("/")) {
+							srcFolders.add(inc);
+						} else if(inc.indexOf("/") == inc.length() - 1) {
 							if(project.getProject().getFolder(inc) != null &&
 									project.getProject().getFolder(inc).exists()) {
 								srcFolders.add(inc);								
@@ -224,7 +226,7 @@ public class BuildConfigurationUtils {
 						for (Iterator iterator = srcFolders.iterator(); iterator
 						.hasNext();) {
 							String srcFolder = (String) iterator.next();
-							if(exc.startsWith(srcFolder)) {
+							if(srcFolder.equals("/") || exc.startsWith(srcFolder)) {
 								List excs = (List) srcFoldersToExcludes.get(srcFolder);
 								if (excs == null) {
 									excs = new ArrayList();
@@ -238,40 +240,44 @@ public class BuildConfigurationUtils {
 			}
 			
 			// third stage - create classpath entries
-			IClasspathEntry[] entries = new IClasspathEntry[srcFolders.size()];
+			IClasspathEntry[] entries = new IClasspathEntry[srcFolders.size() + classpathEntries.size()];
 			for (int i = 0; i < entries.length; i++) {
-				String srcFolder = (String) srcFolders.get(i);
-				IPath path = project.getPath().append(srcFolder);
-				List exclusions = (List) srcFoldersToExcludes.get(srcFolder);
-				if(exclusions == null) {
-					exclusions = Collections.EMPTY_LIST;
-				}
-				List inclusions = (List) srcFoldersToIncludes.get(srcFolder);
-				if(inclusions == null) {
-					inclusions = Collections.EMPTY_LIST;
-				}
-				IPath[] exclusionPatterns = new IPath[exclusions.size()];
-				for (int j = 0; j < exclusionPatterns.length; j++) {
-					String exclusionPathStr = (String) exclusions.get(j);
-					if (exclusionPathStr.startsWith(srcFolder)) {
-						exclusionPathStr = exclusionPathStr.substring(srcFolder.length());
+				if(srcFolders.size() > i) {
+					String srcFolder = (String) srcFolders.get(i);
+					IPath path = project.getPath().append(srcFolder);
+					List exclusions = (List) srcFoldersToExcludes.get(srcFolder);
+					if(exclusions == null) {
+						exclusions = Collections.EMPTY_LIST;
 					}
-					IPath exclusionPath = new Path(exclusionPathStr);
-					exclusionPatterns[j] = exclusionPath;
-					
-				}
-				IPath[] inclusionPatterns = new IPath[inclusions.size()];
-				for (int j = 0; j < inclusionPatterns.length; j++) {
-					String inclusionPathStr = (String) inclusions.get(j);
-					if (inclusionPathStr.startsWith(srcFolder)) {
-						inclusionPathStr = inclusionPathStr.substring(srcFolder.length());
+					List inclusions = (List) srcFoldersToIncludes.get(srcFolder);
+					if(inclusions == null) {
+						inclusions = Collections.EMPTY_LIST;
 					}
-					IPath inclusionPath = new Path(inclusionPathStr);
-					inclusionPatterns[j] = inclusionPath;
-					
+					IPath[] exclusionPatterns = new IPath[exclusions.size()];
+					for (int j = 0; j < exclusionPatterns.length; j++) {
+						String exclusionPathStr = (String) exclusions.get(j);
+						if (exclusionPathStr.startsWith(srcFolder)) {
+							exclusionPathStr = exclusionPathStr.substring(srcFolder.length());
+						}
+						IPath exclusionPath = new Path(exclusionPathStr);
+						exclusionPatterns[j] = exclusionPath;
+						
+					}
+					IPath[] inclusionPatterns = new IPath[inclusions.size()];
+					for (int j = 0; j < inclusionPatterns.length; j++) {
+						String inclusionPathStr = (String) inclusions.get(j);
+						if (inclusionPathStr.startsWith(srcFolder)) {
+							inclusionPathStr = inclusionPathStr.substring(srcFolder.length());
+						}
+						IPath inclusionPath = new Path(inclusionPathStr);
+						inclusionPatterns[j] = inclusionPath;
+						
+					}
+					IClasspathEntry classpathEntry = new ClasspathEntry(IPackageFragmentRoot.K_SOURCE, IClasspathEntry.CPE_SOURCE, path, ClasspathEntry.INCLUDE_ALL, exclusionPatterns, null, null, null, true, ClasspathEntry.NO_ACCESS_RULES, false, ClasspathEntry.NO_EXTRA_ATTRIBUTES);
+					entries[i] = classpathEntry;
+				} else {
+					entries[i] = (IClasspathEntry) classpathEntries.get(i-srcFolders.size());
 				}
-				IClasspathEntry classpathEntry = new ClasspathEntry(IPackageFragmentRoot.K_SOURCE, IClasspathEntry.CPE_SOURCE, path, ClasspathEntry.INCLUDE_ALL, exclusionPatterns, null, null, null, true, ClasspathEntry.NO_ACCESS_RULES, false, ClasspathEntry.NO_EXTRA_ATTRIBUTES);
-				entries[i] = classpathEntry;
 			}
 			((JavaProject)project).setRawClasspath(entries, null);
 		} catch (FileNotFoundException e) {
