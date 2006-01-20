@@ -454,25 +454,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// be correct already.
 		}
 		super.setFocus();
-		
-		// Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 
-		if(isEditingAjFile) {
-			IViewPart view = getEditorSite().getPage().findView( PackageExplorerPart.VIEW_ID);
-			if(view != null) {
-				PackageExplorerPart packageExplorer = (PackageExplorerPart)view;
-				try {
-					Method isLinkingEnabledMethod = PackageExplorerPart.class.getDeclaredMethod("isLinkingEnabled", new Class[]{}); //$NON-NLS-1$
-					isLinkingEnabledMethod.setAccessible(true);
-					boolean linkingEnabled = ((Boolean)isLinkingEnabledMethod.invoke(packageExplorer, new Object[]{})).booleanValue();
-					if(linkingEnabled) {
-						IFileEditorInput fInput = (IFileEditorInput) input;
-						AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
-						packageExplorer.selectReveal(new StructuredSelection(ajc));
-					}					
-				} catch (Exception e) {
-				}
-			}
-		}
 	}
 	
 	protected void initializeEditor() {
