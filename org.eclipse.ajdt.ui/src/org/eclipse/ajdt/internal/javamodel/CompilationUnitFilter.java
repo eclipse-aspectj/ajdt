@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.javamodel;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -18,7 +17,6 @@ import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -60,26 +58,23 @@ public class CompilationUnitFilter extends ViewerFilter {
 		if ((element instanceof ICompilationUnit)
 				&& !(element instanceof AJCompilationUnit)) {
 			try {
-				if (((ICompilationUnit)element).getJavaProject().getProject().hasNature(AspectJPlugin.ID_NATURE)) {
-					IResource res = ((ICompilationUnit) element)
-							.getCorrespondingResource();
-					// ensure the unit is part of the model, and if it was not,
-					// refresh view
-					AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
-							.getAJCompilationUnitFromCache((IFile) res);
-					if (unit != null) {
-						if (!AJCompilationUnitManager.INSTANCE
-								.ensureUnitIsInModel(unit)) {
-							AJDTUtils.refreshPackageExplorer();
-						}
-						return false;
+				IResource res = ((ICompilationUnit) element)
+						.getCorrespondingResource();
+				// ensure the unit is part of the model, and if it was not,
+				// refresh view
+				AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE
+						.getAJCompilationUnitFromCache((IFile) res);
+				if (unit != null) {
+					if (!AJCompilationUnitManager.INSTANCE
+							.ensureUnitIsInModel(unit)) {
+						AJDTUtils.refreshPackageExplorer();
 					}
+					return false;
 				}
 			} catch (JavaModelException e) {
 				// something has gone wrong, do better not filter IFile and
 				// return true
 				// can be ignored
-			} catch (CoreException e) {
 			}
 		}
 			
