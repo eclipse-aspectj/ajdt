@@ -167,7 +167,7 @@ public class BuildConfiguration implements IBuildConfiguration {
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
 							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
-								sourceFileNames.add(file.getName());
+								sourceFileNames.add(file.getLocation().toOSString());
 							}
 						}
 					}
