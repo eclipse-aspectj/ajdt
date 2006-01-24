@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -112,6 +112,30 @@ public class AJCoreTest extends AJDTCoreTestCase {
 		}
 	}
 
+	/**
+	 * Test that AspectJCore.create() can form appropriate Java elements from a
+	 * variety of handle identifiers
+	 * 
+	 * @throws Exception
+	 */
+	public void testCreateElementFromHandle3() throws Exception {
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+		try {
+			// each entry in the array contains:
+			// <handle> <name of element> <containing resource> <class name of
+			// element>
+			// note that the elements referred to by the handles need to exist
+			// in the workspace
+			String[][] testHandles = {
+					{ "=Spacewar Example/src<spacewar*Ship.aj[Ship+helmCommandsCut+QShip;", "helmCommandsCut", //$NON-NLS-1$ //$NON-NLS-2$
+							"Ship.aj", "PointcutElement" }, //$NON-NLS-1$ //$NON-NLS-2$
+			};
+			compareWithHandles(testHandles);
+		} finally {
+			deleteProject(project);
+		}
+	}
+	
 	/**
 	 * Test that going from an IJavaElement to its handle identifier then back
 	 * to an IJavaElement using AspectJCore.create() results in a element that
