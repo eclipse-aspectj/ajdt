@@ -15,7 +15,6 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
@@ -23,6 +22,7 @@ import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -128,36 +128,12 @@ public class ImageDecorator implements ILabelDecorator {
 					}
 				}
 			}
-				
-				
-//			try {
-//				element = comp.getCorrespondingResource();
-//			} catch (JavaModelException e) {
-//				element = null;
-//			}
-		}
-		
-//		if (element instanceof IFile){ 
-//			IFile file= (IFile) element;
-//			if (file.exists() && CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())) {
-//				// Fix for 108961 - use different icons for .aj files
-//				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
-//				
-//				if (pbc == null)
-//					return null;
-//				IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-//				if ((bc==null) || bc.isIncluded(file)){
-//					Rectangle rect = image.getBounds();
-//					img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
-//				} else {
-//					Rectangle rect = image.getBounds();
-//					img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
-//				}			
-//			}
-//		}
-		//hook for AspectJElements (unrelated to buidconfigurator)
-		//-> TODO: refactor
-		if (element instanceof AJCodeElement) {
+		} else if (element instanceof IFile) { 
+			IFile file= (IFile) element;
+			if (file.getFileExtension().equals(BuildConfiguration.EXTENSION)) {
+				img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
+			}
+		} else if (element instanceof AJCodeElement) {
 			img = getImageLabel(AspectJImages.AJ_CODE.getImageDescriptor());
 		} else if (element instanceof IAspectJElement) {
 			try {
