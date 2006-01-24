@@ -229,7 +229,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			int version = ois.readInt();
 			System.out.println("===="); //$NON-NLS-1$
 			System.out.println("loading model version: " + version); //$NON-NLS-1$
-			if (version == 101) {
+			if (version == 103) {
 				int numElements = ois.readInt();
 				System.out.println("numElements: " + numElements); //$NON-NLS-1$
 
