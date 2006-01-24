@@ -34,7 +34,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.ProgressMonitorWrapper;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -57,6 +57,7 @@ import org.eclipse.jdt.internal.corext.util.TypeFilter;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.jdt.internal.corext.util.TypeInfoFilter;
 import org.eclipse.jdt.internal.corext.util.UnresolvableTypeInfo;
+import org.eclipse.jdt.internal.corext.util.TypeInfo.TypeInfoAdapter;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
@@ -69,7 +70,6 @@ import org.eclipse.jdt.ui.JavaElementLabels;
 import org.eclipse.jdt.ui.dialogs.ITypeInfoFilterExtension;
 import org.eclipse.jdt.ui.dialogs.ITypeInfoImageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -203,18 +203,22 @@ public class TypeInfoViewer {
 		}
 	}
 	
-	protected static class TypeInfoLabelProvider extends LabelProvider {
+	protected static class TypeInfoLabelProvider {
+
+		private ITypeInfoImageProvider fProviderExtension;
+		private TypeInfoAdapter fAdapter= new TypeInfoAdapter();
 		
 		private Map fLib2Name= new HashMap();
 		private String[] fInstallLocations;
 		private String[] fVMNames;
 		
 		// AspectJ Change
-		private static Image ASPECT_ICON = ((AJDTIcon)AspectJImages.instance().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor().createImage();
+		private static ImageDescriptor ASPECT_ICON = ((AJDTIcon)AspectJImages.instance().getIcon(IProgramElement.Kind.ASPECT)).getImageDescriptor();
 
 		private boolean fFullyQualifyDuplicates;
 		
-		public TypeInfoLabelProvider() {
+		public TypeInfoLabelProvider(ITypeInfoImageProvider extension) {
+			fProviderExtension= extension;
 			List locations= new ArrayList();
 			List labels= new ArrayList();
 			IVMInstallType[] installs= JavaRuntime.getVMInstallTypes();
@@ -231,6 +235,8 @@ public class TypeInfoViewer {
 		private void processVMInstallType(IVMInstallType installType, List locations, List labels) {
 			if (installType != null) {
 				IVMInstall[] installs= installType.getVMInstalls();
+				boolean isMac= Platform.OS_MACOSX.equals(Platform.getOS());
+				final String HOME_SUFFIX= "/Home"; //$NON-NLS-1$
 				for (int i= 0; i < installs.length; i++) {
 					String label= getFormattedLabel(installs[i].getName());
 					LibraryLocation[] libLocations= installs[i].getLibraryLocations();
@@ -238,7 +244,10 @@ public class TypeInfoViewer {
 						processLibraryLocation(libLocations, label);
 					} else {
 						String filePath= installs[i].getInstallLocation().getAbsolutePath();
-						locations.add(Path.fromOSString(filePath).toString());
+						// on MacOS X install locations end in an additional "/Home" segment; remove it
+						if (isMac && filePath.endsWith(HOME_SUFFIX))
+							filePath= filePath.substring(0, filePath.length()- HOME_SUFFIX.length() + 1);
+						locations.add(filePath);
 						labels.add(label);
 					}
 				}
@@ -336,7 +345,7 @@ public class TypeInfoViewer {
 			result.append(getContainerName(type));
 			return result.toString();
 		}
-		public Image getImage(Object element) {
+		public ImageDescriptor getImageDescriptor(Object element) {
 			TypeInfo type= (TypeInfo)element;
 			// AspectJ Change Begin
 			if(type instanceof AJCUTypeInfo) {
@@ -345,10 +354,14 @@ public class TypeInfoViewer {
 				} 
 			}
 			// AspectJ Change End			
-			int modifiers= type.getModifiers();
-			ImageDescriptor descriptor= JavaElementImageProvider.
-				getTypeImageDescriptor(type.isInnerType(), false, modifiers, false);
-			return JavaPlugin.getImageDescriptorRegistry().get(descriptor);
+			if (fProviderExtension != null) {
+				fAdapter.setInfo(type);
+				ImageDescriptor descriptor= fProviderExtension.getImageDescriptor(fAdapter);
+				if (descriptor != null) 
+					return descriptor;
+			}
+			return JavaElementImageProvider.getTypeImageDescriptor(
+				type.isInnerType(), false, type.getModifiers(), false);
 		}
 		
 		private String getTypeContainerName(TypeInfo info) {
@@ -516,7 +529,7 @@ public class TypeInfoViewer {
 			TypeInfo type= null;
 			TypeInfo next= null;
 			List elements= new ArrayList();
-			List images= new ArrayList();
+			List imageDescriptors= new ArrayList();
 			List labels= new ArrayList();
 			
 			Set filteredHistory= new HashSet();
@@ -529,7 +542,7 @@ public class TypeInfoViewer {
 					next= (i == matchingTypes.length) ? null : matchingTypes[i];
 					filteredHistory.add(type);
 					elements.add(type);
-					images.add(fLabelProvider.getImage(type));
+					imageDescriptors.add(fLabelProvider.getImageDescriptor(type));
 					labels.add(fLabelProvider.getText(last, type, next));
 					last= type;
 					type= next;
@@ -538,7 +551,7 @@ public class TypeInfoViewer {
 			}
 			matchingTypes= null;
 			fViewer.fExpectedItemCount= elements.size();
-			fViewer.addHistory(fTicket, elements, images, labels);
+			fViewer.addHistory(fTicket, elements, imageDescriptors, labels);
 			
 			if ((fMode & INDEX) == 0) {
 				return;
@@ -559,7 +572,7 @@ public class TypeInfoViewer {
 			while (true) {
 				long startTime= System.currentTimeMillis();
 				elements.clear();
-				images.clear();
+				imageDescriptors.clear();
 				labels.clear();
 	            int delta = Math.min(nextIndex == 1 ? fViewer.getNumberOfVisibleItems() : 10, result.length - processed);
 				if (delta == 0)
@@ -569,13 +582,13 @@ public class TypeInfoViewer {
 					next= (nextIndex == result.length) ? null : result[nextIndex];
 					elements.add(type);
 					labels.add(fLabelProvider.getText(last, type, next));
-					images.add(fLabelProvider.getImage(type));
+					imageDescriptors.add(fLabelProvider.getImageDescriptor(type));
 					last= type;
 					type= next;
 					nextIndex++;
 					delta--;
 				}
-				fViewer.addAll(fTicket, elements, images, labels);
+				fViewer.addAll(fTicket, elements, imageDescriptors, labels);
 				long sleep= 100 - (System.currentTimeMillis() - startTime);
 				if (false)
 					System.out.println("Sleeping for: " + sleep); //$NON-NLS-1$
@@ -681,7 +694,7 @@ public class TypeInfoViewer {
 		List ajTypes = new ArrayList();
 		IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
 				.getProjects();
-		TypeDeclarationPattern pattern = new TypeDeclarationPattern(packagePattern, null, namePattern, IIndexConstants.TYPE_SUFFIX, SearchPattern.R_PATTERN_MATCH);
+		TypeDeclarationPattern pattern = new TypeDeclarationPattern(packagePattern, null, namePattern, IIndexConstants.TYPE_SUFFIX, SearchPattern.R_PREFIX_MATCH);
 		for (int i = 0; i < projects.length; i++) {
 			try {
 				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
@@ -807,6 +820,31 @@ public class TypeInfoViewer {
 		}
 	}
 	
+	private static class ImageManager {
+		private Map fImages= new HashMap(20);
+		
+		public Image get(ImageDescriptor descriptor) {
+			if (descriptor == null)
+				descriptor= ImageDescriptor.getMissingImageDescriptor();
+			
+			Image result= (Image)fImages.get(descriptor);
+			if (result != null)
+				return result;
+			result= descriptor.createImage();
+			if (result != null)
+				fImages.put(descriptor, result);
+			return result;
+		}
+		
+		public void dispose() {
+			for (Iterator iter= fImages.values().iterator(); iter.hasNext(); ) {
+				Image image= (Image)iter.next();
+				image.dispose();
+			}
+			fImages.clear();
+		}
+	}
+	
 	private Display fDisplay;
 	
 	private String fProgressMessage;
@@ -840,6 +878,8 @@ public class TypeInfoViewer {
 	private String[] fLastLabels;
 	
 	private TypeInfoLabelProvider fLabelProvider;
+	private ImageManager fImageManager;
+	
 	private Table fTable;
 	
 	private SyncJob fSyncJob;
@@ -867,8 +907,9 @@ public class TypeInfoViewer {
 	private static final TypeInfo[] EMTPY_TYPE_INFO_ARRAY= new TypeInfo[0];
 	// only needed when in virtual table mode
 	private static final TypeInfo DASH_LINE= new UnresolvableTypeInfo(null, null, null, 0, null);
-	
-	public TypeInfoViewer(Composite parent, int flags, Label progressLabel, IJavaSearchScope scope, int elementKind, String initialFilter,
+
+	public TypeInfoViewer(Composite parent, int flags, Label progressLabel, 
+			IJavaSearchScope scope, int elementKind, String initialFilter,
 			ITypeInfoFilterExtension filterExtension, ITypeInfoImageProvider imageExtension) {
 		Assert.isNotNull(scope);
 		fDisplay= parent.getDisplay();
@@ -879,7 +920,7 @@ public class TypeInfoViewer {
 		fFullyQualifySelection= (flags & SWT.MULTI) != 0;
 		fTable= new Table(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.FLAT | flags | (VIRTUAL ? SWT.VIRTUAL : SWT.NONE));
 		fTable.setFont(parent.getFont());
-		fLabelProvider= createLabelProvider();
+		fLabelProvider= new TypeInfoLabelProvider(imageExtension);
 		fItems= new ArrayList(500);
 		fTable.setHeaderVisible(false);
 		addPopupMenu();
@@ -915,7 +956,7 @@ public class TypeInfoViewer {
 					for (int i= 0; i < fLastSelection.length; i++) {
 						TableItem item= fLastSelection[i];
 						// could be disposed by deleting element from 
-						// type inof history
+						// type info history
 						if (!item.isDisposed())
 							item.setText(fLastLabels[i]);
 					}
@@ -941,6 +982,7 @@ public class TypeInfoViewer {
 				stop(true, true);
 				fDashLineColor.dispose();
 				fSeparatorIcon.dispose();
+				fImageManager.dispose();
 				if (fProgressUpdateJob != null) {
 					fProgressUpdateJob.stop();
 					fProgressUpdateJob= null;
@@ -962,10 +1004,10 @@ public class TypeInfoViewer {
 		fScrollbarWidth= computeScrollBarWidth();
 		fTableWidthDelta= fTable.computeTrim(0, 0, 0, 0).width - fScrollbarWidth;
 		fSeparatorIcon= JavaPluginImages.DESC_OBJS_TYPE_SEPARATOR.createImage(fTable.getDisplay());
-		// Access the image descriptor registry from the UI thread to make
-		// sure that first initialization takes place in UI thread. Otherwise
-		// it could happen in search job which will result in an invalid thread access.
-		JavaPlugin.getImageDescriptorRegistry();
+		// Use a new image manager since an extension can provide its own
+		// image descriptors. To avoid thread problems with SWT the registry
+		// must be created in the UI thread.
+		fImageManager= new ImageManager();
 		
 		// AspectJ Change
 		fHistory= AJTypeInfoHistory.getInstance();
@@ -979,7 +1021,20 @@ public class TypeInfoViewer {
 		} finally {
 			gc.dispose();
 		}
-		scheduleSyncJob();
+		// If we do have a type info filter then we are
+		// scheduling a search job in startup. So no
+		// need to sync the search indices.
+		if (fTypeInfoFilter == null) {
+			scheduleSyncJob();
+		}
+	}
+	
+	/* package */ void startup() {
+		if (fTypeInfoFilter == null) {
+			reset();
+		} else {
+			scheduleSearchJob(FULL);
+		}
 	}
 
 	public Table getTable() {
@@ -1038,6 +1093,18 @@ public class TypeInfoViewer {
 		if (fSearchJob != null) {
 			fSearchJob.stop();
 			fSearchJob= null;
+		}
+	}
+	
+	public void forceSearch() {
+		stop(false, false);
+		if (fTypeInfoFilter == null) {
+			reset();
+		} else {
+			// clear last results
+			fLastCompletedFilter= null;
+			fLastCompletedResult= null;
+			scheduleSearchJob(isSyncJobRunning() ? HISTORY : FULL);
 		}
 	}
 	
@@ -1109,7 +1176,7 @@ public class TypeInfoViewer {
 			for (int i= 0; i < historyItems.length; i++) {
 				TypeInfo next= i == lastIndex ? null : historyItems[i + 1];
 				addSingleElement(type,
-					fLabelProvider.getImage(type),
+					fLabelProvider.getImageDescriptor(type),
 					fLabelProvider.getText(last, type, next));
 				last= type;
 				type= next;
@@ -1124,10 +1191,6 @@ public class TypeInfoViewer {
 		return new TypeInfoFilter(text, fSearchScope, fElementKind, fFilterExtension);
 	}
 	
-	protected TypeInfoLabelProvider createLabelProvider() {
-		return new TypeInfoLabelProvider();
-	}
-
 	private void addPopupMenu() {
 		Menu menu= new Menu(fTable.getShell(), SWT.POP_UP);
 		fTable.setMenu(menu);
@@ -1159,6 +1222,7 @@ public class TypeInfoViewer {
 		}
 		return true;
 	}
+	
 	//---- History management -------------------------------------------------------
 	
 	private void deleteHistoryEntry() {
@@ -1220,16 +1284,18 @@ public class TypeInfoViewer {
 		});
 	}
 
-	private void addHistory(int ticket, final List elements, final List images, final List labels) {
-		addAll(ticket, elements, images, labels);
+	private void addHistory(int ticket, final List elements, final List imageDescriptors, final List labels) {
+		addAll(ticket, elements, imageDescriptors, labels);
 	}
 	
-	private void addAll(int ticket, final List elements, final List images, final List labels) {
+	private void addAll(int ticket, final List elements, final List imageDescriptors, final List labels) {
 		syncExec(ticket, new Runnable() {
 			public void run() {
 				int size= elements.size();
 				for(int i= 0; i < size; i++) {
-					addSingleElement(elements.get(i), (Image)images.get(i), (String)labels.get(i));
+					addSingleElement(elements.get(i),
+						(ImageDescriptor)imageDescriptors.get(i),
+						(String)labels.get(i));
 				}
 			}
 		});
@@ -1269,7 +1335,7 @@ public class TypeInfoViewer {
 		fNextElement++;
 	}
 	
-	private void addSingleElement(Object element, Image image, String label) {
+	private void addSingleElement(Object element, ImageDescriptor imageDescriptor, String label) {
 		TableItem item= null;
 		Object old= null;
 		if (fItems.size() > fNextElement) {
@@ -1281,7 +1347,7 @@ public class TypeInfoViewer {
 			fItems.add(item);
 		}
 		item.setData(element);
-		item.setImage(image);
+		item.setImage(fImageManager.get(imageDescriptor));
 		if (fNextElement == 0) {
 			if (needsSelectionChange(old, element) || fLastSelection != null) {
 				item.setText(label);
@@ -1405,7 +1471,7 @@ public class TypeInfoViewer {
 			fillDashLine(item);
 		} else {
 			item.setData(type);
-			item.setImage(fLabelProvider.getImage(type));
+			item.setImage(fImageManager.get(fLabelProvider.getImageDescriptor(type)));
 			item.setText(fLabelProvider.getText(
 				getTypeInfo(index - 1), 
 				type, 
