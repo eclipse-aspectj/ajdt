@@ -858,6 +858,20 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		buildListeners.remove(listener);
 	}
 
+	public static void addAdviceListener(IAdviceChangedListener adviceListener) {
+		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+			IAJBuildListener listener = (IAJBuildListener) iter.next();
+			listener.addAdviceListener(adviceListener);
+		}
+	}
+
+	public static void removeAdviceListener(IAdviceChangedListener adviceListener) {
+		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
+			IAJBuildListener listener = (IAJBuildListener) iter.next();
+			listener.removeAdviceListener(adviceListener);
+		}
+	}
+	
 	private void preCallListeners(int kind, IProject project, IProject[] requiredProjects) {
 		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
 			IAJBuildListener listener = (IAJBuildListener) iter.next();

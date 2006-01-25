@@ -33,18 +33,26 @@
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
             id="iprojectcontributions">
+         <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.project.tools">
+            <separator
+               name="group0">
+            </separator>
+         </menu>     
          <visibility>
          	<and>
 	         	<objectState name="nature" value="org.eclipse.jdt.core.javanature"/>
 	         	<not>
 		         	<objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
 		        </not>
+		        <objectState name="open" value="true"/>
 		    </and>
          </visibility>
          <action
                label="%convertToAJP"
                class="org.eclipse.ajdt.internal.ui.actions.AddAJNatureAction"
-               menubarPath="additions"
+               menubarPath="org.eclipse.ajdt.ui.project.tools/group0"
                id="addajnatureaction">
          </action>
       </objectContribution>
@@ -302,15 +310,9 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            name="%AspectJ"
-            class="org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage"
-            id="ajpreferencespage">
-      </page>
-      <page
             name="%ajCompilerOptionsPrefName"
-            category="ajpreferencespage"
             class="org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage"
-            id="org.eclipse.ajdt.ui.preferences.AJCompilerPreferencePage">
+            id="AJCompilerPreferencePage">
       </page>      
       
    </extension>
@@ -1384,20 +1386,34 @@ M4 = Platform-specific fourth key
          point="org.eclipse.ui.decorators">
       <decorator
             lightweight="false"
-            label="%BuildConfigDecorator.label"
+            label="%ajElementDecorator.label"
             class="org.eclipse.ajdt.internal.ui.ImageDecorator"
             state="true"
             id="org.eclipse.ajdt.ui.decorator">
          <description>
-			%BuildConfigDecorator.description
+			%ajElementDecorator.description
 		 </description>
          <enablement>
             <objectClass
                   name="java.lang.Object">
             </objectClass>
          </enablement>
+      </decorator>
+      <decorator
+            lightweight="true"
+            label="%advisesDecorator.label"
+            class="org.eclipse.ajdt.internal.ui.AdviceImageDecorator"
+            state="true"
+            adaptable="true"
+            id="org.eclipse.ajdt.ui.advicedecorator">
          <description>
-         </description>
+			%advisesDecorator.description
+		 </description>
+         <enablement>
+            <objectClass
+                  name="java.lang.Object">
+            </objectClass>
+         </enablement>
       </decorator>
    </extension>
    <extension

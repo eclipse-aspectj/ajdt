@@ -37,7 +37,6 @@ import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -583,7 +582,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * initialize the default preferences for this plugin
 	 */
 	protected void initializeDefaultPreferences(IPreferenceStore store) {
-		AspectJPreferencePage.initDefaults(store);
+		AspectJPreferences.initDefaults(store);
 		AJCompilerPreferencePage.initDefaults(store);
 	}
 

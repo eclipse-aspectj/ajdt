@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.javaelements;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,7 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
@@ -561,6 +563,37 @@ public class AJCompilationUnit extends CompilationUnit{
 			if (!memento.hasMoreTokens()) return type;
 			token = memento.nextToken();
 		}
+		// handle pointcuts in a class (bug 124992)
+		if (!(type instanceof AspectElement)
+				&& (token.charAt(0) == AspectElement.JEM_POINTCUT)) {
+			String name = memento.nextToken();
+			ArrayList params = new ArrayList();
+			nextParam: while (memento.hasMoreTokens()) {
+				token = memento.nextToken();
+				switch (token.charAt(0)) {
+					case JEM_TYPE:
+					case JEM_TYPE_PARAMETER:
+						break nextParam;
+					case AspectElement.JEM_POINTCUT:
+						if (!memento.hasMoreTokens()) return this;
+						String param = memento.nextToken();
+						StringBuffer buffer = new StringBuffer();
+						while (param.length() == 1 && Signature.C_ARRAY == param.charAt(0)) { // backward compatible with 3.0 mementos
+							buffer.append(Signature.C_ARRAY);
+							if (!memento.hasMoreTokens()) return this;
+							param = memento.nextToken();
+						}
+						params.add(buffer.toString() + param);
+						break;
+					default:
+						break nextParam;
+				}
+			}
+			String[] parameters = new String[params.size()];
+			params.toArray(parameters);
+			JavaElement pointcut = new PointcutElement(type, name, parameters);
+			return pointcut.getHandleFromMemento(memento, workingCopyOwner);
+		}
 		return type.getHandleFromMemento(token, memento, workingCopyOwner);
 		}
 	
@@ -580,15 +613,22 @@ public class AJCompilationUnit extends CompilationUnit{
 			// neeed to perform the delete ourselves (bug 74426)
 			IResource res = getResource();
 			IContainer parent = res.getParent();
-			if (parent.getType() == IResource.FOLDER) {
-				IFolder folder = (IFolder) parent;
+			boolean isProject = (parent.getType() == IResource.PROJECT);
+			if ((parent.getType() == IResource.FOLDER) || isProject) {
+				IProject project = null;
+				IFolder folder = null;
+				if (isProject) {
+					project = (IProject) parent;
+				} else {
+					folder = (IFolder) parent;
+				}
 				String newName = CompilationUnitTools
 						.convertAJToJavaFileName(res.getName());
-				IFile dummyFile = folder.getFile(newName);
+				IFile dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
 				while (dummyFile.exists()) {
 					newName = newName.substring(0, newName.lastIndexOf('.'))
 							.concat("9").concat(".java"); //$NON-NLS-1$ //$NON-NLS-2$
-					dummyFile = folder.getFile(newName);
+					dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
 				}
 				try {
 					// create an empty file
