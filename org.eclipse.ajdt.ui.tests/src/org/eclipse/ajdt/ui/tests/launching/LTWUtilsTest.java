@@ -16,15 +16,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.launching.LTWUtils;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -48,14 +44,10 @@ public class LTWUtilsTest extends UITestCase{
 	public void testGetAspects() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IProjectBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		Collection c = bc.getBuildConfigurations();
-		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			IBuildConfiguration element = (IBuildConfiguration) iter.next();
-			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
-				bc.setActiveBuildConfiguration(element);
-			};
-		}	
+		IFile propertiesFile = project.getFile("tracelib.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		IPackageFragmentRoot[] roots = jp.getAllPackageFragmentRoots();
@@ -200,15 +192,11 @@ public class LTWUtilsTest extends UITestCase{
 	public void testGenerateLTWConfigFile6() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IProjectBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		Collection c = bc.getBuildConfigurations();
-		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			IBuildConfiguration element = (IBuildConfiguration) iter.next();
-			if (element.getName().equals("tracelib")) { //$NON-NLS-1$
-				bc.setActiveBuildConfiguration(element);
-			};
-		}	
-		
+		IFile propertiesFile = project.getFile("tracelib.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
+		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		waitForJobsToComplete();
 		LTWUtils.generateLTWConfigFile(jp);
@@ -230,13 +218,11 @@ public class LTWUtilsTest extends UITestCase{
 		compareFileContentsWithExpected(file, expectedLines);
 		
 		// activate a different build config to see if aop.xml updates correctly
-		c = bc.getBuildConfigurations();
-		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			IBuildConfiguration element = (IBuildConfiguration) iter.next();
-			if (element.getName().equals("tracev1")) { //$NON-NLS-1$
-				bc.setActiveBuildConfiguration(element);
-			};
-		}	
+		propertiesFile = project.getFile("tracev1.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
+		waitForJobsToComplete();
 		waitForJobsToComplete();
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
@@ -257,13 +243,11 @@ public class LTWUtilsTest extends UITestCase{
 		
 		// activate a config where no aspects are included. This should
 		// clear the "aspects" part of the aop.xml file.
-		c = bc.getBuildConfigurations();
-		for (Iterator iter = c.iterator(); iter.hasNext();) {
-			IBuildConfiguration element = (IBuildConfiguration) iter.next();
-			if (element.getName().equals("notrace")) { //$NON-NLS-1$
-				bc.setActiveBuildConfiguration(element);
-			};
-		}	
+		propertiesFile = project.getFile("notrace.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
+		waitForJobsToComplete();
 		waitForJobsToComplete();
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();

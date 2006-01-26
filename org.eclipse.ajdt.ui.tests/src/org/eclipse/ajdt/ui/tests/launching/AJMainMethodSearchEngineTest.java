@@ -10,14 +10,10 @@
  **********************************************************************/
 package org.eclipse.ajdt.ui.tests.launching;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.eclipse.ajdt.internal.launching.AJMainMethodSearchEngine;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
@@ -34,21 +30,10 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
-		Collection bcs = pbc.getBuildConfigurations();
-		IBuildConfiguration notrace = null;
-		IBuildConfiguration tracev1 = null;
-		for (Iterator iter = bcs.iterator(); iter.hasNext();) {
-			IBuildConfiguration bc = (IBuildConfiguration) iter.next();
-			if(bc.getName().equals("notrace")) { //$NON-NLS-1$
-				notrace = bc;
-			} else if(bc.getName().equals("tracev1")) { //$NON-NLS-1$
-				tracev1 = bc;
-			}
-		}
-		assertNotNull("Build configuration notrace should have been found", notrace); //$NON-NLS-1$
-		assertNotNull("Build configuration tracev1 should have been found", tracev1); //$NON-NLS-1$
-		pbc.setActiveBuildConfiguration(notrace);
+		IFile propertiesFile = project.getFile("notrace.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		AJMainMethodSearchEngine searchEngine = new AJMainMethodSearchEngine();
 		IJavaElement[] elements = new IJavaElement[]{jp};
@@ -57,7 +42,11 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
 		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be one result, found " + results.length, results.length == 1); //$NON-NLS-1$
-		pbc.setActiveBuildConfiguration(tracev1);
+		propertiesFile = project.getFile("tracev1.ajproperties");
+		assertNotNull(propertiesFile);
+		assertTrue(propertiesFile.exists());		
+		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
+		waitForJobsToComplete();
 		waitForJobsToComplete();
 		Object[] results2 = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be two results, found " + results2.length, results2.length == 2); //$NON-NLS-1$

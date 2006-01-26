@@ -10,7 +10,6 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.ui.tests,
  org.eclipse.ajdt.ui.tests.actions,
  org.eclipse.ajdt.ui.tests.ajde,
- org.eclipse.ajdt.ui.tests.buildconfig,
  org.eclipse.ajdt.ui.tests.builder,
  org.eclipse.ajdt.ui.tests.editor,
  org.eclipse.ajdt.ui.tests.editor.codeformat,
@@ -19,6 +18,7 @@ Export-Package: org.eclipse.ajdt.ui.tests,
  org.eclipse.ajdt.ui.tests.javamodel,
  org.eclipse.ajdt.ui.tests.javamodel.elements,
  org.eclipse.ajdt.ui.tests.launching,
+ org.eclipse.ajdt.ui.tests.newbuildconfig,
  org.eclipse.ajdt.ui.tests.preferences,
  org.eclipse.ajdt.ui.tests.ras,
  org.eclipse.ajdt.ui.tests.testutils,
@@ -59,6 +59,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.ui,
  org.eclipse.contribution.xref.core,
  org.eclipse.ui.views,
- org.eclipse.pde.runtime,
- org.eclipse.ajdt.ui.buildconfig
+ org.eclipse.pde.runtime
 Eclipse-AutoStart: true

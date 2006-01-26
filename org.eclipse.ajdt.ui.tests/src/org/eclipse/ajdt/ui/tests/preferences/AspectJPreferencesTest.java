@@ -14,27 +14,16 @@ package org.eclipse.ajdt.ui.tests.preferences;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesUtils;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jdt.core.IJavaProject;
@@ -78,60 +67,6 @@ public class AspectJPreferencesTest extends UITestCase {
 		super.tearDown();
 		prefStore = null;
 		projectNode = null;
-	}
-
-	public void testBuildConfigSetting() throws Exception {
-		IBuildConfigurator conf = DefaultBuildConfigurator.getBuildConfigurator();
-		IProjectBuildConfigurator pbc = conf
-				.getProjectBuildConfigurator(project);
-		assertNotNull("Didn't get a project build configurator", pbc); //$NON-NLS-1$
-
-		// create a new configuration and activate it
-		final String newconfig = "newconfig"; //$NON-NLS-1$
-		BuildConfiguration bc = new BuildConfiguration(newconfig, jp, pbc);
-		pbc.addBuildConfiguration(bc);
-		pbc.setActiveBuildConfiguration(bc);
-
-		waitForJobsToComplete();
-
-		// active config should now have been written to .settings file
-		IResource res = project.findMember(".settings"); //$NON-NLS-1$
-
-		if (res.getType() != IResource.FOLDER) {
-			fail(".settings must be a folder"); //$NON-NLS-1$
-		}
-		IFolder settings = (IFolder) res;
-
-		final boolean[] success = new boolean[1];
-		success[0] = false;
-		settings.accept(new IResourceVisitor() {
-			public boolean visit(IResource resource) throws CoreException {
-				if (resource.getType() == IResource.FILE) {
-					if (resource.getName().indexOf("ajdt") >= 0) { //$NON-NLS-1$
-						// found an AJDT prefs file, let's see if it mentions
-						// our build config
-						IFile file = (IFile) resource;
-						BufferedReader input = new BufferedReader(
-								new InputStreamReader(file.getContents()));
-						try {
-							String line = input.readLine();
-							while (line != null) {
-								if (line.indexOf(newconfig) >= 0) {
-									success[0] = true;
-								}
-								line = input.readLine();
-							}
-							input.close();
-						} catch (IOException e) {
-						}
-					}
-				}
-				return true;
-			}
-		});
-		assertTrue(
-				"Didn't find a .settings preferences file mentioning the new build configuration", //$NON-NLS-1$
-				success[0]);
 	}
 	
 	public void testIsUsingProjectSettings() throws Exception {

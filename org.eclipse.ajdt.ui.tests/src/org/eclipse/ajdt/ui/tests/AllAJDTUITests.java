@@ -20,14 +20,11 @@ import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.ui.tests.ajde.ClasspathOrderTest;
 import org.eclipse.ajdt.ui.tests.ajde.ProjectPropertiesTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.BuildConfigurationTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.BuildConfiguratorTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest2;
-import org.eclipse.ajdt.ui.tests.buildconfig.UtilTests;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
+import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest4;
+import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest5;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
@@ -40,20 +37,21 @@ import org.eclipse.ajdt.ui.tests.editor.contentassist.ContentAssistTest;
 import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
+import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
+import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
+import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
-import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
-import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
@@ -70,6 +68,8 @@ public class AllAJDTUITests {
 		TestSuite suite = new TestSuite(AllAJDTUITests.class.getName());
 		//$JUnit-BEGIN$
 		
+		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
+		
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
 		
@@ -81,12 +81,9 @@ public class AllAJDTUITests {
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
 		
-		// buildconfigurator tests
-		suite.addTest(new TestSuite(UtilTests.class));
-		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
-		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
+		// build configuration tests
 		suite.addTest(new TestSuite(BuildConfigurationTest.class));
-		suite.addTest(new TestSuite(BuildConfiguratorTest.class));
+		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
 		
 		// internal.core tests
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
@@ -99,7 +96,6 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
 		
 		// internal.ui.preferences tests
-		suite.addTest(new TestSuite(AspectJPreferencePageTest.class));
 		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
 		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
 
@@ -130,9 +126,6 @@ public class AllAJDTUITests {
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
 		
-		// new build configuration wizard
-		suite.addTest(new TestSuite(BuildConfigurationFileWizardTest.class));
-		
 		// export wizard tests
 		suite.addTest(new TestSuite(AJCTaskTest.class));
 		suite.addTest(new TestSuite(ExportPluginTest.class));
@@ -143,6 +136,8 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
+		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
 		
@@ -151,6 +146,9 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
+		if(is50) {
+			suite.addTest(new TestSuite(Bug117327Test.class));
+		}
 		
 		// ras tests
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
