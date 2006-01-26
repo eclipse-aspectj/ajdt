@@ -1,10 +1,4 @@
-src.includes = src/telecom/AbstractSimulation.java,\
-               src/telecom/Call.java,\
-               src/telecom/Connection.java,\
-               src/telecom/Local.java,\
-               src/telecom/LongDistance.java,\
-               src/telecom/Customer.java,\
-               src/telecom/Timer.java,\
-               src/telecom/Timing.aj,\
-               src/telecom/Billing.aj,\
-               src/telecom/BillingSimulation.java
+src.includes = src/
+src.excludes = src/telecom/TimerLog.aj,\
+               src/telecom/TimingSimulation.java,\
+               src/telecom/BasicSimulation.java

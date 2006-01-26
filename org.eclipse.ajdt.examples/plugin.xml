@@ -2,7 +2,7 @@
 <?eclipse version="3.0"?>
 <plugin>
 
-     <extension-point id="projectsetup" name="Project setup" schema="schema/wizardconfig.exsd"/>
+     <extension-point id="projectsetup" name="Project setup" schema="schema/projectsetup.exsd"/>
 
 <!-- Each example needs two extensions (with the same "id" for each):
      1. org.eclipse.ui.newWizards, to appear in the New wizard

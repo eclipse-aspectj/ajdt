@@ -13,11 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
+import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -137,41 +134,13 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			}
 		}
 
-		// set active build configuration
-		String value = desc.getAttribute("build"); //$NON-NLS-1$
-		if (value != null){
-			AspectJPreferences.setActiveBuildConfigurationName(proj,value);
-		}
-		//In case Build Configurator got initialized before we created the
-		// build configuration files,
-		//let's reinitailize it
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(proj);
-		pbc.reInit();
-		
-
-		
-		//if it already created a Standard Buildconfiguration despite of there
-		// are others, remove it:
-		try {
-			IResource[] files = proj.members(IResource.FILE);
-			int buildfiles = 0;
-			for (int i = 0; i < files.length; i++) {
-				if ((files[i].getType() != IResource.FOLDER)
-						&& IBuildConfiguration.EXTENSION.equals(files[i]
-								.getFileExtension())
-						&& files[i].exists()) {
-					buildfiles++;
-				}
+		// apply active build configuration
+		String buildConfig = desc.getAttribute("build"); //$NON-NLS-1$
+		if (buildConfig != null){
+			IResource bcFile = proj.findMember(new Path(buildConfig));
+			if ((bcFile != null) && (bcFile.getType() == IResource.FILE)) {
+				BuildConfigurationUtils.applyBuildConfiguration((IFile)bcFile);
 			}
-			if (buildfiles > 1) {
-				IFile f = (IFile)proj.findMember(IBuildConfiguration.STANDARD_BUILD_CONFIGURATION_NAME + "." + IBuildConfiguration.EXTENSION); //$NON-NLS-1$
-				IBuildConfiguration bc = pbc.getBuildConfiguration(f);
-				if (bc != null){
-					pbc.removeBuildConfiguration(bc);
-				}
-			}
-		} catch (CoreException e) {
 		}
 	}
 
