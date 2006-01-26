@@ -53,7 +53,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.Launch;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.corext.util.Messages;
@@ -303,11 +302,8 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			String aspectjtoolsDir = ""; //$NON-NLS-1$
 			URL ajdeURL = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID).getEntry("ajde.jar"); //$NON-NLS-1$
 			URL weaverURL = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("aspectjweaver.jar"); //$NON-NLS-1$
-			URL coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("runtime.jar"); //$NON-NLS-1$ //$NON-NLS-2$
-			if (coreURL==null) {
-				// From Eclipse 3.1M6 onwards, the runtime plugin is itself a JAR file
-				coreURL = Platform.getBundle("org.eclipse.core.runtime").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
+			// From Eclipse 3.2M4 onwards we need equinox.common instead of core.runtime
+			URL coreURL = Platform.getBundle("org.eclipse.equinox.common").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			try {
 				File ajdeFile = new File(Platform.asLocalURL(ajdeURL).getFile());
