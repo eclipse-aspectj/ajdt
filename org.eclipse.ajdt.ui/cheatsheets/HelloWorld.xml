@@ -63,7 +63,7 @@
 		skip="true">
 		<action
 			pluginId="org.eclipse.jdt.ui"
-			class="org.eclipse.jdt.internal.ui.wizards.OpenPackageWizardAction"/>
+			class="org.eclipse.jdt.ui.actions.OpenNewPackageWizardAction"/>
 		<description>
 			The next thing you will need is a package to put your class and aspect in. 
 			In this step we create a &quot;hello&quot; package.
@@ -84,7 +84,7 @@
 		skip="true">
 		<action
 			pluginId="org.eclipse.jdt.ui"
-			class="org.eclipse.jdt.internal.ui.wizards.OpenClassWizardAction"/>
+			class="org.eclipse.jdt.ui.actions.OpenNewClassWizardAction"/>
 		<description>
 			You should now have an AspectJ Project containing a hello package in your 
 			workspace. The next step in building the Hello World application is to 
