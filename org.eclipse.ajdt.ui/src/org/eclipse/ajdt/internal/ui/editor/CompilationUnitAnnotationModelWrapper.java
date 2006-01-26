@@ -35,8 +35,11 @@ import org.eclipse.jdt.internal.ui.text.java.IProblemRequestorExtension;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.AnnotationModelEvent;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
+import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
+import org.eclipse.jface.util.ListenerList;
 
 /**
  * Wrapper for a CompilationUnitAnnotationModel.  Uses AspectJ's eager parser
@@ -45,6 +48,46 @@ import org.eclipse.jface.text.source.IAnnotationModelListener;
 public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, IProblemRequestor, IProblemRequestorExtension  {
 
 	
+	protected static class GlobalAnnotationModelListener implements IAnnotationModelListener, IAnnotationModelListenerExtension {
+		
+		private ListenerList fListenerList;
+		
+		public GlobalAnnotationModelListener() {
+			fListenerList= new ListenerList();
+		}
+		
+		/**
+		 * @see IAnnotationModelListener#modelChanged(IAnnotationModel)
+		 */
+		public void modelChanged(IAnnotationModel model) {
+			Object[] listeners= fListenerList.getListeners();
+			for (int i= 0; i < listeners.length; i++) {
+				((IAnnotationModelListener) listeners[i]).modelChanged(model);
+			}
+		}
+	
+		/**
+		 * @see IAnnotationModelListenerExtension#modelChanged(AnnotationModelEvent)
+		 */
+		public void modelChanged(AnnotationModelEvent event) {
+			Object[] listeners= fListenerList.getListeners();
+			for (int i= 0; i < listeners.length; i++) {
+				Object curr= listeners[i];
+				if (curr instanceof IAnnotationModelListenerExtension) {
+					((IAnnotationModelListenerExtension) curr).modelChanged(event);
+				}
+			}
+		}
+		
+		public void addListener(IAnnotationModelListener listener) {
+			fListenerList.add(listener);
+		}
+		
+		public void removeListener(IAnnotationModelListener listener) {
+			fListenerList.remove(listener);
+		}			
+	}
+
 	private IAnnotationModel delegate;
 	private final ICompilationUnit unit;
 	

@@ -40,9 +40,8 @@ import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
-import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
-import org.eclipse.jdt.internal.core.OpenableElementInfo;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
@@ -63,12 +62,15 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccess;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
+import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -110,6 +112,10 @@ public class AspectJEditor extends CompilationUnitEditor {
 	private AJSourceViewerConfiguration fAJSourceViewerConfiguration;
 
 	private boolean isEditingAjFile = false;
+
+	private CompilationUnitAnnotationModelWrapper.GlobalAnnotationModelListener fGlobalAnnotationModelListener;
+
+	private IAnnotationModel annotationModel;
 
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
@@ -337,6 +343,27 @@ public class AspectJEditor extends CompilationUnitEditor {
 		super.setSourceViewerConfiguration(configuration);
 	}
 
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
+		if(annotationModel != null) {
+			if(annotationModel instanceof CompilationUnitAnnotationModelWrapper) {
+				((CompilationUnitAnnotationModelWrapper)annotationModel).setDelegate(getSourceViewer().getAnnotationModel());
+			}
+			if(fGlobalAnnotationModelListener == null) {
+				fGlobalAnnotationModelListener = new CompilationUnitAnnotationModelWrapper.GlobalAnnotationModelListener();
+				fGlobalAnnotationModelListener.addListener(JavaPlugin.getDefault().getProblemMarkerManager());
+			}
+			annotationModel.addAnnotationModelListener(fGlobalAnnotationModelListener);			
+			IDocument document = getDocumentProvider().getDocument(getEditorInput());
+			ISourceViewer sourceViewer= getSourceViewer();		
+			sourceViewer.setDocument(document, annotationModel);
+			IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
+			if(model != null) { // this is null in a linked source folder due to an eclipse bug..
+				model.connect(document);
+			}	
+		}
+	}
+	
 	public void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		if (input instanceof IFileEditorInput) {
@@ -351,19 +378,29 @@ public class AspectJEditor extends CompilationUnitEditor {
 		
 				if (unit != null){
 					isEditingAjFile = true;
+	
+					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
+					
+					unit.becomeWorkingCopy((IProblemRequestor)getDocumentProvider().getAnnotationModel(input), null);
+					((IWorkingCopyManagerExtension) JavaUI
+							.getWorkingCopyManager()).setWorkingCopy(input, unit);				
 				}
+				JavaUI.getWorkingCopyManager().connect(input);
 			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
-					.getFile().getName())){
+					.getFile().getName())){ // It's a .java file
 				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
-			}
-
-			if(unit instanceof CompilationUnit) {
-				JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
-			}
-			unit.becomeWorkingCopy((IProblemRequestor)getDocumentProvider().getAnnotationModel(input), null);
-			((IWorkingCopyManagerExtension) JavaUI
+				annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
+			
+			
+						
+				if(unit instanceof CompilationUnit) {
+					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
+				}
+				unit.becomeWorkingCopy((IProblemRequestor)annotationModel, null);
+			   ((IWorkingCopyManagerExtension) JavaUI
 					.getWorkingCopyManager()).setWorkingCopy(input, unit);
-
+			
+			}
 
 			AJLog.log("Editor opened on " + fInput.getFile().getName()); //$NON-NLS-1$
 			// Ensure any advice markers are created since they are not
@@ -378,10 +415,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 			textTools.setupJavaDocumentPartitioner(document,
 					EclipseEditorIsolation.JAVA_PARTITIONING);
-
-			if ("aj".equals(fInput.getFile().getFileExtension())) { //$NON-NLS-1$
-				JavaUI.getWorkingCopyManager().connect(input);
-			}
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
 			resetTitleImage();
