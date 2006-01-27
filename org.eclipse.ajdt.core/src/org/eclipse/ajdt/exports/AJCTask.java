@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -160,17 +160,12 @@ public class AJCTask extends JavacTask {
 			}
 			
 			if (!useBuildConfig) {
-				ajScript.printStartTag("srcdir"); //$NON-NLS-1$
-				ajScript.indent++;
 				for (int i = 0; i < srcdir.length; i++) {
 					ajScript.printTab();
-					ajScript.print("<pathelement"); //$NON-NLS-1$
-					ajScript.printAttribute("path", srcdir[i], false); //$NON-NLS-1$
-					ajScript.print("/>"); //$NON-NLS-1$
-					ajScript.println();
+					ajScript.print("<src path="); //$NON-NLS-1$
+					ajScript.printQuotes(srcdir[i]);
+					ajScript.println("/>"); //$NON-NLS-1$
 				}
-				ajScript.indent--;
-				ajScript.printEndTag("srcdir"); //$NON-NLS-1$
 			}
 			ajScript.indent--;
 			ajScript.printEndTag("iajc"); //$NON-NLS-1$
