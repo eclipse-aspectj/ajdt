@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.aspectj.ajde.Ajde;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -73,6 +74,7 @@ public class AJDTEventTrace {
 		
 		eventData.append( "\n\tAspectJ Compiler version: " ); //$NON-NLS-1$
 		eventData.append( Ajde.getDefault().getVersion() );
+		eventData.append( "\n\tusingCUprovider="+AspectJPlugin.usingCUprovider );
 		
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();

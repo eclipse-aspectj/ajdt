@@ -25,6 +25,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
@@ -67,6 +69,8 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
 
+	public static boolean usingCUprovider = false;
+	
 	/**
 	 * Compiler monitor listens to AspectJ compilation events (build progress
 	 * and compilations errors/warnings)
@@ -93,6 +97,7 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		checkForCUprovider();
 		IncrementalStateManager.recordIncrementalStates=true;
 		IncrementalStateManager.debugIncrementalStates=true;
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
@@ -101,6 +106,21 @@ public class AspectJPlugin extends Plugin {
 				null, null, new CoreErrorHandler());
 	}
 
+	/**
+	 * Sets the usingCUprovider flag if the experimental JDT extension is available
+	 *
+	 */
+	private void checkForCUprovider() {
+		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider";
+		IExtensionPoint exP = Platform.getExtensionRegistry()
+			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
+		if (exP!=null) {
+			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
+			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) {
+				usingCUprovider = true;
+			}
+		}
+	}
 
 	/**
 	 * This method is called when the plug-in is stopped

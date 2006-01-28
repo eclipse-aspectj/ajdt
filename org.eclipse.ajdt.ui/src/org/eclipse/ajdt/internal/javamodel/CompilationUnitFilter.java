@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.javamodel;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -55,6 +56,10 @@ public class CompilationUnitFilter extends ViewerFilter {
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
+		if (AspectJPlugin.usingCUprovider) {
+			return true;
+		}
+		
 		if ((element instanceof ICompilationUnit)
 				&& !(element instanceof AJCompilationUnit)) {
 			try {

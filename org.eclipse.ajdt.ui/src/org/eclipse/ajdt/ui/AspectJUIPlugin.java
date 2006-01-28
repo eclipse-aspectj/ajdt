@@ -436,13 +436,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// notified if resources are added/deleted or their content changed.
 
 		// listener for aspectj model
-		AspectJPlugin.getWorkspace().addResourceChangeListener(
-				new ResourceChangeListener(),
-				IResourceChangeEvent.PRE_CLOSE
-						| IResourceChangeEvent.PRE_DELETE
-						| IResourceChangeEvent.POST_CHANGE
-						| IResourceChangeEvent.PRE_BUILD);
-
+		if (!AspectJPlugin.usingCUprovider) {
+			AspectJPlugin.getWorkspace().addResourceChangeListener(
+					new ResourceChangeListener(),
+					IResourceChangeEvent.PRE_CLOSE
+							| IResourceChangeEvent.PRE_DELETE
+							| IResourceChangeEvent.POST_CHANGE
+							| IResourceChangeEvent.PRE_BUILD);
+		}
+		
 		// the following came from the 2.x constructor - needs to be put here
 		// because plugin is initialized when start(BundleContext) is called.
 		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();

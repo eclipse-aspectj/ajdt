@@ -27,6 +27,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.ajdt.codeconversion.ConversionOptions;
 import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorFilter;
 import org.eclipse.ajdt.internal.contentassist.ProposalRequestorWrapper;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
@@ -48,9 +49,7 @@ import org.eclipse.jdt.core.CompletionRequestor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaModelStatusConstants;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
@@ -66,7 +65,6 @@ import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
-import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.core.PackageFragment;
@@ -127,15 +125,13 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 	}
 	
-	public Object getElementInfo() throws JavaModelException{
-		Object info = super.getElementInfo();
-		return info;
-	}
-	
 	public char[] getMainTypeName(){
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getMainTypeName();
+		}
 		String elementName = name;
 		//remove the .aj
-		elementName = elementName.substring(0, elementName.length() - 3);
+		elementName = elementName.substring(0, elementName.length() - ".aj".length());
 		return elementName.toCharArray();
 	}
 	
@@ -143,18 +139,21 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * override validateCompilationUnit, otherwise the check for valid name will fail on
 	 * .aj files
 	 */
-	protected IStatus validateCompilationUnit(IResource resource) {
-		IPackageFragmentRoot root = getPackageFragmentRoot();
-		try {
-			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE) 
-				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
-		} catch (JavaModelException e) {
-			return e.getJavaModelStatus();
-		}
-		return JavaModelStatus.OK_STATUS;
-	}
+//	protected IStatus validateCompilationUnit(IResource resource) {
+//		IPackageFragmentRoot root = getPackageFragmentRoot();
+//		try {
+//			if (!(resource.getProject().exists()) || root.getKind() != IPackageFragmentRoot.K_SOURCE) 
+//				return new JavaModelStatus(IJavaModelStatusConstants.INVALID_ELEMENT_TYPES, root);
+//		} catch (JavaModelException e) {
+//			return e.getJavaModelStatus();
+//		}
+//		return JavaModelStatus.OK_STATUS;
+//	}
 	
 	public IResource getResource(){
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getResource();
+		}
 		return ajFile;
 	}
 	
@@ -162,10 +161,16 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * needs to return real path for organize imports 
 	 */
 	public IPath getPath() {
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getPath();
+		}
 		return ajFile.getFullPath();
 	}
 	
 	public IResource getUnderlyingResource() throws JavaModelException {
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getUnderlyingResource();
+		}
 		return ajFile;
 	}
 	
@@ -367,16 +372,16 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * calling Util.getNameWithoutJavaLikeExtension(). We can remove this if we
 	 * register .aj as a java like extension.
 	 */
-	public IType findPrimaryType() {
-		String typeName = getElementName();
-		// remove the .aj
-		typeName = typeName.substring(0, typeName.lastIndexOf('.'));
-		IType primaryType = getType(typeName);
-		if (primaryType.exists()) {
-			return primaryType;
-		}
-		return null;
-	}
+//	public IType findPrimaryType() {
+//		String typeName = getElementName();
+//		// remove the .aj
+//		typeName = typeName.substring(0, typeName.lastIndexOf('.'));
+//		IType primaryType = getType(typeName);
+//		if (primaryType.exists()) {
+//			return primaryType;
+//		}
+//		return null;
+//	}
 	
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))
@@ -423,26 +428,6 @@ public class AJCompilationUnit extends CompilationUnit{
 		IJavaElement[] res = super.codeSelect(offset, length, workingCopyOwner);
 		return res;
 	}
-	
-	//unfortunately, the following three methods do not seem to get called at all
-	//how could we make these refactoring operations work? (related bug: 74426)
-	public void move(IJavaElement container, IJavaElement sibling,
-			String rename, boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		// TODO make move work for .aj files
-		super.move(container, sibling, rename, force, monitor);
-	}
-	public void rename(String newName, boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		// TODO make rename work for .aj files
-		super.rename(newName, force, monitor);
-	}
-	
-	public void delete(boolean force, IProgressMonitor monitor)
-			throws JavaModelException {
-		super.delete(force, monitor);
-	}
-	
 	
 	protected void closeBuffer() {
 		if (javaCompBuffer != null){
@@ -601,10 +586,16 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * @see JavaElement#getHandleMementoDelimiter()
 	 */
 	protected char getHandleMementoDelimiter() {
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getHandleMementoDelimiter();
+		}
 		return AspectElement.JEM_ASPECT_CU;
 	}
 	
 	public String getHandleIdentifier() {
+		if (AspectJPlugin.usingCUprovider) {
+			return super.getHandleIdentifier();
+		}
 		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		String callerName = (new RuntimeException()).getStackTrace()[1]
 				.getClassName();
