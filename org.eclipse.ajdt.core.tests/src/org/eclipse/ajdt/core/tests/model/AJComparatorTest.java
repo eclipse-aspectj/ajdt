@@ -79,7 +79,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString()
+				if (node.toLinkLabelString(false)
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 23) ){
 					
@@ -87,7 +87,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 					if (ije instanceof AJCodeElement) {
 						ajce1 = (AJCodeElement) ije;
 					}					
-				} else if (node.toLinkLabelString()
+				} else if (node.toLinkLabelString(false)
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 24) ){
 					
@@ -130,7 +130,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString()
+				if (node.toLinkLabelString(false)
 						.equals("A.after(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 30) ){
 					
@@ -138,7 +138,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 					if (!(ije instanceof AJCodeElement)) {
 						ije1 = ije;
 					}					
-				} else if (node.toLinkLabelString()
+				} else if (node.toLinkLabelString(false)
 						.equals("A.before(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 26) ){
 					
@@ -177,7 +177,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString()
+				if (node.toLinkLabelString(false)
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))")  //$NON-NLS-1$
 					&& (sl.getLine() == 23) ){
 					
@@ -202,7 +202,7 @@ public class AJComparatorTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString()
+				if (node.toLinkLabelString(false)
 						.equals("A.after(String): tracedPrint..")  //$NON-NLS-1$
 					&& (sl.getLine() == 30) ){
 					

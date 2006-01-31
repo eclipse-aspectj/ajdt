@@ -111,7 +111,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				String peName = node.toLabelString().intern();;
+				String peName = node.toLabelString(false).intern();;
 				IJavaElement je = AJModel.getInstance().getCorrespondingJavaElement(node);
 				if (je==null) {
 					System.out.println("je is null"); //$NON-NLS-1$

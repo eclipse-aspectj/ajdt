@@ -132,7 +132,7 @@ implements IStructureViewNode, IAdaptable {
 		if (kind == IStructureViewNode.Kind.RELATIONSHIP) {
 			ret =  relationshipName;
 		} else if (kind == IStructureViewNode.Kind.LINK) {
-			ret = node.toLinkLabelString();	
+			ret = node.toLinkLabelString(false);	
 		} else {
 			ret = node.toLabelString();
 		}
