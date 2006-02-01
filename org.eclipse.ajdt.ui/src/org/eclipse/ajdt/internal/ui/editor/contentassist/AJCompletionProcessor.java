@@ -18,12 +18,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.internal.ui.text.java.JavaCompletionProcessor;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.JavaContentAssistInvocationContext;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.TextContentAssistInvocationContext;
 import org.eclipse.ui.IEditorPart;
 
 /**
@@ -39,7 +39,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 	}
 	
 	// Filter out proposals starting with "ajc$" and add a "limited AspectJ Support" message
-	protected List filterAndSortProposals(List proposals, IProgressMonitor monitor, TextContentAssistInvocationContext context) {
+	protected List filterAndSortProposals(List proposals, IProgressMonitor monitor, ContentAssistInvocationContext context) {
 		List newProposals = super.filterAndSortProposals(proposals, monitor, context);
 		for (Iterator iter = newProposals.iterator(); iter.hasNext();) {
 			ICompletionProposal proposal = (ICompletionProposal) iter.next();			
@@ -52,7 +52,7 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		return newProposals;
 	}
 	
-	protected TextContentAssistInvocationContext createContext(ITextViewer viewer, int offset) {
+	protected ContentAssistInvocationContext createContext(ITextViewer viewer, int offset) {
 		this.offset = offset;
 		return new AJContentAssistInvocationContext(viewer, offset, fEditor);
 	}
