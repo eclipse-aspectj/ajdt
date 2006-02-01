@@ -464,7 +464,7 @@ public class AJProjectModel {
 					if (node.getKind() == IProgramElement.Kind.CODE) {
 						IJavaElement parent = el;
 						el = new AJCodeElement((JavaElement) parent, sl
-								.getLine(), node.toLabelString());
+								.getLine(), node.toLabelString(false));
 						List l = (List) extraChildren.get(parent);
 						if (l == null) {
 							l = new ArrayList();
@@ -474,7 +474,7 @@ public class AJProjectModel {
 					}
 					if (el != null && suitableMatch(el, node)) {
 						ipeToije.put(node, el);
-						jeLinkNames.put(el, node.toLinkLabelString());
+						jeLinkNames.put(el, node.toLinkLabelString(false));
 						lineNumbers.put(el, new Integer(sl.getLine()));
 					} else { 
 						// It's an aspect in a .java file so we mock up the required JavaElements
@@ -590,7 +590,7 @@ public class AJProjectModel {
 							}
 							l2.add(el);
 							ipeToije.put(node, el);
-							jeLinkNames.put(el, node.toLinkLabelString());
+							jeLinkNames.put(el, node.toLinkLabelString(false));
 							lineNumbers.put(el, new Integer(sl.getLine()));
 						}
 					}
