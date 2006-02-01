@@ -63,7 +63,7 @@ public class AJCompilationUnitProblemFinder extends
 	public AJCompilationUnitProblemFinder(INameEnvironment environment,
 			IErrorHandlingPolicy policy, Map settings,
 			ICompilerRequestor requestor, IProblemFactory problemFactory, boolean parseLiteralExpressionsAsConstants, AJCompilationUnit unit) {
-		super(environment, policy, settings, requestor, problemFactory, parseLiteralExpressionsAsConstants);
+		super(environment, policy, settings, requestor, problemFactory, parseLiteralExpressionsAsConstants, true);
 		ajcu = unit;
 	}
 
