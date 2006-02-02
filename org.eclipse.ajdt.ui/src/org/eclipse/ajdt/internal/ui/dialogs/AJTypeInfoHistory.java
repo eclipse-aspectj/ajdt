@@ -40,21 +40,18 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
-
 import org.eclipse.jdt.internal.corext.CorextMessages;
+import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.TypeFilter;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.jdt.internal.corext.util.TypeInfoFilter;
-
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaUIException;
 import org.eclipse.jdt.internal.ui.JavaUIStatus;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -188,11 +185,11 @@ public class AJTypeInfoHistory {
 			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			root = parser.parse(inputSource).getDocumentElement();
 		} catch (SAXException e) {
-			throw createException(e, CorextMessages.TypeInfoHistory_error_read);  
+			throw createException(e, Messages.format(CorextMessages.History_error_read, FILENAME));  
 		} catch (ParserConfigurationException e) {
-			throw createException(e, CorextMessages.TypeInfoHistory_error_read); 
+			throw createException(e, Messages.format(CorextMessages.History_error_read, FILENAME)); 
 		} catch (IOException e) {
-			throw createException(e, CorextMessages.TypeInfoHistory_error_read); 
+			throw createException(e, Messages.format(CorextMessages.History_error_read, FILENAME)); 
 		}
 		
 		if (root == null) return;
@@ -277,9 +274,9 @@ public class AJTypeInfoHistory {
 
 			transformer.transform(source, result);
 		} catch (TransformerException e) {
-			throw createException(e, CorextMessages.TypeInfoHistory_error_serialize);
+			throw createException(e, Messages.format(CorextMessages.History_error_serialize, FILENAME));
 		} catch (ParserConfigurationException e) {
-			throw createException(e, CorextMessages.TypeInfoHistory_error_serialize);
+			throw createException(e, Messages.format(CorextMessages.History_error_serialize, FILENAME));
 		}
 	}
 	

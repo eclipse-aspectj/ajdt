@@ -73,8 +73,7 @@ public class BuildPluginAction extends BaseBuildAction {
 		generator.setNextId(TargetPlatform.getPDEState().getNextId());
 		generator.setStateExtraData(TargetPlatform
 				.getBundleClasspaths(TargetPlatform.getPDEState()));
-		generator.setBuildingOSGi(PDECore.getDefault().getModelManager()
-				.isOSGiRuntime());
+		generator.setBuildingOSGi(true);
 		IPluginModelBase model = PDECore.getDefault().getModelManager()
 				.findModel(project);
 //		generator
