@@ -383,7 +383,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		TemplateStore codeTemplates = JavaPlugin.getDefault()
 				.getTemplateStore();
 		// bug 90791: don't add templates if they are already there
-		if (codeTemplates.findTemplate("adviceexecution") == null) { //$NON-NLS-1$
+		// bug 125998: using pertypewithin because it was the most recently added
+		if (codeTemplates.findTemplate("pertypewithin") == null) { //$NON-NLS-1$
 			try {
 				URL loc = getBundle().getEntry("/aspectj_code_templates.xml"); //$NON-NLS-1$
 				TemplateReaderWriter trw = new TemplateReaderWriter();
@@ -393,7 +394,10 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 					AJLog.log(UIMessages.codeTemplates_couldNotLoad);
 				} else {
 					for (int i = 0; i < templates.length; i++) {
-						codeTemplates.add(templates[i]);
+						// bug 125998: Check that the individual template has not already been added
+						if (codeTemplates.findTemplate(templates[i].getTemplate().getName()) == null) {
+							codeTemplates.add(templates[i]);
+						}
 					}
 					codeTemplates.save();
 				}
