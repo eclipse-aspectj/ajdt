@@ -69,19 +69,15 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	// Fix for bug 111971 - our completion processor is not configured properly by ContentAssistPreferences
 	// so copied ContentAssistPreferences.configureJavaProcessor to here.
 	private void configureAJProcessor(ContentAssistant assistant, IPreferenceStore store, AJCompletionProcessor jcp) {
-		
 		String triggers= store.getString(PreferenceConstants.CODEASSIST_AUTOACTIVATION_TRIGGERS_JAVA);
 		if (triggers != null)
 			jcp.setCompletionProposalAutoActivationCharacters(triggers.toCharArray());
-
+		
 		boolean enabled= store.getBoolean(PreferenceConstants.CODEASSIST_SHOW_VISIBLE_PROPOSALS);
 		jcp.restrictProposalsToVisibility(enabled);
 
 		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_CASE_SENSITIVITY);
 		jcp.restrictProposalsToMatchingCases(enabled);
-
-		enabled= store.getBoolean(PreferenceConstants.CODEASSIST_ORDER_PROPOSALS);
-		jcp.orderProposalsAlphabetically(enabled);
 	}
 	
 	/**

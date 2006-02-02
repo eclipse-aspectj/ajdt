@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.text.edits.TextEdit;
 
 import org.eclipse.jface.contentassist.SubjectControlContentAssistant;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -105,8 +106,10 @@ import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
@@ -115,8 +118,6 @@ import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.corext.codemanipulation.AddUnimplementedConstructorsOperation;
 import org.eclipse.jdt.internal.corext.codemanipulation.AddUnimplementedMethodsOperation;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
-import org.eclipse.jdt.internal.corext.codemanipulation.IImportsStructure;
-import org.eclipse.jdt.internal.corext.codemanipulation.ImportsStructure;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
 import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility2;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
@@ -133,6 +134,7 @@ import org.eclipse.jdt.internal.corext.util.Strings;
 import org.eclipse.jdt.ui.CodeGeneration;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jdt.ui.wizards.NewContainerWizardPage;
+import org.eclipse.jdt.ui.wizards.NewTypeWizardPage.ImportsManager;
 
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
@@ -149,7 +151,6 @@ import org.eclipse.jdt.internal.ui.refactoring.contentassist.JavaPackageCompleti
 import org.eclipse.jdt.internal.ui.refactoring.contentassist.JavaTypeCompletionProcessor;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
-import org.eclipse.jdt.internal.ui.wizards.StringWrapper;
 import org.eclipse.jdt.internal.ui.wizards.SuperInterfaceSelectionDialog;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
@@ -192,28 +193,14 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 */
 	public static class ImportsManager {
 
-		private ImportsStructure fImportsStructure;
-		private Set fAddedTypes;
-		
-		/* package */ ImportsManager(IImportsStructure importsStructure) {
-			fImportsStructure= (ImportsStructure) importsStructure;
-		}
-		
-		/* package */ ImportsManager(ICompilationUnit createdWorkingCopy) throws CoreException {
-			this(createdWorkingCopy, new HashSet());
-		}
-
-		/* package */ ImportsManager(ICompilationUnit createdWorkingCopy, Set addedTypes) throws CoreException {
-			IJavaProject javaProject= createdWorkingCopy.getJavaProject();
-			String[] prefOrder= JavaPreferencesSettings.getImportOrderPreference(javaProject);
-			int threshold= JavaPreferencesSettings.getImportNumberThreshold(javaProject);
-			fAddedTypes= addedTypes;
-			
-			fImportsStructure= new ImportsStructure(createdWorkingCopy, prefOrder, threshold, true);
+		private ImportRewrite fImportsRewrite;
+				
+		/* package */ ImportsManager(CompilationUnit astRoot) throws CoreException {
+			fImportsRewrite= StubUtility.createImportRewrite(astRoot, true);
 		}
 
 		/* package */ ICompilationUnit getCompilationUnit() {
-			return fImportsStructure.getCompilationUnit();
+			return fImportsRewrite.getCompilationUnit();
 		}
 						
 		/**
@@ -227,8 +214,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		 * fully qualified type name if an import conflict prevented the import.
 		 */				
 		public String addImport(String qualifiedTypeName) {
-			fAddedTypes.add(qualifiedTypeName);
-			return fImportsStructure.addImport(qualifiedTypeName);
+			return fImportsRewrite.addImport(qualifiedTypeName);
 		}
 				
 		/**
@@ -242,29 +228,22 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		 * fully qualified type name if an import conflict prevented the import.
 		 */				
 		public String addImport(ITypeBinding typeBinding) {
-			// don't know what's added -> add created imports in getAddedTypes()
-			return fImportsStructure.addImport(typeBinding);
+			return fImportsRewrite.addImport(typeBinding);
 		}
 				
-		/* package */ void create(boolean needsSave, SubProgressMonitor monitor) throws CoreException {
-			fImportsStructure.create(needsSave, monitor);
+		/* package */ void create(boolean needsSave, IProgressMonitor monitor) throws CoreException {
+			TextEdit edit= fImportsRewrite.rewriteImports(monitor);
+			JavaModelUtil.applyEdit(fImportsRewrite.getCompilationUnit(), edit, needsSave, null);
 		}
 		
 		/* package */ void removeImport(String qualifiedName) {
-			if (fAddedTypes.contains(qualifiedName)) {
-				fImportsStructure.removeImport(qualifiedName);
-			}
+			fImportsRewrite.removeImport(qualifiedName);
 		}
 		
-		/* package */ Set getAddedTypes() {
-			String[] createdImports= fImportsStructure.getCreatedImports();
-			for (int i= 0; i < createdImports.length; i++) {
-				fAddedTypes.add(createdImports[i]);
-			}
-			return fAddedTypes;
+		/* package */ void removeStaticImport(String qualifiedName) {
+			fImportsRewrite.removeStaticImport(qualifiedName);
 		}
 	}
-		
 	
 	/** Public access flag. See The Java Virtual Machine Specification for more details. */
 	public int F_PUBLIC = Flags.AccPublic;
@@ -299,17 +278,31 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	/** Field ID of the method stubs check boxes. */
 	protected final static String METHODS= PAGE_NAME + ".methods"; //$NON-NLS-1$
 
-	private class InterfacesListLabelProvider extends LabelProvider {
-		
+	private static class InterfaceWrapper {
+		public String interfaceName;
+
+		public InterfaceWrapper(String interfaceName) {
+			this.interfaceName= interfaceName;
+		}
+
+		public int hashCode() {
+			return interfaceName.hashCode();
+		}
+
+		public boolean equals(Object obj) {
+			return obj != null && getClass().equals(obj.getClass()) && ((InterfaceWrapper) obj).interfaceName.equals(interfaceName);
+		}
+	}
+	
+	private static class InterfacesListLabelProvider extends LabelProvider {
 		private Image fInterfaceImage;
 		
 		public InterfacesListLabelProvider() {
-			super();
 			fInterfaceImage= JavaPluginImages.get(JavaPluginImages.IMG_OBJS_INTERFACE);
 		}
 		
 		public String getText(Object element) {
-			return ((StringWrapper) element).getString();
+			return ((InterfaceWrapper) element).interfaceName;
 		}
 		
 		public Image getImage(Object element) {
@@ -775,11 +768,11 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				if (element instanceof Item)
 					element = ((Item) element).getData();
 				
-				((StringWrapper) element).setString((String) value);
+				((InterfaceWrapper) element).interfaceName= (String) value;
 				fSuperInterfacesDialogField.elementChanged(element);
 			}
 			public Object getValue(Object element, String property) {
-				return ((StringWrapper) element).getString();
+				return ((InterfaceWrapper) element).interfaceName;
 			}
 			public boolean canModify(Object element, String property) {
 				return true;
@@ -1209,8 +1202,8 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		List interfaces= fSuperInterfacesDialogField.getElements();
 		ArrayList result= new ArrayList(interfaces.size());
 		for (Iterator iter= interfaces.iterator(); iter.hasNext();) {
-			StringWrapper superInterface= (StringWrapper) iter.next();
-			result.add(superInterface.getString());
+			InterfaceWrapper wrapper= (InterfaceWrapper) iter.next();
+			result.add(wrapper.interfaceName);
 		}
 		return result;
 	}
@@ -1226,8 +1219,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	public void setSuperInterfaces(List interfacesNames, boolean canBeModified) {
 		ArrayList interfaces= new ArrayList(interfacesNames.size());
 		for (Iterator iter= interfacesNames.iterator(); iter.hasNext();) {
-			String name= (String) iter.next();
-			interfaces.add(new StringWrapper(name));
+			interfaces.add(new InterfaceWrapper((String) iter.next()));
 		}
 		fSuperInterfacesDialogField.setElements(interfaces);
 		fSuperInterfacesDialogField.setEnabled(canBeModified);
@@ -1638,7 +1630,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			List elements= fSuperInterfacesDialogField.getElements();
 			int nElements= elements.size();
 			for (int i= 0; i < nElements; i++) {
-				String intfname= ((StringWrapper) elements.get(i)).getString();
+				String intfname= ((InterfaceWrapper) elements.get(i)).interfaceName;
 				Type type= TypeContextChecker.parseSuperInterface(intfname);
 				if (type == null) {
 					status.setError(Messages.format(NewWizardMessages.NewTypeWizardPage_error_InvalidSuperInterfaceName, intfname)); 
@@ -1767,27 +1759,30 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		return null;
 	}
 	
-	private void chooseSuperInterfaces() {
+	/**
+	 * Opens a selection dialog that allows to select the super interfaces. The selected interfaces are
+	 * directly added to the wizard page using {@link #addSuperInterface(String)}.
+	 * 
+	 * 	<p>
+	 * Clients can override this method if they want to offer a different dialog.
+	 * </p>
+	 * 
+	 * @since 3.2
+	 */
+	protected void chooseSuperInterfaces() {
 		IPackageFragmentRoot root= getPackageFragmentRoot();
 		if (root == null) {
 			return;
 		}	
 
 		IJavaProject project= root.getJavaProject();
-		SuperInterfaceSelectionDialog dialog= new SuperInterfaceSelectionDialog(getShell(), getWizard().getContainer(), fSuperInterfacesDialogField, project);
+		// TODO
+		SuperInterfaceSelectionDialog dialog= null;//new SuperInterfaceSelectionDialog(getShell(), getWizard().getContainer(), this, project);
 		dialog.setTitle(getInterfaceDialogTitle());
 		dialog.setMessage(NewWizardMessages.NewTypeWizardPage_InterfacesDialog_message); 
 		dialog.open();
-		List interfaces= fSuperInterfacesDialogField.getElements();
-		if (interfaces.size() > 0) {
-			Object element= interfaces.get(interfaces.size() - 1);
-			TableViewer tableViewer= fSuperInterfacesDialogField.getTableViewer();
-			tableViewer.refresh(element);
-			tableViewer.editElement(element, 0);
-		}
-		return;
 	}
-	
+		
 	private String getInterfaceDialogTitle() {
 	    if (fTypeKind == INTERFACE_TYPE)
 	        return NewWizardMessages.NewTypeWizardPage_InterfacesDialog_interface_title; 
@@ -1870,6 +1865,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			ImportsManager imports;
 			int indent= 0;
 
+			Set /* String (import names) */ existingImports;
 			String lineDelimiter= null;	
 			if (!isInnerClass) {
 				lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
@@ -1894,8 +1890,12 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				if (content != null) {
 					createdWorkingCopy.getBuffer().setContents(content);
 				}
-							
-				imports= new ImportsManager(createdWorkingCopy);
+						
+				CompilationUnit astRoot= createASTForImports(parentCU);
+				existingImports= getExistingImports(astRoot);
+				
+				imports= new ImportsManager(astRoot);
+				
 				// add an import that will be removed again. Having this import solves 14661
 				imports.addImport(JavaModelUtil.concatenateName(pack.getElementName(), clName));
 				
@@ -1910,8 +1910,10 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				IType enclosingType= getEnclosingType();
 					
 				ICompilationUnit parentCU= enclosingType.getCompilationUnit();
-				imports= new ImportsManager(parentCU);
-	
+				CompilationUnit astRoot= createASTForImports(parentCU);
+				imports= new ImportsManager(astRoot);
+				existingImports= getExistingImports(astRoot);
+				
 				// add imports that will be removed again. Having the imports solves 14661
 				IType[] topLevelTypes= parentCU.getTypes();
 				for (int i= 0; i < topLevelTypes.length; i++) {
@@ -1979,7 +1981,8 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			}
 			
 			// set up again
-			imports= new ImportsManager(imports.getCompilationUnit(), imports.getAddedTypes());
+			CompilationUnit astRoot= createASTForImports(imports.getCompilationUnit());
+			imports= new ImportsManager(astRoot);
 
 			// AspectJ change begin
 			if (cu instanceof AJCompilationUnit) {
@@ -1999,7 +2002,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 				imports.create(needsSave, new SubProgressMonitor(monitor, 1));
 			}
 			// AspectJ change end
-			removeUnusedImports(cu, imports.getAddedTypes(), needsSave);
+			removeUnusedImports(cu, existingImports, needsSave);
 			
 			JavaModelUtil.reconcile(cu);
 			
@@ -2054,39 +2057,70 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		}
 	}
 	
-	private void removeUnusedImports(ICompilationUnit cu, Set addedTypes, boolean needsSave) throws CoreException {
-		ASTParser parser= ASTParser.newParser(ASTProvider.AST_LEVEL);
+	private CompilationUnit createASTForImports(ICompilationUnit cu) {
+		ASTParser parser= ASTParser.newParser(AST.JLS3);
+		parser.setSource(cu);
+		parser.setResolveBindings(false);
+		parser.setFocalPosition(0);
+		return (CompilationUnit) parser.createAST(null);
+	}
+
+	private Set /* String */ getExistingImports(CompilationUnit root) {
+		List imports= root.imports();
+		Set res= new HashSet(imports.size());
+		for (int i= 0; i < imports.size(); i++) {
+			res.add(ASTNodes.asString((ImportDeclaration) imports.get(i)));
+		}
+		return res;
+	}
+
+	private void removeUnusedImports(ICompilationUnit cu, Set existingImports, boolean needsSave) throws CoreException {
+		ASTParser parser= ASTParser.newParser(AST.JLS3);
 		parser.setSource(cu);
 		parser.setResolveBindings(true);
+		
 		CompilationUnit root= (CompilationUnit) parser.createAST(null);
+		if (root.getProblems().length == 0) {
+			return;
+		}
+		
 		List importsDecls= root.imports();
 		if (importsDecls.isEmpty()) {
 			return;
 		}
+		ImportsManager imports= new ImportsManager(root);
 		
 		int importsEnd= ASTNodes.getExclusiveEnd((ASTNode) importsDecls.get(importsDecls.size() - 1));
 		IProblem[] problems= root.getProblems();
-		ArrayList res= new ArrayList();
 		for (int i= 0; i < problems.length; i++) {
 			IProblem curr= problems[i];
 			if (curr.getSourceEnd() < importsEnd) {
 				int id= curr.getID();
-				if (id == IProblem.UnusedImport || id == IProblem.NotVisibleType) { // not visible problems hide unused -> remove both  	 
-					String imp= problems[i].getArguments()[0];
-					res.add(imp);
+				if (id == IProblem.UnusedImport || id == IProblem.NotVisibleType) { // not visible problems hide unused -> remove both
+					int pos= curr.getSourceStart();
+					for (int k= 0; k < importsDecls.size(); k++) {
+						ImportDeclaration decl= (ImportDeclaration) importsDecls.get(k);
+						if (decl.getStartPosition() <= pos && pos < decl.getStartPosition() + decl.getLength()) {
+							if (existingImports.isEmpty() || !existingImports.contains(ASTNodes.asString(decl))) {
+								String name= decl.getName().getFullyQualifiedName();
+								if (decl.isOnDemand()) {
+									name += ".*"; //$NON-NLS-1$
+								}
+								if (decl.isStatic()) {
+									imports.removeStaticImport(name);
+								} else {
+									imports.removeImport(name);
+								}
+							}
+							break;
+						}
+					}
 				}
 			}
 		}
-		if (!res.isEmpty()) {
-			ImportsManager imports= new ImportsManager(cu, addedTypes);
-			for (int i= 0; i < res.size(); i++) {
-				String curr= (String) res.get(i);
-				imports.removeImport(curr);
-			}
-			imports.create(needsSave, null);
-		}
+		imports.create(needsSave, null);
 	}
-
+	
 	/**
 	 * Uses the New Java file template from the code template page to generate a
 	 * compilation unit with the given type content.
@@ -2247,27 +2281,13 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	 * @see #createType(IProgressMonitor)
 	 */		
 	protected void createTypeMembers(IType newType, ImportsManager imports, IProgressMonitor monitor) throws CoreException {
-		// call for compatibility
-		createTypeMembers(newType, imports.fImportsStructure, monitor);
-		
 		// default implementation does nothing
 		// example would be
 		// String mainMathod= "public void foo(Vector vec) {}"
 		// createdType.createMethod(main, null, false, null);
 		// imports.addImport("java.lang.Vector");
 	}
-	
-	/**
-	 * @deprecated Overwrite createTypeMembers(IType, IImportsManager, IProgressMonitor) instead
-	 */		
-	protected void createTypeMembers(IType newType, IImportsStructure imports, IProgressMonitor monitor) throws CoreException {
-		//deprecated
-		if (false) {
-			throw new CoreException(JavaUIStatus.createError(IStatus.ERROR, null));
-		}
-	}
-	
-		
+			
 	/**
 	 * @deprecated Instead of file templates, the new type code template
 	 * specifies the stub for a compilation unit.
@@ -2462,13 +2482,6 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		return keys;
 	}
 
-	/**
-	 * @deprecated Use createInheritedMethods(IType,boolean,boolean,IImportsManager,IProgressMonitor)
-	 */
-	protected IMethod[] createInheritedMethods(IType type, boolean doConstructors, boolean doUnimplementedMethods, IImportsStructure imports, IProgressMonitor monitor) throws CoreException {
-		return createInheritedMethods(type, doConstructors, doUnimplementedMethods, new ImportsManager(imports), monitor);
-	}
-	
 	// ---- creation ----------------
 
 	/**
