@@ -154,6 +154,19 @@
             objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
             adaptable="true"
             id="ifilecontributions"> 
+             <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+            <separator
+                  name="group2">
+            </separator>
+         </menu>
           <action
                label="%convertExtToJava"
                class="org.eclipse.ajdt.internal.ui.refactoring.RenameToJavaAction"
