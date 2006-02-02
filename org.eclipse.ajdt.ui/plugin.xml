@@ -376,9 +376,11 @@
             name="%ajEditor"
             icon="icons/structure/ajcu_obj.gif"
             extensions="aj, java"
+            default="true"
             contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
+            <contentTypeBinding contentTypeId="org.eclipse.ajdt.core.aspectJSource"/> 
       </editor>
 <!-- do we need to duplicate these next 3 editors from JDT??? org.eclipse.jdt.ui.ClassFileEditor -->
 	  <!--editor
