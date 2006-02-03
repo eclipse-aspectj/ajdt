@@ -131,21 +131,21 @@ public class BuildConfigurationUtils {
 
 	private static void printProperties(BufferedWriter bw, String key, List values) throws IOException {
 		if (values.size() > 0) {
-			bw.append(key + " = ");
+			bw.write(key + " = ");
 			boolean first = true;
 			for (Iterator iter = values.iterator(); iter.hasNext();) {
 				String value = (String) iter.next();
 				if (!first) {
 					for (int i = 0; i < key.length(); i++) {
-						bw.append(' ');
+						bw.write(' ');
 					}
-					bw.append("   ");
+					bw.write("   ");
 				}
 				first = false;
-				bw.append(value);
+				bw.write(value);
 				boolean last = !iter.hasNext();
 				if (!last) {
-					bw.append(",\\");
+					bw.write(",\\");
 				}
 				bw.newLine();
 			}			
