@@ -24,8 +24,8 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 public class AJWorkingCopyOwner extends WorkingCopyOwner {
 		
 	public static final WorkingCopyOwner INSTANCE = 
-		AspectJPlugin.usingCUprovider ? DefaultWorkingCopyOwner.PRIMARY :
-				new AJWorkingCopyOwner();
+		AspectJPlugin.usingCUprovider ? (WorkingCopyOwner)DefaultWorkingCopyOwner.PRIMARY :
+				(WorkingCopyOwner)new AJWorkingCopyOwner();
 
 	private AJWorkingCopyOwner() {
 		// singleton - so use a private constructor
