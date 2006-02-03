@@ -10,7 +10,6 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,6 +45,7 @@ import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jdt.ui.IPackagesViewPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jdt.ui.JavaUI;
@@ -65,7 +65,6 @@ import org.eclipse.jface.text.source.IAnnotationAccessExtension;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -492,17 +491,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 		if(isEditingAjFile) {
 			IViewPart view = getEditorSite().getPage().findView( PackageExplorerPart.VIEW_ID);
 			if(view != null) {
-				PackageExplorerPart packageExplorer = (PackageExplorerPart)view;
-				try {
-					Method isLinkingEnabledMethod = PackageExplorerPart.class.getDeclaredMethod("isLinkingEnabled", new Class[]{}); //$NON-NLS-1$
-					isLinkingEnabledMethod.setAccessible(true);
-					boolean linkingEnabled = ((Boolean)isLinkingEnabledMethod.invoke(packageExplorer, new Object[]{})).booleanValue();
-					if(linkingEnabled) {
-						IFileEditorInput fInput = (IFileEditorInput) input;
-						AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
-						packageExplorer.selectReveal(new StructuredSelection(ajc));
-					}					
-				} catch (Exception e) {
+				IPackagesViewPart packageExplorer = (IPackagesViewPart)view;
+				if(packageExplorer.isLinkingEnabled()) {
+					IFileEditorInput fInput = (IFileEditorInput) input;
+					AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
+					packageExplorer.selectAndReveal(ajc);
 				}
 			}
 		}
