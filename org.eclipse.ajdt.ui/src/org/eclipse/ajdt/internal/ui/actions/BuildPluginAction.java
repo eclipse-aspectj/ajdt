@@ -20,10 +20,6 @@ import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,14 +47,6 @@ public class BuildPluginAction extends BaseBuildAction {
 				.getDefaultConfigInfos());
 
 		IProject project = fManifestFile.getProject();
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		if (pbc != null) {
-			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			if (bc != null) {
-				IFile configFile = bc.getFile();
-				generator.setBuildConfig(configFile.getName());
-			}
-		}
 		List inpath = getInpath(project);
 		List aspectpath = getAspectpath(project);
 		generator.setInpath(inpath);
