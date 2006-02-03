@@ -401,7 +401,9 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
 	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
-			boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
+			boolean forceProblemDetection,
+			boolean enableStatementsRecovery,
+			WorkingCopyOwner workingCopyOwner,
 			IProgressMonitor monitor) throws JavaModelException {
 		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
 		if (workingCopyOwner == null) workingCopyOwner = AJWorkingCopyOwner.INSTANCE;
