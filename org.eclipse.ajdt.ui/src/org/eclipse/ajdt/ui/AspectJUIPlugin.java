@@ -164,6 +164,22 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
 
+	private static final String VISUALISER_ID = "org.eclipse.contribution.visualiser";  //$NON-NLS-1$
+
+	private static final String XREF_CORE_ID = "org.eclipse.contribution.xref.core";  //$NON-NLS-1$
+
+	private static final String XREF_UI_ID = "org.eclipse.contribution.xref.ui";  //$NON-NLS-1$
+
+	/**
+	 * Whether to use the Visualiser component
+	 */
+	public static boolean usingVisualiser = true;
+
+	/**
+	 * Whether to use the Cross References component
+	 */
+	public static boolean usingXref = true;
+
 	/**
 	 * General debug trace for the plug-in enabled through the master trace
 	 * switch.
@@ -485,6 +501,16 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 		checkEclipseVersion();
 
+		// 126728: don't try to use the Visualiser / Xref components if the
+		// required plugins are not available
+		if (Platform.getBundle(VISUALISER_ID)==null) {
+			usingVisualiser = false;
+		}
+		if ((Platform.getBundle(XREF_CORE_ID)==null)
+				|| (Platform.getBundle(XREF_UI_ID)==null)) {
+			usingXref = false;
+		}
+
 		AJDTEventTrace.startup();
 		
 		checkAspectJVersion();
@@ -496,6 +522,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
+		
 	}
 	
 	/**

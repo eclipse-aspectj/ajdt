@@ -99,7 +99,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 		setDocumentProvider(AspectJUIPlugin.getDefault().getCompilationUnitDocumentProvider());
 		// Bug 78182
 		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
-		XRefUIUtils.addWorkingCopyManagerForEditor(this, AspectJUIPlugin.getDefault().getWorkingCopyManager());
+		if (AspectJUIPlugin.usingXref) {
+			XRefUIUtils.addWorkingCopyManagerForEditor(this, AspectJUIPlugin.getDefault().getWorkingCopyManager());
+		}
 	}
 	
 	// Existing in this map means the modification has occurred
