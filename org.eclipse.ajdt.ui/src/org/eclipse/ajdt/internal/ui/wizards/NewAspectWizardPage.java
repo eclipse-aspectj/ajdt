@@ -66,7 +66,7 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 
 	
 	public NewAspectWizardPage() {
-		super(ASPECT_TYPE, PAGE_NAME);
+		super(CLASS_TYPE, PAGE_NAME);
 		
 		setTitle(UIMessages.NewAspectCreationWizardPage_title);
 		setDescription(UIMessages.NewAspectCreationWizardPage_description);
