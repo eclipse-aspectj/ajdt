@@ -229,13 +229,16 @@ public class UIBuildListener implements IAJBuildListener {
 							((IAdviceChangedListener) listeners[i]).adviceChanged();
 						}
 
-						// refresh Cross References
+					// refresh Cross References
+					if (AspectJUIPlugin.usingXref) {
 						XReferenceUIPlugin.refresh();
-						
-						// refresh Crosscutting Changes
-						ChangesView.refresh(false);
-						
-						// refresh Visualiser
+					}
+
+					// refresh Crosscutting Changes
+					ChangesView.refresh(false);
+
+					// refresh Visualiser
+					if (AspectJUIPlugin.usingVisualiser) {
 						if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
 							AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
 									.getContentProvider();
@@ -243,7 +246,8 @@ public class UIBuildListener implements IAJBuildListener {
 							VisualiserPlugin.refresh();
 						}
 					}
-				});
+				}
+			});
 		}
 	}
 

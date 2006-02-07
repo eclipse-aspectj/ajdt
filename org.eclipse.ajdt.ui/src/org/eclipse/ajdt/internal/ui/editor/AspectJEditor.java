@@ -102,7 +102,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 		setRulerContextMenuId("#AJCompilationUnitRulerContext"); //$NON-NLS-1$	
 		// Bug 78182
 		aspectJEditorErrorTickUpdater= new AspectJEditorTitleImageUpdater(this);
-		XRefUIUtils.addWorkingCopyManagerForEditor(this, JavaUI.getWorkingCopyManager());
+		if (AspectJUIPlugin.usingXref) {
+			XRefUIUtils.addWorkingCopyManagerForEditor(this, JavaUI.getWorkingCopyManager());
+		}
 	}
 	
 	// Existing in this map means the modification has occurred
@@ -461,7 +463,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			aspectJEditorErrorTickUpdater.dispose();
 			aspectJEditorErrorTickUpdater = null;
 		}
-		XRefUIUtils.removeWorkingCopyManagerForEditor(this);
+		if (AspectJUIPlugin.usingXref) {
+			XRefUIUtils.removeWorkingCopyManagerForEditor(this);
+		}
 		super.dispose();
 	}
 	
