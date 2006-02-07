@@ -418,7 +418,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			aspectJEditorErrorTickUpdater.dispose();
 			aspectJEditorErrorTickUpdater = null;
 		}
-		XRefUIUtils.removeWorkingCopyManagerForEditor(this);
+		if (AspectJUIPlugin.usingXref) {
+			XRefUIUtils.removeWorkingCopyManagerForEditor(this);
+		}
 		super.dispose();
 	}
 	
