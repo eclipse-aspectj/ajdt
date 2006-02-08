@@ -19,6 +19,7 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
+import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -38,12 +39,12 @@ public class BuildPluginAction extends BaseBuildAction {
 	protected void makeScripts(IProgressMonitor monitor)
 			throws InvocationTargetException, CoreException {
 
-		AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
-		AJModelBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator
+		AJBuildScriptGenerator generator = new AJBuildScriptGenerator();
+		AJBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator
 				.getDefaultEmbeddedSource());
-		AJModelBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator
+		AJBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator
 				.getForceUpdateJarFormat());
-		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator
+		AJBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator
 				.getDefaultConfigInfos());
 
 		IProject project = fManifestFile.getProject();
@@ -59,14 +60,10 @@ public class BuildPluginAction extends BaseBuildAction {
 		generator.setDevEntries(url);
 		generator.setPDEState(TargetPlatform.getState());
 		generator.setNextId(TargetPlatform.getPDEState().getNextId());
-		generator.setStateExtraData(TargetPlatform
-				.getBundleClasspaths(TargetPlatform.getPDEState()));
+		generator.setStateExtraData(TargetPlatform.getBundleClasspaths(TargetPlatform.getPDEState()), TargetPlatform.getPatchMap(TargetPlatform.getPDEState()));
 		generator.setBuildingOSGi(true);
-		IPluginModelBase model = PDECore.getDefault().getModelManager()
-				.findModel(project);
-//		generator
-//				.setElements(new String[] { "plugin@" + model.getPluginBase().getId() }); //$NON-NLS-1$
-		generator.setModelId(model.getPluginBase().getId());
+		IPluginModelBase model = PDECore.getDefault().getModelManager().findModel(project);
+		generator.setElements(new String[] { "plugin@" +model.getPluginBase().getId() }); //$NON-NLS-1$
 		generator.generate();
 	}
 

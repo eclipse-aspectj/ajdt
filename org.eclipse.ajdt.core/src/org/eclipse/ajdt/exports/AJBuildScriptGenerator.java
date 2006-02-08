@@ -38,6 +38,12 @@ import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
  * Enables AspectJ plugins to be correctly exported. Changes marked with // AspectJ Change
  */
 public class AJBuildScriptGenerator extends BuildScriptGenerator {
+
+	// AspectJ Change Begin - aspectpath and inpath support
+	protected List aspectpath;
+	protected List inpath;
+	// AspectJ Change end
+	
 	/**
 	 * Indicates whether the assemble script should contain the archive
 	 * generation statement.
@@ -114,11 +120,14 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 * @throws CoreException
 	 */
 	protected void generateModels(List models) throws CoreException {
-		ModelBuildScriptGenerator generator = null;
+		AJModelBuildScriptGenerator generator = null;
 		try {
 			for (Iterator iterator = models.iterator(); iterator.hasNext();) {
-//				 AspectJ Change
+				// AspectJ Change begin
 				generator = new AJModelBuildScriptGenerator();
+				generator.setAspectpath(aspectpath);
+				generator.setInpath(inpath);
+				// AspectJ Change end
 				generator.setReportResolutionErrors(reportResolutionErrors);
 				generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
 				//Filtering is not required here, since we are only generating the
@@ -370,4 +379,13 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	public void includePlatformIndependent(boolean b) {
 		includePlatformIndependent = b;
 	}
+	
+	// AspectJ Change Begin - aspectpath and inpath support
+	public void setAspectpath(List aspectpath) {
+		this.aspectpath = aspectpath;
+	}
+	public void setInpath(List inpath) {
+		this.inpath = inpath;
+	}
+	// AspectJ Change End
 }
