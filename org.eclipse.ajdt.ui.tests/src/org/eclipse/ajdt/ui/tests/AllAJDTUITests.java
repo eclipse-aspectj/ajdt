@@ -44,6 +44,7 @@ import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
+import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencePageTest;
@@ -122,6 +123,7 @@ public class AllAJDTUITests {
 		// launching tests
 		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
 		suite.addTest(new TestSuite(LTWUtilsTest.class));
+		suite.addTest(new TestSuite(LTWUtilsTest2.class));
 		
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));

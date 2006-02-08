@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.aspectj.asm.AsmManager;
+import org.aspectj.asm.HierarchyWalker;
+import org.aspectj.asm.IHierarchy;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationshipMap;
 import org.aspectj.asm.internal.Relationship;
@@ -78,7 +81,9 @@ import org.eclipse.osgi.util.NLS;
  */
 public class AJProjectModel {
 
-	private static final int MODEL_VERSION = 103;
+	// Note: when this number is changed the file 'Spacewar Example.ajmap' in the spacewar
+	// project under workspace will need to be regenerated for the tests to pass.
+	private static final int MODEL_VERSION = 104;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
@@ -110,7 +115,7 @@ public class AJProjectModel {
 	// only for information/diagnosis purposes
 	private int relsCount;
 	
-	// map of ICompilationUnits to List of AspectElements
+	// map of ICompilationUnits to Set of AspectElements
 	private Map aspectsInJavaFiles = new HashMap();
 	
 	public AJProjectModel(IProject project) {
@@ -280,6 +285,11 @@ public class AJProjectModel {
 	public List getExtraChildren(IJavaElement je) {
 		return (List) extraChildren.get(je);
 	}
+	
+	public Set getAspectsForJavaFile(ICompilationUnit javaFile) {
+		Set aspects = (Set) aspectsInJavaFiles.get(javaFile);
+		return aspects != null ? aspects : Collections.EMPTY_SET;
+	}
 
 	public void createProjectMap() {
 		AJLog.logStart(TimerLogEvent.CREATE_MODEL);
@@ -410,16 +420,17 @@ public class AJProjectModel {
 			return;
 		}
 
-		ICompilationUnit unit = AJCompilationUnitManager.INSTANCE
+		ICompilationUnit u = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit(file);
-		if (unit == null) {
+		if (u == null) {
 			if (file.getName().endsWith(".java")) { //$NON-NLS-1$
 				// JavaCore can only cope with .java files. The
 				// AJCompilationUnitManager
 				// should have given us the unit for .aj files
-				unit = JavaCore.createCompilationUnitFrom(file);
+				u = JavaCore.createCompilationUnitFrom(file);
 			}
 		}
+		final ICompilationUnit unit = u;
 		if (unit == null) {
 			// no point continuing if we still don't have a compilation unit
 			return;
@@ -437,6 +448,45 @@ public class AJProjectModel {
 		}
 
 		Set keys = annotationsMap.keySet();
+		// Check for aspects in .java files with no relationships
+		if(keys.size() == 0 && !(unit instanceof AJCompilationUnit)) { 
+			IHierarchy hierarchy = AsmManager.getDefault().getHierarchy();
+			IProgramElement pe = hierarchy.findElementForSourceFile(path.replace('\\', '/'));
+			pe.walk(new HierarchyWalker() {
+				protected void preProcess(IProgramElement node) {
+					if(node.getKind() == IProgramElement.Kind.ASPECT) {
+						IProgramElement aspectPE = node;
+						String aspectName = aspectPE.getName();
+						Set l;
+						if(aspectsInJavaFiles.get(unit) instanceof Set) {
+							l = (Set)aspectsInJavaFiles.get(unit);
+						} else {
+							l = new HashSet();
+							aspectsInJavaFiles.put(unit, l);
+						}
+						AspectElement aspectEl = null;
+						for (Iterator iter = l.iterator(); iter.hasNext();) {
+							AspectElement element = (AspectElement) iter.next();
+							if(element.getElementName().equals(aspectName)) {
+								aspectEl = element;
+							}								
+						}
+						if(aspectEl == null) {
+							AspectElementInfo info = new AspectElementInfo();
+							info.setAJKind(IProgramElement.Kind.ASPECT);
+							info.setSourceRangeStart(aspectPE.getSourceLocation().getOffset());
+							info.setAJAccessibility(aspectPE.getAccessibility());
+							aspectEl = new MockAspectElement((JavaElement)unit, aspectName, info);						
+							l.add(aspectEl);
+							try {
+								((CompilationUnitElementInfo)((CompilationUnit)unit).getElementInfo()).addChild(aspectEl);
+							} catch (JavaModelException e) {
+							}
+						}
+					}
+				}
+			});
+		}
 		for (Iterator it = keys.iterator(); it.hasNext();) {
 			Object key = it.next();
 			List annotations = (List) annotationsMap.get(key);
@@ -480,11 +530,11 @@ public class AJProjectModel {
 						// It's an aspect in a .java file so we mock up the required JavaElements
 						IProgramElement aspectPE = getAspect(node);
 						String aspectName = aspectPE.getName();
-						List l;
-						if(aspectsInJavaFiles.get(unit) instanceof List) {
-							l = (List)aspectsInJavaFiles.get(unit);
+						Set l;
+						if(aspectsInJavaFiles.get(unit) instanceof Set) {
+							l = (Set)aspectsInJavaFiles.get(unit);
 						} else {
-							l = new ArrayList();
+							l = new HashSet();
 							aspectsInJavaFiles.put(unit, l);
 						}
 						AspectElement aspectEl = null;
@@ -739,6 +789,7 @@ public class AJProjectModel {
 				saveJavaElements(oos);
 				saveRelationships(oos);
 				saveExtraChildren(oos);
+				saveAspects(oos);
 				oos.flush();
 				fos.flush();
 				oos.close();
@@ -750,6 +801,8 @@ public class AJProjectModel {
 	
 		}
 	
+
+
 		public boolean loadModel(IPath path) {
 			if (path == null) {
 				path = getDefaultFile();
@@ -766,6 +819,11 @@ public class AJProjectModel {
 					loadJavaElements(ois);
 					loadRelationships(ois);
 					loadExtraChildren(ois);
+					loadAspects(ois);
+				} else if (version == 103) {
+					loadJavaElements(ois);
+					loadRelationships(ois);
+					loadExtraChildren(ois);					
 				}
 				ois.close();
 				fis.close();
@@ -819,7 +877,7 @@ public class AJProjectModel {
 				oos.writeObject(linkName);
 				Integer lineNum = (Integer) lineNumbers.get(element);
 				oos.writeInt(lineNum.intValue());
-			}
+			}			
 		}
 	
 		void loadJavaElements(ObjectInputStream ois) throws IOException,
@@ -972,6 +1030,44 @@ public class AJProjectModel {
 				extraChildren.put(parent, children);
 			}
 		}
+		
+		/**
+		 * Save aspects in .java files
+		 * @param oos
+		 * @throws IOException
+		 */
+		void saveAspects(ObjectOutputStream oos) throws IOException {
+			int numAspects = 0;
+			for (Iterator iter = aspectsInJavaFiles.values().iterator(); iter.hasNext();) {
+				Set aspects = (Set) iter.next();
+				numAspects += aspects.size();
+			}
+			oos.writeInt(numAspects);
+			for (Iterator iter = aspectsInJavaFiles.values().iterator(); iter
+					.hasNext();) {
+				Set aspects = (Set) iter.next();
+				for (Iterator iterator = aspects.iterator(); iterator.hasNext();) {
+					IJavaElement aspect = (IJavaElement) iterator.next();
+					oos.writeObject(aspect.getHandleIdentifier());					
+				}
+			}
+		}
+		
+		void loadAspects(ObjectInputStream ois) throws IOException,
+				ClassNotFoundException {
+			int numAspects = ois.readInt();
+			for (int i = 0; i < numAspects; i++) {
+				String aspectHandle = (String)ois.readObject();
+				IJavaElement aspect = AspectJCore.create(aspectHandle);
+				ICompilationUnit file = ((AspectElement)aspect).getCompilationUnit();
+				Set aspectsForFile = (Set) aspectsInJavaFiles.get(file);
+				if(aspectsForFile == null) {
+					aspectsForFile = new HashSet();
+					aspectsInJavaFiles.put(file, aspectsForFile);
+				}
+				aspectsForFile.add(aspect);
+			}
+		}
+				
 	}
-
 }
