@@ -62,11 +62,8 @@
 	<anchor id="t_usingant" />
 	
 	<topic label="Working with build configurations" href="doc/tasks/buildconfigs.htm">
-		<topic label="Creating a new build configuration" href="doc/tasks/newbuildconfig.htm"></topic>
-		<topic label="Editing a build configuration" href="doc/tasks/editbuildconfig.htm"></topic>
-		<topic label="Switching build configurations" href="doc/tasks/switchbuildconfig.htm"></topic>
-		<topic label="Using build configurations with Ant" href="doc/tasks/buildconfigsandant.htm"></topic>
-		<topic label=".lst file support" href="doc/tasks/lstfiles.htm"></topic>		
+		<topic label="Saving a build configuration" href="doc/tasks/savebuildconfig.htm"></topic>
+		<topic label="Applying a saved build configuration" href="doc/tasks/applybuildconfig.htm"></topic>
 	</topic>
 	<anchor id="t_workingwithbuildconfigs" />
 
