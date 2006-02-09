@@ -14,19 +14,14 @@ package org.eclipse.ajdt.internal.ui;
 
 import java.util.Hashtable;
 
-import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorRegistry;
-import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.internal.WorkbenchPlugin;
-import org.eclipse.ui.internal.registry.EditorRegistry;
-import org.eclipse.ui.internal.registry.FileEditorMapping;
 
 
 /**
@@ -94,36 +89,6 @@ public class AJDTConfigSettings {
 		return UIMessages.ajEditor.equals(desc.getLabel());
 	}
 	
-	/*
-	 * IMPORTANT NOTE: This method contains a HACK.  In two cases, an interface
-	 * is cast to the underlying type to enable a call to be made, since to public 
-	 * API exists that accepts the interface.  In the one case (cast to do the 
-	 * save), the code is copied from org.eclipse.internal.ui.dialogs.FileEditorsPreferencePage.performOk()
-	 * where the same hack is done for the same reason.
-	 */
-	/**  
-	 * Set the workbench file associations preference to make the AspectJ editor 
-	 * the default for .java files
-	 */
-	static public void setDefaultEditorForJavaFiles(boolean aspectJ) {
-		
-		EditorRegistry editorRegistry = (EditorRegistry)WorkbenchPlugin.getDefault().getEditorRegistry(); // HACK: cast to allow save to be called
-		IFileEditorMapping[] array = WorkbenchPlugin.getDefault().getEditorRegistry().getFileEditorMappings();
-		editorRegistry.setFileEditorMappings((FileEditorMapping[])array); // HACK: cast to allow set to be called
-		String defaultEditor = editorRegistry.getDefaultEditor("*.java").getId(); //$NON-NLS-1$
-		if(aspectJ) {
-			if(!(defaultEditor.equals(AspectJEditor.ASPECTJ_EDITOR_ID))) {
-				editorRegistry.setDefaultEditor("*.java", AspectJEditor.ASPECTJ_EDITOR_ID); //$NON-NLS-1$
-				editorRegistry.saveAssociations();
-			}
-		} else {
-			if(!(defaultEditor.equals(JavaUI.ID_CU_EDITOR))) {
-				editorRegistry.setDefaultEditor("*.java", JavaUI.ID_CU_EDITOR); //$NON-NLS-1$
-				editorRegistry.saveAssociations();
-			}
-		}	
-	}
-
 	/**
 	 * Query whether the workbench file associations preference has been
 	 * set to associate the AspectJ editor with .java files
