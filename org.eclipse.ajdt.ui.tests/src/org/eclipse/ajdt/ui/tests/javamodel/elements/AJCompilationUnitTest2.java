@@ -26,9 +26,6 @@ import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 
-/**
- * 
- */
 public class AJCompilationUnitTest2 extends UITestCase {
 
 	// bug 74426
@@ -38,10 +35,13 @@ public class AJCompilationUnitTest2 extends UITestCase {
 
 		IFile file1 = (IFile) project
 				.findMember("src/introduction/CloneablePoint.aj"); //$NON-NLS-1$
-		assertNotNull("Couldn't find CloneablePoint.aj in project", file1); //$NON-NLS-1$
+		assertNotNull(file1);
+		assertTrue("Couldn't find CloneablePoint.aj in project", file1.exists()); //$NON-NLS-1$
 		IFile file2 = (IFile) project
 				.findMember("src/introduction/ComparablePoint.aj"); //$NON-NLS-1$
-		assertNotNull("Couldn't find ComparablePoint.aj in project", file1); //$NON-NLS-1$
+		assertNotNull(file2);
+		assertTrue("Couldn't find ComparablePoint.aj in project", file2.exists()); //$NON-NLS-1$
+		
 
 		final ICompilationUnit unit1 = AJCompilationUnitManager.INSTANCE
 				.getAJCompilationUnit(file1);
