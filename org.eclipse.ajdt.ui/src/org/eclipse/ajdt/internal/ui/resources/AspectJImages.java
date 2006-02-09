@@ -227,6 +227,8 @@ public class AspectJImages extends AbstractIconRegistry {
 	// Luzius - added build configuration icons
 	public static final AJDTIcon BC_TICK = new AJDTIcon(
 				"icons/buildconfig/tick.gif"); //$NON-NLS-1$
+	public static final AJDTIcon BC_FILE = new AJDTIcon(
+				"icons/buildconfig/buildconfig_file.gif"); //$NON-NLS-1$
 	public static final AJDTIcon BC_SELECTED_FILE = new AJDTIcon(
 				"icons/buildconfig/selected_buildconfig_file.gif"); //$NON-NLS-1$
 	public static final AJDTIcon BC_HALF_FILLED_PACKAGE = new AJDTIcon(

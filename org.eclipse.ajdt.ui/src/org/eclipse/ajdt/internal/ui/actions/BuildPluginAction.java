@@ -19,11 +19,8 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
+import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
 import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,23 +39,15 @@ public class BuildPluginAction extends BaseBuildAction {
 	protected void makeScripts(IProgressMonitor monitor)
 			throws InvocationTargetException, CoreException {
 
-		AJModelBuildScriptGenerator generator = new AJModelBuildScriptGenerator();
-		AJModelBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator
+		AJBuildScriptGenerator generator = new AJBuildScriptGenerator();
+		AJBuildScriptGenerator.setEmbeddedSource(AbstractScriptGenerator
 				.getDefaultEmbeddedSource());
-		AJModelBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator
+		AJBuildScriptGenerator.setForceUpdateJar(AbstractScriptGenerator
 				.getForceUpdateJarFormat());
-		AJModelBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator
+		AJBuildScriptGenerator.setConfigInfo(AbstractScriptGenerator
 				.getDefaultConfigInfos());
 
 		IProject project = fManifestFile.getProject();
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-		if (pbc != null) {
-			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			if (bc != null) {
-				IFile configFile = bc.getFile();
-				generator.setBuildConfig(configFile.getName());
-			}
-		}
 		List inpath = getInpath(project);
 		List aspectpath = getAspectpath(project);
 		generator.setInpath(inpath);
@@ -71,15 +60,10 @@ public class BuildPluginAction extends BaseBuildAction {
 		generator.setDevEntries(url);
 		generator.setPDEState(TargetPlatform.getState());
 		generator.setNextId(TargetPlatform.getPDEState().getNextId());
-		generator.setStateExtraData(TargetPlatform
-				.getBundleClasspaths(TargetPlatform.getPDEState()));
-		generator.setBuildingOSGi(PDECore.getDefault().getModelManager()
-				.isOSGiRuntime());
-		IPluginModelBase model = PDECore.getDefault().getModelManager()
-				.findModel(project);
-//		generator
-//				.setElements(new String[] { "plugin@" + model.getPluginBase().getId() }); //$NON-NLS-1$
-		generator.setModelId(model.getPluginBase().getId());
+		generator.setStateExtraData(TargetPlatform.getBundleClasspaths(TargetPlatform.getPDEState()), TargetPlatform.getPatchMap(TargetPlatform.getPDEState()));
+		generator.setBuildingOSGi(true);
+		IPluginModelBase model = PDECore.getDefault().getModelManager().findModel(project);
+		generator.setElements(new String[] { "plugin@" +model.getPluginBase().getId() }); //$NON-NLS-1$
 		generator.generate();
 	}
 

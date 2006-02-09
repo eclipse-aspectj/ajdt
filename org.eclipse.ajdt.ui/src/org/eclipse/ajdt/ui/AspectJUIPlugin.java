@@ -22,9 +22,9 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
-import org.eclipse.ajdt.internal.javamodel.FileFilter;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
 import org.eclipse.ajdt.internal.ui.EventTraceLogger;
 import org.eclipse.ajdt.internal.ui.actions.UICoreOperations;
@@ -35,7 +35,6 @@ import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
-import org.eclipse.ajdt.internal.ui.editor.AJCompilationUnitDocumentProvider;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
@@ -56,15 +55,17 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
+import org.eclipse.jdt.core.ElementChangedEvent;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IElementChangedListener;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaElementDelta;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.OpenableElementInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider;
-import org.eclipse.jdt.internal.ui.javaeditor.WorkingCopyManager;
-import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -259,10 +260,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
-
-	private ICompilationUnitDocumentProvider fCompilationUnitDocumentProvider;
-
-	private IWorkingCopyManager fWorkingCopyManager;
 
 	// custom attributes AJDT markers can have
 	public static final String SOURCE_LOCATION_ATTRIBUTE = "sourceLocationOfAdvice"; //$NON-NLS-1$
@@ -459,13 +456,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// notified if resources are added/deleted or their content changed.
 
 		// listener for aspectj model
-		AspectJPlugin.getWorkspace().addResourceChangeListener(
-				new ResourceChangeListener(),
-				IResourceChangeEvent.PRE_CLOSE
-						| IResourceChangeEvent.PRE_DELETE
-						| IResourceChangeEvent.POST_CHANGE
-						| IResourceChangeEvent.PRE_BUILD);
-
+		if (!AspectJPlugin.usingCUprovider) {
+			AspectJPlugin.getWorkspace().addResourceChangeListener(
+					new ResourceChangeListener(),
+					IResourceChangeEvent.PRE_CLOSE
+							| IResourceChangeEvent.PRE_DELETE
+							| IResourceChangeEvent.POST_CHANGE
+							| IResourceChangeEvent.PRE_BUILD);
+		}
+		
 		// the following came from the 2.x constructor - needs to be put here
 		// because plugin is initialized when start(BundleContext) is called.
 		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
@@ -515,14 +514,30 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		
 		checkAspectJVersion();
 
-		// check on startup for .aj resource filter
-		FileFilter.checkIfFileFilterEnabledAndAsk();
-
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
 		
+//		JavaCore.addElementChangedListener(new IElementChangedListener(){
+//
+//			public void elementChanged(ElementChangedEvent event) {
+//				IJavaElementDelta delta= event.getDelta();
+//				IJavaElement elem= delta.getElement();
+//				if(delta.getKind() == IJavaElementDelta.CHANGED) {
+//					if(elem instanceof AJCompilationUnit) {
+//						OpenableElementInfo info;
+//						try {
+//							info = (OpenableElementInfo) ((JavaElement) elem
+//									.getParent()).getElementInfo();
+//							info.removeChild(elem); // Remove identical CompilationUnit if it exists
+//							info.addChild(elem);
+//						} catch (JavaModelException e) {
+//						}
+//					}
+//				}
+//				
+//			}});
 	}
 	
 	/**
@@ -795,19 +810,19 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		}
 	}
 
-	public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
-		if (fCompilationUnitDocumentProvider == null)
-			fCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
-		return fCompilationUnitDocumentProvider;
-	}
-
-
-	public synchronized IWorkingCopyManager getWorkingCopyManager() {
-		if (fWorkingCopyManager == null) {
-			ICompilationUnitDocumentProvider provider= getCompilationUnitDocumentProvider();
-			fWorkingCopyManager= new WorkingCopyManager(provider);
-		}
-		return fWorkingCopyManager;
-	}
+//	public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
+//		if (fCompilationUnitDocumentProvider == null)
+//			fCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
+//		return fCompilationUnitDocumentProvider;
+//	}
+//
+//
+//	public synchronized IWorkingCopyManager getWorkingCopyManager() {
+//		if (fWorkingCopyManager == null) {
+//			ICompilationUnitDocumentProvider provider= getCompilationUnitDocumentProvider();
+//			fWorkingCopyManager= new WorkingCopyManager(provider);
+//		}
+//		return fWorkingCopyManager;
+//	}
 
 }

@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui.tests.editor.contentassist;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.ui.tests.AllUITests;
@@ -49,7 +48,6 @@ public class ContentAssistTest extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();
-		AJDTConfigSettings.setDefaultEditorForJavaFiles(true);
 		fProject = createPredefinedProject("CodeCompletionTestArea"); //$NON-NLS-1$
 	}
 	
@@ -105,7 +103,7 @@ public class ContentAssistTest extends UITestCase {
 	}
 	
 	private ICompletionProposal[] getCompletionProposals(IFile file, String marker) throws JavaModelException{
-		AspectJEditor editor = (AspectJEditor)openFileInDefaultEditor(file, false);
+		AspectJEditor editor = (AspectJEditor)openFileInAspectJEditor(file, false);
 		AJCompletionProcessor proc = new AJCompletionProcessor(editor, getContentAssistant(editor), IDocument.DEFAULT_CONTENT_TYPE);
 		AJCompilationUnit unit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		String content;

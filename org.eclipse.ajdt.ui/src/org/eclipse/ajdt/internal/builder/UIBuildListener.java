@@ -57,28 +57,25 @@ import org.eclipse.osgi.util.NLS;
 public class UIBuildListener implements IAJBuildListener {
 
 	/**
-	 * Map of projects with the IClasspathEntry corresponding to their outjar
+	 * Map of projects with the IClasspathEntry corresponding
+	 * to their outjar
 	 */
 	private HashMap outjars = null;
 
 	private ListenerList fListeners;
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void preAJBuild(int kind, IProject project,
-			IProject[] requiredProjects) {
-		ProjectProperties props = AspectJUIPlugin.getDefault()
-				.getAjdtProjectProperties();
-		// ensureBuildConfigFileIsValid(props, project);
-
+	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
+		ProjectProperties props = AspectJUIPlugin.getDefault().getAjdtProjectProperties();
+		//ensureBuildConfigFileIsValid(props, project);
+		
 		// checking to see if the current project has been marked as needing
 		// a required project to be rebuilt.
 		boolean haveClearedMarkers = false;
 		for (int i = 0; i < requiredProjects.length; i++) {
-			String referencedMessage = NLS.bind(UIMessages.buildPrereqsMessage,
+			String referencedMessage = NLS.bind(UIMessages.buildPrereqsMessage, 
 					requiredProjects[i].getName());
 
 			if (projectAlreadyMarked(project, referencedMessage)) {
@@ -101,11 +98,12 @@ public class UIBuildListener implements IAJBuildListener {
 			}
 		}
 
+		
 		BuildManager buildManager = Ajde.getDefault().getBuildManager();
 		if (!AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getBuildAsm()) {
 			AJLog.log("build: No structure model to be built for project: " //$NON-NLS-1$
-					+ project.getName());
+							+ project.getName());
 			buildManager.setBuildModelMode(false);
 		} else {
 			buildManager.setBuildModelMode(true);
@@ -121,9 +119,8 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private boolean projectAlreadyMarked(IProject project, String errorMessage) {
 		try {
-			IMarker[] problemMarkers = project.findMarkers(
-					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
-					IResource.DEPTH_INFINITE);
+			IMarker[] problemMarkers = project.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+					false, IResource.DEPTH_INFINITE);
 			if (problemMarkers.length > 0) {
 				for (int j = 0; j < problemMarkers.length; j++) {
 					IMarker marker = problemMarkers[j];
@@ -139,47 +136,40 @@ public class UIBuildListener implements IAJBuildListener {
 			}
 		} catch (CoreException e) {
 			AJLog.log("build: Problem occured finding the markers for project " //$NON-NLS-1$
-					+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
 		}
 		return false;
 	}
-
+	
 	private void markProject(IProject project, String errorMessage) {
 		try {
-			IMarker errorMarker = project
-					.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
-			AJLog
-					.log("build: Problem occured creating the error marker for project " //$NON-NLS-1$
+			AJLog.log("build: Problem occured creating the error marker for project " //$NON-NLS-1$
 							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
 		}
 	}
 
-	private void ensureBuildConfigFileIsValid(ProjectProperties props,
-			IProject project) {
-		if (!props.isProjectSourceFileListKnown(project)) {
-			// optimization: only determine the list of source files and write
-			// the .lst file
+	private void ensureBuildConfigFileIsValid(ProjectProperties props, IProject project) {
+//		if (!props.isProjectSourceFileListKnown(project)) {
+			// optimization: only determine the list of source files and write the .lst file
 			// if the list has changed
 			List projectFiles = props.getProjectSourceFiles(project,
 					CoreUtils.ASPECTJ_SOURCE_FILTER);
 			writeBuildConfigFile(projectFiles, project);
-			// Mark the list as known so we don't have to rewrite the lst file
-			// for every build.
-			// We then need to set this to false anytime the build config does
-			// change.
-			props.setProjectSourceFileListKnown(project, true);
-		}
+			// Mark the list as known so we don't have to rewrite the lst file for every build.
+			// We then need to set this to false anytime the build config does change.
+//			props.setProjectSourceFileListKnown(project,true);
+//		}
 	}
-
+	
 	/**
 	 * Create a full build configuration file for this project
 	 */
 	private void writeBuildConfigFile(List projectFiles, IProject project) {
-		String configurationFilename = AspectJPlugin
-				.getBuildConfigurationFile(project);
+		String configurationFilename = AspectJPlugin.getBuildConfigurationFile(project);
 		try {
 			FileWriter fw = new FileWriter(configurationFilename);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -198,18 +188,15 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(IProject project, boolean buildCancelled,
-			boolean noSourceChanges) {
+	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);
 			return;
 		}
-
+		
 		// The message to feature in the problems view of depending projects
 		String buildPrereqsMessage = NLS.bind(UIMessages.buildPrereqsMessage,
 				project.getName());
@@ -228,19 +215,19 @@ public class UIBuildListener implements IAJBuildListener {
 		checkOutJarEntry(project);
 
 		MarkerUpdating.addNewMarkers(project);
-
+		
 		if (AspectJUIPlugin.getDefault().getDisplay().isDisposed()) {
-			AJLog
-					.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
+			AJLog.log("Not updating vis, xref, or changes views as display is disposed!"); //$NON-NLS-1$
 		} else {
-			AspectJUIPlugin.getDefault().getDisplay().syncExec(new Runnable() {
-				public void run() {
-					// TODO: can we determine whether there were
-					// actually changes to the set of advised elements?
-					Object[] listeners = fListeners.getListeners();
-					for (int i = 0; i < listeners.length; i++) {
-						((IAdviceChangedListener) listeners[i]).adviceChanged();
-					}
+			AspectJUIPlugin.getDefault().getDisplay().syncExec(
+				new Runnable() {
+					public void run() {
+						// TODO: can we determine whether there were
+						// actually changes to the set of advised elements?
+						Object[] listeners= fListeners.getListeners();
+						for (int i= 0; i < listeners.length; i++) {
+							((IAdviceChangedListener) listeners[i]).adviceChanged();
+						}
 
 					// refresh Cross References
 					if (AspectJUIPlugin.usingXref) {
@@ -266,7 +253,7 @@ public class UIBuildListener implements IAJBuildListener {
 
 	public void addAdviceListener(IAdviceChangedListener adviceListener) {
 		if (fListeners == null) {
-			fListeners = new ListenerList();
+			fListeners= new ListenerList();
 		}
 		fListeners.add(adviceListener);
 	}
@@ -303,8 +290,8 @@ public class UIBuildListener implements IAJBuildListener {
 			for (int i = 0; i < referencingProjects.length; i++) {
 				IProject referencingProject = referencingProjects[i];
 				IMarker[] problemMarkers = referencingProject.findMarkers(
-						IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
-						IResource.DEPTH_INFINITE);
+						IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+						false, IResource.DEPTH_INFINITE);
 				if (problemMarkers.length > 0) {
 					for (int j = 0; j < problemMarkers.length; j++) {
 						IMarker marker = problemMarkers[j];
@@ -321,8 +308,7 @@ public class UIBuildListener implements IAJBuildListener {
 				}
 			}
 		} catch (CoreException e) {
-			AJLog
-					.log("build: Problem occured either finding the markers for project " //$NON-NLS-1$
+			AJLog.log("build: Problem occured either finding the markers for project " //$NON-NLS-1$
 							+ project.getName()
 							+ ", or deleting the error marker: " //$NON-NLS-1$
 							+ e.getStackTrace());
@@ -334,35 +320,32 @@ public class UIBuildListener implements IAJBuildListener {
 	 * depending projects to include this outjar (unless the classpath already
 	 * contains it). If the project hasn't specified an outjar then check
 	 * whether it did last time it was built. In this case, remove the oujar
-	 * from the classpath of depending projects.
+	 * from the classpath of depending projects. 
 	 */
 	private void checkOutJarEntry(IProject project) {
-		String outJar = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-				.getOutJar();
-		if (outJar != null && !(outJar.equals(""))) { //$NON-NLS-1$
+		String outJar = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getOutJar();
+		if (outJar != null && !(outJar.equals(""))) {  //$NON-NLS-1$
 			if (outjars == null) {
 				outjars = new HashMap();
 			}
 			IPath newPath = getRelativePath(project, outJar);
 			IClasspathEntry newEntry = JavaCore.newLibraryEntry(newPath
 					.makeAbsolute(), null, null);
-			if (outjars.containsKey(project)) {
+			if (outjars.containsKey(project))  {
 				if (!(outjars.get(project).equals(newEntry))) {
-					IClasspathEntry oldEntry = (IClasspathEntry) outjars
-							.get(project);
+					IClasspathEntry oldEntry = (IClasspathEntry)outjars.get(project);
 					outjars.remove(project);
-					removeOutjarFromDependingProjects(project, oldEntry);
-					outjars.put(project, newEntry);
-					updateDependingProjectsWithJar(project, newEntry);
-				}
+					removeOutjarFromDependingProjects(project,oldEntry);
+					outjars.put(project,newEntry);
+					updateDependingProjectsWithJar(project,newEntry);
+				}				
 			} else {
-				outjars.put(project, newEntry);
-				updateDependingProjectsWithJar(project, newEntry);
+				outjars.put(project,newEntry);
+				updateDependingProjectsWithJar(project,newEntry);					
 			}
 		} else {
 			if (outjars != null && outjars.containsKey(project)) {
-				IClasspathEntry oldEntry = (IClasspathEntry) outjars
-						.get(project);
+				IClasspathEntry oldEntry = (IClasspathEntry)outjars.get(project);
 				outjars.remove(project);
 				if (outjars.size() == 0) {
 					outjars = null;
@@ -384,7 +367,7 @@ public class UIBuildListener implements IAJBuildListener {
 				IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
 				List newEntries = new ArrayList();
 				for (int j = 0; j < cpEntry.length; j++) {
-					if (!cpEntry[j].equals(unwantedEntry)) {
+					if(!cpEntry[j].equals(unwantedEntry)) {
 						newEntries.add(cpEntry[j]);
 					}
 				}
@@ -396,10 +379,9 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 	}
 
-	private void updateDependingProjectsWithJar(IProject project,
-			IClasspathEntry newEntry) {
+	private void updateDependingProjectsWithJar(IProject project, IClasspathEntry newEntry) {
 		IProject[] dependingProjects = getDependingProjects(project);
-
+		
 		goThroughProjects: for (int i = 0; i < dependingProjects.length; i++) {
 			IJavaProject javaProject = JavaCore.create(dependingProjects[i]);
 			if (javaProject == null)
@@ -408,13 +390,13 @@ public class UIBuildListener implements IAJBuildListener {
 				IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
 				List newEntries = new ArrayList();
 				for (int j = 0; j < cpEntry.length; j++) {
-					if (cpEntry[j].equals(newEntry)) {
+					if(cpEntry[j].equals(newEntry)) {
 						continue goThroughProjects;
 					} else {
 						newEntries.add(cpEntry[j]);
 					}
 				}
-				newEntries.add(newEntry);
+			    newEntries.add(newEntry);
 				IClasspathEntry[] newCP = (IClasspathEntry[]) newEntries
 						.toArray(new IClasspathEntry[newEntries.size()]);
 				javaProject.setRawClasspath(newCP, new NullProgressMonitor());

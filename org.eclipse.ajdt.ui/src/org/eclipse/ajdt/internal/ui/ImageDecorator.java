@@ -21,8 +21,13 @@ import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -92,20 +97,37 @@ public class ImageDecorator implements ILabelDecorator {
 	public Image decorateImage(Image image, Object element)  {
 		if (preventRecursion)
 			return null;
-		
+
+		Image img = null;
 		if (element instanceof ICompilationUnit){
 			ICompilationUnit comp = (ICompilationUnit)element;
+			IFile file = null;
 			try {
-				element = comp.getCorrespondingResource();
+				file = (IFile) comp.getCorrespondingResource();
 			} catch (JavaModelException e) {
-				element = null;
 			}
-		}
-		
-		Image img = null;
-		//hook for AspectJElements (unrelated to buidconfigurator)
-		//-> TODO: refactor
-		if (element instanceof AJCodeElement) {
+			if(file != null) {
+				if(comp instanceof AJCompilationUnit) {
+					IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
+					
+					if (pbc == null)
+						return null;
+					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+					if ((bc==null) || bc.isIncluded(file)){
+						Rectangle rect = image.getBounds();
+						img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+					} else {
+						Rectangle rect = image.getBounds();
+						img = getImageLabel(getJavaImageDescriptor(AspectJImages.EXCLUDED_ASPECTJ_FILE.getImageDescriptor(), rect, 0));
+					}
+				}
+			}
+		} else if (element instanceof IFile) { 
+			IFile file= (IFile) element;
+			if (file.getFileExtension().equals(BuildConfiguration.EXTENSION)) {
+				img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
+			}
+		} else if (element instanceof AJCodeElement) {
 			img = getImageLabel(AspectJImages.AJ_CODE.getImageDescriptor());
 		} else if (element instanceof IAspectJElement) {
 			try {

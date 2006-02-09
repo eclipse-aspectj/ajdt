@@ -101,9 +101,9 @@ public class BreakpointLocationVerifierJob extends Job {
 	}
 	
 	public IStatus run(IProgressMonitor monitor) {
-		ICompilationUnit cu = (ICompilationUnit)JavaCore.create(fResource);
+		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)fResource);
 		if(cu == null) {
-			cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)fResource);
+			cu = (ICompilationUnit)JavaCore.create(fResource);
 		}
 		try {
 			IJavaElement element = cu.getElementAt(fOffset);

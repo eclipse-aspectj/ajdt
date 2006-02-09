@@ -20,11 +20,6 @@ import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.ui.tests.ajde.ClasspathOrderTest;
 import org.eclipse.ajdt.ui.tests.ajde.ProjectPropertiesTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.BuildConfigurationTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.BuildConfiguratorTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest;
-import org.eclipse.ajdt.ui.tests.buildconfig.ProjectBuildConfigurationTest2;
-import org.eclipse.ajdt.ui.tests.buildconfig.UtilTests;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
@@ -47,6 +42,8 @@ import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
+import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
+import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
@@ -55,7 +52,6 @@ import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
-import org.eclipse.ajdt.ui.tests.wizards.BuildConfigurationFileWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
 import org.eclipse.ajdt.ui.tests.xref.XReferenceViewContentsTest;
@@ -86,12 +82,9 @@ public class AllUITests {
 		// test the predefined project tool
 		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
 		
-		// buildconfigurator tests
-		suite.addTest(new TestSuite(UtilTests.class));
-		suite.addTest(new TestSuite(ProjectBuildConfigurationTest.class));
-		suite.addTest(new TestSuite(ProjectBuildConfigurationTest2.class));
+		// build configuration tests
 		suite.addTest(new TestSuite(BuildConfigurationTest.class));
-		suite.addTest(new TestSuite(BuildConfiguratorTest.class));
+		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
 		
 		// internal.core tests
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
@@ -133,9 +126,6 @@ public class AllUITests {
 		
 		// new aspectJ project wizard
 		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
-		
-		// new build configuration wizard
-		suite.addTest(new TestSuite(BuildConfigurationFileWizardTest.class));
 		
 		// export wizard tests
 		suite.addTest(new TestSuite(AJCTaskTest.class));

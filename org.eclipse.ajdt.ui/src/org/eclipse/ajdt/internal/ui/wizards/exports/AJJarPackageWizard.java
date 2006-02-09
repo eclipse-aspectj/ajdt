@@ -29,10 +29,10 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.dialogs.ProblemDialog;
 import org.eclipse.jdt.internal.ui.jarpackager.JarPackagerMessages;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -145,7 +145,7 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		}
 		IStatus status= op.getStatus();
 		if (!status.isOK()) {
-			ProblemDialog.open(getShell(), JarPackagerMessages.JarPackageWizard_jarExport_title, null, status); 
+			ErrorDialog.openError(getShell(), JarPackagerMessages.JarPackageWizard_jarExport_title, null, status); 
 			return !(status.matches(IStatus.ERROR));
 		}
 		return true;

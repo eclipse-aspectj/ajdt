@@ -12,6 +12,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.debug.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.javamodel;x-internal:=true,
  org.eclipse.ajdt.internal.launching;x-internal:=true,
+ org.eclipse.ajdt.internal.newbuildconfig;x-internal:=true,
  org.eclipse.ajdt.internal.ui;x-internal:=true,
  org.eclipse.ajdt.internal.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ajde;x-internal:=true,
@@ -76,5 +77,6 @@ Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.contribution.xref.core;resolution:=optional,
  org.eclipse.contribution.xref.ui;resolution:=optional,
  org.eclipse.help,
- org.aspectj.weaver
+ org.aspectj.weaver,
+ org.eclipse.core.filesystem
 Eclipse-AutoStart: true

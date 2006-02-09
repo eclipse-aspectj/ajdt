@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.WorkingCopyOwner;
@@ -21,10 +22,11 @@ import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
  * Part of the fix for 117412.
  */
 public class AJWorkingCopyOwner extends WorkingCopyOwner {
-	
 		
-	public static final AJWorkingCopyOwner INSTANCE =  new AJWorkingCopyOwner();
-	
+	public static final WorkingCopyOwner INSTANCE = 
+		AspectJPlugin.usingCUprovider ? (WorkingCopyOwner)DefaultWorkingCopyOwner.PRIMARY :
+				(WorkingCopyOwner)new AJWorkingCopyOwner();
+
 	private AJWorkingCopyOwner() {
 		// singleton - so use a private constructor
 	}

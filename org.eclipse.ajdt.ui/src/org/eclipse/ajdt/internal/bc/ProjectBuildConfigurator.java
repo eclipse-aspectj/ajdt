@@ -19,6 +19,7 @@ import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 
@@ -37,8 +38,7 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 	}
 	
 	public IJavaProject getJavaProject() {
-		// TODO Auto-generated method stub
-		return null;
+		return JavaCore.create(project);
 	}
 
 	public Collection getBuildConfigurations() {

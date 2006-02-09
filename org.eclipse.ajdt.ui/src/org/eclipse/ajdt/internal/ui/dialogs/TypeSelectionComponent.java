@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
@@ -353,7 +354,8 @@ public class TypeSelectionComponent extends Composite {
 			viewMenu.add(showStatusLineAction);
 		}
 		if (fScope == null) {
-			fFilterActionGroup= new WorkingSetFilterActionGroup(getShell(),
+			fFilterActionGroup= new WorkingSetFilterActionGroup(getShell(), 
+				AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage(),
 				new IPropertyChangeListener() {
 					public void propertyChange(PropertyChangeEvent event) {
 						IWorkingSet ws= (IWorkingSet)event.getNewValue();

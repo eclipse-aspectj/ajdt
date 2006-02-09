@@ -13,10 +13,10 @@ package org.eclipse.ajdt.internal.ui.editor.actions;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsOperation.IChooseImportQuery;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -36,11 +36,13 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.corext.ValidateEditException;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
+import org.eclipse.jdt.internal.corext.util.TypeInfoHistory;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.ActionMessages;
@@ -48,7 +50,7 @@ import org.eclipse.jdt.internal.ui.actions.ActionUtil;
 import org.eclipse.jdt.internal.ui.actions.WorkbenchRunnableAdapter;
 import org.eclipse.jdt.internal.ui.browsing.LogicalPackage;
 import org.eclipse.jdt.internal.ui.dialogs.MultiElementListSelectionDialog;
-import org.eclipse.jdt.internal.ui.dialogs.ProblemDialog;
+import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.preferences.JavaPreferencesSettings;
@@ -60,6 +62,7 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.actions.SelectionDispatchAction;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.text.DocumentEvent;
@@ -89,6 +92,8 @@ import org.eclipse.ui.progress.IProgressService;
  * 
  */
 public class AJOrganizeImportsAction extends SelectionDispatchAction {
+
+	private static final OrganizeImportComparator ORGANIZE_IMPORT_COMPARATOR= new OrganizeImportComparator();
 	
 	private JavaEditor fEditor;
 	/** <code>true</code> if the query dialog is showing. */
@@ -97,7 +102,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	/* (non-Javadoc)
 	 * Class implements IObjectActionDelegate
 	 */
-	public static class ObjectDelegate implements IObjectActionDelegate {		
+	public static class ObjectDelegate implements IObjectActionDelegate {
 		private AJOrganizeImportsAction fAction;
 		public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 			fAction= new AJOrganizeImportsAction(targetPart.getSite());
@@ -110,9 +115,32 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				action.setEnabled(false);
 		}
 	}
+	
+	private static final class OrganizeImportComparator implements Comparator {
+		
+		public int compare(Object o1, Object o2) {
+			if (((String)o1).equals(o2))
+				return 0;
+			
+			TypeInfoHistory history= TypeInfoHistory.getDefault();
+			
+			int pos1= history.getPosition(o1);
+			int pos2= history.getPosition(o2);
+			
+			if (pos1 == pos2)
+				return ((String)o1).compareTo((String) o2);	
+			
+			if (pos1 > pos2) {
+				return -1;
+			} else {
+				return 1;
+			}
+		}
+		
+	}
 
 	/**
-	 * Creates a new <code>OrganizeImportsAction</code>. The action requires
+	 * Creates a new <code>AJOrganizeImportsAction</code>. The action requires
 	 * that the selection provided by the site's selection provider is of type <code>
 	 * org.eclipse.jface.viewers.IStructuredSelection</code>.
 	 * 
@@ -263,7 +291,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	private static ICompilationUnit getCompilationUnit(JavaEditor editor) {
-		IWorkingCopyManager manager= AspectJUIPlugin.getDefault().getWorkingCopyManager();
+		IWorkingCopyManager manager= JavaPlugin.getDefault().getWorkingCopyManager();
 		ICompilationUnit cu= manager.getWorkingCopy(editor.getEditorInput());
 		return cu;
 	}
@@ -283,7 +311,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 	}
 
 	/**
-	 * Peform organize import on multiple compilation units. No editors are opened.
+	 * Perform organize import on multiple compilation units. No editors are opened.
 	 * @param cus The compilation units to run on
 	 */
 	public void runOnMultiple(final ICompilationUnit[] cus) {
@@ -299,12 +327,12 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 			})); // workspace lock
 			if (!status.isOK()) {
 				String title= ActionMessages.OrganizeImportsAction_multi_status_title; 
-				ProblemDialog.open(getShell(), title, null, status);
+				ErrorDialog.openError(getShell(), title, null, status);
 			}
 		} catch (InvocationTargetException e) {
 			ExceptionHandler.handle(e, getShell(), ActionMessages.OrganizeImportsAction_error_title, ActionMessages.OrganizeImportsAction_error_message); 
 		} catch (InterruptedException e) {
-			// cancelled by user
+			// Canceled by user
 		}		
 		
 	}
@@ -349,7 +377,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 							save= textFileBuffer != null && !textFileBuffer.isDirty(); // save when not dirty
 						}
 						
-						AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, settings.importOrder, settings.importThreshold, settings.importIgnoreLowercase, save, true, query);
+						AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, null, settings.importIgnoreLowercase, save, true, query);
 						runInSync(op, cuLocation, status, monitor);
 
 						IProblem parseError= op.getParseError();
@@ -400,7 +428,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					String message= Messages.format(ActionMessages.OrganizeImportsAction_multi_error_unresolvable, cuLocation); 
 					status.add(new Status(IStatus.INFO, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
 				} catch (OperationCanceledException e) {
-					// cancelled
+					// Canceled
 					monitor.setCanceled(true);
 				}
 			}
@@ -429,7 +457,10 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 					fEditor= (JavaEditor) editor;
 				}			
 			}
-			AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, settings.importOrder, settings.importThreshold, settings.importIgnoreLowercase, !cu.isWorkingCopy(), true, createChooseImportQuery());
+			
+			CompilationUnit astRoot= JavaPlugin.getDefault().getASTProvider().getAST(cu, ASTProvider.WAIT_ACTIVE_ONLY, null);
+			
+			AJOrganizeImportsOperation op= new AJOrganizeImportsOperation(cu, astRoot, settings.importIgnoreLowercase, !cu.isWorkingCopy(), true, createChooseImportQuery());
 		
 			IRewriteTarget target= null;
 			if (fEditor != null) {
@@ -505,15 +536,18 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 		};
 		fIsQueryShowing= true;
 		dialog.setTitle(ActionMessages.OrganizeImportsAction_selectiondialog_title); 
-		dialog.setMessage(ActionMessages.OrganizeImportsAction_selectiondialog_message); 
+		dialog.setMessage(ActionMessages.OrganizeImportsAction_selectiondialog_message);
 		dialog.setElements(openChoices);
+		dialog.setComparator(ORGANIZE_IMPORT_COMPARATOR);
 		if (dialog.open() == Window.OK) {
 			Object[] res= dialog.getResult();			
 			result= new TypeInfo[res.length];
 			for (int i= 0; i < res.length; i++) {
 				Object[] array= (Object[]) res[i];
-				if (array.length > 0)
+				if (array.length > 0) {
 					result[i]= (TypeInfo) array[0];
+					TypeInfoHistory.remember(result[i]);
+				}
 			}
 		}
 		// restore selection

@@ -154,6 +154,19 @@
             objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
             adaptable="true"
             id="ifilecontributions"> 
+             <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+            <separator
+                  name="group2">
+            </separator>
+         </menu>
           <action
                label="%convertExtToJava"
                class="org.eclipse.ajdt.internal.ui.refactoring.RenameToJavaAction"
@@ -188,6 +201,58 @@
              id="renameAJFile">
          </action>
       </objectContribution>
+      
+      <!-- Build configuration actions -->
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            nameFilter="*.ajproperties"
+            id="ajproperties">
+         <visibility>
+            <objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
+         </visibility>
+     	 <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+           <separator
+                  name="group2">
+            </separator>
+         </menu>
+         <action
+               label="%activateConfig"
+               class="org.eclipse.ajdt.internal.newbuildconfig.ApplyBCAction"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+               id="ajpropertiespopup">
+         </action>
+      </objectContribution>
+ 
+       <objectContribution
+            objectClass="org.eclipse.core.resources.IProject"
+             adaptable="true"
+            id="ajproperties2">
+         <visibility>
+         	<objectState name="nature" value="org.eclipse.ajdt.ui.ajnature"/>
+         </visibility>
+         <menu
+            label="%org.eclipse.ajdt.ui.tools"
+            id="org.eclipse.ajdt.ui.feature.tools">
+	         <separator
+	            name="group0">
+	         </separator>      
+         </menu>  
+         <action
+             label="%saveConfig"
+             class="org.eclipse.ajdt.internal.newbuildconfig.SaveBCAction"
+             menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+             id="ajpropertiespopup2">
+         </action>      
+      </objectContribution>
+      
 
    <!--Our Toggle breakpoint action and JDT's other breakpoint actions-->
      <viewerContribution
@@ -286,10 +351,10 @@
       <filter
             targetId="org.eclipse.jdt.ui.PackageExplorer"
             enabled="true"
-            class="org.eclipse.ajdt.internal.javamodel.FileFilter"
+            class="org.eclipse.ajdt.internal.javamodel.CompilationUnitFilter"
             description="%ajFileFilterDesc"
             name="%ajFileFilter"
-            id="org.eclipse.ajdt.javamodel.FileFilter"/>
+            id="org.eclipse.ajdt.javamodel.CompilationUnitFilter"/>
       <filter
             id="org.eclipse.ajdt.ui.editor.outline.PointcutFilter"
             name="%pointcutFilter.name"
@@ -323,10 +388,12 @@
       <editor
             name="%ajEditor"
             icon="icons/structure/ajcu_obj.gif"
-            extensions="aj, java"
+            extensions="aj"
+            default="true"
             contributorClass="org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditorActionContributor"
             class="org.eclipse.ajdt.internal.ui.editor.AspectJEditor"
             id="org.eclipse.ajdt.internal.ui.editor.CompilationUnitEditor">
+            <contentTypeBinding contentTypeId="org.eclipse.ajdt.core.aspectJSource"/> 
       </editor>
 <!-- do we need to duplicate these next 3 editors from JDT??? org.eclipse.jdt.ui.ClassFileEditor -->
 	  <!--editor

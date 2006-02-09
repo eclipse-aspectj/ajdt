@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.org.eclipse.jdt.internal.core.PackageFragment;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -36,6 +37,7 @@ import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaElement;
+import org.eclipse.jdt.internal.core.JavaModelCache;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
 
@@ -155,6 +157,7 @@ public class AJCompilationUnitManager {
 		try {
 			OpenableElementInfo info = (OpenableElementInfo) ((JavaElement) unit
 					.getParent()).getElementInfo();
+			info.removeChild(unit); // Remove identical CompilationUnit if it exists
 			info.addChild(unit);
 
 			//enable java search (experimental) - leads to exceptions when
