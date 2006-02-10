@@ -34,8 +34,10 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class ExportPluginTest extends UITestCase {
 
-	// taken from BaseExportWizardPage
+	// taken from BaseExportWizardPage / ExportDestinationTab / ExportOptionsTab
 	private static final String S_ZIP_FILENAME = "zipFileName"; //$NON-NLS-1$
+	private static final String S_EXPORT_DIRECTORY = "exportDirectory"; //$NON-NLS-1$
+	private static final String S_JAR_FORMAT = "exportUpdate"; //$NON-NLS-1$
 
 	private String archivePath;
 
@@ -52,6 +54,8 @@ public class ExportPluginTest extends UITestCase {
 		AJPluginExportWizard wiz = new AJPluginExportWizard() {
 			public IDialogSettings getDialogSettings() {
 				IDialogSettings settings = super.getDialogSettings();
+				settings.put(S_EXPORT_DIRECTORY, false);
+				settings.put(S_JAR_FORMAT, false);
 				settings.put(S_ZIP_FILENAME + String.valueOf(0), archivePath);
 				return settings;
 			}
@@ -74,7 +78,7 @@ public class ExportPluginTest extends UITestCase {
 
 		// now check zip file was created
 		if (!zip.exists()) {
-			fail("Export of plugin failed to created zip file: " + zip); //$NON-NLS-1$
+			fail("Export of plugin failed to create zip file: " + zip); //$NON-NLS-1$
 		}
 		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
 		ZipFile zf = new ZipFile(zip);
