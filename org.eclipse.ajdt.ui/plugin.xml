@@ -476,6 +476,7 @@
             name="%ajExportWizard"
             icon="icons/actions/exp_deployplug.gif"
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard"
+            category="org.eclipse.pde.ui.PluginDevelopment"
             id="org.eclipse.ajdt.ui.ajPluginExportWizard">
          <description>
             %ajExportWizard.description
@@ -496,6 +497,7 @@
             name="%ajJarExportWizard"
             icon="icons/actions/exportjar_wiz.gif"
             class="org.eclipse.ajdt.internal.ui.wizards.exports.AJJarPackageWizard"
+            category="org.eclipse.jdt.ui.Java"
             id="org.eclipse.ajdt.internal.ui.wizards.exports.AJJarPackageWizard">
          <description>
             %ajJarExportWizard.description
