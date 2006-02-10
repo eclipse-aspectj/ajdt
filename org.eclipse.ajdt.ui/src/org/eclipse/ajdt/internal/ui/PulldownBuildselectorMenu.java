@@ -14,13 +14,10 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -30,9 +27,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
@@ -46,7 +40,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
  * file for the project in a message dialog.
  */
 public class PulldownBuildselectorMenu implements
-	IWorkbenchWindowActionDelegate, SelectionListener {
+	IWorkbenchWindowActionDelegate {
 
 	private IAction buildAction;
 
@@ -73,38 +67,6 @@ public class PulldownBuildselectorMenu implements
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (buildAction == null) {
 			buildAction = action;
-		}
-	}
-
-	/**
-	 * Handle selection of an item in the menu.
-	 */
-	public void widgetDefaultSelected(SelectionEvent se) {
-		chooseBuild(se);
-	}
-
-	/**
-	 * Handle selection of an item in the menu.
-	 */
-	public void widgetSelected(SelectionEvent se) {
-		chooseBuild(se);
-	}
-
-	/**
-	 * When an item is selected from the pulldown menu, this function pulls the
-	 * IResource from the menu item selected and makes that IResource the
-	 * current build config for the project (remembered in the AspectJPlugin).
-	 */
-	public void chooseBuild(SelectionEvent se) {
-		Object src = se.getSource();
-		if (src instanceof MenuItem) {
-			MenuItem w = (MenuItem) src;
-			BuildConfiguration bc = (BuildConfiguration) w.getData();
-			IProjectBuildConfigurator pbc = DefaultBuildConfigurator
-					.getBuildConfigurator().getActiveProjectBuildConfigurator();
-			if (pbc != null) {
-				pbc.setActiveBuildConfiguration(bc);
-			}
 		}
 	}
 

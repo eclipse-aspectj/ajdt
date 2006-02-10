@@ -21,7 +21,4 @@ public interface IBuildConfigurator {
 
 	public IProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject jp);
 
-	public void setup(IProject project);
-
-	public void restoreJDTState(IProject project);
 }

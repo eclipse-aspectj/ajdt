@@ -20,27 +20,16 @@ public interface IProjectBuildConfigurator {
 
 	public IBuildConfiguration getActiveBuildConfiguration();
 
-	public IBuildConfiguration getActiveBuildConfiguration(boolean create);
-
 	public IJavaProject getJavaProject();
 
 	public Collection getBuildConfigurations();
 
 	public IFile[] getConfigurationFiles();
 
-	public boolean fullBuildRequested();
-
-	public void requestFullBuild(boolean b);
-
-	public void setActiveBuildConfiguration(IBuildConfiguration bc);
+//	public boolean fullBuildRequested();
+//
+//	public void requestFullBuild(boolean b);
+//
+//	public void setActiveBuildConfiguration(IBuildConfiguration bc);
 	
-	public void setActiveBuildConfiguration(IFile buildFile);
-
-	public void reInit();
-
-	public IBuildConfiguration getBuildConfiguration(IFile f);
-
-	public void removeBuildConfiguration(IBuildConfiguration bc);
-	
-	public void addBuildConfiguration(IBuildConfiguration bc);
 }

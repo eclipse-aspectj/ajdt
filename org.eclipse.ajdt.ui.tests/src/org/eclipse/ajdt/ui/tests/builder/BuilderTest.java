@@ -97,7 +97,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 		
 		IFile newFile = null;
@@ -177,7 +176,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -257,7 +255,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -335,7 +332,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -413,7 +409,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -530,7 +525,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(project);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -598,7 +592,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 		
 		String str= "AnotherSimpleAJProject" + File.separator + "src"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -673,7 +666,6 @@ public class BuilderTest extends UITestCase {
 		// manually)
 		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
 			.getProjectBuildConfigurator(simpleProject);
-		pbc.requestFullBuild(false);
 		waitForJobsToComplete();
 
 		IFolder f = src.getFolder("newFolder"); //$NON-NLS-1$

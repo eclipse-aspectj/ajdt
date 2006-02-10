@@ -32,24 +32,6 @@ import org.eclipse.jdt.core.JavaModelException;
  * function. Future refactorings should eventually make this redundant.
  */
 public class UICoreOperations implements ICoreOperations {
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ajdt.internal.core.CoreOperations#isFullBuildRequested(org.eclipse.core.resources.IProject)
-	 */
-	public boolean isFullBuildRequested(IProject project) {
-		//check if full build needed
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		if (pbc != null) {
-			if (pbc.fullBuildRequested()) {
-				pbc.requestFullBuild(false);
-				return true;
-			}
-		}
-		return false;
-	}
 	
 	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
 		if (delta!=null && delta.getAffectedChildren().length!=0) {

@@ -26,10 +26,6 @@ public class DefaultBuildConfigurator implements IBuildConfigurator {
 		return INSTANCE;
 	}
 
-	public static void setBuildConfigurator(IBuildConfigurator bc) {
-		INSTANCE = bc;
-	}
-
 	public IProjectBuildConfigurator getProjectBuildConfigurator(IProject project) {
 		if ((project == null) || (!project.isOpen()) || !AspectJPlugin.isAJProject(project)) {
 			return null;
@@ -50,12 +46,6 @@ public class DefaultBuildConfigurator implements IBuildConfigurator {
 
 	public IProjectBuildConfigurator getProjectBuildConfigurator(IJavaProject jp) {
 		return getProjectBuildConfigurator(jp.getProject());
-	}
-
-	public void setup(IProject project) {
-	}
-
-	public void restoreJDTState(IProject project) {
 	}
 
 }

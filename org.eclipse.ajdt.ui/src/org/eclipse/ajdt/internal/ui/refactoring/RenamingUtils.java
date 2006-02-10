@@ -13,11 +13,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
@@ -94,11 +92,6 @@ public class RenamingUtils {
 					br.close();
 				} catch (IOException ioe) {
 				}
-			}
-			Collection c = pbc.getBuildConfigurations();
-			for (Iterator iter = c.iterator(); iter.hasNext();) {
-				BuildConfiguration config = (BuildConfiguration) iter.next();
-				config.update(true);
 			}
 		}
 	}

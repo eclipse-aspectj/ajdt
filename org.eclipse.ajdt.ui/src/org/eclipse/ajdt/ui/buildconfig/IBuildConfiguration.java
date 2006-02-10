@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.CoreUtils.FilenameFilter;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 public interface IBuildConfiguration {
@@ -29,13 +28,10 @@ public interface IBuildConfiguration {
 
 	public String getName();
 
-	public IFile getFile();
-
 	public List getIncludedJavaFiles(FilenameFilter filter) ;
 
 	public boolean isIncluded(IResource correspondingResource);
 
 	public List getIncludedJavaFileNames(FilenameFilter aspectj_source_filter);
 
-	public void update(boolean b);
 }

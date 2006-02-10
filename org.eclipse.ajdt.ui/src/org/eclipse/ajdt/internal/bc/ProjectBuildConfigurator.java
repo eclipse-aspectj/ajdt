@@ -32,10 +32,6 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 	public IBuildConfiguration getActiveBuildConfiguration() {
 		return new BuildConfiguration(project);
 	}
-
-	public IBuildConfiguration getActiveBuildConfiguration(boolean create) {
-		return new BuildConfiguration(project);
-	}
 	
 	public IJavaProject getJavaProject() {
 		return JavaCore.create(project);
@@ -47,45 +43,6 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 
 	public IFile[] getConfigurationFiles() {
 		return new IFile[0];
-	}
-
-	public boolean fullBuildRequested() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void requestFullBuild(boolean b) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setActiveBuildConfiguration(IBuildConfiguration bc) {
-		// TODO Auto-generated method stub	
-	}
-
-	public void reInit() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public IBuildConfiguration getBuildConfiguration(IFile f) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void removeBuildConfiguration(IBuildConfiguration bc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void addBuildConfiguration(IBuildConfiguration bc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setActiveBuildConfiguration(IFile buildFile) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

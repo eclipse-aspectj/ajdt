@@ -209,14 +209,6 @@ public class AJDTUtils {
 			AspectJUIPlugin.addAjrtToBuildPath(project);
 		}
 
-		// PD: current thinking is not to change project dependencies to class
-		// folder ones
-		// therefore, have commented out the following call.
-		// changeProjectDependencies(project);
-
-		//Luzius: set up build configuration
-		DefaultBuildConfigurator.getBuildConfigurator().setup(project);
-
 		//crete compilation units for .aj files
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 
@@ -631,15 +623,7 @@ public class AJDTUtils {
 			AspectJUIPlugin.removeAjrtFromBuildPath(project);
 		}
 
-		// PD: current thinking is not to change project dependencies to class
-		// folder ones
-		// therefore, no need to change classfolder dependencies back to project
-		// ones.
-		// changeClassFolderDependencies(project);
 		removeMarkerOnReferencingProjects(project);
-
-		//Luzius: tell build configurator aj nature has been removed
-		DefaultBuildConfigurator.getBuildConfigurator().restoreJDTState(project);
 
 		//Ensures the project icon refreshes
 		AJDTUtils.refreshPackageExplorer();

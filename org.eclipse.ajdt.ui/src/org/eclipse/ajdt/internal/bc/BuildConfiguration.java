@@ -46,10 +46,6 @@ public class BuildConfiguration implements IBuildConfiguration {
 		return UIMessages.CompilerMonitor_default_config;
 	}
 
-	public IFile getFile() {
-		return null;
-	}
-
 	public List getIncludedJavaFiles(FilenameFilter filter) {
 		List sourceFiles = new ArrayList();
 		try {
@@ -176,10 +172,6 @@ public class BuildConfiguration implements IBuildConfiguration {
 		} catch (JavaModelException e) {
 		}
 		return sourceFileNames;
-	}
-
-	public void update(boolean b) {
-		// TODO Auto-generated method stub		
 	}
 
 }
