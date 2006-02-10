@@ -25,11 +25,5 @@ public interface IProjectBuildConfigurator {
 	public Collection getBuildConfigurations();
 
 	public IFile[] getConfigurationFiles();
-
-//	public boolean fullBuildRequested();
-//
-//	public void requestFullBuild(boolean b);
-//
-//	public void setActiveBuildConfiguration(IBuildConfiguration bc);
 	
 }
