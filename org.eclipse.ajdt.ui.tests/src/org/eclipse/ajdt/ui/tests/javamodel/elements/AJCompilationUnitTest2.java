@@ -24,6 +24,7 @@ import org.eclipse.jdt.internal.corext.refactoring.reorg.IReorgQueries;
 import org.eclipse.jdt.internal.corext.refactoring.reorg.JavaDeleteProcessor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
+import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
 import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 
 public class AJCompilationUnitTest2 extends UITestCase {
@@ -60,6 +61,7 @@ public class AJCompilationUnitTest2 extends UITestCase {
 		IProgressMonitor pm = new NullProgressMonitor();
 		CheckConditionsContext context = new CheckConditionsContext();
 		context.add(new ValidateEditChecker(context));
+		context.add(new ResourceChangeChecker());
 		IReorgQueries q = new IReorgQueries() {
 			public IConfirmQuery createYesYesToAllNoNoToAllQuery(
 					String queryTitle, boolean allowCancel, int queryID) {

@@ -36,12 +36,10 @@ import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser;
 import org.eclipse.ajdt.parserbridge.AJSourceElementParser2;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -352,37 +350,12 @@ public class AJCompilationUnit extends CompilationUnit{
 		op.runOperation(monitor);
 		return workingCopy;
 	}
-	
-	//used by package explorer
-	public IJavaElement[] getChildren() throws JavaModelException{
-		return super.getChildren();
-	}
-	
-	//used for code completion and similar tasks (super forwards to getChildren)
-	public IType[] getTypes() throws JavaModelException {
-		return super.getTypes();
-	}
 
 	public IBuffer getBuffer() throws JavaModelException {
 		return convertBuffer(super.getBuffer());
 	}
 
-	/*
-	 * copied from super, but changed to remove the extension, instead of
-	 * calling Util.getNameWithoutJavaLikeExtension(). We can remove this if we
-	 * register .aj as a java like extension.
-	 */
-//	public IType findPrimaryType() {
-//		String typeName = getElementName();
-//		// remove the .aj
-//		typeName = typeName.substring(0, typeName.lastIndexOf('.'));
-//		IType primaryType = getType(typeName);
-//		if (primaryType.exists()) {
-//			return primaryType;
-//		}
-//		return null;
-//	}
-	
+
 	public IBuffer convertBuffer(IBuffer buf) {
 		if (isInOriginalContentMode() || (buf == null))
 			return buf;
@@ -603,42 +576,8 @@ public class AJCompilationUnit extends CompilationUnit{
 				.getClassName();
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {
-			// neeed to perform the delete ourselves (bug 74426)
-			IResource res = getResource();
-			IContainer parent = res.getParent();
-			boolean isProject = (parent.getType() == IResource.PROJECT);
-			if ((parent.getType() == IResource.FOLDER) || isProject) {
-				IProject project = null;
-				IFolder folder = null;
-				if (isProject) {
-					project = (IProject) parent;
-				} else {
-					folder = (IFolder) parent;
-				}
-				String newName = CompilationUnitTools
-						.convertAJToJavaFileName(res.getName());
-				IFile dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
-				while (dummyFile.exists()) {
-					newName = newName.substring(0, newName.lastIndexOf('.'))
-							.concat("9").concat(".java"); //$NON-NLS-1$ //$NON-NLS-2$
-					dummyFile = isProject ? project.getFile(newName) : folder.getFile(newName);
-				}
-				try {
-					// create an empty file
-					dummyFile.create(null, false, null);
-
-					// this avoids exceptions caused by clients responding
-					// to the file creation
-					dummyFile.setTeamPrivateMember(true);
-										
-					// delete the real .aj file
-					res.delete(true, null);
-				} catch (CoreException e) {
-				}
-				ICompilationUnit dummyUnit = JavaCore
-						.createCompilationUnitFrom(dummyFile);
-				return dummyUnit.getHandleIdentifier();
-			}
+			// need to return a handle identifier that JDT can use (bug 74426)
+			return JavaCore.create(getResource()).getHandleIdentifier();
 		}
 		return super.getHandleIdentifier();
 	}
