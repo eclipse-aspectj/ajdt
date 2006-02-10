@@ -17,15 +17,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
@@ -36,11 +40,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.w3c.dom.DOMImplementation;
@@ -89,7 +95,9 @@ public class LTWUtils {
 							IFile aopFile = (IFile) ((Workspace)ResourcesPlugin.getWorkspace()).
 								newResource(project.getPath().append(path),
 										IResource.FILE);
-							metainf.create(true,true,null);
+							if(metainf == null || !metainf.exists()) {
+								metainf.create(true,true,null);
+							}
 							aopFile.create(new ByteArrayInputStream(new byte[0]), true, null);
 							project.getProject().refreshLocal(4, null);
 							
@@ -242,18 +250,18 @@ public class LTWUtils {
 		root.getResource().accept(new IResourceVisitor() {
 
 			public boolean visit(IResource resource) {
-				if (resource instanceof IFile
-						&& AspectJPlugin.AJ_FILE_EXT.equals(resource
-								.getFileExtension())) {
-					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
-							.getAJCompilationUnit((IFile) resource);
-					IProjectBuildConfigurator pbc = DefaultBuildConfigurator
-							.getBuildConfigurator()
-							.getProjectBuildConfigurator(root.getJavaProject());
-					if ((ajcu != null) && (pbc != null)) {
-						IBuildConfiguration bc = pbc
-								.getActiveBuildConfiguration();
-						if ((bc == null) || bc.isIncluded(ajcu.getResource())) {
+				IProjectBuildConfigurator pbc = DefaultBuildConfigurator
+					.getBuildConfigurator()
+					.getProjectBuildConfigurator(root.getJavaProject());
+				if(pbc != null) {
+					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
+					if (resource instanceof IFile
+							&& AspectJPlugin.AJ_FILE_EXT.equals(resource
+									.getFileExtension())) {
+						AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
+								.getAJCompilationUnit((IFile) resource);
+						
+						if ((ajcu != null) && ((bc == null) || bc.isIncluded(ajcu.getResource()))) {
 							try {
 								IType[] types = ajcu.getAllTypes();
 								for (int i = 0; i < types.length; i++) {
@@ -263,7 +271,18 @@ public class LTWUtils {
 									}
 								}
 							} catch (JavaModelException e) {
-							}
+							}					
+						}
+					} else if(CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resource.getName())) {
+						ICompilationUnit cu = JavaCore.createCompilationUnitFrom((IFile) resource);
+						if(cu != null && ((bc == null) || bc.isIncluded(cu.getResource()))) {
+							AJProjectModel model = AJModel.getInstance().getModelForProject(resource.getProject());
+							Set types = model.getAspectsForJavaFile(cu);
+							for (Iterator iter = types.iterator(); iter
+									.hasNext();) {
+								AspectElement element = (AspectElement) iter.next();
+								aspects.add(element);								
+							}							
 						}
 					}
 				}
