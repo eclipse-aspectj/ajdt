@@ -1,0 +1,184 @@
+<?xml version="1.0" ?>
+<!-- writen for Ant 1.5.1 -->
+<project name="org.eclipse.aspectj.updatesite" default="feature-pack">
+
+<!--
+
+This is a cut-down version of the main build.xml script. It builds a minimal
+AJDT distribution, used for bootstrap purposes. It includes only the AspectJ
+plugins, and the AJDT core and UI plugins. It doesn't build the tests, and
+excludes the source code, examples, and the visualiser and xref plugins.
+
+-->
+
+<!--
+  The AJDE and weaver plugins from an installed build of AJDT are
+  need to compile AspectJ-enabled projects. Their locations are set
+  by each individual build file, but they can be overriden here.
+<property name="aspectj.plugin.home" value="../org.aspectj.ajde/"/>
+<property name="aspectj.weaver.home" value="../org.aspectj.weaver/"/>
+-->
+	
+<property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
+<property name="ajdt.version.file" location="ajdtbuildversion.txt" /> <!-- set by CruiseControl -->
+<property name="aspectj.feature.version" value="1.4.0.${cctimestamp}" />
+<property name="ajdt.version" value="1.4.0.${cctimestamp}" />
+<property name="ajde.version" value="1.5.0.${cctimestamp}" />
+<property name="aspectj.release.name" value="1.5.1.20060131132251" />
+<property name="aspectj.version" value="1.5.1" />
+	
+<property name="temp.folder" value="temp-folder" />
+
+<description>
+Creates an update site structure for AspectJ
+</description>
+
+<target name="init">
+  <mkdir dir="dist"/>
+  <mkdir dir="fpack_dist"/>
+  <delete file="ajdt_${aspectj.feature.version}_archive.zip"/>
+	
+  <!-- write out build id for later use by performance tests -->
+  <echo message="${ajdt.version}" file="${ajdt.version.file}"/>
+</target>
+
+<target name="clean" depends="init" >
+  <delete dir="dist"/>
+  <delete dir="fpack_dist"/>
+  <ant dir="../org.aspectj.runtime" inheritAll="true" target="clean" />
+  <ant dir="../org.aspectj.weaver" inheritAll="true" target="clean" />
+  <ant dir="../org.aspectj.ajde" inheritAll="true" target="clean" />
+  <ant dir="../org.eclipse.ajdt.core" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.ajdt.ui" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.aspectj" inheritAll="true" target="clean"/>
+  <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" target="clean"/>
+</target>
+
+	
+<target name="feature-pack" depends="update-site"
+	    description="Build zip of plugins that can be unzipped in eclipse install dir">
+	<echo message="Constructing feature pack for AJDT ${aspectj.feature.version}"/>
+	<mkdir dir="fpack_dist/plugins"/>
+	<mkdir dir="fpack_dist/features"/>
+	
+	<copy todir="fpack_dist/." file="readme.txt"/>
+	<mkdir dir="fpack_dist/features/org.eclipse.aspectj_${aspectj.feature.version}"/>
+	<unzip dest="fpack_dist/features/org.eclipse.aspectj_${aspectj.feature.version}"
+	        src="dist/features/org.eclipse.aspectj_${aspectj.feature.version}.jar"/>	
+	
+	<mkdir dir="fpack_dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}"/>
+	<unzip dest="fpack_dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}"
+	        src="dist/plugins/org.eclipse.aspectj_${aspectj.feature.version}.jar"/>	
+
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.ajdt.core_${ajdt.version}.jar"/>
+
+	<copy todir="fpack_dist/plugins/"
+		file="dist/plugins/org.eclipse.ajdt.ui_${ajdt.version}.jar"/>
+		
+	<mkdir dir="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.runtime_${ajde.version}"
+	        src="dist/plugins/org.aspectj.runtime_${ajde.version}.jar"/>
+	
+	<mkdir dir="fpack_dist/plugins/org.aspectj.weaver_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.weaver_${ajde.version}"
+	        src="dist/plugins/org.aspectj.weaver_${ajde.version}.jar"/>
+
+	<mkdir dir="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"/>
+	<unzip dest="fpack_dist/plugins/org.aspectj.ajde_${ajde.version}"
+	        src="dist/plugins/org.aspectj.ajde_${ajde.version}.jar"/>
+	
+	<zip destfile="ajdt_${aspectj.feature.version}_archive.zip"
+		 basedir="fpack_dist"/>
+</target>
+
+	<target name="insert-version" if="file.to.update">
+		<mkdir dir="${temp.folder}"/>
+		<basename property="filename" file="${file.to.update}"/>
+		<delete file="${temp.folder}/${filename}"/>
+		<copy file="${file.to.update}" tofile="${temp.folder}/${filename}"/>
+		<replace file="${file.to.update}" token="DEVELOPMENT" value="${cctimestamp}"/>
+		<!--
+		<copy file="${temp.folder}/${filename}" tofile="${file.to.update}">
+		 	<filterset begintoken="9" endtoken="9">
+		 		<filter token="2.2.2" value="${version}"/>
+		 	</filterset>
+		 </copy>
+		 -->
+	</target>
+	
+	<target name="test">
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../org.eclipse.ajdt.core/build.xml"/>
+		</antcall>		
+	</target>
+	
+	<target name="restore" if="file.to.update">
+		<basename property="filename" file="${file.to.update}"/>
+		 <move file="${temp.folder}/${filename}" tofile="${file.to.update}" overwrite="true"/>
+	</target>
+		 			
+	<target name="build-plugin" if="plugin-name">
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../${plugin-name}/META-INF/MANIFEST.MF"/>
+			<param name="version" value="${version}"/>
+		</antcall>
+		<antcall target="insert-version">
+			<param name="file.to.update" value="../${plugin-name}/build.xml"/>
+			<param name="version" value="${version}"/>
+		</antcall>
+	    <ant dir="../${plugin-name}" target="build.update.jar" inheritAll="true"/>
+	    <ant dir="../${plugin-name}" target="build.sources" inheritAll="true"/>
+		<!-- put originals back -->
+		<antcall target="restore">
+			<param name="file.to.update" value="../${plugin-name}/META-INF/MANIFEST.MF"/>
+		</antcall>
+		<antcall target="restore">
+			<param name="file.to.update" value="../${plugin-name}/build.xml"/>
+		</antcall>
+	</target>
+	
+<target name="update-site" depends="init"
+ description="Build the update site structure">
+ 
+ <ant dir="../org.aspectj.runtime" inheritAll="true" />
+ <ant dir="../org.aspectj.weaver" inheritAll="true" />
+ <ant dir="../org.aspectj.ajde" inheritAll="true" />
+		
+	<!-- AJDT CORE -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.core"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+
+	<!-- AJDT UI -->
+	<antcall target="build-plugin">
+		<param name="plugin-name" value="org.eclipse.ajdt.ui"/>
+		<param name="version" value="${ajdt.version}"/>
+	</antcall>
+
+ <ant dir="../org.eclipse.aspectj" inheritAll="true" />
+ <ant dir="../org.eclipse.aspectj.feature" inheritAll="true" />
+	
+ <copy file="site.xml" todir="dist">
+ 	<filterset>
+ 		<filter token="AJFVERSION" value="${aspectj.feature.version}"/>
+ 	</filterset>
+ </copy>
+ <copy file="../org.eclipse.aspectj.feature/dist/org.eclipse.aspectj_${aspectj.feature.version}.jar"
+       todir="dist/features" />
+ <copy file="../org.eclipse.aspectj/dist/org.eclipse.aspectj_${aspectj.feature.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.core/org.eclipse.ajdt.core_${ajdt.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.eclipse.ajdt.ui/org.eclipse.ajdt.ui_${ajdt.version}.jar"
+	   todir="dist/plugins" />
+ <copy file="../org.aspectj.runtime/dist/org.aspectj.runtime_${ajde.version}.jar"
+       todir="dist/plugins" />  
+ <copy file="../org.aspectj.weaver/dist/org.aspectj.weaver_${ajde.version}.jar"
+       todir="dist/plugins" />
+ <copy file="../org.aspectj.ajde/dist/org.aspectj.ajde_${ajde.version}.jar"
+	   todir="dist/plugins" />  
+</target>
+
+</project>
