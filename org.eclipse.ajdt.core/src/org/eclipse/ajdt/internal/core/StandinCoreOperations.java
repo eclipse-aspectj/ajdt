@@ -22,15 +22,6 @@ import org.eclipse.core.resources.IResourceDelta;
  */
 public class StandinCoreOperations implements ICoreOperations {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ajdt.internal.core.CoreOperations#isFullBuildRequested(org.eclipse.core.resources.IProject)
-	 */
-	public boolean isFullBuildRequested(IProject project) {
-		return false;
-	}
-
 	public boolean sourceFilesChanged(IResourceDelta dta, IProject project) {
 		if (dta == null)
 			return true;

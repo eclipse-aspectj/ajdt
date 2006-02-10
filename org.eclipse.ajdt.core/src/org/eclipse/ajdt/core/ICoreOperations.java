@@ -21,7 +21,5 @@ import org.eclipse.core.resources.IResourceDelta;
  */
 public interface ICoreOperations {
 
-	public boolean isFullBuildRequested(IProject project);
-
 	public boolean sourceFilesChanged(IResourceDelta dta, IProject project);
 }

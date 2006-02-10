@@ -146,9 +146,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 		
 		ICoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
-		if (coreOps.isFullBuildRequested(project)) {
-			kind = IncrementalProjectBuilder.FULL_BUILD;
-		} else if(IncrementalStateManager.retrieveStateFor(AspectJPlugin
+		if (IncrementalStateManager.retrieveStateFor(AspectJPlugin
 			.getBuildConfigurationFile(project)) == null ) {
 		    // bug 101481 - if there is no incremental state then
 		    // next build should be a full one.
