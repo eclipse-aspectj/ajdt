@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.newbuildconfig;
 
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
@@ -47,7 +48,10 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 		if(currentProject != null) {
 			String title = UIMessages.BCDialog_SaveBuildConfigurationAs_title;
 			String msg = UIMessages.BCDialog_SaveBuildConfigurationAs_message; 
-			String fileName = BuildConfigurationUtils.getFreeFileName(currentProject);
+			String defaultFileName = UIMessages.BCDialog_SaveBuildConfigurationAs_default;
+			String fileName = AJDTUtils.getFreeFileName(
+					currentProject, defaultFileName,
+					IBuildConfiguration.EXTENSION);
 	
 			IInputValidator validator = new IInputValidator() {
 				public String isValid(String input) {

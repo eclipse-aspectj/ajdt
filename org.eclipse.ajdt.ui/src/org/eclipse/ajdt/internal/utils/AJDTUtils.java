@@ -42,7 +42,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -951,4 +950,30 @@ public class AJDTUtils {
 		}
 		return enclosingTypes;
 	}
+	
+	/**
+	 * Get a new filename for the given project.  Returns the name without the file extension.
+	 * @param project
+	 * @param defaultFileName
+	 * @param extension
+	 * @return a string that is NOT the name of a current file in the project
+	 */
+	public static String getFreeFileName(IProject project, String defaultFileName,
+			String extension) {	
+		int counter = 0;
+		if(project != null) {
+			boolean foundFreeName = false;
+			while (!foundFreeName) {
+				String name = counter==0 ? defaultFileName : defaultFileName+counter;
+				IPath path = project.getFullPath().append(name + "." + extension); //$NON-NLS-1$
+				if(!AspectJPlugin.getWorkspace().getRoot().getFile(path).exists()) {
+					foundFreeName = true;
+				} else {
+					counter++;
+				}
+			}
+		}
+		return counter==0 ? defaultFileName : defaultFileName+counter;
+	}
+
 }

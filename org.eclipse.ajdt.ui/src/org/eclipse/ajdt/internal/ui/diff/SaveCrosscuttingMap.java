@@ -14,17 +14,16 @@ package org.eclipse.ajdt.internal.ui.diff;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
@@ -33,6 +32,8 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
  * Action to save out the current structure model in a file
  */
 public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
+	
+	private IProject currentProject;
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
@@ -50,21 +51,16 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 	 * @see org.eclipse.ui.IActionDelegate#run(org.eclipse.jface.action.IAction)
 	 */
 	public void run(IAction action) {
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getActiveProjectBuildConfigurator();
-		if (pbc == null) {
+		if(currentProject == null) {
 			return;
-		}
-		IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-		if (bc == null) {
-			return;
-		}
-		IJavaProject jp = pbc.getJavaProject();
-		IProject proj = jp.getProject();
-		String buildConfName = bc.getName();
-		
+		}		
 		String title = UIMessages.savemap_dialog_title;
 		String msg = UIMessages.savemap_dialog_message;
-		String initial = buildConfName + ChangesView.DOT_MAP_FILE_EXT;
+		String defaultFileName = UIMessages.savemap_as_default;
+		String initial = AJDTUtils.getFreeFileName(
+				currentProject, defaultFileName,
+				ChangesView.MAP_FILE_EXT);
+	
 		InputDialog input = new InputDialog(null, title, msg, initial, null);
 		input.setBlockOnOpen(true);
 		if (input.open() == Window.OK) {
@@ -73,16 +69,16 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 				if (!mapName.endsWith(ChangesView.DOT_MAP_FILE_EXT)) {
 					mapName += ChangesView.DOT_MAP_FILE_EXT;
 				}
-				IPath file = proj.getFile(mapName).getLocation();
+				IPath file = currentProject.getFile(mapName).getLocation();
 				if (file.toFile().exists()) {
 					if (!askUserOverwrite(mapName)) {
 						return;
 					}
 				}
-				AJProjectModel pm = AJModel.getInstance().getModelForProject(proj);
+				AJProjectModel pm = AJModel.getInstance().getModelForProject(currentProject);
 				pm.saveModel(file);
 				try {
-					proj.getFile(mapName).refreshLocal(0,null);
+					currentProject.getFile(mapName).refreshLocal(0,null);
 				} catch (CoreException e) {
 				}
 			}
@@ -105,5 +101,15 @@ public class SaveCrosscuttingMap implements IWorkbenchWindowActionDelegate {
 	 * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
 	 */
 	public void selectionChanged(IAction action, ISelection selection) {
+		currentProject = null;
+		if (selection instanceof IStructuredSelection) {
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			Object first = structuredSelection.getFirstElement();
+			if (first instanceof IProject) {
+				currentProject = (IProject) first;
+			} else if (first instanceof IAdaptable) {
+				currentProject = (IProject) ((IAdaptable)first).getAdapter(IProject.class);
+			}
+		}
 	}
 }

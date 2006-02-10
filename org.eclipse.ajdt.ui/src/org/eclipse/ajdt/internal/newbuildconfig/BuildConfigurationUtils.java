@@ -50,31 +50,6 @@ import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 public class BuildConfigurationUtils {
 	
-	/**
-	 * Get a new filename for the given project.  Returns the name without the file extension.
-	 * @param project
-	 * @return a string that is NOT the name of a current build configuration in the project
-	 */
-	public static String getFreeFileName(IProject project) {
-		String defaultFileName = UIMessages.BCDialog_SaveBuildConfigurationAs_default;
-	
-		int counter = 0;
-		if(project != null) {
-			boolean foundFreeName = false;
-			while (!foundFreeName) {
-				String name = counter==0 ? defaultFileName : defaultFileName+counter;
-				IPath path = project.getFullPath().append(name + "." + IBuildConfiguration.EXTENSION); //$NON-NLS-1$
-				if(!AspectJPlugin.getWorkspace().getRoot().getFile(path).exists()) {
-					foundFreeName = true;
-				} else {
-					counter++;
-				}
-			}
-		}
-		return counter==0 ? defaultFileName : defaultFileName+counter;
-	}
-	
-
 	public static List getIncludedFiles(IProject currentProject) {
 		ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
 		BuildConfiguration bc = (BuildConfiguration) pbc.getActiveBuildConfiguration();

@@ -274,6 +274,7 @@ public class UIMessages extends NLS {
 	public static String editor_title_refresh_job;
 	public static String wrong_eclipse_version;
 	public static String savemap_dialog_title;
+	public static String savemap_as_default;
 	public static String savemap_dialog_message;
 	public static String changesView_table_column1;
 	public static String changesView_table_column2;
