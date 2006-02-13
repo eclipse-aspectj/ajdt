@@ -282,7 +282,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		persistSettings();
 		XReferenceUIPlugin.xrefView = null;
 		viewer.getTree().dispose();
-		viewer.getContentProvider().dispose();
+		if(viewer.getContentProvider() != null) {
+			viewer.getContentProvider().dispose();
+		}
 		viewer.getLabelProvider().dispose();
 	}
 
