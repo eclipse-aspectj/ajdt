@@ -72,31 +72,6 @@ public class BuildConfiguration implements IBuildConfiguration {
 		return sourceFiles;
 	}
 
-	public List getIncludedIResourceFiles(FilenameFilter filter) {
-		List sourceFiles = new ArrayList();
-		try {
-			IJavaProject jp = JavaCore.create(project);
-			IClasspathEntry[] cpes = jp.getRawClasspath();
-			for (int i = 0; i < cpes.length; i++) {
-				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					IPath path = cpes[i].getPath();
-					IResource res = project.findMember(path
-							.removeFirstSegments(1));
-					if ((res != null) && (res instanceof IContainer)) {
-						List l = allFiles((IContainer) res, filter);
-						for (Iterator iter = l.iterator(); iter.hasNext();) {
-							IFile file = (IFile) iter.next();
-							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
-								sourceFiles.add(file);
-							}
-						}
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-		}
-		return sourceFiles;
-	}
 	//return a list of all IFiles in the given folder, including all
 	// sub-folders
 	private List allFiles(IContainer folder, final FilenameFilter filter) {

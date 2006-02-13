@@ -18,8 +18,6 @@ import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 
 public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 
@@ -33,10 +31,6 @@ public class ProjectBuildConfigurator implements IProjectBuildConfigurator {
 		return new BuildConfiguration(project);
 	}
 	
-	public IJavaProject getJavaProject() {
-		return JavaCore.create(project);
-	}
-
 	public Collection getBuildConfigurations() {
 		return Collections.EMPTY_LIST;
 	}

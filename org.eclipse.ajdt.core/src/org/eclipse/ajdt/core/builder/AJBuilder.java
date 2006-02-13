@@ -29,8 +29,8 @@ import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.core.ICoreOperations;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.core.resources.IContainer;
@@ -145,7 +145,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		IProject[] requiredProjects = getRequiredProjects(project,true);
 		
-		ICoreOperations coreOps = AspectJPlugin.getDefault().getCoreOperations();
 		if (IncrementalStateManager.retrieveStateFor(AspectJPlugin
 			.getBuildConfigurationFile(project)) == null ) {
 		    // bug 101481 - if there is no incremental state then
@@ -195,7 +194,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		if (kind != FULL_BUILD) {
 		    // need to add check here for whether the classpath has changed
-		    if (!coreOps.sourceFilesChanged(dta, project)){
+		    if (!sourceFilesChanged(dta, project)){
 				AJLog.log("build: Examined delta - no source file changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
@@ -205,7 +204,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				boolean continueToBuild = false;
 				for (int i = 0; !continueToBuild && i < requiredProjects.length; i++) {
 					IResourceDelta delta = getDelta(requiredProjects[i]);
-					continueToBuild = coreOps.sourceFilesChanged(delta,requiredProjects[i]);
+					continueToBuild = sourceFilesChanged(delta,requiredProjects[i]);
 				}
 				if (!continueToBuild) {
 					// bug 107027
@@ -914,5 +913,82 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		} catch (CoreException e) {
 		}
 		AJLog.log("Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
+	}
+	
+	public boolean old_sourceFilesChanged(IResourceDelta dta, IProject project) {
+		if (dta == null)
+			return true;
+		String resname = dta.getFullPath().toString();
+
+		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
+			// TODO: fix this - need build config support in core
+                return true;
+		} else if (resname.endsWith(".lst") //$NON-NLS-1$
+				&& !resname.endsWith("/generated.lst")) { //$NON-NLS-1$
+			return true;
+		} else if (resname.endsWith(".classpath")){ //$NON-NLS-1$
+			return true;
+		} else {
+			boolean kids_results = false;
+			int i = 0;
+			IResourceDelta[] kids = dta.getAffectedChildren();
+			while (!kids_results && i < kids.length) {
+				kids_results = kids_results | sourceFilesChanged(kids[i], project);
+				i++;
+			}
+			return kids_results;
+		}
+	}
+	
+	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
+		if (delta!=null && delta.getAffectedChildren().length!=0) {
+			List includedFileNames = BuildConfig.getIncludedSourceFiles(project);
+			IJavaProject ijp = JavaCore.create(project);		
+			if (ijp == null) {
+				return true;
+			}			
+			try {
+				IPath outputPath = ijp.getOutputLocation();
+				if (project.getFullPath().equals(outputPath)) {
+					outputPath = null;
+				}
+				if (sourceFilesChanged(delta, includedFileNames,outputPath)) {
+					AJLog.log("build: Examined delta - source file changes in " //$NON-NLS-1$
+							+ "required project " + project.getName() ); //$NON-NLS-1$
+					return true;
+				} else {
+					return false;
+				}
+			} catch (JavaModelException e) {}
+		}
+		return true;
+	}
+	
+	private boolean sourceFilesChanged(IResourceDelta dta, List includedFileNames,IPath outputLocation) { //IProject project) {
+		if (dta == null) return false;
+
+		if (outputLocation!=null && outputLocation.equals(dta.getFullPath()) ) {
+			return false;
+		}
+		String resname = dta.getFullPath().toString();
+		
+		if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resname)) {
+		    if ((includedFileNames==null) || includedFileNames.contains(dta.getResource())) {
+                return true;
+            } else {
+                return false;
+            }
+		} else if (resname.endsWith(".classpath")){ //$NON-NLS-1$
+			return true;
+		} else {
+			boolean kids_results = false;
+			int i = 0;
+			IResourceDelta[] kids = dta.getAffectedChildren();
+			while (!kids_results && i < kids.length) {
+				kids_results = kids_results | sourceFilesChanged(kids[i], includedFileNames, outputLocation);
+				i++;
+			}
+			return kids_results;
+		}
 	}
 }

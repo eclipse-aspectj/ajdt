@@ -14,13 +14,10 @@ package org.eclipse.ajdt.ui.buildconfig;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jdt.core.IJavaProject;
 
 public interface IProjectBuildConfigurator {
 
 	public IBuildConfiguration getActiveBuildConfiguration();
-
-	public IJavaProject getJavaProject();
 
 	public Collection getBuildConfigurations();
 

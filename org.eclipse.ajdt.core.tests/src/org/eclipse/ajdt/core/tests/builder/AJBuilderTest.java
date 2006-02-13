@@ -496,24 +496,18 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			List buildLogA = testLog.getPreviousBuildEntry(1);
 			assertTrue("Should have caused a build of project bug99133a", //$NON-NLS-1$
 					listContainsString(buildLogA,"bug99133a")); //$NON-NLS-1$
-			assertTrue("AJDT should have found no source file changes and decided not to build", //$NON-NLS-1$
-					listContainsString(buildLogA,"build: Examined delta - no " + //$NON-NLS-1$
-							"source file changes for project bug99133a")); //$NON-NLS-1$
 
 			boolean incA = listContainsString(buildLogA,
 			"AspectJ reports build successful, build was: INCREMENTAL"); //$NON-NLS-1$
-			assertFalse(
-					"AJDT should have returned from the build without " //$NON-NLS-1$
-							+ "going through the compiler, therefore AspectJ shouldn't " //$NON-NLS-1$
-							+ "report that an incremental build happened", incA); //$NON-NLS-1$
+			assertTrue(
+					"AJDT should have called the compiler, and therefore " //$NON-NLS-1$
+							+ "AspectJ should have reported that an " //$NON-NLS-1$
+							+ "incremental build happened", incA); //$NON-NLS-1$
 			boolean fullA = listContainsString(buildLogA,
 					"AspectJ reports build successful, build was: FULL"); //$NON-NLS-1$
 			assertFalse(
-					"AJDT should have returned from the build without " //$NON-NLS-1$
-							+ "going through the compiler, therefore AspectJ shouldn't " //$NON-NLS-1$
-							+ "report that a full build happened", fullA); //$NON-NLS-1$
-	
-			
+					"AspectJ should have reported an incremental build " //$NON-NLS-1$
+							+ "occurred, not a FULL build", fullA); //$NON-NLS-1$			
 		} finally {
 			AspectJPlugin.getDefault().setAJLogger(null);
 			deleteProject(pA);

@@ -230,12 +230,11 @@ public class RenameFileExtensionsDialog extends Dialog {
 						.getBuildConfigurator().getProjectBuildConfigurator(jp);
 				IBuildConfiguration activeBuildConfig = pbc
 						.getActiveBuildConfiguration();
-				int numBuildConfigs = pbc.getBuildConfigurations().size();
 				try {
 					IPackageFragment[] packages = jp.getPackageFragments();
 					monitor
 							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
-									packages.length + (10 * numBuildConfigs));
+									packages.length);
 
 					// Map of old to new names - needed to update build config
 					// files.

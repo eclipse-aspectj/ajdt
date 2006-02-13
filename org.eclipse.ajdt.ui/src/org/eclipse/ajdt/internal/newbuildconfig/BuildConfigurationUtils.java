@@ -26,13 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
-import org.eclipse.ajdt.internal.bc.ProjectBuildConfigurator;
-import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -50,13 +43,6 @@ import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 public class BuildConfigurationUtils {
 	
-	public static List getIncludedFiles(IProject currentProject) {
-		ProjectBuildConfigurator pbc = (ProjectBuildConfigurator) DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(currentProject);
-		BuildConfiguration bc = (BuildConfiguration) pbc.getActiveBuildConfiguration();
-		return bc.getIncludedIResourceFiles(CoreUtils.ASPECTJ_SOURCE_FILTER);
-	}
-
-
 	public static void saveBuildConfiguration(IFile ifile) {
 		File file = ifile.getLocation().toFile();
 		IProject project = ifile.getProject(); 

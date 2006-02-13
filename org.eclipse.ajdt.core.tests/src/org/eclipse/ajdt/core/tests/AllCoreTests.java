@@ -45,7 +45,8 @@ public class AllCoreTests {
 		if (is50) {
 			suite.addTest(new TestSuite(AJCoreTestJava5.class));
 		}
-
+		suite.addTest(new TestSuite(BuildConfigTest.class));
+		
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(CodeCheckerTest.class));

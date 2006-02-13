@@ -20,7 +20,6 @@ import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.core.builder.CoreTaskListManager;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.core.StandinCoreOperations;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -76,8 +75,6 @@ public class AspectJPlugin extends Plugin {
 	 * and compilations errors/warnings)
 	 */
 	private IAJCompilerMonitor ajdtCompilerMonitor;
-
-	private ICoreOperations coreOperations;
 
 	/**
 	 * The currently selected project
@@ -208,18 +205,7 @@ public class AspectJPlugin extends Plugin {
 	public void setCompilerMonitor(IAJCompilerMonitor monitor) {
 		ajdtCompilerMonitor = monitor;
 	}
-
-	public ICoreOperations getCoreOperations() {
-		if (coreOperations==null) {
-			coreOperations = new StandinCoreOperations();
-		}
-		return coreOperations;
-	}
-	
-	public void setCoreOperations(ICoreOperations coreOps) {
-		coreOperations = coreOps;
-	}
-	
+		
 	public void setAJLogger(IAJLogger logger) {
 		AJLog.setLogger(logger);
 	}
