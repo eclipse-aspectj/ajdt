@@ -281,6 +281,9 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		}
 		persistSettings();
 		XReferenceUIPlugin.xrefView = null;
+		viewer.getTree().dispose();
+		viewer.getContentProvider().dispose();
+		viewer.getLabelProvider().dispose();
 	}
 
 	public boolean isLinkingEnabled() {

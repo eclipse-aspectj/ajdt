@@ -96,6 +96,8 @@ public class XReferenceLabelProvider extends LabelProvider {
 	}
 
 	public void dispose() {
+		fListeners = null;
+		labelProvider.dispose();
 		labelProvider = null;
 	}
 }
