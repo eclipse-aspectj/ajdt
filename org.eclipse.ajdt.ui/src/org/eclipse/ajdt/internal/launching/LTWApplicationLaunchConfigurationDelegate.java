@@ -39,6 +39,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.launching.LaunchingMessages;
 import org.eclipse.jdt.launching.ExecutionArguments;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.IVMRunner;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
@@ -164,6 +165,17 @@ public class LTWApplicationLaunchConfigurationDelegate
 						LTWUtils.generateLTWConfigFile(JavaCore.create(project));
 					}
 				}
+			}
+		}
+		// Generate aop.xml file for main project if it's an AspectJ project
+		String projectName = configuration.getAttribute(
+				IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+				(String) null);
+		if (projectName != null && !projectName.trim().equals("")) { //$NON-NLS-1$
+			IProject project = AspectJPlugin.getWorkspace().getRoot()
+					.getProject(projectName);
+			if(project.isOpen() && project.hasNature(AspectJPlugin.ID_NATURE)) {
+				LTWUtils.generateLTWConfigFile(JavaCore.create(project));				
 			}
 		}
 	}
