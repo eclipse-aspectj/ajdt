@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -34,12 +35,17 @@ import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
 import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.internal.resources.Workspace;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -103,11 +109,13 @@ public class LTWUtils {
 							
 							// Add the xml content to the aop.xml file
 							addAspectsToLTWConfigFile(false, aspects, aopFile);
+							copyToOutputFolder(aopFile, project, root.getRawClasspathEntry());
 						}
 						 
 					// Otherwise update the existing file	
 					} else { 
 						addAspectsToLTWConfigFile(true, aspects, ltwConfigFile);
+						copyToOutputFolder(ltwConfigFile, project, root.getRawClasspathEntry());
 					}
 				}
 			}
@@ -117,6 +125,40 @@ public class LTWUtils {
 	}
 	
 	
+	private static void copyToOutputFolder(IFile file, IJavaProject javaProject, IClasspathEntry srcEntry) throws CoreException {
+		IPath outputPath = srcEntry.getOutputLocation();
+        if (outputPath == null) {
+			outputPath = javaProject.getOutputLocation();
+		}
+        outputPath = outputPath.removeFirstSegments(1).makeRelative();   
+        IContainer outputFolder = getContainerForGivenPath(outputPath,javaProject.getProject());        
+        IContainer srcContainer = getContainerForGivenPath(srcEntry.getPath().removeFirstSegments(1),javaProject.getProject());
+        if (!outputFolder.equals(srcContainer)) {
+        	IResource outputFile = outputFolder.getFile(new Path(AOP_XML_LOCATION));
+			if (outputFile.exists()) {
+				AJLog.log("Deleting existing file " + outputFile);//$NON-NLS-1$
+				outputFile.delete(IResource.FORCE, null);
+			}
+			AJLog.log("Copying added file " + file);//$NON-NLS-1$
+			IFolder metainf = (IFolder) ((Workspace)ResourcesPlugin.getWorkspace()).
+				newResource(new Path(outputFolder.getFullPath() + "/META-INF"), //$NON-NLS-1$ 
+					IResource.FOLDER);
+			if(metainf == null || !metainf.exists()) {
+				metainf.create(true,true,null);
+			}
+			file.copy(outputFile.getFullPath(), IResource.FORCE, null);
+			outputFile.setDerived(true);
+			outputFile.refreshLocal(IResource.DEPTH_ZERO, null);			
+        }		
+	}
+
+	private static IContainer getContainerForGivenPath(IPath path, IProject project) {
+		if (path.toOSString().equals("")) { //$NON-NLS-1$
+			return project;
+		}	
+		return project.getFolder(path);
+	}
+
 	/**
 	 * Create a new xml document with an 'aspectj' element that contains 
 	 * one 'aspects' element.
