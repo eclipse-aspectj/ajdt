@@ -11,17 +11,12 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
@@ -30,47 +25,24 @@ import org.eclipse.swt.widgets.Display;
  */
 public class BuildConfigurationTest3 extends VisualTestCase {
 
-	public void testExamples() throws Exception {
-		// tests are all run from one method because the ordering is important 
-		// and JUnit does not guarantee an order
-		beanExampleTest();
-		introductionExampleTest();
-		observerExampleTest();
-		spacewarExampleTest();
-		telecomExampleTest();
-		tjpExampleTest();
-		tracingExampleTest();
-	}	
-
 	/**
 	 * Test the Bean Example Project
 	 * @throws Exception
 	 */
-	public void beanExampleTest() throws Exception {		
+	public void testBeanExample() throws Exception {		
 		startNewWizard();
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();	
-				// Navigate to the bean example
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				if (runningEclipse31) {
-					postKey(SWT.ARROW_DOWN);					
-				}
-				postKey(SWT.ARROW_RIGHT);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_DOWN);
-				postKey(SWT.ARROW_RIGHT);
-				postKey(SWT.ARROW_DOWN);
 				
+				// use text filter to select the right wizard
+				postString("bean"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+			
 				// Create the Bean Example project
 				postKey(SWT.CR);
 				sleep();	
@@ -83,22 +55,28 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Bean Example"); //$NON-NLS-1$
-		testForDefaultBuildFile(project);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
 	}
 
 	/**
 	 * Test the Introduction Example Project
 	 * @throws Exception
 	 */	
-	public void introductionExampleTest() throws Exception {		
+	public void testIntroductionExample() throws Exception {		
 		startNewWizard();	
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();	
-				// Navigate to the Introduction example
-				postKey(SWT.ARROW_DOWN);
+
+				// use text filter to select the right wizard
+				postString("introduction"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				// Create the Introduction Example project
 				postKey(SWT.CR);
 				sleep();	
@@ -110,7 +88,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		// Wait for the project to be created
 		waitForJobsToComplete();	
 		
-		final IWorkspace workspace= JavaPlugin.getWorkspace();		
+		final IWorkspace workspace= AspectJPlugin.getWorkspace();		
 		
 		new DisplayHelper() {
 
@@ -122,21 +100,27 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 
 		IProject project = getProject("Introduction Example"); //$NON-NLS-1$
-		testForDefaultBuildFile(project);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
 	}
 	/**
 	 * Test the Observer Example project
 	 * @throws Exception
 	 */
-	private void observerExampleTest() throws Exception {
+	public void testObserverExample() throws Exception {
 		startNewWizard();		
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();	
-				// Navigate to the Observer example
-				postKey(SWT.ARROW_DOWN);
+				
+				// use text filter to select the right wizard
+				postString("observer"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				// Create the Observer Example project
 				postKey(SWT.CR);
 				sleep();	
@@ -149,21 +133,27 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("Observer Example"); //$NON-NLS-1$
-		testForDefaultBuildFile(project);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
 	}
 	
 	/**
 	 * Test the Spacewar Example project
 	 */
-	private void spacewarExampleTest() {
+	public void testSpacewarExample() {
 		startNewWizard();		
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
-				sleep();	
-				// Navigate to the Spacewar example
-				postKey(SWT.ARROW_DOWN);
+				sleep();
+				
+				// use text filter to select the right wizard
+				postString("spacewar"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				// Create the Spacewar Example project
 				postKey(SWT.CR);
 				sleep();	
@@ -180,27 +170,44 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		
 		// Test that the correct build files have been created and the default build file has not been created
 		IFile buildFile = (IFile)project.findMember("debug." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'debug' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'debug' build configuration file", buildFile); //$NON-NLS-1$
 		
 		buildFile = (IFile)project.findMember("demo." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'demo' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'demo' build configuration file", buildFile); //$NON-NLS-1$
 		
 		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
-		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile);			 //$NON-NLS-1$
+
+		// check that the demo configuration has been applied, such that Debug.aj
+		// is not included
+		IFile debug = (IFile)project.findMember("src/spacewar/Debug.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Debug.aj",debug); //$NON-NLS-1$
+		assertFalse("Debug.aj should NOT be included",BuildConfig.isIncluded(debug)); //$NON-NLS-1$
+		
+		// sanity check that another file in the project IS included
+		IFile ship = (IFile)project.findMember("src/spacewar/Ship.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Ship.aj",ship); //$NON-NLS-1$
+		assertTrue("Ship.aj should be included",BuildConfig.isIncluded(ship)); //$NON-NLS-1$
 	}
 
 	/**
 	 * Test the Telecom Example project
 	 *
 	 */
-	private void telecomExampleTest() {
+	public void testTelecomExample() {
 		startNewWizard();		
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
-				sleep();	
-				// Navigate to the Telecom example
+				sleep();
+				
+				// use text filter to select the right wizard
+				postString("telecom"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				postKey(SWT.ARROW_DOWN);
 				// Create the Spacewar Telecom project
 				postKey(SWT.CR);
@@ -213,7 +220,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		// Wait for the project to be created
 		waitForJobsToComplete();	
 		
-		final IWorkspace workspace= JavaPlugin.getWorkspace();		
+		final IWorkspace workspace= AspectJPlugin.getWorkspace();		
 		new DisplayHelper() {
 			
 			protected boolean condition() {
@@ -226,28 +233,45 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		IProject project = getProject("Telecom Example"); //$NON-NLS-1$
 		// Test that the correct build files have been created and the default build file has not been created
 		IFile buildFile = (IFile)project.findMember("billing." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'billing' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'billing' build configuration file", buildFile); //$NON-NLS-1$
 		
 		buildFile = (IFile)project.findMember("timing." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'timing' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'timing' build configuration file", buildFile); //$NON-NLS-1$
 		
 		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
-		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile);			 //$NON-NLS-1$
+
+		// check that the basic configuration has been applied, such that
+		// Billing.aj is not included
+		IFile billing = (IFile)project.findMember("src/telecom/Billing.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Billing.aj",billing); //$NON-NLS-1$
+		assertFalse("Billing.aj should NOT be included",BuildConfig.isIncluded(billing)); //$NON-NLS-1$
+		
+		// sanity check that another file in the project IS included
+		IFile basic = (IFile)project.findMember("src/telecom/BasicSimulation.java"); //$NON-NLS-1$
+		assertNotNull("Couldn't find BasicSimulation.java",basic); //$NON-NLS-1$
+		assertTrue("BasicSimulation.java should be included",BuildConfig.isIncluded(basic)); //$NON-NLS-1$
+
 	}
 
 	/**
 	 * Test the TJP Example project
 	 * @throws Exception
 	 */
-	private void tjpExampleTest() throws Exception {
+	public void testTjpExample() throws Exception {
 		startNewWizard();		
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();	
-				// Navigate to the TJP example
-				postKey(SWT.ARROW_DOWN);
+							
+				// use text filter to select the right wizard
+				postString("tjp"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				// Create the TJP Example project
 				postKey(SWT.CR);
 				sleep();	
@@ -260,21 +284,28 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		waitForJobsToComplete();	
 		
 		IProject project = getProject("TJP Example"); //$NON-NLS-1$
-		testForDefaultBuildFile(project);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
+
 	}
 
 	/**
 	 * Test for the Tracing Example project
 	 */
-	private void tracingExampleTest() {
+	public void testTracingExampleTest() {
 		startNewWizard();		
 		
 		// Give the wizard chance to pop up
 		Runnable r = new Runnable() {
 			public void run() {
-				sleep();	
-				// Navigate to the Telecom example
-				postKey(SWT.ARROW_DOWN);
+				sleep();
+				
+				// use text filter to select the right wizard
+				postString("tracing"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
 				// Create the Telecom project
 				postKey(SWT.CR);
 				sleep();
@@ -289,33 +320,24 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		IProject project = getProject("Tracing Example"); //$NON-NLS-1$
 		// Test that the correct build files have been created and the default build file has not been created
 		IFile buildFile = (IFile)project.findMember("notrace." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'notrace' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'notrace' build configuration file", buildFile); //$NON-NLS-1$
 		
 		buildFile = (IFile)project.findMember("tracev1." + AJProperties.EXTENSION);		 //$NON-NLS-1$
-		assertTrue("Should have created a 'tracev1' build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNotNull("Should have created a 'tracev1' build configuration file", buildFile); //$NON-NLS-1$
 		
 		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
-		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
-	}
-
-	/**
-	 * Test that the defualt build file has been created and has the correct contents
-	 * @param project
-	 * @throws CoreException
-	 * @throws IOException
-	 */
-	private void testForDefaultBuildFile(IProject project) throws CoreException, IOException {
-		// Test that a build file has been created
-		IFile buildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
-		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile);			 //$NON-NLS-1$
 		
-		// Test that the new build file has the correct contents
-		InputStream stream = buildFile.getContents();
-		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-		String line1 = br.readLine();
-		br.close();
-		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = src/")); //$NON-NLS-1$ //$NON-NLS-2$
-
+		// check that the notrace configuration has been applied, such that
+		// version1/Trace.java is not included
+		IFile trace = (IFile)project.findMember("src/tracing/version1/Trace.java"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Trace.java",trace); //$NON-NLS-1$
+		assertFalse("Travc.java should NOT be included",BuildConfig.isIncluded(trace)); //$NON-NLS-1$
+		
+		// sanity check that another file in the project IS included
+		IFile circle = (IFile)project.findMember("src/tracing/Circle.java"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Circle.java",circle); //$NON-NLS-1$
+		assertTrue("Circle.java should be included",BuildConfig.isIncluded(circle)); //$NON-NLS-1$
 	}
 
 	/**
@@ -334,7 +356,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 	 * @return
 	 */
 	private IProject getProject(final String projectName) {
-		final IWorkspace workspace= JavaPlugin.getWorkspace();		
+		final IWorkspace workspace= AspectJPlugin.getWorkspace();		
 		
 		new DisplayHelper() {
 

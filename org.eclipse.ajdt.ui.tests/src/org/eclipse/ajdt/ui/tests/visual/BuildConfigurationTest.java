@@ -11,14 +11,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.internal.ui.ImageDecorator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -66,6 +65,12 @@ public class BuildConfigurationTest extends VisualTestCase {
 			public void run() {
 				sleep();
 				
+				// use text filter to select the right wizard
+				postString("aspectj project"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+				
 				// Open the 'New AspectJ Project' wizard
 				postKey(SWT.CR);
 
@@ -98,16 +103,15 @@ public class BuildConfigurationTest extends VisualTestCase {
 
 		assertTrue("Should have created a project", project.exists());	 //$NON-NLS-1$
 		
-		// Test that a build file has been created
-		IFile buildFile = checkBuildFileExists(project);
-		
-		// Test that the new build file has the correct contents
-		checkOriginalContents(buildFile);
+		// Test that a build file has NOT been created
+		IFile buildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should NOT have created a build configuration file", buildFile); //$NON-NLS-1$
 
-		// Create a source directory and check that the build file updates correctly
-		addNewSourceFolderAndCheckBuildFile(buildFile);
+
+		// Create a source directory
+		addNewSourceFolder(buildFile);
 		
-		// Create a package and a class and test that they are included in the build
+		// Create a package and a class and test that the class is included in the build
 		addNewPackage();
 		IJavaProject jp = JavaCore.create(project);
 		IPackageFragment p1 = jp.getPackageFragmentRoot(project.findMember("src")).getPackageFragment("p1"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -117,6 +121,8 @@ public class BuildConfigurationTest extends VisualTestCase {
 		addNewClass();				
 		IResource res = project.findMember("src/p1/Hello.java"); //$NON-NLS-1$
 		assertNotNull("New class Hello.java wan't created",res); //$NON-NLS-1$
+		
+		assertTrue("New class Hello.java should be included",BuildConfig.isIncluded(res));
 		
 		DecoratingJavaLabelProvider djlp = (DecoratingJavaLabelProvider)packageExplorer.getTreeViewer().getLabelProvider();
 		Image image = djlp.getImage(p1);
@@ -133,11 +139,6 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey('r');	
 		postKeyUp(SWT.ALT);
 		postKey('s');
-		if(!runningEclipse31) {
-			postKey('s');
-			postKey(SWT.ARROW_RIGHT);
-			postKey(SWT.ARROW_DOWN);
-		}		
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.CR);
 		
@@ -228,7 +229,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 		waitForJobsToComplete();
 	}
 
-	private void addNewSourceFolderAndCheckBuildFile(IFile buildFile) throws CoreException, IOException {
+	private void addNewSourceFolder(IFile buildFile) throws CoreException, IOException {
 		PackageExplorerPart.getFromActivePerspective().setFocus();
 		
 		postKeyDown(SWT.ALT);
@@ -242,10 +243,8 @@ public class BuildConfigurationTest extends VisualTestCase {
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
-		if (runningEclipse31) {
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);			
-		}
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);			
 		postKey(SWT.CR);
 		
 		Runnable r = new Runnable() {
@@ -258,30 +257,6 @@ public class BuildConfigurationTest extends VisualTestCase {
 		new Thread(r).start();
 		
 		waitForJobsToComplete();
-	
-		InputStream stream = buildFile.getContents();
-		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-		String line1 = br.readLine();
-		br.close();
-		assertTrue("Contents of the build configuration file are wrong after adding a source folder", line1.trim().equals("src.includes = src/"));		 //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	/**
-	 * Check that when the build file is first created it has the correct contents
-	 * @param buildFile
-	 */
-	private void checkOriginalContents(IFile buildFile) throws CoreException, IOException {
-		InputStream stream = buildFile.getContents();
-		BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-		String line1 = br.readLine();
-		br.close();
-		assertTrue("Original contents of the build configuration file are wrong", line1.trim().equals("src.includes = /")); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	private IFile checkBuildFileExists(IProject project) {
-		IFile buildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
-		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
-		return buildFile;
-	}
-	
 }
