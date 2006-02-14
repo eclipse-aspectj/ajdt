@@ -26,6 +26,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -66,6 +68,11 @@ public abstract class UITestCase extends TestCase {
 		super.tearDown();
 		waitForJobsToComplete();
 		closeAllEditors();
+		ILaunchConfiguration[] launchConfigurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
+		for (int i = 0; i < launchConfigurations.length; i++) {
+			ILaunchConfiguration configuration = launchConfigurations[i];
+			configuration.delete();
+		}
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {
 			IProject project = allProjects[i];
