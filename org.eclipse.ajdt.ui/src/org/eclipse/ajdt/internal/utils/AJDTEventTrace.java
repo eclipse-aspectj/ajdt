@@ -74,9 +74,9 @@ public class AJDTEventTrace {
 		
 		eventData.append( "\n\tAspectJ Compiler version: " ); //$NON-NLS-1$
 		eventData.append( Ajde.getDefault().getVersion() );
-		eventData.append( "\n\tusingVisualiser="+AspectJUIPlugin.usingVisualiser );
-		eventData.append( "\n\tusingXref="+AspectJUIPlugin.usingXref );
-		eventData.append( "\n\tusingCUprovider="+AspectJPlugin.usingCUprovider );
+		eventData.append( "\n\tusingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
+		eventData.append( "\n\tusingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
+		eventData.append( "\n\tusingCUprovider="+AspectJPlugin.usingCUprovider ); //$NON-NLS-1$
 		
 		IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
 		String[] props = AspectJUIPlugin.getDefault().getPluginPreferences().propertyNames();
