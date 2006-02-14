@@ -33,13 +33,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.ClasspathEntry;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.internal.corext.buildpath.ClasspathModifier;
-import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 
 public class BuildConfigurationUtils {
 	
@@ -47,52 +42,54 @@ public class BuildConfigurationUtils {
 		File file = ifile.getLocation().toFile();
 		IProject project = ifile.getProject(); 
 		try {
-			List cpListEntries = ClasspathModifier.getExistingEntries(JavaCore.create(project));
+			IJavaProject jp = JavaCore.create(project);
+			IClasspathEntry[] entries = jp.getRawClasspath();
 			List srcIncludes = new ArrayList();
 			List srcExcludes = new ArrayList();
 			List srcInclusionpatterns = new ArrayList();
-			for (Iterator iter = cpListEntries.iterator(); iter.hasNext();) {
-				CPListElement element = (CPListElement) iter.next();
-				if (element.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					IClasspathEntry entry = element.getClasspathEntry();
+			for (int i = 0; i < entries.length; i++) {
+				IClasspathEntry entry = entries[i];
+				if(entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IPath srcpath = entry.getPath();
 					srcpath = srcpath.removeFirstSegments(1);
-					srcIncludes.add(srcpath.toString() + "/");
+					String path = srcpath.toString().trim();
+					if(!path.endsWith("/")) { //$NON-NLS-1$
+						path = path + "/"; //$NON-NLS-1$
+					}
+					srcIncludes.add(path);
 					IPath[] inclusions = entry.getInclusionPatterns();
-					for (int i = 0; i < inclusions.length; i++) {
-						srcInclusionpatterns.add((srcpath.toString().length() > 0 ? srcpath + "/" : "" ) + inclusions[i]);	
+					for (int j = 0; j < inclusions.length; j++) {
+						srcInclusionpatterns.add((path.length() > 1 ? path : "" ) + inclusions[j]); //$NON-NLS-1$	
 					}
 					IPath[] exclusions = entry.getExclusionPatterns();
-					for (int i = 0; i < exclusions.length; i++) {
-						srcExcludes.add((srcpath.toString().length() > 0 ? srcpath + "/" : "" ) + exclusions[i]); 
+					for (int j = 0; j < exclusions.length; j++) {
+						srcExcludes.add((path.length() > 1 ? path : "" ) + exclusions[j]);  //$NON-NLS-1$
 					}					
 				}
 			}
 			BufferedWriter bw = null;
 			try {
 				bw = new BufferedWriter(new FileWriter(file));
-				printProperties(bw, "src.includes", srcIncludes);
-				printProperties(bw, "src.excludes", srcExcludes);
-				printProperties(bw, "src.inclusionpatterns", srcInclusionpatterns);		
+				printProperties(bw, "src.includes", srcIncludes); //$NON-NLS-1$
+				printProperties(bw, "src.excludes", srcExcludes); //$NON-NLS-1$
+				printProperties(bw, "src.inclusionpatterns", srcInclusionpatterns);	 //$NON-NLS-1$	
 			} catch (IOException e) {
 			} finally {
 				if (bw != null) {				
 					try {
 						bw.close();
 					} catch (IOException e) {
-						e.printStackTrace();
 					}
 				}
 			}
 		} catch (JavaModelException e) {
-			e.printStackTrace();
 		}
 	}
 
 
 	private static void printProperties(BufferedWriter bw, String key, List values) throws IOException {
 		if (values.size() > 0) {
-			bw.write(key + " = ");
+			bw.write(key + " = "); //$NON-NLS-1$
 			boolean first = true;
 			for (Iterator iter = values.iterator(); iter.hasNext();) {
 				String value = (String) iter.next();
@@ -100,13 +97,13 @@ public class BuildConfigurationUtils {
 					for (int i = 0; i < key.length(); i++) {
 						bw.write(' ');
 					}
-					bw.write("   ");
+					bw.write("   "); //$NON-NLS-1$
 				}
 				first = false;
 				bw.write(value);
 				boolean last = !iter.hasNext();
 				if (!last) {
-					bw.write(",\\");
+					bw.write(",\\"); //$NON-NLS-1$
 				}
 				bw.newLine();
 			}			
@@ -120,11 +117,11 @@ public class BuildConfigurationUtils {
 		try {
 			IJavaProject project = JavaCore.create(ifile.getProject());
 			List classpathEntries = new ArrayList();
-			List cplistelements = ClasspathModifier.getExistingEntries(project);
-			for (Iterator iter = cplistelements.iterator(); iter.hasNext();) {
-				CPListElement element = (CPListElement) iter.next();
-				if (element.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
-					classpathEntries.add(element.getClasspathEntry());
+			IClasspathEntry[] originalEntries = project.getRawClasspath();
+			for (int i = 0; i < originalEntries.length; i++) {
+				IClasspathEntry entry = originalEntries[i];
+				if(entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {			
+					classpathEntries.add(entry);
 				}
 			}
 			List srcFolders = new ArrayList();
@@ -139,13 +136,13 @@ public class BuildConfigurationUtils {
 			while (iter.hasMoreElements()) {
 				String name = iter.nextElement().toString();
 				String value = properties.get(name).toString();
-				String[] values = value.split(",");
-				if (name.equals("src.includes")) {
+				String[] values = value.split(","); //$NON-NLS-1$
+				if (name.equals("src.includes")) { //$NON-NLS-1$
 					for (int i = 0; i < values.length; i++) {
 						String inc = values[i];
-						if(inc.equals("/")) {
+						if(inc.equals("/")) { //$NON-NLS-1$
 							srcFolders.add(inc);
-						} else if(inc.indexOf("/") == inc.length() - 1) {
+						} else if(inc.indexOf("/") == inc.length() - 1) { //$NON-NLS-1$
 							if(project.getProject().getFolder(inc) != null &&
 									project.getProject().getFolder(inc).exists()) {
 								srcFolders.add(inc);								
@@ -159,13 +156,13 @@ public class BuildConfigurationUtils {
 			// second stage - identify include and exclude filters
 			iter = properties.keys();
 			if(srcFolders.isEmpty()) {
-				srcFolders.add("");
+				srcFolders.add(""); //$NON-NLS-1$
 			}
 			while (iter.hasMoreElements()) {
 				String name = iter.nextElement().toString();
 				String value = properties.get(name).toString();
-				String[] values = value.split(",");
-				if (name.equals("src.inclusionpatterns")) {
+				String[] values = value.split(","); //$NON-NLS-1$
+				if (name.equals("src.inclusionpatterns")) { //$NON-NLS-1$
 					for (int i = 0; i < values.length; i++) {
 						String inc = values[i];
 						for (Iterator iterator = srcFolders.iterator(); iterator
@@ -181,13 +178,13 @@ public class BuildConfigurationUtils {
 							}
 						}
 					}
-				} else if (name.equals("src.excludes")) {
+				} else if (name.equals("src.excludes")) { //$NON-NLS-1$
 					for (int i = 0; i < values.length; i++) {
 						String exc = values[i];
 						for (Iterator iterator = srcFolders.iterator(); iterator
 						.hasNext();) {
 							String srcFolder = (String) iterator.next();
-							if(srcFolder.equals("/") || exc.startsWith(srcFolder)) {
+							if(srcFolder.equals("/") || exc.startsWith(srcFolder)) { //$NON-NLS-1$
 								List excs = (List) srcFoldersToExcludes.get(srcFolder);
 								if (excs == null) {
 									excs = new ArrayList();
@@ -234,13 +231,14 @@ public class BuildConfigurationUtils {
 						inclusionPatterns[j] = inclusionPath;
 						
 					}
-					IClasspathEntry classpathEntry = new ClasspathEntry(IPackageFragmentRoot.K_SOURCE, IClasspathEntry.CPE_SOURCE, path, ClasspathEntry.INCLUDE_ALL, exclusionPatterns, null, null, null, true, ClasspathEntry.NO_ACCESS_RULES, false, ClasspathEntry.NO_EXTRA_ATTRIBUTES);
+					IClasspathEntry classpathEntry = JavaCore.newSourceEntry(path, exclusionPatterns);
+						//new ClasspathEntry(IPackageFragmentRoot.K_SOURCE, IClasspathEntry.CPE_SOURCE, path, ClasspathEntry.INCLUDE_ALL, exclusionPatterns, null, null, null, true, ClasspathEntry.NO_ACCESS_RULES, false, ClasspathEntry.NO_EXTRA_ATTRIBUTES);
 					entries[i] = classpathEntry;
 				} else {
 					entries[i] = (IClasspathEntry) classpathEntries.get(i-srcFolders.size());
 				}
 			}
-			((JavaProject)project).setRawClasspath(entries, null);
+			project.setRawClasspath(entries, null);
 		} catch (FileNotFoundException e) {
 		} catch (JavaModelException e) {
 		} catch (IOException e) {
