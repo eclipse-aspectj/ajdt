@@ -1,0 +1,43 @@
+<project name="org.aspectj.tutorial.exercises" default="createArchive">
+
+<description>
+Repackage examples into archives
+</description>
+
+
+<target name="createArchive">
+  <property name="exampleDir" location="${basedir}/examples"/>
+  <property name="archiveDir" location="${basedir}/archive"/>
+
+  <delete dir="${archiveDir}"/>
+  <mkdir dir="${archiveDir}"/>
+    
+  <antcall target="packageExample">
+    <param name="example" value="bean"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="introduction"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="observer"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="spacewar"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="telecom"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="tjp"/>
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="tracing"/>
+  </antcall>	
+</target>
+    
+<target name="packageExample">
+  <zip destfile="${archiveDir}/${example}.jar"
+  	basedir="${exampleDir}/${example}"/>
+</target>
+
+</project>
