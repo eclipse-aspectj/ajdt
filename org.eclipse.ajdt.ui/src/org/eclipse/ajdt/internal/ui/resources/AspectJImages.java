@@ -229,11 +229,6 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/buildconfig/tick.gif"); //$NON-NLS-1$
 	public static final AJDTIcon BC_FILE = new AJDTIcon(
 				"icons/buildconfig/buildconfig_file.gif"); //$NON-NLS-1$
-	public static final AJDTIcon BC_SELECTED_FILE = new AJDTIcon(
-				"icons/buildconfig/selected_buildconfig_file.gif"); //$NON-NLS-1$
-	public static final AJDTIcon BC_HALF_FILLED_PACKAGE = new AJDTIcon(
-				"icons/buildconfig/halffilledpackage.gif"); //$NON-NLS-1$
-
 	public static final AJDTIcon RESET_COLOURS = new AJDTIcon(
 				"icons/actions/reset_colours.gif"); //$NON-NLS-1$
 	

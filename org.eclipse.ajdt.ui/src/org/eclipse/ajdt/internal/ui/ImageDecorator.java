@@ -58,8 +58,6 @@ public class ImageDecorator implements ILabelDecorator {
 	private boolean preventRecursion = false;
 	private TreeHierarchyLayoutProblemsDecorator problemsDecorator;
 	private DecoratorManager decman;
-	private ImageDescriptor halfFilledPackageID;
-	private ImageDescriptor activeConfigFileImage;
 	
 	private AspectJImages iconRegistry = AspectJImages.instance();
 	
@@ -70,8 +68,6 @@ public class ImageDecorator implements ILabelDecorator {
 		listeners = new ArrayList(2);
 		problemsDecorator = new TreeHierarchyLayoutProblemsDecorator();
 		decman = WorkbenchPlugin.getDefault().getDecoratorManager();
-		halfFilledPackageID = AspectJImages.BC_HALF_FILLED_PACKAGE.getImageDescriptor();
-		activeConfigFileImage = AspectJImages.BC_SELECTED_FILE.getImageDescriptor();
 	}
 
 	public void addListener(ILabelProviderListener listener)  {
