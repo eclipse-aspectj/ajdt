@@ -295,18 +295,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 			if (unit != null) {
 				synchronized (unit) {
 					performSave(false, progressMonitor);
-//					OpenableElementInfo info;
-//					try {
-//						info = (OpenableElementInfo) ((JavaElement) unit
-//								.getParent()).getElementInfo();
-//						info.removeChild(unit); // Remove identical CompilationUnit if it exists
-//						info.addChild(unit);
-//					} catch (JavaModelException e) {
-//					}					
 				}
 			} else {
 				performSave(false, progressMonitor);
-				System.out.println("null unit");
 			}
 		}
 
