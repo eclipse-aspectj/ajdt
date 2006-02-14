@@ -10,13 +10,7 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

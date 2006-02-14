@@ -21,8 +21,6 @@ import java.io.StringReader;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.core.resources.IFile;
@@ -92,11 +90,6 @@ public class BuilderTest extends UITestCase {
 		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
 		assertNotNull("package p1 should not be null", p1); //$NON-NLS-1$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 		
 		IFile newFile = null;
@@ -171,11 +164,6 @@ public class BuilderTest extends UITestCase {
 		}
 		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -250,11 +238,6 @@ public class BuilderTest extends UITestCase {
 		assertNotNull("src2 folder should not be null", src2); //$NON-NLS-1$
 		assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -327,11 +310,6 @@ public class BuilderTest extends UITestCase {
 		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
 		assertNotNull("package pack should not be null", pack); //$NON-NLS-1$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -404,11 +382,6 @@ public class BuilderTest extends UITestCase {
 		assertNotNull("src folder should not be null", src); //$NON-NLS-1$
 		assertNotNull("package p1 should not be null", p1); //$NON-NLS-1$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -519,12 +492,6 @@ public class BuilderTest extends UITestCase {
 				
 		assertFalse("newFile.txt should not exist under src tree! (path=" + path + ")",new File(path).exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		
-		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(project);
 		waitForJobsToComplete();
 
 		IFile newFile = null;
@@ -587,11 +554,6 @@ public class BuilderTest extends UITestCase {
 		IFolder newBinPackage = bin.getFolder("newPackage"); //$NON-NLS-1$
 		assertFalse("newPackage should not exist under bin tree! (path=" + binPath + ")",newBinPackage.exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 		
 		String str= "AnotherSimpleAJProject" + File.separator + "src"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -661,11 +623,6 @@ public class BuilderTest extends UITestCase {
 		IFolder newBinFolder = bin.getFolder("newFolder"); //$NON-NLS-1$
 		assertFalse("newFolder should not exist under bin tree! (path=" + binPath + ")",newBinFolder.exists()); //$NON-NLS-1$ //$NON-NLS-2$
 		
-		// need to set this because otherwise a full build is
-		// forced (which isn't how it behaves when run this test
-		// manually)
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-			.getProjectBuildConfigurator(simpleProject);
 		waitForJobsToComplete();
 
 		IFolder f = src.getFolder("newFolder"); //$NON-NLS-1$

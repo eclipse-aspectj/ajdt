@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
+import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -40,15 +40,13 @@ public class Bug102493Test extends VisualTestCase {
 		final IFile class3 = src2.getFile("pack/Class3.java"); //$NON-NLS-1$
 		assertTrue("Should have found a file called Class3.java", class3 //$NON-NLS-1$
 				.exists());
-		assertTrue("Class3 should be included in the build", DefaultBuildConfigurator //$NON-NLS-1$
-				.getBuildConfigurator().getProjectBuildConfigurator(project)
-				.getActiveBuildConfiguration().isIncluded(class3));
+		assertTrue("Class3 should be included in the build", BuildConfig.isIncluded(class3));
 
 		packageExplorer.setFocus();
 		packageExplorer.tryToReveal(src2);
 
 		IFile buildFile = (IFile) project
-				.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+				.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		openFileInDefaultEditor(buildFile, true);
 		waitForJobsToComplete();
 		Runnable r = new Runnable() {
@@ -70,17 +68,13 @@ public class Bug102493Test extends VisualTestCase {
 
 		new DisplayHelper() {
 			protected boolean condition() {
-				return !DefaultBuildConfigurator.getBuildConfigurator()
-						.getProjectBuildConfigurator(project)
-						.getActiveBuildConfiguration().isIncluded(class3);
+				return !BuildConfig.isIncluded(class3);
 			}
 
 		}.waitForCondition(Display.getDefault(), 5000);
 
 		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
-				DefaultBuildConfigurator.getBuildConfigurator()
-						.getProjectBuildConfigurator(project)
-						.getActiveBuildConfiguration().isIncluded(class3));
+				BuildConfig.isIncluded(class3));
 
 		// Add a third source folder
 		postKeyDown(SWT.ALT);
@@ -113,9 +107,7 @@ public class Bug102493Test extends VisualTestCase {
 		IFolder src3 = project.getFolder("src3"); //$NON-NLS-1$
 		assertTrue("Should have found a folder called src3", src3.exists()); //$NON-NLS-1$
 		assertFalse("Class3 should not be included in the build", //$NON-NLS-1$
-				DefaultBuildConfigurator.getBuildConfigurator()
-						.getProjectBuildConfigurator(project)
-						.getActiveBuildConfiguration().isIncluded(class3));
+				BuildConfig.isIncluded(class3));
 
 	}
 

@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.ajdt.internal.ui.ImageDecorator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -279,7 +279,7 @@ public class BuildConfigurationTest extends VisualTestCase {
 	}
 
 	private IFile checkBuildFileExists(IProject project) {
-		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
+		IFile buildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
 		return buildFile;
 	}

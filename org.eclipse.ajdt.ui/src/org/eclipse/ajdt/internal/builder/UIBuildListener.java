@@ -24,6 +24,7 @@ import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
@@ -156,8 +157,7 @@ public class UIBuildListener implements IAJBuildListener {
 //		if (!props.isProjectSourceFileListKnown(project)) {
 			// optimization: only determine the list of source files and write the .lst file
 			// if the list has changed
-			List projectFiles = props.getProjectSourceFiles(project,
-					CoreUtils.ASPECTJ_SOURCE_FILTER);
+			List projectFiles = BuildConfig.getIncludedSourceFiles(project);
 			writeBuildConfigFile(projectFiles, project);
 			// Mark the list as known so we don't have to rewrite the lst file for every build.
 			// We then need to set this to false anytime the build config does change.

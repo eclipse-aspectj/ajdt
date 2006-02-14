@@ -303,7 +303,6 @@ public class UIMessages extends NLS {
 	public static String PulldownBuildselectorMenu_no_open_ajproject;
 	public static String PulldownBuildselectorMenu_build_error;
 	public static String CompilerMonitor_building_Project;
-	public static String CompilerMonitor_default_config;
 	public static String CompilerMonitor_weaving;
 	public static String CompilerTaskListManager_Error_creating_marker;
 	public static String CompilerTaskListManager_Error_adding_problem_markers;

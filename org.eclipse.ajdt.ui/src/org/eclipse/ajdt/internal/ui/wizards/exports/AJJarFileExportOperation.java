@@ -28,10 +28,8 @@ import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.zip.ZipException;
 
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -468,9 +466,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	private void exportClassFiles(IProgressMonitor progressMonitor, IPackageFragmentRoot pkgRoot, IResource resource, IJavaProject jProject, IPath destinationPath) {
 		if (fJarPackage.areClassFilesExported() && isJavaFile(resource) && pkgRoot != null) {
 			// AspectJ Change Begin
-			IBuildConfigurator bc = DefaultBuildConfigurator.getBuildConfigurator();
-			IProjectBuildConfigurator pbc = bc.getProjectBuildConfigurator(resource.getProject());
-			if(pbc.getActiveBuildConfiguration().isIncluded(resource)) {
+			if(BuildConfig.isIncluded(resource)) {
 			// AspectJ Change End
 				try {
 					if (!jProject.isOnClasspath(resource))

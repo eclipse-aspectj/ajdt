@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -179,13 +179,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		assertTrue("Should have created a project", project.exists());	 //$NON-NLS-1$
 		
 		// Test that the correct build files have been created and the default build file has not been created
-		IFile buildFile = (IFile)project.findMember("debug." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		IFile buildFile = (IFile)project.findMember("debug." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'debug' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		buildFile = (IFile)project.findMember("demo." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		buildFile = (IFile)project.findMember("demo." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'demo' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
 	}
 
@@ -225,13 +225,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 
 		IProject project = getProject("Telecom Example"); //$NON-NLS-1$
 		// Test that the correct build files have been created and the default build file has not been created
-		IFile buildFile = (IFile)project.findMember("billing." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		IFile buildFile = (IFile)project.findMember("billing." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'billing' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		buildFile = (IFile)project.findMember("timing." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		buildFile = (IFile)project.findMember("timing." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'timing' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
 	}
 
@@ -288,13 +288,13 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		
 		IProject project = getProject("Tracing Example"); //$NON-NLS-1$
 		// Test that the correct build files have been created and the default build file has not been created
-		IFile buildFile = (IFile)project.findMember("notrace." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		IFile buildFile = (IFile)project.findMember("notrace." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'notrace' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		buildFile = (IFile)project.findMember("tracev1." + BuildConfiguration.EXTENSION);		 //$NON-NLS-1$
+		buildFile = (IFile)project.findMember("tracev1." + AJProperties.EXTENSION);		 //$NON-NLS-1$
 		assertTrue("Should have created a 'tracev1' build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
-		IFile defaultBuildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertTrue("Should not have created a default build configuration file", defaultBuildFile == null);			 //$NON-NLS-1$
 	}
 
@@ -306,7 +306,7 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 	 */
 	private void testForDefaultBuildFile(IProject project) throws CoreException, IOException {
 		// Test that a build file has been created
-		IFile buildFile = (IFile)project.findMember(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE);		
+		IFile buildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertTrue("Should have created a build configuration file", buildFile.exists()); //$NON-NLS-1$
 		
 		// Test that the new build file has the correct contents

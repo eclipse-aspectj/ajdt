@@ -17,18 +17,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -786,12 +784,10 @@ public class AJdocOptionsManager {
 			// AspectJ Extension - we need to get the included files from the build configuration
 			if (curr instanceof IJavaProject) {
 				IJavaProject jp = (IJavaProject)curr;
-				IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(jp);
-				if (pbc != null){
-					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-					if (bc != null){
-						toolArgs.addAll(bc.getIncludedJavaFileNames(CoreUtils.ASPECTJ_SOURCE_FILTER));
-					}
+				List files = BuildConfig.getIncludedSourceFiles(jp.getProject());
+				for (Iterator iter = files.iterator(); iter.hasNext();) {
+					IFile f = (IFile) iter.next();
+					toolArgs.add(f.getLocation().toOSString());
 				}
 			}
 			// AspectJ Extension end

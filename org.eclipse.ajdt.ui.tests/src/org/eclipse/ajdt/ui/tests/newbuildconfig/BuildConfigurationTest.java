@@ -15,12 +15,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.List;
 
-import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -167,8 +166,8 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 	
 	private void checkIncluded(int numFiles) {
-		IBuildConfiguration bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project).getActiveBuildConfiguration();
-		assertEquals(numFiles, bc.getIncludedJavaFiles(CoreUtils.ASPECTJ_SOURCE_FILTER).size());
+		List included = BuildConfig.getIncludedSourceFiles(project);
+		assertEquals(numFiles, included.size());
 	}
 	
 	
@@ -176,15 +175,13 @@ public class BuildConfigurationTest extends UITestCase {
 		IFile file = project.getFile(filename);
 		assertNotNull(file);
 		assertTrue(file.exists());
-		IBuildConfiguration bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project).getActiveBuildConfiguration();
-		assertFalse(bc.isIncluded(file));
+		assertFalse(BuildConfig.isIncluded(file));
 	}
 
 	private void checkFileIncluded(String filename) {
 		IFile file = project.getFile(filename);
 		assertNotNull(file);
 		assertTrue(file.exists());
-		IBuildConfiguration bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project).getActiveBuildConfiguration();
-		assertTrue(bc.isIncluded(file));
+		assertTrue(BuildConfig.isIncluded(file));
 	}
 }

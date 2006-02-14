@@ -32,9 +32,6 @@ import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -57,37 +54,6 @@ import org.eclipse.jdt.core.JavaModelException;
  */
 public class ProjectProperties extends CoreProjectProperties  {
 	
-	/**
-	 * All the source files in the current project, as a List of java.io.Files.
-	 */
-	public List getProjectSourceFiles() {
-		IProject activeProject = AspectJPlugin.getDefault()
-				.getCurrentProject();
-		return getProjectSourceFiles(activeProject,
-				CoreUtils.ASPECTJ_SOURCE_FILTER);
-	}
-
-	/**
-	 * version to use when you know the project
-	 */
-	public List getProjectSourceFiles(IProject project,
-			CoreUtils.FilenameFilter filter) {
-
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		if (pbc != null) {
-			IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-			if (bc != null) {
-				return bc.getIncludedJavaFiles(filter);
-			} else {
-				// no build.ajproperties, revert to default behaviour (build everything)
-				return super.getProjectSourceFiles();
-			}
-		}
-		return new ArrayList(0);
-
-	}
-
 	/*
 	 * @see ProjectPropertiesAdapter#getExecutionArgs()
 	 */

@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,16 +25,13 @@ import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.CoreUtils;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
-import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -96,28 +94,15 @@ public class CoreProjectProperties implements IProjectProperties {
 		return currentLstFile;
 	}
 
-	public List getProjectSourceFiles() {
-		// TODO Use build configs when available in core plugin
-		// include all source files for now
+	public List /*java.io.File*/ getProjectSourceFiles() {
 		IProject project = AspectJPlugin.getDefault().getCurrentProject();
-		List sourceFiles = new ArrayList();
-		try {
-			IJavaProject jp = JavaCore.create(project);
-			IClasspathEntry[] cpes = jp.getRawClasspath();
-			for (int i = 0; i < cpes.length; i++) {
-				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-					IPath path = cpes[i].getPath();
-					IResource res = project.findMember(path
-							.removeFirstSegments(1));
-					if ((res != null) && (res instanceof IContainer)) {
-						List l = allFiles((IContainer) res);
-						sourceFiles.addAll(l);
-					}
-				}
-			}
-		} catch (JavaModelException e) {
+		List files = BuildConfig.getIncludedSourceFiles(project);
+		List iofiles = new ArrayList(files.size());
+		for (Iterator iter = files.iterator(); iter.hasNext();) {
+			IFile f = (IFile) iter.next();
+			iofiles.add(f.getLocation().toOSString());
 		}
-		return sourceFiles;
+		return iofiles;
 	}
 
 	public void setProjectSourceFileListKnown(IProject project, boolean known) {
@@ -130,27 +115,6 @@ public class CoreProjectProperties implements IProjectProperties {
 			return false;
 		}
 		return known.booleanValue();
-	}
-
-	//return a list of all file resources in the given folder, including all
-	// sub-folders
-	// copied from BuildProperties in UI plugin
-	private List allFiles(IContainer folder) {
-		final List contents = new ArrayList();
-		try {
-			folder.accept(new IResourceVisitor() {
-				public boolean visit(IResource res) {
-					if (res.getType() == IResource.FILE
-							&& CoreUtils.ASPECTJ_SOURCE_FILTER.accept(res
-									.getName())) {
-						contents.add(res.getLocation().toFile());
-					}
-					return true;
-				}
-			});
-		} catch (CoreException e) {
-		}
-		return contents;
 	}
 
 	/*

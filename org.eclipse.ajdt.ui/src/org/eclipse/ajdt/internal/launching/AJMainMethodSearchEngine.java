@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -246,7 +246,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		try {
 			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
 				AJCompilationUnit element = (AJCompilationUnit) iter.next();
-				if (DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(element.getJavaProject()).getActiveBuildConfiguration().isIncluded(element.getCorrespondingResource())) {
+				if (BuildConfig.isIncluded(element.getCorrespondingResource())) {
 					IType[] types = element.getAllTypes();
 					for (int i = 0; i < types.length; i++) {
 						IType type = types[i];

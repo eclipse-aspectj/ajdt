@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.internal.launching.LTWUtils;
-import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

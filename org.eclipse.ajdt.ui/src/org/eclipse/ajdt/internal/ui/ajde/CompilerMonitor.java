@@ -20,9 +20,6 @@ import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -31,7 +28,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.osgi.util.NLS;
 
 /**
  * The compiler monitor interface is used by the AspectJ builder. Just before
@@ -147,24 +143,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                 public void run() {
                     if (monitor != null) {
                         if (isLocalBuild) {
-                            IProjectBuildConfigurator pbc = DefaultBuildConfigurator
-                                    .getBuildConfigurator()
-                                    .getActiveProjectBuildConfigurator();
-                            if (pbc != null) {
-								String configName;
-								IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-								if (bc!=null) {
-									configName = bc.getName();
-								} else {
-									configName = UIMessages.CompilerMonitor_default_config;
-								}
-								monitor
-										.setTaskName(NLS
-												.bind(
-														UIMessages.CompilerMonitor_building_Project,
-														configName));
-							}
-                        }
+							monitor.setTaskName(UIMessages.CompilerMonitor_building_Project);
+                       }
                     }// end if
                 }// end run method
             });

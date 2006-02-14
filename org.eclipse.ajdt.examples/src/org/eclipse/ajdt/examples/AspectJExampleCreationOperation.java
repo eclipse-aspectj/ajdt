@@ -13,8 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

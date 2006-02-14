@@ -8,12 +8,13 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.newbuildconfig;
+package org.eclipse.ajdt.internal.buildpath;
 
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -51,11 +52,11 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 			String defaultFileName = UIMessages.BCDialog_SaveBuildConfigurationAs_default;
 			String fileName = AJDTUtils.getFreeFileName(
 					currentProject, defaultFileName,
-					IBuildConfiguration.EXTENSION);
+					AJProperties.EXTENSION);
 	
 			IInputValidator validator = new IInputValidator() {
 				public String isValid(String input) {
-	                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + IBuildConfiguration.EXTENSION, IResource.FILE); // $NON-NLS-1$
+	                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + AJProperties.EXTENSION, IResource.FILE); // $NON-NLS-1$
 	                if (!status.isOK()) {
 	                    return status.getMessage();
 	                }
@@ -106,7 +107,7 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 
 	IFile getFile(IProject project, String name) {
 		return project.getFile(
-				name + "." + IBuildConfiguration.EXTENSION); //$NON-NLS-1$
+				name + "." + AJProperties.EXTENSION); //$NON-NLS-1$
 	}
 
 

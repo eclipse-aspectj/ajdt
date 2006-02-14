@@ -17,8 +17,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.ajdt.exports.AJAntScript;
 import org.eclipse.ajdt.exports.AJCTask;

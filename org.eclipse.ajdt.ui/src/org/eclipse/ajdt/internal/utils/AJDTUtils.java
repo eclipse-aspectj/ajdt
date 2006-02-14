@@ -34,8 +34,6 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -196,9 +194,6 @@ public class AJDTUtils {
 			// Checks if the plugin already has the plugin dependency
 			// before adding it, this avoids duplication
 			if (!hasAJPluginDependency(project)) {
-				IProjectBuildConfigurator pbc =
-					DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project);
-				pbc.getActiveBuildConfiguration();
 				getAndPrepareToChangePDEModel(project);
 				addAJPluginDependency(project);
 			}

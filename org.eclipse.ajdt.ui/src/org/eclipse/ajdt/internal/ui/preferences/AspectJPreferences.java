@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -51,8 +50,6 @@ public class AspectJPreferences {
 	public static final String AJDE_JAR = "ajde.jar"; //$NON-NLS-1$
 
 	public static final String JAVA_OR_AJ_EXT = "aspectjPreferences.fileExt"; //$NON-NLS-1$
-
-	public static final String ACTIVE_CONFIG = "org.eclipse.ajdt.ui.activeBuildConfiguration"; //$NON-NLS-1$
 
 	public static final String AUTOBUILD_SUPPRESSED = "org.eclipse.ajdt.ui.preferences.autobuildSuppressed"; //$NON-NLS-1$
 
@@ -464,29 +461,6 @@ public class AspectJPreferences {
 	}
 	
 	// Project scope preferences
-
-	public static String getActiveBuildConfigurationName(IProject project) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJUIPlugin.PLUGIN_ID);
-		return projectNode.get(ACTIVE_CONFIG, ""); //$NON-NLS-1$
-	}
-
-	public static void setActiveBuildConfigurationName(IProject project,
-			String configName) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJUIPlugin.PLUGIN_ID);
-		projectNode.put(ACTIVE_CONFIG, configName);
-		if (configName
-				.equals(BuildConfiguration.STANDARD_BUILD_CONFIGURATION_FILE)) {
-			projectNode.remove(ACTIVE_CONFIG);
-		}
-		try {
-			projectNode.flush();
-		} catch (BackingStoreException e) {
-		}
-	}
 
 	public static void setCompilerOptions(IProject project, String value) {
 		IScopeContext projectScope = new ProjectScope(project);

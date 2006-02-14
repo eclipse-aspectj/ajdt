@@ -14,12 +14,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -57,13 +57,12 @@ public class RenamingUtils {
 
 	public static void updateBuildConfigurations(Map oldNamesToNewNames,
 			IProject project, IProgressMonitor monitor) {
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		IFile[] buildConfigs = pbc.getConfigurationFiles();
-		for (int i = 0; i < buildConfigs.length; i++) {
+		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
+		for (Iterator iter = buildConfigs.iterator(); iter.hasNext();) {
+			IFile buildConfig = (IFile) iter.next();
 			BufferedReader br = null;
 			try {
-				br = new BufferedReader(new InputStreamReader(buildConfigs[i]
+				br = new BufferedReader(new InputStreamReader(buildConfig
 						.getContents()));
 			} catch (CoreException e) {
 				continue;
@@ -72,9 +71,9 @@ public class RenamingUtils {
 			try {
 				String line = br.readLine();
 				while (line != null) {
-					for (Iterator iter = oldNamesToNewNames.keySet().iterator(); iter
-							.hasNext();) {
-						String oldName = (String) iter.next();
+					for (Iterator iter2 = oldNamesToNewNames.keySet()
+							.iterator(); iter2.hasNext();) {
+						String oldName = (String) iter2.next();
 						String newName = (String) oldNamesToNewNames
 								.get(oldName);
 						line = line.replaceAll(oldName, newName);
@@ -84,10 +83,11 @@ public class RenamingUtils {
 					line = br.readLine();
 				}
 				StringReader reader = new StringReader(sb.toString());
-				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
+				buildConfig.setContents(new ReaderInputStream(reader), true,
+						true, monitor);
 			} catch (IOException ioe) {
 			} catch (CoreException e) {
-			} finally {				
+			} finally {
 				try {
 					br.close();
 				} catch (IOException ioe) {

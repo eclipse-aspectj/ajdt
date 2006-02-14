@@ -8,9 +8,10 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.newbuildconfig;
+package org.eclipse.ajdt.internal.buildpath;
 
 
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

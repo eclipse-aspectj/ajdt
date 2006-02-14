@@ -60,6 +60,16 @@ public class BuildConfig {
 		}
 		return sourceFiles;
 	}
+		
+	/**
+	 * 
+	 * @param project
+	 * @param file
+	 * @return
+	 */
+	public static boolean isIncluded(IResource file) {
+		return getIncludedSourceFiles(file.getProject()).contains(file);
+	}
 	
 	//return a list of all IFiles in the given folder, including all
 	// sub-folders

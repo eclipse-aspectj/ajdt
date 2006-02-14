@@ -17,12 +17,12 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
+import java.util.List;
 
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -99,36 +99,34 @@ public class RenameToAJAction implements IActionDelegate {
 	 */
 	private void updateBuildConfigs(IProgressMonitor monitor, IProject project,
 			String name) {
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		if(pbc != null) {
-			IFile[] buildConfigs = pbc.getConfigurationFiles();
-			for (int i = 0; i < buildConfigs.length; i++) {
-				BufferedReader br = null;
-				try {
-					br = new BufferedReader(new InputStreamReader(buildConfigs[i]
-							.getContents()));
-				} catch (CoreException e) {
-					continue;
+		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
+		for (Iterator iter = buildConfigs.iterator(); iter.hasNext();) {
+			IFile buildConfig = (IFile) iter.next();
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new InputStreamReader(buildConfig
+						.getContents()));
+			} catch (CoreException e) {
+				continue;
+			}
+			StringBuffer sb = new StringBuffer();
+			try {
+				String line = br.readLine();
+				while (line != null) {
+					line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$ //$NON-NLS-2$
+					sb.append(line);
+					sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
+					line = br.readLine();
 				}
-				StringBuffer sb = new StringBuffer();
+				StringReader reader = new StringReader(sb.toString());
+				buildConfig.setContents(new ReaderInputStream(reader), true,
+						true, monitor);
+			} catch (IOException ioe) {
+			} catch (CoreException e) {
+			} finally {
 				try {
-					String line = br.readLine();
-					while (line != null) {
-						line = line.replaceAll(name + ".java", name + ".aj"); //$NON-NLS-1$ //$NON-NLS-2$
-						sb.append(line);
-						sb.append(System.getProperty("line.separator")); //$NON-NLS-1$
-						line = br.readLine();
-					}
-					StringReader reader = new StringReader(sb.toString());
-					buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
+					br.close();
 				} catch (IOException ioe) {
-				} catch (CoreException e) {
-				} finally {
-					try {
-						br.close();
-					} catch (IOException ioe) {
-					}
 				}
 			}
 		}

@@ -7,12 +7,11 @@ Bundle-Activator: org.eclipse.ajdt.ui.AspectJUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
- org.eclipse.ajdt.internal.bc,
  org.eclipse.ajdt.internal.builder;x-internal:=true,
+ org.eclipse.ajdt.internal.buildpath;x-internal:=true,
  org.eclipse.ajdt.internal.debug.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.javamodel;x-internal:=true,
  org.eclipse.ajdt.internal.launching;x-internal:=true,
- org.eclipse.ajdt.internal.newbuildconfig;x-internal:=true,
  org.eclipse.ajdt.internal.ui;x-internal:=true,
  org.eclipse.ajdt.internal.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ajde;x-internal:=true,
@@ -37,7 +36,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.utils;x-internal:=true,
  org.eclipse.ajdt.pde.internal.core;x-internal:=true,
  org.eclipse.ajdt.ui,
- org.eclipse.ajdt.ui.buildconfig
+ org.eclipse.ajdt.ui.buildpath
 Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.ui.workbench,
  org.eclipse.jface,

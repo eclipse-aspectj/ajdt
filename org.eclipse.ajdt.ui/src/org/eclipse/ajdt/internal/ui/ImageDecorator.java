@@ -14,6 +14,8 @@ package org.eclipse.ajdt.internal.ui;
 import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
+import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
@@ -21,12 +23,8 @@ import org.eclipse.ajdt.core.javaelements.DeclareElement;
 import org.eclipse.ajdt.core.javaelements.IAspectJElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.bc.BuildConfiguration;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -108,12 +106,7 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 			if(file != null) {
 				if(comp instanceof AJCompilationUnit) {
-					IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(file.getProject());
-					
-					if (pbc == null)
-						return null;
-					IBuildConfiguration bc = pbc.getActiveBuildConfiguration();
-					if ((bc==null) || bc.isIncluded(file)){
+					if (BuildConfig.isIncluded(file)) {
 						Rectangle rect = image.getBounds();
 						img = getImageLabel(getJavaImageDescriptor(AspectJImages.ASPECTJ_FILE.getImageDescriptor(), rect, 0));
 					} else {
@@ -124,7 +117,7 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		} else if (element instanceof IFile) { 
 			IFile file= (IFile) element;
-			if (file.getFileExtension().equals(BuildConfiguration.EXTENSION)) {
+			if (file.getFileExtension().equals(AJProperties.EXTENSION)) {
 				img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
 			}
 		} else if (element instanceof AJCodeElement) {

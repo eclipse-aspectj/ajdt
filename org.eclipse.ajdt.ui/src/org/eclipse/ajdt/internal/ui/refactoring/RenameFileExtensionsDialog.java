@@ -15,10 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.ajdt.codeconversion.CodeChecker;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -143,16 +141,11 @@ public class RenameFileExtensionsDialog extends Dialog {
 		IRunnableWithProgress runnable = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) {				
 				IJavaProject jp = JavaCore.create(project);
-				IProjectBuildConfigurator pbc = DefaultBuildConfigurator
-						.getBuildConfigurator().getProjectBuildConfigurator(jp);
-				IBuildConfiguration activeBuildConfig = pbc
-						.getActiveBuildConfiguration();
-				int numBuildConfigs = pbc.getBuildConfigurations().size();
 				try {
 					IPackageFragment[] packages = jp.getPackageFragments();
 					monitor
 							.beginTask(UIMessages.Refactoring_ConvertingFileExtensions,
-									packages.length + (10 * numBuildConfigs));
+									packages.length);
 					// map of old to new names - needed to update build config
 					// files.
 					Map oldToNewNames = new HashMap();
@@ -166,7 +159,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 									IResource resource = files[j].getResource();
 
 									if (!includeNonBuiltFiles
-											&& !(activeBuildConfig
+											&& !(BuildConfig
 													.isIncluded(resource))) {
 										// do not rename this file if it is not
 										// active
@@ -226,10 +219,6 @@ public class RenameFileExtensionsDialog extends Dialog {
 		IRunnableWithProgress runnable = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) {
 				IJavaProject jp = JavaCore.create(project);
-				IProjectBuildConfigurator pbc = DefaultBuildConfigurator
-						.getBuildConfigurator().getProjectBuildConfigurator(jp);
-				IBuildConfiguration activeBuildConfig = pbc
-						.getActiveBuildConfiguration();
 				try {
 					IPackageFragment[] packages = jp.getPackageFragments();
 					monitor
@@ -247,8 +236,7 @@ public class RenameFileExtensionsDialog extends Dialog {
 								for (int j = 0; j < files.length; j++) {
 									IResource resource = files[j].getResource();
 									if (!includeNotBuiltFiles
-											&& !(activeBuildConfig
-													.isIncluded(resource))) {
+											&& !(BuildConfig.isIncluded(resource))) {
 										// do not rename this file if it is not
 										// active
 										continue;

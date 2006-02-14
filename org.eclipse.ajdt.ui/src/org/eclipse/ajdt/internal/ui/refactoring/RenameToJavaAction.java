@@ -17,12 +17,12 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
+import java.util.List;
 
+import org.eclipse.ajdt.core.AJProperties;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IProjectBuildConfigurator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -100,13 +100,12 @@ public class RenameToJavaAction implements IActionDelegate {
 	 */
 	private void updateBuildConfigs(IProgressMonitor monitor, IProject project,
 			String name) {
-		IProjectBuildConfigurator pbc = DefaultBuildConfigurator.getBuildConfigurator()
-				.getProjectBuildConfigurator(project);
-		IFile[] buildConfigs = pbc.getConfigurationFiles();
-		for (int i = 0; i < buildConfigs.length; i++) {
+		List buildConfigs = AJProperties.getAJPropertiesFiles(project);
+		for (Iterator iter = buildConfigs.iterator(); iter.hasNext();) {
+			IFile buildConfig = (IFile) iter.next();
 			BufferedReader br = null;
 			try {
-				br = new BufferedReader(new InputStreamReader(buildConfigs[i]
+				br = new BufferedReader(new InputStreamReader(buildConfig
 						.getContents()));
 			} catch (CoreException e) {
 				continue;
@@ -121,7 +120,8 @@ public class RenameToJavaAction implements IActionDelegate {
 					line = br.readLine();
 				}
 				StringReader reader = new StringReader(sb.toString());
-				buildConfigs[i].setContents(new ReaderInputStream(reader), true, true, monitor);
+				buildConfig.setContents(new ReaderInputStream(reader), true,
+						true, monitor);
 			} catch (IOException ioe) {
 			} catch (CoreException e) {
 			} finally {

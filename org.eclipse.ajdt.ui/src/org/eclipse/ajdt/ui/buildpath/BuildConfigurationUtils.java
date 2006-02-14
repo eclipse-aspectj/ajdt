@@ -8,7 +8,7 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.newbuildconfig;
+package org.eclipse.ajdt.ui.buildpath;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

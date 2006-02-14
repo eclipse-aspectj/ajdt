@@ -15,12 +15,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.List;
 
-import org.eclipse.ajdt.core.CoreUtils;
-import org.eclipse.ajdt.internal.newbuildconfig.BuildConfigurationUtils;
+import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.ui.buildconfig.DefaultBuildConfigurator;
-import org.eclipse.ajdt.ui.buildconfig.IBuildConfiguration;
+import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -96,11 +95,10 @@ public class BuildConfigurationTest2 extends UITestCase {
 	}
 
 	private void checkIncluded(IProject project, int numFiles) {
-		IBuildConfiguration bc = DefaultBuildConfigurator.getBuildConfigurator().getProjectBuildConfigurator(project).getActiveBuildConfiguration();
-		assertNotNull(bc);
-		assertEquals(numFiles, bc.getIncludedJavaFiles(CoreUtils.ASPECTJ_SOURCE_FILTER).size());
+		List included = BuildConfig.getIncludedSourceFiles(project);
+		assertEquals(numFiles, included.size());
 	}
-	
+
 	private void compareFiles(IFile propertiesFile, IFile newPropertiesFile) throws CoreException, IOException {
 		BufferedReader br = null;
 		BufferedReader br2 = null;
