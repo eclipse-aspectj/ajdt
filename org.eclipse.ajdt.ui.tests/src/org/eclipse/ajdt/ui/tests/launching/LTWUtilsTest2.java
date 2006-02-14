@@ -44,7 +44,7 @@ public class LTWUtilsTest2 extends UITestCase{
 	public void testGetAspects() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example2"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IFile propertiesFile = project.getFile("tracelib.ajproperties");
+		IFile propertiesFile = project.getFile("tracelib.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
@@ -164,7 +164,7 @@ public class LTWUtilsTest2 extends UITestCase{
 	public void testGenerateLTWConfigFile6() throws Exception {
 		IProject project = createPredefinedProject("Tracing Example2"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		IFile propertiesFile = project.getFile("tracelib.ajproperties");
+		IFile propertiesFile = project.getFile("tracelib.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
@@ -190,7 +190,7 @@ public class LTWUtilsTest2 extends UITestCase{
 		compareFileContentsWithExpected(file, expectedLines);
 		
 		// activate a different build config to see if aop.xml updates correctly
-		propertiesFile = project.getFile("tracev1.ajproperties");
+		propertiesFile = project.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
@@ -214,7 +214,7 @@ public class LTWUtilsTest2 extends UITestCase{
 		
 		// activate a config where no aspects are included. This should
 		// clear the "aspects" part of the aop.xml file.
-		propertiesFile = project.getFile("notrace.ajproperties");
+		propertiesFile = project.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);

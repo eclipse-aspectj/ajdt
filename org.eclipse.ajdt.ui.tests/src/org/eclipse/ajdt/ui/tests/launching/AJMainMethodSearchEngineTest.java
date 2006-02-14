@@ -30,7 +30,7 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		IProject project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
-		IFile propertiesFile = project.getFile("notrace.ajproperties");
+		IFile propertiesFile = project.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
@@ -42,7 +42,7 @@ public class AJMainMethodSearchEngineTest extends UITestCase {
 		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(elements, constraints);
 		Object[] results = searchEngine.searchMainMethodsIncludingAspects(new NullProgressMonitor(), scope, true);
 		assertTrue("There should be one result, found " + results.length, results.length == 1); //$NON-NLS-1$
-		propertiesFile = project.getFile("tracev1.ajproperties");
+		propertiesFile = project.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);

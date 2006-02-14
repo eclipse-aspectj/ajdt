@@ -40,7 +40,7 @@ public class Bug102493Test extends VisualTestCase {
 		final IFile class3 = src2.getFile("pack/Class3.java"); //$NON-NLS-1$
 		assertTrue("Should have found a file called Class3.java", class3 //$NON-NLS-1$
 				.exists());
-		assertTrue("Class3 should be included in the build", BuildConfig.isIncluded(class3));
+		assertTrue("Class3 should be included in the build", BuildConfig.isIncluded(class3)); //$NON-NLS-1$
 
 		packageExplorer.setFocus();
 		packageExplorer.tryToReveal(src2);

@@ -32,10 +32,10 @@ public class BuildConfigurationTest2 extends UITestCase {
 		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$		
 		waitForJobsToComplete();	
 		checkIncluded(project, 2);
-		IFile propertiesFile = project.getFile("none.ajproperties");
-		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" +
-				"src.excludes = A.aj,\\\n" + 
-                "C.java")), true, null);
+		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
+		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" + //$NON-NLS-1$
+				"src.excludes = A.aj,\\\n" +  //$NON-NLS-1$
+                "C.java")), true, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
@@ -44,7 +44,7 @@ public class BuildConfigurationTest2 extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(project, 0);	
 		
-		IFile newPropertiesFile = project.getFile("none2.ajproperties");
+		IFile newPropertiesFile = project.getFile("none2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();
@@ -55,9 +55,9 @@ public class BuildConfigurationTest2 extends UITestCase {
 		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$		
 		waitForJobsToComplete();	
 		checkIncluded(project, 13);
-		IFile propertiesFile = project.getFile("none.ajproperties");
-		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" +
-				"src.excludes = figures/")), true, null);
+		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
+		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = /\n" + //$NON-NLS-1$
+				"src.excludes = figures/")), true, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
@@ -66,7 +66,7 @@ public class BuildConfigurationTest2 extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(project, 0);	
 		
-		IFile newPropertiesFile = project.getFile("none2.ajproperties");
+		IFile newPropertiesFile = project.getFile("none2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();
@@ -78,7 +78,7 @@ public class BuildConfigurationTest2 extends UITestCase {
 		IProject project = createPredefinedProject("Figures Demo"); //$NON-NLS-1$		
 		waitForJobsToComplete();	
 		checkIncluded(project, 13);
-		IFile propertiesFile = project.getFile("build.ajproperties");
+		IFile propertiesFile = project.getFile("build.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
@@ -86,7 +86,7 @@ public class BuildConfigurationTest2 extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(project, 12);	
 		
-		IFile newPropertiesFile = project.getFile("build2.ajproperties");
+		IFile newPropertiesFile = project.getFile("build2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();

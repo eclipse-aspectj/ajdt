@@ -37,7 +37,7 @@ public class BuildConfigurationTest extends UITestCase {
 	
 	public void testApplyAndSaveNoTrace() throws Exception {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("notrace.ajproperties");
+		IFile propertiesFile = project.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
@@ -45,7 +45,7 @@ public class BuildConfigurationTest extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(4);
 		
-		IFile newPropertiesFile = project.getFile("notrace2.ajproperties");
+		IFile newPropertiesFile = project.getFile("notrace2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();
@@ -54,17 +54,17 @@ public class BuildConfigurationTest extends UITestCase {
 
 	public void testApplyAndSaveTraceLib() throws Exception {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("tracelib.ajproperties");
+		IFile propertiesFile = project.getFile("tracelib.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		checkIncluded(6);
-		checkFileIncluded("src/tracing/lib/TraceMyClasses.aj");
-		checkFileNotIncluded("src/tracing/version1/Trace.java");
+		checkFileIncluded("src/tracing/lib/TraceMyClasses.aj"); //$NON-NLS-1$
+		checkFileNotIncluded("src/tracing/version1/Trace.java"); //$NON-NLS-1$
 		
-		IFile newPropertiesFile = project.getFile("tracelib2.ajproperties");
+		IFile newPropertiesFile = project.getFile("tracelib2.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();
@@ -74,48 +74,48 @@ public class BuildConfigurationTest extends UITestCase {
 
 	public void testApplyTraceV1() {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("tracev1.ajproperties");
+		IFile propertiesFile = project.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		checkIncluded(6);
-		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj");
-		checkFileIncluded("src/tracing/version1/Trace.java");
+		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj"); //$NON-NLS-1$
+		checkFileIncluded("src/tracing/version1/Trace.java"); //$NON-NLS-1$
 	}
 	
 	public void testApplyTraceV2() {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("tracev2.ajproperties");
+		IFile propertiesFile = project.getFile("tracev2.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		checkIncluded(6);
-		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj");
-		checkFileIncluded("src/tracing/version2/Trace.aj");
+		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj"); //$NON-NLS-1$
+		checkFileIncluded("src/tracing/version2/Trace.aj"); //$NON-NLS-1$
 	}
 	
 	public void testApplyTraceV3() {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("tracev3.ajproperties");
+		IFile propertiesFile = project.getFile("tracev3.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
 		
 		BuildConfigurationUtils.applyBuildConfiguration(propertiesFile);
 		waitForJobsToComplete();
 		checkIncluded(6);
-		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj");
-		checkFileIncluded("src/tracing/version3/Trace.aj");
+		checkFileNotIncluded("src/tracing/lib/TraceMyClasses.aj"); //$NON-NLS-1$
+		checkFileIncluded("src/tracing/version3/Trace.aj"); //$NON-NLS-1$
 		
 	}
 	
 	public void testExcludeAll() throws Exception {
 		checkIncluded(12);
-		IFile propertiesFile = project.getFile("none.ajproperties");
-		propertiesFile.create(new ReaderInputStream(new StringReader("src.excludes = src/")), true, null);
+		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
+		propertiesFile.create(new ReaderInputStream(new StringReader("src.excludes = src/")), true, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
@@ -124,9 +124,9 @@ public class BuildConfigurationTest extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(0);
 		
-		propertiesFile = project.getFile("none2.ajproperties");
-		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = / \n" +
-				"src.excludes = src/tracing/")), true, null);
+		propertiesFile = project.getFile("none2.ajproperties"); //$NON-NLS-1$
+		propertiesFile.create(new ReaderInputStream(new StringReader("src.includes = / \n" + //$NON-NLS-1$
+				"src.excludes = src/tracing/")), true, null); //$NON-NLS-1$
 		waitForJobsToComplete();
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());
@@ -135,7 +135,7 @@ public class BuildConfigurationTest extends UITestCase {
 		waitForJobsToComplete();
 		checkIncluded(0);
 		
-		IFile newPropertiesFile = project.getFile("none3.ajproperties");
+		IFile newPropertiesFile = project.getFile("none3.ajproperties"); //$NON-NLS-1$
 		BuildConfigurationUtils.saveBuildConfiguration(newPropertiesFile);
 		newPropertiesFile.refreshLocal(1, null);
 		waitForJobsToComplete();
