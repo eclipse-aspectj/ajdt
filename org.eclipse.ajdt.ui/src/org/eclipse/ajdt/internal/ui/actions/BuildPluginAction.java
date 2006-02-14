@@ -20,7 +20,6 @@ import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
-import org.eclipse.ajdt.exports.AJModelBuildScriptGenerator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;

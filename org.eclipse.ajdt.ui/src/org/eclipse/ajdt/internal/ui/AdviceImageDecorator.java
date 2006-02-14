@@ -11,22 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui;
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
-import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
 import org.eclipse.ajdt.core.model.AJModel;
-import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.internal.core.SourceType;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;

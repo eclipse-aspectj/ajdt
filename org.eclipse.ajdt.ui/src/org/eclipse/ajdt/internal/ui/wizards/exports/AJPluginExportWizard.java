@@ -14,15 +14,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.pde.internal.ui.build.FeatureExportInfo;
-import org.eclipse.pde.internal.ui.build.PluginExportJob;
 import org.eclipse.pde.internal.ui.wizards.exports.AntGeneratingExportWizard;
-import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizard;
 import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizardPage;
-import org.eclipse.pde.internal.ui.wizards.exports.PluginExportWizardPage;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;

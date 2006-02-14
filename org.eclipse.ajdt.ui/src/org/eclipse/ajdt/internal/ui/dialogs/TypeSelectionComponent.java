@@ -21,7 +21,6 @@ import org.eclipse.jdt.internal.corext.util.TypeInfo;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.JavaUIMessages;
-import org.eclipse.jdt.internal.ui.dialogs.TypeSelectionComponent.ITitleLabel;
 import org.eclipse.jdt.internal.ui.search.JavaSearchScopeFactory;
 import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jdt.internal.ui.util.SWTUtil;
