@@ -55,7 +55,7 @@ public class AspectJPlugin extends Plugin {
 	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; //$NON-NLS-1$
 
 	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
-	private static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+	public static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
 
 	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
 	
