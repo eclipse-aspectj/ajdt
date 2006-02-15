@@ -178,7 +178,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		// workaround for bug 73435
 		IProject[] dependingProjects = getDependingProjects(project);
-		JavaProject javaProject = (JavaProject)JavaCore.create(project);
+		IJavaProject javaProject = JavaCore.create(project);
 		if (!javaProject.hasBuildState() && dependingProjects.length > 0) {
 			updateJavaCompilerPreferences(dependingProjects);
 		}
