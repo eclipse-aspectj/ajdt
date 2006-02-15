@@ -576,6 +576,7 @@ public class AJCompilationUnit extends CompilationUnit{
 				.getClassName();
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {
+			AJCompilationUnitManager.INSTANCE.removeFileFromModel((IFile) getResource());
 			// need to return a handle identifier that JDT can use (bug 74426)
 			return JavaCore.create(getResource()).getHandleIdentifier();
 		}
