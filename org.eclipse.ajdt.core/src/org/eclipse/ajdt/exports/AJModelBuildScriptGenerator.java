@@ -39,7 +39,6 @@ import org.eclipse.pde.internal.build.IXMLConstants;
 import org.eclipse.pde.internal.build.Messages;
 import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.FileSet;
-import org.eclipse.pde.internal.build.ant.JavacTask;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer2_1;
 import org.eclipse.pde.internal.build.builder.ClasspathComputer3_0;
 import org.eclipse.pde.internal.build.builder.IClasspathComputer;
