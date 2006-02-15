@@ -136,6 +136,7 @@ public class OpenTypesTest extends VisualTestCase {
 				// Select the item under Display
 				postKey(SWT.TAB);
 				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_DOWN);
 				postKey(SWT.CR);
 			}
 		};

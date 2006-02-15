@@ -70,7 +70,7 @@ public class NewAspectWizardTest extends VisualTestCase {
 					new Boolean[] { Boolean.FALSE, Boolean.FALSE,
 							Boolean.FALSE, Boolean.TRUE, Boolean.FALSE },
 					new Integer(0),
-					"package tjp;public privileged aspect Aspect5{}" }, //$NON-NLS-1$
+					"package tjp;public privileged aspect Aspect5 {}" }, //$NON-NLS-1$
 			{
 					"Aspect6", //$NON-NLS-1$
 					"", //$NON-NLS-1$
@@ -88,14 +88,14 @@ public class NewAspectWizardTest extends VisualTestCase {
 					"", //$NON-NLS-1$
 					new Boolean[] { Boolean.TRUE, Boolean.FALSE, Boolean.FALSE,
 							Boolean.TRUE, Boolean.FALSE }, new Integer(0),
-					"package tjp;privileged aspect Aspect8{}" }, //$NON-NLS-1$
+					"package tjp;privileged aspect Aspect8 {}" }, //$NON-NLS-1$
 			{
 					"Aspect9", //$NON-NLS-1$
 					"", //$NON-NLS-1$
 					new Boolean[] { Boolean.FALSE, Boolean.FALSE,
 							Boolean.FALSE, Boolean.FALSE, Boolean.FALSE },
 					new Integer(1),
-					"package tjp;public aspect Aspect9 issingleton(){}" }, //$NON-NLS-1$
+					"package tjp;public aspect Aspect9 issingleton() {}" }, //$NON-NLS-1$
 			{
 					"Aspect10", //$NON-NLS-1$
 					"", //$NON-NLS-1$
@@ -143,6 +143,10 @@ public class NewAspectWizardTest extends VisualTestCase {
 					"New Aspect Wizard didn't create a .aj file for aspect: " //$NON-NLS-1$
 							+ aspectName, file);
 			String contents = readFile(file);
+			if(!contents.equals(expected)) {
+				System.out.println("CONTENTS: " + contents);
+				System.out.println("EXPECTED: " + expected);
+			}
 			assertEquals("Contents of new aspect " + aspectName //$NON-NLS-1$
 					+ " don't match expected", expected, contents); //$NON-NLS-1$
 		}
