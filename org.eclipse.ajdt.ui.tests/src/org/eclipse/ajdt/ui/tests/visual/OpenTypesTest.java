@@ -49,7 +49,7 @@ public class OpenTypesTest extends VisualTestCase {
 		IEditorReference[] editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be no editors open at the start of the test", editors.length == 0); //$NON-NLS-1$
 		
-		// 1. Test that a class in a .aj file is not found by the JDT types dialog
+		// 1. Test that a class in a .aj file is found by the JDT types dialog
 		
 		// Press Ctrl+Shift+T
 		postKeyDown(SWT.CTRL);
@@ -72,7 +72,7 @@ public class OpenTypesTest extends VisualTestCase {
 		
 		editors = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		assertTrue("There should be one editor open", editors.length == 1); //$NON-NLS-1$
-		assertFalse("Should not have found Display.aj", editors[0].getEditor(false) instanceof AspectJEditor); //$NON-NLS-1$
+		assertTrue("Should have found Display.aj", editors[0].getEditor(false) instanceof AspectJEditor); //$NON-NLS-1$
 				
 		// 2. Test that an aspect in a .aj file is not found by the JDT types dialog
 		
