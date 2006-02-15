@@ -68,7 +68,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 	private static ContributedProcessorDescriptor[] fContributedCorrectionProcessors= null;
 	private static String fErrorMessage;
 	
-	private static ContributedProcessorDescriptor[] getProcessorDescriptors(String contributionId) {
+	private static ContributedProcessorDescriptor[] getProcessorDescriptors(String contributionId, boolean testMarkerTypes) {
 		IConfigurationElement[] elements= Platform.getExtensionRegistry().getConfigurationElementsFor(JavaUI.ID_PLUGIN, contributionId);
 		ArrayList res= new ArrayList(elements.length);
 		
@@ -80,7 +80,7 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 					.equals(
 							"org.eclipse.jdt.internal.ui.text.correction.QuickFixProcessor")) { //$NON-NLS-1$
 				ContributedProcessorDescriptor desc = new ContributedProcessorDescriptor(
-						elements[i]);
+						elements[i], testMarkerTypes);
 				IStatus status = desc.checkSyntax();
 				if (status.isOK()) {
 					res.add(desc);
@@ -95,14 +95,14 @@ public class JavaCorrectionProcessor implements IContentAssistProcessor {
 	
 	private static ContributedProcessorDescriptor[] getCorrectionProcessors() {
 		if (fContributedCorrectionProcessors == null) {
-			fContributedCorrectionProcessors= getProcessorDescriptors(QUICKFIX_PROCESSOR_CONTRIBUTION_ID);
+			fContributedCorrectionProcessors= getProcessorDescriptors(QUICKFIX_PROCESSOR_CONTRIBUTION_ID, true);
 		}
 		return fContributedCorrectionProcessors;
 	}
 	
 	private static ContributedProcessorDescriptor[] getAssistProcessors() {
 		if (fContributedAssistProcessors == null) {
-			fContributedAssistProcessors= getProcessorDescriptors(QUICKASSIST_PROCESSOR_CONTRIBUTION_ID);
+			fContributedAssistProcessors= getProcessorDescriptors(QUICKASSIST_PROCESSOR_CONTRIBUTION_ID, false);
 		}
 		return fContributedAssistProcessors;
 	}

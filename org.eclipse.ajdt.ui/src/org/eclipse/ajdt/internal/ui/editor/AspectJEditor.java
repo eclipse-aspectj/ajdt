@@ -144,7 +144,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 		 * @see org.eclipse.jface.text.ITextOperationTarget#doOperation(int)
 		 */
 		public void doOperation(int operation) {
-			if (operation == CORRECTIONASSIST_PROPOSALS) {
+			if (operation == ISourceViewer.QUICK_ASSIST) {
 				// use our own correction assistant
 				if (fCorrectionAssistant == null) {
 					fCorrectionAssistant = new JavaCorrectionAssistant(

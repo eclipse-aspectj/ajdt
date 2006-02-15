@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.internal.ui.editor.actions;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -39,10 +40,11 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.internal.corext.ValidateEditException;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationSettings;
+import org.eclipse.jdt.internal.corext.util.History;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
+import org.eclipse.jdt.internal.corext.util.QualifiedTypeNameHistory;
 import org.eclipse.jdt.internal.corext.util.TypeInfo;
-import org.eclipse.jdt.internal.corext.util.TypeInfoHistory;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.ActionMessages;
@@ -122,13 +124,13 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 			if (((String)o1).equals(o2))
 				return 0;
 			
-			TypeInfoHistory history= TypeInfoHistory.getDefault();
+			History history= QualifiedTypeNameHistory.getDefault();
 			
 			int pos1= history.getPosition(o1);
 			int pos2= history.getPosition(o2);
 			
 			if (pos1 == pos2)
-				return ((String)o1).compareTo((String) o2);	
+				return Collator.getInstance().compare(o1, o2);
 			
 			if (pos1 > pos2) {
 				return -1;
@@ -546,7 +548,7 @@ public class AJOrganizeImportsAction extends SelectionDispatchAction {
 				Object[] array= (Object[]) res[i];
 				if (array.length > 0) {
 					result[i]= (TypeInfo) array[0];
-					TypeInfoHistory.remember(result[i]);
+					QualifiedTypeNameHistory.remember(result[i].getFullyQualifiedName());
 				}
 			}
 		}

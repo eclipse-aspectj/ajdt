@@ -16,8 +16,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
@@ -34,7 +34,7 @@ public class OpenAJProjectWizardAction extends AbstractOpenWizardAction
 	 * 
 	 * @see org.eclipse.jdt.ui.actions.AbstractOpenWizardAction#createWizard()
 	 */
-	protected final Wizard createWizard() throws CoreException {
+	protected final INewWizard createWizard() throws CoreException {
 		return new AspectJProjectWizard();
 	}
 

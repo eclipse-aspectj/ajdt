@@ -12,7 +12,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 
 import org.eclipse.ajdt.internal.ui.wizards.NewAspectCreationWizard;
 import org.eclipse.jdt.ui.actions.AbstractOpenWizardAction;
-import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.ui.INewWizard;
 
 /**
  * This action is called from the AJDT welcome page and cheatsheet
@@ -20,7 +20,7 @@ import org.eclipse.jface.wizard.Wizard;
  */
 public class OpenAspectWizardAction extends AbstractOpenWizardAction {
 
-	protected Wizard createWizard() {
+	protected INewWizard createWizard() {
 		return new NewAspectCreationWizard();
 	}
 

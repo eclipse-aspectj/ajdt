@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.ui.actions.AbstractOpenWizardAction;
-import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.ui.INewWizard;
 
 /**
  * This action is called from the AJDT welcome page and cheatsheet
@@ -21,7 +21,7 @@ import org.eclipse.jface.wizard.Wizard;
  */
 public class AspectJProjectWizardAction extends AbstractOpenWizardAction {
 
-	protected Wizard createWizard() throws CoreException {
+	protected INewWizard createWizard() throws CoreException {
 		return new AspectJProjectWizard();
 	}
 

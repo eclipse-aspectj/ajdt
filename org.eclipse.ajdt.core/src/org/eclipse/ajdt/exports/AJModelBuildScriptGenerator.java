@@ -638,12 +638,12 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetDeclaration(TARGET_ZIP_PLUGIN, TARGET_INIT, null, null, NLS.bind(Messages.build_plugin_zipPlugin, model.getSymbolicName()));
 		script.printDeleteTask(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
 		script.printMkdirTask(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER));
-		script.printAntCallTask(TARGET_BUILD_JARS, null, null);
-		script.printAntCallTask(TARGET_BUILD_SOURCES, null, null);
+		script.printAntCallTask(TARGET_BUILD_JARS, true, null);
+		script.printAntCallTask(TARGET_BUILD_SOURCES, true, null);
 		Map params = new HashMap(1);
 		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER) + '/');
-		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, null, params);
-		script.printAntCallTask(TARGET_GATHER_SOURCES, null, params);
+		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, true, params);
+		script.printAntCallTask(TARGET_GATHER_SOURCES, true, params);
 		FileSet fileSet = new FileSet(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER), null, "**/*.bin.log", null, null, null, null); //$NON-NLS-1$
 		script.printDeleteTask(null, null, new FileSet[] {fileSet});
 		script.printZipTask(pluginZipDestination, Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER), true, false, null);
@@ -659,10 +659,10 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		script.printTargetDeclaration(TARGET_BUILD_UPDATE_JAR, TARGET_INIT, null, null, NLS.bind(Messages.build_plugin_buildUpdateJar, model.getSymbolicName()));
 		script.printDeleteTask(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
 		script.printMkdirTask(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER));
-		script.printAntCallTask(TARGET_BUILD_JARS, null, null);
+		script.printAntCallTask(TARGET_BUILD_JARS, true, null);
 		Map params = new HashMap(1);
 		params.put(PROPERTY_DESTINATION_TEMP_FOLDER, Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER) + '/');
-		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, null, params);
+		script.printAntCallTask(TARGET_GATHER_BIN_PARTS, true, params);
 		script.printZipTask(pluginUpdateJarDestination, Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER) + '/' + fullName, false, false, null);
 		script.printDeleteTask(Utils.getPropertyFormat(PROPERTY_TEMP_FOLDER), null, null);
 		if (signJars)
@@ -913,7 +913,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		for (Iterator iter = compiledJarNames.iterator(); iter.hasNext();) {
 			String name = ((CompiledEntry) iter.next()).getName(false);
 			script.printAvailableTask(name, replaceVariables(getJARLocation(name), true));
-			script.printAntCallTask(name, null, null);
+			script.printAntCallTask(name, true, null);
 		}
 		if (customBuildCallbacks != null) {
 			script.printAntTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), null, PROPERTY_POST + TARGET_BUILD_JARS, null, null, params);
@@ -929,7 +929,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			String jarName = ((CompiledEntry) iter.next()).getName(false);
 			String srcName = getSRCName(jarName);
 			script.printAvailableTask(srcName, getSRCLocation(jarName));
-			script.printAntCallTask(srcName, null, null);
+			script.printAntCallTask(srcName, true, null);
 		}
 		if (customBuildCallbacks != null) {
 			script.printAntTask(Utils.getPropertyFormat(PROPERTY_CUSTOM_BUILD_CALLBACKS), null, PROPERTY_POST + TARGET_BUILD_SOURCES, null, null, params);
