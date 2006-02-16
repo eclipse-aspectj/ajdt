@@ -159,7 +159,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	 * needs to return real path for organize imports 
 	 */
 	public IPath getPath() {
-		if (AspectJPlugin.usingCUprovider) {
+		if (AspectJPlugin.usingCUprovider || ajFile == null) {
 			return super.getPath();
 		}
 		return ajFile.getFullPath();
