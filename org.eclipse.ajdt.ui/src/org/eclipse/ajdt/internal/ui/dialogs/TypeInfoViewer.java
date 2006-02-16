@@ -713,18 +713,20 @@ public class TypeInfoViewer {
 										if(pattern.matchesName(namePattern, type.getElementName().toCharArray())) {
 											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
 											int kind = type.getFlags(); // 103131 - pass in correct flags
-											AJCUTypeInfo info = new AJCUTypeInfo(
-													type.getPackageFragment().getElementName(),
-													type.getElementName(),
-													enclosingTypes,
-													kind,
-													type instanceof AspectElement,
-													jp.getElementName(),
-													unit.getPackageFragmentRoot().getElementName(),
-													unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-													"aj", //$NON-NLS-1$
-													unit);							
-											ajTypes.add(info);
+											if (type instanceof AspectElement) { // 3.2 - Classes in .aj files are found
+												AJCUTypeInfo info = new AJCUTypeInfo(
+														type.getPackageFragment().getElementName(),
+														type.getElementName(),
+														enclosingTypes,
+														kind,
+														type instanceof AspectElement,
+														jp.getElementName(),
+														unit.getPackageFragmentRoot().getElementName(),
+														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+														"aj", //$NON-NLS-1$
+														unit);							
+												ajTypes.add(info);
+											}
 										}
 									}
 								}
