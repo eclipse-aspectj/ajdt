@@ -104,7 +104,7 @@ public class MarkerUpdating {
 		for (Iterator iter = affectedCompilationUnits.iterator(); iter
 				.hasNext();) {
 			ICompilationUnit cu = (ICompilationUnit)iter.next();
-			if(cu.getResource().exists()) {
+			if(cu.getResource()!= null && cu.getResource().exists()) {
 				List relationships = (List) cUsToListsOfRelationships.get(cu);
 				Map lineNumberToRelationships = new HashMap();
 				for (Iterator iterator = relationships.iterator(); iterator

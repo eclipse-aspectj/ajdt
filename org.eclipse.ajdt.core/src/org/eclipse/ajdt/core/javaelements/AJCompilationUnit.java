@@ -181,7 +181,10 @@ public class AJCompilationUnit extends CompilationUnit{
 	
 	
 	protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor pm, Map newElements, IResource underlyingResource) throws JavaModelException {
-
+		
+		if(ajFile == null) {
+			return false;
+		}
 		this.requestOriginalContentMode();
 		
 		AJCompilationUnitInfo unitInfo;
@@ -578,7 +581,9 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (callerName.equals(deletionClass)) {
 			AJCompilationUnitManager.INSTANCE.removeFileFromModel((IFile) getResource());
 			// need to return a handle identifier that JDT can use (bug 74426)
-			return JavaCore.create(getResource()).getHandleIdentifier();
+			String handleIdentifier = JavaCore.create(ajFile).getHandleIdentifier();
+			ajFile = null;			
+			return handleIdentifier;
 		}
 		return super.getHandleIdentifier();
 	}
