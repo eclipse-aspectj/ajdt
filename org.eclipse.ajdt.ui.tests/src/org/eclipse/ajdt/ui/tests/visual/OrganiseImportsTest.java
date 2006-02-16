@@ -39,6 +39,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		
 		// Organise imports and test that the file is correct
 		organiseImports(cUnit, 3);			
+		waitForJobsToComplete();
 		
 		// Add an unused import
 		gotoLine(19);
