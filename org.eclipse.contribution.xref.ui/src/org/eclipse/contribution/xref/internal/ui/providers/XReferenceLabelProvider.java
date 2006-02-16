@@ -32,10 +32,15 @@ public class XReferenceLabelProvider extends LabelProvider {
 	// a TreeObject. If it implements IWorkbenchAdapter,
 	// it will be displayed correctly in the tree.
 
-	public ILabelProvider labelProvider = new DecoratingLabelProvider(
-			new WorkbenchLabelProvider(), XReferenceUIPlugin.getDefault()
-					.getWorkbench().getDecoratorManager().getLabelDecorator());
-
+	public ILabelProvider labelProvider;
+	
+	
+	public XReferenceLabelProvider() {
+		labelProvider = new DecoratingLabelProvider(
+				new WorkbenchLabelProvider(), XReferenceUIPlugin.getDefault()
+						.getWorkbench().getDecoratorManager().getLabelDecorator());
+	}
+	
 	private boolean addedListener = false;
 
 	private ListenerList fListeners;
@@ -97,7 +102,9 @@ public class XReferenceLabelProvider extends LabelProvider {
 
 	public void dispose() {
 		fListeners = null;
-		labelProvider.dispose();
-		labelProvider = null;
+		if(labelProvider != null) {
+			labelProvider.dispose();
+			labelProvider = null;
+		}
 	}
 }
