@@ -19,9 +19,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
+import org.eclipse.ajdt.internal.ui.dialogs.AJCUTypeInfo;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -33,6 +41,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.compiler.IProblem;
@@ -245,25 +254,20 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 						}
 					}
 				}
-				// TODO: Sian - implement this
-//				// AspectJ Change Begin
-//				IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] {fImpStructure.getCompilationUnit().getJavaProject()}, 
-//						IJavaSearchScope.APPLICATION_LIBRARIES |
-//						IJavaSearchScope.REFERENCED_PROJECTS |
-//						IJavaSearchScope.SOURCES); 
-////					JavaSearchScopeFactory.getInstance().createJavaProjectSearchScope(fImpStructure.getCompilationUnit().getJavaProject(), false);
-//				List ajTypes = getAspectJTypes(scope);
-//				for (Iterator iter = ajTypes.iterator(); iter.hasNext();) {
-//					AJCUTypeInfo curr = (AJCUTypeInfo) iter.next();
-//					if(curr.getTypeName().equals(simpleTypeName)) {
-//						IType type= curr.resolveType(fSearchScope);
-//						UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getTypeName());
-//						if (type != null && JavaModelUtil.isVisible(type, fCurrPackage)) {
-//							data.foundInfos.add(curr);
-//						}
-//					}
-//				}	
-//				// AspectJ Change End				
+				// AspectJ Change Begin
+				IJavaSearchScope jscope = SearchEngine.createJavaSearchScope(new IJavaElement[] {fImpStructure.getCompilationUnit().getJavaProject()}, 
+						IJavaSearchScope.APPLICATION_LIBRARIES |
+						IJavaSearchScope.REFERENCED_PROJECTS |
+						IJavaSearchScope.SOURCES); 
+				List ajTypes = getAspectJTypes(jscope);
+				for (Iterator iter = ajTypes.iterator(); iter.hasNext();) {
+					AJCUTypeInfo curr = (AJCUTypeInfo) iter.next();
+					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getTypeName());
+					if (data != null && isVisible(curr)) {
+						data.foundInfos.add(curr);
+					}
+				}	
+				// AspectJ Change End				
 				ArrayList openChoices= new ArrayList(nUnresolved);
 				ArrayList sourceRanges= new ArrayList(nUnresolved);
 				for (Iterator iter= fUnresolvedTypes.values().iterator(); iter.hasNext();) {
@@ -285,6 +289,56 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			}
 		}
 		
+		private static List getAspectJTypes(IJavaSearchScope scope) {
+			List ajTypes = new ArrayList();
+			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
+					.getProjects();
+			for (int i = 0; i < projects.length; i++) {
+				try {
+					if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 		
+						IJavaProject jp = JavaCore.create(projects[i]);
+						if (jp != null) {
+							IPath[] paths = scope.enclosingProjectsAndJars();
+							for (int a = 0; a < paths.length; a++) {	
+								if (paths[a].equals(jp.getPath())) { 
+									List ajCus = AJCompilationUnitManager.INSTANCE.getAJCompilationUnits(jp);
+									for (Iterator iter = ajCus.iterator(); iter
+											.hasNext();) {
+										AJCompilationUnit unit = (AJCompilationUnit) iter.next();
+										IType[] types = unit.getAllTypes();
+										for (int j = 0; j < types.length; j++) {
+											IType type = types[j];
+											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
+											int kind = type.getFlags(); // 103131 - pass in correct flags
+											if (type instanceof AspectElement) { // 3.2 - Classes in .aj files are found
+												AJCUTypeInfo info = new AJCUTypeInfo(
+														type.getPackageFragment().getElementName(),
+														type.getElementName(),
+														enclosingTypes,
+														kind,
+														type instanceof AspectElement,
+														jp.getElementName(),
+														unit.getPackageFragmentRoot().getElementName(),
+														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+														"aj", //$NON-NLS-1$
+														unit);							
+												ajTypes.add(info);
+											}
+											
+										}
+									}
+								} 
+							}
+						}
+					}	
+				} catch (JavaModelException e) {
+				} catch (CoreException e) {					
+				}
+			}
+			return ajTypes;
+		}
+
+
 		private TypeInfo[] processTypeInfo(List typeRefsFound) {
 			int nFound= typeRefsFound.size();
 			if (nFound == 0) {
