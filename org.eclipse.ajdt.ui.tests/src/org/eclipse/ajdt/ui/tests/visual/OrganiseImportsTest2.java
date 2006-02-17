@@ -59,7 +59,7 @@ public class OrganiseImportsTest2 extends VisualTestCase {
 			}
 		
 		}.waitForCondition(display, 3000);
-		assertTrue("BoundPoint.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1); //$NON-NLS-1$
+		assertTrue("GameSynchronization.aj should now have one imports, has " + cUnit.getImports().length, cUnit.getImports().length == 1); //$NON-NLS-1$
 		
 		// Post Ctrl+S to save the file
 		postKeyDown(SWT.CTRL);
