@@ -56,44 +56,48 @@
 		<delete dir="${temp.folder}/@dot.bin"/>
 		<mkdir dir="${temp.folder}/@dot.bin"/>
 		<path id="@dot.classpath">
-			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_1.0.0.v20051214a.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20051205.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20051212a.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20051211.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime_3.2.0.v20060216.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060215a/runtime_registry_compatibility.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060215a"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.registry_3.2.0.v20060217.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.osgi_3.2.0.v20060214.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.jobs_3.2.0.v20060206.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.common_1.0.0.v20060215a.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.equinox.preferences_1.0.0.v20060215a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060215a/@dot"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20060215a.jar"/>
 			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_631.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20051208.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20051128.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20051121.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v200511211912.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.jdt.core_3.2.0.v_642.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources_3.2.0.v20060214.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.compatibility_3.2.0.v20060123.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.resources.win32_3.2.0.v20060130.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.runtime.compatibility_3.1.0.v20060123.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.update.configurator_3.1.100.v20051214.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20051205.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20051128.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20051212-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20051208.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.ant.core_3.1.100.v20060216.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.variables_3.1.100.v20060209.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.expressions_3.2.0.v20060215-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.filesystem_1.0.0.v20060206.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.text_3.1.100.v20051212-0800.jar"/>
-			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I20051213.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.text_3.2.0.v20060215-1200.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.core.commands_3.2.0.I20060214-1600.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.team.core_3.2.0.I200602141600.jar"/>
 		</path>
 		<!-- compile the source code -->
-		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20051217120000/"/>
-		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20051217120000/"/>
+		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20060218181400/"/>
+		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20060218181400/"/>
 		<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
 			<classpath>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</classpath>
 		</taskdef>
-		<property file="build.ajproperties"/>
-		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" srcdir="." includes="${src.includes}" excludes="${src.excludes}" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}">
+		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}">
 			<forkclasspath refid="@dot.classpath" />
 			<forkclasspath>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</forkclasspath>
+			<src path="src/"			/>
 		</iajc>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
@@ -129,7 +133,7 @@
 			<fileset dir="${build.result.folder}/@dot" includes="**"			/>
 		</copy>
 		<copy todir="${destination.temp.folder}/org.eclipse.contribution.xref.core_1.4.0.DEVELOPMENT" failonerror="true" overwrite="false">
-			<fileset dir="${basedir}" includes="plugin.xml,null,about.html,plugin.properties,META-INF/"			/>
+			<fileset dir="${basedir}" includes="plugin.xml,about.html,plugin.properties,META-INF/"			/>
 		</copy>
 	</target>
 
@@ -158,7 +162,7 @@
 	</target>
 
 	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
-		<eclipse.convertPath fileSystemPath="E:/eclipse-SDK-3.2M4-win32/eclipse/workspace/org.eclipse.contribution.xref.core" property="resourcePath"/>
+		<eclipse.convertPath fileSystemPath="E:/Documents/eclipse-SDK-3.2M5-win32/eclipse/workspace/org.eclipse.contribution.xref.core" property="resourcePath"/>
 		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
 	</target>
 
