@@ -71,6 +71,7 @@
 			<pathelement path="..\..\plugins\org.eclipse.core.contenttype_3.2.0.v20060215a.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.help_3.2.0.v20060212.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.swt_3.2.0.v3224m.jar"/>
+			<pathelement path="..\..\plugins\org.eclipse.swt.gtk.linux.x86_3.2.0.v3224.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.swt.win32.win32.x86_3.2.0.v3224.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.jface_3.2.0.I20060216-1600.jar"/>
 			<pathelement path="..\..\plugins\org.eclipse.core.commands_3.2.0.I20060214-1600.jar"/>
