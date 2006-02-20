@@ -313,9 +313,11 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		 * {@inheritDoc}
 		 */
 		public Object[] getChildren(Object element) {
+			// AspectJ Change begin
 			if (element instanceof ICompilationUnit) {
 				element = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)element);
 			}
+			// AspectJ Change end
 
 			if (fShowOnlyMainType) {
 				if (element instanceof ICompilationUnit) {
