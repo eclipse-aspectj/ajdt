@@ -15,6 +15,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
@@ -47,6 +48,9 @@ public class PointcutSourceHover extends AbstractJavaEditorTextHover implements
 		IJavaElement input = SelectionConverter
 				.getInput((JavaEditor) getEditor());
 		int offset = hoverRegion.getOffset();
+		if (input instanceof ICompilationUnit) {
+			input = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)input);
+		}
 		if (input instanceof AJCompilationUnit) {
 			AJCompilationUnit ajcu = (AJCompilationUnit) input;
 			String source = PointcutUtilities.isInPointcutContext(ajcu, offset);

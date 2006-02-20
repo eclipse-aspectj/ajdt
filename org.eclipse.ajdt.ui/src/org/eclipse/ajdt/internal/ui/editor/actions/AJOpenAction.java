@@ -14,6 +14,7 @@ package org.eclipse.ajdt.internal.ui.editor.actions;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
@@ -23,6 +24,7 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
@@ -129,6 +131,9 @@ public class AJOpenAction extends SelectionDispatchAction {
 			if (element == null) {
 				// it might be a pointcut
 				IJavaElement input = SelectionConverter.getInput(fEditor);
+				if (input instanceof ICompilationUnit) {
+					input = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)input);
+				}
 				if (input instanceof AJCompilationUnit) {
 					AJCompilationUnit ajcu = (AJCompilationUnit) input;
 					String sel = selection.getText();

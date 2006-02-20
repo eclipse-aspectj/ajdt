@@ -12,7 +12,9 @@
 package org.eclipse.ajdt.internal.ui.editor;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
@@ -54,6 +56,9 @@ public class PointcutElementHyperlinkDetector implements IHyperlinkDetector {
 
 		IJavaElement input = SelectionConverter
 				.getInput((JavaEditor) fTextEditor);
+		if (input instanceof ICompilationUnit) {
+			input = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)input);
+		}
 		if (input instanceof AJCompilationUnit) {
 			String source = PointcutUtilities.isInPointcutContext((AJCompilationUnit)input,offset);
 			if (source != null) {
