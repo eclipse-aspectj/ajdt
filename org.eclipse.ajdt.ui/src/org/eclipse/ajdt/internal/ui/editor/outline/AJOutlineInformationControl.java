@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.Flags;
@@ -312,6 +313,10 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		 * {@inheritDoc}
 		 */
 		public Object[] getChildren(Object element) {
+			if (element instanceof ICompilationUnit) {
+				element = AJCompilationUnitManager.mapToAJCompilationUnit((ICompilationUnit)element);
+			}
+
 			if (fShowOnlyMainType) {
 				if (element instanceof ICompilationUnit) {
 					element= getMainType((ICompilationUnit)element);

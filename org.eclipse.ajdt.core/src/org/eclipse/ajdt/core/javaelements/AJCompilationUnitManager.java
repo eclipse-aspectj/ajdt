@@ -28,6 +28,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -61,6 +62,26 @@ public class AJCompilationUnitManager {
 
 	public AJCompilationUnit getAJCompilationUnitFromCache(IFile file) {
 		return (AJCompilationUnit) compilationUnitStore.get(file);
+	}
+	
+	/**
+	 * Returns the AJCompilationUnit corresponding to the given
+	 * CompilationUnit, if there is one, otherwise return the unit itself
+	 * @param cu
+	 * @return
+	 */
+	public static ICompilationUnit mapToAJCompilationUnit(ICompilationUnit cu) {
+		if (AspectJPlugin.usingCUprovider) { // mapping not required
+			return cu;
+		}
+		IResource res = cu.getResource();
+		if (res.getType() == IResource.FILE) {
+			AJCompilationUnit ajcu = INSTANCE.getAJCompilationUnit((IFile) res);
+			if (ajcu != null) {
+				return ajcu;
+			}
+		}
+		return cu;
 	}
 	
 	//returns true if it was already there, and false if it needed to be inserted
