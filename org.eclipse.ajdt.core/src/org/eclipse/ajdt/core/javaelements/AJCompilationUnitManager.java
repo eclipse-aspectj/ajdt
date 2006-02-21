@@ -19,6 +19,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -35,6 +36,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.JavaModelManager;
 import org.eclipse.jdt.internal.core.OpenableElementInfo;
@@ -62,6 +64,14 @@ public class AJCompilationUnitManager {
 
 	public AJCompilationUnit getAJCompilationUnitFromCache(IFile file) {
 		return (AJCompilationUnit) compilationUnitStore.get(file);
+	}
+	
+	/**
+	 * Returns the WorkingCopyOwner used to create AJCompilationUnits
+	 * @return
+	 */
+	public static WorkingCopyOwner defaultAJWorkingCopyOwner() {
+		return AJWorkingCopyOwner.INSTANCE;
 	}
 	
 	//returns true if it was already there, and false if it needed to be inserted

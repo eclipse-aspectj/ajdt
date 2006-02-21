@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.ui.wizards;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -305,16 +306,12 @@ public class NewAspectWizardPage extends NewTypeWizardPage {
 			return;
 		}
 		try {
-			String[][] res = type.resolveType(supertype);
-			if ((res == null) || (res.length == 0)) {
-				return;
-			}
-			String simpleName = res[0][1];
-			IType stype = type.getJavaProject().findType(
-					res[0][0] + "." + simpleName); //$NON-NLS-1$
+			IType stype = type.getJavaProject().findType(supertype,
+					AJCompilationUnitManager.defaultAJWorkingCopyOwner());
 			if (stype == null) {
 				return;
 			}
+			String simpleName = stype.getElementName();
 			ICompilationUnit cu = stype.getCompilationUnit();
 			if (cu instanceof AJCompilationUnit) {
 				AJCompilationUnit ajcu = (AJCompilationUnit) cu;
