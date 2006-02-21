@@ -21,7 +21,6 @@ public class AllVisualUITests {
 		TestSuite suite = new TestSuite(AllVisualUITests.class.getName());
 				
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest.class));
 		suite.addTest(new TestSuite(BuildConfigurationTest3.class));
 		suite.addTest(new TestSuite(DeleteAJTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
@@ -37,7 +36,7 @@ public class AllVisualUITests {
 		
 		// xref view tests
 		suite.addTest(AllXRefVisualTests.suite());
-		
+
 		suite.addTest(new TestSuite(CustomFilterDialogTest.class));	
 
 		// AspectJ Outline view tests
