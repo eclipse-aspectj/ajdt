@@ -11,7 +11,7 @@
 package org.eclipse.ajdt.ui.tests.ajde;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -73,7 +73,7 @@ public class ClasspathOrderTest extends UITestCase {
 		}
 		assertFalse("Java project has errors", foundError); //$NON-NLS-1$
 
-		AJDTUtils.addAspectJNature(project);
+		AspectJUIPlugin.convertToAspectJProject(project);
 		waitForJobsToComplete();
 		assertTrue("ClasspathOrdering project should now have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(project));

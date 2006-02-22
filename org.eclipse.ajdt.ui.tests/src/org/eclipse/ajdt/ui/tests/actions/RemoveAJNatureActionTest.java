@@ -13,7 +13,7 @@ package org.eclipse.ajdt.ui.tests.actions;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.actions.RemoveAJNatureAction;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -33,7 +33,7 @@ public class RemoveAJNatureActionTest extends UITestCase {
 		super.setUp();
 		testProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
 		waitForJobsToComplete();
-		AJDTUtils.addAspectJNature(testProject);
+		AspectJUIPlugin.convertToAspectJProject(testProject);
 		waitForJobsToComplete();
 	}
 

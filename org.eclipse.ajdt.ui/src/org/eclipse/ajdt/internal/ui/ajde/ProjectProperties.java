@@ -30,7 +30,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -240,17 +239,8 @@ public class ProjectProperties extends CoreProjectProperties  {
 	 * configuration file.
 	 */
 	public List getBuildConfigFiles() {
-		List lstFiles_Strings = new ArrayList();
-		List lstFiles_IResources = AspectJUIPlugin.getDefault()
-				.getListOfConfigFilesForCurrentProject();
-		// Convert the IResource list to a list of strings for the full paths
-		Iterator iter = lstFiles_IResources.iterator();
-		IResource ir;
-		while (iter.hasNext()) {
-			ir = (IResource) iter.next();
-			lstFiles_Strings.add(ir.getFullPath().toOSString());
-		}
-		return lstFiles_Strings;
+		// we don't use .lst files in ajdt anymore
+		return new ArrayList();
 	}
 
 	/**

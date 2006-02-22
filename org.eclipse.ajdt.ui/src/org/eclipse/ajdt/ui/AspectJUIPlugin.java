@@ -15,7 +15,6 @@ package org.eclipse.ajdt.ui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AJLog;
@@ -41,12 +40,9 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -72,6 +68,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
@@ -245,11 +242,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private AspectJTextTools aspectJTextTools;
 
 	/**
-	 * The currently selected resource
-	 */
-	private IResource currentResource;
-
-	/**
 	 * The workbench Display for use by asynchronous UI updates
 	 */
 	private Display display;
@@ -261,6 +253,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	public static final String ACCKIND_ATTRIBUTE = "acckind"; //$NON-NLS-1$
 	
+	public static final int PROGRESS_MONITOR_MAX = 100;
+
 	/**
 	 * Return the single default instance of this plugin
 	 */
@@ -268,42 +262,13 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		return plugin;
 	}
 
-	private final static String defaultLstShouldBeUsed = "org.eclipse.ajdt.ui.buildConfig.useDefaultLst"; //$NON-NLS-1$
-
-	public static final int PROGRESS_MONITOR_MAX = 100;
-
 	/**
-	 * Set the build configuration file to be used when building this project
+	 * Converts the given project to be an AspectJ project
+	 * @param project
+	 * @throws CoreException
 	 */
-	public static void setBuildConfigurationFile(IProject project,
-			IFile buildfile) {
-
-		// Preserve the build selection choice in the preference store, with a
-		// name unique to this project.
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-
-		String propertyName = "org.eclipse.ajdt.ui." + project.getName() //$NON-NLS-1$
-				+ ".lst"; //$NON-NLS-1$
-
-		if (buildfile == null)
-			store.setValue(propertyName, defaultLstShouldBeUsed);
-		else
-			store.setValue(propertyName, buildfile.getLocation().toOSString());
-
-		String cfg = AspectJPlugin.getBuildConfigurationFile(project);
-		Ajde.getDefault().getConfigurationManager().setActiveConfigFile(cfg);
-		AJLog.log("Configuration file " + cfg + " selected for " + project.getName()); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	public static void setBuildConfigurationFile(IProject project,
-			IResource buildfile) {
-
-		if (buildfile == null)
-			setBuildConfigurationFile(project, (IFile) null);
-		else if (buildfile instanceof IFile) {
-			setBuildConfigurationFile(project, (IFile) buildfile);
-		}
+	public static void convertToAspectJProject(IProject project) throws CoreException {
+		AJDTUtils.addAspectJNature(project, false);
 	}
 
 	/**
@@ -510,37 +475,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 				.getWorkspace());
 		
 		AJDTUtils.refreshPackageExplorer();
-		
-//		JavaCore.addElementChangedListener(new IElementChangedListener(){
-//
-//			public void elementChanged(ElementChangedEvent event) {
-//				IJavaElementDelta delta= event.getDelta();
-//				IJavaElement elem= delta.getElement();
-//				if(delta.getKind() == IJavaElementDelta.CHANGED) {
-//					if(elem instanceof AJCompilationUnit) {
-//						OpenableElementInfo info;
-//						try {
-//							info = (OpenableElementInfo) ((JavaElement) elem
-//									.getParent()).getElementInfo();
-//							info.removeChild(elem); // Remove identical CompilationUnit if it exists
-//							info.addChild(elem);
-//						} catch (JavaModelException e) {
-//						}
-//					}
-//				}
-//				
-//			}});
 	}
 	
-	/**
-	 * @param root
-	 * @return
-	 */
-	public boolean workspaceIsEmpty(IWorkspaceRoot root) {
-		return (!AspectJUIPlugin.getDefault().getPreferenceStore().getBoolean(AspectJPreferences.AJDT_PREF_CONFIG_DONE))
-			&& root.getProjects().length == 0;
-	}
-
 	private void checkEclipseVersion() {
 		Bundle bundle = Platform.getBundle("org.eclipse.platform"); //$NON-NLS-1$
 		String version = (String) bundle.getHeaders().get(
@@ -562,7 +498,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	/**
 	 * get the active window in the workbench, or null if no window is active
 	 */
-	public org.eclipse.ui.IWorkbenchWindow getActiveWorkbenchWindow() {
+	public IWorkbenchWindow getActiveWorkbenchWindow() {
 		return plugin.getWorkbench().getActiveWorkbenchWindow();
 
 	}
@@ -587,19 +523,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		}
 
 		return aspectJTextTools;
-	}
-
-
-	/**
-	 * get the current resource. This method can return null if a resource has
-	 * not been selected or the resource selected has no individual physical
-	 * representation in the workspace. For example, selecting an 'external' jar
-	 * file within a project will cause currentProject to be set appropriately
-	 * but there is no real resource representing that jar (its an artefact from
-	 * outside the workbench) so currentResource will be null.
-	 */
-	public IResource getCurrentResource() {
-		return currentResource;
 	}
 
 	/**
@@ -658,7 +581,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * selection in the workspace.
 	 */
 	public void selectionChanged(IWorkbenchPart iwp, ISelection is) {
-		try {
 			// If we want to check only for selection changes in the Packages
 			// view, then we could check the WorkbenchPart:
 			// if (iwp.getTitle().equals("Packages")) {
@@ -679,69 +601,17 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 				if (o != null) {
 					if (o instanceof IResource) {
-						currentResource = (IResource) o;
-						AspectJPlugin.getDefault().setCurrentProject(currentResource.getProject());
+						AspectJPlugin.getDefault().setCurrentProject(((IResource)o).getProject());
 
 					} else if (o instanceof IJavaElement) {
 						IJavaElement je = (IJavaElement) o;
 						if (je.getJavaProject() != null) {
-							currentResource = je.getUnderlyingResource(); // Might
-							// be
-							// null!
 							AspectJPlugin.getDefault().setCurrentProject(je.getJavaProject().getProject());
 						}
 					}
 				}
 			}
-
-		} catch (JavaModelException jme) {
-			ErrorHandler.handleAJDTError(
-					UIMessages.AspectJUIPlugin_exception_in_selection_changed,
-					jme);
-		}
-
 	}
-
-	/**
-	 * Build a list of .lst files in the currently selected project - EXCEPT the
-	 * default.lst file. It uses the helper method getLstFiles() defined below
-	 * to perform recursion.
-	 * 
-	 * @return List of IResource objects that represent .lst files in the
-	 *         current project
-	 */
-	public List getListOfConfigFilesForCurrentProject() {
-		List allLstFiles = new ArrayList();
-		try {
-			IResource[] files = AspectJPlugin.getDefault().getCurrentProject().members();
-			getLstFiles(files, allLstFiles);
-		} catch (CoreException ce) {
-			ErrorHandler.handleAJDTError(
-							UIMessages.AspectJUIPlugin_exception_retrieving_lst_files,
-							ce);
-		}
-		return allLstFiles;
-	}
-
-	/**
-	 * Find all the ".lst" files in the project. Populates the List parameter
-	 * passed in using recursion to traverse the whole resource hierarchy for
-	 * the project.
-	 */
-	private void getLstFiles(IResource[] resource_list, List allLstFiles) throws CoreException {
-		for (int i = 0; i < resource_list.length; i++) {
-			IResource ir = resource_list[i];
-			// Add lst files to the list, but NOT default.lst
-			if (ir.getName().endsWith(".lst") //$NON-NLS-1$
-					&& !ir.getName().equals("default.lst")) //$NON-NLS-1$
-				allLstFiles.add(ir);
-			if (ir instanceof IContainer)
-				getLstFiles(((IContainer) ir).members(), allLstFiles);
-		}
-	}
-
-
-
 
 	/**
 	 * Attempt to update the project's build classpath with the AspectJ runtime
@@ -801,20 +671,5 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		} catch (JavaModelException e) {
 		}
 	}
-
-//	public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
-//		if (fCompilationUnitDocumentProvider == null)
-//			fCompilationUnitDocumentProvider= new AJCompilationUnitDocumentProvider();
-//		return fCompilationUnitDocumentProvider;
-//	}
-//
-//
-//	public synchronized IWorkingCopyManager getWorkingCopyManager() {
-//		if (fWorkingCopyManager == null) {
-//			ICompilationUnitDocumentProvider provider= getCompilationUnitDocumentProvider();
-//			fWorkingCopyManager= new WorkingCopyManager(provider);
-//		}
-//		return fWorkingCopyManager;
-//	}
 
 }

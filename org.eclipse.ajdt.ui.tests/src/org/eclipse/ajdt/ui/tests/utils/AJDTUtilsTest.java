@@ -61,7 +61,7 @@ public class AJDTUtilsTest extends UITestCase {
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
 				hasDependencyOnAJDE(testPluginProject));
-		AJDTUtils.addAspectJNature(testPluginProject.getProject());
+		AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
 		waitForJobsToComplete();
 		assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
@@ -85,7 +85,7 @@ public class AJDTUtilsTest extends UITestCase {
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
-		AJDTUtils.addAspectJNature(testProject.getProject());
+		AspectJUIPlugin.convertToAspectJProject(testProject.getProject());
 		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin //$NON-NLS-1$
 				.isAJProject(testProject.getProject()));
 		assertTrue("Build path should now contain aspectjrt.jar", //$NON-NLS-1$
@@ -111,7 +111,7 @@ public class AJDTUtilsTest extends UITestCase {
 				AspectJPlugin.isAJProject(testProject.getProject()));
 		assertFalse("Build path shouldn't contain aspectjrt.jar", //$NON-NLS-1$
 				hasAjrtOnBuildPath(jY));
-		AJDTUtils.addAspectJNature(testProject.getProject());
+		AspectJUIPlugin.convertToAspectJProject(testProject.getProject());
 		assertTrue("Java project should now have AspectJ Nature", AspectJPlugin //$NON-NLS-1$
 				.isAJProject(testProject.getProject()));
 		assertTrue("Build path should now contain aspectjrt.jar", //$NON-NLS-1$

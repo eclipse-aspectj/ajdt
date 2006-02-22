@@ -148,16 +148,17 @@ public class AJDTUtils {
 	 * Adds the AspectJ Nature to the project
 	 * 
 	 * @param project
+	 * @param prompt whether to prompt the user, or go with the defaults
 	 * @throws CoreException
 	 */
-	public static void addAspectJNature(final IProject project)
+	public static void addAspectJNature(final IProject project, final boolean prompt)
 			throws CoreException {
 		// wrap up the operation so that an autobuild is not triggered in the
 		// middle of the conversion
 		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
 			protected void execute(IProgressMonitor monitor)
 					throws CoreException {
-				internal_addAspectJNature(project);
+				internal_addAspectJNature(project, prompt);
 			}
 		};
 		try {
@@ -167,7 +168,7 @@ public class AJDTUtils {
 		}
 	}
 	
-	private static void internal_addAspectJNature(IProject project) throws CoreException {
+	private static void internal_addAspectJNature(IProject project, boolean prompt) throws CoreException {
 		checkSeparateOutputFolders(project);
 		checkOutputFoldersForAJFiles(project);
 		
@@ -188,14 +189,14 @@ public class AJDTUtils {
 			// aspectjrt.jar should be added to the classpath container
 			// that lists jars imported from dependent plugins. In order
 			// to do this, should add a dependency on the plugin
-			// org.aspectj.ajde to the current plugin project.
+			// org.aspectj.runtime to the current plugin project.
 
 			// Bugzilla 72007
 			// Checks if the plugin already has the plugin dependency
 			// before adding it, this avoids duplication
 			if (!hasAJPluginDependency(project)) {
 				getAndPrepareToChangePDEModel(project);
-				addAJPluginDependency(project);
+				addAJPluginDependency(project,prompt);
 			}
 		} else {
 			// A Java project that is not a plugin project. Just add
@@ -206,8 +207,10 @@ public class AJDTUtils {
 		//crete compilation units for .aj files
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 
-		checkMyEclipseNature(project);
-
+		if (prompt) {
+			checkMyEclipseNature(project);
+		}
+		
 		refreshPackageExplorer();
 	}
 
@@ -420,13 +423,14 @@ public class AJDTUtils {
 
 	/**
 	 * @param project
+	 * @param prompt
 	 */
-	private static void addAJPluginDependency(IProject project) {
+	private static void addAJPluginDependency(IProject project, boolean prompt) {
 		IWorkbenchWindow window = AspectJUIPlugin.getDefault().getWorkbench()
 				.getActiveWorkbenchWindow();
 
 		boolean autoImport = false;
-		if ((AspectJPreferences.askPDEAutoImport() && confirmPDEAutoAddImport(window))
+		if (!prompt || (AspectJPreferences.askPDEAutoImport() && confirmPDEAutoAddImport(window))
 				|| (AspectJPreferences.doPDEAutoImport())) {
 			autoImport = true;
 		}

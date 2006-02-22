@@ -65,7 +65,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 
 		checkForJDTBug84214(projectB,projectA);
 		// convert project A to be an aspectj project
-		AJDTUtils.addAspectJNature(projectA);
+		AspectJUIPlugin.convertToAspectJProject(projectA);
 		waitForJobsToComplete();
 		projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -152,7 +152,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		checkForJDTBug84214(projC,projB);
 	
 		// convert project B to be an AspectJ project
-		AJDTUtils.addAspectJNature(projB);
+		AspectJUIPlugin.convertToAspectJProject(projB);
 		waitForJobsToComplete();
 		projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -231,7 +231,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		checkForJDTBug84214(projectB1,projectB);
 		// convert project A to be an aspectj project
-		AJDTUtils.addAspectJNature(projectB);
+		AspectJUIPlugin.convertToAspectJProject(projectB);
 		waitForJobsToComplete();
 		projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -310,7 +310,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 
 		checkForJDTBug84214(projectX,projectY);
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -438,7 +438,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		checkForJDTBug84214(projectX,projectY);
 		
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -455,7 +455,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX,projectY));
 
 		// convert project X to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectX);
+		AspectJUIPlugin.convertToAspectJProject(projectX);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -596,7 +596,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		checkForJDTBug84214(projectX,projectY);
 		
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
@@ -734,7 +734,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				AspectJPlugin.isAJProject(projectX));
 
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		
 		checkForJDTBug84214(projectX,projectY);

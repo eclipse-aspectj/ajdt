@@ -74,7 +74,7 @@ class AspectsProcessor {
 			public void apply(IDocument document) {
 				if (editor instanceof ITextEditor) {
 					try {
-						AJDTUtils.addAspectJNature(project);
+						AJDTUtils.addAspectJNature(project, true);
 					} catch (CoreException e) {
 					}
 				}

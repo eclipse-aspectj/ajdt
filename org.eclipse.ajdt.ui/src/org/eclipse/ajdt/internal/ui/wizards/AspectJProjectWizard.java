@@ -125,7 +125,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 			// INatureProject.configure() which will replace the normal javabuilder
 			// with the aspectj builder.
 			if(!alreadyExists) {
-				AJDTUtils.addAspectJNature(project);
+				AJDTUtils.addAspectJNature(project,true);
 			}
 			
 			else {

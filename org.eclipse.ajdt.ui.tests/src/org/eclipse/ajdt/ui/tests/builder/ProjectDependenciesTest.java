@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest.MyJobChangeListener;
@@ -65,7 +66,7 @@ public class ProjectDependenciesTest extends UITestCase {
 						projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
@@ -155,7 +156,7 @@ public class ProjectDependenciesTest extends UITestCase {
 						projectX, projectY));
 
 		// convert project Y to be an AJ project ==> still no build errors
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project X should still not have any IJavaModelMarkers", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectMarkedWithPrereqMessage(
@@ -186,7 +187,7 @@ public class ProjectDependenciesTest extends UITestCase {
 						projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -200,7 +201,7 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// convert project X to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectX);
+		AspectJUIPlugin.convertToAspectJProject(projectX);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -228,7 +229,7 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// convert project Y to be an AJ project and check setup is correct
-		AJDTUtils.addAspectJNature(projectY);
+		AspectJUIPlugin.convertToAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
