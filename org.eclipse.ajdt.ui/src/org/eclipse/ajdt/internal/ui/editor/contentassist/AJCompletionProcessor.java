@@ -66,12 +66,15 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 		ICompletionProposal[] props = super.computeCompletionProposals(viewer, offset);
 		if (isInAspectJContext){
 			((WorkingCopyManagerForCompletionProcessor)fManager).discardWorkingCopy();
-
-			ICompletionProposal[] propsnew = new ICompletionProposal[props.length + 1];
-			System.arraycopy(props, 0, propsnew, 0, props.length);
-			propsnew[propsnew.length - 1] = new CompletionProposal("", offset, 0, 0, null, UIMessages.codeAssist_limited_title, //$NON-NLS-1$
-					null, UIMessages.codeAssist_limited_message);
-			props = propsnew;
+			if (props.length > 0) {
+				// only add limited message if there are any proposals
+				ICompletionProposal[] propsnew = new ICompletionProposal[props.length + 1];
+				System.arraycopy(props, 0, propsnew, 0, props.length);
+				propsnew[propsnew.length - 1] = new CompletionProposal(
+						"", offset, 0, 0, null, UIMessages.codeAssist_limited_title, //$NON-NLS-1$
+						null, UIMessages.codeAssist_limited_message);
+				props = propsnew;
+			}
 		}
 		return filterAjcElements(props);
 	}
