@@ -47,8 +47,11 @@ public class AJCompletionProcessor extends JavaCompletionProcessor {
 				iter.remove();
 			}
 		}
-		newProposals.add(newProposals.size(), 
+		if (newProposals.size() > 0) {
+			// only add limited message if there are any proposals
+			newProposals.add(newProposals.size(), 
 				new CompletionProposal("", offset, 0, 0, null, UIMessages.codeAssist_limited_title, null, UIMessages.codeAssist_limited_message));//$NON-NLS-1$ )
+		}
 		return newProposals;
 	}
 	
