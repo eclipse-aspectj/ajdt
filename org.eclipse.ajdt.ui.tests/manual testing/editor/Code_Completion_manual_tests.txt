@@ -27,3 +27,16 @@ Switch off auto-activation by clicking 'Window' > 'Preferences' > 'Java'
 "exclusions." again in the editor and the completions should not appear (CC_8)
 
 Switch auto-activation back on and check that it works as in CC_7 (CC_9)
+
+Bug 129367: Mad code completion makes it impossible to enter pointcuts!
+-----------
+
+Create a new aspect, and start typing the following (line breaks are *significant*):
+
+	pointcut callToJdbc() :
+		call(* java.
+		
+Now pause, and check that NO content-assist proposals are given, and that
+NO completions are auto-inserted into the buffer. (CC_10)
+
+
