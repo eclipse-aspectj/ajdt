@@ -246,6 +246,11 @@ public class AspectsConvertingParser implements TerminalTokens {
 				break;
 			case TokenNameRBRACE:
 //				insideBlockCount ++;
+				if (insidePointcutDesignator) {
+					// bug 129367: if we've hit a } here, we must be
+					// in the middle of an unterminated pointcut
+					endPointcutDesignator();
+				}
 				break;
 			case TokenNameaspect:
 				insideAspect = true;
@@ -263,6 +268,12 @@ public class AspectsConvertingParser implements TerminalTokens {
 
 		}
 
+		if (insidePointcutDesignator) {
+			// bug 129367: if we've hit the end of the buffer, we must
+			// be in the middle of an unterminated pointcut
+			endPointcutDesignator();
+		}
+		
 		if (addReferencesForOrganizeImports)
 			addReferences();
 
