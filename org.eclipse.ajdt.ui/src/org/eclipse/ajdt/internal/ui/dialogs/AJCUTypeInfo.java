@@ -71,7 +71,7 @@ public class AJCUTypeInfo extends IFileTypeInfo {
 		IResource resource= root.findMember(path);
 		if (resource != null) {
 			IJavaElement elem= AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)resource);
-			if (elem.exists()) {
+			if (elem != null && elem.exists()) {
 				return elem;
 			}
 		}
