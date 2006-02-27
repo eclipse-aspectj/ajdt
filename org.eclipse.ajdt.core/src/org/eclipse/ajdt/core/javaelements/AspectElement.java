@@ -56,8 +56,18 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		return TYPE;
 	}
 
+	/**
+	 * Returns the pointcuts declared by this type. If this is a source type,
+	 * the results are listed in the order in which they appear in the source,
+	 * otherwise, the results are in no particular order.
+	 * 
+	 * @exception JavaModelException
+	 *                if this element does not exist or if an exception occurs
+	 *                while accessing its corresponding resource.
+	 * @return the pointcuts declared by this type
+	 */
 	public PointcutElement[] getPointcuts() throws JavaModelException {
-		// pointcuts are implemented as methods
+		// pointcuts appear as methods
 		IMethod[] methods = getMethods();
 		List list = new ArrayList();
 		for (int i = 0; i < methods.length; i++) {
@@ -69,7 +79,55 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		list.toArray(array);
 		return array;
 	}
-	
+
+	/**
+	 * Returns the advice elements declared by this type. If this is a source
+	 * type, the results are listed in the order in which they appear in the
+	 * source, otherwise, the results are in no particular order.
+	 * 
+	 * @exception JavaModelException
+	 *                if this element does not exist or if an exception occurs
+	 *                while accessing its corresponding resource.
+	 * @return the advice elements declared by this type
+	 */
+	public AdviceElement[] getAdvice() throws JavaModelException {
+		// advice statements appear as methods
+		IMethod[] methods = getMethods();
+		List list = new ArrayList();
+		for (int i = 0; i < methods.length; i++) {
+			if (methods[i] instanceof AdviceElement) {
+				list.add(methods[i]);
+			}
+		}
+		AdviceElement[] array = new AdviceElement[list.size()];
+		list.toArray(array);
+		return array;
+	}
+
+	/**
+	 * Returns the declare elements declared by this type. If this is a source
+	 * type, the results are listed in the order in which they appear in the
+	 * source, otherwise, the results are in no particular order.
+	 * 
+	 * @exception JavaModelException
+	 *                if this element does not exist or if an exception occurs
+	 *                while accessing its corresponding resource.
+	 * @return the declare elements declared by this type
+	 */
+	public DeclareElement[] getDeclares() throws JavaModelException {
+		// declare statements appear as methods
+		IMethod[] methods = getMethods();
+		List list = new ArrayList();
+		for (int i = 0; i < methods.length; i++) {
+			if (methods[i] instanceof DeclareElement) {
+				list.add(methods[i]);
+			}
+		}
+		DeclareElement[] array = new DeclareElement[list.size()];
+		list.toArray(array);
+		return array;
+	}
+
 	//TODO: forward call to ElementInfo (only for cosmetical reasons)
 	public Kind getAJKind() throws JavaModelException  {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
