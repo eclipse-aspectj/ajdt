@@ -23,6 +23,7 @@ import org.eclipse.ajdt.core.model.ModelComparison;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 
 /**
  * Tests for comparing two project models
@@ -87,6 +88,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			// config, but that currently requires the UI plugin)
 			debug.delete(true, null);
 			waitForAutoBuild();
+			project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 			currentModel = AJModel.getInstance().getModelForProject(project);
 			assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
 
