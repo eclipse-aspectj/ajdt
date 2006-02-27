@@ -39,6 +39,14 @@ public class AJRelationship {
 		return target;
 	}
 
+	public void setSource(IJavaElement source) {
+		this.source = source;
+	}
+
+	public void setTarget(IJavaElement target) {
+		this.target = target;
+	}
+
 	public AJRelationshipType getRelationship() {
 		return relationship;
 	}
