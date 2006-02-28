@@ -7,15 +7,15 @@ Right-click on the project in the package explorer and select
 AspectJ Tools > Save Crosscutting Map
 
 A dialog should appear and the default name for the map file should
-be "build.ajmap". (CCDIFF_1)
+be "crosscutting". (CCDIFF_1)
 
-Press OK and check that a "build.ajmap" file appears in the top level
+Press OK and check that a "crosscutting.ajmap" file appears in the top level
 of the project  (CCDIFF_2)
 
-Double-click on the "build.ajmap" file, check that it is opened in the
+Double-click on the "crosscutting.ajmap" file, check that it is opened in the
 AJMap Editor  (CCDIFF_3)
 
-Right-click on the "build.ajmap" file and select AspectJ Tools > Compare
+Right-click on the "crosscutting.ajmap" file and select AspectJ Tools > Compare
 Crosscutting With Current Build. Check that the Crosscutting Comparison view
 is opened, and that the table shows no entries  (CCDIFF_4)
 
@@ -35,4 +35,36 @@ In the editor comment out the before advice, and save. A build
 should occur, and the corresponding entries should disappear from
 the view.  (CCDIFF_8)
 
+Comparing two elements
+----------------------
+
+Restore the filter settings to the defaults.
+
+Check out the "Comparisons" project from org.eclipse.ajdt.core.tests/workspace.
+
+Open foo/MyAspect.aj in the editor, then select the before and after advice
+in the outline view, right-click and select "Compare Crosscutting With >
+Each Other". The Crosscutting Comparison view should then show two entries,
+one added and one removed. (CCDIFF_9)
+
+Now select the declare warning and the after advice in the outline view and
+select the same comparison option. The view should show four entries, two
+added and two removed. (CCDIFF_10)
+
+Press the "Propagate Up" button on the view, and the view should become
+empty, with the message including the text "Showing 0 of 1 items". (CCDIFF_11)
+
+Pressing the button again should return the view to showing 4 entries. (CCDIFF_12)
+
+Right-click the project and select AspectJ Tools > Save Crosscutting Map.
+Accept the default, then right-click the generated .ajmap file and select
+AspectJ Tools > Compare Crosscutting With Current Build. Then comment out
+the declare warning statement in MyAspect.aj and save. The view should
+update to show two removed entries, with method-call targets. (CCDIFF_13)
+
+Press the "Propagate Up" button on the view. Two entries should still be
+present in the view and the two method-call targets should now appear as
+methods Orange.setX() and Apple.setY().  (CCDIFF_14)
+
+Pressing the button again should return the targets to method-calls. (CCDIFF_15)
 

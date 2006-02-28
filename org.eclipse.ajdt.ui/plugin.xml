@@ -1724,14 +1724,14 @@ M4 = Platform-specific fourth key
          </menu>
          <action
                label="%CompareCrosscutting.submenu.eachOther"
-               class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
+               class="org.eclipse.ajdt.internal.ui.diff.CompareMapFileAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                enablesFor="2"
                id="ajmappopup">
          </action>
          <action
                label="%CompareCrosscutting.submenu.currentBuild"
-               class="org.eclipse.ajdt.internal.ui.diff.CompareAction"
+               class="org.eclipse.ajdt.internal.ui.diff.CompareMapFileAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                enablesFor="1"
                id="compareCrosscuttingWithCurrentBuild">
@@ -1764,6 +1764,33 @@ M4 = Platform-specific fourth key
             id="AJMapEditor">
       </editor>
     </extension>      
+       
+     <!-- Aspect Refactoring Verifier (ARV) -->
+     <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.ajdt.core.javaelements.AspectJMemberElement"
+            id="arv.contribution1">
+            <visibility>
+             <or>
+               	<objectClass name="org.eclipse.ajdt.core.javaelements.AdviceElement"/>
+           		<objectClass name="org.eclipse.ajdt.core.javaelements.DeclareElement"/>
+            </or>	
+       	  </visibility>
+         <menu
+               label="%CompareCrosscutting.context.with"
+               path="additions"
+               id="arv.menu1">
+            <separator name="group1"/>
+         </menu>
+         <action
+               enablesFor="2"
+               label="%CompareCrosscutting.context.eachOther"
+               class="org.eclipse.ajdt.internal.ui.diff.CompareElementAction"
+               menubarPath="arv.menu1/group1"
+               id="arv.sameProject"/>       
+      </objectContribution>
+   </extension>  
        
        
 <!-- EXPERIMENTAL (for debugging purposes only)

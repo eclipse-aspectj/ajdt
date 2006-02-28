@@ -110,6 +110,7 @@
 		<topic label="Saving crosscutting information" href="doc/tasks/savemap.htm"></topic>
 		<topic label="Comparing two builds" href="doc/tasks/comparetwo.htm"></topic>
 		<topic label="Comparing with the current build" href="doc/tasks/compareone.htm"></topic>
+		<topic label="Comparing two elements" href="doc/tasks/compareelements.htm"></topic>
 	</topic>
 	<anchor id="t_compare" />
 	

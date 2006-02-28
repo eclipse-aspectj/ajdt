@@ -25,7 +25,7 @@ import org.eclipse.ui.PartInitException;
 /**
  * Handles the selection of .ajmap files in the package explorer
  */
-public class CompareAction implements IWorkbenchWindowActionDelegate {
+public class CompareMapFileAction implements IWorkbenchWindowActionDelegate {
 
 	private ISelection fSelection;
 	
@@ -63,7 +63,7 @@ public class CompareAction implements IWorkbenchWindowActionDelegate {
 							IProject project = file.getProject();
 							String fromName = file.getName();
 							String toName = ChangesView.CURRENT_BUILD;
-							changesView.performComparison(project, fromName, project, toName);
+							changesView.compareProjects(project, fromName, project, toName);
 						}
 					} else {
 						// compare with each other
@@ -86,7 +86,7 @@ public class CompareAction implements IWorkbenchWindowActionDelegate {
 								IProject toProject = toFile.getProject();
 								String fromName = fromFile.getName();
 								String toName = toFile.getName();
-								changesView.performComparison(fromProject, fromName, toProject, toName);
+								changesView.compareProjects(fromProject, fromName, toProject, toName);
 							}
 						}
 					}

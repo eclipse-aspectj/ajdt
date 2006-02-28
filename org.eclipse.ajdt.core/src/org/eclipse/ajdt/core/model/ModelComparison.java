@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,16 +12,25 @@
 package org.eclipse.ajdt.core.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
- * Compares two structure models
+ * Compare two structure models or elements
  */
 public class ModelComparison {
 
+	private boolean propagateUp;
+	
+	public ModelComparison(boolean propagateUp) {
+		this.propagateUp = propagateUp;
+	}
+	
 	/**
 	 * Compares the given two structure models and returns a two element array
 	 * of lists as follows: list[0] is a list of relationships added comparing
@@ -30,9 +39,10 @@ public class ModelComparison {
 	 * 
 	 * @param fromModel
 	 * @param toModel
-	 * @return
+	 * @return a two element List array, containing the added list and removed
+	 *         list respectively
 	 */
-	public static List[] compare(AJProjectModel fromModel,
+	public List[] compareProjects(AJProjectModel fromModel,
 			AJProjectModel toModel) {
 		List fromRels = fromModel
 				.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
@@ -54,7 +64,7 @@ public class ModelComparison {
 				//System.out.println("---"+sourceName+"
 				// "+rel.getRelationship().getDisplayName()
 				//		+" "+targetName);
-				removedList.add(rel);
+				removedList.add(propagateRel(rel));
 			}
 		}
 
@@ -67,17 +77,86 @@ public class ModelComparison {
 			//System.out.println("+++"+sourceName+"
 			// "+rel.getRelationship().getDisplayName()
 			//		+" "+targetName);
-			addedList.add(rel);
+			addedList.add(propagateRel(rel));
 		}
-
+		
 		return new List[] { addedList, removedList };
 	}
 
-	private static boolean matchJavaElements(IJavaElement je1, IJavaElement je2) {
-		return je1.getHandleIdentifier().equals(je2.getHandleIdentifier());
+	/**
+	 * Compare the crosscutting of two Java elements, for example to see whether
+	 * two advice or declare statements advise the same places.
+	 * @param fromModel
+	 * @param toModel
+	 * @param fromEl
+	 * @param toEl
+	 * @return a two element List array, containing the added list and removed
+	 *         list respectively
+	 */
+	public List[] compareElements(AJProjectModel fromModel,
+			AJProjectModel toModel, IJavaElement fromEl,
+			IJavaElement toEl) {
+		List fromRels = fromModel
+			.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+		List toRels = toModel
+			.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+
+		// lists to return
+		List addedList = new ArrayList();
+		List removedList = new ArrayList();
+
+		Set fromTargets = new HashSet();
+		Set toTargets = new HashSet();
+		
+		for (Iterator iter = fromRels.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			if (matchJavaElements(fromEl,rel.getSource())) {
+				fromTargets.add(propagate(rel.getTarget()).getHandleIdentifier());
+				removedList.add(propagateRel(rel));
+			}
+		}
+		for (Iterator iter = toRels.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			if (matchJavaElements(toEl,rel.getSource())) {
+				String target = propagate(rel.getTarget()).getHandleIdentifier(); 
+				toTargets.add(target);
+				// only add to addedList if target is different
+				if (!fromTargets.contains(target)) {
+					addedList.add(propagateRel(rel));
+				}
+			}
+		}
+		
+		// remove matching targets from the removedList
+		for (Iterator iter = removedList.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			if (toTargets.contains(propagate(rel.getTarget()).getHandleIdentifier())) {
+				iter.remove();
+			}
+		}
+		
+		return new List[] { addedList, removedList };
 	}
 	
-	private static boolean removeMatchingRel(List list, AJRelationship match) {
+	private IJavaElement propagate(IJavaElement el) {
+		if (propagateUp && (el instanceof AJCodeElement)) {
+			return el.getParent();
+		}
+		return el;
+	}
+	
+	private AJRelationship propagateRel(AJRelationship rel) {
+		rel.setSource(propagate(rel.getSource()));
+		rel.setTarget(propagate(rel.getTarget()));
+		return rel;
+	}
+	
+	private boolean matchJavaElements(IJavaElement je1, IJavaElement je2) {
+		return propagate(je1).getHandleIdentifier().equals(
+				propagate(je2).getHandleIdentifier());
+	}
+	
+	private boolean removeMatchingRel(List list, AJRelationship match) {
 		for (Iterator iter = list.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
 			if (rel.getRelationship().equals(match.getRelationship())

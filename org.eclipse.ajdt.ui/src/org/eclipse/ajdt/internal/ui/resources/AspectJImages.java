@@ -237,6 +237,8 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/diff/added.gif"); //$NON-NLS-1$
 	public static final AJDTIcon CHANGES_REMOVED = new AJDTIcon(
 				"icons/diff/removed.gif"); //$NON-NLS-1$
+	public static final AJDTIcon PROPAGATE_UP = new AJDTIcon(
+				"icons/diff/propagateup.gif"); //$NON-NLS-1$
 	
 	
 	public static AspectJImages instance( ) {

@@ -36,6 +36,8 @@ import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -73,6 +75,8 @@ public class ChangesView extends ViewPart {
 
 	private ChangesViewFilterAction filterAction;
 
+	private Action propagateToggleAction;
+	
 	public static final String CROSSCUTTING_VIEW_ID = "org.eclipse.ajdt.ui.diff.ChangesView"; //$NON-NLS-1$
 
 	public static final String MAP_FILE_EXT = "ajmap"; //$NON-NLS-1$
@@ -95,12 +99,23 @@ public class ChangesView extends ViewPart {
 
 	private IProject currFromProject, currToProject;
 
+	private IJavaElement currFromEl, currToEl;
+	
 	private String currFromName, currToName;
 
 	private static Image incomingImage = null;
 
 	private static Image outgoingImage = null;
 
+	private boolean propagateUp = false;
+	
+	private static int EMPTY = 0;
+	private static int COMPARING_FILES = 1;
+	private static int COMPARING_ELEMENTS = 2;
+	
+	
+	private int compareMode = EMPTY;
+	
 	public ChangesView() {
 	}
 
@@ -110,15 +125,23 @@ public class ChangesView extends ViewPart {
 						ChangesView.CROSSCUTTING_VIEW_ID);
 		if (view instanceof ChangesView) {
 			ChangesView changesView = (ChangesView) view;
-			changesView.refreshIfCurrentBuild(force);
+			if (changesView.compareMode == COMPARING_FILES) {
+				changesView.refreshIfCurrentBuild(force);
+			} else if (changesView.compareMode == COMPARING_ELEMENTS) {
+				changesView.refresh();
+			}
 		}
 	}
 
+	private void refresh() {
+		compareElements(currFromEl, currToEl);
+	}
+	
 	private void refreshIfCurrentBuild(boolean force) {
 		if ((currFromName != null) && (currToName != null)) {
 			if (force || currFromName.equals(CURRENT_BUILD)
 					|| currToName.equals(CURRENT_BUILD)) {
-				performComparison(currFromProject, currFromName, currToProject,
+				compareProjects(currFromProject, currFromName, currToProject,
 						currToName);
 			}
 		}
@@ -373,8 +396,10 @@ public class ChangesView extends ViewPart {
 		return filteredList;
 	}
 
-	public void performComparison(IProject fromProject, String fromName,
+	public void compareProjects(IProject fromProject, String fromName,
 			IProject toProject, String toName) {
+		compareMode = COMPARING_FILES;
+		
 		currFromProject = fromProject;
 		currFromName = fromName;
 		currToProject = toProject;
@@ -386,21 +411,52 @@ public class ChangesView extends ViewPart {
 			return;
 		}
 		
-		List[] ret = ModelComparison.compare(fromModel, toModel);
+		List[] ret = new ModelComparison(propagateUp).compareProjects(fromModel, toModel);
 		List addedList = filterRelationshipList(ret[0]);
 		List removedList = filterRelationshipList(ret[1]);
-
-		int numEntries = addedList.size() + removedList.size();
-		sourceElements = new IJavaElement[numEntries];
-		targetElements = new IJavaElement[numEntries];
-		int rowCount = 0;
 
 		int totalNoRelationships = ret[0].size() + ret[1].size();
 		updateDescription(fromName, toName, (addedList.size() + removedList
 				.size()), totalNoRelationships);
 
+		updateTable(addedList, removedList, fromModel, toModel);
+	}
+	
+	public void compareElements(IJavaElement fromEl, IJavaElement toEl) {
+		compareMode = COMPARING_ELEMENTS;
+		currFromEl = fromEl;
+		currToEl = toEl;
+		
+		IProject fromProject = fromEl.getResource().getProject();
+		IProject toProject = toEl.getResource().getProject();
+
+		AJProjectModel fromModel = AJModel.getInstance().getModelForProject(
+				fromProject);
+		AJProjectModel toModel = AJModel.getInstance().getModelForProject(
+				toProject);
+
+		List[] ret = new ModelComparison(propagateUp).compareElements(fromModel, toModel,
+				fromEl, toEl);
+		List addedList = filterRelationshipList(ret[0]);
+		List removedList = filterRelationshipList(ret[1]);
+
+		int totalNoRelationships = ret[0].size() + ret[1].size();
+		updateDescription(fromEl.getElementName(), toEl.getElementName(),
+				(addedList.size() + removedList.size()), totalNoRelationships);
+
+		updateTable(addedList, removedList, fromModel, toModel);
+	}
+	
+	private void updateTable(List addedList, List removedList,
+			AJProjectModel fromModel, AJProjectModel toModel) {
+		int numEntries = addedList.size() + removedList.size();
+		sourceElements = new IJavaElement[numEntries];
+		targetElements = new IJavaElement[numEntries];
+
 		// update table with results
 		table.removeAll();
+		int rowCount = 0;
+
 		// added relationships
 		for (Iterator iter = addedList.iterator(); iter.hasNext();) {
 			AJRelationship rel = (AJRelationship) iter.next();
@@ -463,9 +519,25 @@ public class ChangesView extends ViewPart {
 
 	private void fillLocalToolBar(IToolBarManager manager) {
 		filterAction.fillActionBars(getViewSite().getActionBars());
+		manager.add(propagateToggleAction);
 	}
 
 	private void makeActions() {
+		propagateToggleAction = new Action() {
+			public int getStyle() {
+				return IAction.AS_CHECK_BOX;
+			}
+
+			public void run() {
+				propagateUp = !propagateUp;
+				refresh(true);
+			}
+		};
+		propagateToggleAction.setText(UIMessages.changesView_propagate_message);
+		propagateToggleAction
+				.setToolTipText(UIMessages.changesView_propagate_tooltip);
+		propagateToggleAction.setImageDescriptor(AspectJImages.PROPAGATE_UP.getImageDescriptor());
+
 		AJRelationshipType[] relationshipTypes = AJRelationshipManager.allRelationshipTypes;
 
 		List populatingList = new ArrayList();
