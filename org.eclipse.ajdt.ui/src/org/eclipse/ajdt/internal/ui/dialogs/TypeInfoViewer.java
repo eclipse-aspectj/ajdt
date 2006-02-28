@@ -109,7 +109,6 @@ public class TypeInfoViewer {
 	private static class SearchRequestor extends TypeNameRequestor {
 		private volatile boolean fStop;
 		
-		private TypeInfoFilter fFilter;
 		private Set fHistory;
 		
 		private AJTypeInfoFactory factory= new AJTypeInfoFactory();
@@ -117,7 +116,6 @@ public class TypeInfoViewer {
 		
 		public SearchRequestor(TypeInfoFilter filter) {
 			super();
-			fFilter= filter;
 			fResult= new ArrayList(2048);
 		}
 		public TypeInfo[] getResult() {

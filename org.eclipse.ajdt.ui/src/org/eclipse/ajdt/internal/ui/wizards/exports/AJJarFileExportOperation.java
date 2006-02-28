@@ -70,12 +70,10 @@ import org.eclipse.jdt.ui.jarpackager.JarPackageData;
 import org.eclipse.jdt.ui.jarpackager.JarWriter2;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.operation.ModalContext;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
 /**
@@ -961,66 +959,6 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		}
 		
 		return true;
-	}
-
-	/**
-	 * Returns the files which are not saved and which are
-	 * part of the files being exported.
-	 * 
-	 * @return an array of unsaved files
-	 */
-	private IFile[] getUnsavedFiles() {
-		IEditorPart[] dirtyEditors= getDirtyEditors(fParentShell);
-		Set unsavedFiles= new HashSet(dirtyEditors.length);
-		if (dirtyEditors.length > 0) {
-			List selection= AJJarPackagerUtil.asResources(fJarPackage.getElements());
-			for (int i= 0; i < dirtyEditors.length; i++) {
-				if (dirtyEditors[i].getEditorInput() instanceof IFileEditorInput) {
-					IFile dirtyFile= ((IFileEditorInput)dirtyEditors[i].getEditorInput()).getFile();
-					if (AJJarPackagerUtil.contains(selection, dirtyFile)) {
-						unsavedFiles.add(dirtyFile);
-					}
-				}
-			}
-		}
-		return (IFile[])unsavedFiles.toArray(new IFile[unsavedFiles.size()]);
-	}
-
-	/**
-	 * Save all of the editors in the workbench.  
-	 * 
-	 * @return true if successful.
-	 */
-	private boolean saveModifiedResources(final IFile[] dirtyFiles) {
-		// Get display for further UI operations
-		Display display= fParentShell.getDisplay();
-		if (display == null || display.isDisposed())
-			return false;
-		
-		final boolean[] retVal= new boolean[1];
-		Runnable runnable= new Runnable() {
-			public void run() {
-				try {
-					PlatformUI.getWorkbench().getProgressService().runInUI(
-						PlatformUI.getWorkbench().getProgressService(),
-						createSaveModifiedResourcesRunnable(dirtyFiles),
-						ResourcesPlugin.getWorkspace().getRoot());
-					retVal[0]= true;
-				} catch (InvocationTargetException ex) {
-					addError(JarPackagerMessages.JarFileExportOperation_errorSavingModifiedResources, ex); 
-					JavaPlugin.log(ex);
-					retVal[0]= false;
-				} catch (InterruptedException ex) {
-						Assert.isTrue(false); // Can't happen. Operation isn't cancelable.
-						retVal[0]= false;
-				}
-	 		}
-		};
-		fFilesSaved= false;
-		display.syncExec(runnable);
-		if (retVal[0])
-			fFilesSaved= true;
-		return retVal[0];
 	}
 
 	private IRunnableWithProgress createSaveModifiedResourcesRunnable(final IFile[] dirtyFiles) {

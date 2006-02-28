@@ -12,12 +12,10 @@ package org.eclipse.ajdt.internal.ui.editor;
 
 import org.eclipse.ajdt.internal.ui.editor.contentassist.AJCompletionProcessor;
 import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
-import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.IDocument;
@@ -155,23 +153,6 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		return presenter;
 	}
 	
-	
-	// copied from superclass for fix to bug 80239
-	/**
-	 * Returns the settings for the given section.
-	 *
-	 * @param sectionName the section name
-	 * @return the settings
-	 * @since 3.0
-	 */
-	private IDialogSettings getSettings(String sectionName) {
-		IDialogSettings settings= JavaPlugin.getDefault().getDialogSettings().getSection(sectionName);
-		if (settings == null)
-			settings= JavaPlugin.getDefault().getDialogSettings().addNewSection(sectionName);
-
-		return settings;
-	}
-
 	/*
 	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getHyperlinkDetectors(org.eclipse.jface.text.source.ISourceViewer)
 	 * @since 3.1
