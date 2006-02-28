@@ -280,11 +280,14 @@ public class AJProjectModel {
 
 	public String getJavaElementLinkName(IJavaElement je) {
 		String name = (String) jeLinkNames.get(je);
-		if (name == null) {
-			// use element name instead
-			name = je.getElementName();
+		if ((name != null) && (name.length() > 0)) {
+			return name;
 		}
-		return name;
+		// use element name instead, qualified with parent
+		if (je.getParent() != null) {
+			return je.getParent().getElementName() + '.' + je.getElementName();
+		}
+		return je.getElementName();
 	}
 
 	public List getExtraChildren(IJavaElement je) {
