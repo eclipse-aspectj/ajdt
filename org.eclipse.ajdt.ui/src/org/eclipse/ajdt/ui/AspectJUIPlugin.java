@@ -467,6 +467,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			usingXref = false;
 		}
 
+		IWorkbenchWindow window = getActiveWorkbenchWindow();
+		if (window != null) {
+			window.getSelectionService().addPostSelectionListener(this);
+		}
+		
 		AJDTEventTrace.startup();
 		
 		checkAspectJVersion();
