@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.osgi.util.NLS;
 
 /**
  * The compiler monitor interface is used by the AspectJ builder. Just before
@@ -66,6 +67,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     private boolean linked;
 
+    /**
+     * Project being built
+     */
+    private IProject project;
+    
 	/**
 	 * Indicates whether the build is for one particular AspectJ project only
 	 * (i.e. caused by the build action button being clicked) or else is part of
@@ -79,7 +85,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      */
     public void prepare(IProject project, List buildList,
             IProgressMonitor eclipseMonitor) {
-
+    	this.project = project;
+    	
         //check if the folder contains linked resources
         linked = false;
         IResource[] res = null;
@@ -143,8 +150,8 @@ public class CompilerMonitor implements IAJCompilerMonitor {
                 public void run() {
                     if (monitor != null) {
                         if (isLocalBuild) {
-							monitor.setTaskName(UIMessages.CompilerMonitor_building_Project);
-                       }
+                        	monitor.setTaskName(NLS.bind(UIMessages.CompilerMonitor_building_Project,project.getName()));
+                        }
                     }// end if
                 }// end run method
             });
