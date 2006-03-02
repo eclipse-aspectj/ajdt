@@ -15,13 +15,13 @@ import org.eclipse.contribution.xref.core.IXReferenceNode;
 import org.eclipse.contribution.xref.ui.IDeferredXReference;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 /**
  * Label provider for the tree of cross references
@@ -34,10 +34,9 @@ public class XReferenceLabelProvider extends LabelProvider {
 
 	public ILabelProvider labelProvider;
 	
-	
 	public XReferenceLabelProvider() {
 		labelProvider = new DecoratingLabelProvider(
-				new WorkbenchLabelProvider(), XReferenceUIPlugin.getDefault()
+				new JavaElementLabelProvider(), XReferenceUIPlugin.getDefault()
 						.getWorkbench().getDecoratorManager().getLabelDecorator());
 	}
 	

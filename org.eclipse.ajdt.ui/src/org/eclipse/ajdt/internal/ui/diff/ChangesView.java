@@ -34,11 +34,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
-import org.eclipse.jdt.internal.ui.viewsupport.DecoratingJavaLabelProvider;
+import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -113,10 +113,14 @@ public class ChangesView extends ViewPart {
 	private static int COMPARING_FILES = 1;
 	private static int COMPARING_ELEMENTS = 2;
 	
-	
 	private int compareMode = EMPTY;
 	
+	private ILabelProvider labelProvider;
+
 	public ChangesView() {
+		labelProvider = new DecoratingLabelProvider(
+				new JavaElementLabelProvider(), AspectJUIPlugin.getDefault()
+						.getWorkbench().getDecoratorManager().getLabelDecorator());
 	}
 
 	public static void refresh(boolean force) {
@@ -364,10 +368,7 @@ public class ChangesView extends ViewPart {
 		model.loadModel(mapFile);
 		return model;
 	}
-
-	private static ILabelProvider labelProvider = new DecoratingJavaLabelProvider(
-			new AppearanceAwareLabelProvider());
-
+	
 	private static Image getIncomingImage() {
 		if (incomingImage == null) {
 			incomingImage = AspectJImages.CHANGES_ADDED.getImageDescriptor()
