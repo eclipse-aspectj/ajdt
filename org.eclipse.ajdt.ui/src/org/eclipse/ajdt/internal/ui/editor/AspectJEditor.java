@@ -25,6 +25,7 @@ import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.ui.xref.XRefUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
 import org.eclipse.core.resources.IProject;
@@ -50,6 +51,7 @@ import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
@@ -406,10 +408,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 					.getAspectJTextTools();
 
 			textTools.setupJavaDocumentPartitioner(document,
-					EclipseEditorIsolation.JAVA_PARTITIONING);
+					IJavaPartitions.JAVA_PARTITIONING);
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
 			resetTitleImage();
+			XRefUtils.openXRefViewIfFirstTime();
 		}
 		
 	}

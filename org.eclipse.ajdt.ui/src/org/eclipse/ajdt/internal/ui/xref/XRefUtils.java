@@ -7,7 +7,7 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Matt Chapman  - iniital version
+ *     Matt Chapman  - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.xref;
 
