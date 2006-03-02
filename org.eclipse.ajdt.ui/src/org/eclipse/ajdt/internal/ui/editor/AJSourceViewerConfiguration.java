@@ -15,6 +15,7 @@ import org.eclipse.ajdt.internal.ui.editor.outline.AJOutlineInformationControl;
 import org.eclipse.jdt.internal.ui.text.JavaElementProvider;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.AbstractInformationControlManager;
@@ -42,7 +43,7 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 	AspectJTextTools ajtt = null;
 	
 	public AJSourceViewerConfiguration(AspectJTextTools textTools, AspectJEditor editor) {
-		super(textTools.getColorManager(), textTools.getPreferenceStore(), editor, EclipseEditorIsolation.JAVA_PARTITIONING);
+		super(textTools.getColorManager(), textTools.getPreferenceStore(), editor, IJavaPartitions.JAVA_PARTITIONING);
 		ajtt = textTools;
 	}
 	
@@ -144,11 +145,11 @@ public class AJSourceViewerConfiguration extends JavaSourceViewerConfiguration {
 		presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 		IInformationProvider provider= new JavaElementProvider(getEditor(), doCodeResolve);
 		presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_DOC);
-		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_MULTI_LINE_COMMENT);
-		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_SINGLE_LINE_COMMENT);
-		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_STRING);
-		presenter.setInformationProvider(provider, EclipseEditorIsolation.JAVA_CHARACTER);
+		presenter.setInformationProvider(provider, IJavaPartitions.JAVA_DOC);
+		presenter.setInformationProvider(provider, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
+		presenter.setInformationProvider(provider, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+		presenter.setInformationProvider(provider, IJavaPartitions.JAVA_STRING);
+		presenter.setInformationProvider(provider, IJavaPartitions.JAVA_CHARACTER);
 		presenter.setSizeConstraints(50, 20, true, false);
 		return presenter;
 	}
