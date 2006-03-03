@@ -27,23 +27,6 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 	
 	public static final String IMAGE_LOCATION_ATTRIBUTE = "Image_Location"; //$NON-NLS-1$
 
-	public static final Image[] sampleImages = new Image[] {
-		AspectJImages.ARROW_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.BULB_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.CIRCLE_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.CLOCK_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.COG_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.CROSS_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.DEBUG_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.DOCUMENT_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.EXCLAMATION_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.KEY_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.PLUS_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.READWRITE_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.TICK_SAMPLE.getImageDescriptor().createImage(),
-		AspectJImages.TRACE_SAMPLE.getImageDescriptor().createImage()
-	};
-	
 	public static final ImageDescriptor[] sampleImageDescriptors = new ImageDescriptor[] {
 		AspectJImages.ARROW_SAMPLE.getImageDescriptor(),
 		AspectJImages.BULB_SAMPLE.getImageDescriptor(),
@@ -102,7 +85,7 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 				if(imageLocation.startsWith("SAMPLE")) { //$NON-NLS-1$
 					String[] split = imageLocation.split("_"); //$NON-NLS-1$
 					int index = Integer.parseInt(split[1]);
-					return sampleImages[index];
+					return AspectJImages.instance().getRegistry().get(sampleImageDescriptors[index]);
 				} else {
 					return getImage(imageLocation);
 				}

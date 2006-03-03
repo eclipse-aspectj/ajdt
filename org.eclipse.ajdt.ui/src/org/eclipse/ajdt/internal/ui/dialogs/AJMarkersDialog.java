@@ -37,6 +37,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -77,23 +78,23 @@ public class AJMarkersDialog extends Dialog {
 	private Map tableItemsToAspects = new HashMap();
 	private List aspectNames = new ArrayList();
 	
-	private Map sampleImagesTo16x16 = new HashMap();
+	private Map sampleImageDescriptorsTo16x16 = new HashMap();
 	
-	private static final Image[] sampleImages16x16 = new Image[] {
-		AspectJImages.ARROW_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.BULB_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.CIRCLE_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.CLOCK_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.COG_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.CROSS_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.DEBUG_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.DOCUMENT_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.EXCLAMATION_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.KEY_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.PLUS_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.READWRITE_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.TICK_SAMPLE_16.getImageDescriptor().createImage(),
-		AspectJImages.TRACE_SAMPLE_16.getImageDescriptor().createImage()
+	private static final ImageDescriptor[] sampleImageDescriptors16x16 = new ImageDescriptor[] {
+		AspectJImages.ARROW_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.BULB_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.CIRCLE_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.CLOCK_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.COG_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.CROSS_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.DEBUG_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.DOCUMENT_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.EXCLAMATION_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.KEY_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.PLUS_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.READWRITE_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.TICK_SAMPLE_16.getImageDescriptor(),
+		AspectJImages.TRACE_SAMPLE_16.getImageDescriptor()
 	};
 	
 	private Image defaultImage = AspectJImages.instance().getRegistry().get(AspectJImages.ADVICE.getImageDescriptor());
@@ -105,8 +106,8 @@ public class AJMarkersDialog extends Dialog {
 	
 	public AJMarkersDialog(Shell parentShell, IProject project) {
 		super(parentShell);
-		for (int i = 0; i < CustomMarkerImageProvider.sampleImages.length; i++) {
-			sampleImagesTo16x16.put(CustomMarkerImageProvider.sampleImages[i], sampleImages16x16[i]);
+		for (int i = 0; i < CustomMarkerImageProvider.sampleImageDescriptors.length; i++) {
+			sampleImageDescriptorsTo16x16.put(CustomMarkerImageProvider.sampleImageDescriptors[i], sampleImageDescriptors16x16[i]);
 		}
 		this.project = project;
 	}
@@ -200,7 +201,7 @@ public class AJMarkersDialog extends Dialog {
 						tableItem.setText(1, NO_MARKERS);
 					} else if (savedValue.startsWith(SAMPLE)) {
 						int index = getSampleIndex(savedValue);
-						tableItem.setImage(1, sampleImages16x16[index]);
+						tableItem.setImage(1, AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[index]));
 						tableItem.setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
 						tableItem.setData(CustomMarkerImageProvider.sampleImageLocations[index]);							
 					} else {
@@ -331,7 +332,7 @@ public class AJMarkersDialog extends Dialog {
 			} else if(selection.startsWith(SAMPLE)) { 
 				int index = getSampleIndex(selection);
 				table.getSelection()[0].setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
-				table.getSelection()[0].setImage(1, sampleImages16x16[index]);
+				table.getSelection()[0].setImage(1, AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[index]));
 				table.getSelection()[0].setData(CustomMarkerImageProvider.sampleImageLocations[index]);
 			} else {
 				table.getSelection()[0].setText(1, selection.substring(selection.lastIndexOf('/') + 1));
@@ -428,9 +429,9 @@ public class AJMarkersDialog extends Dialog {
 				customItem.setData(selection);
 				table.setSelection(customItem);
 			}
-			for (int i = 0; i < CustomMarkerImageProvider.sampleImages.length; i++) {
+			for (int i = 0; i < sampleImageDescriptors16x16.length; i++) {
 				TableItem item = new TableItem(table, SWT.NONE);
-				item.setImage(sampleImages16x16[i]);
+				item.setImage(AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[i]));
 				item.setText(CustomMarkerImageProvider.sampleImageNames[i]);
 				item.setData(CustomMarkerImageProvider.sampleImageLocations[i]);
 				if(CustomMarkerImageProvider.sampleImageLocations[i].equals(selection)) {
