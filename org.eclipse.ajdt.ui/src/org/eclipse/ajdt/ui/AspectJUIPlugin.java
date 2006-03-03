@@ -96,55 +96,6 @@ import org.osgi.framework.Constants;
 public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		implements ISelectionListener {
 
-	/*
-	 * Capabilities inherited from AbstractUIPlugin (copied here for ease of
-	 * reference) </p><p> Preferences <ul><li> Preferences are read the first
-	 * time <code> getPreferenceStore </code> is called. </li><li> Preferences
-	 * are found in the file whose name is given by the constant <code>
-	 * FN_PREF_STORE </code> . A preference file is looked for in the plug-in's
-	 * read/write state area. </li><li> Subclasses should reimplement <code>
-	 * initializeDefaultPreferences </code> to set up any default values for
-	 * preferences. These are the values typically used if the user presses the
-	 * Default button in a preference dialog. </li><li> The plug-in's install
-	 * directory is checked for a file whose name is given by <code>
-	 * FN_DEFAULT_PREFERENCES </code> . This allows a plug-in to ship with a
-	 * read-only copy of a preference file containing default values for certain
-	 * settings different from the hard-wired default ones (perhaps as a result
-	 * of localizing, or for a common configuration). </li><li> Plug-in code
-	 * can call <code> savePreferenceStore </code> to cause non-default settings
-	 * to be saved back to the file in the plug-in's read/write state area.
-	 * </li><li> Preferences are also saved automatically on plug-in shutdown.
-	 * </li></ul> Dialogs <ul><li> Dialog store are read the first time <code>
-	 * getDialogSettings </code> is called. </li><li> The dialog store allows
-	 * the plug-in to "record" important choices made by the user in a wizard or
-	 * dialog, so that the next time the wizard/dialog is used the widgets can
-	 * be defaulted to better values. A wizard could also use it to record the
-	 * last 5 values a user entered into an editable combo - to show "recent
-	 * values". </li><li> The dialog store is found in the file whose name is
-	 * given by the constant <code> FN_DIALOG_STORE </code> . A dialog store
-	 * file is first looked for in the plug-in's read/write state area; if not
-	 * found there, the plug-in's install directory is checked. This allows a
-	 * plug-in to ship with a read-only copy of a dialog store file containing
-	 * initial values for certain settings. </li><li> Plug-in code can call
-	 * <code> saveDialogSettings </code> to cause settings to be saved in the
-	 * plug-in's read/write state area. A plug-in may opt to do this each time a
-	 * wizard or dialog is closed to ensure the latest information is always
-	 * safe on disk. </li><li> Dialog settings are also saved automatically on
-	 * plug-in shutdown. </li></ul> Images <ul><li> A typical UI plug-in will
-	 * have some images that are used very frequently and so need to be cached
-	 * and shared. The plug-in's image registry provides a central place for a
-	 * plug-in to store its common images. Images managed by the registry are
-	 * created lazily as needed, and will be automatically disposed of when the
-	 * plug-in shuts down. Note that the number of registry images should be
-	 * kept to a minimum since many OSs have severe limits on the number of
-	 * images that can be in memory at once. </ul><p> For easy access to your
-	 * plug-in object, use the singleton pattern. Declare a static variable in
-	 * your plug-in class for the singleton. Store the first (and only) instance
-	 * of the plug-in class in the singleton when it is created. Then access the
-	 * singleton when needed through a static <code> getDefault </code> method.
-	 * </p>
-	 */
-
 	// VERSION-STRING - set when plugin is loaded
 	public static String VERSION = "unset"; //$NON-NLS-1$
 
