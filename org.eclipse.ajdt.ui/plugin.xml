@@ -1364,13 +1364,13 @@ M4 = Platform-specific fourth key
 		<!-- Custom marker -->
 		<specification
       		annotationType="org.eclipse.ajdt.customAdvice"
-            	label="%advice"
+            	label="%customAdvice"
             	annotationImageProvider="org.eclipse.ajdt.internal.builder.CustomMarkerImageProvider"
             	textPreferenceKey="customAdviceIndication"
             	textPreferenceValue="true"
-            	overviewRulerPreferenceKey="adviceIndicationInOverviewRuler"
+            	overviewRulerPreferenceKey="customAdviceIndicationInOverviewRuler"
             	overviewRulerPreferenceValue="true"
-            	verticalRulerPreferenceKey="adviceIndicationInVerticalRuler"
+            	verticalRulerPreferenceKey="customAdviceIndicationInVerticalRuler"
             	verticalRulerPreferenceValue="true"
             	colorPreferenceKey="customAdviceIndicationColor"
             	colorPreferenceValue="222,109,33"
