@@ -22,10 +22,13 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
+import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
+import org.eclipse.ajdt.internal.ui.dialogs.AJMarkersDialog;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IMarker;
@@ -36,6 +39,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 
 
@@ -61,6 +65,8 @@ public class MarkerUpdating {
 						project.deleteMarkers(
 								IAJModelMarker.DECLARATION_MARKER, true,
 								IResource.DEPTH_INFINITE);
+						project.deleteMarkers(IAJModelMarker.CUSTOM_MARKER, 
+								true, IResource.DEPTH_INFINITE);
 					} catch (CoreException cEx) {}					
 				}
 			}, null);
@@ -149,31 +155,54 @@ public class MarkerUpdating {
 			AJRelationship relationship = (AJRelationship) iter.next();
 			runtimeTest = runtimeTest || relationship.hasRuntimeTest();
 		}
-		// Work out what marker type to use (all need to be the same due to overlapping problems)
+		// Work out what marker type to use (all need to be the same due to overlapping problems unless some are custom markers)
 		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
 			AJRelationship relationship = (AJRelationship) iter.next();
-			String markerTypeForRelationship = getMarkerTypeForRelationship(relationship, runtimeTest);
-			if(markerType == null) {
-				markerType = markerTypeForRelationship;
-			} else if(!markerType.equals(markerTypeForRelationship)){
-				markerType = getCombinedMarkerType(markerType, markerTypeForRelationship, runtimeTest);
+			String savedMarkerType = getSavedMarkerType(relationship);
+			if(savedMarkerType != null) {
+				// Create a marker of the saved type or don't create one..
+				if(savedMarkerType.equals(AJMarkersDialog.NO_MARKERS)) {
+					continue;
+				} else {
+					try {
+						IMarker marker = resource.createMarker(IAJModelMarker.CUSTOM_MARKER);
+						marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+						String label;
+						label = getMarkerLabel((AJRelationship)relationships.get(0));
+						marker.setAttribute(IMarker.MESSAGE, label);
+						marker.setAttribute(IMarker.PRIORITY,
+								IMarker.PRIORITY_HIGH);
+						marker.setAttribute(CustomMarkerImageProvider.IMAGE_LOCATION_ATTRIBUTE, savedMarkerType);
+					} catch (CoreException e) {
+					}
+					continue;
+				}
+			} else {
+				String markerTypeForRelationship = getMarkerTypeForRelationship(relationship, runtimeTest);
+				if(markerType == null) {
+					markerType = markerTypeForRelationship;
+				} else if(!markerType.equals(markerTypeForRelationship)){
+					markerType = getCombinedMarkerType(markerType, markerTypeForRelationship, runtimeTest);
+				}
 			}
 		}
 		// Create the marker
-		try {
-			IMarker marker = resource.createMarker(markerType);
-			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-			String label;
-			if(relationships.size() == 1) {
-				label = getMarkerLabel((AJRelationship)relationships.get(0));
-			} else {
-				label = getMultipleMarkersLabel(relationships.size());
-			}
-			marker.setAttribute(IMarker.MESSAGE, label);
-			marker.setAttribute(IMarker.PRIORITY,
-					IMarker.PRIORITY_HIGH);
-		} catch (CoreException e) {
-		}		
+		if(markerType != null) {
+			try {
+				IMarker marker = resource.createMarker(markerType);
+				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+				String label;
+				if(relationships.size() == 1) {
+					label = getMarkerLabel((AJRelationship)relationships.get(0));
+				} else {
+					label = getMultipleMarkersLabel(relationships.size());
+				}
+				marker.setAttribute(IMarker.MESSAGE, label);
+				marker.setAttribute(IMarker.PRIORITY,
+						IMarker.PRIORITY_HIGH);
+			} catch (CoreException e) {
+			}		
+		}
 	}
 
 	private static String getMultipleMarkersLabel(int number) {
@@ -294,6 +323,26 @@ public class MarkerUpdating {
 			return IAJModelMarker.SOURCE_ITD_MARKER;
 		}
 		return IAJModelMarker.ADVICE_MARKER;
+	}
+	
+	private static String getSavedMarkerType(AJRelationship relationship) {
+		IJavaElement source;
+		AJRelationshipType relationshipType = relationship.getRelationship();
+		if(relationshipType.equals(AJRelationshipManager.ADVISES)
+				|| relationshipType.equals(AJRelationshipManager.ANNOTATES)
+				|| relationshipType.equals(AJRelationshipManager.DECLARED_ON)
+				|| relationshipType.equals(AJRelationshipManager.MATCHED_BY)
+				|| relationshipType.equals(AJRelationshipManager.SOFTENS)) {
+			source = relationship.getSource();
+		} else {
+			source = relationship.getTarget();
+		}
+		IType typeElement = (IType) source.getAncestor(IJavaElement.TYPE);
+		if(typeElement instanceof AspectElement) {
+			return AspectJPreferences.getSavedIcon(typeElement.getJavaProject().getProject(), AJMarkersDialog.getFullyQualifiedAspectName(typeElement));			
+		} else {
+			return null;
+		}
 	}
 
 	/**

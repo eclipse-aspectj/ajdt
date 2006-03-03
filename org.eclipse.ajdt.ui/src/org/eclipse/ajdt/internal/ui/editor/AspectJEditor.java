@@ -369,7 +369,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 					.getFile().getName())) {
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
-		
 				if (unit != null){
 					isEditingAjFile = true;
 	
@@ -379,13 +378,11 @@ public class AspectJEditor extends CompilationUnitEditor {
 					((IWorkingCopyManagerExtension) JavaUI
 							.getWorkingCopyManager()).setWorkingCopy(input, unit);				
 				}
-				JavaUI.getWorkingCopyManager().connect(input);
+				JavaUI.getWorkingCopyManager().connect(input);						
 			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
 					.getFile().getName())){ // It's a .java file
 				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
 				annotationModel = new CompilationUnitAnnotationModelWrapper(unit);
-			
-			
 						
 				if(unit instanceof CompilationUnit) {
 					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);

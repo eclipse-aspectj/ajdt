@@ -114,4 +114,10 @@
 	</topic>
 	<anchor id="t_compare" />
 	
+	<topic label="Configuring advice markers" href="doc/tasks/configure.htm">
+		<topic label="Changing the image for advice markers" href="doc/tasks/changemarkerimage.htm"></topic>
+		<topic label="Hiding advice markers" href="doc/tasks/hidemarkers.htm"></topic>
+	</topic>
+	<anchor id="t_compare" />
+	
 </toc>

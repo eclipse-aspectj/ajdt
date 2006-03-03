@@ -22,9 +22,7 @@ import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
 /**
@@ -78,17 +76,17 @@ public class AspectJImages extends AbstractIconRegistry {
 
 	private final AbstractIcon WKBENCH_FOLDER = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FOLDER ) );
-	private final AbstractIcon AJDT_ASPECT = new AJDTIcon(
+	private static final AJDTIcon AJDT_ASPECT = new AJDTIcon(
 		"icons/structure/aspect.gif" ); //$NON-NLS-1$
 	
 	// Luzius - added aspect icons with visibility 
-	private final AbstractIcon ASPECT_PRIVATE   = new AJDTIcon(
+	public static final AJDTIcon ASPECT_PRIVATE   = new AJDTIcon(
 		"icons/structure/aspect_pri.gif");	 //$NON-NLS-1$
-	private final AbstractIcon ASPECT_PROTECTED = new AJDTIcon(
+	public static final AJDTIcon ASPECT_PROTECTED = new AJDTIcon(
 		"icons/structure/aspect_pro.gif");	 //$NON-NLS-1$
-	private final AbstractIcon ASPECT_PACKAGE   = new AJDTIcon(
+	public static final AJDTIcon ASPECT_PACKAGE   = new AJDTIcon(
 		"icons/structure/aspect_pac.gif"); //$NON-NLS-1$
-	private final AbstractIcon ASPECT_PUBLIC   = AJDT_ASPECT;
+	public static final AJDTIcon ASPECT_PUBLIC   = AJDT_ASPECT;
 
 	// These icons are publically available
 	public static final AJDTIcon WKBENCH_INFO = new AJDTIcon(
@@ -239,6 +237,66 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/diff/removed.gif"); //$NON-NLS-1$
 	public static final AJDTIcon PROPAGATE_UP = new AJDTIcon(
 				"icons/diff/propagateup.gif"); //$NON-NLS-1$
+	
+	// sample icons for advice markers
+	public static final AJDTIcon ARROW_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/arrow_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon BULB_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/bulb_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CIRCLE_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/circle_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CLOCK_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/clock_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon COG_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/cog_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CROSS_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/cross_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon DEBUG_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/debug_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon DOCUMENT_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/document_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon EXCLAMATION_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/exclamation_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon KEY_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/key_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon PLUS_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/plus_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon READWRITE_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/readwrite_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon TICK_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/tick_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon TRACE_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/trace_sample.gif"); //$NON-NLS-1$
+
+	// sample icons for advice markers 16x16 versions
+	public static final AJDTIcon ARROW_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/arrow_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon BULB_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/bulb_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CIRCLE_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/circle_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CLOCK_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/clock_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon COG_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/cog_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon CROSS_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/cross_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon DEBUG_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/debug_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon DOCUMENT_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/document_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon EXCLAMATION_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/exclamation_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon KEY_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/key_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon PLUS_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/plus_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon READWRITE_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/readwrite_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon TICK_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/tick_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon TRACE_SAMPLE_16 = new AJDTIcon(
+				"icons/markers/samples/16x16/trace_sample.gif"); //$NON-NLS-1$
 	
 	
 	public static AspectJImages instance( ) {
@@ -486,7 +544,7 @@ public class AspectJImages extends AbstractIconRegistry {
 	
 	public ImageDescriptorRegistry getRegistry() {
 		if (registry == null) {
-			registry= JavaPlugin.getImageDescriptorRegistry();
+			registry= new ImageDescriptorRegistry();
 		}
 		return registry;
 	}

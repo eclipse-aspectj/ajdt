@@ -26,10 +26,12 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.dialogs.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -53,6 +55,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -71,7 +74,6 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		editor    = null;
 		rulerInfo = null;
 	}
-
 
 
 	/**
@@ -99,7 +101,6 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		this.rulerInfo = rulerInfo;
 		return null;
 	}
-
 
 
     /**
@@ -138,6 +139,9 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ASPECT_DECLARATIONS);
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENS);
 			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENED_BY);
+			if(addedSeparator) {
+				createAJToolsMenu(manager);
+			}
 			
 			// Go through the problem markers 
 			IMarker probMarkers[] = ifile.findMarkers(IMarker.PROBLEM, true, 2);
@@ -193,6 +197,29 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
     }	
 	
 	
+	private void createAJToolsMenu(IMenuManager manager) {
+		MenuManager menu = new MenuManager(UIMessages.AdviceActionDelegate_ajtools);
+		manager.add(new Separator());
+		manager.add(menu);			
+		menu.add(new Action(){
+			
+			public String getText() {
+				return UIMessages.AdviceActionDelegate_configure_markers;
+			}
+			
+			public void run() {
+				IResource resource = (IResource) ((IFileEditorInput)editor.getEditorInput()).getFile();
+				if(resource != null) {
+					Shell shell = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getShell();
+					IProject project = resource.getProject();
+					AJMarkersDialog dialog = new AJMarkersDialog(shell, project);
+					dialog.open();
+				}
+			}
+		});
+	}
+
+
 	/**
 	 * 
 	 * @param javaElements

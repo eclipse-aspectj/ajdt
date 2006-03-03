@@ -56,7 +56,7 @@ public class SaveBCAction implements IWorkbenchWindowActionDelegate {
 	
 			IInputValidator validator = new IInputValidator() {
 				public String isValid(String input) {
-	                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + AJProperties.EXTENSION, IResource.FILE); // $NON-NLS-1$
+	                IStatus status = PDEPlugin.getWorkspace().validateName(input + "." + AJProperties.EXTENSION, IResource.FILE); // $NON-NLS-1$ //$NON-NLS-1$
 	                if (!status.isOK()) {
 	                    return status.getMessage();
 	                }

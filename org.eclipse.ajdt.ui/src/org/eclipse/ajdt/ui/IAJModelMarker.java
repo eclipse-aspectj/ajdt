@@ -39,5 +39,8 @@ public interface IAJModelMarker {
 	public static final String SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicbeforeadvicemarker"; //$NON-NLS-1$
 	public static final String SOURCE_DYNAMIC_AFTER_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicafteradvicemarker"; //$NON-NLS-1$
 	public static final String SOURCE_DYNAMIC_AROUND_ADVICE_MARKER = "org.eclipse.ajdt.ui.sourcedynamicaroundadvicemarker"; //$NON-NLS-1$
-	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker"; //$NON-NLS-1$
-	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker";} //$NON-NLS-1$
+	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker"; //$NON-NLS-1$ 
+	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker"; //$NON-NLS-1$ 
+	public static final String CUSTOM_MARKER = "org.eclipse.ajdt.ui.customadvicemarker"; //$NON-NLS-1$
+	
+}

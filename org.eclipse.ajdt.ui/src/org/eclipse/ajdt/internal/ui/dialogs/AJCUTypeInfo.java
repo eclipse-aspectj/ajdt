@@ -17,6 +17,8 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.internal.corext.util.IFileTypeInfo;
 
 public class AJCUTypeInfo extends IFileTypeInfo {
+	
+	public static final int ASPECT = 16;
 
 	public static final char SEPARATOR= '/';
 	public static final char EXTENSION_SEPARATOR= '.';

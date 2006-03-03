@@ -730,7 +730,7 @@ M4 = Platform-specific fourth key
          <filter
                value="org.eclipse.ajdt.ui.ajnature"
                name="projectNature"/>
-      </page>      
+      </page>  
    </extension>
 
 <!-- Event trace view -->
@@ -919,6 +919,21 @@ M4 = Platform-specific fourth key
       </persistent>
    </extension>
 
+<!-- Custom advice marker -->
+   <extension
+         id="customadvicemarker"
+         name="Custom Advice Marker"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+      <attribute
+            name="sourceLocationOfAdvice">
+      </attribute>
+   </extension>
 
 <!-- AJDT Problem markers -->
    <extension
@@ -1221,6 +1236,10 @@ M4 = Platform-specific fourth key
    		 	super="org.eclipse.ajdt.aspectDeclaration"
             markerType="org.eclipse.ajdt.ui.sourceannotatedmarker"
             name="org.eclipse.ajdt.sourceAnnotationDeclaration"/>
+      <type
+        	name="org.eclipse.ajdt.customAdvice"
+			markerType="org.eclipse.ajdt.ui.customadvicemarker">
+      </type>
 	</extension>
 
 
@@ -1341,6 +1360,22 @@ M4 = Platform-specific fourth key
 			annotationType="org.eclipse.ajdt.sourceAnnotationDeclaration"
 			icon="icons/markers/source_itd.gif">
 		</specification>
+		
+		<!-- Custom marker -->
+		<specification
+      		annotationType="org.eclipse.ajdt.customAdvice"
+            	label="%advice"
+            	annotationImageProvider="org.eclipse.ajdt.internal.builder.CustomMarkerImageProvider"
+            	textPreferenceKey="customAdviceIndication"
+            	textPreferenceValue="true"
+            	overviewRulerPreferenceKey="adviceIndicationInOverviewRuler"
+            	overviewRulerPreferenceValue="true"
+            	verticalRulerPreferenceKey="adviceIndicationInVerticalRuler"
+            	verticalRulerPreferenceValue="true"
+            	colorPreferenceKey="customAdviceIndicationColor"
+            	colorPreferenceValue="222,109,33"
+            	presentationLayer="4">
+ 	     </specification>
 	</extension>
   
 <!-- AJDT Visualiser Provider Definition -->
@@ -1711,7 +1746,7 @@ M4 = Platform-specific fourth key
                menubarPath="project/additions"
                id="org.eclipse.ajdt.diff.saveMap">
          </action>
-      </actionSet>
+      </actionSet>     
    </extension>
    <extension
          point="org.eclipse.ui.popupMenus">
@@ -1747,7 +1782,7 @@ M4 = Platform-specific fourth key
                id="compareCrosscuttingWithCurrentBuild">
          </action>
       </objectContribution>
-            <objectContribution
+      <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
             id="iprojectcontributions">
@@ -1761,8 +1796,69 @@ M4 = Platform-specific fourth key
                id="org.eclipse.ajdt.diff.saveMap"
                enablesFor="1">
          </action>
+         <action
+               label="%ConfigureAdviceMarkersAction"
+               class="org.eclipse.ajdt.internal.ui.actions.AJMarkersDialogAction"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+               id="org.eclipse.ajdt.dialogs.AJMarkers"
+               enablesFor="1">
+         </action>
       </objectContribution>
-    </extension>
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            adaptable="true"
+            nameFilter="*.aj"
+            id="ajfilecontributions">
+         <visibility>
+         	<objectState name="projectNature" value="org.eclipse.ajdt.ui.ajnature"/>
+         </visibility>
+         <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+            <separator
+                  name="group2">
+            </separator>
+         </menu>
+         <action
+               label="%ConfigureAdviceMarkersAction"
+               class="org.eclipse.ajdt.internal.ui.actions.AJMarkersDialogAction"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+               id="org.eclipse.ajdt.dialogs.AJMarkers"
+               enablesFor="1">
+         </action>
+      </objectContribution>
+<!--      <objectContribution
+            objectClass="org.eclipse.ajdt.core.javaelements.AspectElement"
+            adaptable="true"
+            id="aspectcontributions">
+         <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+                  name="group0">
+            </separator>
+            <separator
+                  name="group1">
+            </separator>
+            <separator
+                  name="group2">
+            </separator>
+         </menu>
+         <action
+               label="%ConfigureAdviceMarkersAction"
+               class="org.eclipse.ajdt.internal.ui.actions.AJMarkersDialogAction"
+               menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+               id="org.eclipse.ajdt.dialogs.AJMarkers"
+               enablesFor="1">
+         </action>
+      </objectContribution> -->
+     </extension>
     <extension
          id="editors"
          point="org.eclipse.ui.editors">

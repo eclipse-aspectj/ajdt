@@ -289,6 +289,28 @@ public class AspectJPreferences {
 		} catch (BackingStoreException e) {
 		}
 	}
+	
+	public static String getSavedIcon(IProject project, String aspect) {
+		IScopeContext projectScope = new ProjectScope(project);
+		IEclipsePreferences projectNode = projectScope
+				.getNode(AspectJUIPlugin.PLUGIN_ID);
+		return projectNode.get(aspect, null);	
+	}
+	
+	public static void setSavedIcon(IProject project, String aspect, String iconLocation) {
+		IScopeContext projectScope = new ProjectScope(project);
+		IEclipsePreferences projectNode = projectScope
+				.getNode(AspectJUIPlugin.PLUGIN_ID);
+		if(iconLocation == null || iconLocation.trim().equals("")) { //$NON-NLS-1$
+			projectNode.remove(aspect);
+		} else {
+			projectNode.put(aspect, iconLocation);
+		}
+		try {
+			projectNode.flush();
+		} catch (BackingStoreException e) {
+		}		
+	}
 
 	private static void writeLintOptionsFile(IProject thisProject, File optsFile) {
 		try {

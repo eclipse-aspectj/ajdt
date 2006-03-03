@@ -348,4 +348,36 @@ public class UIMessages extends NLS {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}
 
+	public static String CustomMarkerImageProvider_Arrow;
+	public static String CustomMarkerImageProvider_Bulb;
+	public static String CustomMarkerImageProvider_Circle;
+	public static String CustomMarkerImageProvider_Clock;
+	public static String CustomMarkerImageProvider_Cog;
+	public static String CustomMarkerImageProvider_Cross;
+	public static String CustomMarkerImageProvider_Debug;
+	public static String CustomMarkerImageProvider_Document;
+	public static String CustomMarkerImageProvider_Exclamation;
+	public static String CustomMarkerImageProvider_Key;
+	public static String CustomMarkerImageProvider_Plus;
+	public static String CustomMarkerImageProvider_ReadWrite;
+	public static String CustomMarkerImageProvider_Tick;
+	public static String CustomMarkerImageProvider_Pencil;
+	public static String AJMarkersPropertyPage_default;
+	public static String AJMarkersPropertyPage_none;
+	public static String AJMarkersPropertyPage_configure_icons;
+	public static String AJMarkersPropertyPage_aspect;
+	public static String AJMarkersPropertyPage_icon_for_markers;
+	public static String AJMarkersPropertyPage_edit;
+	public static String AJMarkersPropertyPage_select_icon;
+	public static String AJMarkersPropertyPage_select_an_icon;
+	public static String AJMarkersPropertyPage_default_label;
+	public static String AJMarkersPropertyPage_none_label;
+	public static String AJMarkersPropertyPage_custom;
+	public static String AJMarkersPropertyPage_browse;
+	public static String AJMarkersDialog_configure_title;
+	public static String AJMarkersDialog_aspect;
+	public static String AJMarkersDialog_icon;
+	public static String AdviceActionDelegate_ajtools;
+	public static String AdviceActionDelegate_configure_markers;
+
 }
