@@ -49,7 +49,10 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
@@ -204,6 +207,9 @@ public class AJDTUtils {
 			AspectJUIPlugin.addAjrtToBuildPath(project);
 		}
 
+		// bug 129553: include any excluded .aj files
+		includeAJfiles(project,prompt);
+		
 		//crete compilation units for .aj files
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(project);
 
@@ -581,6 +587,10 @@ public class AJDTUtils {
 		AspectJPlugin.getDefault().setCurrentProject(project);
 		ajPlugin.getAjdtProjectProperties().clearMarkers(true);
 
+		// bug 129553: exclude .aj files so that the java builder doesnt try to
+		// compile them
+		excludeAJfiles(project);
+		
 		// remove the AspectJ Nature
 		IProjectDescription description = project.getDescription();
 		String[] prevNatures = description.getNatureIds();
@@ -627,6 +637,109 @@ public class AJDTUtils {
 		AJDTUtils.refreshPackageExplorer();
 	}
 
+	private static void includeAJfiles(IProject project, boolean prompt) {
+		IJavaProject jp = JavaCore.create(project);
+		try {
+			boolean changed = false;
+			IClasspathEntry[] cpEntry = jp.getRawClasspath();
+			for (int i = 0; i < cpEntry.length; i++) {
+				IClasspathEntry entry = cpEntry[i];
+				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath[] exc = entry.getExclusionPatterns();
+					List removeList = new ArrayList();
+					for (int j = 0; j < exc.length; j++) {
+						if (exc[j].getFileExtension().equals("aj")) { //$NON-NLS-1$
+							removeList.add(exc[j]);
+						}
+					}
+					if (removeList.size() > 0) {
+						IPath[] exc2 = new IPath[exc.length - removeList.size()];
+						int ind = 0;
+						for (int j = 0; j < exc.length; j++) {
+							if (!removeList.contains(exc[j])) {
+								exc2[ind++] = exc[j];
+							}
+						}
+						IClasspathEntry classpathEntry = JavaCore
+							.newSourceEntry(entry.getPath(), exc2);
+						cpEntry[i] = classpathEntry;
+						changed = true;
+					}
+				}
+			}
+			if (changed) {
+				boolean restore = true;
+				if (prompt) {
+					IWorkbenchWindow window = AspectJUIPlugin.getDefault()
+							.getWorkbench().getActiveWorkbenchWindow();
+					restore = MessageDialog.openQuestion(window.getShell(),
+							UIMessages.ExcludedAJ_title,
+							UIMessages.ExcludedAJ_message);
+				}
+				if (restore) {
+					jp.setRawClasspath(cpEntry, null);
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+	}
+	
+	private static void excludeAJfiles(IProject project) {
+		IJavaProject jp = JavaCore.create(project);
+		try {
+			boolean changed = false;
+			IClasspathEntry[] cpEntry = jp.getRawClasspath();
+			for (int i = 0; i < cpEntry.length; i++) {
+				IClasspathEntry entry = cpEntry[i];
+				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					List excludeList = new ArrayList();
+					IPackageFragmentRoot[] roots = jp
+							.findPackageFragmentRoots(entry);
+					for (int j = 0; j < roots.length; j++) {
+						IJavaElement[] rootFragments;
+						try {
+							rootFragments = roots[j].getChildren();
+							for (int k = 0; k < rootFragments.length; k++) {
+								if (rootFragments[k] instanceof IPackageFragment) {
+									IPackageFragment pack = (IPackageFragment) rootFragments[k];
+									ICompilationUnit[] files = pack
+											.getCompilationUnits();
+									for (int l = 0; l < files.length; l++) {
+										IResource resource = files[l]
+												.getResource();
+										if (resource.getFileExtension().equals(
+												"aj")) { //$NON-NLS-1$
+											IPath resPath = resource
+													.getFullPath();
+											int seg = resPath
+													.matchingFirstSegments(roots[j]
+															.getPath());
+											excludeList.add(resPath
+													.removeFirstSegments(seg));
+										}
+									}
+								}
+							}
+						} catch (JavaModelException e) {
+						}
+					}
+					if (excludeList.size() > 0) {
+						IPath[] exc = new IPath[excludeList.size()];
+						excludeList.toArray(exc);
+						IClasspathEntry classpathEntry = JavaCore
+								.newSourceEntry(entry.getPath(), exc);
+						cpEntry[i] = classpathEntry;
+						changed = true;
+					}
+				}
+			}
+			if (changed) {
+				jp.setRawClasspath(cpEntry, null);
+			}
+		} catch (JavaModelException e) {
+		}
+	}
+	
 	// Bugzilla 72007
 	// This method checks whether the project already has
 	// org.aspectj.runtime imported. Returns true if it does.
