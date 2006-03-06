@@ -144,8 +144,6 @@ public class AspectJPreferences {
 	public static final String OPTION_uncheckedAdviceConversion = "org.aspectj.ajdt.core.compiler.lint.uncheckedAdviceConversion";	 //$NON-NLS-1$
 		
 	// General AspectJ Compiler options
-	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
-
 	public static final String OPTION_XSerializableAspects = "org.aspectj.ajdt.core.compiler.weaver.XSerializableAspects"; //$NON-NLS-1$
 
 	public static final String OPTION_XNoInline = "org.aspectj.ajdt.core.compiler.weaver.XNoInline"; //$NON-NLS-1$
@@ -332,9 +330,6 @@ public class AspectJPreferences {
 
 	public static String getAdvancedOptions(IProject project) {
 		String opts = " "; //$NON-NLS-1$
-		if (getBooleanPrefValue(project, OPTION_NoWeave)) {
-			opts += "-XnoWeave "; //$NON-NLS-1$
-		}
 		if (getBooleanPrefValue(project, OPTION_XSerializableAspects)) {
 			opts += "-XserializableAspects "; //$NON-NLS-1$
 		}

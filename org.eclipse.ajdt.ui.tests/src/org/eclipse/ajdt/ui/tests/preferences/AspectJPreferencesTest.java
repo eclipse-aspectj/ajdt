@@ -234,18 +234,12 @@ public class AspectJPreferencesTest extends UITestCase {
 				AspectJPreferences.isUsingProjectSettings(project));
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
-		
-		prefStore.setValue(AspectJPreferences.OPTION_NoWeave,true);
-		assertEquals("should have set -XnoWeave option", //$NON-NLS-1$
-				" -XnoWeave ",  //$NON-NLS-1$
-				AspectJPreferences.getAdvancedOptions(project));
-		
+	
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,true);
 		assertEquals("should have set -XSerializableAspects option", //$NON-NLS-1$
-				" -XnoWeave -XserializableAspects ",  //$NON-NLS-1$
+				" -XserializableAspects ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 		
-		prefStore.setValue(AspectJPreferences.OPTION_NoWeave,false);
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,false);
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
@@ -280,17 +274,11 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
 		
-		projectNode.put(AspectJPreferences.OPTION_NoWeave,"true"); //$NON-NLS-1$
-		assertEquals("should have set -XnoWeave option", //$NON-NLS-1$
-				" -XnoWeave ",  //$NON-NLS-1$
-				AspectJPreferences.getAdvancedOptions(project));
-		
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects,"true")	;	 //$NON-NLS-1$
 		assertEquals("should have set -XSerializableAspects option", //$NON-NLS-1$
-				" -XnoWeave -XserializableAspects ",  //$NON-NLS-1$
+				" -XserializableAspects ",  //$NON-NLS-1$
 				AspectJPreferences.getAdvancedOptions(project));
 				
-		projectNode.put(AspectJPreferences.OPTION_NoWeave,"false"); //$NON-NLS-1$
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects,"false")	;	 //$NON-NLS-1$
 		assertEquals("should have no advanced options set", //$NON-NLS-1$
 				" ",AspectJPreferences.getAdvancedOptions(project)); //$NON-NLS-1$
