@@ -86,7 +86,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final String PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD = AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField;
 	private static final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint;
 
-	private static final String PREF_ENABLE_NO_WEAVE = AspectJPreferences.OPTION_NoWeave;
 	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
 	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
 	private static final String PREF_ENABLE_NOT_REWEAVABLE = AspectJPreferences.OPTION_XNotReweavable;
@@ -103,7 +102,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final String ENABLED = JavaCore.ENABLED;
 	private static final String DISABLED = JavaCore.DISABLED;
 	
-	private Button noweaveButton, noinlineButton, noReweaveButton, hasMemberButton; 
+	private Button noinlineButton, noReweaveButton, hasMemberButton; 
 	
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
@@ -134,7 +133,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		// these options are being set to "true" or "false" (rather than AspectJPreferences.VALUE_ENABLED
 		// or AspectJPreferences.VALUE_DISABLED) because the underlying code works in true/false
 		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
-		defaultValueMap.put(AspectJPreferences.OPTION_NoWeave, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNotReweavable,VALUE_FALSE);
@@ -171,7 +169,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
     	AspectJPreferences.OPTION_ReportIncompatibleSerialVersion,
     	AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField,
     	AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint,
-    	AspectJPreferences.OPTION_NoWeave,
     	AspectJPreferences.OPTION_XSerializableAspects,
     	AspectJPreferences.OPTION_XNoInline,
     	AspectJPreferences.OPTION_XNotReweavable,
@@ -253,7 +250,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, IGNORE);
 		store.setDefault(PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, WARNING);
 
-		store.setDefault(PREF_ENABLE_NO_WEAVE, false);
 		store.setDefault(PREF_ENABLE_SERIALIZABLE_ASPECTS, false);
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
 		store.setDefault(PREF_ENABLE_NOT_REWEAVABLE, false);
@@ -374,9 +370,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private Composite createAdvancedTabContent(Composite folder) {
 		String[] enableDisableValues = new String[]{ENABLED, DISABLED};
-		
-		CheckBoxListener checkBoxListener = new CheckBoxListener();
-		
+				
 		int nColumns = 3;
 
 		GridLayout layout = new GridLayout();
@@ -392,11 +386,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		gd.horizontalSpan = nColumns;
 		description.setLayoutData(gd);
 
-		String label = UIMessages.CompilerConfigurationBlock_aj_no_weave_label;
-		noweaveButton = addCheckBox(composite, label, PREF_ENABLE_NO_WEAVE, enableDisableValues, 0);
-		noweaveButton.addSelectionListener(checkBoxListener);
-		
-		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
+		String label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
@@ -404,13 +394,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
 		noReweaveButton = addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE,enableDisableValues, 0);
-		noReweaveButton.addSelectionListener(checkBoxListener);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_has_member_label;
 		hasMemberButton = addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER,enableDisableValues, 0);
-		hasMemberButton.addSelectionListener(checkBoxListener);
-
-		checkNoWeaveSelection();
 		
 		return composite;
 	}
@@ -441,8 +427,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
 		addCheckBox(composite, label, PREF_ENABLE_WEAVE_MESSAGES,enableDisableValues, 0);
-
-		checkNoWeaveSelection();
 		
 		return composite;
 	}
@@ -843,42 +827,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		fComboBoxes.add(comboBox);
 	}
 
-	/**
-	 * Class which listens for selections of the advanced options
-	 * -XnoWeave, -Xreweavable and -Xreweavable:compress and updates
-	 * the remaining buttons accordingly (to make it less confusing
-	 * for the user)
-	 */	
-	private class CheckBoxListener implements SelectionListener {
-
-		public void widgetSelected(SelectionEvent e) {
-			if (e.getSource().equals(noweaveButton)) {
-				boolean buttonSelected = noweaveButton.getSelection();
-				if (buttonSelected) {
-					noinlineButton.setSelection(false);
-					noReweaveButton.setSelection(false);
-				}				
-				noinlineButton.setEnabled(!buttonSelected);
-				noReweaveButton.setEnabled(!buttonSelected);			
-			}
-		}
-		public void widgetDefaultSelected(SelectionEvent e) {
-		}		
-	}
 	
-	/**
-	 * When the advanced tab is initialized, check whether the
-	 * user last chose the -XnoWeave option, if so, disable all
-	 * other options.
-	 */	
-	private void checkNoWeaveSelection() {
-		boolean buttonSelected = noweaveButton.getSelection();
-		if (buttonSelected) {
-			noinlineButton.setEnabled(!buttonSelected);
-			noReweaveButton.setEnabled(!buttonSelected);
-		}						
-	}
-
 	protected Control createPreferenceContent(Composite composite) {
 		TabFolder folder = new TabFolder(composite, SWT.NONE);
 		folder.setLayout(new TabFolderLayout());

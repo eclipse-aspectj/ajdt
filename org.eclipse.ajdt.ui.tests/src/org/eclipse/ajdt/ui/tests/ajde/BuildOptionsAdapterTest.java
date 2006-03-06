@@ -77,22 +77,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("first element should be -Xlintfile", "-Xlintfile", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[0]);
 
-		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, true);
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoWeave option", "-XnoWeave", //$NON-NLS-1$ //$NON-NLS-2$
-				nonStandardOptions[2]);
-
 		prefStore
 				.setValue(AspectJPreferences.OPTION_XSerializableAspects, true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
-				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
+				"-XserializableAspects", nonStandardOptions[2]); //$NON-NLS-1$
 
-		prefStore.setValue(AspectJPreferences.OPTION_NoWeave, false);
 		prefStore.setValue(AspectJPreferences.OPTION_XSerializableAspects,
 				false);
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
@@ -160,22 +152,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("first element should be -Xlintfile", "-Xlintfile", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[0]);
 
-		projectNode.put(AspectJPreferences.OPTION_NoWeave, "true"); //$NON-NLS-1$
-		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getNonStandardOptions();
-		nonStandardOptions = disectOptions(nonStandard);
-		assertEquals("should have set -XnoWeave option", "-XnoWeave", //$NON-NLS-1$ //$NON-NLS-2$
-				nonStandardOptions[2]);
-
 		projectNode.put(AspectJPreferences.OPTION_XSerializableAspects, "true"); //$NON-NLS-1$
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -XserializableAspects option", //$NON-NLS-1$
-				"-XserializableAspects", nonStandardOptions[3]); //$NON-NLS-1$
+				"-XserializableAspects", nonStandardOptions[2]); //$NON-NLS-1$
 
 
-		projectNode.put(AspectJPreferences.OPTION_NoWeave, "false"); //$NON-NLS-1$
 		projectNode
 				.put(AspectJPreferences.OPTION_XSerializableAspects, "false"); //$NON-NLS-1$
 		nonStandardOptions = disectOptions(AspectJUIPlugin.getDefault()
