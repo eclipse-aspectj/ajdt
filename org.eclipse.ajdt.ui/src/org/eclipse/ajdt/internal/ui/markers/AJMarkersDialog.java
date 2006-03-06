@@ -224,18 +224,24 @@ public class AJMarkersDialog extends Dialog {
 
 	private String getAspectDisplayName(IType type) {
 		char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
-		String name = type.getPackageFragment().getElementName();
-		for (int i = 0; i < enclosingTypes.length; i++) {
-			name += "."; //$NON-NLS-1$
-			name += new String(enclosingTypes[i]);
+		if(type.getPackageFragment().isDefaultPackage()) {
+			return type.getElementName() + " - " + UIMessages.AJMarkersDialog_defaultPackage;	 //$NON-NLS-1$
+		} else {
+			String name = type.getPackageFragment().getElementName();
+			for (int i = 0; i < enclosingTypes.length; i++) {
+				name += "."; //$NON-NLS-1$
+				name += new String(enclosingTypes[i]);
+			}
+			return type.getElementName() + " - " + name; //$NON-NLS-1$
 		}
-		return type.getElementName() + " - " + name; //$NON-NLS-1$
 	}
 
 	public static String getFullyQualifiedAspectName(IType type) {
 		char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
 		String name = type.getPackageFragment().getElementName();
-		name += "."; //$NON-NLS-1$
+		if(name != null && !name.equals("")) { //$NON-NLS-1$
+			name += "."; //$NON-NLS-1$
+		}
 		for (int i = 0; i < enclosingTypes.length; i++) {
 			name += new String(enclosingTypes[i]);
 			name += "."; //$NON-NLS-1$
@@ -442,6 +448,14 @@ public class AJMarkersDialog extends Dialog {
 					selection = (String) items[selected].getData();
 					getButton(IDialogConstants.OK_ID).setEnabled(true);
 				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					int selected = table.getSelectionIndex();
+					TableItem[] items = table.getItems();
+					selection = (String) items[selected].getData();
+					getButton(IDialogConstants.OK_ID).setEnabled(true);
+					okPressed();
+				}
 			});		
 			table.setLayoutData(new GridData(GridData.FILL_BOTH));
 			Button browseIconButton = new Button(composite, SWT.PUSH);
@@ -536,6 +550,14 @@ public class AJMarkersDialog extends Dialog {
 					getButton(IDialogConstants.OK_ID).setEnabled(selection != null);
 				}
 				
+				public void widgetDefaultSelected(SelectionEvent e) {
+					selection = getSelectionForItem(tree.getSelection()[0]);
+					fileName = getNameForItem(tree.getSelection()[0]);
+					getButton(IDialogConstants.OK_ID).setEnabled(selection != null);
+					if(selection != null){
+						okPressed();
+					}
+				}
 			});
 			return composite;
 		}

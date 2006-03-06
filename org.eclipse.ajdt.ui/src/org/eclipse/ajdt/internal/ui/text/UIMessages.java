@@ -379,6 +379,7 @@ public class UIMessages extends NLS {
 	public static String AJMarkersDialog_configure_title;
 	public static String AJMarkersDialog_aspect;
 	public static String AJMarkersDialog_icon;
+	public static String AJMarkersDialog_defaultPackage;
 	public static String AdviceActionDelegate_ajtools;
 	public static String AdviceActionDelegate_configure_markers;
 
