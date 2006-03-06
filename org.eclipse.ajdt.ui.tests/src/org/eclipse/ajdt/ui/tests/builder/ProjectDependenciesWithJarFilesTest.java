@@ -20,7 +20,6 @@ import java.io.StringReader;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
@@ -93,7 +92,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		
 		
 		// remove AJ nature frrom project A
-		AJDTUtils.removeAspectJNature(projectA);
+		AspectJUIPlugin.convertFromAspectJProject(projectA);
 		waitForJobsToComplete();
 		projectB.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -178,7 +177,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasProjectDependency(projC,projB));
 		
 		// remove AJ nature from project B
-		AJDTUtils.removeAspectJNature(projB);
+		AspectJUIPlugin.convertFromAspectJProject(projB);
 		waitForJobsToComplete();
 		projC.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -256,7 +255,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasProjectDependency(projectB1,projectB));
 		
 		// remove AJ nature frrom project A
-		AJDTUtils.removeAspectJNature(projectB);
+		AspectJUIPlugin.convertFromAspectJProject(projectB);
 		waitForJobsToComplete();
 		projectB1.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -386,7 +385,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar));
 		
 		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -519,7 +518,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 
 				
 		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectX);
+		AspectJUIPlugin.convertFromAspectJProject(projectX);
 		waitForJobsToComplete();
 		projectX.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -540,7 +539,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 		waitForJobsToComplete();
 		waitForJobsToComplete();
 				
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -692,7 +691,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY,outJar2));
 		
 		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();
@@ -778,7 +777,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				projectY,outJar));
 		
 		// reset projects to their original state:
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		projectY.build(IncrementalProjectBuilder.FULL_BUILD, null);
 		waitForJobsToComplete();

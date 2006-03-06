@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
@@ -104,7 +103,7 @@ public class ProjectDependenciesTest extends UITestCase {
 
 		// remove AJ nature from Y and the following asserts should always be
 		// true
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,
@@ -215,7 +214,7 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 		
 		// remove AJ nature from project Y		
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -243,7 +242,7 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 
 		// remove AJ nature from project X		
-		AJDTUtils.removeAspectJNature(projectX);
+		AspectJUIPlugin.convertFromAspectJProject(projectX);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));
@@ -257,7 +256,7 @@ public class ProjectDependenciesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasClassFolderDependency(projectX, projectY));
 		
 		// remove AJ nature from project Y		
-		AJDTUtils.removeAspectJNature(projectY);
+		AspectJUIPlugin.convertFromAspectJProject(projectY);
 		waitForJobsToComplete();
 		assertFalse("project Y should build with no errors", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectIsMarkedWithError(projectY,null));

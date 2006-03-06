@@ -223,6 +223,15 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	}
 
 	/**
+	 * Removes the AspectJ capability from a project
+	 * @param project
+	 * @throws CoreException
+	 */
+	public static void convertFromAspectJProject(IProject project) throws CoreException {
+		AJDTUtils.removeAspectJNature(project);
+	}
+
+	/**
 	 * Creates an AspectJPlugin instance and initializes the supporting Ajde
 	 * tools - Compatible with Eclipse 3.0. Note the rest of the contents of the
 	 * 2.x constructor now resides in the start(BundleContext) method.

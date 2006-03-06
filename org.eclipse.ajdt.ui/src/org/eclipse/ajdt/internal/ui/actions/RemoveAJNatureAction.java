@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.actions;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.eclipse.ajdt.internal.utils.AJDTUtils;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -48,7 +48,7 @@ public class RemoveAJNatureAction implements IObjectActionDelegate {
 			{
 				// Reove the AspectJ nature from the project and attempt
 				// to update the build classpath by removing the aspectjrt.jar	
-				AJDTUtils.removeAspectJNature(project);
+				AspectJUIPlugin.convertFromAspectJProject(project);
 			}
 			catch (CoreException e) {
 			}
