@@ -1,6 +1,0 @@
--verbose
-@../coordination/lib.lst
--aspectpath
-c:/non/existent/Aspects.jar;c:/made/up/OtherAspects.jar
--outjar
-c:/stand/up/sandy/boy/wipe/your/tears/away/Output.jar

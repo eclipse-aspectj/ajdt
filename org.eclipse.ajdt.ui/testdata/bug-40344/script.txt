@@ -1,4 +1,0 @@
-
-- convert to JDK1.3 project
-- note error
-- convert to JDK1.4 project (error should go away)

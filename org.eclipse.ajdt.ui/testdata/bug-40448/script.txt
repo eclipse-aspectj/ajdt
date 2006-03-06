@@ -1,3 +1,0 @@
-- set the project's output path
-- delete in the resource view
-- compile the project (output path should be created)
