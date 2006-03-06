@@ -8,7 +8,7 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ui.dialogs;
+package org.eclipse.ajdt.internal.ui.markers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +20,6 @@ import java.util.Set;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.builder.CustomMarkerImageProvider;
-import org.eclipse.ajdt.internal.builder.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -37,7 +35,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -46,6 +43,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -77,25 +75,9 @@ public class AJMarkersDialog extends Dialog {
 	private IProject project;
 	private Map tableItemsToAspects = new HashMap();
 	private List aspectNames = new ArrayList();
+	private Image[] images16x16;
 	
-	private Map sampleImageDescriptorsTo16x16 = new HashMap();
-	
-	private static final ImageDescriptor[] sampleImageDescriptors16x16 = new ImageDescriptor[] {
-		AspectJImages.ARROW_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.BULB_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.CIRCLE_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.CLOCK_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.COG_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.CROSS_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.DEBUG_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.DOCUMENT_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.EXCLAMATION_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.KEY_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.PLUS_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.READWRITE_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.TICK_SAMPLE_16.getImageDescriptor(),
-		AspectJImages.TRACE_SAMPLE_16.getImageDescriptor()
-	};
+	private List imagesToDispose;
 	
 	private Image defaultImage = AspectJImages.instance().getRegistry().get(AspectJImages.ADVICE.getImageDescriptor());
 	
@@ -106,8 +88,11 @@ public class AJMarkersDialog extends Dialog {
 	
 	public AJMarkersDialog(Shell parentShell, IProject project) {
 		super(parentShell);
+		images16x16 = new Image[CustomMarkerImageProvider.sampleImageDescriptors.length];
 		for (int i = 0; i < CustomMarkerImageProvider.sampleImageDescriptors.length; i++) {
-			sampleImageDescriptorsTo16x16.put(CustomMarkerImageProvider.sampleImageDescriptors[i], sampleImageDescriptors16x16[i]);
+			Image image = AspectJImages.instance().getRegistry().get(CustomMarkerImageProvider.sampleImageDescriptors[i]);
+			Image image16 = create16x16Image(image);
+			images16x16[i] = image16;
 		}
 		this.project = project;
 	}
@@ -201,11 +186,11 @@ public class AJMarkersDialog extends Dialog {
 						tableItem.setText(1, NO_MARKERS);
 					} else if (savedValue.startsWith(SAMPLE)) {
 						int index = getSampleIndex(savedValue);
-						tableItem.setImage(1, AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[index]));
+						tableItem.setImage(1, images16x16[index]);
 						tableItem.setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
 						tableItem.setData(CustomMarkerImageProvider.sampleImageLocations[index]);							
 					} else {
-						Image image = CustomMarkerImageProvider.getImage(savedValue); 
+						Image image = create16x16Image(CustomMarkerImageProvider.getImage(savedValue)); 
 						if(image == null) {
 							tableItem.setText(1, DEFAULT_MARKERS);
 							tableItem.setImage(1, defaultImage);
@@ -258,22 +243,7 @@ public class AJMarkersDialog extends Dialog {
 		name += type.getElementName();
 		return name;
 	}
-    
-       
-    /**
-     * Restore Defaults
-     */
-	protected void performDefaults() {
-		TableItem[] items = table.getItems();
-		for (int i = 0; i < items.length; i++) {
-			TableItem item = items[i];
-			item.setText(1, DEFAULT_MARKERS);
-			item.setImage(1, defaultImage);
-			item.setData(null);
-		}
-		pageChanged = true;
-	}
-    
+     
 	protected void okPressed() {
 		TableItem[] items = table.getItems();
 		for (int i = 0; i < items.length; i++) {
@@ -296,11 +266,25 @@ public class AJMarkersDialog extends Dialog {
 			MarkerUpdating.addNewMarkers(project);
 		}
 		super.okPressed();
+		for (Iterator iter = imagesToDispose.iterator(); iter.hasNext();) {
+			Image image = (Image) iter.next();
+			image.dispose();
+		}
+		images16x16 = null;
+		imagesToDispose = null;
 	} 
 	
 	protected void cancelPressed() {
 		super.cancelPressed();
+		for (Iterator iter = imagesToDispose.iterator(); iter.hasNext();) {
+			Image image = (Image) iter.next();
+			image.dispose();
+		}
+		images16x16 = null;
+		imagesToDispose = null;
 	}
+	
+	
 
 
     
@@ -332,11 +316,11 @@ public class AJMarkersDialog extends Dialog {
 			} else if(selection.startsWith(SAMPLE)) { 
 				int index = getSampleIndex(selection);
 				table.getSelection()[0].setText(1, CustomMarkerImageProvider.sampleImageNames[index]);
-				table.getSelection()[0].setImage(1, AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[index]));
+				table.getSelection()[0].setImage(1, images16x16[index]);
 				table.getSelection()[0].setData(CustomMarkerImageProvider.sampleImageLocations[index]);
 			} else {
 				table.getSelection()[0].setText(1, selection.substring(selection.lastIndexOf('/') + 1));
-				table.getSelection()[0].setImage(1, CustomMarkerImageProvider.getImage(selection));
+				table.getSelection()[0].setImage(1, create16x16Image(CustomMarkerImageProvider.getImage(selection)));
 				table.getSelection()[0].setData(selection);			
 			}
 			table.layout();
@@ -347,6 +331,18 @@ public class AJMarkersDialog extends Dialog {
 		String[] split = selection.split("_"); //$NON-NLS-1$
 		int index = Integer.parseInt(split[1]);
 		return index;
+	}
+	
+	private Image create16x16Image(Image orig) {
+		Image img = new Image(orig.getDevice(), 16, 16);
+		GC gc = new GC(img);
+		gc.drawImage(orig, 0, 0);
+		gc.dispose();
+		if (imagesToDispose == null) {
+			imagesToDispose = new ArrayList();
+		}
+		imagesToDispose.add(img);
+		return img;
 	}
 
 	/**
@@ -425,13 +421,13 @@ public class AJMarkersDialog extends Dialog {
 			if(selection != NO_MARKERS && selection != null && !(selection.startsWith(SAMPLE))) {
 				TableItem customItem = new TableItem(table, SWT.NONE);
 				customItem.setText(selection.substring(selection.lastIndexOf('/') + 1));
-				customItem.setImage(CustomMarkerImageProvider.getImage(selection));
+				customItem.setImage(create16x16Image(CustomMarkerImageProvider.getImage(selection)));
 				customItem.setData(selection);
 				table.setSelection(customItem);
 			}
-			for (int i = 0; i < sampleImageDescriptors16x16.length; i++) {
+			for (int i = 0; i < images16x16.length; i++) {
 				TableItem item = new TableItem(table, SWT.NONE);
-				item.setImage(AspectJImages.instance().getRegistry().get(sampleImageDescriptors16x16[i]));
+				item.setImage(images16x16[i]);
 				item.setText(CustomMarkerImageProvider.sampleImageNames[i]);
 				item.setData(CustomMarkerImageProvider.sampleImageLocations[i]);
 				if(CustomMarkerImageProvider.sampleImageLocations[i].equals(selection)) {
@@ -470,7 +466,7 @@ public class AJMarkersDialog extends Dialog {
 							TableItem tableItem = new TableItem(table, SWT.NONE, 2);
 							tableItem.setText(dialog.getFileName());
 							tableItem.setData(selection);
-							tableItem.setImage(CustomMarkerImageProvider.getImage(selection));
+							tableItem.setImage(create16x16Image(CustomMarkerImageProvider.getImage(selection)));
 							table.setSelection(tableItem);
 							column.pack();
 						}

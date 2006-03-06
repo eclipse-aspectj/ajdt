@@ -31,6 +31,7 @@ import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
+import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;

@@ -7,7 +7,7 @@
  * Contributors: Sian January - initial version
  *               Matt Chapman - add source of advice markers
  ******************************************************************************/
-package org.eclipse.ajdt.internal.builder;
+package org.eclipse.ajdt.internal.ui.markers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,6 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
-import org.eclipse.ajdt.internal.ui.dialogs.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.IAJModelMarker;

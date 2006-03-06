@@ -8,9 +8,8 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ui.actions;
+package org.eclipse.ajdt.internal.ui.markers;
 
-import org.eclipse.ajdt.internal.ui.dialogs.AJMarkersDialog;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

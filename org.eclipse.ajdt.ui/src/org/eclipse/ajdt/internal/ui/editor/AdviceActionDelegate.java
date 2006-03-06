@@ -26,7 +26,7 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
-import org.eclipse.ajdt.internal.ui.dialogs.AJMarkersDialog;
+import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;

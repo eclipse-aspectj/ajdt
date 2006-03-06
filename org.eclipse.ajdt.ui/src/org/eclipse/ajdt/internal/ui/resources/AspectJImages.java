@@ -268,36 +268,6 @@ public class AspectJImages extends AbstractIconRegistry {
 	public static final AJDTIcon TRACE_SAMPLE = new AJDTIcon(
 				"icons/markers/samples/trace_sample.gif"); //$NON-NLS-1$
 
-	// sample icons for advice markers 16x16 versions
-	public static final AJDTIcon ARROW_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/arrow_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon BULB_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/bulb_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon CIRCLE_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/circle_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon CLOCK_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/clock_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon COG_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/cog_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon CROSS_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/cross_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon DEBUG_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/debug_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon DOCUMENT_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/document_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon EXCLAMATION_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/exclamation_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon KEY_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/key_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon PLUS_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/plus_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon READWRITE_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/readwrite_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon TICK_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/tick_sample.gif"); //$NON-NLS-1$
-	public static final AJDTIcon TRACE_SAMPLE_16 = new AJDTIcon(
-				"icons/markers/samples/16x16/trace_sample.gif"); //$NON-NLS-1$
-	
 	
 	public static AspectJImages instance( ) {
 		if ( instance == null ) {

@@ -8,7 +8,7 @@
  * Contributors:
  *     Sian January - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.builder;
+package org.eclipse.ajdt.internal.ui.markers;
 
 import java.net.MalformedURLException;
 

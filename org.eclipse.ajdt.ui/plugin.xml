@@ -1365,7 +1365,7 @@ M4 = Platform-specific fourth key
 		<specification
       		annotationType="org.eclipse.ajdt.customAdvice"
             	label="%customAdvice"
-            	annotationImageProvider="org.eclipse.ajdt.internal.builder.CustomMarkerImageProvider"
+            	annotationImageProvider="org.eclipse.ajdt.internal.ui.markers.CustomMarkerImageProvider"
             	textPreferenceKey="customAdviceIndication"
             	textPreferenceValue="true"
             	overviewRulerPreferenceKey="customAdviceIndicationInOverviewRuler"
@@ -1798,7 +1798,7 @@ M4 = Platform-specific fourth key
          </action>
          <action
                label="%ConfigureAdviceMarkersAction"
-               class="org.eclipse.ajdt.internal.ui.actions.AJMarkersDialogAction"
+               class="org.eclipse.ajdt.internal.ui.markers.AJMarkersDialogAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                id="org.eclipse.ajdt.dialogs.AJMarkers"
                enablesFor="1">
@@ -1827,7 +1827,7 @@ M4 = Platform-specific fourth key
          </menu>
          <action
                label="%ConfigureAdviceMarkersAction"
-               class="org.eclipse.ajdt.internal.ui.actions.AJMarkersDialogAction"
+               class="org.eclipse.ajdt.internal.ui.markers.AJMarkersDialogAction"
                menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
                id="org.eclipse.ajdt.dialogs.AJMarkers"
                enablesFor="1">
