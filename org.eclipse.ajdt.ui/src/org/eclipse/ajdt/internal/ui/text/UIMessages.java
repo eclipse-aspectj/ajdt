@@ -345,11 +345,6 @@ public class UIMessages extends NLS {
 	public static String LTWAspectPathTab_label;
 	public static String LTWAspectPathTab_title;
 	public static String LTW_error_launching;
-	
-	static {
-		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
-	}
-
 	public static String CustomMarkerImageProvider_Arrow;
 	public static String CustomMarkerImageProvider_Bulb;
 	public static String CustomMarkerImageProvider_Circle;
@@ -382,5 +377,9 @@ public class UIMessages extends NLS {
 	public static String AJMarkersDialog_defaultPackage;
 	public static String AdviceActionDelegate_ajtools;
 	public static String AdviceActionDelegate_configure_markers;
-
+	
+	static {
+		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
+	}
+	
 }
