@@ -18,6 +18,7 @@ import org.eclipse.jface.text.rules.Token;
 /**
  * This word rule does not highlight keywords if there is a '.'
  * in front of them or if there is NOT a '(' after them.
+ * See bugs 62265 and 126769.
  */
 public class BracketWordRule extends DotWordRule {
 
