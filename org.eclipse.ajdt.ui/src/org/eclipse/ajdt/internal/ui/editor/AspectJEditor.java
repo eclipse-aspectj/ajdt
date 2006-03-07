@@ -367,18 +367,18 @@ public class AspectJEditor extends CompilationUnitEditor {
 			// WorkingCopyManager
 			if (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(fInput
 					.getFile().getName())) {
+				JavaUI.getWorkingCopyManager().connect(input);	
 				unit = AJCompilationUnitManager.INSTANCE
 					.getAJCompilationUnitFromCache(fInput.getFile());
 				if (unit != null){
-					isEditingAjFile = true;
-	
+					isEditingAjFile = true;	
+					IAnnotationModel annotationModel = getDocumentProvider().getAnnotationModel(input);
 					JavaModelManager.getJavaModelManager().discardPerWorkingCopyInfo((CompilationUnit)unit);
-					
-					unit.becomeWorkingCopy((IProblemRequestor)getDocumentProvider().getAnnotationModel(input), null);
+					unit.becomeWorkingCopy((IProblemRequestor) annotationModel, null);
 					((IWorkingCopyManagerExtension) JavaUI
-							.getWorkingCopyManager()).setWorkingCopy(input, unit);				
-				}
-				JavaUI.getWorkingCopyManager().connect(input);						
+							.getWorkingCopyManager()).setWorkingCopy(input, unit);
+				
+				}					
 			} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fInput
 					.getFile().getName())){ // It's a .java file
 				unit = JavaCore.createCompilationUnitFrom(fInput.getFile());
