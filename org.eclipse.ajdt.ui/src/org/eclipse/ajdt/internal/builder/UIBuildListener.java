@@ -94,10 +94,10 @@ public class UIBuildListener implements IAJBuildListener {
 		if (!(haveClearedMarkers)) {
 			if (kind == IncrementalProjectBuilder.FULL_BUILD) {
 				props.clearMarkers(true);
-				CompilerTaskListManager.clearOtherProjectMarkers(project);
 			} else {
 				props.clearMarkers(false);
 			}
+			CompilerTaskListManager.clearOtherProjectMarkers(project);
 		}
 
 		
