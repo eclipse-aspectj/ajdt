@@ -476,13 +476,26 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 			wordRule.addWord(fgConstants[i], token);
 	
 		// AspectJ Change begin - add AJ keywords
-		WordRule ajKeywordRule = new DotWordRule(new JavaWordDetector());
-		for (int i = 0; i < ajKeywords.length; i++)
-			ajKeywordRule.addWord(ajKeywords[i], token);
+		WordRule ajDotWordRule = new DotWordRule(new JavaWordDetector());
 		
-		//important: add ajKeywordRule before wordRule 
-		rules.add(ajKeywordRule);
-		// AspectJ Change enf
+		WordRule ajBracketRule = new BracketWordRule(new JavaWordDetector());
+		
+		// This is a bit fragile because it depends on positions in the ajKeywords array
+		// but they don't change very often so should be ok..
+		for (int i = 0; i < ajKeywords.length; i++) {
+			if (i > 3 && i < 23
+					|| i == 25
+					|| i > 34 && i < 41) {
+				ajBracketRule.addWord(ajKeywords[i], token);
+			} else {
+				ajDotWordRule.addWord(ajKeywords[i], token);
+			}
+		}
+		
+		//important: add aj rules before wordRule 
+		rules.add(ajBracketRule);
+		rules.add(ajDotWordRule);
+		// AspectJ Change end
 		
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
