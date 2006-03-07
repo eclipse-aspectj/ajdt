@@ -648,40 +648,30 @@ public class TypeInfoViewer {
 			SearchEngine engine= new SearchEngine((WorkingCopyOwner)null);
 			String packPattern= fFilter.getPackagePattern();
 			monitor.setTaskName(JavaUIMessages.TypeInfoViewer_searchJob_taskName);
-			TypeInfo[] result = new TypeInfo[0];
-//			AspectJ Change Begin	
-			if(fElementKind != AJCUTypeInfo.ASPECT) {
-//			AspectJ Change End	
-					engine.searchAllTypeNames(
-					packPattern == null ? null : packPattern.toCharArray(), 
-					fFilter.getNamePattern().toCharArray(), 
-					fFilter.getSearchFlags(), 
-					fElementKind, 
-					fScope, 
-					fReqestor, 
-					IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, 
-					monitor);
-				if (DEBUG)
-					System.out.println("Time needed until search has finished: " + (System.currentTimeMillis() - start)); //$NON-NLS-1$
-				result= fReqestor.getResult();
-//			AspectJ Change Begin	
-			} 
-//			AspectJ Change End	
-			
+			engine.searchAllTypeNames(
+				packPattern == null ? null : packPattern.toCharArray(), 
+				fFilter.getNamePattern().toCharArray(), 
+				fFilter.getSearchFlags(), 
+				fElementKind, 
+				fScope, 
+				fReqestor, 
+				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, 
+				monitor);
+			if (DEBUG)
+				System.out.println("Time needed until search has finished: " + (System.currentTimeMillis() - start)); //$NON-NLS-1$
+			TypeInfo[] result= fReqestor.getResult();
 			// AspectJ Change Begin	
-			if(fElementKind == AJCUTypeInfo.ASPECT || fElementKind == IJavaSearchConstants.TYPE) {
-				List types = getAspectJTypes(fScope, packPattern == null ? null : packPattern.toCharArray(), 
-						fFilter.getNamePattern().toCharArray()); 
-				TypeInfo[] typesIncludingAspects = new TypeInfo[result.length + types.size()];			
-				System.arraycopy(result, 0, typesIncludingAspects, 0, result.length);
-				int index = result.length;
-				for (Iterator iter = types.iterator(); iter.hasNext();) {
-					TypeInfo info = (TypeInfo) iter.next();
-					typesIncludingAspects[index] = info;
-					index ++;
-				}
-				result = typesIncludingAspects;
+			List types = getAspectJTypes(fScope, packPattern == null ? null : packPattern.toCharArray(), 
+					fFilter.getNamePattern().toCharArray()); 
+			TypeInfo[] typesIncludingAspects = new TypeInfo[result.length + types.size()];			
+			System.arraycopy(result, 0, typesIncludingAspects, 0, result.length);
+			int index = result.length;
+			for (Iterator iter = types.iterator(); iter.hasNext();) {
+				TypeInfo info = (TypeInfo) iter.next();
+				typesIncludingAspects[index] = info;
+				index ++;
 			}
+			result = typesIncludingAspects;
 			// AspectJ Change End
 			Arrays.sort(result, new TypeInfoComparator(fLabelProvider, fFilter));
 			if (DEBUG)

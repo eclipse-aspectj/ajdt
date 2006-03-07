@@ -18,8 +18,6 @@ import org.eclipse.jdt.internal.corext.util.IFileTypeInfo;
 
 public class AJCUTypeInfo extends IFileTypeInfo {
 	
-	public static final int ASPECT = 16;
-
 	public static final char SEPARATOR= '/';
 	public static final char EXTENSION_SEPARATOR= '.';
 	public static final char PACKAGE_PART_SEPARATOR='.';
