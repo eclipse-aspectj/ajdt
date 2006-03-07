@@ -10,12 +10,15 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
 import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.buildconfig.BuildConfiguration;
 import org.eclipse.ajdt.internal.buildconfig.BuildConfigurator;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
+import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -30,15 +33,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  *  Test for bug 75373: problem-markers created by other builders on java-resources disappear
  */
 public class ProblemMarkerTest extends UITestCase {
-
-	private IProject myProject;
-
-	protected void setUp() throws Exception {
-		super.setUp();
-		myProject = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
-	}
 	
 	public void testMarkerIsNotRemoved() throws CoreException {
+		IProject myProject = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		IFile f = myProject.getFile("src/p1/Main.java"); //$NON-NLS-1$
 		IMarker marker = f.createMarker(IMarker.PROBLEM);
 		marker.setAttribute(IMarker.MESSAGE, "hello"); //$NON-NLS-1$
@@ -50,12 +47,33 @@ public class ProblemMarkerTest extends UITestCase {
 	}
 	
 	/**
+	 * An incremental build should not grow the list of problem markers against a Java project
+	 * @throws CoreException
+	 */
+	public void testBug111764() throws CoreException {
+		createPredefinedProject("InpathUsingAJProject"); //$NON-NLS-1$
+		IProject javaProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
+		IFile f = javaProject.getFile("src/internal/stuff/MyBuilder.java");
+		IMarker[] markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+		assertEquals("Should be 1 ADJT problem marker again file MyBuilder.java",1,markers.length);
+
+		StringReader sr = new StringReader("/* blah blah blah */"); //$NON-NLS-1$
+		f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
+
+		waitForJobsToComplete();
+
+		markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+		assertEquals("Should still be only 1 ADJT problem marker again file MyBuilder.java",1,markers.length);
+	}
+
+	/**
 	 * Problem markers should only be added when the file
 	 * is included in the active build configuration
 	 * 
 	 * @throws Exception
 	 */
 	public void testExludedFromBuildConfig() throws Exception {
+		IProject myProject = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
 		IFolder src = myProject.getFolder("src"); //$NON-NLS-1$
 		if (!src.exists()){
 			src.create(true, true, null);
