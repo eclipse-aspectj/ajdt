@@ -588,10 +588,6 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 * {@inheritDoc}
 	 */
 	protected TreeViewer createTreeViewer(Composite parent, int style) {
-		// AspectJ Change begin
-		// adding this for testing purposes (bug 80239)
-		testParentComp = parent;
-		// AspectJ Change end
 		Tree tree= new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
 		GridData gd= new GridData(GridData.FILL_BOTH);
 		gd.heightHint= tree.getItemHeight() * 12;
@@ -755,7 +751,6 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	// AspectJ Change begin
 	// adding this for testing purposes (bug 80239)
 	private static AJOutlineInformationControl infoControl;
-	private Composite testParentComp;
 	
 	/**
 	 * Returns the instance of this class - this method
@@ -764,21 +759,6 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 	 */
 	public static AJOutlineInformationControl getInfoControl() {
 		return infoControl;
-	}
-	
-	/**
-	 * Returns the shell which contains the inplace outline
-	 * view - this method is for testing purposes and is not
-	 * part of the published API.
-	 */
-	public Shell getShell() {
-		if (testParentComp != null 
-				&& !testParentComp.isDisposed()
-				&& testParentComp.getParent() != null
-				&& !testParentComp.getParent().isDisposed()) {
-			return testParentComp.getParent().getShell();
-		} 
-		return null;
 	}
 	// AspectJ Change end
 }
