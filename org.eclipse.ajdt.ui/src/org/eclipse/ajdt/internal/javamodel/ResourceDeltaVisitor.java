@@ -50,8 +50,6 @@ public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
 				AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)myRes);
 				AJDTUtils.refreshPackageExplorer();
 				break;
-			case IResourceDelta.CHANGED:
-				
 			}
 		}
 		return true;
