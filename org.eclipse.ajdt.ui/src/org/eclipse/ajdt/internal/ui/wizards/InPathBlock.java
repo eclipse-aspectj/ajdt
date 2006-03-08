@@ -134,22 +134,9 @@ public class InPathBlock {
             IPath outputLocation,
             IClasspathEntry[] inpathEntries) {
             fCurrJProject = jproject;
-            boolean projectExists = false;
             List newInPath = null;
             IProject project = fCurrJProject.getProject();
-            projectExists = (project.exists() && project.getFile(".ajpath").exists()); //$NON-NLS-1$
-            if (projectExists) {
-                if (inpathEntries == null) {
-                    // Core Requirement
-                    // Add method readRawInpath() to
-                    // org.eclipse.ajdt.internal.core.JavaProject which can be
-                    // called from here like in the below line of mock up code.
-                    // classpathEntries= fCurrJProject.readRawInpath();
-                    System.err.println(
-                        "Need to issue readRawInpath() call to org.eclipse.ajdt.internal.core.JavaProject here!"); //$NON-NLS-1$
-                }
-            }
-
+ 
             if (outputLocation == null) {
                 outputLocation = getDefaultBuildPath(jproject);
             }

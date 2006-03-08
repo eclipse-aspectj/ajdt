@@ -306,7 +306,6 @@ public class AspectJImages extends AbstractIconRegistry {
 			 kind == IProgramElement.Kind.METHOD ||
 			 kind == IProgramElement.Kind.FIELD ) {
 			 	String err = "Should use 2-arg version of getStructureIcon for contructors, methods and fields."; //$NON-NLS-1$
-			 	System.err.println( err );   
 				throw new RuntimeException( err );			 		
 			 }
 		if (kind == IProgramElement.Kind.PACKAGE) {

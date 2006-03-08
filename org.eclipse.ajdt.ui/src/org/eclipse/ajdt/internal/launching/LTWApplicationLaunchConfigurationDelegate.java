@@ -29,6 +29,7 @@ import org.eclipse.core.internal.resources.ResourceStatus;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -227,8 +228,8 @@ public class LTWApplicationLaunchConfigurationDelegate
 	}
 
 	private String[] getLTWClasspath() throws IOException {
-		URL resolvedaspectjWeaverJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
-		URL resolvedaspectjRTJar = Platform.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		URL resolvedaspectjWeaverJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID).getEntry("/"), "aspectjweaver.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		URL resolvedaspectjRTJar = FileLocator.resolve(new URL(Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID).getEntry("/"), "aspectjrt.jar")); //$NON-NLS-1$ //$NON-NLS-2$
 		String weaverPath = new Path(resolvedaspectjWeaverJar.getFile()).toOSString();
 		String rtPath = new Path(resolvedaspectjRTJar.getFile()).toOSString();
 		return new String[] {weaverPath, rtPath};

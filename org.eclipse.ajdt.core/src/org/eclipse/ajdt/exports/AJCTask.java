@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -44,10 +45,10 @@ public class AJCTask extends JavacTask {
 			Bundle toolsBundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
 			Bundle weaverBundle = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID);
 			try {
-				URL resolved = Platform.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
+				URL resolved = FileLocator.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
 				IPath ajdeLocation = Utils.makeRelative(new Path(resolved
 						.getFile()), new Path(baseLocation));
-				resolved = Platform.resolve(weaverBundle.getEntry("/")); //$NON-NLS-1$
+				resolved = FileLocator.resolve(weaverBundle.getEntry("/")); //$NON-NLS-1$
 				IPath weaverLocation = Utils.makeRelative(new Path(resolved
 						.getFile()), new Path(baseLocation));
 				ajScript.printProperty(

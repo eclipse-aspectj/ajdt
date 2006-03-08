@@ -100,8 +100,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final String ENABLED = JavaCore.ENABLED;
 	private static final String DISABLED = JavaCore.DISABLED;
 	
-	private Button noinlineButton, noReweaveButton, hasMemberButton; 
-	
 	protected List fComboBoxes;
 	protected List fCheckBoxes;
 
@@ -388,13 +386,13 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
-		noinlineButton = addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
-		noReweaveButton = addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE,enableDisableValues, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_has_member_label;
-		hasMemberButton = addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER,enableDisableValues, 0);
 		
 		return composite;
 	}

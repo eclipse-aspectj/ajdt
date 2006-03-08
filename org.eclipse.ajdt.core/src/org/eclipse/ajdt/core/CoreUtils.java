@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -93,7 +94,7 @@ public class CoreUtils {
 				URL installLoc = ajdeBundle.getEntry("/"); //$NON-NLS-1$
 				URL resolved = null;
 				try {
-					resolved = Platform.resolve(installLoc);
+					resolved = FileLocator.resolve(installLoc);
 					pluginLoc = resolved.toExternalForm();
 				} catch (IOException e) {
 				}

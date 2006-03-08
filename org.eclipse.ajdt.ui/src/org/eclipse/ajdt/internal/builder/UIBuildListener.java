@@ -11,20 +11,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAdviceChangedListener;

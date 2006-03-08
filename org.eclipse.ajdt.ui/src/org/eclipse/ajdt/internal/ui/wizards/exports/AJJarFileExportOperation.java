@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.zip.ZipException;
 
-import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -68,12 +67,10 @@ import org.eclipse.jdt.ui.jarpackager.IJarDescriptionWriter;
 import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
 import org.eclipse.jdt.ui.jarpackager.JarPackageData;
 import org.eclipse.jdt.ui.jarpackager.JarWriter2;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
 /**
@@ -955,28 +952,6 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 		}
 		
 		return true;
-	}
-
-	private IRunnableWithProgress createSaveModifiedResourcesRunnable(final IFile[] dirtyFiles) {
-		return new IRunnableWithProgress() {
-			public void run(final IProgressMonitor pm) {
-				IEditorPart[] editorsToSave= getDirtyEditors(fParentShell);
-				pm.beginTask(JarPackagerMessages.JarFileExportOperation_savingModifiedResources, editorsToSave.length); 
-				try {
-					List dirtyFilesList= Arrays.asList(dirtyFiles);
-					for (int i= 0; i < editorsToSave.length; i++) {
-						if (editorsToSave[i].getEditorInput() instanceof IFileEditorInput) {
-							IFile dirtyFile= ((IFileEditorInput)editorsToSave[i].getEditorInput()).getFile();					
-							if (dirtyFilesList.contains((dirtyFile)))
-								editorsToSave[i].doSave(new SubProgressMonitor(pm, 1));
-						}
-						pm.worked(1);
-					}
-				} finally {
-					pm.done();
-				}
-			}
-		};
 	}
 
 	protected void saveFiles() {

@@ -13,16 +13,12 @@ package org.eclipse.ajdt.internal.ajdocexport;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -30,19 +26,15 @@ import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
@@ -68,7 +60,6 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -79,9 +70,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IExportWizard;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -306,7 +295,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			URL coreURL = Platform.getBundle("org.eclipse.equinox.common").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			try {
-				File ajdeFile = new File(Platform.asLocalURL(ajdeURL).getFile());
+				File ajdeFile = new File(FileLocator.toFileURL(ajdeURL).getFile());
 				if (ajdeFile.exists()) {
 					aspectjtoolsDir += ajdeFile.getAbsolutePath();
 				} else {
@@ -318,7 +307,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 									ajdeFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
 				}
-				File weaverFile = new File(Platform.asLocalURL(weaverURL).getFile());
+				File weaverFile = new File(FileLocator.toFileURL(weaverURL).getFile());
 				if (weaverFile.exists()) {
 					aspectjtoolsDir += File.pathSeparator + weaverFile.getAbsolutePath();
 				} else {
@@ -330,7 +319,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 									weaverFile.getAbsolutePath().substring((lengthOfPath/2))));
 					return true;
 				}
-				File coreFile = new File(Platform.asLocalURL(coreURL).getFile());
+				File coreFile = new File(FileLocator.toFileURL(coreURL).getFile());
 				// need to check that have found a jar or the correct bundle. In the case when
 				// you're running ajdoc in a runtime workbench and you have imported org.eclipse.core.runtime
 				// into your workbench coreFile is just this directory and ajdoc doesn't run
@@ -472,94 +461,6 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 			buf.append(ch);
 		}
 		return buf.toString();
-	}
-
-	/**
-	 * Returns the files which are not saved and which are part of the files
-	 * being exported.
-	 * 
-	 * @param resources
-	 * @return an array of unsaved files
-	 */
-	private IFile[] getUnsavedFiles(List resources) {
-		IEditorPart[] dirtyEditors = JavaPlugin.getDirtyEditors();
-		Set unsavedFiles = new HashSet(dirtyEditors.length);
-		if (dirtyEditors.length > 0) {
-			for (int i = 0; i < dirtyEditors.length; i++) {
-				if (dirtyEditors[i].getEditorInput() instanceof IFileEditorInput) {
-					IFile dirtyFile = ((IFileEditorInput) dirtyEditors[i]
-							.getEditorInput()).getFile();
-					if (resources.contains(dirtyFile)) {
-						unsavedFiles.add(dirtyFile);
-					}
-				}
-			}
-		}
-		return (IFile[]) unsavedFiles.toArray(new IFile[unsavedFiles.size()]);
-	}
-
-	/**
-	 * Save all of the editors in the workbench. Must be run in the display
-	 * thread.
-	 * 
-	 * @param dirtyFiles
-	 * @return true if successful.
-	 * @throws CoreException
-	 * @throws InvocationTargetException
-	 */
-	private boolean saveModifiedResources(final IFile[] dirtyFiles)
-			throws CoreException, InvocationTargetException {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceDescription description = workspace.getDescription();
-		boolean autoBuild = description.isAutoBuilding();
-		description.setAutoBuilding(false);
-		try {
-			workspace.setDescription(description);
-			// This save operation can not be cancelled.
-			try {
-				PlatformUI.getWorkbench().getProgressService().runInUI(
-						PlatformUI.getWorkbench().getProgressService(),
-						createSaveModifiedResourcesRunnable(dirtyFiles),
-						workspace.getRoot());
-			} finally {
-				description.setAutoBuilding(autoBuild);
-				workspace.setDescription(description);
-			}
-		} catch (InterruptedException ex) {
-			return false;
-		}
-		return true;
-	}
-
-	private IRunnableWithProgress createSaveModifiedResourcesRunnable(
-			final IFile[] dirtyFiles) {
-		return new IRunnableWithProgress() {
-			public void run(IProgressMonitor pm) {
-				if (pm == null) {
-					pm = new NullProgressMonitor();
-				}
-				IEditorPart[] editorsToSave = JavaPlugin.getDirtyEditors();
-//				String name = JavadocExportMessages
-//						.getString("AJdocWizard.savetask.name"); //$NON-NLS-1$
-				String name= JavadocExportMessages.JavadocWizard_savetask_name; 
-				pm.beginTask(name, editorsToSave.length);
-				try {
-					List dirtyFilesList = Arrays.asList(dirtyFiles);
-					for (int i = 0; i < editorsToSave.length; i++) {
-						if (editorsToSave[i].getEditorInput() instanceof IFileEditorInput) {
-							IFile dirtyFile = ((IFileEditorInput) editorsToSave[i]
-									.getEditorInput()).getFile();
-							if (dirtyFilesList.contains((dirtyFile)))
-								editorsToSave[i].doSave(new SubProgressMonitor(
-										pm, 1));
-						}
-						pm.worked(1);
-					}
-				} finally {
-					pm.done();
-				}
-			}
-		};
 	}
 
 	/*
