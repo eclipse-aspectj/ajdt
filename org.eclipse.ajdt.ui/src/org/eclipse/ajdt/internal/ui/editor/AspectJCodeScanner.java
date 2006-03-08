@@ -484,8 +484,8 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		// but they don't change very often so should be ok..
 		for (int i = 0; i < ajKeywords.length; i++) {
 			if (i > 3 && i < 23
-					|| i == 25
-					|| i > 34 && i < 41) {
+					|| i == 24
+					|| i > 33 && i < 40) {
 				ajBracketRule.addWord(ajKeywords[i], token);
 			} else {
 				ajDotWordRule.addWord(ajKeywords[i], token);
