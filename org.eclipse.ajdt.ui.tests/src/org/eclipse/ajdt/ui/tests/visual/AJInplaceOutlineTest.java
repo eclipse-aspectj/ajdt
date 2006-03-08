@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -43,15 +44,15 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		
 		// open inplace outline view
 		openInplaceDialog(null);
-
+		setRememberBounds();
+		
 		final AJOutlineInformationControl info = AJOutlineInformationControl.getInfoControl();
-
-		// TODO: 3.2M3+
-		final Rectangle r = info.getShell().getBounds();
 		
 		final Shell shell = info.getShell();
-		moveShell(shell,r.x + 50,r.y + 50,r.width + 100,r.height + 100);
-
+		final Rectangle r = shell.getBounds();
+		info.setSize(r.width + 100,r.height + 100);
+		info.setLocation(new Point(r.x + 50,r.y + 50));
+		
 		// wait for the bounds to be set and it to move
 		new DisplayHelper() {
 
@@ -95,19 +96,16 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		// for some bizarre reason, on windows, or if this test is run standalone, it always seems to 
 		// add 3 to the x and y coordinates, whereas if this test is run on linux as part of
 		// the test suite, then 6 is added to the xcoordinate, and 25 is added to the y
+		// 3.2M5 update: the coordinates now seem to match exactly at least on Windows.
+		// Make test more robust by using tolerance levels
 		assertTrue("the inplace view should have remembered the changed x coordinate",  //$NON-NLS-1$
-				r2.x == r1.x + 3 || r2.x == (r1.x + 6) );
+				Math.abs(r2.x - r1.x) < 10 );
 		assertTrue("the inplace view should have remembered the changed y coordinate",  //$NON-NLS-1$
-				r2.y == r1.y + 3 || r2.y == (r1.y + 25) );
+				Math.abs(r2.y - r1.y) < 30 );
 		// get rid of the inplace view
 		shutdownViewWithEscape(info2);
 	}
-	
-	private void moveShell(Shell s, int xCoord, int yCoord, int width, int height) {
-		Rectangle r1 = new Rectangle(xCoord,yCoord,width,height);
-		s.setBounds(r1);
-	}
-	
+		
 	private void shutdownViewWithEscape(AJOutlineInformationControl infoControl) {
 		final AJOutlineInformationControl info = infoControl;
 		// press esc
@@ -124,6 +122,13 @@ public class AJInplaceOutlineTest extends VisualTestCase {
 		}.waitForCondition(Display.getCurrent(), 5000);
 
 		assertTrue("xref inplace view should not be open",info.getShell() == null); //$NON-NLS-1$
+	}
+	
+	private void setRememberBounds() {
+		postKeyDown(SWT.CTRL);
+		postKey(SWT.F10);
+		postKeyUp(SWT.CTRL);
+		postKey('e');
 	}
 	
 	private void openInplaceDialog(AJOutlineInformationControl previousDialog) {
