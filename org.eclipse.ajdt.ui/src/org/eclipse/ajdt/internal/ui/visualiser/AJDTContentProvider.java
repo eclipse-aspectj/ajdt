@@ -39,6 +39,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 
 	List currentGroups;	
 	List currentMembers;
+	private List includedFiles;
 	
 	/**
 	 * Get all the groups to display.
@@ -118,86 +119,89 @@ public class AJDTContentProvider extends JDTContentProvider {
 		long stime = System.currentTimeMillis();
 		currentGroups = new ArrayList();
 		currentMembers = new ArrayList();
-		try {
-			if (currentlySelectedJE instanceof IJavaProject) {
-				IPackageFragment[] packageFragments = ((IJavaProject)currentlySelectedJE).getPackageFragments();
-				for (int i = 0; i < packageFragments.length; i++) {
-					if (!(packageFragments[i].isReadOnly())) {
-						IPackageFragment packageFragment = packageFragments[i];
-						List classes = getMembersForPackage(packageFragment);
-						if(classes.size() > 0) {
-							boolean defaultPackage = packageFragment.isDefaultPackage();
-							IGroup group = new JDTGroup(packageFragment.getElementName());
-							if(defaultPackage) {
-								group.setName("(default package)"); //$NON-NLS-1$
-								group.setTooltip("(default package)"); //$NON-NLS-1$
-							}
-							for (Iterator iter = classes.iterator(); iter.hasNext();) {
-								IMember member = (IMember) iter.next();
-								group.add(member);
-								currentMembers.add(member);
+		if (currentProject != null) {
+			includedFiles = BuildConfig.getIncludedSourceFiles(currentProject.getProject());
+			try {
+				if (currentlySelectedJE instanceof IJavaProject) {
+					IPackageFragment[] packageFragments = ((IJavaProject)currentlySelectedJE).getPackageFragments();
+					for (int i = 0; i < packageFragments.length; i++) {
+						if (!(packageFragments[i].isReadOnly())) {
+							IPackageFragment packageFragment = packageFragments[i];
+							List classes = getMembersForPackage(packageFragment);
+							if(classes.size() > 0) {
+								boolean defaultPackage = packageFragment.isDefaultPackage();
+								IGroup group = new JDTGroup(packageFragment.getElementName());
 								if(defaultPackage) {
-									((SimpleMember)member).setFullName(member.getName());
+									group.setName("(default package)"); //$NON-NLS-1$
+									group.setTooltip("(default package)"); //$NON-NLS-1$
 								}
+								for (Iterator iter = classes.iterator(); iter.hasNext();) {
+									IMember member = (IMember) iter.next();
+									group.add(member);
+									currentMembers.add(member);
+									if(defaultPackage) {
+										((SimpleMember)member).setFullName(member.getName());
+									}
+								}
+								currentGroups.add(group);	
 							}
-							currentGroups.add(group);	
 						}
 					}
-				}
-			} else if (currentlySelectedJE instanceof IPackageFragment) {
-				IPackageFragment packageFragment = (IPackageFragment)currentlySelectedJE;
-				List classes = getMembersForPackage(packageFragment);
-				if(classes.size() > 0) {
-					boolean defaultPackage = packageFragment.isDefaultPackage();
-					IGroup group = new JDTGroup(packageFragment.getElementName());
-					if(defaultPackage) {
-						group.setName("(default package)"); //$NON-NLS-1$
-						group.setTooltip("(default package)"); //$NON-NLS-1$
-					}
-					for (Iterator iter = classes.iterator(); iter.hasNext();) {
-						IMember member = (IMember) iter.next();
-						group.add(member);
-						currentMembers.add(member);
+				} else if (currentlySelectedJE instanceof IPackageFragment) {
+					IPackageFragment packageFragment = (IPackageFragment)currentlySelectedJE;
+					List classes = getMembersForPackage(packageFragment);
+					if(classes.size() > 0) {
+						boolean defaultPackage = packageFragment.isDefaultPackage();
+						IGroup group = new JDTGroup(packageFragment.getElementName());
 						if(defaultPackage) {
-							((SimpleMember)member).setFullName(member.getName());
-						}						
+							group.setName("(default package)"); //$NON-NLS-1$
+							group.setTooltip("(default package)"); //$NON-NLS-1$
+						}
+						for (Iterator iter = classes.iterator(); iter.hasNext();) {
+							IMember member = (IMember) iter.next();
+							group.add(member);
+							currentMembers.add(member);
+							if(defaultPackage) {
+								((SimpleMember)member).setFullName(member.getName());
+							}						
+						}
+						currentGroups.add(group);					
 					}
-					currentGroups.add(group);					
-				}
-			} else if (currentlySelectedJE instanceof ICompilationUnit) {
-				JDTMember member = null;
-				if (BuildConfig.isIncluded(currentlySelectedJE.getResource())) { 
-					String memberName = currentlySelectedJE.getElementName();
-					if(memberName.endsWith(".java")){ //$NON-NLS-1$
-						memberName = memberName.substring(0, memberName.length() - 5); 					
-					} else if(memberName.endsWith(".aj")){ //$NON-NLS-1$
-						memberName = memberName.substring(0, memberName.length() - 3); 					
-					}							
-					member = new JDTMember(memberName, currentlySelectedJE);
-					member.setSize(getLength((ICompilationUnit)currentlySelectedJE));
-					currentMembers.add(member);
-				}
-				if(member != null) {
-					IPackageFragment packageFrag = (IPackageFragment)((ICompilationUnit)currentlySelectedJE).getParent();
-					boolean defaultPackage = packageFrag.isDefaultPackage();
-					// ?!? Need to confirm a group for the pkg frag is OK in the case of a selection like thiss
-					IGroup group = new JDTGroup(packageFrag.getElementName());
-					if(defaultPackage) {
-						group.setName("(default package)"); //$NON-NLS-1$
-						group.setTooltip("(default package)"); //$NON-NLS-1$
+				} else if (currentlySelectedJE instanceof ICompilationUnit) {
+					JDTMember member = null;
+					if (includedFiles.contains(currentlySelectedJE.getResource())) { 
+						String memberName = currentlySelectedJE.getElementName();
+						if(memberName.endsWith(".java")){ //$NON-NLS-1$
+							memberName = memberName.substring(0, memberName.length() - 5); 					
+						} else if(memberName.endsWith(".aj")){ //$NON-NLS-1$
+							memberName = memberName.substring(0, memberName.length() - 3); 					
+						}							
+						member = new JDTMember(memberName, currentlySelectedJE);
+						member.setSize(getLength((ICompilationUnit)currentlySelectedJE));
+						currentMembers.add(member);
 					}
-					if(defaultPackage) {
-						member.setFullName(member.getName());						
-					} 
-					group.add(member);
-					currentGroups.add(group);
+					if(member != null) {
+						IPackageFragment packageFrag = (IPackageFragment)((ICompilationUnit)currentlySelectedJE).getParent();
+						boolean defaultPackage = packageFrag.isDefaultPackage();
+						// ?!? Need to confirm a group for the pkg frag is OK in the case of a selection like thiss
+						IGroup group = new JDTGroup(packageFrag.getElementName());
+						if(defaultPackage) {
+							group.setName("(default package)"); //$NON-NLS-1$
+							group.setTooltip("(default package)"); //$NON-NLS-1$
+						}
+						if(defaultPackage) {
+							member.setFullName(member.getName());						
+						} 
+						group.add(member);
+						currentGroups.add(group);
+					}
 				}
+			} catch (JavaModelException jme) {
 			}
-		} catch (JavaModelException jme) {
+			long etime = System.currentTimeMillis();
+	
+			AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		long etime = System.currentTimeMillis();
-
-		AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	
@@ -264,7 +268,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 				for (int j = 0; j < ijes.length; j++) {
 					if (ijes[j].getElementType()
 							== IJavaElement.COMPILATION_UNIT) {
-						if(BuildConfig.isIncluded(ijes[j].getResource())) {  
+						if(includedFiles.contains(ijes[j].getResource())) {  
 							String memberName = ijes[j].getElementName();
 							if(memberName.endsWith(".java")){ //$NON-NLS-1$
 								memberName = memberName.substring(0, memberName.length() - 5); 					
