@@ -47,6 +47,8 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
  */
 public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 
+	private List includedFiles;
+	
 	/**
 	 * Searches for all main methods in the given scope. Also searches 
 	 * for Aspects that have main methods.
@@ -71,7 +73,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		for (int i = 0; i < projects.length; i++) {
 			try {
 				if(projects[i].hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$ 
-
+					includedFiles = BuildConfig.getIncludedSourceFiles(projects[i]);
 					IJavaProject jp = JavaCore.create(projects[i]);
 					if (jp != null) {
 						if (scope.encloses(jp)) {
@@ -246,7 +248,7 @@ public class AJMainMethodSearchEngine extends MainMethodSearchEngine {
 		try {
 			for (Iterator iter = aspects.iterator(); iter.hasNext();) {
 				AJCompilationUnit element = (AJCompilationUnit) iter.next();
-				if (BuildConfig.isIncluded(element.getCorrespondingResource())) {
+				if (includedFiles.contains(element.getResource())) {
 					IType[] types = element.getAllTypes();
 					for (int i = 0; i < types.length; i++) {
 						IType type = types[i];

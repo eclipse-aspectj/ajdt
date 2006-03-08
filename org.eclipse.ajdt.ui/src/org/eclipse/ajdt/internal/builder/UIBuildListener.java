@@ -154,41 +154,6 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 	}
 
-	private void ensureBuildConfigFileIsValid(ProjectProperties props, IProject project) {
-//		if (!props.isProjectSourceFileListKnown(project)) {
-			// optimization: only determine the list of source files and write the .lst file
-			// if the list has changed
-			List projectFiles = BuildConfig.getIncludedSourceFiles(project);
-			writeBuildConfigFile(projectFiles, project);
-			// Mark the list as known so we don't have to rewrite the lst file for every build.
-			// We then need to set this to false anytime the build config does change.
-//			props.setProjectSourceFileListKnown(project,true);
-//		}
-	}
-	
-	/**
-	 * Create a full build configuration file for this project
-	 */
-	private void writeBuildConfigFile(List projectFiles, IProject project) {
-		String configurationFilename = AspectJPlugin.getBuildConfigurationFile(project);
-		try {
-			FileWriter fw = new FileWriter(configurationFilename);
-			BufferedWriter bw = new BufferedWriter(fw);
-			for (Iterator it = projectFiles.iterator(); it.hasNext();) {
-				File jf = (File) it.next();
-				String fileName = jf.toString();
-				if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(fileName)) {
-					bw.write(fileName);
-					bw.write(System.getProperty("line.separator", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			}
-			bw.flush();
-			fw.flush();
-			bw.close();
-		} catch (IOException e) {
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */

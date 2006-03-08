@@ -463,28 +463,24 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 
 	private void exportClassFiles(IProgressMonitor progressMonitor, IPackageFragmentRoot pkgRoot, IResource resource, IJavaProject jProject, IPath destinationPath) {
 		if (fJarPackage.areClassFilesExported() && isJavaFile(resource) && pkgRoot != null) {
-			// AspectJ Change Begin
-			if(BuildConfig.isIncluded(resource)) {
-			// AspectJ Change End
-				try {
-					if (!jProject.isOnClasspath(resource))
-						return;
-	
-					// find corresponding file(s) on classpath and export
-					Iterator iter= filesOnClasspath((IFile)resource, destinationPath, jProject, pkgRoot, progressMonitor);
-					IPath baseDestinationPath= destinationPath.removeLastSegments(1);
-					while (iter.hasNext()) {
-						IFile file= (IFile)iter.next();
-						if (!resource.isLocal(IResource.DEPTH_ZERO))						
-							file.setLocal(true , IResource.DEPTH_ZERO, progressMonitor);
-						IPath classFilePath= baseDestinationPath.append(file.getName());
-						progressMonitor.subTask(Messages.format(JarPackagerMessages.JarFileExportOperation_exporting, classFilePath.toString())); 
-						fJarWriter.write(file, classFilePath);
-					}
-				} catch (CoreException ex) {
-					addToStatus(ex);
+			try {
+				if (!jProject.isOnClasspath(resource))
+					return;
+
+				// find corresponding file(s) on classpath and export
+				Iterator iter= filesOnClasspath((IFile)resource, destinationPath, jProject, pkgRoot, progressMonitor);
+				IPath baseDestinationPath= destinationPath.removeLastSegments(1);
+				while (iter.hasNext()) {
+					IFile file= (IFile)iter.next();
+					if (!resource.isLocal(IResource.DEPTH_ZERO))						
+						file.setLocal(true , IResource.DEPTH_ZERO, progressMonitor);
+					IPath classFilePath= baseDestinationPath.append(file.getName());
+					progressMonitor.subTask(Messages.format(JarPackagerMessages.JarFileExportOperation_exporting, classFilePath.toString())); 
+					fJarWriter.write(file, classFilePath);
 				}
-			}
+			} catch (CoreException ex) {
+				addToStatus(ex);
+			}			
 		}
 	}
 

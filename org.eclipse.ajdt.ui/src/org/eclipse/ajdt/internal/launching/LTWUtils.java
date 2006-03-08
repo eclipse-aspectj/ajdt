@@ -287,6 +287,7 @@ public class LTWUtils {
 	public static List /* AspectElement */getAspects(
 			final IPackageFragmentRoot root) throws CoreException {
 		final List aspects = new ArrayList();
+		final List includedFiles = BuildConfig.getIncludedSourceFiles(root.getJavaProject().getProject());
 		root.getResource().accept(new IResourceVisitor() {
 
 			public boolean visit(IResource resource) {
@@ -296,7 +297,7 @@ public class LTWUtils {
 					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
 							.getAJCompilationUnit((IFile) resource);
 					if ((ajcu != null)
-							&& BuildConfig.isIncluded(resource)) {
+							&& includedFiles.contains(resource)) {
 						try {
 							IType[] types = ajcu.getAllTypes();
 							for (int i = 0; i < types.length; i++) {
@@ -313,7 +314,7 @@ public class LTWUtils {
 					ICompilationUnit cu = JavaCore
 							.createCompilationUnitFrom((IFile) resource);
 					if ((cu != null)
-							&& BuildConfig.isIncluded(resource)) {
+							&& includedFiles.contains(resource)) {
 						AJProjectModel model = AJModel.getInstance()
 								.getModelForProject(resource.getProject());
 						Set types = model.getAspectsForJavaFile(cu);
