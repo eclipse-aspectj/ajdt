@@ -117,8 +117,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 			((AJDTMarkupProvider)ProviderManager.getMarkupProvider()).resetMarkupsAndKinds();
 		}
 		long stime = System.currentTimeMillis();
-		currentGroups = new ArrayList();
-		currentMembers = new ArrayList();
+		List newGroups = new ArrayList();
+		List newMembers = new ArrayList();
 		if (currentProject != null) {
 			includedFiles = BuildConfig.getIncludedSourceFiles(currentProject.getProject());
 			try {
@@ -138,12 +138,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 								for (Iterator iter = classes.iterator(); iter.hasNext();) {
 									IMember member = (IMember) iter.next();
 									group.add(member);
-									currentMembers.add(member);
+									newMembers.add(member);
 									if(defaultPackage) {
 										((SimpleMember)member).setFullName(member.getName());
 									}
 								}
-								currentGroups.add(group);	
+								newGroups.add(group);	
 							}
 						}
 					}
@@ -160,12 +160,12 @@ public class AJDTContentProvider extends JDTContentProvider {
 						for (Iterator iter = classes.iterator(); iter.hasNext();) {
 							IMember member = (IMember) iter.next();
 							group.add(member);
-							currentMembers.add(member);
+							newMembers.add(member);
 							if(defaultPackage) {
 								((SimpleMember)member).setFullName(member.getName());
 							}						
 						}
-						currentGroups.add(group);					
+						newGroups.add(group);					
 					}
 				} else if (currentlySelectedJE instanceof ICompilationUnit) {
 					JDTMember member = null;
@@ -178,7 +178,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 						}							
 						member = new JDTMember(memberName, currentlySelectedJE);
 						member.setSize(getLength((ICompilationUnit)currentlySelectedJE));
-						currentMembers.add(member);
+						newMembers.add(member);
 					}
 					if(member != null) {
 						IPackageFragment packageFrag = (IPackageFragment)((ICompilationUnit)currentlySelectedJE).getParent();
@@ -193,7 +193,7 @@ public class AJDTContentProvider extends JDTContentProvider {
 							member.setFullName(member.getName());						
 						} 
 						group.add(member);
-						currentGroups.add(group);
+						newGroups.add(group);
 					}
 				}
 			} catch (JavaModelException jme) {
@@ -202,6 +202,8 @@ public class AJDTContentProvider extends JDTContentProvider {
 	
 			AJLog.log("AJDTContentProvider.updateData() executed - took "+(etime-stime)+"ms"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+		currentMembers = newMembers;
+		currentGroups = newGroups;
 	}
 
 	
