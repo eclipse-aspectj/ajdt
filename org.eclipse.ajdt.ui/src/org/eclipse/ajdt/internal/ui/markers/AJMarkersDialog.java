@@ -501,7 +501,7 @@ public class AJMarkersDialog extends Dialog {
 	}
 	
 	/**
-	 * Dialog used to select gif image files from the project
+	 * Dialog used to select gif or png image files from the project
 	 */
 	public class MarkerImageSelectionDialog extends Dialog {
 		
@@ -587,7 +587,7 @@ public class AJMarkersDialog extends Dialog {
 							List children = new ArrayList();
 							for (int i = 0; i < members.length; i++) {
 								IResource resource = members[i];
-								if(resource instanceof IContainer || resource.getFileExtension().equals("gif")) { //$NON-NLS-1$
+								if(resource instanceof IContainer || resource.getFileExtension().equals("gif") || resource.getFileExtension().equals("png")) { //$NON-NLS-1$
 									children.add(resource);
 								}
 							}
