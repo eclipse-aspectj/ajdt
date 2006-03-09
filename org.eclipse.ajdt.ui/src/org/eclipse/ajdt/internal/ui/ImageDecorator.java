@@ -113,7 +113,7 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		} else if (element instanceof IFile) { 
 			IFile file= (IFile) element;
-			if (file.getFileExtension().equals(AJProperties.EXTENSION)) {
+			if (file.getFileExtension() != null && file.getFileExtension().equals(AJProperties.EXTENSION)) {
 				img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
 			}
 		} else if (element instanceof AJCodeElement) {
