@@ -237,64 +237,67 @@ public class CompilerTaskListManager implements TaskListManager {
                         	
                             if (p.location != null) {
                                 ir = locationToResource(p.location, project);
-                                int prio = getTaskPriority(p);
-                                if (prio != -1) {
-                                    marker = ir.createMarker(IMarker.TASK);
-                                    marker.setAttribute(IMarker.PRIORITY, prio);
-                                } else {
-                                    if (p.declaredErrorOrWarning) {
-                                        marker = ir
-                                                .createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
-                                    } else {
-                                    	// create Java marker with problem id so
-										// that quick fix is available
-										marker = ir
-												.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-										marker.setAttribute(
-												IJavaModelMarker.ID, p.id);
-										if ((p.start >= 0) && (p.end >= 0)) {
+                                if(affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
+	                                int prio = getTaskPriority(p);
+	                                if (prio != -1) {
+	                                    marker = ir.createMarker(IMarker.TASK);
+	                                    marker.setAttribute(IMarker.PRIORITY, prio);
+	                                } else {
+	                                    if (p.declaredErrorOrWarning) {
+	                                        marker = ir
+	                                                .createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
+	                                    } else {
+	                                    	// create Java marker with problem id so
+											// that quick fix is available
+											marker = ir
+													.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 											marker.setAttribute(
-													IMarker.CHAR_START,
-													new Integer(p.start));
-											marker.setAttribute(
-													IMarker.CHAR_END,
-													new Integer(p.end + 1));
-										}
-                                    }
-                                }
-
-                                if (!ir.getProject().equals(project)) {
-                                    addOtherProjectMarker(project, marker);
-                                }
-                                if (p.location.getLine() > 0) {
-                                    marker.setAttribute(IMarker.LINE_NUMBER,
-                                            new Integer(p.location.getLine()));
-                                }
+													IJavaModelMarker.ID, p.id);
+											if ((p.start >= 0) && (p.end >= 0)) {
+												marker.setAttribute(
+														IMarker.CHAR_START,
+														new Integer(p.start));
+												marker.setAttribute(
+														IMarker.CHAR_END,
+														new Integer(p.end + 1));
+											}
+	                                    }
+	                                }                           	
+	                                if (!ir.getProject().equals(project)) {
+	                                    addOtherProjectMarker(project, marker);
+	                                }
+	                                if (p.location.getLine() > 0) {
+	                                    marker.setAttribute(IMarker.LINE_NUMBER,
+	                                            new Integer(p.location.getLine()));
+	                                }
+                                } 
                             } else {
                                 marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                             }
-                            setSeverity(marker, p.kind);
-                            
-                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple part message
-                                int relCount=0;
-                                for (Iterator iter = p.extraLocs.iterator(); iter
-                                		.hasNext();) {
-                                    ISourceLocation sLoc = (ISourceLocation) iter
-                                    .next();
-                                    StringBuffer attrData = new StringBuffer();
-                                    attrData.append(sLoc.getSourceFile().getAbsolutePath());
-                                    attrData.append(":::"); //$NON-NLS-1$
-                                    attrData.append(sLoc.getLine());
-                                    attrData.append(":::"); //$NON-NLS-1$
-                                    attrData.append(sLoc.getEndLine());
-                                    attrData.append(":::"); //$NON-NLS-1$
-                                    attrData.append(sLoc.getColumn());
-                                    marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
-                                          +(relCount++),attrData.toString());
-                                }
+                            if(marker != null) {
+	                            setSeverity(marker, p.kind);
+	                            
+	                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple part message
+	                                int relCount=0;
+	                                for (Iterator iter = p.extraLocs.iterator(); iter
+	                                		.hasNext();) {
+	                                    ISourceLocation sLoc = (ISourceLocation) iter
+	                                    .next();
+	                                    StringBuffer attrData = new StringBuffer();
+	                                    attrData.append(sLoc.getSourceFile().getAbsolutePath());
+	                                    attrData.append(":::"); //$NON-NLS-1$
+	                                    attrData.append(sLoc.getLine());
+	                                    attrData.append(":::"); //$NON-NLS-1$
+	                                    attrData.append(sLoc.getEndLine());
+	                                    attrData.append(":::"); //$NON-NLS-1$
+	                                    attrData.append(sLoc.getColumn());
+	                                    marker.setAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
+	                                          +(relCount++),attrData.toString());
+	                                }
+	                            }
+	                            
+	                            setMessage(marker, p.message);
                             }
-                            
-                            setMessage(marker, p.message);
                         } catch (ResourceException re) {
                         	AJLog.log("Failed marker creation: resource=" //$NON-NLS-1$
                                             + p.location.getSourceFile()
