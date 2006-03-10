@@ -183,6 +183,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			updateJavaCompilerPreferences(dependingProjects);
 		}
 		// end of workaround
+		
+		// Flush the list of included source files stored for this project
+		BuildConfig.flushIncludedSourceFileCache(project);
 
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 

@@ -14,6 +14,8 @@ package org.eclipse.ajdt.core;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.eclipse.ajdt.internal.core.ClasspathModifier;
 import org.eclipse.core.resources.IContainer;
@@ -30,12 +32,18 @@ import org.eclipse.jdt.core.JavaModelException;
 
 public class BuildConfig {
 	
+	private static Map projectsToIncludedSourceFiles = new WeakHashMap();
+	
 	/**
 	 * Returns all of the currently included source files in a project
+	 * This list is cached and reset every build (or on request by calling flushIncludedSourceFileCache)
 	 * @param project
 	 * @return a list of IFiles
 	 */
 	public static List /*IFile*/ getIncludedSourceFiles(IProject project) {
+		if(projectsToIncludedSourceFiles.get(project) instanceof List) {
+			return (List) projectsToIncludedSourceFiles.get(project);
+		}
 		List sourceFiles = new ArrayList();
 		try {
 			IJavaProject jp = JavaCore.create(project);
@@ -58,17 +66,32 @@ public class BuildConfig {
 			}
 		} catch (JavaModelException e) {
 		}
+		projectsToIncludedSourceFiles.put(project, sourceFiles);
 		return sourceFiles;
+	}
+	
+	/**
+	 * Invalidate the list of included source files for a project
+	 * @param project
+	 */
+	public static void flushIncludedSourceFileCache(IProject project) {
+		projectsToIncludedSourceFiles.remove(project);
 	}
 		
 	/**
-	 * 
-	 * @param project
+	 * Find out whether a file is included.  This does NOT use the cached version,
+	 * so if you are calling it a lot and don't need the most up-to date information
+	 * it would be better to use getIncludedSourceFiles(file.getProject()).contains(file) instead.
 	 * @param file
 	 * @return
 	 */
 	public static boolean isIncluded(IResource file) {
-		return getIncludedSourceFiles(file.getProject()).contains(file);
+		IJavaProject jp = JavaCore.create(file.getProject());
+		try {
+			return !(ClasspathModifier.isExcluded(file, jp) || ClasspathModifier.parentExcluded(file, jp));
+		} catch (JavaModelException e) {
+		}
+		return true;
 	}
 	
 	//return a list of all IFiles in the given folder, including all
