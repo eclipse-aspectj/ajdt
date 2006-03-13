@@ -156,6 +156,8 @@ public class AspectJPreferences {
 	public static final String OPTION_XNotReweavable = "org.aspectj.ajdt.core.compiler.weaver.XNotReweavable"; //$NON-NLS-1$
 
 	public static final String OPTION_XHasMember = "org.aspectj.ajdt.core.compiler.weaver.XHasMember"; //$NON-NLS-1$
+
+	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
 	
 	// Other compiler options
 	public static final String OPTION_Incremental = "org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode"; //$NON-NLS-1$
@@ -308,6 +310,9 @@ public class AspectJPreferences {
 		}
 		if (getBooleanPrefValue(project, OPTION_XHasMember)) {
 			opts += "-XhasMember "; //$NON-NLS-1$
+		}
+		if (getBooleanPrefValue(project, OPTION_Outxml)) {
+			opts += "-outxml "; //$NON-NLS-1$
 		}
 		return opts;
 	}
