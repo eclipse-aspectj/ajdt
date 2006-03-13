@@ -19,7 +19,7 @@ import org.eclipse.osgi.util.NLS;
 public class UIMessages extends NLS {
 
 	private static final String BUNDLE_NAME= UIMessages.class.getName();
-
+	
 	private UIMessages() {
 		// Do not instantiate
 	}
@@ -126,6 +126,7 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_x_no_inline_label;
 	public static String CompilerConfigurationBlock_aj_x_not_reweavable_label;
 	public static String CompilerConfigurationBlock_aj_x_has_member_label;
+	public static String CompilerConfigurationBlock_aj_out_xml;
 	public static String CompilerConfigurationBlock_aj_other_tabtitle;
 	public static String CompilerConfigurationBlock_aj_other_description;
 	public static String CompilerConfigurationBlock_aj_enable_incremental_label;

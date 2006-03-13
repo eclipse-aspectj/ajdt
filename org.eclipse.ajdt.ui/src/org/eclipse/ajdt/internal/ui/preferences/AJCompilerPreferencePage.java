@@ -88,6 +88,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
 	private static final String PREF_ENABLE_NOT_REWEAVABLE = AspectJPreferences.OPTION_XNotReweavable;
 	private static final String PREF_ENABLE_HAS_MEMBER = AspectJPreferences.OPTION_XHasMember;
+	private static final String PREF_ENABLE_OUTXML = AspectJPreferences.OPTION_Outxml;
 	
 	private static final String PREF_ENABLE_INCREMENTAL = AspectJPreferences.OPTION_Incremental;
 	private static final String PREF_ENABLE_BUILD_ASM = AspectJPreferences.OPTION_BuildASM;
@@ -250,6 +251,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
 		store.setDefault(PREF_ENABLE_NOT_REWEAVABLE, false);
 		store.setDefault(PREF_ENABLE_HAS_MEMBER, false);
+		store.setDefault(PREF_ENABLE_OUTXML, false);
 		
 		store.setDefault(PREF_ENABLE_INCREMENTAL, true);
 		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
@@ -383,16 +385,19 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		description.setLayoutData(gd);
 
 		String label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
-		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS, enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
-		addCheckBox(composite, label, PREF_ENABLE_NO_INLINE,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_NO_INLINE, enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
-		addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_NOT_REWEAVABLE, enableDisableValues, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_has_member_label;
-		addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER,enableDisableValues, 0);
+		addCheckBox(composite, label, PREF_ENABLE_HAS_MEMBER, enableDisableValues, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_out_xml;
+		addCheckBox(composite, label, PREF_ENABLE_OUTXML ,enableDisableValues, 0);
 		
 		return composite;
 	}
