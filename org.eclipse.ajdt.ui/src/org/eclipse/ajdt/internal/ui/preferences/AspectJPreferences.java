@@ -142,7 +142,9 @@ public class AspectJPreferences {
 	public static final String OPTION_uncheckedArgument = "org.aspectj.ajdt.core.compiler.lint.uncheckedArgument"; //$NON-NLS-1$
 	
 	public static final String OPTION_uncheckedAdviceConversion = "org.aspectj.ajdt.core.compiler.lint.uncheckedAdviceConversion";	 //$NON-NLS-1$
-		
+
+	public static final String OPTION_swallowedExceptionInCatchBlock = "org.aspectj.ajdt.core.compiler.lint.swallowedExceptionInCatchBlock";	 //$NON-NLS-1$
+
 	// General AspectJ Compiler options
 	public static final String OPTION_XSerializableAspects = "org.aspectj.ajdt.core.compiler.weaver.XSerializableAspects"; //$NON-NLS-1$
 
@@ -192,7 +194,8 @@ public class AspectJPreferences {
 			{ OPTION_elementAlreadyAnnotated, "elementAlreadyAnnotated" },  //$NON-NLS-1$
 			{ OPTION_unmatchedTargetKind, "unmatchedTargetKind" }, //$NON-NLS-1$
 			{ OPTION_uncheckedArgument, "uncheckedArgument" }, //$NON-NLS-1$
-			{ OPTION_uncheckedAdviceConversion, "uncheckedAdviceConversion" } //$NON-NLS-1$
+			{ OPTION_uncheckedAdviceConversion, "uncheckedAdviceConversion" }, //$NON-NLS-1$
+			{ OPTION_swallowedExceptionInCatchBlock, "swallowedExceptionInCatchBlock" } //$NON-NLS-1$
 	};
 
 	// name of the file to write the Xlint options to
