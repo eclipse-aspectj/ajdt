@@ -22,7 +22,7 @@ import java.util.Map;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.Stripe;
 import org.eclipse.contribution.visualiser.interfaces.IMarkupKind;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.FileLocator;
 
 
 /**
@@ -50,7 +50,7 @@ public class FileMarkupProvider extends SimpleMarkupProvider {
 		try {
 			URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
 					"/"); //$NON-NLS-1$
-			URL resolved = Platform.resolve(url);
+			URL resolved = FileLocator.resolve(url);
 			URL fileURL = new URL(resolved, "Markup.mvis"); //$NON-NLS-1$
 			InputStream in = fileURL.openStream();
 			loadMarkups(in);

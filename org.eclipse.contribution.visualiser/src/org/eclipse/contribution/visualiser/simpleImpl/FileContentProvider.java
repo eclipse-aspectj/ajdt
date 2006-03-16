@@ -20,8 +20,8 @@ import java.net.URL;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.interfaces.IGroup;
 import org.eclipse.contribution.visualiser.interfaces.IMember;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 
 
@@ -52,7 +52,7 @@ public class FileContentProvider extends SimpleContentProvider {
 			try {
 				URL url = VisualiserPlugin.getDefault().getBundle().getEntry(
 						"/"); //$NON-NLS-1$
-				URL resolved = Platform.resolve(url);
+				URL resolved = FileLocator.resolve(url);
 				URL fileURL = new URL(resolved, "Content.vis"); //$NON-NLS-1$
 				InputStream in = fileURL.openStream();
 				loadVisContents(in);
