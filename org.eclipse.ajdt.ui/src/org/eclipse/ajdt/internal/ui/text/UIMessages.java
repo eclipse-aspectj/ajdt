@@ -146,6 +146,7 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_uncheckedArgument;
 	public static String CompilerConfigurationBlock_uncheckedAdviceConversion;
 	public static String CompilerConfigurationBlock_unordered_advice_at_shadow;
+	public static String CompilerConfigurationBlock_swallowed_exception_in_catch_block;
 	public static String CompilerConfigurationBlock_aspect_excluded_by_configuration;
 	public static String CompilerConfigurationBlock_no_explicit_constructor_call;
 	public static String CompilerConfigurationBlock_no_guard_for_lazy_tjp;

@@ -154,6 +154,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(AspectJPreferences.OPTION_unmatchedTargetKind, AspectJPreferences.VALUE_WARNING); 
 		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedArgument, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedAdviceConversion, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock, AspectJPreferences.VALUE_IGNORE);
 	}
 
 	/**
@@ -192,7 +193,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		AspectJPreferences.OPTION_unorderedAdviceAtShadow,
 		AspectJPreferences.OPTION_unmatchedTargetKind, 
 		AspectJPreferences.OPTION_uncheckedArgument,
-		AspectJPreferences.OPTION_uncheckedAdviceConversion
+		AspectJPreferences.OPTION_uncheckedAdviceConversion,
+		AspectJPreferences.OPTION_swallowedExceptionInCatchBlock
 	};
 
 	
@@ -278,6 +280,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(AspectJPreferences.OPTION_unmatchedTargetKind, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_uncheckedArgument, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_uncheckedAdviceConversion, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock, IGNORE);
 	}
 
 	private Composite createMessagesTabContent(Composite folder) {
@@ -366,6 +369,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_unordered_advice_at_shadow;
 		addComboBox(composite, label, AspectJPreferences.OPTION_unorderedAdviceAtShadow,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_swallowed_exception_in_catch_block;
+		addComboBox(composite, label, AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		return composite;
 	}
