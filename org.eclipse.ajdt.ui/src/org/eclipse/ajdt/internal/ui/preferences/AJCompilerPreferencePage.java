@@ -150,6 +150,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(AspectJPreferences.OPTION_unmatchedTargetKind, AspectJPreferences.VALUE_WARNING); 
 		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedArgument, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_uncheckedAdviceConversion, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock, AspectJPreferences.VALUE_IGNORE);
 	}
 
 	/**
@@ -188,7 +189,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		AspectJPreferences.OPTION_unorderedAdviceAtShadow,
 		AspectJPreferences.OPTION_unmatchedTargetKind, 
 		AspectJPreferences.OPTION_uncheckedArgument,
-		AspectJPreferences.OPTION_uncheckedAdviceConversion
+		AspectJPreferences.OPTION_uncheckedAdviceConversion,
+		AspectJPreferences.OPTION_swallowedExceptionInCatchBlock
 	};
 
 	
