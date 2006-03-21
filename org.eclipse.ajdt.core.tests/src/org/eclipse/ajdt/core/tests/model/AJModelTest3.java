@@ -43,7 +43,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 				{ "main(String[])", "main" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "go()", "go" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "field-set(int tjp.Demo.x)", "field-set(int tjp.Demo.x)" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "foo(int, Object)", "foo" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "foo(int,Object)", "foo" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "bar(Integer)", "bar" } //$NON-NLS-1$ //$NON-NLS-2$
 		};

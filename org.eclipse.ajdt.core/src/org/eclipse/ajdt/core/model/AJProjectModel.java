@@ -83,7 +83,7 @@ public class AJProjectModel {
 
 	// Note: when this number is changed the file 'Spacewar Example.ajmap' in the spacewar
 	// project under workspace will need to be regenerated for the tests to pass.
-	private static final int MODEL_VERSION = 104;
+	private static final int MODEL_VERSION = 105;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
@@ -828,10 +828,6 @@ public class AJProjectModel {
 					loadRelationships(ois);
 					loadExtraChildren(ois);
 					loadAspects(ois);
-				} else if (version == 103) {
-					loadJavaElements(ois);
-					loadRelationships(ois);
-					loadExtraChildren(ois);					
 				}
 				ois.close();
 				fis.close();

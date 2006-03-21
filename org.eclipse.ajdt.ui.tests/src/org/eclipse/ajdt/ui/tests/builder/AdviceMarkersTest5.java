@@ -48,7 +48,7 @@ public class AdviceMarkersTest5 extends UITestCase {
 					// Temporary - declare soft should have a different type of marker...
 					{ "advises Demo: exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", new Integer(39)}, //$NON-NLS-1$
 					{ "4 AspectJ markers at this line", new Integer(49) }, //$NON-NLS-1$
-					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
+					{ "advises Demo.foo(int,Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
 					{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
 					{ "3 AspectJ markers at this line", new Integer(61) }, //$NON-NLS-1$
 					{ "advises GetInfo.printParameters(JoinPoint)", new Integer(74) } //$NON-NLS-1$
@@ -68,7 +68,7 @@ public class AdviceMarkersTest5 extends UITestCase {
 				{}
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER
-				{ "advises Demo.foo(int, Object) (runtime test)", new Integer(53) } //$NON-NLS-1$
+				{ "advises Demo.foo(int,Object) (runtime test)", new Integer(53) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER
 				{}

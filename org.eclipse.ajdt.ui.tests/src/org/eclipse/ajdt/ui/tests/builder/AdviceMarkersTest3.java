@@ -51,7 +51,7 @@ public class AdviceMarkersTest3 extends UITestCase {
 //					{ "advises Demo.go()", new Integer(49) },
 //					{ "advises Demo.main(String[])", new Integer(49) },
 					{ "4 AspectJ markers at this line", new Integer(49) }, //$NON-NLS-1$
-					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
+					{ "advises Demo.foo(int,Object) (runtime test)", new Integer(53) }, //$NON-NLS-1$
 					{ "advises Demo: field-set(int tjp.Demo.x)", new Integer(57) }, //$NON-NLS-1$
 //					{ "advises Demo.main(String[]) (runtime test)", new Integer(61) },
 //					{ "advises Demo.foo(int, Object) (runtime test)", new Integer(61) },
@@ -78,7 +78,7 @@ public class AdviceMarkersTest3 extends UITestCase {
 				{}
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_BEFORE_ADVICE_MARKER
-				{ "advises Demo.foo(int, Object) (runtime test)", new Integer(53) } //$NON-NLS-1$
+				{ "advises Demo.foo(int,Object) (runtime test)", new Integer(53) } //$NON-NLS-1$
 			},
 			{ // IAJModelMarker.SOURCE_DYNAMIC_AFTER_ADVICE_MARKER
 				{}

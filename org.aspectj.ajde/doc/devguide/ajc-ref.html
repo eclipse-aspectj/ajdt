@@ -189,23 +189,28 @@
         </p></dd><dt><a name="d0e511"></a><span class="term">-repeat <i><tt>N</tt></i></span></dt><dd><p><a name="d0e516"></a>Repeat compilation process N times 
         (typically to do performance analysis).
         </p></dd><dt><a name="d0e519"></a><span class="term">-XterminateAfterCompilation</span></dt><dd><p><a name="d0e522"></a>Causes compiler to terminate before weaving
-        </p></dd><dt><a name="d0e525"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e528"></a>(Experimental - deprecated as now default) 
+        </p></dd><dt><a name="d0e525"></a><span class="term">-XaddSerialVersionUID</span></dt><dd><p><a name="d0e528"></a>Causes the compiler to calculate and add
+        the SerialVersionUID field to any type implementing
+        Serializable that is affected by an aspect.  The field
+        is calculated based on the class before weaving has
+        taken place.
+        </p></dd><dt><a name="d0e531"></a><span class="term">-Xreweavable[:compress]</span></dt><dd><p><a name="d0e534"></a>(Experimental - deprecated as now default) 
             Runs weaver in reweavable mode which causes
         it to create woven classes that can be rewoven, subject to the restriction that
         on attempting a reweave all the types that advised the woven type must be accessible.
-        </p></dd><dt><a name="d0e531"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e534"></a>(Experimental) do not inline around advice
-        </p></dd><dt><a name="d0e537"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e542"></a>(Experimental) This works like incremental mode, 
+        </p></dd><dt><a name="d0e537"></a><span class="term">-XnoInline</span></dt><dd><p><a name="d0e540"></a>(Experimental) do not inline around advice
+        </p></dd><dt><a name="d0e543"></a><span class="term">-XincrementalFile <i><tt>file</tt></i></span></dt><dd><p><a name="d0e548"></a>(Experimental) This works like incremental mode, 
         but using a file rather than standard input to control the compiler.  
         It will recompile each time file is changed and
         and halt when file is deleted.
-        </p></dd><dt><a name="d0e545"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e548"></a>
+        </p></dd><dt><a name="d0e551"></a><span class="term">-XserializableAspects</span></dt><dd><p><a name="d0e554"></a>
         (Experimental) Normally it is an error to declare
         aspects Serializable.  This option removes that restriction.
-        </p></dd><dt><a name="d0e551"></a><span class="term">-XnotReweavable</span></dt><dd><p><a name="d0e554"></a>
+        </p></dd><dt><a name="d0e557"></a><span class="term">-XnotReweavable</span></dt><dd><p><a name="d0e560"></a>
     (Experimental) Create class files that can't be subsequently rewoven by AspectJ.
-        </p></dd><dt><a name="d0e559"></a><span class="term">-Xajruntimelevel:1.2, ajruntimelevel:1.5</span></dt><dd><p><a name="d0e562"></a>
+        </p></dd><dt><a name="d0e565"></a><span class="term">-Xajruntimelevel:1.2, ajruntimelevel:1.5</span></dt><dd><p><a name="d0e568"></a>
         (Experimental) Allows code to be generated that targets a 1.2 or a 1.5 level AspectJ runtime (default 1.5)
-         </p></dd></dl></div></div><div class="refsect2"><a name="d0e565"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
+         </p></dd></dl></div></div><div class="refsect2"><a name="d0e571"></a><h3>File names</h3><p>ajc accepts source files with either the <tt>.java</tt>
     extension or the <tt>.aj</tt> extension.  We normally use
     <tt>.java</tt> for all of our files in an AspectJ system -- files
     that contain aspects as well as files that contain classes.  However, if
@@ -213,14 +218,14 @@
     additional functionality from those that are pure Java we recommend using
     the <tt>.aj</tt> extension for those files.</p><p>We'd like to discourage other means of mechanical distinction such as
     naming conventions or sub-packages in favor of the <tt>.aj</tt>
-    extension.</p><div class="itemizedlist"><ul><li><p><a name="d0e588"></a>Filename conventions are hard to enforce and lead to awkward names
+    extension.</p><div class="itemizedlist"><ul><li><p><a name="d0e594"></a>Filename conventions are hard to enforce and lead to awkward names
     for your aspects.  Instead of <tt>TracingAspect.java</tt> we
     recommend using <tt>Tracing.aj</tt> (or just
-    <tt>Tracing.java</tt>) instead.</p></li><li><p><a name="d0e600"></a>Sub-packages move aspects out of their natural place in a system
+    <tt>Tracing.java</tt>) instead.</p></li><li><p><a name="d0e606"></a>Sub-packages move aspects out of their natural place in a system
     and can create an artificial need for privileged aspects.  Instead of
     adding a sub-package like <tt>aspects</tt> we recommend using the
     <tt>.aj</tt> extension and including these files in your existing
-    packages instead.</p></li></ul></div></div><div class="refsect2"><a name="d0e609"></a><h3>Compatibility</h3><p>
+    packages instead.</p></li></ul></div></div><div class="refsect2"><a name="d0e615"></a><h3>Compatibility</h3><p>
         AspectJ is a compatible extension to the Java programming language. The
         AspectJ compiler adheres to the <a href="http://java.sun.com/docs/books/jls/index.html" target="_top"> <i>The Java Language Specfication, Second
         Edition</i></a> and to the <a href="http://java.sun.com/docs/books/vmspec/index.html" target="_top"><i>The Java Virtual Machine Specification, Second
@@ -231,7 +236,7 @@
           Java and with previous releases of AspectJ,
           see
           <a href="compatibility.html#versionCompatibility">AspectJ Version Compatibility</a>.
-      </p></div><div class="refsect2"><a name="d0e625"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 2.1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
+      </p></div><div class="refsect2"><a name="d0e631"></a><h3>Examples</h3><div class="example"><p><a name="simpleexample"></a><b>Example 2.1. A simple example</b></p><p>Compile two files:</p><pre class="programlisting">
         ajc HelloWorld.java Trace.java
         </pre></div><div class="example"><p><a name="exampleusingargfile"></a><b>Example 2.2. An example using -argfile/@</b></p><p>
           To avoid specifying file names on the command line, 
@@ -252,8 +257,8 @@ ajc -argfile sources.lst
 ajc @sources.lst</pre><p>
         Argfiles are also supported by jikes and javac, so you 
         can use the files in hybrid builds.  However, the support varies:
-        </p><div class="itemizedlist"><ul><li><p><a name="d0e652"></a>Only ajc accepts command-line options</p></li><li><p><a name="d0e655"></a>Jikes and Javac do not accept internal @argfile references.
-            </p></li><li><p><a name="d0e658"></a>Jikes and Javac only accept the @file form on the command line.</p></li></ul></div></div><div class="example"><p><a name="examplebytecode"></a><b>Example 2.3. An example using -inpath and -aspectpath</b></p><p>Bytecode weaving using -inpath:
+        </p><div class="itemizedlist"><ul><li><p><a name="d0e658"></a>Only ajc accepts command-line options</p></li><li><p><a name="d0e661"></a>Jikes and Javac do not accept internal @argfile references.
+            </p></li><li><p><a name="d0e664"></a>Jikes and Javac only accept the @file form on the command line.</p></li></ul></div></div><div class="example"><p><a name="examplebytecode"></a><b>Example 2.3. An example using -inpath and -aspectpath</b></p><p>Bytecode weaving using -inpath:
           AspectJ 1.2 supports weaving .class files in input zip/jar files 
           and directories. 
           Using input jars is like compiling the corresponding 
@@ -310,25 +315,25 @@ commands to your environment as needed.
     ajc -aspectpath tracelib.jar -argfile tracing/notrace.lst -outjar tracedapp.jar 
         </pre><p>Run the application with tracing:</p><pre class="programlisting">
     java -classpath "$ajrt;tracedapp.jar;tracelib.jar" tracing.ExampleMain 
-        </pre><p>Build the application with tracing from binaries in two steps:</p><div class="itemizedlist"><ul><li><p><a name="d0e696"></a>
+        </pre><p>Build the application with tracing from binaries in two steps:</p><div class="itemizedlist"><ul><li><p><a name="d0e702"></a>
 (a) Build the application classes (using javac for demonstration's sake):</p><pre class="programlisting">
     mkdir classes 
     javac -d classes tracing/*.java 
     jar cfM app.jar -C classes . 
-        </pre></li><li><p><a name="d0e701"></a>
+        </pre></li><li><p><a name="d0e707"></a>
 (b) Build the application with tracing:</p><pre class="programlisting">
     ajc -inpath app.jar -aspectpath tracelib.jar -outjar tracedapp.jar 
         </pre></li></ul></div><p>Run the application with tracing (same as above):</p><pre class="programlisting">
     java -classpath "$ajrt;tracedapp.jar;tracelib.jar" tracing.ExampleMain 
         </pre><p>Run the application without tracing:</p><pre class="programlisting">
     java -classpath "app.jar" tracing.ExampleMain
-        </pre></div></div><div class="refsect2"><a name="d0e714"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
+        </pre></div></div><div class="refsect2"><a name="d0e720"></a><h3>The AspectJ compiler API</h3><p>The AspectJ compiler is implemented completely in Java and can be
         called as a Java class.  The only interface that should be considered
         public are the public methods in <tt>org.aspectj.tools.ajc.Main</tt>.
         E.g., <tt>main(String[] args)</tt> takes the
         the standard <b>ajc</b> command line arguments. 
         This means that an alternative way to run the
-        compiler is </p><div class="cmdsynopsis" id="d0e728"><a name="d0e728"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
+        compiler is </p><div class="cmdsynopsis" id="d0e734"><a name="d0e734"></a><tt><tt>java org.aspectj.tools.ajc.Main</tt></tt>  [<i><tt>option...</tt></i>] [<i><tt>file...</tt></i>]</div><p>To access compiler messages programmatically, use the methods
          <tt>setHolder(IMessageHolder holder)</tt> and/or
          <tt>run(String[] args, IMessageHolder holder)</tt>.
 		  <tt>ajc</tt> reports each message to the holder
@@ -352,7 +357,7 @@ public class WrapAjc {
     System.out.println("messages: " + Arrays.asList(ms));
   }
 }
-        </pre></div><div class="refsect2"><a name="d0e763"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
+        </pre></div><div class="refsect2"><a name="d0e769"></a><h3>Stack Traces and the SourceFile attribute</h3><p>Unlike traditional java compilers, the AspectJ compiler may in
             certain cases generate classfiles from multiple source files.
             Unfortunately, the original Java class file format does not support 
             multiple
