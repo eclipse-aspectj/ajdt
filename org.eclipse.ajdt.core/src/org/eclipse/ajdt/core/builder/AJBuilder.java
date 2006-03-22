@@ -976,7 +976,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		String resname = dta.getFullPath().toString();
 		
 		if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resname)) {
-		    if ((includedFileNames==null) || includedFileNames.contains(dta.getResource())) {
+		    if ((includedFileNames==null) || includedFileNames.contains(dta.getResource())
+		    		|| dta.getKind() == IResourceDelta.REMOVED) {
                 return true;
             } else {
                 return false;
