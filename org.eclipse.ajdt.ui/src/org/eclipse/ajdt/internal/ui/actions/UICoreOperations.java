@@ -93,7 +93,8 @@ public class UICoreOperations implements ICoreOperations {
 		}
 		
 		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())) {
+		    if (includedFileNames.contains(dta.getResource().getLocation().toOSString())
+		    		|| dta.getKind() == IResourceDelta.REMOVED) {
                 return true;
             } else {
                 return false;
