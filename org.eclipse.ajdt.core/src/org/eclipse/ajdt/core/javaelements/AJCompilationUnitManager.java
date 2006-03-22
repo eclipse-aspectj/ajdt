@@ -202,7 +202,7 @@ public class AJCompilationUnitManager {
 	}
 
 	private boolean creatingCUisAllowedFor(IFile file) {
-		return (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())
+		return file != null && (CoreUtils.ASPECTJ_SOURCE_ONLY_FILTER.accept(file.getName())
 				&& AspectJPlugin.isAJProject(file.getProject()) && (JavaCore
 				.create(file.getProject()).isOnClasspath(file)));
 	}
