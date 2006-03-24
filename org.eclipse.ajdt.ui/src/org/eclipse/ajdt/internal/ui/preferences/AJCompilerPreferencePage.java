@@ -125,7 +125,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
-		defaultValueMap.put(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_noGuardForLazyTjp, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_noExplicitConstructorCall, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_aspectExcludedByConfiguration, AspectJPreferences.VALUE_IGNORE);
@@ -268,7 +268,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, IGNORE);
-		store.setDefault(AspectJPreferences.OPTION_noGuardForLazyTjp, IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_noGuardForLazyTjp, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_noExplicitConstructorCall, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_aspectExcludedByConfiguration, IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_unorderedAdviceAtShadow, IGNORE);
