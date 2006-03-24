@@ -121,8 +121,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_runtimeExceptionNotSoftened, AspectJPreferences.VALUE_WARNING);
-		defaultValueMap.put(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, AspectJPreferences.VALUE_WARNING);
-		defaultValueMap.put(AspectJPreferences.OPTION_noGuardForLazyTjp, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_noGuardForLazyTjp, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_noExplicitConstructorCall, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_aspectExcludedByConfiguration, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_unorderedAdviceAtShadow, AspectJPreferences.VALUE_IGNORE);
