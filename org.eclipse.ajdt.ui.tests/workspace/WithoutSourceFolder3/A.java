@@ -1,4 +1,5 @@
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
@@ -19,5 +20,12 @@ import org.aspectj.lang.annotation.Aspect;
  */
 @Aspect
 public class A {
+	@Before("execution(void foo())")
+	public void before() {	
+		
+	}
+	
+	void foo() {
 
+    }
 }

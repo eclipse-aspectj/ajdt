@@ -24,9 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
-import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -291,13 +289,10 @@ public class LTWUtils {
 		root.getResource().accept(new IResourceVisitor() {
 
 			public boolean visit(IResource resource) {
-				if (resource instanceof IFile
-						&& AspectJPlugin.AJ_FILE_EXT.equals(resource
-								.getFileExtension())) {
+				if (includedFiles.contains(resource)) {
 					AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE
 							.getAJCompilationUnit((IFile) resource);
-					if ((ajcu != null)
-							&& includedFiles.contains(resource)) {
+					if (ajcu != null) {
 						try {
 							IType[] types = ajcu.getAllTypes();
 							for (int i = 0; i < types.length; i++) {
@@ -308,19 +303,19 @@ public class LTWUtils {
 							}
 						} catch (JavaModelException e) {
 						}
-					}
-				} else if (CoreUtils.ASPECTJ_SOURCE_FILTER.accept(resource
-						.getName())) {
-					ICompilationUnit cu = JavaCore
-							.createCompilationUnitFrom((IFile) resource);
-					if ((cu != null)
-							&& includedFiles.contains(resource)) {
-						AJProjectModel model = AJModel.getInstance()
-								.getModelForProject(resource.getProject());
-						Set types = model.getAspectsForJavaFile(cu);
-						for (Iterator iter = types.iterator(); iter.hasNext();) {
-							AspectElement element = (AspectElement) iter.next();
-							aspects.add(element);
+					} else {
+						ICompilationUnit cu = JavaCore
+								.createCompilationUnitFrom((IFile) resource);
+						if (cu != null) {
+							AJProjectModel model = AJModel.getInstance()
+									.getModelForProject(resource.getProject());
+							Set types = model.getAspectsForJavaFile(cu);
+							for (Iterator iter = types.iterator(); iter
+									.hasNext();) {
+								AspectElement element = (AspectElement) iter
+										.next();
+								aspects.add(element);
+							}
 						}
 					}
 				}

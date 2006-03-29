@@ -456,8 +456,8 @@ public class AJProjectModel {
 		}
 
 		Set keys = annotationsMap.keySet();
-		// Check for aspects in .java files with no relationships
-		if(keys.size() == 0 && !(unit instanceof AJCompilationUnit)) { 
+		// Check for aspects in .java files
+		if(!(unit instanceof AJCompilationUnit)) { 
 			IHierarchy hierarchy = AsmManager.getDefault().getHierarchy();
 			IProgramElement pe = hierarchy.findElementForSourceFile(path.replace('\\', '/'));
 			pe.walk(new HierarchyWalker() {
