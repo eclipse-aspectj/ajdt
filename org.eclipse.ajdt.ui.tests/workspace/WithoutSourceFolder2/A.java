@@ -16,5 +16,11 @@
  * @author Luzius Meisser
  */
 public aspect A {
-
+	before() : execution(void foo()) {
+		
+	}
+	
+	void foo() {
+		
+	}
 }
