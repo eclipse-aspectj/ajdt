@@ -1492,19 +1492,19 @@ M4 = Platform-specific fourth key
    <extension
          point="org.eclipse.ui.intro.configExtension">
       <configExtension
-            configId="org.eclipse.platform.introConfig"
+            configId="org.eclipse.ui.intro.universalConfig"
             content="intro/eclipse/ajdtOverviewExtensionContent.xml"/>
 
       <configExtension
-            configId="org.eclipse.platform.introConfig"
+            configId="org.eclipse.ui.intro.universalConfig"
             content="intro/eclipse/ajdtTutorialsExtensionContent.xml"/>  
       
       <configExtension
-            configId="org.eclipse.platform.introConfig"
+            configId="org.eclipse.ui.intro.universalConfig"
             content="intro/eclipse/ajdtSamplesExtensionContent.xml"/>
             
       <configExtension
-            configId="org.eclipse.platform.introConfig"
+            configId="org.eclipse.ui.intro.universalConfig"
             content="intro/eclipse/ajdtNewsExtensionContent.xml"/>
 
 	  <!--

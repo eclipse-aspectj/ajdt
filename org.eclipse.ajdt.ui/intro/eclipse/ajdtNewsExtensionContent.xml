@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <introContent>
-  <!-- Extension to the Eclipse SDK What's New Page. -->
-  <extensionContent 
-		alt-style="css/ajdt.properties" 
-		path="news/page-content/noteworthy-links/jdtAnchor">
-    
-		<link 
-			label="AspectJ Development Tools" 
-			url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/whatsNew/ajdt_whatsnew.htm" 
-			id="ajdt-noteworthy" 
-			style-id="noteworthy-link">
-
-      		<text>
-				Find out about significant changes made to the AspectJ development tools for this release
-			</text>
-    	</link>
+  <!-- Extension to the SDK What's New Page. -->
+  <extensionContent id="org.eclipse.ajdt" name="AspectJ development tools" path="whatsnew/@">
+     <group id="content-group" style-id="content-group">
+    	<link label="AspectJ development tools" url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/whatsNew/ajdt_whatsnew.htm" id="ajdt-noteworthy" style-id="content-link">
+           <text>Find out about significant changes made to the AspectJ development tools</text>
+        </link>
+     </group>
   </extensionContent>
 </introContent>

@@ -1,25 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <introContent>
-  <!-- Extension to the Eclipse SDK Samples Page. -->
-  <extensionContent 
-		alt-style="css/ajdt.properties" 
-		style="css/ajdtSamples.css" 
-		path="samples/page-content/workbench/workbenchGroupAnchor">
-    
-		<group label="AspectJ" id="aspectj" style-id="samples-group">
-        	<text style-id="group-description">
-				The following AspectJ examples demonstrate some of the capabilities of AspectJ
-			</text>
-        	<link 
-				label="AspectJ Examples" 
-				url="http://org.eclipse.ui.intro/runAction?pluginId=org.eclipse.ui.workbench&amp;class=org.eclipse.ui.actions.NewWizardAction&amp;id=org.eclipse.sdk.samples.aspectj.examples" 
-				id="aspectj-examples" 
-				style-id="sample-link">
-          		
-				<text>
-					By selecting AspectJ, AspectJ Examples in the New Wizard that appears, you can select the example you wish to run.
-				</text>
-        	</link>  
-     	</group>   
-   </extensionContent>
+  <!-- Extension to the SDK Samples Page. -->
+  <extensionContent id="org.eclipse.ajdt" name="AspectJ" alt-style="css/ajdt.properties" style="css/ajdtSamples.css" path="samples/@">
+    <group label="AJDT" id="ajdt" style-id="content-group">
+       <text style-id="group-description">These examples demonstrate some of the capabilities of AspectJ.</text>
+       <link label="AspectJ Examples" url="http://org.eclipse.ui.intro/runAction?pluginId=org.eclipse.ui.workbench&amp;class=org.eclipse.ui.actions.NewWizardAction&amp;id=org.eclipse.sdk.samples.aspectj.examples" id="aspectj-examples" style-id="content-link">
+          <text>By selecting AspectJ, AspectJ Examples in the New Wizard that appears, you can select the example you wish to create.</text>
+       </link>
+    </group>
+  </extensionContent>
 </introContent>
