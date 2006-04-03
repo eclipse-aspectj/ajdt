@@ -9,7 +9,6 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.help;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.inplace;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.preference;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.providers;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.ras;x-internal:=true,
  org.eclipse.contribution.xref.internal.ui.text;x-internal:=true,
