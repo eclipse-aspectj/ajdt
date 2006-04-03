@@ -65,6 +65,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
 
 /**
@@ -124,8 +125,12 @@ public class ChangesView extends ViewPart {
 	}
 
 	public static void refresh(boolean force) {
-		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench()
-				.getActiveWorkbenchWindow().getActivePage().findView(
+		IWorkbenchWindow w = AspectJUIPlugin.getDefault().getWorkbench()
+			.getActiveWorkbenchWindow();
+		if (w == null) {
+			return;
+		}
+		IViewPart view = w.getActivePage().findView(
 						ChangesView.CROSSCUTTING_VIEW_ID);
 		if (view instanceof ChangesView) {
 			ChangesView changesView = (ChangesView) view;
