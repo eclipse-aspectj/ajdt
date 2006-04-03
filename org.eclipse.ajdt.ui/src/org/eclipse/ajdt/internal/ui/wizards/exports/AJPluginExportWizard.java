@@ -15,8 +15,8 @@ import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
-import org.eclipse.pde.internal.ui.build.FeatureExportInfo;
 import org.eclipse.pde.internal.ui.wizards.exports.AntGeneratingExportWizard;
 import org.eclipse.pde.internal.ui.wizards.exports.BaseExportWizardPage;
 import org.eclipse.ui.progress.IProgressConstants;

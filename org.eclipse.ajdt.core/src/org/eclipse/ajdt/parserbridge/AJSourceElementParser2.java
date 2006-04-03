@@ -18,6 +18,7 @@ import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.CompilerModifiers;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -163,7 +164,7 @@ public AJSourceElementParser2(
 		DefaultErrorHandlingPolicies.exitAfterAllProblems(),
 		options, 
 		problemFactory) {
-		public void record(IProblem problem, CompilationResult unitResult, ReferenceContext context) {
+		public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext context) {
 			unitResult.record(problem, context); // TODO (jerome) clients are trapping problems either through factory or requestor... is result storing needed?
 			requestor.acceptProblem(problem);
 		}

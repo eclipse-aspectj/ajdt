@@ -11,6 +11,7 @@ package org.eclipse.ajdt.internal.parserbridge;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
@@ -91,7 +92,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 		cr.qualifiedReferences = delegate.compilationResult.qualifiedReferences;
 		cr.simpleNameReferences = delegate.compilationResult.simpleNameReferences;
 		if(delegate.compilationResult.problems != null) {
-			cr.problems = new IProblem[delegate.compilationResult.problems.length];
+			cr.problems = new CategorizedProblem[delegate.compilationResult.problems.length];
 			for (int i = 0; i < delegate.compilationResult.problems.length; i++) {
 				org.aspectj.org.eclipse.jdt.core.compiler.IProblem ajprob = delegate.compilationResult.problems[i];
 				if(ajprob != null) {
@@ -107,7 +108,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 				} 
 			}
 		} else { 
-			cr.problems = new IProblem[0];
+			cr.problems = new CategorizedProblem[0];
 		}
 		cr.taskCount = delegate.compilationResult.taskCount;
 		return cr;

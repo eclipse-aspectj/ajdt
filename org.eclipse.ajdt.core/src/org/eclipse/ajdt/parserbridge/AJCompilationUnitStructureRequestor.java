@@ -550,5 +550,8 @@ public class AJCompilationUnitStructureRequestor extends
 	public void enterType(org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo) {
 		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,false);
 	}
+
+	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
+	}
 	
 }

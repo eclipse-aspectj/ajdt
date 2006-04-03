@@ -257,97 +257,91 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 	protected void exportElement(Object element, IProgressMonitor progressMonitor) throws InterruptedException {
 		// AspectJ Change Begin
 		// Don't export AJCompilationUnits because they are duplicates of files that we also export.
-		if (! (element instanceof AJCompilationUnit)) { 
+		if (element instanceof AJCompilationUnit) { 
+			return;
+		}
 		// AspectJ Change End
-			int leadSegmentsToRemove= 1;
-			IPackageFragmentRoot pkgRoot= null;
-			boolean isInJavaProject= false;
-			IResource resource= null;
-			IJavaProject jProject= null;
-			if (element instanceof IJavaElement) {
-				isInJavaProject= true;
-				IJavaElement je= (IJavaElement)element;
-				int type= je.getElementType();
-				if (type != IJavaElement.CLASS_FILE && type != IJavaElement.COMPILATION_UNIT) {
-					exportJavaElement(progressMonitor, je);
-					return;
-				}
-				try {
-					resource= je.getUnderlyingResource();
-				} catch (JavaModelException ex) {
-					addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_underlyingResourceNotFound, je.getElementName()), ex); 
-					return;
-				}
-				jProject= je.getJavaProject();
-				pkgRoot= JavaModelUtil.getPackageFragmentRoot(je);
-			}
-			else
-				resource= (IResource)element;
-	
-			if (!resource.isAccessible()) {
-				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotFound, resource.getFullPath()), null); 
+		int leadSegmentsToRemove= 1;
+		IPackageFragmentRoot pkgRoot= null;
+		boolean isInJavaProject= false;
+		IResource resource= null;
+		IJavaProject jProject= null;
+		if (element instanceof IJavaElement) {
+			isInJavaProject= true;
+			IJavaElement je= (IJavaElement)element;
+			int type= je.getElementType();
+			if (type != IJavaElement.CLASS_FILE && type != IJavaElement.COMPILATION_UNIT) {
+				exportJavaElement(progressMonitor, je);
 				return;
 			}
-	
-			if (resource.getType() == IResource.FILE) {
-				if (!resource.isLocal(IResource.DEPTH_ZERO))
-					try {
-						resource.setLocal(true , IResource.DEPTH_ZERO, progressMonitor);
-					} catch (CoreException ex) {
-						addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotLocal, resource.getFullPath()), ex); 
-						return;
-					}
-				if (!isInJavaProject) {
-					// check if it's a Java resource
-					try {
-						isInJavaProject= resource.getProject().hasNature(JavaCore.NATURE_ID);
-					} catch (CoreException ex) {
-						addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_projectNatureNotDeterminable, resource.getFullPath()), ex); 
-						return;
-					}
-					if (isInJavaProject) {
-						jProject= JavaCore.create(resource.getProject());
-						try {
-							IPackageFragment pkgFragment= jProject.findPackageFragment(resource.getFullPath().removeLastSegments(1));
-							if (pkgFragment != null)
-								pkgRoot= JavaModelUtil.getPackageFragmentRoot(pkgFragment);
-							else
-								pkgRoot= findPackageFragmentRoot(jProject, resource.getFullPath().removeLastSegments(1));
-						} catch (JavaModelException ex) {
-							addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_javaPackageNotDeterminable, resource.getFullPath()), ex); 
-							return;
-						}
-					}
-				}
-				
-				if (pkgRoot != null) {
-					leadSegmentsToRemove= pkgRoot.getPath().segmentCount();
-					boolean isOnBuildPath;
-					isOnBuildPath= jProject.isOnClasspath(resource);
-					if (!isOnBuildPath || (mustUseSourceFolderHierarchy() && !pkgRoot.getElementName().equals(IPackageFragmentRoot.DEFAULT_PACKAGEROOT_PATH)))
-						leadSegmentsToRemove--;
-				}
-				
-				IPath destinationPath= resource.getFullPath().removeFirstSegments(leadSegmentsToRemove);
-				
-				boolean isInOutputFolder= false;
-				if (isInJavaProject) {
-					try {
-						isInOutputFolder= jProject.getOutputLocation().isPrefixOf(resource.getFullPath());
-					} catch (JavaModelException ex) {
-						isInOutputFolder= false;
-					}
-				}
-				
-				exportClassFiles(progressMonitor, pkgRoot, resource, jProject, destinationPath);
-				exportResource(progressMonitor, pkgRoot, isInJavaProject, resource, destinationPath, isInOutputFolder);
-	
-				progressMonitor.worked(1);
-				ModalContext.checkCanceled(progressMonitor);
-	
-			} else
-				exportContainer(progressMonitor, (IContainer)resource);
+			try {
+				resource= je.getUnderlyingResource();
+			} catch (JavaModelException ex) {
+				addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_underlyingResourceNotFound, je.getElementName()), ex); 
+				return;
+			}
+			jProject= je.getJavaProject();
+			pkgRoot= JavaModelUtil.getPackageFragmentRoot(je);
 		}
+		else
+			resource= (IResource)element;
+
+		if (!resource.isAccessible()) {
+			addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_resourceNotFound, resource.getFullPath()), null); 
+			return;
+		}
+
+		if (resource.getType() == IResource.FILE) {
+			if (!isInJavaProject) {
+				// check if it's a Java resource
+				try {
+					isInJavaProject= resource.getProject().hasNature(JavaCore.NATURE_ID);
+				} catch (CoreException ex) {
+					addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_projectNatureNotDeterminable, resource.getFullPath()), ex); 
+					return;
+				}
+				if (isInJavaProject) {
+					jProject= JavaCore.create(resource.getProject());
+					try {
+						IPackageFragment pkgFragment= jProject.findPackageFragment(resource.getFullPath().removeLastSegments(1));
+						if (pkgFragment != null)
+							pkgRoot= JavaModelUtil.getPackageFragmentRoot(pkgFragment);
+						else
+							pkgRoot= findPackageFragmentRoot(jProject, resource.getFullPath().removeLastSegments(1));
+					} catch (JavaModelException ex) {
+						addWarning(Messages.format(JarPackagerMessages.JarFileExportOperation_javaPackageNotDeterminable, resource.getFullPath()), ex); 
+						return;
+					}
+				}
+			}
+			
+			if (pkgRoot != null && jProject != null) {
+				leadSegmentsToRemove= pkgRoot.getPath().segmentCount();
+				boolean isOnBuildPath;
+				isOnBuildPath= jProject.isOnClasspath(resource);
+				if (!isOnBuildPath || (mustUseSourceFolderHierarchy() && !pkgRoot.getElementName().equals(IPackageFragmentRoot.DEFAULT_PACKAGEROOT_PATH)))
+					leadSegmentsToRemove--;
+			}
+			
+			IPath destinationPath= resource.getFullPath().removeFirstSegments(leadSegmentsToRemove);
+			
+			boolean isInOutputFolder= false;
+			if (isInJavaProject && jProject != null) {
+				try {
+					isInOutputFolder= jProject.getOutputLocation().isPrefixOf(resource.getFullPath());
+				} catch (JavaModelException ex) {
+					isInOutputFolder= false;
+				}
+			}
+			
+			exportClassFiles(progressMonitor, pkgRoot, resource, jProject, destinationPath);
+			exportResource(progressMonitor, pkgRoot, isInJavaProject, resource, destinationPath, isInOutputFolder);
+
+			progressMonitor.worked(1);
+			ModalContext.checkCanceled(progressMonitor);
+
+		} else
+			exportContainer(progressMonitor, (IContainer)resource);
 	}
 
 	private void exportJavaElement(IProgressMonitor progressMonitor, IJavaElement je) throws InterruptedException {

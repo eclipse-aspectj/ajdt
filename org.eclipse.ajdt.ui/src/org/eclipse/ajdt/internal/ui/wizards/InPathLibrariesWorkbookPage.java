@@ -255,8 +255,8 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
     
     private void askForAddingExclusionPatternsDialog(List newEntries) {
         HashSet modified= new HashSet();
-        fixNestingConflicts(newEntries, fInpathList.getElements(), modified);
-        if (!modified.isEmpty()) {
+		fixNestingConflicts((CPListElement[])newEntries.toArray(new CPListElement[newEntries.size()]), (CPListElement[])fInpathList.getElements().toArray(new CPListElement[fInpathList.getElements().size()]), modified);
+       if (!modified.isEmpty()) {
             String title= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_title;
             String message= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_message;
             MessageDialog.openInformation(getShell(), title, message);

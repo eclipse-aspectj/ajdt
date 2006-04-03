@@ -120,14 +120,16 @@ public class AspectJBreakpointRulerActionTest extends UITestCase {
 	private void clickLine(int desiredline, CompositeRuler rulerInfo){
 		int line;
 		int inputline = desiredline;
+		int maxIter = 1000; // bail out limit, to avoid infinite loops
 		do{
 			line = rulerInfo.toDocumentLineNumber(inputline);
 			if (line==-1) {
 				rulerInfo.setLocationOfLastMouseButtonActivity(0, inputline);
 				return;
 			}
-			inputline++;// += desiredline - line;
-		} while (line != desiredline);
+			inputline++;
+			maxIter--;
+		} while ((maxIter > 0) && (line != desiredline));
 		
 		rulerInfo.setLocationOfLastMouseButtonActivity(0, inputline);
 	}

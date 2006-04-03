@@ -255,7 +255,7 @@ public class AspectPathLibrariesWorkbookPage extends
 
     private void askForAddingExclusionPatternsDialog(List newEntries) {
         HashSet modified= new HashSet();
-        fixNestingConflicts(newEntries, fAspectPathList.getElements(), modified);
+		fixNestingConflicts((CPListElement[])newEntries.toArray(new CPListElement[newEntries.size()]), (CPListElement[])fAspectPathList.getElements().toArray(new CPListElement[fAspectPathList.getElements().size()]), modified);
         if (!modified.isEmpty()) {
             String title= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_title;
             String message= UIMessages.InPathLibrariesWorkbookPage_exclusion_added_message;

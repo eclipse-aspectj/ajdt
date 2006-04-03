@@ -55,6 +55,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.WorkingCopyOwner;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
@@ -133,7 +134,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		return elementName.toCharArray();
 	}
 	
-	/* Eclispe 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
+	/* Eclipse 3.1M3: prior to this we overrode isValidCompilationUnit, but now we need to
 	 * override validateCompilationUnit, otherwise the check for valid name will fail on
 	 * .aj files
 	 */
@@ -147,6 +148,20 @@ public class AJCompilationUnit extends CompilationUnit{
 //		}
 //		return JavaModelStatus.OK_STATUS;
 //	}
+	
+	/* Eclipse 3.2M6: bypass buffer cache to ensure fake buffer is used
+	 */
+	/**
+	 * @see org.eclipse.jdt.internal.compiler.env.ICompilationUnit#getContents()
+	 */
+	public char[] getContents() {
+		try {
+			IBuffer buffer = this.getBuffer();
+			return buffer == null ? CharOperation.NO_CHAR : buffer.getCharacters();
+		} catch (JavaModelException e) {
+			return CharOperation.NO_CHAR;
+		}
+	}
 	
 	public IResource getResource(){
 		if (AspectJPlugin.usingCUprovider) {
