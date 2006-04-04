@@ -78,6 +78,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		public void detectedAspectDeleted(File f) {
+		}
+
+		public void recordDecision(String decision) {
+		}
+
+		public void recordInformation(String info) {
 		}};
 	  AjState.stateListener = isl;
 	}
