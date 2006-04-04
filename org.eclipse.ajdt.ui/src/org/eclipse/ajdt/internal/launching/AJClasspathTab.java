@@ -201,6 +201,9 @@ public class AJClasspathTab extends JavaClasspathTab {
 	 */
 	private void updateClassPathWithAspectPathAndOutJar(
 			ILaunchConfiguration configuration) {
+		if (fModel == null) {
+			return;
+		}
 		ILaunchConfigurationWorkingCopy wc;
 		try {
 			if (configuration instanceof ILaunchConfigurationWorkingCopy) {
