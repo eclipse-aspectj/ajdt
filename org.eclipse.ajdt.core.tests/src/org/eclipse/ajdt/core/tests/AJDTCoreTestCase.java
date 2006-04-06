@@ -27,6 +27,7 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
@@ -44,7 +45,7 @@ public class AJDTCoreTestCase extends TestCase {
 	protected String getPluginDirectoryPath() {
 		try {
 			URL platformURL = Platform.getBundle("org.eclipse.ajdt.core.tests").getEntry("/"); //$NON-NLS-1$ //$NON-NLS-2$
-			return new File(Platform.asLocalURL(platformURL).getFile()).getAbsolutePath();
+			return new File(FileLocator.toFileURL(platformURL).getFile()).getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
