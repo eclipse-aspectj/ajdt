@@ -79,4 +79,4 @@ Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.help,
  org.aspectj.weaver,
  org.eclipse.core.filesystem
-Eclipse-AutoStart: true
+Eclipse-LazyStart: true

@@ -60,4 +60,4 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.contribution.xref.core,
  org.eclipse.ui.views,
  org.eclipse.pde.runtime
-Eclipse-AutoStart: true
+Eclipse-LazyStart: true

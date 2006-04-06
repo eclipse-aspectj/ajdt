@@ -13,4 +13,4 @@ Export-Package: org.eclipse.contribution.xref.core,
 Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.runtime,
  org.eclipse.jdt.core
-Eclipse-AutoStart: true
+Eclipse-LazyStart: true

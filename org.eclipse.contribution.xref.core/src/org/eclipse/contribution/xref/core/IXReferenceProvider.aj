@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.runtime.ISafeRunnable;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jdt.core.IJavaElement;
 
 /**
@@ -139,7 +139,7 @@ public interface IXReferenceProvider {
 					return result;
 				}
 			};
-			Platform.run(safeRunnable);
+			SafeRunner.run(safeRunnable);
 			return safeRunnable.getResult();
 		}
 		

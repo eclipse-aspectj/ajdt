@@ -23,13 +23,13 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -289,7 +289,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		try {
 			URL starterURL = new URL(AspectJExamplePlugin.getDefault()
 					.getBundle().getEntry("/"), pluginRelativePath); //$NON-NLS-1$
-			return new ZipFile(Platform.asLocalURL(starterURL).getFile());
+			return new ZipFile(FileLocator.toFileURL(starterURL).getFile());
 		} catch (IOException e) {
 			String message = pluginRelativePath + ": " + e.getMessage(); //$NON-NLS-1$
 			Status status = new Status(IStatus.ERROR, AspectJExamplePlugin

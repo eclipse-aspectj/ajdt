@@ -32,4 +32,4 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.core.runtime,
  org.aspectj.runtime,
  org.eclipse.help
-Eclipse-AutoStart: true
+Eclipse-LazyStart: true
