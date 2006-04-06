@@ -19,6 +19,7 @@ import java.util.zip.ZipFile;
 import org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -43,7 +44,7 @@ public class ExportPluginTest extends UITestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		URL location = Platform.resolve(Platform.getBundle(
+		URL location = FileLocator.resolve(Platform.getBundle(
 				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
 		URL fileURL = new URL(location, "export.zip"); //$NON-NLS-1$
 		archivePath = fileURL.getPath();

@@ -24,6 +24,7 @@ public aspect Enforcement {
 	    "There should be no calls to printStackTrace"; //$NON-NLS-1$
 	
 	declare warning : call(void org.eclipse.ajdt.internal.utils.AJDTEventTrace.*(..)) 
+		&& !call(void *.startup(..))
 		&& !within(org.eclipse.ajdt.internal.utils.AJDTEventTrace) 
 		&& !within(org.eclipse.ajdt.internal.ui.AJDTEventTraceView)
 		&& !within(org.eclipse.ajdt.internal.ui.EventTraceLogger) :

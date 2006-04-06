@@ -21,6 +21,7 @@ import java.net.URL;
 import org.eclipse.ajdt.exports.AJAntScript;
 import org.eclipse.ajdt.exports.AJCTask;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 
 /**
@@ -40,7 +41,7 @@ public class AJCTaskTest extends UITestCase {
 	private FileOutputStream os;
 
 	protected void setUp() throws Exception {
-		URL location = Platform.resolve(Platform.getBundle(
+		URL location = FileLocator.resolve(Platform.getBundle(
 				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
 		URL fileURL = new URL(location, "temp.xml"); //$NON-NLS-1$
 		tempFile = new File(fileURL.getPath());

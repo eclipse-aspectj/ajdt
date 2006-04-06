@@ -16,8 +16,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -54,7 +54,7 @@ public class AspectJTestPlugin extends AbstractUIPlugin {
 		String pluginDir=null;
 		URL loc = plugin.getBundle().getEntry("/"); //$NON-NLS-1$
 		try {
-			URL resolved = Platform.resolve(loc);
+			URL resolved = FileLocator.resolve(loc);
 			pluginDir = resolved.getFile();
 		} catch (IOException e) {}		
 		if ((pluginDir==null) || (pluginDir.length()==0)) {
