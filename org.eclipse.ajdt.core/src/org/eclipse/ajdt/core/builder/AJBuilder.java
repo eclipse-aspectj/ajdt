@@ -81,9 +81,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 
 		public void recordDecision(String decision) {
+			AJLog.log(decision);
 		}
 
 		public void recordInformation(String info) {
+			AJLog.log(info);
 		}};
 	  AjState.stateListener = isl;
 	}
@@ -923,32 +925,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		AJLog.log("Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
 	}
-	
-	public boolean old_sourceFilesChanged(IResourceDelta dta, IProject project) {
-		if (dta == null)
-			return true;
-		String resname = dta.getFullPath().toString();
-
-		if (resname.endsWith(".java") || resname.endsWith(".aj")) { //$NON-NLS-1$ //$NON-NLS-2$
-			// TODO: fix this - need build config support in core
-                return true;
-		} else if (resname.endsWith(".lst") //$NON-NLS-1$
-				&& !resname.endsWith("/generated.lst")) { //$NON-NLS-1$
-			return true;
-		} else if (resname.endsWith(".classpath")){ //$NON-NLS-1$
-			return true;
-		} else {
-			boolean kids_results = false;
-			int i = 0;
-			IResourceDelta[] kids = dta.getAffectedChildren();
-			while (!kids_results && i < kids.length) {
-				kids_results = kids_results | sourceFilesChanged(kids[i], project);
-				i++;
-			}
-			return kids_results;
-		}
-	}
-	
+		
 	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
 		if (delta!=null && delta.getAffectedChildren().length!=0) {
 			List includedFileNames = BuildConfig.getIncludedSourceFiles(project);
