@@ -143,6 +143,8 @@ public class AspectJPreferences {
 	
 	public static final String OPTION_unorderedAdviceAtShadow ="org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow"; //$NON-NLS-1$
 
+	public static final String OPTION_swallowedExceptionInCatchBlock = "org.aspectj.ajdt.core.compiler.lint.swallowedExceptionInCatchBlock";	 //$NON-NLS-1$
+
 	// General AspectJ Compiler options
 	public static final String OPTION_NoWeave = "org.aspectj.ajdt.core.compiler.weaver.NoWeave"; //$NON-NLS-1$
 
@@ -182,7 +184,8 @@ public class AspectJPreferences {
 			{ OPTION_aspectExcludedByConfiguration,
 					"aspectExcludedByConfiguration" }, //$NON-NLS-1$
 			{ OPTION_unorderedAdviceAtShadow, "unorderedAdviceAtShadow" }, //$NON-NLS-1$
-			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" } //$NON-NLS-1$
+			{ OPTION_runtimeExceptionNotSoftened, "runtimeExceptionNotSoftened" }, //$NON-NLS-1$
+			{ OPTION_swallowedExceptionInCatchBlock, "swallowedExceptionInCatchBlock" } //$NON-NLS-1$
 	};
 
 	// name of the file to write the Xlint options to

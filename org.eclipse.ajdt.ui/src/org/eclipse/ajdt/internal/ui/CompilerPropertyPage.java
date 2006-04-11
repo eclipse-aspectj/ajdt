@@ -108,6 +108,7 @@ public class CompilerPropertyPage extends PropertyPage {
 		defaultValueMap.put(AspectJPreferences.OPTION_noExplicitConstructorCall, AspectJPreferences.VALUE_WARNING);
 		defaultValueMap.put(AspectJPreferences.OPTION_aspectExcludedByConfiguration, AspectJPreferences.VALUE_IGNORE);
 		defaultValueMap.put(AspectJPreferences.OPTION_unorderedAdviceAtShadow, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock, AspectJPreferences.VALUE_IGNORE);
 	}
 
 	/**
@@ -137,8 +138,8 @@ public class CompilerPropertyPage extends PropertyPage {
 			AspectJPreferences.OPTION_noGuardForLazyTjp,
 			AspectJPreferences.OPTION_noExplicitConstructorCall,
 			AspectJPreferences.OPTION_aspectExcludedByConfiguration,
-			AspectJPreferences.OPTION_unorderedAdviceAtShadow
-		
+			AspectJPreferences.OPTION_unorderedAdviceAtShadow,
+			AspectJPreferences.OPTION_swallowedExceptionInCatchBlock
 		};
 
 	public CompilerPropertyPage() {
@@ -420,7 +421,12 @@ public class CompilerPropertyPage extends PropertyPage {
 				.getResourceString("CompilerConfigurationBlock.unordered_advice_at_shadow"); //$NON-NLS-1$
 		addComboBox(composite, label, AspectJPreferences.OPTION_unorderedAdviceAtShadow,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-		
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.swallowed_exception_in_catch_block"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
+		errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
 		return composite;
 	}
 	

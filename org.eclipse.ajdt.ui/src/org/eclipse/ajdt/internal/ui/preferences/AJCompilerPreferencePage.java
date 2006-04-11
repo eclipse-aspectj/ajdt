@@ -159,7 +159,7 @@ public class AJCompilerPreferencePage extends PreferencePage
 		store.setDefault(AspectJPreferences.OPTION_noExplicitConstructorCall, WARNING);
 		store.setDefault(AspectJPreferences.OPTION_aspectExcludedByConfiguration, IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_unorderedAdviceAtShadow, IGNORE);
-		
+		store.setDefault(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock, IGNORE);
 	}
 
 	/**
@@ -317,6 +317,11 @@ public class AJCompilerPreferencePage extends PreferencePage
 		label = AspectJUIPlugin
 				.getResourceString("CompilerConfigurationBlock.unordered_advice_at_shadow"); //$NON-NLS-1$
 		addComboBox(composite, label, AspectJPreferences.OPTION_unorderedAdviceAtShadow,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = AspectJUIPlugin
+				.getResourceString("CompilerConfigurationBlock.swallowed_exception_in_catch_block"); //$NON-NLS-1$
+		addComboBox(composite, label, AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		return composite;
