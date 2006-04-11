@@ -145,7 +145,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
 				ISourceLocation sl = node.getSourceLocation();
-				if (node.toLinkLabelString()
+				if (node.toLinkLabelString(false)
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
 					&& (sl.getLine() == LINE1) ){
 					
@@ -153,7 +153,7 @@ public class AJProjectModelTest extends AJDTCoreTestCase {
 					if (ije instanceof AJCodeElement) {
 						arrayOfajce[0] = (AJCodeElement) ije;
 					}					
-				} else if (node.toLinkLabelString()
+				} else if (node.toLinkLabelString(false)
 						.equals("Main: method-call(void java.io.PrintStream.println(java.lang.String))") 
 					&& (sl.getLine() == LINE2) ){
 					

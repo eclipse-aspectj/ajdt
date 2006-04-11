@@ -44,7 +44,7 @@ public class AJModelTest extends AJDTCoreTestCase {
 				{ "main(String[])", "main" },
 				{ "go()", "go" },
 				{ "field-set(int tjp.Demo.x)", "field-set(int tjp.Demo.x)" },
-				{ "foo(int, Object)", "foo" },
+				{ "foo(int,Object)", "foo" },
 				{ "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))", "exception-handler(void tjp.Demo.<catch>(tjp.DemoException))" },
 				{ "bar(Integer)", "bar" }
 		};
@@ -110,7 +110,7 @@ public class AJModelTest extends AJDTCoreTestCase {
 			List annotations = (List) annotationsMap.get(key);
 			for (Iterator it2 = annotations.iterator(); it2.hasNext();) {
 				IProgramElement node = (IProgramElement) it2.next();
-				String peName = node.toLabelString().intern();;
+				String peName = node.toLabelString(false).intern();;
 				IJavaElement je = AJModel.getInstance().getCorrespondingJavaElement(node);
 				if (je==null) {
 					System.out.println("je is null");

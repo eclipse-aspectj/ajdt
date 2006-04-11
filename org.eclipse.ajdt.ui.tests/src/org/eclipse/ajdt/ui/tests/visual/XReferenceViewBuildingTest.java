@@ -56,6 +56,14 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
+		ToggleLinkingAction a = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
+		if (!a.isChecked()) {
+			// set linking enabled (which is the default)
+			a.setChecked(true);
+			a.run();	
+			assertTrue("link with editor should now be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$			
+		}
+
 	}
 	
 	/** 
@@ -249,7 +257,14 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 
 		// open A.aj and select the pointcut
 		final ITextEditor editorPart = (ITextEditor)openFileInDefaultEditor(ajFile, true);
+		waitForJobsToComplete();
 		editorPart.setFocus();
+		// bug 131090
+		gotoLine(5);
+		waitForJobsToComplete();
+		moveCursorRight(9);
+		waitForJobsToComplete();
+
 		gotoLine(8);
 		waitForJobsToComplete();
 
@@ -266,6 +281,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		ToggleLinkingAction linkWithEditorAction = (ToggleLinkingAction)xrefView.getToggleLinkWithEditorAction();
 		linkWithEditorAction.setChecked(false);
 		linkWithEditorAction.run();	
+		waitForJobsToComplete();
 		assertFalse("link with editor should not be enabled",xrefView.isLinkingEnabled()); //$NON-NLS-1$
 		
 		// comment out the currently selected line and save
@@ -274,6 +290,7 @@ public class XReferenceViewBuildingTest extends VisualTestCase {
 		postKeyDown(SWT.CTRL);
 		postKey('s');
 		postKeyUp(SWT.CTRL);
+		waitForJobsToComplete();
 		waitForJobsToComplete();
 		
 		XRefVisualTestUtils.waitForXRefViewToContainXRefs(1);

@@ -31,6 +31,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 
@@ -63,7 +64,7 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		final XReferenceView xrefView = (XReferenceView)view;
 		
 		// choose to show the xrefs for the entire file
-		ToggleShowXRefsForFileAction a = (ToggleShowXRefsForFileAction)xrefView.getToggleShowXRefsForEntireFileAction();
+		final ToggleShowXRefsForFileAction a = (ToggleShowXRefsForFileAction)xrefView.getToggleShowXRefsForEntireFileAction();
 		a.setChecked(true);
 		a.run();
 
@@ -117,14 +118,26 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// show xrefs for the current selection (piece of around advice)
 		a.setChecked(false);
 		a.run();
+		waitForJobsToComplete();
+		// wait for the toggle to be turned off
+		new DisplayHelper() {
+
+			protected boolean condition() {
+				return !(a.isChecked());
+			}
 		
+		}.waitForCondition(Display.getCurrent(), 5000);
+		assertFalse("Should not be showing xrefs for entire file",a.isChecked());																																																																
 		// wait for the xref view to be populated with the current selection
 		new DisplayHelper() {
 
 			protected boolean condition() {
 				ArrayList currentContents = XRefVisualTestUtils.getContentsOfXRefView(xrefView);
-				boolean ret = (currentContents != null && !currentContents.equals(newContents1));
-				return ret;
+				if (currentContents.size() > 0) {
+					TreeParent tp = XRefVisualTestUtils.getTopLevelNodeInXRefView(xrefView,(XReferenceAdapter)currentContents.get(0));
+					return (tp.getData() instanceof AdviceElement);
+				}
+				return (currentContents != null && !currentContents.equals(newContents1));
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
@@ -218,13 +231,16 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		// turn off "show xrefs for entire file" 
 		a.setChecked(false);
 		a.run();
+		waitForJobsToComplete();
 		
 		// navigate to one of the advised places shown in the xref
 		// view and press return to navigate to the corresponding place
 		// in the editor (should open up a new editor)
 		AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().activate(xrefView);
 		waitForJobsToComplete();
-
+		IWorkbenchPart activePart = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActivePart();
+		assertTrue("xref view should be the active part",activePart instanceof XReferenceView);
+		
 		// press "down" three times and then return
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);

@@ -55,44 +55,44 @@
 	The adapter supports any ajc command-line option passed using compilerarg, 
 	as well as the following options available only in AjcTask. 
 	Find more details on the following options in <a href="antTasks-iajc.html">AjcTask (iajc)</a>.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2204"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2218"></a>
 		<tt>-Xmaxmem</tt>: 
 			set maximum memory for forking (also settable in javac).		
-		</p></li><li><p><a name="d0e2210"></a>
+		</p></li><li><p><a name="d0e2224"></a>
 		<tt>-Xlistfileargs</tt>: 
 			list file arguments (also settable in javac).		
-		</p></li><li><p><a name="d0e2216"></a>
+		</p></li><li><p><a name="d0e2230"></a>
 		<tt>-Xfailonerror</tt>: 
 			throw BuildException on compiler error (also settable in javac).
-		</p></li><li><p><a name="d0e2222"></a>
+		</p></li><li><p><a name="d0e2236"></a>
 		<tt>-Xmessageholderclass</tt>: 
 			specify fully-qualified name of class to use as the message holder.	
-		</p></li><li><p><a name="d0e2228"></a>
+		</p></li><li><p><a name="d0e2242"></a>
 		<tt>-Xcopyinjars</tt>: 
 			copy resources from any input jars to output
 			(default behavior since 1.1.1)
-		</p></li><li><p><a name="d0e2234"></a>
+		</p></li><li><p><a name="d0e2248"></a>
 		<tt>-Xsourcerootcopyfilter {filter}</tt>: 
 			copy resources from source directories to output (minus files specified in filter)
-		</p></li><li><p><a name="d0e2240"></a>
+		</p></li><li><p><a name="d0e2254"></a>
 		<tt>-Xtagfile {file}</tt>: 
 			use file to control incremental compilation		
-		</p></li><li><p><a name="d0e2246"></a>
+		</p></li><li><p><a name="d0e2260"></a>
 		<tt>-Xsrcdir {dir}</tt>: 		
 			add to list of ajc source roots (all source files will be included).
 		</p></li></ul></div><p>
 	Special considerations when using Javac and compilerarg:
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2255"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2269"></a>
 		The names above may differ slightly from what you might expect 
 		from AjcTask; use these forms when specifying compilerarg.
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2259"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2273"></a>
 		By default the adapter will mimic the Javac task's copying of resource 
 		files by specifying 
 		<tt>"**/CVS/*,**/*.java,**/*.aj"</tt>
 		for the sourceroot copy filter. 
 		To change this behavior, supply your own value 
 		(e.g., <tt>"**/*"</tt> to copy nothing).
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2269"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2283"></a>
 		Warning - define the system property
 		<tt>build.compiler.clean</tt> to compile all files, 
 		when available.
@@ -115,20 +115,20 @@
 		</pre><p>		
 		Caveats to consider when using this global 
 		<tt>build.compiler.clean</tt> property:
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2288"></a>
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2302"></a>
 		   If javac believes there are no out-of-date source files, 
 		   then the adapter is never called and cannot clean up, 
 		   and the "compile" will appear to complete successfully 
 		   though it did nothing.
-			</p></li><li><p><a name="d0e2291"></a>
+			</p></li><li><p><a name="d0e2305"></a>
 		   Cleaning will makes stepwise build processes fail if 
 		   they depend on the results of the prior compilation being 
 		   in the same directory, since cleaning deletes all .class files.
-			</p></li><li><p><a name="d0e2294"></a>
+			</p></li><li><p><a name="d0e2308"></a>
 		   This clean process only permits one compile process at a 
 		   time for each destination directory because it tracks 
 		   recursion by writing a tag file to the destination directory.
-			</p></li><li><p><a name="d0e2297"></a>
+			</p></li><li><p><a name="d0e2311"></a>
 		   When running incrementally, the clean happens only before 
 		   the initial compile.
 			</p></li></ol></div></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="antTasks-iajc.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="antTasks-ajc.html">Next</a></td></tr><tr><td width="40%" align="left">AjcTask (iajc)&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="antTasks.html">Up</a></td><td width="40%" align="right">&nbsp;Ajc10 (ajc)</td></tr></table></div></body></html>
