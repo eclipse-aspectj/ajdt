@@ -744,7 +744,7 @@ M4 = Platform-specific fourth key
             name="%eventTraceView"
             icon="icons/actions/perspective.gif"
             category="org.eclipse.ajdt.ui.cat"
-            class="org.eclipse.ajdt.internal.ui.AJDTEventTraceView"
+            class="org.eclipse.ajdt.internal.ui.tracing.EventTraceView"
             id="org.eclipse.ajdt.ui.EventTraceView">
       </view>
    </extension>

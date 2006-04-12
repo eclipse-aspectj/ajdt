@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2002, 2005 IBM Corporation and others.
+ * Copyright (c) 2002, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,36 +60,8 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class AJBuilder extends IncrementalProjectBuilder {
 
-	// Uses secret API in state to get callbacks on useful events
-	static {
-	  IStateListener isl = new IStateListener() {
-
-		public void detectedClassChangeInThisDir(File f) {
-		}
-
-		public void aboutToCompareClasspaths(List oldClasspath, List newClasspath) {
-		}
-
-		public void pathChangeDetected() {
-		}
-
-		public void buildSuccessful(boolean arg0) {
-			AJLog.log("AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		}
-
-		public void detectedAspectDeleted(File f) {
-		}
-
-		public void recordDecision(String decision) {
-			AJLog.log(decision);
-		}
-
-		public void recordInformation(String info) {
-			AJLog.log(info);
-		}};
-	  AjState.stateListener = isl;
-	}
-
+	private static IStateListener isl = null;
+	
 	private static List buildListeners = new ArrayList();
 	
 	/**
@@ -144,8 +116,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			kindS = "FULLBUILD";  //$NON-NLS-1$
 		if (kind == IncrementalProjectBuilder.CLEAN_BUILD)
 			kindS = "CLEANBUILD";  //$NON-NLS-1$
-		AJLog.log("==========================================================================================="); //$NON-NLS-1$
-		AJLog.log("Build kind = " + kindS); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Build kind = " + kindS); //$NON-NLS-1$
 		
 		IProject project = getProject();
 		AspectJPlugin.getDefault().setCurrentProject(project);
@@ -176,8 +148,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		} else {
 			mode = "Full AspectJ compilation"; //$NON-NLS-1$
 		}
-		AJLog.log("Project=" //$NON-NLS-1$
-				+ project.getName() + "         kind of build requested =" + mode); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
+				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
 		AsmManager.attemptIncrementalModelRepairs = incremental;		
@@ -195,6 +167,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
 
+		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 
 		// .lst file)
@@ -206,7 +180,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (kind != FULL_BUILD) {
 		    // need to add check here for whether the classpath has changed
 		    if (!sourceFilesChanged(dta, project)){
-				AJLog.log("build: Examined delta - no source file changes for project "  //$NON-NLS-1$
+				AJLog.log(AJLog.BUILDER,"build: Examined delta - no source file changes for project "  //$NON-NLS-1$
 								+ project.getName() );
 				
 				// if the source files of any projects which the current
@@ -219,7 +193,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				}
 				if (!continueToBuild) {
 					// bug 107027
-					ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
 					if (adapter instanceof CoreProjectProperties) {
 						((CoreProjectProperties)adapter).flushClasspathCache();
 					}
@@ -227,7 +200,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					// Adding this log call because we need to know that
 					// AJDT has definitely decided not to pass anything down
 					// to the compiler
-					AJLog.logEnd(TimerLogEvent.TIME_IN_BUILD);
+					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 					return requiredProjects;						
 				}
 			}
@@ -246,13 +219,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			if (ijp != null)
 				cleanOutputFolders(ijp,false);
 			else
-				AJLog.log("Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
+				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 			compilerMonitor.prepare(project, null/*projectFiles*/, progressMonitor);
 		} else {
 			compilerMonitor.prepare(project, null/*projectFiles*/, null);
 		}
 
 		lastBuiltProject = project;
+		
+		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+adapter.getClasspath());
 		
 		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
@@ -262,7 +237,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			buildManager.build(configFile);
 		}
 		waitForBuildCompletion(compilerMonitor);
-		AJLog.logEnd(TimerLogEvent.TIME_IN_AJDE);
+		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE);
 		
 		// We previously refreshed the project to infinite depth to pickup
 		// generated artifacts, but this can be very slow and isn't generally
@@ -300,13 +275,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		AJModel.getInstance().createMap(project);
 		// bug 107027
-		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
 		if (adapter instanceof CoreProjectProperties) {
 			((CoreProjectProperties)adapter).flushClasspathCache();
 		}
 		postCallListeners(false);
 		
-		AJLog.logEnd(TimerLogEvent.TIME_IN_BUILD);
+		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
 	}
 
@@ -331,7 +305,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (progressMonitor != null && buildManager != null && progressMonitor.isCanceled()) {
 			buildManager.abortBuild();
 			buildCancelled = true;
-			AJLog.log("build: Build cancelled as requested"); //$NON-NLS-1$
+			AJLog.log(AJLog.BUILDER,"build: Build cancelled as requested"); //$NON-NLS-1$
 			return true;
 		}
 		return false;
@@ -547,10 +521,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					switch (sourceDelta.getKind()) {
 						case IResourceDelta.ADDED :
 							if (outputFile.exists()) {
-								AJLog.log("Deleting existing file " + resourcePath);//$NON-NLS-1$
+								AJLog.log(AJLog.BUILDER,"Deleting existing file " + resourcePath);//$NON-NLS-1$
 								outputFile.delete(IResource.FORCE, null);
 							}
-							AJLog.log("Copying added file " + resourcePath);//$NON-NLS-1$
+							AJLog.log(AJLog.BUILDER,"Copying added file " + resourcePath);//$NON-NLS-1$
 							createFolder(resourcePath.removeLastSegments(1), outputFolder); 
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
@@ -559,7 +533,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 							return;
 						case IResourceDelta.REMOVED :
 							if (outputFile.exists()) {
-								AJLog.log("Deleting removed file " + resourcePath);//$NON-NLS-1$
+								AJLog.log(AJLog.BUILDER,"Deleting removed file " + resourcePath);//$NON-NLS-1$
 								outputFile.delete(IResource.FORCE, null);
 							}
 							return;
@@ -568,10 +542,10 @@ public class AJBuilder extends IncrementalProjectBuilder {
 									&& (sourceDelta.getFlags() & IResourceDelta.ENCODING) == 0)
 								return; // skip it since it really isn't changed
 							if (outputFile.exists()) {
-								AJLog.log("Deleting existing file " + resourcePath);//$NON-NLS-1$
+								AJLog.log(AJLog.BUILDER,"Deleting existing file " + resourcePath);//$NON-NLS-1$
 								outputFile.delete(IResource.FORCE, null);
 							}
-							AJLog.log("Copying changed file " + resourcePath);//$NON-NLS-1$
+							AJLog.log(AJLog.BUILDER,"Copying changed file " + resourcePath);//$NON-NLS-1$
 							createFolder(resourcePath.removeLastSegments(1), outputFolder);
 							resource.copy(outputFile.getFullPath(), IResource.FORCE, null);
 							outputFile.setDerived(true);
@@ -686,7 +660,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			File outputDir = new File(realOutputLocation);
 
 			int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
-			AJLog.log("Builder: Tidied output folder, deleted " //$NON-NLS-1$
+			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 							+ numberDeleted
 							+ " .class files from " //$NON-NLS-1$
 							+ realOutputLocation
@@ -712,7 +686,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		File outputDir = new File(realOutputLocation);
 		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
-		AJLog.log("Builder: Tidied separate output folder, deleted " //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Builder: Tidied separate output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
 				+ " .class files from " //$NON-NLS-1$
 				+ realOutputLocation
@@ -733,7 +707,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		File outputDir = new File(realOutputLocation);
 		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
-		AJLog.log("Builder: Tidied output folder, deleted " //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
 				+ " .aj files from " //$NON-NLS-1$
 				+ realOutputLocation
@@ -923,7 +897,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 		} catch (CoreException e) {
 		}
-		AJLog.log("Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
+		AJLog.log(AJLog.BUILDER,"Removed problems and tasks for project "+resource.getName()); //$NON-NLS-1$
 	}
 		
 	public boolean sourceFilesChanged(IResourceDelta delta, IProject project) { 
@@ -939,7 +913,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					outputPath = null;
 				}
 				if (sourceFilesChanged(delta, includedFileNames,outputPath)) {
-					AJLog.log("build: Examined delta - source file changes in " //$NON-NLS-1$
+					AJLog.log(AJLog.BUILDER,"build: Examined delta - source file changes in " //$NON-NLS-1$
 							+ "required project " + project.getName() ); //$NON-NLS-1$
 					return true;
 				} else {
@@ -977,5 +951,40 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			}
 			return kids_results;
 		}
+	}
+	
+	public static void addStateListener() {
+		if (isl == null) {
+			// Uses secret API in state to get callbacks on useful events
+			isl = new IStateListener() {
+				public void detectedClassChangeInThisDir(File f) {
+				}
+
+				public void aboutToCompareClasspaths(List oldClasspath, List newClasspath) {
+				}
+
+				public void pathChangeDetected() {
+				}
+
+				public void buildSuccessful(boolean arg0) {
+					AJLog.log(AJLog.COMPILER,"AspectJ reports build successful, build was: "+(arg0?"FULL":"INCREMENTAL")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				}
+
+				public void detectedAspectDeleted(File f) {
+				}
+
+				public void recordDecision(String decision) {
+					AJLog.log(AJLog.COMPILER,decision);
+				}
+
+				public void recordInformation(String info) {
+					AJLog.log(AJLog.COMPILER,info);
+				}};
+		}
+		AjState.stateListener = isl;
+	}
+	
+	public static void removeStateListener() {
+		AjState.stateListener = null;
 	}
 }

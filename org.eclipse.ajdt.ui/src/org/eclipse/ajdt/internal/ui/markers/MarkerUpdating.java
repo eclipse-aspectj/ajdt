@@ -135,7 +135,7 @@ public class MarkerUpdating {
 				}
 			}
 		}
-		AJLog.logEnd(TimerLogEvent.ADD_MARKERS,numMarkers + " markers"); //$NON-NLS-1$
+		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.ADD_MARKERS,numMarkers + " markers"); //$NON-NLS-1$
 	}
 		
 

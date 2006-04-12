@@ -14,14 +14,20 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.IAJLogger;
+import org.eclipse.ajdt.core.builder.AJBuilder;
 
 /**
  * Logger to help with builder tests
  */
 public class TestLogger implements IAJLogger {
 
-    List log;
+    private List log;
     
+    public TestLogger() {
+    	// need to register state listener to get feedback about builds
+    	AJBuilder.addStateListener();
+    }
+
     /* (non-Javadoc)
      * @see org.eclipse.ajdt.core.IAJLogger#log(java.lang.String)
      */
@@ -32,6 +38,10 @@ public class TestLogger implements IAJLogger {
         log.add(msg);
     }
 
+    public void log(int category, String msg) {
+    	log(msg);
+    }
+    
     public boolean containsMessage(String msg) {
         for (Iterator iter = log.iterator(); iter.hasNext();) {
             String logEntry = (String) iter.next();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,10 +9,10 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ui;
+package org.eclipse.ajdt.internal.ui.tracing;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.IAJLogger;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
 
 /**
  * This logger simply outputs to the event trace view
@@ -23,7 +23,25 @@ public class EventTraceLogger implements IAJLogger {
 	 * @see org.eclipse.ajdt.internal.core.AJLogger#log(java.lang.String)
 	 */
 	public void log(String msg) {
-		AJDTEventTrace.generalEvent(msg);
+		if (DebugTracing.DEBUG) {
+			EventTrace.postEvent(msg, AJLog.DEFAULT);
+		}
+	}
+
+	public void log(int category, String msg) {
+		if (DebugTracing.DEBUG) {
+			boolean doit = true;
+			if (category==AJLog.COMPILER) {
+				doit = DebugTracing.DEBUG_COMPILER;
+			} else if (category==AJLog.BUILDER) {
+				doit = DebugTracing.DEBUG_BUILDER;
+			} else if (category==AJLog.BUILDER_CLASSPATH) {
+				doit = DebugTracing.DEBUG_BUILDER_CLASSPATH;
+			}
+			if (doit) {
+				EventTrace.postEvent(msg, category);
+			}
+		}
 	}
 
 }

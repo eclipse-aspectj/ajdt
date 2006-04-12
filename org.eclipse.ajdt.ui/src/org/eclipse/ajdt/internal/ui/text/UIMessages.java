@@ -379,7 +379,13 @@ public class UIMessages extends NLS {
 	public static String AJMarkersDialog_defaultPackage;
 	public static String AdviceActionDelegate_ajtools;
 	public static String AdviceActionDelegate_configure_markers;
-	
+	public static String eventTrace_filter_dialog_title;
+	public static String eventTrace_filter_dialog_message;
+	public static String eventTrace_filter_action_tooltip;
+	public static String eventTrace_category_compiler;
+	public static String eventTrace_category_builder;
+	public static String eventTrace_category_builder_classpath;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}

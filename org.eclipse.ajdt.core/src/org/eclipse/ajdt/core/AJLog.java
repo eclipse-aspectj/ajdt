@@ -19,14 +19,26 @@ import java.util.Map;
  */
 public class AJLog {
 
+	public static final int DEFAULT = 0;
+
+	public static final int COMPILER = 1;
+
+	public static final int BUILDER = 2;
+
+	public static final int BUILDER_CLASSPATH = 3;	
+	
 	private static IAJLogger logger;
 	
 	// support for logging the start and end of activies
 	private static Map timers = new HashMap();
 	
 	public static void log(String msg) {
+		log(DEFAULT,msg);
+	}
+	
+	public static void log(int category, String msg) {
 		if (logger != null) {
-			logger.log(msg);
+			logger.log(category,msg);
 		} else {
 			System.out.println(msg);
 		}
@@ -37,19 +49,19 @@ public class AJLog {
 		timers.put(event,now);
 	}
 	
-	public static void logEnd(String event) {
-		logEnd(event, null);
+	public static void logEnd(int category, String event) {
+		logEnd(category, event, null);
 	}
 	
-	public static void logEnd(String event, String optional_msg) {
+	public static void logEnd(int category, String event, String optional_msg) {
 		Long then = (Long)timers.get(event);
 		if (then != null) {
 			long now = System.currentTimeMillis();
 			long elapsed = now - then.longValue();
 			if ((optional_msg != null) && (optional_msg.length() > 0)) {
-				log("Timer event: "+elapsed + "ms: "+event+" ("+optional_msg+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				log(category,"Timer event: "+elapsed + "ms: "+event+" ("+optional_msg+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			} else {
-				log("Timer event: "+elapsed + "ms: "+event); //$NON-NLS-1$ //$NON-NLS-2$
+				log(category,"Timer event: "+elapsed + "ms: "+event); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			timers.remove(event);
 		}

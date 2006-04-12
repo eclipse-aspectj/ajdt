@@ -94,12 +94,9 @@ public class CompilerTaskListManager implements TaskListManager {
         // It is missing extra source locations and info about whether the
         // message
         // has resulted from a declare statement.
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("CompilerMessage received ]" + message + "["); //$NON-NLS-1$ //$NON-NLS-2$
 
         problems.add(new ProblemTracker(message, location, kind));
- 
-        
+         
         // When will showMessages() get called if we are not 'finishing off a
         // compilation' - the reason this
         // is important is that when AJDE is asked to build a model of a lst
@@ -141,8 +138,6 @@ public class CompilerTaskListManager implements TaskListManager {
 	 * Called from Ajde to clear all tasks in problem list
 	 */
     public void clearTasks() {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("clearTasks() called"); //$NON-NLS-1$
         affectedResources.clear();
         problems.clear();
     }
@@ -199,7 +194,7 @@ public class CompilerTaskListManager implements TaskListManager {
                     Iterator affectedResourceIterator = affectedResources
                             .iterator();
                     //boolean wipedProjectLevelMarkers = false;
-                    AJLog.log("Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
+                    AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
                     IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
                         ir = (IResource) affectedResourceIterator.next();
@@ -471,7 +466,7 @@ public class CompilerTaskListManager implements TaskListManager {
             // blow up
             // with an event trace ...
             if (ir == null)
-            	AJLog.log("Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
+            	AJLog.log(AJLog.COMPILER,"Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
                                 + loc);
         }
 

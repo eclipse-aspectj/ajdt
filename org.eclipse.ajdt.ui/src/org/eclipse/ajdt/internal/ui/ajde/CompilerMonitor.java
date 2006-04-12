@@ -108,11 +108,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
             }
         }
 
-        if (AspectJUIPlugin.DEBUG_COMPILER) {
-            System.out.println("CompilerMonitor.prepare called: IPM is " //$NON-NLS-1$
-                    + (eclipseMonitor == null ? "Null" : "Not-Null")); //$NON-NLS-1$ //$NON-NLS-2$
-        }
-
         monitor = eclipseMonitor;
         if (monitor != null) {
             monitor.beginTask(UIMessages.ajCompilation,
@@ -140,10 +135,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Ajde has started a compile
      */
     public void start(final String configFile) {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err
-                    .println("AJDE Callback: CompileProgressMonitor.start() called"); //$NON-NLS-1$
-        
         currentAjdeProgress = 0;
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
@@ -164,11 +155,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     public void setProgressText(String text) {
         if (!reportedCompiledMessages && text.startsWith("compiled: ")) { //$NON-NLS-1$
             reportedCompiledMessages = true;
-            AJLog.logEnd(TimerLogEvent.FIRST_COMPILED);
+            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_COMPILED);
         }
         if (!reportedWovenMessages && text.startsWith("woven ")) { //$NON-NLS-1$
             reportedWovenMessages = true;
-            AJLog.logEnd(TimerLogEvent.FIRST_WOVEN);
+            AJLog.logEnd(AJLog.COMPILER, TimerLogEvent.FIRST_WOVEN);
         }
 
         // Three messages are caught here:
@@ -212,7 +203,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
             } else {
                 IFile file = workspaceRoot.getFileForLocation(resourcePath);
                 if (file == null) {
-                	AJLog.log("Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
+                	AJLog.log(AJLog.COMPILER,"Processing progress message: Can't find eclipse resource for file with path " //$NON-NLS-1$
                                     + text);
                 } else {
                     CompilerTaskListManager.getInstance().addAffectedResource(file);
@@ -221,8 +212,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         }
 
         final String amendedText = removePrefix(text);
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressText(" + text + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+        AJLog.log(AJLog.COMPILER,"AJC: " + text); //$NON-NLS-1$ //$NON-NLS-2$
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -238,10 +228,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Ajde wishes to advance the progress bar to this absolute value
      */
     public void setProgressBarVal(int newVal) {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressBarVal(" + newVal //$NON-NLS-1$
-                    + ")"); //$NON-NLS-1$
-
         if (newVal >= currentAjdeProgress) {
             incrementProgressBarVal("setProgressBarVal() delegating to "); //$NON-NLS-1$
         }
@@ -252,9 +238,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * value of <code>maxVal</code>
      */
     public void setProgressBarMax(int maxVal) {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: setProgressBarMax(" + maxVal //$NON-NLS-1$
-                    + ")"); //$NON-NLS-1$
     }
 
     public void incrementProgressBarVal() {
@@ -265,9 +248,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Ajde asks us to increment the progress bar by one
      */
     public void incrementProgressBarVal(String caller) {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println(caller + " incrementProgressBarVal():" //$NON-NLS-1$
-                    + currentAjdeProgress);
         currentAjdeProgress++;
         // Bug 22258 - Reworked internals of run() method, it used to be
         // responsible for
@@ -290,8 +270,6 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * Ajde asks our preference for the maximum value of the progress bar
      */
     public int getProgressBarMax() {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: getProgressBarMax()"); //$NON-NLS-1$
         return AspectJUIPlugin.PROGRESS_MONITOR_MAX;
     }
 
@@ -301,15 +279,14 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * synchronized to let one finish finish before another finish gets in!
      */
     public synchronized void finish() {
-        if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: finish()"); //$NON-NLS-1$
+        AJLog.log(AJLog.COMPILER,"AJDE Callback: finish()"); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
-            System.err.println("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
+        	AJLog.log("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$
         else
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {

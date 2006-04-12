@@ -162,7 +162,7 @@ public class AJProjectModel {
 		}
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel(null);
-		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
+		AJLog.logEnd(AJLog.DEFAULT, TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 		if (!worked && getPersistence().isPersisted()) {
 			AJLog.log("Loading model failed for project: "+project.getName()); //$NON-NLS-1$
 		}
@@ -172,7 +172,7 @@ public class AJProjectModel {
 	public void loadModel(IPath file) {
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel(file);
-		AJLog.logEnd(TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
+		AJLog.logEnd(AJLog.DEFAULT, TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 		if (!worked) {
 			AJLog.log("Loading model failed for file: "+file); //$NON-NLS-1$
 		}
@@ -320,7 +320,7 @@ public class AJProjectModel {
 		} catch (CoreException coreEx) {
 		}
 		processRelationships();
-		AJLog.logEnd(TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
+		AJLog.logEnd(AJLog.BUILDER,TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 
 		//dumpModel();
 		//dumpAJDEStructureModel();

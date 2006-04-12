@@ -93,7 +93,7 @@ public class Builder extends IncrementalProjectBuilder {
 
 		if (!AspectJProjectNature.hasNewBuilder(project)) {
 			// addition of new builder failed for some reason
-			AJLog.log("AJDT migration builder: addition of new builder failed!"); //$NON-NLS-1$
+			AJLog.log(AJLog.BUILDER,"AJDT migration builder: addition of new builder failed!"); //$NON-NLS-1$
 			Display.getDefault().syncExec(new Runnable() {
 				public void run() {
 					MessageDialog

@@ -9,11 +9,11 @@
  *     IBM Corporation - initial API and implementation
  *     Ben Dalziel     - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ui.actions;
+package org.eclipse.ajdt.internal.ui.tracing;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsoleConstants;
@@ -33,7 +33,7 @@ import org.eclipse.ui.internal.console.IInternalConsoleConstants;
  */
 public class ClearEventTraceAction extends Action {
 
-	private Text fText;
+	private StyledText fText;
 
 	/**
 	 * Constructs a clear output action.
@@ -56,7 +56,7 @@ public class ClearEventTraceAction extends Action {
 	/**
 	 * Constructs an action to clear the document associated with text.
 	 */
-	public ClearEventTraceAction(Text text) {
+	public ClearEventTraceAction(StyledText text) {
 		this();
 		fText = text;
 	}

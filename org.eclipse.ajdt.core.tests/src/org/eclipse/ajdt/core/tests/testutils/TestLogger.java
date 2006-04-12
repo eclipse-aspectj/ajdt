@@ -14,18 +14,28 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.IAJLogger;
+import org.eclipse.ajdt.core.builder.AJBuilder;
 
 /**
  * Logger to help with builder tests
  */
 public class TestLogger implements IAJLogger {
 
-    List log;
-    List buildLog;
-    List tempBuildLog;
-    boolean loggingBuildEvent = false;
-    boolean foundSplit = false;
+    private List log;
+    private List buildLog;
+    private List tempBuildLog;
+    private boolean loggingBuildEvent = false;
+    private boolean foundSplit = false;
     
+    public TestLogger() {
+    	// need to register state listener to get feedback about builds
+    	AJBuilder.addStateListener();
+    }
+    
+	public void log(int category, String msg) {
+		log(msg);
+	}
+	
     /* (non-Javadoc)
      * @see org.eclipse.ajdt.core.IAJLogger#log(java.lang.String)
      */
@@ -163,4 +173,5 @@ public class TestLogger implements IAJLogger {
 	public int getNumberOfBuildsRun() {
 		return buildLog.size();
 	}
+
 }

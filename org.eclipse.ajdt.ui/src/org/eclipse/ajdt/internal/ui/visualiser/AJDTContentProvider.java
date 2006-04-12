@@ -99,7 +99,6 @@ public class AJDTContentProvider extends JDTContentProvider {
 			}
 		}
 		if (updateRequired) {
-			AJLog.log("AJDTContentProvider.selectionChanged(): Marking visualiser content as out of date"); //$NON-NLS-1$
 			currentGroups = null;
 			currentMembers = null;
 			VisualiserPlugin.refresh();

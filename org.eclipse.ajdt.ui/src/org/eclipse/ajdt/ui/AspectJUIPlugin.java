@@ -24,7 +24,6 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
-import org.eclipse.ajdt.internal.ui.EventTraceLogger;
 import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
@@ -37,7 +36,8 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.internal.utils.AJDTEventTrace;
+import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
+import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
@@ -97,7 +97,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		implements ISelectionListener {
 
 	// VERSION-STRING - set when plugin is loaded
-	public static String VERSION = "unset"; //$NON-NLS-1$
+	//public static String VERSION = "unset"; //$NON-NLS-1$
 
 	// the id of this plugin
 	public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
@@ -121,30 +121,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * Whether to use the Cross References component
 	 */
 	public static boolean usingXref = true;
-
-	/**
-	 * General debug trace for the plug-in enabled through the master trace
-	 * switch.
-	 */
-	public static boolean isDebugging = false;
-
-	/**
-	 * More detailed trace for the builder. Controlled by options flag
-	 * org.eclipse.ajdt.ui/builderDebug
-	 */
-	public static boolean DEBUG_BUILDER = false;
-
-	/**
-	 * More detailed trace for the compiler monitor. Controlled by options flag
-	 * org.eclipse.ajdt.ui/builderDebug
-	 */
-	public static boolean DEBUG_COMPILER = false;
-
-	/**
-	 * More detailed trace for the outline view. Controlled by options flag
-	 * org.eclipse.ajdt.ui/outlineDebug
-	 */
-	public static boolean DEBUG_OUTLINE = false;
 
 	/**
 	 * shared single instance of the plugin
@@ -383,18 +359,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 							| IResourceChangeEvent.PRE_BUILD);
 		}
 		
-		// the following came from the 2.x constructor - needs to be put here
-		// because plugin is initialized when start(BundleContext) is called.
-		Bundle bundle = AspectJUIPlugin.getDefault().getBundle();
-		String version = (String) bundle.getHeaders().get(
-				Constants.BUNDLE_VERSION);
-		PluginVersionIdentifier pvi = new PluginVersionIdentifier(version);
-
-		VERSION = pvi.getMajorComponent() + "." + pvi.getMinorComponent() + "." //$NON-NLS-1$ //$NON-NLS-2$
-				+ pvi.getServiceComponent();
-
-		initDebugging();
-
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
 		
@@ -431,8 +395,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		if (window != null) {
 			window.getSelectionService().addPostSelectionListener(this);
 		}
-		
-		AJDTEventTrace.startup();
 		
 		checkAspectJVersion();
 
@@ -502,40 +464,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	 * initialize the plug-in image registry
 	 */
 	protected void initializeImageRegistry(ImageRegistry reg) {
-	}
-
-	/**
-	 * Initialize plug-in debugging
-	 */
-	private void initDebugging() {
-		if (isDebugging()) {
-			System.out.println("AJP START: " + PLUGIN_ID + " " + VERSION); //$NON-NLS-1$ //$NON-NLS-2$
-			isDebugging = true;
-
-			String option;
-			option = Platform.getDebugOption(PLUGIN_ID + "/builderDebug"); //$NON-NLS-1$
-			if (option != null && option.equals("true")) { //$NON-NLS-1$
-				System.out.println("AJP builderDebug ON"); //$NON-NLS-1$
-				DEBUG_BUILDER = true;
-			} else {
-				System.out.println("AJP builderDebug OFF"); //$NON-NLS-1$
-			}
-			option = Platform.getDebugOption(PLUGIN_ID + "/compilerDebug"); //$NON-NLS-1$
-			if (option != null && option.equals("true")) { //$NON-NLS-1$
-				System.out.println("AJP compilerDebug ON"); //$NON-NLS-1$
-				DEBUG_COMPILER = true;
-			} else {
-				System.out.println("AJP compilerDebug OFF"); //$NON-NLS-1$
-			}
-			option = Platform.getDebugOption(PLUGIN_ID + "/outlineDebug"); //$NON-NLS-1$
-			if (option != null && option.equals("true")) { //$NON-NLS-1$
-				System.out.println("AJP outlineDebug ON"); //$NON-NLS-1$
-				DEBUG_OUTLINE = true;
-			} else {
-				System.out.println("AJP outlineDebug OFF"); //$NON-NLS-1$
-			}
-		}
-
 	}
 
 	// Implementation of ISelectionListener follows
