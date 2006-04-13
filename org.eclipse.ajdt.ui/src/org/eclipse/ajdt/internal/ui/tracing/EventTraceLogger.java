@@ -37,6 +37,8 @@ public class EventTraceLogger implements IAJLogger {
 				doit = DebugTracing.DEBUG_BUILDER;
 			} else if (category==AJLog.BUILDER_CLASSPATH) {
 				doit = DebugTracing.DEBUG_BUILDER_CLASSPATH;
+			} else if (category==AJLog.COMPILER_PROGRESS) {
+				doit = DebugTracing.DEBUG_COMPILER_PROGRESS;
 			}
 			if (doit) {
 				EventTrace.postEvent(msg, category);

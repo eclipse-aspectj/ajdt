@@ -212,7 +212,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
         }
 
         final String amendedText = removePrefix(text);
-        AJLog.log(AJLog.COMPILER,"AJC: " + text); //$NON-NLS-1$ //$NON-NLS-2$
+        AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: " + text); //$NON-NLS-1$ //$NON-NLS-2$
         if (monitor != null) {
             AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
                 public void run() {

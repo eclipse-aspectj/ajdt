@@ -48,7 +48,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 	 * @see org.aspectj.ajde.BuildProgressMonitor#setProgressText(java.lang.String)
 	 */
 	public void setProgressText(String text) {
-		AJLog.log(AJLog.COMPILER,"AJC: "+text); //$NON-NLS-1$
+		AJLog.log(AJLog.COMPILER_PROGRESS,"AJC: "+text); //$NON-NLS-1$
 	}
 
 	/*

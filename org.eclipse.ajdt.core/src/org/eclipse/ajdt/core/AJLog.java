@@ -26,7 +26,9 @@ public class AJLog {
 	public static final int BUILDER = 2;
 
 	public static final int BUILDER_CLASSPATH = 3;	
-	
+
+	public static final int COMPILER_PROGRESS = 4;	
+
 	private static IAJLogger logger;
 	
 	// support for logging the start and end of activies

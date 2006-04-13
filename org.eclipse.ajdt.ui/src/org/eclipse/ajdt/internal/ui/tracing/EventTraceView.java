@@ -138,7 +138,7 @@ public class EventTraceView extends ViewPart
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_BLUE);
 		} else if (category==AJLog.BUILDER_CLASSPATH) {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_RED);
-		} else if (category==AJLog.COMPILER) {
+		} else if ((category==AJLog.COMPILER) || (category==AJLog.COMPILER_PROGRESS)) {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_DARK_GREEN);
 		} else {
 			styleRange.foreground = display.getSystemColor(SWT.COLOR_BLACK);
@@ -157,7 +157,7 @@ public class EventTraceView extends ViewPart
 		List populatingList = Arrays.asList(DebugTracing.categoryNames);
 		List checkedList = new ArrayList();
 		checkedList.add(DebugTracing.categoryNames[0]);
-		checkedList.add(DebugTracing.categoryNames[1]);
+		checkedList.add(DebugTracing.categoryNames[2]);
 		List defaultList = new ArrayList(checkedList);
 		filterAction = new FilterTraceAction(getSite().getShell(),
 				populatingList, checkedList, defaultList, dlogTitle,

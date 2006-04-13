@@ -383,6 +383,7 @@ public class UIMessages extends NLS {
 	public static String eventTrace_filter_dialog_message;
 	public static String eventTrace_filter_action_tooltip;
 	public static String eventTrace_category_compiler;
+	public static String eventTrace_category_compiler_progress;
 	public static String eventTrace_category_builder;
 	public static String eventTrace_category_builder_classpath;
 
