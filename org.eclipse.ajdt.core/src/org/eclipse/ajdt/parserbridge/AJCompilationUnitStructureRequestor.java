@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.parserbridge;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
@@ -191,13 +192,7 @@ public class AJCompilationUnitStructureRequestor extends
 //		info.setSourceFileName(this.sourceFileName);
 //		info.setPackageName(this.packageName);
 		
-		if (parentInfo instanceof OpenableElementInfo)
-			((OpenableElementInfo)parentInfo).addChild(handle);
-		else if (parentInfo instanceof SourceTypeElementInfo)
-			((SourceTypeElementInfo)parentInfo).addChild(handle);
-		else if (parentInfo instanceof SourceMethodElementInfo)
-			((SourceMethodElementInfo)parentInfo).addChild(handle);
-		
+		addToChildren(parentInfo, handle);	
 		
 		this.newElements.put(handle, info);
 
@@ -271,7 +266,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
-				parentInfo.addChild(handle);
+				addToChildren(parentInfo, handle);
 				this.newElements.put(handle, info);
 				this.infoStack.push(info);
 				this.handleStack.push(handle);	
@@ -339,7 +334,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
-				parentInfo.addChild(handle);
+				addToChildren(parentInfo, handle);
 				this.newElements.put(handle, info);
 				this.infoStack.push(info);
 				this.handleStack.push(handle);	
@@ -435,7 +430,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
-				parentInfo.addChild(handle);
+				addToChildren(parentInfo, handle);
 				this.newElements.put(handle, info);
 				this.infoStack.push(info);
 				this.handleStack.push(handle);	
@@ -493,7 +488,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setReturnType(returnType == null ? new char[]{'v', 'o','i', 'd'} : returnType);
 				info.setExceptionTypeNames(exceptionTypes);
 
-				parentInfo.addChild(handle);
+				addToChildren(parentInfo, handle);
 				this.newElements.put(handle, info);
 				this.infoStack.push(info);
 				this.handleStack.push(handle);	
@@ -506,6 +501,13 @@ public class AJCompilationUnitStructureRequestor extends
 		}		
 	}
 
+	private void addToChildren(Object parentInfo, JavaElement handle) {
+		ArrayList childrenList = (ArrayList) this.children.get(parentInfo);
+		if (childrenList == null)
+			this.children.put(parentInfo, childrenList = new ArrayList());
+		childrenList.add(handle);
+	}
+	
 	public void enterType(org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor.TypeInfo typeInfo, boolean isAspect) {
 		enterType(typeInfo.declarationStart,typeInfo.modifiers,typeInfo.name,typeInfo.nameSourceStart,typeInfo.nameSourceEnd,typeInfo.superclass,typeInfo.superinterfaces,isAspect);
 	}
