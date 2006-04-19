@@ -189,11 +189,11 @@ public class AllUITests {
 				.getActiveWorkbenchWindow();
 
 		// close welcome page
-		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
-				.getIntro();
-		if (intro != null) {
-			PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
-		}
+//		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
+//				.getIntro();
+//		if (intro != null) {
+//			PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
+//		}
 
 		// open Java perspective
 		try {
