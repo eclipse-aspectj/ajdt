@@ -183,7 +183,7 @@ public class AllAJDTUITests {
 		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
 				.getIntro();
 		if (intro != null) {
-			PlatformUI.getWorkbench().getIntroManager().closeIntro(intro);
+			PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
 		}
 
 		// open Java perspective
