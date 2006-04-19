@@ -78,7 +78,7 @@ public class AllUITests {
 		//suite.addTest(AllAJDTCoreTests.suite());
 		
 		//suite.addTest(new TestSuite(ErrorLogTest.class));
-		suite.addTest(new TestSuite(VerificationTest.class));
+		//suite.addTest(new TestSuite(VerificationTest.class));
 		suite.addTest(new TestSuite(Bug106813Test.class));
 		
 		
