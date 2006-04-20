@@ -77,8 +77,8 @@ public class AllUITests {
 		// all tests from the core tests plugin
 		//suite.addTest(AllAJDTCoreTests.suite());
 		
-		//suite.addTest(new TestSuite(ErrorLogTest.class));
-		//suite.addTest(new TestSuite(VerificationTest.class));
+		suite.addTest(new TestSuite(ErrorLogTest.class));
+		suite.addTest(new TestSuite(VerificationTest.class));
 		suite.addTest(new TestSuite(Bug106813Test.class));
 		
 		
@@ -189,11 +189,15 @@ public class AllUITests {
 				.getActiveWorkbenchWindow();
 
 		// close welcome page
-//		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
-//				.getIntro();
-//		if (intro != null) {
-//			PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
-//		}
+		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
+				.getIntro();
+		if (intro != null) {
+			try {
+				PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
+			} catch (NullPointerException npe) {
+				// don't care about this
+			}
+		}
 
 		// open Java perspective
 		try {

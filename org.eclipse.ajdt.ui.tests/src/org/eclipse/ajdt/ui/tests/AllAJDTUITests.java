@@ -183,7 +183,11 @@ public class AllAJDTUITests {
 		IIntroPart intro = PlatformUI.getWorkbench().getIntroManager()
 				.getIntro();
 		if (intro != null) {
-			PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
+			try {
+				PlatformUI.getWorkbench().getIntroManager().setIntroStandby(intro, true);
+			} catch (NullPointerException npe) {
+				// don't care about this
+			}
 		}
 
 		// open Java perspective
