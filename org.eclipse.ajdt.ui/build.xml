@@ -185,7 +185,7 @@
 				<pathelement path="${aspectj.weaver.home}/aspectjweaver.jar"/>
 			</classpath>
 		</taskdef>
-		<iajc destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}">
+		<iajc XlintFile="Xlint.properties" destDir="${temp.folder}/@dot.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" fork="true" maxmem="512m" debug="${javacDebugInfo}" bootclasspath="${bundleBootClasspath}" source="${bundleJavacSource}" target="${bundleJavacTarget}">
 			<forkclasspath refid="@dot.classpath" />
 			<forkclasspath>
 				<pathelement path="${aspectj.plugin.home}/ajde.jar"/>
