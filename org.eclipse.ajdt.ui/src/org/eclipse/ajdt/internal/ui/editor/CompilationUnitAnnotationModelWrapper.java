@@ -249,8 +249,9 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	 * @see org.eclipse.jdt.core.IProblemRequestor#endReporting()
 	 */
 	public void endReporting() {
-		((IProblemRequestor)delegate).endReporting();
-		
+		if(delegate != null) {
+			((IProblemRequestor)delegate).endReporting();
+		}
 	}
 
 	/* (non-Javadoc)
