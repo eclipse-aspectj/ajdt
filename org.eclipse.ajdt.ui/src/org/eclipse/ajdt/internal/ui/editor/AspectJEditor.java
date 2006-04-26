@@ -490,7 +490,9 @@ public class AspectJEditor extends CompilationUnitEditor {
 				if(packageExplorer.isLinkingEnabled()) {
 					IFileEditorInput fInput = (IFileEditorInput) input;
 					AJCompilationUnit ajc = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(fInput.getFile());
-					packageExplorer.selectAndReveal(ajc);
+					if (ajc != null) {
+						packageExplorer.selectAndReveal(ajc);
+					}
 				}
 			}
 		}
