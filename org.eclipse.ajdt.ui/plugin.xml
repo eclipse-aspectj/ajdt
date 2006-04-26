@@ -516,6 +516,23 @@
                class="org.eclipse.core.resources.IResource">
          </selection>
       </wizard>
+      <wizard
+            category="org.eclipse.pde.ui.PluginDevelopment"
+            class="org.eclipse.ajdt.internal.ui.wizards.exports.ProductExportWizard"
+            icon="icons/actions/exp_product.gif"
+            id="org.eclipse.ajdt.ui.productExportWizard"
+            name="%ajProductExportWizard.label">
+         <description>
+            %ajProductExportWizard.description
+         </description>
+         <selection
+               name="*.product"
+               class="org.eclipse.core.resources.IFile">
+         </selection>
+         <selection
+               class="org.eclipse.core.resources.IContainer">
+         </selection>
+      </wizard>
    </extension>
 
 

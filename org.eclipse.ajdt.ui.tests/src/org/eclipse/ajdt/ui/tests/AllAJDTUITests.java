@@ -57,6 +57,7 @@ import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
+import org.eclipse.ajdt.ui.tests.wizards.export.ExportProductTest;
 import org.eclipse.contribution.xref.ui.views.XReferenceView;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -133,6 +134,7 @@ public class AllAJDTUITests {
 		// export wizard tests
 		suite.addTest(new TestSuite(AJCTaskTest.class));
 		suite.addTest(new TestSuite(ExportPluginTest.class));
+		suite.addTest(new TestSuite(ExportProductTest.class));
 		
 		// internal.builder tests
 		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		

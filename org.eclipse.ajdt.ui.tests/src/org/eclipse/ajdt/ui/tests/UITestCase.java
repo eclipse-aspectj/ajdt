@@ -13,6 +13,7 @@
 package org.eclipse.ajdt.ui.tests;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import junit.framework.TestCase;
@@ -235,6 +236,30 @@ public abstract class UITestCase extends TestCase {
 				((ITextEditor)editor).close(false);
 			}
 		}
+	}
+
+	/**
+	 * Recursively delete the given directory and all its children
+	 * @param f
+	 */
+	protected void deleteDir(File f) {
+        try {
+			if (!f.getCanonicalFile().equals(f.getAbsoluteFile())) {
+			    // dont follow symbolic links
+			    return;
+			}
+		} catch (IOException e) {
+			return;
+		}
+		File[] files = f.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].isDirectory()) {
+				deleteDir(files[i]);
+			} else {
+				files[i].delete();
+			}
+		}
+		f.delete();
 	}
 
 }
