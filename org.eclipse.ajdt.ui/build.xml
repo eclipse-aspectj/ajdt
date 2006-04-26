@@ -193,6 +193,7 @@
 			</forkclasspath>
 			<src path="src/"			/>
 			<src path="jdt-src/"			/>
+			<src path="pde-src/"			/>
 		</iajc>
 		<!-- Copy necessary resources -->
 		<copy todir="${temp.folder}/@dot.bin" failonerror="true" overwrite="false">
