@@ -1915,7 +1915,6 @@ M4 = Platform-specific fourth key
       </objectContribution>
    </extension>  
        
-       
 <!-- EXPERIMENTAL (for debugging purposes only)
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
@@ -1925,16 +1924,5 @@ M4 = Platform-specific fourth key
     	id="org.eclipse.ajdt.ui.ajde.StructureModelView" /> 
   </extension>
 -->
-
-<!-- EXPERIMENTAL
-  <extension point="org.eclipse.ui.views">
-    <view name="Pointcut Navigator" 
-    	icon="icons/structure/after_advice.gif" 
-    	category="org.eclipse.ajdt.ui.cat" 
-    	class="org.eclipse.ajdt.internal.ui.navigator.PointcutNavigatorView" 
-    	id="org.eclipse.ajdt.ui.navigator.PointcutNavigatorView" /> 
-  </extension>
--->
-
 
 </plugin>

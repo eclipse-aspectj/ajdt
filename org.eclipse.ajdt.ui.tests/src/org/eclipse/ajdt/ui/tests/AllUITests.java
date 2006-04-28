@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.eclipse.ajdt.internal.ui.AJDTConfigSettings;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.tests.actions.AddAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
@@ -182,7 +181,6 @@ public class AllUITests {
 		if (setupDone) {
 			return;
 		}
-		AJDTConfigSettings.disableAnalyzeAnnotations(true);
 
 		AspectJPreferences.setAutoBuilderMigrationEnabled(true);
 		AspectJPreferences.setAutoBuilderMigrationRemoveOldBuilder(true);
