@@ -10,13 +10,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import org.eclipse.jdt.core.ISourceRange;
-import org.eclipse.jdt.internal.core.SourceRange;
-
 public class DeclareElementInfo extends AspectJMemberElementInfo {
-
-	public ISourceRange getSourceRange() {
-		return new SourceRange(nameStart, nameEnd - nameStart + 1);
-	}
 	
 }
