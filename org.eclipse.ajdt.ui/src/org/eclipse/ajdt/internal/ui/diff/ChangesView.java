@@ -370,7 +370,10 @@ public class ChangesView extends ViewPart {
 		}
 		IPath mapFile = project.getFile(name).getLocation();
 		AJProjectModel model = new AJProjectModel(project);
-		model.loadModel(mapFile);
+		boolean success = model.loadModel(mapFile);
+		if (!success) {
+			return null;
+		}
 		return model;
 	}
 	

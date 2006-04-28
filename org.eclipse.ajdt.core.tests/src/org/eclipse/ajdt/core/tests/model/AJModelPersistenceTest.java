@@ -178,7 +178,8 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			// which one
 			project2 = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 			model = new AJProjectModel(project2);
-			model.loadModel(ajmap);
+			boolean success = model.loadModel(ajmap);
+			assertTrue("Failed to load model from file: "+ajmap,success);
 			allRels = model.getAllRelationships(rels);
 			assertNotNull(
 					"Loaded model should have non-null relationship list", //$NON-NLS-1$

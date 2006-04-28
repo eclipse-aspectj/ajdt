@@ -169,13 +169,15 @@ public class AJProjectModel {
 		return;
 	}
 	
-	public void loadModel(IPath file) {
+	public boolean loadModel(IPath file) {
 		AJLog.logStart(TimerLogEvent.LOAD_MODEL);
 		boolean worked = getPersistence().loadModel(file);
 		AJLog.logEnd(AJLog.DEFAULT, TimerLogEvent.LOAD_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 		if (!worked) {
 			AJLog.log("Loading model failed for file: "+file); //$NON-NLS-1$
+			return false;
 		}
+		return true;
 	}
 	
 	public void deleteModelFile() {

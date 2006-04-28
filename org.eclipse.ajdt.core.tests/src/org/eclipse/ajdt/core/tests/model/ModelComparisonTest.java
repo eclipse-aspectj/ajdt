@@ -63,7 +63,9 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 
 			// load model from .ajmap file
 			AJProjectModel mapModel = new AJProjectModel(project);
-			mapModel.loadModel(ajmap.getLocation());
+			boolean success = mapModel.loadModel(ajmap.getLocation());
+			assertTrue("Failed to load model from file: "+ajmap.getLocation(),success);
+
 			assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
 
 			// compare the two models: there should be added relationships
