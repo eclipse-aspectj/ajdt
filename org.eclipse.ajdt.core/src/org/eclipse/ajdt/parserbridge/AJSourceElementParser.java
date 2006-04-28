@@ -878,7 +878,11 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		selectorSourceEnd = methodDeclaration.sourceStart + methodDeclaration.selector.length - 1;
 	}
 	if (methodDeclaration instanceof AdviceDeclaration) {
-		selectorSourceEnd = methodDeclaration.sourceStart + ((AdviceDeclaration) methodDeclaration).kind.getName().length() - 1; 
+		String name = ((AdviceDeclaration) methodDeclaration).kind.getName();
+		if (name.startsWith("after")) { //$NON-NLS-1$
+			name = "after"; //$NON-NLS-1$
+		}
+		selectorSourceEnd = methodDeclaration.sourceStart + name.length() - 1; 
 	}
 	if (isInRange) {
 		int currentModifiers = methodDeclaration.modifiers;
