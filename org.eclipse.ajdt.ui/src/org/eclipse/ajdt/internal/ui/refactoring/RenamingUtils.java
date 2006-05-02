@@ -45,7 +45,7 @@ public class RenamingUtils {
 		String nameWithoutExtension = oldName
 				.substring(0, oldName.indexOf('.')); //$NON-NLS-1$
 		String newExtension = newExtensionIsAJ ? ".aj" : ".java"; //$NON-NLS-1$ //$NON-NLS-2$
-		RenameResourceChange change = new RenameResourceChange(file,
+		RenameResourceChange change = new RenameResourceChange(null, file,
 				nameWithoutExtension + newExtension, null);
 		try {
 			change.perform(monitor);

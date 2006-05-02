@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.editor.actions;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -124,9 +125,18 @@ public class AJOpenAction extends SelectionDispatchAction {
 		if (!ActionUtil.isProcessable(getShell(), fEditor))
 			return;
 		try {
-			IJavaElement element = SelectionConverter.codeResolve(fEditor,
-					getShell(), getDialogTitle(),
-					ActionMessages.OpenAction_select_element);
+			IJavaElement[] elements= SelectionConverter.codeResolveForked(fEditor, false);
+			if (elements == null || elements.length == 0) {
+				IEditorStatusLine statusLine= (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
+				if (statusLine != null)
+					statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null); 
+				getShell().getDisplay().beep();
+				return;
+			}
+			IJavaElement element= elements[0];
+			if (elements.length > 1)
+				element= OpenActionUtil.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
+
 			// begin AspectJ change
 			if (element == null) {
 				// it might be a pointcut
@@ -173,8 +183,12 @@ public class AJOpenAction extends SelectionDispatchAction {
 					|| type == IJavaElement.PACKAGE_FRAGMENT)
 				element = input;
 			run(new Object[] { element });
+		} catch (InvocationTargetException e) {
+			showError(e);
 		} catch (JavaModelException e) {
 			showError(e);
+		} catch (InterruptedException e) {
+			// ignore
 		}
 	}
 
@@ -261,5 +275,9 @@ public class AJOpenAction extends SelectionDispatchAction {
 	private void showError(CoreException e) {
 		ExceptionHandler.handle(e, getShell(), getDialogTitle(),
 				ActionMessages.OpenAction_error_message);
+	}
+	
+	private void showError(InvocationTargetException e) {
+		ExceptionHandler.handle(e, getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message); 
 	}
 }

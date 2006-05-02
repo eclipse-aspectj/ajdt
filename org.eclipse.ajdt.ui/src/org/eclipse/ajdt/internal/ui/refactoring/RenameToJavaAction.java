@@ -65,7 +65,7 @@ public class RenameToJavaAction implements IActionDelegate {
 							if (file != null) {
 								String name = file.getName();
 								name = name.substring(0, name.indexOf('.')); //$NON-NLS-1$
-								RenameResourceChange change = new RenameResourceChange(
+								RenameResourceChange change = new RenameResourceChange(null,
 										file, name + ".java", null); //$NON-NLS-1$
 								try {
 									change.perform(monitor);
