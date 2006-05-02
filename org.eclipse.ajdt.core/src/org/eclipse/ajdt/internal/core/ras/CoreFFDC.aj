@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.internal.core.ras;
 
 import org.eclipse.ajdt.ras.PluginFFDC;
+import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.CoreErrorHandler;
 import org.eclipse.core.runtime.IStatus;
@@ -22,7 +23,9 @@ import org.eclipse.core.runtime.IStatus;
 public aspect CoreFFDC extends PluginFFDC {
 
 	protected pointcut ffdcScope () :
-		within(org.eclipse.ajdt..*);
+		within(org.eclipse.ajdt..*)
+		// Exclude programming by exception cases
+		&& !within(AspectsConvertingParser);
 		
     protected String getPluginId () {
     	return AspectJPlugin.PLUGIN_ID;
