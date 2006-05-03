@@ -76,7 +76,7 @@ public class LTWUtils {
 			IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
 			for (int i = 0; i < roots.length; i++) {
 				IPackageFragmentRoot root = roots[i];
-				if (!(root instanceof JarPackageFragmentRoot)) {
+				if (!(root instanceof JarPackageFragmentRoot) && root.getJavaProject().equals(project)) {
 					List aspects = getAspects(root);
 					String path;
 					if (root.getElementName().trim().equals("")) { //$NON-NLS-1$
@@ -309,12 +309,14 @@ public class LTWUtils {
 						if (cu != null) {
 							AJProjectModel model = AJModel.getInstance()
 									.getModelForProject(resource.getProject());
-							Set types = model.getAspectsForJavaFile(cu);
-							for (Iterator iter = types.iterator(); iter
-									.hasNext();) {
-								AspectElement element = (AspectElement) iter
-										.next();
-								aspects.add(element);
+							if (model != null) {
+								Set types = model.getAspectsForJavaFile(cu);
+								for (Iterator iter = types.iterator(); iter
+										.hasNext();) {
+									AspectElement element = (AspectElement) iter
+											.next();
+									aspects.add(element);
+								}
 							}
 						}
 					}
