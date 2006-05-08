@@ -267,6 +267,8 @@ public class AspectJImages extends AbstractIconRegistry {
 				"icons/markers/samples/tick_sample.gif"); //$NON-NLS-1$
 	public static final AJDTIcon TRACE_SAMPLE = new AJDTIcon(
 				"icons/markers/samples/trace_sample.gif"); //$NON-NLS-1$
+	public static final AJDTIcon JUNIT_SAMPLE = new AJDTIcon(
+				"icons/markers/samples/junit_sample.gif"); //$NON-NLS-1$
 
 	
 	public static AspectJImages instance( ) {
