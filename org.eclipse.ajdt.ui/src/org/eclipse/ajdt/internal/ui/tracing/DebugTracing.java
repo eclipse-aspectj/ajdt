@@ -42,6 +42,11 @@ public class DebugTracing {
 	public static boolean DEBUG_COMPILER_PROGRESS = false;
 
 	/**
+	 * More detailed trace for compiler task list messages
+	 */
+	public static boolean DEBUG_COMPILER_MESSAGES = false;
+
+	/**
 	 * More detailed trace for the project builder
 	 */
 	public static boolean DEBUG_BUILDER = true;	
@@ -54,6 +59,7 @@ public class DebugTracing {
 	public static final String[] categoryNames = new String[]{
 		UIMessages.eventTrace_category_compiler,
 		UIMessages.eventTrace_category_compiler_progress,
+		UIMessages.eventTrace_category_compiler_messages,
 		UIMessages.eventTrace_category_builder,
 		UIMessages.eventTrace_category_builder_classpath
 	};
@@ -108,11 +114,16 @@ public class DebugTracing {
 			DEBUG_COMPILER_PROGRESS = false;
 		}
 		if (checked.contains(categoryNames[2])) {
+			DEBUG_COMPILER_MESSAGES = true;
+		} else {
+			DEBUG_COMPILER_MESSAGES = false;
+		}
+		if (checked.contains(categoryNames[3])) {
 			DEBUG_BUILDER = true;
 		} else {
 			DEBUG_BUILDER = false;
 		}
-		if (checked.contains(categoryNames[3])) {
+		if (checked.contains(categoryNames[4])) {
 			DEBUG_BUILDER_CLASSPATH = true;
 		} else {
 			DEBUG_BUILDER_CLASSPATH = false;

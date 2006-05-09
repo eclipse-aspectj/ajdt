@@ -29,6 +29,7 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.internal.resources.ResourceException;
@@ -88,7 +89,7 @@ public class CompilerTaskListManager implements TaskListManager {
      */
     public void addSourcelineTask(final String message,
             final ISourceLocation location, final IMessage.Kind kind) {
-
+    	AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask called without extra info. Message="+message); //$NON-NLS-1$
         // No one should be calling this method as it doesn't have all the
         // information.
         // It is missing extra source locations and info about whether the
@@ -149,8 +150,16 @@ public class CompilerTaskListManager implements TaskListManager {
      */
     public void addSourcelineTask(IMessage msg) {
 		if (msg.getSourceLocation() == null) {
+			AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask message="+msg.getMessage()); //$NON-NLS-1$
 			this.addProjectTask(msg.getMessage(), msg.getKind());
 		} else {
+			if (DebugTracing.DEBUG_COMPILER_MESSAGES) {
+				// avoid constructing log string if trace is not active
+				AJLog.log(AJLog.COMPILER_MESSAGES, "addSourcelineTask message=" //$NON-NLS-1$
+						+ msg.getMessage() + " file=" //$NON-NLS-1$
+						+ msg.getSourceLocation().getSourceFile().getPath()
+						+ " line=" + msg.getSourceLocation().getLine()); //$NON-NLS-1$
+			}
 			problems.add(new ProblemTracker(msg.getMessage(), msg
 					.getSourceLocation(), msg.getKind(), msg.getDeclared(), msg
 					.getExtraSourceLocations(), msg.getID(), msg
@@ -221,18 +230,10 @@ public class CompilerTaskListManager implements TaskListManager {
                         p = (ProblemTracker) problemIterator.next();
                         ir = null;
                         IMarker marker = null;
-
                         try {
-                            //Bugfix 44155: Create marker of type TASK if
-                            // problem is starts with todo, PROBLEM
-                            // otherwise
-//                            AJDTEventTrace.generalEvent("Creating Marker, " +
-//                             "kind: '" + p.kind + "'; text: '" + p.message
-//                             + "'");  
-                        	
-                            if (p.location != null) {
+                        	if (p.location != null) {
                                 ir = locationToResource(p.location, project);
-                                if(affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
+                                if (affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
 	                                int prio = getTaskPriority(p);
 	                                if (prio != -1) {
 	                                    marker = ir.createMarker(IMarker.TASK);
@@ -265,7 +266,12 @@ public class CompilerTaskListManager implements TaskListManager {
 	                                    marker.setAttribute(IMarker.LINE_NUMBER,
 	                                            new Integer(p.location.getLine()));
 	                                }
-                                } 
+                                } else {
+                                	AJLog.log(AJLog.COMPILER_MESSAGES,"Not adding marker for problem because it's " //$NON-NLS-1$
+                                			+"against a resource which is not in the list of affected resources" //$NON-NLS-1$
+                                			+" provided by the compiler. Resource="+ir+" Problem message=" //$NON-NLS-1$ //$NON-NLS-2$
+                                			+p.message+" line="+p.location.getLine()); //$NON-NLS-1$
+                                }
                             } else {
                                 marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                             }
