@@ -554,6 +554,7 @@ public class AJCompilationUnitStructureRequestor extends
 	}
 
 	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
+		super.acceptImport(declarationStart, declarationEnd, CharOperation.splitOn('.', name), onDemand, modifiers);
 	}
 	
 }
