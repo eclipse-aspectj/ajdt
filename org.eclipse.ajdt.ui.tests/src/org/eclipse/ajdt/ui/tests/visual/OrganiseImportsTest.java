@@ -34,7 +34,7 @@ public class OrganiseImportsTest extends VisualTestCase {
 		assertTrue("The bean example project should contain a file called 'BoundPoint.aj'", boundPoint != null ); //$NON-NLS-1$
 		openFileInDefaultEditor(boundPoint, true);
 		final ICompilationUnit cUnit = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(boundPoint);
-		assertTrue("BoundPoint.aj should start with two imports", cUnit.getImports().length == 2); //$NON-NLS-1$
+		assertEquals("BoundPoint.aj should start with two imports", 2, cUnit.getImports().length); //$NON-NLS-1$
 		waitForJobsToComplete();			
 		
 		// Organise imports and test that the file is correct
