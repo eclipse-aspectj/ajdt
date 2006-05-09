@@ -126,19 +126,9 @@ public class AJOpenAction extends SelectionDispatchAction {
 			return;
 		try {
 			IJavaElement[] elements= SelectionConverter.codeResolveForked(fEditor, false);
-			if (elements == null || elements.length == 0) {
-				IEditorStatusLine statusLine= (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
-				if (statusLine != null)
-					statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null); 
-				getShell().getDisplay().beep();
-				return;
-			}
-			IJavaElement element= elements[0];
-			if (elements.length > 1)
-				element= OpenActionUtil.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
-
 			// begin AspectJ change
-			if (element == null) {
+			IJavaElement element = null;	
+			if (elements == null || elements.length == 0) {
 				// it might be a pointcut
 				IJavaElement input = SelectionConverter.getInput(fEditor);
 				if (input instanceof ICompilationUnit) {
@@ -162,6 +152,10 @@ public class AJOpenAction extends SelectionDispatchAction {
 						}
 					}
 				}
+			} else {
+				element = elements[0];
+				if (elements.length > 1)
+					element= OpenActionUtil.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
 			}
 			// end AspectJ change
 			if (element == null) {

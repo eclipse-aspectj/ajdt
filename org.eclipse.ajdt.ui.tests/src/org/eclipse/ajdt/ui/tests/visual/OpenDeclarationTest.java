@@ -40,7 +40,7 @@ public class OpenDeclarationTest extends VisualTestCase {
 
 		// F3 over the demoExecs pointcut used in around advice
 		// perform the test at each valid cursor position
-		for (int i = 20; i <= 20; i++) {
+		for (int i = 20; i <= 29; i++) {
 			gotoLine(28);
 			moveCursorRight(i);
 			postKey(SWT.F3);
@@ -51,12 +51,16 @@ public class OpenDeclarationTest extends VisualTestCase {
 		gotoLine(28);
 		moveCursorRight(19);
 		postKey(SWT.F3);
+		waitForJobsToComplete();
 		checkEmptySelection();
 		gotoLine(28);
-		moveCursorRight(21);
+		moveCursorRight(30);
 		postKey(SWT.F3);
+		waitForJobsToComplete();
 		checkEmptySelection();
 
+		waitForJobsToComplete();
+		
 		// F3 over the goCut pointcut used in the demoExecs pointcut
 		gotoLine(26);
 		moveCursorRight(43);
@@ -103,8 +107,8 @@ public class OpenDeclarationTest extends VisualTestCase {
 
 	private void checkEmptySelection() {
 		TextSelection ts = getCurrentTextSelection();
-		assertTrue("Current text selection should be empty", ts.getText() //$NON-NLS-1$
-				.length() == 0);
+		assertTrue("Current text selection should be empty: "+ts.getText(), //$NON-NLS-1$
+				ts.getText().length() == 0);
 	}
 
 	private void checkSelection(int expectedLine, String expectedText) {
