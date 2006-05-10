@@ -20,6 +20,7 @@ public class AllVisualUITests {
 	public static Test suite() {
 		TestSuite suite = new TestSuite(AllVisualUITests.class.getName());
 				
+		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(BuildConfigurationTest3.class));
 		suite.addTest(new TestSuite(DeleteAJTest.class));
@@ -31,7 +32,6 @@ public class AllVisualUITests {
 		suite.addTest(new TestSuite(OrganiseImportsTest.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 		suite.addTest(new TestSuite(OpenDeclarationTest.class));
-		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 		suite.addTest(new TestSuite(OpenTypesTest.class));
 		
 		// xref view tests

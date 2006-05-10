@@ -43,7 +43,8 @@ public class OutjarLaunchingTest extends VisualTestCase {
 		PackageExplorerPart packageExplorer = PackageExplorerPart.getFromActivePerspective();
 		packageExplorer.setFocus();
 		packageExplorer.selectAndReveal(demo);
-
+		waitForJobsToComplete();
+		
 		// Run as AspectJ/Java Application
 		postKeyDown(SWT.ALT);
 		postKey('r');	
