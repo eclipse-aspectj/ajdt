@@ -243,6 +243,17 @@ public class AJCompilationUnitManager {
 		}		
 	}
 
+	public List /*AJCompilationUnit*/ getCachedCUs(IProject project) {
+		List ajList = new ArrayList();
+		for (Iterator iter = compilationUnitStore.keySet().iterator(); iter.hasNext();) {
+			IFile f = (IFile) iter.next();
+			if (f.getProject().equals(project)) {
+				ajList.add(compilationUnitStore.get(f));
+			}
+		}
+		return ajList;
+	}
+	
 	private void addProjectToList(IProject project, List l) {
 		//check if aj project
 		//		ProjectBuildConfigurator pbc =

@@ -11,7 +11,9 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
-import org.eclipse.jdt.core.ICompilationUnit;
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
@@ -187,24 +189,17 @@ public class PointcutUtilities {
 			// next, see if the pointcut is inherited from an abstract aspect
 			String superName = aspect.getSuperclassName();
 			if ((superName != null) && (superName.length() > 0)) {
-				String[][] res = aspect.resolveType(superName);
-				if ((res != null) && (res.length > 0)) {
-					IType type = aspect.getJavaProject().findType(
-							res[0][0] + "." + res[0][1]); //$NON-NLS-1$
-					ICompilationUnit cu = type.getCompilationUnit();
-					if (cu instanceof AJCompilationUnit) {
-						AJCompilationUnit ajcu = (AJCompilationUnit) cu;
-						IType[] types = ajcu.getTypes();
-						for (int i = 0; i < types.length; i++) {
-							if (types[i].getElementName().equals(superName)) {
-								if (types[i] instanceof AspectElement) {
-									pc = PointcutUtilities
-											.findPointcutInAspect(
-													(AspectElement) types[i],
-													name);
-									if (pc != null) {
-										return pc;
-									}
+				List cus = AJCompilationUnitManager.INSTANCE.getCachedCUs(aspect.getJavaProject().getProject());
+				for (Iterator iter = cus.iterator(); iter.hasNext();) {
+					AJCompilationUnit ajcu = (AJCompilationUnit) iter.next();
+					IType[] types = ajcu.getTypes();
+					for (int i = 0; i < types.length; i++) {
+						if (types[i].getElementName().equals(superName)) {
+							if (types[i] instanceof AspectElement) {
+								pc = PointcutUtilities.findPointcutInAspect(
+										(AspectElement) types[i], name);
+								if (pc != null) {
+									return pc;
 								}
 							}
 						}
