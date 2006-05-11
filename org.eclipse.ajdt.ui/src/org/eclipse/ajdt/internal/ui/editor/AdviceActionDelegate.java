@@ -36,6 +36,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IParent;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -130,16 +131,16 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			}
 			
 			List javaElementsForLine = getJavaElementsForLine(cu, clickedLine.intValue());
-			boolean addedSeparator = false;
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ADVISES);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ADVISED_BY);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ANNOTATES);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ANNOTATED_BY);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.DECLARED_ON);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.ASPECT_DECLARATIONS);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENS);
-			addedSeparator = createMenuForRelationshipType(javaElementsForLine, manager, addedSeparator, AJRelationshipManager.SOFTENED_BY);
-			if(addedSeparator) {
+			boolean addedMenu = false;
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISES);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ADVISED_BY);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATES);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ANNOTATED_BY);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.DECLARED_ON);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.ASPECT_DECLARATIONS);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENS);
+			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENED_BY);
+			if(addedMenu) {
 				createAJToolsMenu(manager);
 			}
 			
@@ -171,9 +172,6 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 // already.
                                 if (!problemSubmenuInitialized) {
                                     problemSubmenu = new MenuManager(UIMessages.EditorRulerContextMenu_relatedLocations);
-                                    if (!addedSeparator) {
-                                        manager.add(new Separator());
-                                    }
                                     manager.add(problemSubmenu);
                                     problemSubmenuInitialized = true;
                                 }
@@ -199,7 +197,6 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	
 	private void createAJToolsMenu(IMenuManager manager) {
 		MenuManager menu = new MenuManager(UIMessages.AdviceActionDelegate_ajtools);
-		manager.add(new Separator());
 		manager.add(menu);			
 		menu.add(new Action(){
 			
@@ -228,7 +225,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	 * @param relationshipType
 	 * @return
 	 */
-	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedSeparator, AJRelationshipType relationshipType) {
+	private boolean createMenuForRelationshipType(List javaElements, IMenuManager manager, boolean addedMenu, AJRelationshipType relationshipType) {
 		boolean menuInitialized = false;
 		MenuManager menu = null;
 		for (Iterator iter = javaElements.iterator(); iter.hasNext();) {
@@ -236,16 +233,12 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 		
 			List relationships = AJModel.getInstance().getRelatedElements(relationshipType, element);
 			if(relationships != null) {
+				addedMenu = true;
 				for (Iterator iterator = relationships.iterator(); iterator
 						.hasNext();) {
 					IJavaElement el = (IJavaElement) iterator.next();
-					if(!addedSeparator) {
-						manager.add(new Separator());
-						addedSeparator = true;
-					}
 					if(!menuInitialized) {
 						menu = new MenuManager(relationshipType.getMenuName());
-						manager.add(new Separator());
 						manager.add(menu);			
 						menuInitialized = true; 
 					}
@@ -253,7 +246,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 				}
 			}
 		}		
-		return addedSeparator;
+		return addedMenu;
 	}
 
 
@@ -296,6 +289,19 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 						toReturn.add(element);
 					}
 					toReturn.addAll(getJavaElementsForLine(element, clickedLine));
+				}
+			} catch (JavaModelException e) {
+			}
+		} else if (je instanceof IParent) {
+			try {
+				IJavaElement[] children = ((IParent) je).getChildren();
+				for (int i = 0; i < children.length; i++) {
+					IJavaElement element = children[i];
+					if (model.getJavaElementLineNumber(element) == clickedLine) {
+						toReturn.add(element);
+					}
+					toReturn
+							.addAll(getJavaElementsForLine(element, clickedLine));
 				}
 			} catch (JavaModelException e) {
 			}
