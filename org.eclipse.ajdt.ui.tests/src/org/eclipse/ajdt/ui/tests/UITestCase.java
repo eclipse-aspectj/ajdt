@@ -37,6 +37,7 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
+import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -234,6 +235,8 @@ public abstract class UITestCase extends TestCase {
 			IEditorPart editor = editors[i].getEditor(false);
 			if(editor instanceof ITextEditor) {
 				((ITextEditor)editor).close(false);
+			} else if (editor instanceof FormEditor) {
+				((FormEditor)editor).close(false);
 			}
 		}
 	}

@@ -60,6 +60,27 @@ public class OutjarLaunchingTest extends VisualTestCase {
 				cview = (ConsoleView)views[i].getView(false);
 			}
 		}
+		
+		// In Eclipse 3.2 RC2 and RC3 it was sometimes seen whilst running this
+		// test that the console view didn't open the first time. Therefore, as
+		// a temporary measure (until the eclipse bug is fixed) we try again.
+		if (cview == null ) {
+			System.err.println("run didn't happen the first time....trying again");
+			postKeyDown(SWT.ALT);
+			postKey('r');	
+			postKeyUp(SWT.ALT);
+			postKey('s');
+			postKey(SWT.CR);
+			
+			waitForJobsToComplete();
+			views = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+			for (int i = 0; i < views.length; i++) {
+				if (views[i].getView(false) instanceof ConsoleView) {
+					cview = (ConsoleView)views[i].getView(false);
+				}
+			}	
+		}
+		
 		assertNotNull("Console view should be open", cview); //$NON-NLS-1$
 		String output = null;
 		IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
