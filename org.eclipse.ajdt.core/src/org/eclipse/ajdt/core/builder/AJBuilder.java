@@ -33,6 +33,7 @@ import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.TimerLogEvent;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -45,6 +46,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
@@ -106,6 +108,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
 		this.progressMonitor = progressMonitor;
+		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
+		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
 		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
 		String kindS = null;
 		if (kind == IncrementalProjectBuilder.AUTO_BUILD)
@@ -137,6 +141,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// is actually carried out. In the case of the ui, then this means that 
 		// the markers may not be cleared properly.
 		preCallListeners(kind, project, requiredProjects);		
+		progressMonitor.worked(1);
 		
 		buildManager = Ajde.getDefault().getBuildManager();
 		buildManager.setBuildModelMode(true);
@@ -201,29 +206,21 @@ public class AJBuilder extends IncrementalProjectBuilder {
 					// AJDT has definitely decided not to pass anything down
 					// to the compiler
 					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+					progressMonitor.done();
 					return requiredProjects;						
 				}
 			}
 		}
 
 		IAJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
-		//TODO!!! For auto builds lets not pass the progress monitor
-		// through - something 'funny' happens and although there 
-		// is a monitor (it seems to be shown in the status bar on
-		// eclipse), sometimes it goes null after testing whether it is null
-		// but before being updated. This causes error dialogs to 
-		// appear and entries in the .log about 'Widget is disposed' 
-		// with progress monitor mentioned in the stack trace.
 		if (kind == FULL_BUILD) {
 			IJavaProject ijp = JavaCore.create(project);
 			if (ijp != null)
 				cleanOutputFolders(ijp,false);
 			else
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
-			compilerMonitor.prepare(project, null/*projectFiles*/, progressMonitor);
-		} else {
-			compilerMonitor.prepare(project, null/*projectFiles*/, null);
 		}
+		compilerMonitor.prepare(project, null/*projectFiles*/, new SubProgressMonitor(progressMonitor,100));
 
 		lastBuiltProject = project;
 		
@@ -279,6 +276,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			((CoreProjectProperties)adapter).flushClasspathCache();
 		}
 		postCallListeners(false);
+		progressMonitor.worked(1);
+		progressMonitor.done();
 		
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
