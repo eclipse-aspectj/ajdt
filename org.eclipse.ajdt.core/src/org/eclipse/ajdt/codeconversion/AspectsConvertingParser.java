@@ -189,8 +189,10 @@ public class AspectsConvertingParser implements TerminalTokens {
 				else if (CharOperation.equals(returning, name))
 					consumeRetOrThro();
 				else if (insidePointcutDesignator
-						&& Character.isUpperCase(name[0]))
+						&& Character.isUpperCase(name[0])
+						&& (content[scanner.getCurrentTokenStartPosition()-1]!='.')) {
 					typeReferences.add(new String(name));
+				}
 
 				if (isSimulateContextSwitchNecessary) {
 					usedIdentifiers.add(new String(name));

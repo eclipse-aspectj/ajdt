@@ -47,4 +47,21 @@ public class AspectsConvertingParserTest extends AJDTCoreTestCase {
 		assertTrue("Parser failed to handle pertypewithin", //$NON-NLS-1$
 				converted.indexOf("pertypewithin")==-1); //$NON-NLS-1$
 	}
+	
+	public void testBug134343() {
+		String source = "public aspect Aspect {\n" //$NON-NLS-1$
+				+ "	   declare parents : foo.inspector..* &&\n" //$NON-NLS-1$
+				+ " (junit.framework.TestCase+ || *..Test*\n" //$NON-NLS-1$
+    		    + " ||foo.inspector.test..*) implements Serializable;\n" //$NON-NLS-1$
+				+ "};\n"; //$NON-NLS-1$
+		ConversionOptions conversionOptions = ConversionOptions.STANDARD;
+		AspectsConvertingParser conv = new AspectsConvertingParser(source
+				.toCharArray());
+		conv.convert(conversionOptions);
+		String converted = new String(conv.content);
+		assertTrue("Parser should not have considered Test as an import", //$NON-NLS-1$
+				converted.indexOf("Test x") == -1); //$NON-NLS-1$
+		assertTrue("Parser should not have considered TestCase as an import", //$NON-NLS-1$
+				converted.indexOf("TestCase x") == -1); //$NON-NLS-1$
+	}
 }
