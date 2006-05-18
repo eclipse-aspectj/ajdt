@@ -589,9 +589,9 @@ public class AJCompilationUnit extends CompilationUnit{
 		if (AspectJPlugin.usingCUprovider) {
 			return super.getHandleIdentifier();
 		}
-		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		String callerName = (new RuntimeException()).getStackTrace()[1]
 				.getClassName();
+		final String deletionClass = "org.eclipse.jdt.internal.corext.refactoring.changes.DeleteSourceManipulationChange"; //$NON-NLS-1$
 		// are we being called in the context of a delete operation?
 		if (callerName.equals(deletionClass)) {
 			AJCompilationUnitManager.INSTANCE.removeFileFromModel((IFile) getResource());
@@ -599,6 +599,16 @@ public class AJCompilationUnit extends CompilationUnit{
 			String handleIdentifier = JavaCore.create(ajFile).getHandleIdentifier();
 			ajFile = null;			
 			return handleIdentifier;
+		}
+		
+		// are we being called in the context of a move/DnD operation?
+		final String moveClass = "org.eclipse.jdt.internal.corext.refactoring.changes.CompilationUnitReorgChange"; //$NON-NLS-1$
+		if (callerName.equals(moveClass)) {
+			// need to return a handle identifier that JDT can use (bug 121533)
+			String modifiedHandle = super.getHandleIdentifier().replace(
+					AspectElement.JEM_ASPECT_CU,
+					JavaElement.JEM_COMPILATIONUNIT);
+			return modifiedHandle;
 		}
 		return super.getHandleIdentifier();
 	}
