@@ -90,6 +90,7 @@ public class AJDTUtilsTest extends UITestCase {
 				hasDependencyOnAJDE(testPluginProject));
 		AspectJUIPlugin.convertToAspectJProject(testPluginProject.getProject());
 		waitForJobsToComplete();
+		waitForJobsToComplete();
 		assertTrue("Plugin project should now have AspectJ nature", //$NON-NLS-1$
 				AspectJPlugin.isAJProject(testPluginProject.getProject()));
 		assertTrue("Plugin should now import AJDE plugin", //$NON-NLS-1$
@@ -97,6 +98,8 @@ public class AJDTUtilsTest extends UITestCase {
 		AspectJUIPlugin.convertFromAspectJProject(testPluginProject
 				.getProject());
 		waitForJobsToComplete();
+		waitForJobsToComplete();
+
 		assertFalse("Plugin should not import AJDE plugin", //$NON-NLS-1$
 				hasDependencyOnAJDE(testPluginProject));
 		assertFalse("Plugin project shouldn't have AspectJ nature", //$NON-NLS-1$

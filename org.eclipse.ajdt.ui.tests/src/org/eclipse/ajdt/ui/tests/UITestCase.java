@@ -130,13 +130,13 @@ public abstract class UITestCase extends TestCase {
 	protected void deleteProject(IProject project) {
 		// make sure nothing is still using the project
 		waitForJobsToComplete();
-		
+		String projectName = project.getName();
 		try {
 			// perform the delete
 			project.delete(true, true, null);
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
-			System.out.println("***delete failed***"); //$NON-NLS-1$
+			System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
 			e.printStackTrace();
 		}
 		
