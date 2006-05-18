@@ -347,6 +347,7 @@ public class UIMessages extends NLS {
 	public static String LTWAspectPathTab_label;
 	public static String LTWAspectPathTab_title;
 	public static String LTW_error_launching;
+	public static String LTW_error_wrong_jre;
 	public static String CustomMarkerImageProvider_Arrow;
 	public static String CustomMarkerImageProvider_Bulb;
 	public static String CustomMarkerImageProvider_Circle;

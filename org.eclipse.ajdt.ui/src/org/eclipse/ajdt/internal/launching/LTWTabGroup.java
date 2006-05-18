@@ -19,7 +19,6 @@ import org.eclipse.debug.ui.ILaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaArgumentsTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaClasspathTab;
-import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaMainTab;
 import org.eclipse.jdt.internal.debug.ui.launcher.LocalJavaApplicationTabGroup;
 
@@ -38,7 +37,7 @@ public class LTWTabGroup extends LocalJavaApplicationTabGroup {
 		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] {
 				new JavaMainTab(), 
 				new JavaArgumentsTab(), 
-				new JavaJRETab(),
+				new AJJRETab(),
 				new JavaClasspathTab(),
 				new LTWAspectPathTab(),
 				new SourceLookupTab(),
