@@ -42,7 +42,8 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 		AspectJImages.READWRITE_SAMPLE.getImageDescriptor(),
 		AspectJImages.TICK_SAMPLE.getImageDescriptor(),
 		AspectJImages.TRACE_SAMPLE.getImageDescriptor(),
-		AspectJImages.JUNIT_SAMPLE.getImageDescriptor()
+		AspectJImages.JUNIT_SAMPLE.getImageDescriptor(),
+		AspectJImages.PROGRESS_SAMPLE.getImageDescriptor()
 	};
 	
 	public static final String[] sampleImageLocations = new String[] {
@@ -60,7 +61,8 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 		"SAMPLE_11", //$NON-NLS-1$
 		"SAMPLE_12", //$NON-NLS-1$
 		"SAMPLE_13", //$NON-NLS-1$
-		"SAMPLE_14" //$NON-NLS-1$
+		"SAMPLE_14", //$NON-NLS-1$
+		"SAMPLE_15" //$NON-NLS-1$
 	};
 
 	public static String[] sampleImageNames = new String[] {
@@ -78,7 +80,8 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 			UIMessages.CustomMarkerImageProvider_ReadWrite,
 			UIMessages.CustomMarkerImageProvider_Tick,
 			UIMessages.CustomMarkerImageProvider_Pencil,
-			UIMessages.CustomMarkerImageProvider_JUnit
+			UIMessages.CustomMarkerImageProvider_JUnit,
+			UIMessages.CustomMarkerImageProvider_Progress
 		};
 	
 	public Image getManagedImage(Annotation annotation) {

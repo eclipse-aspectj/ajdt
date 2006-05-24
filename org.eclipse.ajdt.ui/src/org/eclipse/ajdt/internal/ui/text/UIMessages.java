@@ -363,6 +363,7 @@ public class UIMessages extends NLS {
 	public static String CustomMarkerImageProvider_Tick;
 	public static String CustomMarkerImageProvider_Pencil;
 	public static String CustomMarkerImageProvider_JUnit;
+	public static String CustomMarkerImageProvider_Progress;
 	public static String AJMarkersPropertyPage_default;
 	public static String AJMarkersPropertyPage_none;
 	public static String AJMarkersPropertyPage_configure_icons;
