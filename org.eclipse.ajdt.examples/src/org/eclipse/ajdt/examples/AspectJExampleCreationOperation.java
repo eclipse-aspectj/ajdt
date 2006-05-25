@@ -13,7 +13,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
@@ -32,10 +31,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
@@ -124,8 +120,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			doImports(proj, imports[i], new SubProgressMonitor(monitor, 1));
 		}
 
-		setSrcFolder(proj);
-
 		String open = desc.getAttribute("open"); //$NON-NLS-1$
 		if (open != null && open.length() > 0) {
 			IResource fileToOpen = proj.findMember(new Path(open));
@@ -170,26 +164,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			if (contains(buildCommands, JavaCore.BUILDER_ID)) {
 				desc.setBuildSpec(remove(buildCommands, JavaCore.BUILDER_ID));
 				project.setDescription(desc, null);
-			}
-
-			// add aspectjrt.jar to project classpath
-			AspectJUIPlugin.addAjrtToBuildPath(project);
-
-			// add JRE entry to project classpath
-			IJavaProject javaProject = JavaCore.create(project);
-			try {
-				IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-				IClasspathEntry jreCP = JavaCore.newContainerEntry(new Path(
-						"org.eclipse.jdt.launching.JRE_CONTAINER")); //$NON-NLS-1$
-
-				// Update the raw classpath with the new jreCP entry.
-				int originalCPLength = originalCP.length;
-				IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
-				System.arraycopy(originalCP, 0, newCP, 0, originalCPLength);
-				newCP[originalCPLength] = jreCP;
-				javaProject.setRawClasspath(newCP, new NullProgressMonitor());
-			} catch (JavaModelException e) {
-				e.printStackTrace();
 			}
 
 			return project;
@@ -254,33 +228,6 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 					monitor, 1));
 		} catch (CoreException e) {
 			throw new InvocationTargetException(e);
-		}
-	}
-
-	/**
-	 * If there is a "src" folder in the project, replace the existing classpath entry
-	 * with an new entry for this source folder.
-	 * @param project
-	 */
-	private void setSrcFolder(IProject project) {
-		try {
-			IResource srcFolder = project.findMember("src"); //$NON-NLS-1$
-			if ((srcFolder != null)
-					&& (srcFolder.getType() == IResource.FOLDER)) {
-				IJavaProject javaProject = JavaCore.create(project);
-				IClasspathEntry[] javaCP = javaProject.getRawClasspath();
-				boolean done = false;
-				for (int i = 0; !done && (i < javaCP.length); i++) {
-					if (javaCP[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-						// replace this entry with our new one
-						javaCP[i] = JavaCore.newSourceEntry(srcFolder.getFullPath());
-						javaProject.setRawClasspath(javaCP, new NullProgressMonitor());
-						done = true;
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
 		}
 	}
 
