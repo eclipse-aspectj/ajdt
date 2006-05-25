@@ -91,7 +91,9 @@ public class CustomMarkerImageProvider implements IAnnotationImageProvider {
 				if(imageLocation.startsWith("SAMPLE")) { //$NON-NLS-1$
 					String[] split = imageLocation.split("_"); //$NON-NLS-1$
 					int index = Integer.parseInt(split[1]);
-					return AspectJImages.instance().getRegistry().get(sampleImageDescriptors[index]);
+					if (index < sampleImageDescriptors.length) {
+						return AspectJImages.instance().getRegistry().get(sampleImageDescriptors[index]);
+					}
 				} else {
 					return getImage(imageLocation);
 				}
