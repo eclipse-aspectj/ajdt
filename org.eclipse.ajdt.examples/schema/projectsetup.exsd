@@ -87,6 +87,13 @@
                </documentation>
             </annotation>
          </attribute>
+         <attribute name="open" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 
