@@ -16,6 +16,11 @@
 	   parentCategory="org.eclipse.ajdt.wizards"
 	   name="%AspectJExamplesCreationWizard.categoryName">
 	</category>
+	<category
+	   id = "org.eclipse.ajdt.pluginExamples"
+	   parentCategory="org.eclipse.ajdt.wizards"
+	   name="%AspectJExamplesCreationWizard.pluginCategoryName">
+	</category>
 
 	<wizard 
 		id="org.eclipse.ajdt.examples.AspectJExamplesTJP"
@@ -86,6 +91,16 @@
 		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
 		icon="icons/newajprj_wiz.gif">
 		<description>%AspectJExamplesSpacewar.description</description>
+      </wizard>	
+      <wizard 
+		id="org.eclipse.ajdt.examples.AspectJPluginExamplesProgressMon"
+		name="%AspectJPluginExamplesProgressMon.title"
+		class="org.eclipse.ajdt.examples.AspectJExampleCreationWizard"
+		category="org.eclipse.ajdt.wizards/org.eclipse.ajdt.pluginExamples"
+		project="true"
+		finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+		icon="icons/newajprj_wiz.gif">
+		<description>%AspectJPluginExamplesProgressMon.description</description>
       </wizard>	
  </extension>  
 
@@ -162,6 +177,17 @@
            <nature id="org.eclipse.ajdt.ui.ajnature"/>
            <nature id="org.eclipse.jdt.core.javanature"/>
            <import src="archive/spacewar.jar"/>
+        </projectsetup>
+        <projectsetup
+            id="org.eclipse.ajdt.examples.AspectJPluginExamplesProgressMon"
+        	pagetitle="%AspectJPluginExamplesProgressMon.pagetitle"
+        	pagedescription="%AspectJPluginExamplesProgressMon.pagedescription"
+         	label="%AspectJExamplesCreationWizard.label"
+         	open="README.html"
+        	name="org.eclipse.ajdt.examples.progressmon">
+           <nature id="org.eclipse.ajdt.ui.ajnature"/>
+           <nature id="org.eclipse.jdt.core.javanature"/>
+           <import src="archive/org.eclipse.ajdt.examples.progressmon.jar"/>
         </projectsetup>
 </extension>
 

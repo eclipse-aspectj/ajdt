@@ -32,7 +32,10 @@ Repackage examples into archives
   </antcall>
   <antcall target="packageExample">
     <param name="example" value="tracing"/>
-  </antcall>	
+  </antcall>
+  <antcall target="packageExample">
+    <param name="example" value="org.eclipse.ajdt.examples.progressmon"/>
+  </antcall>
 </target>
     
 <target name="packageExample">
