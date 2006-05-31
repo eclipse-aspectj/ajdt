@@ -254,18 +254,19 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			} else {
 			    // bug 101481 - need to refresh the output directory
 			    // so that the compiled classes can be found
-				IPath workspaceRelativeOutputPath = javaProject.getOutputLocation();
-
-				if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-					// root
-					project.refreshLocal(IResource.DEPTH_INFINITE, null);
-				} else {
-					IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-							.getFolder(workspaceRelativeOutputPath);
-					out.refreshLocal(IResource.DEPTH_INFINITE, null);
-					project.refreshLocal(IResource.DEPTH_ONE, null);
+				IPath[] paths = CoreUtils.getOutputFolders(javaProject);
+				for (int i = 0; i < paths.length; i++) {
+					IPath workspaceRelativeOutputPath = paths[i];
+					if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+						// root
+						project.refreshLocal(IResource.DEPTH_INFINITE, null);
+					} else {
+						IFolder out = ResourcesPlugin.getWorkspace().getRoot()
+								.getFolder(workspaceRelativeOutputPath);
+						out.refreshLocal(IResource.DEPTH_INFINITE, null);
+						project.refreshLocal(IResource.DEPTH_ONE, null);
+					}
 				}
-			    
 			}
 		} catch (CoreException e) {
 		}
@@ -635,69 +636,39 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Check the project property
 		boolean deleteAll = JavaCore.CLEAN.equals(project.getOption(
 				JavaCore.CORE_JAVA_BUILD_CLEAN_OUTPUT_FOLDER, true));
-
 		if (deleteAll) {
-			boolean linked = false;
-			String realOutputLocation = null;
-			IResource output = project.getProject();
-			
-			// Retrieve the output location: e.g. /Proj2/bin
-			IPath workspaceRelativeOutputPath = project.getOutputLocation();
-
-			if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
-				// root
-				realOutputLocation = project.getResource().getLocation()
-						.toOSString();
-			} else {
-				IFolder out = ResourcesPlugin.getWorkspace().getRoot()
-						.getFolder(workspaceRelativeOutputPath);
-				linked = out.isLinked();
-				realOutputLocation = out.getLocation().toOSString();
-				output = out;
+			int numberDeleted = 0;
+			IPath[] paths = CoreUtils.getOutputFolders(project);
+			for (int i = 0; i < paths.length; i++) {
+				numberDeleted += cleanFolder(project, paths[i], refresh);
 			}
-
-			File outputDir = new File(realOutputLocation);
-
-			int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
-			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
-							+ numberDeleted
-							+ " .class files from " //$NON-NLS-1$
-							+ realOutputLocation
-							+ (linked ? " (Linked output folder from " //$NON-NLS-1$
-									+ workspaceRelativeOutputPath.toOSString()
-									+ ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
-			if (refresh) {
-                output.refreshLocal(IResource.DEPTH_INFINITE, null);
-            }
+			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), deleted " //$NON-NLS-1$
+							+ numberDeleted + " .class files"); //$NON-NLS-1$
 		}
 	}
 	
-	/**
-	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
-	 * source folders, so we clean these to prevent old class files remaining,
-	 * from before the project was converted to an AJ project.
-	 */
-	public static void cleanSeparateOutputFolder(
-			IPath workspaceRelativeOutputPath) throws CoreException {
-		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
-				workspaceRelativeOutputPath);
-		String realOutputLocation = out.getLocation().toOSString();
+	private int cleanFolder(IJavaProject project, IPath outputFolder, boolean refresh) throws CoreException {
+		String realOutputLocation = null;
+		IResource outputResource;
+		if (outputFolder.segmentCount() == 1) {
+			// project root
+			outputResource = project.getProject();
+			realOutputLocation = project.getResource().getLocation()
+					.toOSString();
+		} else {
+			outputResource = ResourcesPlugin.getWorkspace().getRoot()
+					.getFolder(outputFolder);
+			realOutputLocation = outputResource.getLocation().toOSString();
+		}
+
 		File outputDir = new File(realOutputLocation);
 		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
-		out.refreshLocal(IResource.DEPTH_INFINITE, null);
-		AJLog.log(AJLog.BUILDER,"Builder: Tidied separate output folder, deleted " //$NON-NLS-1$
-				+ numberDeleted
-				+ " .class files from " //$NON-NLS-1$
-				+ realOutputLocation
-				+ (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
-						+ workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
+		if (refresh) {
+			outputResource.refreshLocal(IResource.DEPTH_INFINITE, null);
+        }
+		return numberDeleted;
 	}
-
-	/**
-	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
-	 * source folders, so we clean these to prevent old class files remaining,
-	 * from before the project was converted to an AJ project.
-	 */
+	
 	public static void cleanAJFilesFromOutputFolder(
 			IPath workspaceRelativeOutputPath) throws CoreException {
 		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(

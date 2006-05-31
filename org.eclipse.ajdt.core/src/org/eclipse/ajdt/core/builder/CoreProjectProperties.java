@@ -429,7 +429,33 @@ public class CoreProjectProperties implements IProjectProperties {
 		return fileSet;
 	}
 
+	private boolean isUsingSeparateOutputFolders(IJavaProject jp) {
+		try {
+			IClasspathEntry[] cpe = jp.getRawClasspath();
+			for (int i = 0; i < cpe.length; i++) {
+				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					if (cpe[i].getOutputLocation() != null) {
+						return true;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return false;
+	}
+	
 	public OutputLocationManager getOutputLocationManager() {
+		IProject project = AspectJPlugin.getDefault().getCurrentProject();
+		if (project == null) {
+			return null;
+		}
+		IJavaProject jp = JavaCore.create(project);
+		if (jp == null) {
+			return null;
+		}
+		if (isUsingSeparateOutputFolders(jp)) {
+			return new CoreOutputLocationManager(jp);
+		}
 		return null;
 	}
 

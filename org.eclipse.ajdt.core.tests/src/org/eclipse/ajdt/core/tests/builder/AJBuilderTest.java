@@ -107,7 +107,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 					testLog
 							.containsMessage("Cleared AJDT relationship map for project bug101481")); //$NON-NLS-1$
 			int n = testLog
-					.numberOfEntriesForMessage("Builder: Tidied output folder, deleted 1 .class files from"); //$NON-NLS-1$
+					.numberOfEntriesForMessage("Builder: Tidied output folder(s), deleted 1 .class files"); //$NON-NLS-1$
 
 			binC = binPack.getFile("C.class"); //$NON-NLS-1$
 			assertTrue("class file should exist", binC.exists()); //$NON-NLS-1$
@@ -117,17 +117,14 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			// are in the javaBuilder part of bug 101481
 			assertTrue(
 					"should have deleted 1 class file from the output dir", //$NON-NLS-1$
-					testLog
-							.containsMessage("Builder: Tidied output folder, deleted 1 .class files from")); //$NON-NLS-1$
+					testLog.containsMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
 			assertTrue(
 					"should have removed problems and tasks for the project", //$NON-NLS-1$
-					testLog
-							.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
+					testLog.containsMessage("Removed problems and tasks for project")); //$NON-NLS-1$
 			assertEquals(
 					"should have cleaned output folder " + (n + 1) + "times", //$NON-NLS-1$ //$NON-NLS-2$
 					n + 1,
-					testLog
-							.numberOfEntriesForMessage("Builder: Tidied output folder, deleted 1 .class files from")); //$NON-NLS-1$
+					testLog.numberOfEntriesForMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
 			assertFalse("bin directory should not contain class file", //$NON-NLS-1$
 					outputDirContainsFile(project, "pack", "C.class")); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -169,6 +166,61 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		return false;
 	}
 
+	public void testMultipleOutputFolders() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
+		try {
+			// check class files end up in correct output folder
+			IFolder bin = project.getFolder("bin"); //$NON-NLS-1$
+			if (!bin.exists()) {
+				bin.create(true, true, null);
+			}
+			IFolder binPack = bin.getFolder("p1"); //$NON-NLS-1$
+			if (!binPack.exists()) {
+				binPack.create(true, true, null);
+			}
+			IFile binC = binPack.getFile("Demo.class"); //$NON-NLS-1$
+			assertTrue("class file Demo.class should exist in bin", binC.exists()); //$NON-NLS-1$
+
+			IFolder bin2 = project.getFolder("bin2"); //$NON-NLS-1$
+			if (!bin2.exists()) {
+				bin2.create(true, true, null);
+			}
+			IFolder bin2Pack = bin2.getFolder("p2"); //$NON-NLS-1$
+			if (!bin2Pack.exists()) {
+				bin2Pack.create(true, true, null);
+			}
+			IFile bin2C = bin2Pack.getFile("GetInfo.class"); //$NON-NLS-1$
+			assertTrue("class file GetInfo.class should exist in bin2", bin2C.exists()); //$NON-NLS-1$
+
+			binC = binPack.getFile("GetInfo.class"); //$NON-NLS-1$
+			assertFalse("class file GetInfo.class should NOT exist in bin", binC.exists()); //$NON-NLS-1$
+
+			binC = bin2Pack.getFile("Demo.class"); //$NON-NLS-1$
+			assertFalse("class file Demo.class should NOT exist in bin2", binC.exists()); //$NON-NLS-1$
+			
+			// now test that cleaning the project cleans both folders
+			project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+
+			assertTrue(
+					"should have deleted 4 class file from the output dirs", //$NON-NLS-1$
+					testLog.containsMessage("Builder: Tidied output folder(s), deleted 4 .class files")); //$NON-NLS-1$
+
+			binPack.refreshLocal(IResource.DEPTH_INFINITE, null);
+			binC = binPack.getFile("Demo.class"); //$NON-NLS-1$
+			assertFalse("class file Demo.class should no longer exist in bin", binC.exists()); //$NON-NLS-1$
+
+			bin2Pack.refreshLocal(IResource.DEPTH_INFINITE, null);
+			bin2C = bin2Pack.getFile("GetInfo.class"); //$NON-NLS-1$
+			assertFalse("class file GetInfo.class should no longer exist in bin2", bin2C.exists()); //$NON-NLS-1$
+
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(project);
+		}
+	}
+	
 	public void testIncrementalBuildWithSrcFolder() throws Exception {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);

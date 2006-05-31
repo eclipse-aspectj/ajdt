@@ -48,6 +48,7 @@ public class AllCoreTests {
 		}
 		suite.addTest(new TestSuite(AJPropertiesTest.class));
 		suite.addTest(new TestSuite(BuildConfigTest.class));
+		suite.addTest(new TestSuite(CoreUtilsTest.class));
 		
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));

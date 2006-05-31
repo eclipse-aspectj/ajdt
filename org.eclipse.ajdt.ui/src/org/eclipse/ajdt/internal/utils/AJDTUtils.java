@@ -172,7 +172,6 @@ public class AJDTUtils {
 	}
 	
 	private static void internal_addAspectJNature(IProject project, boolean prompt) throws CoreException {
-		checkSeparateOutputFolders(project);
 		checkOutputFoldersForAJFiles(project);
 		
 		// add the AspectJ Nature
@@ -220,38 +219,6 @@ public class AJDTUtils {
 		}
 		
 		refreshPackageExplorer();
-	}
-
-	/**
-	 * Bugs 46665/101983: AspectJ doesn't support separate output folders for
-	 * source folders so we prompt the user and clean these to prevent old class
-	 * files remaining, from before the project was converted to an AJ project.
-	 */
-	private static void checkSeparateOutputFolders(IProject project)
-			throws CoreException {
-		IJavaProject jp = JavaCore.create(project);
-		if (jp == null) {
-			return;
-		}
-		IClasspathEntry[] cpe = jp.getRawClasspath();
-		for (int i = 0; i < cpe.length; i++) {
-			if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-				IPath output = cpe[i].getOutputLocation();
-				if (output != null) {
-					// not using default output, need to show dialog
-					IWorkbenchWindow window = AspectJUIPlugin.getDefault()
-							.getWorkbench().getActiveWorkbenchWindow();
-					boolean remove = MessageDialog
-							.openQuestion(
-									window.getShell(),
-									UIMessages.MultipleOutputDirs_title,
-									NLS.bind(UIMessages.MultipleOutputDirs_message, cpe[i].getPath().lastSegment()));
-					if (remove) {
-						AJBuilder.cleanSeparateOutputFolder(output);
-					}
-				}
-			}
-		}
 	}
 	
 	/**

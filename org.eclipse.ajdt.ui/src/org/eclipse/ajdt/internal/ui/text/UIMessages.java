@@ -73,8 +73,6 @@ public class UIMessages extends NLS {
 	public static String NewTypeWizardPage_SuperClassDialog_title;
 	public static String NewTypeWizardPage_SuperClassDialog_message;	
 	public static String PluginExportWizard_31Title;
-	public static String MultipleOutputDirs_title;
-	public static String MultipleOutputDirs_message;	
 	public static String NewAspectCreationWizard_title;
 	public static String NewAspectCreationWizardPage_title;
 	public static String NewAspectCreationWizardPage_description;

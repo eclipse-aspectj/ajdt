@@ -135,60 +135,6 @@ public class CoreUtils {
 	}
 	
 	/**
-	 * Get all projects within the workspace on which the given project has a
-	 * class folder dependency
-	 * 
-	 * @param IProject
-	 *            project
-	 * @return IProject[]
-	 */
-	public static IProject[] getRequiredClassFolderProjects(IProject project) {
-		IJavaProject javaProject = JavaCore.create(project);
-		if (javaProject == null)
-			return new IProject[0];
-
-		List requiredProjects = new ArrayList();
-		IProject[] projectsInWorkspace = AspectJPlugin.getWorkspace()
-				.getRoot().getProjects();
-
-		iterateOverProjects: for (int i = 0; i < projectsInWorkspace.length; i++) {
-			try {
-				if (!(projectsInWorkspace[i].isOpen())
-						|| !projectsInWorkspace[i]
-								.hasNature(AspectJPlugin.JAVA_NATURE_ID))
-					continue iterateOverProjects;
-			} catch (CoreException e1) {
-				// nature could not be checked, suppose non-java
-				continue iterateOverProjects;
-			}
-			IProject proj = projectsInWorkspace[i];
-			List outputLocationPaths = getOutputLocationPaths(proj);
-			for (Iterator iterator = outputLocationPaths.iterator(); iterator
-					.hasNext();) {
-				IPath path = (IPath) iterator.next();
-				try {
-					IClasspathEntry[] cpEntry = javaProject.getRawClasspath();
-					for (int j = 0; j < cpEntry.length; j++) {
-						IClasspathEntry entry = cpEntry[j];
-						int entryKind = entry.getEntryKind();
-						IPath entryPath = entry.getPath();
-						if (entryKind == IClasspathEntry.CPE_LIBRARY
-								&& entryPath.equals(path)) {
-							requiredProjects.add(projectsInWorkspace[i]);
-							continue iterateOverProjects;
-						}
-					}
-				} catch (JavaModelException e) {
-					continue iterateOverProjects;
-				}
-			}
-		}
-		IProject[] projects = (IProject[]) requiredProjects
-				.toArray(new IProject[] {});
-		return projects;
-	}
-
-	/**
 	 * Get all projects within the workspace who have a dependency on the given
 	 * project - this can either be a class folder dependency or on a library
 	 * which the project exports.
@@ -324,4 +270,20 @@ public class CoreUtils {
 		}
 		return outputLocations;
 	}
+	
+	public static IPath[] getOutputFolders(IJavaProject project) throws CoreException {
+		List paths = new ArrayList();
+		paths.add(project.getOutputLocation());
+		IClasspathEntry[] cpe = project.getRawClasspath();
+		for (int i = 0; i < cpe.length; i++) {
+			if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				IPath output = cpe[i].getOutputLocation();
+				if (output != null) {
+					paths.add(output);
+				}
+			}
+		}
+		return (IPath[])paths.toArray(new IPath[paths.size()]);
+	}
+	
 }
