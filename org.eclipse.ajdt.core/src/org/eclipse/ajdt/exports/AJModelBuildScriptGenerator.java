@@ -739,7 +739,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}
 
 		script.printComment(Messages.build_compilerSetting);
-		script.printProperty(PROPERTY_JAVAC_FAIL_ON_ERROR, "false"); //$NON-NLS-1$
+		script.printProperty(PROPERTY_JAVAC_FAIL_ON_ERROR, "true"); //$NON-NLS-1$
 		script.printProperty(PROPERTY_JAVAC_DEBUG_INFO, "on"); //$NON-NLS-1$
 		script.printProperty(PROPERTY_JAVAC_VERBOSE, "true"); //$NON-NLS-1$
 		script.printProperty(PROPERTY_JAVAC_COMPILERARG, ""); //$NON-NLS-1$  
@@ -968,7 +968,16 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 
 		script.printComment("compile the source code"); //$NON-NLS-1$
 		// AspectJ Change Begin
-		AJCTask javac = new AJCTask(getModel().getLocation(), buildConfig);
+		String toolsLocation = "";
+		try {
+			// locate the eclipse classes required by the iajc task, such as
+			// OperationCanceledException from org.eclipse.equinox.common
+			BundleDescription model = getSite(false).getRegistry()
+					.getResolvedBundle("org.eclipse.equinox.common"); //$NON-NLS-1$
+			toolsLocation = model.getLocation();
+		} catch (CoreException e) {
+		}				
+		AJCTask javac = new AJCTask(getModel().getLocation(), buildConfig, toolsLocation);
 		javac.setAspectpath(aspectpath);
 		javac.setInpath(inpath);
 		// AspectJ Change End

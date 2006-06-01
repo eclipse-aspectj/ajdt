@@ -29,14 +29,17 @@ public class AJCTask extends JavacTask {
 	private String baseLocation;
 
 	private String buildConfig;
-	
+
+	private String toolsLocation;
+
 	protected List aspectpath;
 	protected List inpath;
 
-	public AJCTask(String location, String config) {
+	public AJCTask(String location, String config, String toolsLocation) {
 		super();
 		this.baseLocation = location;
 		this.buildConfig = config;
+		this.toolsLocation = toolsLocation;
 	}
 	
 	public void print(AntScript script) {
@@ -44,6 +47,8 @@ public class AJCTask extends JavacTask {
 			AJAntScript ajScript = (AJAntScript)script;
 			Bundle toolsBundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
 			Bundle weaverBundle = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID);
+			Bundle runtimeBundle = Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
+			Bundle eqcomBundle = Platform.getBundle("org.eclipse.equinox.common"); //$NON-NLS-1$
 			try {
 				URL resolved = FileLocator.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
 				IPath ajdeLocation = Utils.makeRelative(new Path(resolved
@@ -51,11 +56,21 @@ public class AJCTask extends JavacTask {
 				resolved = FileLocator.resolve(weaverBundle.getEntry("/")); //$NON-NLS-1$
 				IPath weaverLocation = Utils.makeRelative(new Path(resolved
 						.getFile()), new Path(baseLocation));
+				resolved = FileLocator.resolve(runtimeBundle.getEntry("/")); //$NON-NLS-1$
+				IPath runtimeLocation = Utils.makeRelative(new Path(resolved
+						.getFile()), new Path(baseLocation));
+				// toolsLocation locates the eclipse classes required by the iajc task,
+				// such as OperationCanceledException from org.eclipse.equinox.common
+				IPath eqcomLocation = Utils.makeRelative(new Path(toolsLocation),
+						new Path(baseLocation));
 				ajScript.printProperty(
 						"aspectj.plugin.home", ajdeLocation.toPortableString()); //$NON-NLS-1$
-				ajScript
-						.printProperty(
-								"aspectj.weaver.home", weaverLocation.toPortableString()); //$NON-NLS-1$
+				ajScript.printProperty(
+						"aspectj.weaver.home", weaverLocation.toPortableString()); //$NON-NLS-1$
+				ajScript.printProperty(
+						"aspectj.runtime.home", runtimeLocation.toPortableString()); //$NON-NLS-1$
+				ajScript.printProperty(
+						"eclipse.tools.home", eqcomLocation.toPortableString()); //$NON-NLS-1$
 			} catch (IOException e) {
 			}
 			
@@ -94,8 +109,8 @@ public class AJCTask extends JavacTask {
 			ajScript.printTab();
 			ajScript.print("<iajc"); //$NON-NLS-1$
 			ajScript.printAttribute("destDir", destdir, false); //$NON-NLS-1$
-			ajScript.printAttribute("failonerror", failonerror, false); //$NON-NLS-1$
-			ajScript.printAttribute("verbose", verbose, false); //$NON-NLS-1$
+			ajScript.printAttribute("failonerror", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.printAttribute("verbose", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
 			if (useBuildConfig) {
 				ajScript.printAttribute("srcdir", ".", false); //$NON-NLS-1$ //$NON-NLS-2$
@@ -124,6 +139,16 @@ public class AJCTask extends JavacTask {
 			ajScript.printTab();
 			ajScript.print("<pathelement"); //$NON-NLS-1$
 			ajScript.printAttribute("path", "${aspectj.weaver.home}/aspectjweaver.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.print("/>"); //$NON-NLS-1$
+			ajScript.println();
+			ajScript.printTab();
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${aspectj.runtime.home}/aspectjrt.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.print("/>"); //$NON-NLS-1$
+			ajScript.println();
+			ajScript.printTab();
+			ajScript.print("<pathelement"); //$NON-NLS-1$
+			ajScript.printAttribute("path", "${eclipse.tools.home}", true); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.print("/>"); //$NON-NLS-1$
 			ajScript.println();
 			

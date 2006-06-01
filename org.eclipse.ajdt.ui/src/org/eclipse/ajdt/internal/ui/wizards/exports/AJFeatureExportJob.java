@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -21,7 +22,6 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
-import org.eclipse.pde.internal.core.exports.FeatureExportOperation;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEUIMessages;
 import org.eclipse.swt.widgets.Display;

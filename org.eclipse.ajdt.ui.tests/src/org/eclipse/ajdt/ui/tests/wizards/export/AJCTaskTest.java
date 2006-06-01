@@ -49,7 +49,7 @@ public class AJCTaskTest extends UITestCase {
 		tempFile.createNewFile();
 		os = new FileOutputStream(tempFile);
 		script = new AJAntScript(os);
-		task = new AJCTask(location.getFile(),null);
+		task = new AJCTask(location.getFile(),null,"");
 		task.setSrcdir(new String[] { srcdirEntry });
 		task.print(script);
 		script.close();
