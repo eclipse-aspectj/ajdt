@@ -39,8 +39,8 @@ import org.eclipse.swt.widgets.Shell;
 public class ExportProductTest extends UITestCase {
 
 	// taken from ExportDestinationTab
-	protected static final String S_EXPORT_DIRECTORY = "exportDirectory"; //$NON-NLS-1$
-	protected static final String S_DESTINATION = "destination"; //$NON-NLS-1$
+	private static final String S_EXPORT_DIRECTORY = "exportDirectory"; //$NON-NLS-1$
+	private static final String S_DESTINATION = "destination"; //$NON-NLS-1$
 
 	// taken from ProductConfigurationSection
 	private static final String S_PRODUCT_CONFIG = "productConfig"; //$NON-NLS-1$
@@ -51,7 +51,7 @@ public class ExportProductTest extends UITestCase {
 		super.setUp();
 		URL location = FileLocator.resolve(Platform.getBundle(
 				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
-		URL folderURL = new URL(location, "exportDir/"); //$NON-NLS-1$
+		URL folderURL = new URL(location, "exportProductDir/"); //$NON-NLS-1$
 		exportFolder = folderURL.getPath();
 	}
 

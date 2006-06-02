@@ -39,8 +39,10 @@ public class ExportPluginTest extends UITestCase {
 	private static final String S_ZIP_FILENAME = "zipFileName"; //$NON-NLS-1$
 	private static final String S_EXPORT_DIRECTORY = "exportDirectory"; //$NON-NLS-1$
 	private static final String S_JAR_FORMAT = "exportUpdate"; //$NON-NLS-1$
+	private static final String S_DESTINATION = "destination"; //$NON-NLS-1$
 
 	private String archivePath;
+	private String exportFolder;
 
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -48,9 +50,12 @@ public class ExportPluginTest extends UITestCase {
 				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
 		URL fileURL = new URL(location, "export.zip"); //$NON-NLS-1$
 		archivePath = fileURL.getPath();
+		
+		URL folderURL = new URL(location, "exportDir/"); //$NON-NLS-1$
+		exportFolder = folderURL.getPath();
 	}
 
-	public void testExportPlugin() throws Exception {
+	public void testExportPluginAsZip() throws Exception {
 		IProject project = createPredefinedProject("Hello World Plugin"); //$NON-NLS-1$
 		AJPluginExportWizard wiz = new AJPluginExportWizard() {
 			public IDialogSettings getDialogSettings() {
@@ -92,6 +97,61 @@ public class ExportPluginTest extends UITestCase {
 		zf.close();
 	}
 
+	public void testExportPluginAsDir() throws Exception {
+		IProject project = createPredefinedProject("Hello World Plugin"); //$NON-NLS-1$
+		AJPluginExportWizard wiz = new AJPluginExportWizard() {
+			public IDialogSettings getDialogSettings() {
+				IDialogSettings settings = super.getDialogSettings();
+				settings.put(S_EXPORT_DIRECTORY, true);
+				settings.put(S_JAR_FORMAT, false);
+				settings.put(S_DESTINATION + String.valueOf(0), exportFolder);
+				return settings;
+			}
+		};
+		wiz.init(JavaPlugin.getDefault().getWorkbench(),
+				new StructuredSelection(project));
+		File folder = new File(exportFolder);
+		if (folder.exists()) {
+			deleteDir(folder);
+			if (folder.exists()) {
+				fail("Couldn't delete export Folder"); //$NON-NLS-1$
+			}
+		}
+		
+		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+		MyWizardDialog dialog = new MyWizardDialog(shell, wiz);
+		dialog.setBlockOnOpen(false);
+		dialog.create();
+		dialog.open();
+		dialog.finishPressed();
+
+		waitForJobsToComplete();
+
+		// now check export folder was created
+		if (!folder.exists()) {
+			fail("Export of plugin failed to create export folder: " + folder); //$NON-NLS-1$
+		}
+		File pluginsFolder = new File(folder, "plugins"); //$NON-NLS-1$
+		if (!pluginsFolder.exists()) {
+			fail("Export of plugin failed to create plugins sub-folder: " + pluginsFolder); //$NON-NLS-1$
+		}
+		File hwFolder = new File(pluginsFolder, "HelloWorld_1.0.0"); //$NON-NLS-1$
+		if (!hwFolder.exists()) {
+			fail("Export of plugin failed to create HelloWorld_1.0.0 sub-folder: " + hwFolder); //$NON-NLS-1$
+		}
+		File jar = new File(hwFolder, "HelloWorld.jar");
+		if (!jar.exists()) {
+			fail("Export of plugin failed to create HelloWorld.jar: " + jar); //$NON-NLS-1$
+		}
+		ZipFile zf = new ZipFile(jar);
+		String jarEntry = "helloWorld/HelloWorldPlugin.class"; //$NON-NLS-1$
+		ZipEntry entry = zf.getEntry(jarEntry);
+		assertNotNull("Couldn't find entry in created jar file for: "+jarEntry,entry); //$NON-NLS-1$
+		jarEntry = "helloWorld/HelloAspect.class"; //$NON-NLS-1$
+		entry = zf.getEntry(jarEntry);
+		assertNotNull("Couldn't find entry in created jar file for: "+jarEntry,entry); //$NON-NLS-1$
+	}
+	
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		if ((archivePath != null) && archivePath.length() > 0) {
@@ -99,6 +159,12 @@ public class ExportPluginTest extends UITestCase {
 			if (zip.exists()) {
 				zip.delete();
 				zip.deleteOnExit();
+			}
+		}
+		if ((exportFolder != null) && exportFolder.length() > 0) {
+			File folder = new File(exportFolder);
+			if (folder.exists()) {
+				deleteDir(folder);
 			}
 		}
 	}
