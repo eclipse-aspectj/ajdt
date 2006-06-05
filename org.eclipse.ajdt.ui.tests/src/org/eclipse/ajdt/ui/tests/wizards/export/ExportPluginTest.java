@@ -12,15 +12,14 @@
 package org.eclipse.ajdt.ui.tests.wizards.export;
 
 import java.io.File;
-import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard;
+import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -46,13 +45,9 @@ public class ExportPluginTest extends UITestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		URL location = FileLocator.resolve(Platform.getBundle(
-				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
-		URL fileURL = new URL(location, "export.zip"); //$NON-NLS-1$
-		archivePath = fileURL.getPath();
-		
-		URL folderURL = new URL(location, "exportDir/"); //$NON-NLS-1$
-		exportFolder = folderURL.getPath();
+		IPath state = AspectJTestPlugin.getDefault().getStateLocation();
+		archivePath = state.append("export.zip").toOSString(); //$NON-NLS-1$
+		exportFolder = state.append("exportDir/").toOSString(); //$NON-NLS-1$
 	}
 
 	public void testExportPluginAsZip() throws Exception {
@@ -92,6 +87,87 @@ public class ExportPluginTest extends UITestCase {
 		ZipEntry entry = zf.getEntry(jarEntry);
 		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
 		String xmlEntry = "plugins/HelloWorld_1.0.0/plugin.xml"; //$NON-NLS-1$
+		entry = zf.getEntry(xmlEntry);
+		assertNotNull("Couldn't find entry in created zip file for: "+xmlEntry,entry); //$NON-NLS-1$
+		zf.close();
+	}
+
+	public void testExportMinimalBundleAsZip() throws Exception {
+		IProject project = createPredefinedProject("Minimal Plugin"); //$NON-NLS-1$
+		AJPluginExportWizard wiz = new AJPluginExportWizard() {
+			public IDialogSettings getDialogSettings() {
+				IDialogSettings settings = super.getDialogSettings();
+				settings.put(S_EXPORT_DIRECTORY, false);
+				settings.put(S_JAR_FORMAT, false);
+				settings.put(S_ZIP_FILENAME + String.valueOf(0), archivePath);
+				return settings;
+			}
+		};
+		wiz.init(JavaPlugin.getDefault().getWorkbench(),
+				new StructuredSelection(project));
+		File zip = new File(archivePath);
+		if (zip.exists()) {
+			zip.delete();
+		}
+		
+		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+		MyWizardDialog dialog = new MyWizardDialog(shell, wiz);
+		dialog.setBlockOnOpen(false);
+		dialog.create();
+		dialog.open();
+		dialog.finishPressed();
+
+		waitForJobsToComplete();
+
+		// now check zip file was created
+		if (!zip.exists()) {
+			fail("Export of plugin failed to create zip file: " + zip); //$NON-NLS-1$
+		}
+		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
+		ZipFile zf = new ZipFile(zip);
+		String jarEntry = "plugins/MyPlugin_1.0.0/helloWorld/HelloAspect.class"; //$NON-NLS-1$
+		ZipEntry entry = zf.getEntry(jarEntry);
+		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
+		zf.close();
+	}
+
+	public void testExportJavaBundleAsZip() throws Exception {
+		IProject project = createPredefinedProject("Hello World Java Bundle"); //$NON-NLS-1$
+		AJPluginExportWizard wiz = new AJPluginExportWizard() {
+			public IDialogSettings getDialogSettings() {
+				IDialogSettings settings = super.getDialogSettings();
+				settings.put(S_EXPORT_DIRECTORY, false);
+				settings.put(S_JAR_FORMAT, false);
+				settings.put(S_ZIP_FILENAME + String.valueOf(0), archivePath);
+				return settings;
+			}
+		};
+		wiz.init(JavaPlugin.getDefault().getWorkbench(),
+				new StructuredSelection(project));
+		File zip = new File(archivePath);
+		if (zip.exists()) {
+			zip.delete();
+		}
+		
+		Shell shell = JavaPlugin.getActiveWorkbenchShell();
+		MyWizardDialog dialog = new MyWizardDialog(shell, wiz);
+		dialog.setBlockOnOpen(false);
+		dialog.create();
+		dialog.open();
+		dialog.finishPressed();
+
+		waitForJobsToComplete();
+
+		// now check zip file was created
+		if (!zip.exists()) {
+			fail("Export of plugin failed to create zip file: " + zip); //$NON-NLS-1$
+		}
+		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
+		ZipFile zf = new ZipFile(zip);
+		String jarEntry = "plugins/MyPlugin3_1.0.0/myplugin3/Activator.class"; //$NON-NLS-1$
+		ZipEntry entry = zf.getEntry(jarEntry);
+		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
+		String xmlEntry = "plugins/MyPlugin3_1.0.0/META-INF/MANIFEST.MF"; //$NON-NLS-1$
 		entry = zf.getEntry(xmlEntry);
 		assertNotNull("Couldn't find entry in created zip file for: "+xmlEntry,entry); //$NON-NLS-1$
 		zf.close();
@@ -162,9 +238,19 @@ public class ExportPluginTest extends UITestCase {
 			}
 		}
 		if ((exportFolder != null) && exportFolder.length() > 0) {
-			File folder = new File(exportFolder);
+			final File folder = new File(exportFolder);
 			if (folder.exists()) {
-				deleteDir(folder);
+				Runnable r = new Runnable() {
+					public void run() {
+						// allow time for file handles to be released
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+						}
+						deleteDir(folder);						
+					}
+				};
+				new Thread(r).start();
 			}
 		}
 	}

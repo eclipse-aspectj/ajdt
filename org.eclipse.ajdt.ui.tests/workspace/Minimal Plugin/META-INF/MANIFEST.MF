@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Minimal Bundle
+Bundle-SymbolicName: MyPlugin
+Bundle-Version: 1.0.0
+Bundle-Localization: plugin
+Eclipse-LazyStart: true
+Require-Bundle: org.aspectj.runtime

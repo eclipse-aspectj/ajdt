@@ -12,20 +12,16 @@
 package org.eclipse.ajdt.ui.tests.wizards.export;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.eclipse.ajdt.internal.ui.wizards.exports.AJPluginExportWizard;
 import org.eclipse.ajdt.internal.ui.wizards.exports.ProductExportWizard;
+import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -49,10 +45,8 @@ public class ExportProductTest extends UITestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		URL location = FileLocator.resolve(Platform.getBundle(
-				"org.eclipse.ajdt.ui.tests").getEntry("/")); //$NON-NLS-1$ //$NON-NLS-2$
-		URL folderURL = new URL(location, "exportProductDir/"); //$NON-NLS-1$
-		exportFolder = folderURL.getPath();
+		IPath state = AspectJTestPlugin.getDefault().getStateLocation();
+		exportFolder = state.append("exportProductDir/").toOSString(); //$NON-NLS-1$
 	}
 
 	public void testExportProduct() throws Exception {
@@ -126,9 +120,19 @@ public class ExportProductTest extends UITestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		if ((exportFolder != null) && exportFolder.length() > 0) {
-			File folder = new File(exportFolder);
+			final File folder = new File(exportFolder);
 			if (folder.exists()) {
-				deleteDir(folder);
+				Runnable r = new Runnable() {
+					public void run() {
+						// allow time for file handles to be released
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+						}
+						deleteDir(folder);						
+					}
+				};
+				new Thread(r).start();
 			}
 		}
 	}

@@ -48,7 +48,6 @@ public class AJCTask extends JavacTask {
 			Bundle toolsBundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
 			Bundle weaverBundle = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID);
 			Bundle runtimeBundle = Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
-			Bundle eqcomBundle = Platform.getBundle("org.eclipse.equinox.common"); //$NON-NLS-1$
 			try {
 				URL resolved = FileLocator.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
 				IPath ajdeLocation = Utils.makeRelative(new Path(resolved
