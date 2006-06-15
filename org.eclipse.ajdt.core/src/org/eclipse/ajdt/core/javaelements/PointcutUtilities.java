@@ -87,7 +87,7 @@ public class PointcutUtilities {
 		int start = 0;
 		Map idMap = new HashMap();
 		for (int i = pos+1; !done && i < source.length(); i++) {
-			int c = source.charAt(i);
+			char c = source.charAt(i);
 			if (c == '{') {
 				done = true;
 			} else if (lookingForStart) {
