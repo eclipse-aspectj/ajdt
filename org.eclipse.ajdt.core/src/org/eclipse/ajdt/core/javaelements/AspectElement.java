@@ -128,6 +128,30 @@ public class AspectElement extends SourceType implements IAspectJElement {
 		return array;
 	}
 
+	/**
+	 * Returns the declare elements declared by this type. If this is a source
+	 * type, the results are listed in the order in which they appear in the
+	 * source, otherwise, the results are in no particular order.
+	 * 
+	 * @exception JavaModelException
+	 *                if this element does not exist or if an exception occurs
+	 *                while accessing its corresponding resource.
+	 * @return the declare elements declared by this type
+	 */
+	public IntertypeElement[] getITDs() throws JavaModelException {
+		// ITDs statements appear as methods
+		IMethod[] methods = getMethods();
+		List list = new ArrayList();
+		for (int i = 0; i < methods.length; i++) {
+			if (methods[i] instanceof IntertypeElement) {
+				list.add(methods[i]);
+			}
+		}
+		IntertypeElement[] array = new IntertypeElement[list.size()];
+		list.toArray(array);
+		return array;
+	}
+
 	//TODO: forward call to ElementInfo (only for cosmetical reasons)
 	public Kind getAJKind() throws JavaModelException  {
 		IAspectJElementInfo info = (IAspectJElementInfo) getElementInfo();
