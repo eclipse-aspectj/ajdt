@@ -322,7 +322,7 @@ public class AJCompilationUnitStructureRequestor extends
 				info.setAJAccessibility(CompilationUnitTools.getAccessibilityFromModifierCode(decl.declaredModifiers));
 				info.setAJModifiers(CompilationUnitTools.getModifiersFromModifierCode(decl.declaredModifiers));
 				
-				info.setSourceRangeStart(nameSourceStart /*declarationStart*/);
+				info.setSourceRangeStart(declarationStart);
 				int flags = modifiers;
 				info.setName(nameString.toCharArray());
 				info.setNameSourceStart(nameSourceStart);

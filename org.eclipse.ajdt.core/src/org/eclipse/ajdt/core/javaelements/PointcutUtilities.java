@@ -11,9 +11,13 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.javaelements;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.ISourceRange;
@@ -70,7 +74,45 @@ public class PointcutUtilities {
 		String s = source.substring(start + 1, end);
 		return s;
 	}
-
+	
+	// returns a map of id strings to a list of offsets
+	public static Map findAllIdentifiers(String source) {
+		int pos = findNextChar(source, 0, source.length()-1, ':');
+		if (pos == -1) {
+			pos = 0;
+		}
+		
+		boolean lookingForStart = true;
+		boolean done = false;
+		int start = 0;
+		Map idMap = new HashMap();
+		for (int i = pos+1; !done && i < source.length(); i++) {
+			int c = source.charAt(i);
+			if (c == '{') {
+				done = true;
+			} else if (lookingForStart) {
+				if (Character.isJavaIdentifierStart(c)) {
+					start = i;
+					lookingForStart = false;
+				}
+			} else {
+				if (!Character.isJavaIdentifierPart(c)) {
+					String id = source.substring(start,i);
+					if (!isAjPointcutKeyword(id)) {
+						List offsetList = (List)idMap.get(id);
+						if (offsetList==null) {
+							offsetList = new ArrayList();
+							idMap.put(id, offsetList);
+						}
+						offsetList.add(new Integer(i));
+					}
+					lookingForStart = true;
+				}
+			}
+		}
+		return idMap;
+	}
+	
 	/**
 	 * Given an AspectJ compilation unit and an offset, determine whether that
 	 * offset occurs within the definition of a pointcut, or the pointcut
@@ -218,6 +260,29 @@ public class PointcutUtilities {
 			}
 		}
 		return element;
+	}
+
+	/**
+	 * Utility method which returns true if the given string is a keyword that
+	 * can appear in a pointcut definition.
+	 * 
+	 * @param word
+	 * @return
+	 */
+	public static boolean isAjPointcutKeyword(String word) {
+		for (int i = 0; i < AspectJPlugin.ajKeywords.length; i++) {
+			if (AspectJPlugin.ajKeywords[i].equals(word)) {
+				return true;
+			}
+		}
+		// "this" and "if" are not in the aj list as they are java keywords
+		if ("this".equals(word)) { //$NON-NLS-1$
+			return true;
+		}
+		if ("if".equals(word)) { //$NON-NLS-1$
+			return true;
+		}
+		return false;
 	}
 
 }

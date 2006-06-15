@@ -30,6 +30,7 @@ import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.ModelComparisonTest;
+import org.eclipse.ajdt.core.tests.refactoring.PointcutRenameParticipantTest;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -67,7 +68,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJProjectModelTest2.class));
 		suite.addTest(new TestSuite(ModelComparisonTest.class));
 		
-		// Java Elemenet tests
+		// Java Element tests
 		suite.addTest(new TestSuite(AspectElementTests.class));
 
 		// builder tests
@@ -77,6 +78,10 @@ public class AllCoreTests {
 
 		// AST tests
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
+		
+		// refactoring tests
+		suite.addTest(new TestSuite(PointcutRenameParticipantTest.class));
+		
 		return suite;
 	}
 }

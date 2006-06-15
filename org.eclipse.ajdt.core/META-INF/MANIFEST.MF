@@ -18,6 +18,7 @@ Export-Package: org.eclipse.ajdt.codeconversion,
  org.eclipse.ajdt.internal.core;x-internal:=true,
  org.eclipse.ajdt.internal.core.builder;x-internal:=true,
  org.eclipse.ajdt.internal.core.ras;x-internal:=true,
+ org.eclipse.ajdt.internal.core.refactoring,
  org.eclipse.ajdt.internal.parserbridge;x-internal:=true,
  org.eclipse.ajdt.parserbridge,
  org.eclipse.ajdt.ras
@@ -30,6 +31,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.team.core;resolution:=optional,
  org.aspectj.runtime,
  org.aspectj.weaver,
- org.eclipse.text
+ org.eclipse.text,
+ org.eclipse.ltk.core.refactoring
 Eclipse-LazyStart: true
 Bundle-RequiredExecutionEnvironment: J2SE-1.4

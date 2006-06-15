@@ -33,4 +33,25 @@
 		file-extensions="aj"/>
    </extension>
 
+   <!-- Refactoring participants -->
+   <!-- experimental: not yet enabled
+   <extension point="org.eclipse.ltk.core.refactoring.renameParticipants">
+      <renameParticipant
+            class="org.eclipse.ajdt.internal.core.refactoring.PointcutRenameParticipant"
+            name="%pointcutRenameParticipant"
+            id="org.eclipse.ajdt.core.refactoring.pointcut.typeRename">
+         <enablement>
+           <with variable="affectedNatures">
+             <iterate operator="or">
+               <equals value="org.eclipse.ajdt.ui.ajnature"/>
+             </iterate>
+           </with>
+           <with variable="element">
+   	         <instanceof value="org.eclipse.jdt.core.IType"/>
+           </with>
+         </enablement>
+      </renameParticipant>
+   </extension>  
+   -->
+ 
 </plugin>

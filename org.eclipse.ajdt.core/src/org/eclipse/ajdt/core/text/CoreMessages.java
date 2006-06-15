@@ -53,7 +53,9 @@ public class CoreMessages extends NLS {
 	public static String injarElementLabel;
 
 	public static String missingJarsWarning;
-	
+
+	public static String renameTypeReferences;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, CoreMessages.class);
 	}
