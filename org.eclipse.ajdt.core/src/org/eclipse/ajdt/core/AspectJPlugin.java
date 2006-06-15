@@ -62,6 +62,35 @@ public class AspectJPlugin extends Plugin {
 	
 	public static final String AJ_FILE_EXT = "aj"; //$NON-NLS-1$
 	
+	// AspectJ keywords
+    public static final String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// Pointcut designators: methods and constructora
+		"call", "execution", "initialization", "preinitialization" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		// Pointcut designators: exception handlers
+		"handler", //$NON-NLS-1$
+		// Pointcut designators: fields
+		"get", "set", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: static initialization
+		"staticinitialization", //$NON-NLS-1$
+		// Pointcut designators: object
+		// (this already a Java keyword)
+		"target", "args", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: lexical extents
+		"within", "withincode", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: control flow
+		"cflow", "cflowbelow", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut Designators for annotations
+		"annotation", //$NON-NLS-1$
+		// Advice
+		"before", "after", "around", "proceed", "throwing" , "returning" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		"adviceexecution" , //$NON-NLS-1$
+		// Declarations
+		"declare", "parents" , "warning" , "error", "soft" , "precedence" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		// variables
+		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// Associations
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+
 	/**
 	 * Folder separator used by Eclipse in paths irrespective if on Windows or
 	 * *nix.

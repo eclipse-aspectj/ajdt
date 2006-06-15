@@ -100,7 +100,7 @@ public class PointcutElementHyperlinkDetector implements IHyperlinkDetector {
 		if (start == end) {
 			return null;
 		}
-		if (AspectJCodeScanner.isAjPointcutKeyword(document.substring(start + 1, end))) {
+		if (PointcutUtilities.isAjPointcutKeyword(document.substring(start + 1, end))) {
 			return null;
 		}
 		return new Region(start + 1, end - start - 1);

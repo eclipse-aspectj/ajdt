@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.text.AbstractJavaScanner;
 import org.eclipse.jdt.internal.ui.text.CombinedWordRule;
@@ -344,37 +345,7 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 	private static final String RETURN= "return"; //$NON-NLS-1$
 	private static String[] fgJava14Keywords= { "assert" }; //$NON-NLS-1$
 	private static String[] fgJava15Keywords= { "enum" }; //$NON-NLS-1$
-
-	// AspectJ change begin - AspectJ keywords
-    private static String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		// Pointcut designators: methods and constructora
-		"call", "execution", "initialization", "preinitialization" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-		// Pointcut designators: exception handlers
-		"handler", //$NON-NLS-1$
-		// Pointcut designators: fields
-		"get", "set", //$NON-NLS-1$ //$NON-NLS-2$
-		// Pointcut designators: static initialization
-		"staticinitialization", //$NON-NLS-1$
-		// Pointcut designators: object
-		// (this already a Java keyword)
-		"target", "args", //$NON-NLS-1$ //$NON-NLS-2$
-		// Pointcut designators: lexical extents
-		"within", "withincode", //$NON-NLS-1$ //$NON-NLS-2$
-		// Pointcut designators: control flow
-		"cflow", "cflowbelow", //$NON-NLS-1$ //$NON-NLS-2$
-		// Pointcut Designators for annotations
-		"annotation", //$NON-NLS-1$
-		// Advice
-		"before", "after", "around", "proceed", "throwing" , "returning" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-		"adviceexecution" , //$NON-NLS-1$
-		// Declarations
-		"declare", "parents" , "warning" , "error", "soft" , "precedence" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-		// variables
-		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		// Associations
-		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
-    // AspectJ Change End
-    
+   
 	private static String[] fgTypes= { "void", "boolean", "char", "byte", "short", "strictfp", "int", "long", "float", "double" }; //$NON-NLS-1$ //$NON-NLS-5$ //$NON-NLS-7$ //$NON-NLS-6$ //$NON-NLS-8$ //$NON-NLS-9$  //$NON-NLS-10$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-2$
 
 	private static String[] fgConstants= { "false", "null", "true" }; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
@@ -482,13 +453,13 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		
 		// This is a bit fragile because it depends on positions in the ajKeywords array
 		// but they don't change very often so should be ok..
-		for (int i = 0; i < ajKeywords.length; i++) {
+		for (int i = 0; i < AspectJPlugin.ajKeywords.length; i++) {
 			if (i > 3 && i < 23
 					|| i == 24
 					|| i > 33 && i < 40) {
-				ajBracketRule.addWord(ajKeywords[i], token);
+				ajBracketRule.addWord(AspectJPlugin.ajKeywords[i], token);
 			} else {
-				ajDotWordRule.addWord(ajKeywords[i], token);
+				ajDotWordRule.addWord(AspectJPlugin.ajKeywords[i], token);
 			}
 		}
 		
@@ -533,28 +504,4 @@ public final class AspectJCodeScanner extends AbstractJavaScanner {
 		}
 	}
 
-	// AspectJ Change Begin
-	/**
-	 * Utility method which returns true if the given string is a keyword that
-	 * can appear in a pointcut definition.
-	 * 
-	 * @param word
-	 * @return
-	 */
-	public static boolean isAjPointcutKeyword(String word) {
-		for (int i = 0; i < ajKeywords.length; i++) {
-			if (ajKeywords[i].equals(word)) {
-				return true;
-			}
-		}
-		// "this" and "if" are not in the aj list as they are java keywords
-		if ("this".equals(word)) { //$NON-NLS-1$
-			return true;
-		}
-		if ("if".equals(word)) { //$NON-NLS-1$
-			return true;
-		}
-		return false;
-	}
-	// AspectJ Change End
 }
