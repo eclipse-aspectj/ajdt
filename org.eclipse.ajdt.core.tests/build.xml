@@ -118,6 +118,8 @@
 			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
 			<pathelement path="../../plugins/org.eclipse.jdt.core_3.2.0.v_661.jar"/>
 			<pathelement path="../../plugins/org.eclipse.team.core_3.2.0.I200604261810.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ltk.core.refactoring_3.2.0.v20060427-1600.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.filebuffers_3.2.0.v20060427-1600.jar"/>
 			<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
 		</path>
 		<!-- compile the source code -->
