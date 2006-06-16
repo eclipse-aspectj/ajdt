@@ -16,6 +16,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.javaelements.DeclareElement;
+import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.core.resources.IFile;
@@ -89,6 +90,29 @@ public class AspectElementTests extends AJDTCoreTestCase {
 			assertNotNull("AspectElement.getDeclares() should not return null",declares); //$NON-NLS-1$
 			assertTrue("AspectElement.getDeclares() should return exactly one declare element",declares.length==1); //$NON-NLS-1$
 			assertEquals("AspectElement.getDeclares() should return a declare element with the correct name",declares[0].getElementName(),"declare warning: \"call to update\"");  //$NON-NLS-1$//$NON-NLS-2$
+		} finally {
+			deleteProject(project);
+		}
+	}
+	
+	/**
+	 * AspectElement.getDeclares() should return an array of declare elements
+	 * @throws Exception
+	 */
+	public void testGetITDs() throws Exception {
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
+		try {
+			IResource bp = project.findMember("src/bean/BoundPoint.aj"); //$NON-NLS-1$
+			assertNotNull("Couldn't find BoundPoint.aj file", bp); //$NON-NLS-1$
+			AJCompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit((IFile)bp);
+			IType[] types = cu.getAllTypes();
+			assertTrue("Compilation unit should contain exactly one type", types.length==1); //$NON-NLS-1$
+			assertTrue("Contained type should be an AspectElement", types[0] instanceof AspectElement); //$NON-NLS-1$
+			AspectElement aspect = (AspectElement)types[0];
+			IntertypeElement[] itds = aspect.getITDs();
+			assertNotNull("AspectElement.getITDs() should not return null",itds); //$NON-NLS-1$
+			assertEquals("AspectElement.getITDs() didn't return the expected number of ITDs",6,itds.length); //$NON-NLS-1$
+			assertEquals("AspectElement.getITDs() should return a intertype element with the correct name",itds[0].getElementName(),"Point.support");  //$NON-NLS-1$//$NON-NLS-2$
 		} finally {
 			deleteProject(project);
 		}
