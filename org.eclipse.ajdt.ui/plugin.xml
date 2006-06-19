@@ -592,6 +592,21 @@
                toolbarPath="org.eclipse.jdt.ui.JavaElementCreationActionSet/JavaWizards"
                id="openajprojectwizard">
          </action>
+         
+         <action
+               label="%SaveCrosscuttingMapAction"
+               class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
+               menubarPath="project/additions"
+               id="org.eclipse.ajdt.diff.saveMap">
+         </action>
+         
+         <action
+               label="%generateajdoc"
+               class="org.eclipse.ajdt.internal.ui.actions.GenerateAJdocAction"
+               menubarPath="project/additions"
+               id="generateajdoc">
+         </action>
+         
       </actionSet>
    </extension>
 
@@ -1458,22 +1473,6 @@ M4 = Platform-specific fourth key
 	</perspective>
 </extension>
 
-
-   <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            label="%generateajdoc"
-            visible="true"
-            id="org.eclipse.ajdt.generateajdoc.actionset">
-         <action
-               label="%generateajdoc"
-               class="org.eclipse.ajdt.internal.ui.actions.GenerateAJdocAction"
-               menubarPath="project/additions"
-               id="generateajdoc">
-         </action>
-      </actionSet>
-   </extension>
-
    <extension
          point="org.eclipse.ui.decorators">
       <decorator
@@ -1765,20 +1764,7 @@ M4 = Platform-specific fourth key
     	class="org.eclipse.ajdt.internal.ui.diff.ChangesView" 
     	id="org.eclipse.ajdt.ui.diff.ChangesView" /> 
   </extension>
-  <extension point="org.eclipse.ui.actionSets">
-      <actionSet
-            label="%SaveCrosscuttingMapActionGroup"
-            visible="true"
-            id="org.eclipse.ajdt.diff.actionSet">
-         <action
-               label="%SaveCrosscuttingMapAction"
-               class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
-               menubarPath="project/additions"
-               id="org.eclipse.ajdt.diff.saveMap">
-         </action>
-      </actionSet>     
-   </extension>
-   <extension
+  <extension
          point="org.eclipse.ui.popupMenus">
          <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
