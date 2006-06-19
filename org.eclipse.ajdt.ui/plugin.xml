@@ -553,9 +553,9 @@
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
-            label="%ajActions"
-            visible="false"
-            id="ajactionset">    
+            label="%ajnavigation"
+            visible="true"
+            id="ajnavigation">    
 		<action
                label="%OpenTypeInHierarchyAction.label"
                tooltip="%OpenTypeInHierarchyAction.tooltip"
@@ -573,7 +573,19 @@
                id="OpenTypeIncAspects"
                definitionId="org.eclipse.ajdt.ui.navigate.open.type"
                menubarPath="navigate/open.ext2">
-         </action>         
+         </action>
+         <action
+               label="%generateajdoc"
+               class="org.eclipse.ajdt.internal.ui.actions.GenerateAJdocAction"
+               menubarPath="project/additions"
+               id="generateajdoc">
+         </action>
+      </actionSet>
+      
+      <actionSet
+            label="%ajBuildAction"
+            visible="false"
+            id="ajbuildaction">            
          <action
                label="%buildConfig"
                icon="icons/actions/ajdt-build.gif"
@@ -583,7 +595,12 @@
                toolbarPath="org.eclipse.ui.workbench.file/build.ext"
                id="SelectBuildConfiguration">
          </action>
+       </actionSet>
          
+       <actionSet
+            label="%ajelementCreation"
+            visible="true"
+            id="ajelementCreation">
          <action
                label="%OpenAJProjectWizardAction.label"
                icon="icons/structure/newajprj_wiz.gif"
@@ -592,19 +609,17 @@
                toolbarPath="org.eclipse.jdt.ui.JavaElementCreationActionSet/JavaWizards"
                id="openajprojectwizard">
          </action>
-         
+        </actionSet>
+        
+        <actionSet
+            label="%ajcrosscutting"
+            visible="true"
+            id="ajcrosscutting">
          <action
                label="%SaveCrosscuttingMapAction"
                class="org.eclipse.ajdt.internal.ui.diff.SaveCrosscuttingMap"
                menubarPath="project/additions"
                id="org.eclipse.ajdt.diff.saveMap">
-         </action>
-         
-         <action
-               label="%generateajdoc"
-               class="org.eclipse.ajdt.internal.ui.actions.GenerateAJdocAction"
-               menubarPath="project/additions"
-               id="generateajdoc">
          </action>
          
       </actionSet>
