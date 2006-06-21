@@ -689,7 +689,7 @@ M4 = Platform-specific fourth key
    <extension point="org.eclipse.ui.perspectiveExtensions">
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>
 					<perspectiveShortcut
@@ -697,7 +697,7 @@ M4 = Platform-specific fourth key
     	</perspectiveExtension>
     	<perspectiveExtension 
 			targetID="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
@@ -712,15 +712,15 @@ M4 = Platform-specific fourth key
     	</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.pde.ui.PDEPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 		</perspectiveExtension>
 		
 		<!--
@@ -728,7 +728,7 @@ M4 = Platform-specific fourth key
 		-->    	
     	<perspectiveExtension 
 			targetID="com.ibm.etools.j2ee.J2EEPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
@@ -736,7 +736,7 @@ M4 = Platform-specific fourth key
     	</perspectiveExtension>
     	<perspectiveExtension 
 			targetID="com.ibm.etools.webtools.webperspective.WebToolsPerspective">
-					<actionSet id="ajactionset"/>
+					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
 					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
