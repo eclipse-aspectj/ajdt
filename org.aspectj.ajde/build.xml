@@ -83,11 +83,12 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajde.jar since they're contained in aspectjweaver.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<include name="org/aspectj/asm/**/*.*" />
-				<include name="org/aspectj/weaver/**/*.*" />
-				<include name="org/aspectj/apache/bcel/**/*.*" />
-				<include name="org/aspectj/bridge/**/*.*" />
-				<include name="org/aspectj/util/**/*.*" />
+				<include name="org/aspectj/asm/**" />
+				<include name="org/aspectj/weaver/**" />
+				<include name="org/aspectj/apache/**" />
+				<include name="org/aspectj/bridge/**" />
+				<include name="org/aspectj/util/**" />
+				<include name="org/aspectj/org/objectweb/**" />
 			</fileset>
 		</delete>
 		
@@ -99,8 +100,8 @@ Creates a packaged plug-in jar for AJDE
 				uncomment this if decide it should only live in aspectjrt.jar
 				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
 				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
-				<include name="org/aspectj/runtime/**/*.*" />
-				<include name="org/aspectj/lang/**/*.*" />
+				<include name="org/aspectj/runtime/**" />
+				<include name="org/aspectj/lang/**" />
 			</fileset>
 		</delete>
 	
@@ -126,11 +127,12 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjweaversrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<include name="org/aspectj/asm/**/*.*" />
-				<include name="org/aspectj/weaver/**/*.*" />
-				<include name="org/aspectj/apache/bcel/**/*.*" />
-				<include name="org/aspectj/bridge/**/*.*" />
-				<include name="org/aspectj/util/**/*.*" />
+				<include name="org/aspectj/asm/**" />
+				<include name="org/aspectj/weaver/**" />
+				<include name="org/aspectj/apache/**" />
+				<include name="org/aspectj/bridge/**" />
+				<include name="org/aspectj/util/**" />
+				<include name="org/aspectj/org/objectweb/**" />
 			</fileset>
 		</delete>
 		
@@ -142,8 +144,8 @@ Creates a packaged plug-in jar for AJDE
 				uncomment this if decide it should only live in aspectjrt.jar
 				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
 				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
-				<include name="org/aspectj/runtime/**/*.*" />
-				<include name="org/aspectj/lang/**/*.*" />
+				<include name="org/aspectj/runtime/**" />
+				<include name="org/aspectj/lang/**" />
 			</fileset>
 		</delete>
 		
