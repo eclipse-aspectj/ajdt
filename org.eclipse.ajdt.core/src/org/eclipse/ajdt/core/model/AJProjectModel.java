@@ -761,7 +761,7 @@ public class AJProjectModel {
 	
 		private List elementList;
 	
-		private AJRelationshipType[] relTypes = AJRelationshipManager.allRelationshipTypes;
+		private AJRelationshipType[] relTypes = AJRelationshipManager.getAllRelatinshipTypes();
 	
 		private Map relIDs;
 	
@@ -913,8 +913,11 @@ public class AJProjectModel {
 		private AJRelationshipType decodeRelType(int id) {
 			if (id >= RUNTIME_OFFSET) {
 				id -= RUNTIME_OFFSET;
+			} 
+			if (id < relTypes.length) {
+				return relTypes[id];	
 			}
-			return relTypes[id];
+			return null;
 		}
 	
 		private boolean hasRuntimeTest(int id) {
@@ -933,6 +936,8 @@ public class AJProjectModel {
 					}
 				}
 			}
+			// write the total number of relationship types (without runtime test 
+			// + with runtime test)
 			oos.writeInt(numRelTypes);
 	
 			for (Iterator iter = kindMap.values().iterator(); iter.hasNext();) {
@@ -940,18 +945,24 @@ public class AJProjectModel {
 				for (int i = 0; i <= 1; i++) { // with and without runtime test
 					Map relMap = (Map) perRelMaps[i].get(rel);
 					if (relMap != null) {
+						// write the relationship type
 						oos.writeInt(encodeRelType(rel, (i == 0)));
+						// write the number of rels for this relationship type
+						// (i=0 without runtime test, i=1 with runtime test)
 						oos.writeInt(relMap.size());
 						for (Iterator iter2 = relMap.keySet().iterator(); iter2
 								.hasNext();) {
 							IJavaElement source = (IJavaElement) iter2.next();
+							// write the source of the relationship
 							oos.writeInt(getID(source));
 							List targetList = (List) relMap.get(source);
+							// write the number of targets for this source
 							oos.writeInt(targetList.size());
 							for (Iterator iter3 = targetList.iterator(); iter3
 									.hasNext();) {
 								IJavaElement target = (IJavaElement) iter3
 										.next();
+								// write the target
 								oos.writeInt(getID(target));
 							}
 						}
@@ -962,12 +973,32 @@ public class AJProjectModel {
 	
 		void loadRelationships(ObjectInputStream ois) throws IOException {
 			relsCount = 0;
+			// get the total number of relationship types
 			int numRelTypes = ois.readInt();
 	
 			for (int i = 0; i < numRelTypes; i++) {
+				// get the relationship type
 				int relType = ois.readInt();
+				// get the number of rels for this relationship type
 				int numRels = ois.readInt();
 				AJRelationshipType ajRel = decodeRelType(relType);
+				if (ajRel == null) {
+					// pr148027: uses pointcut/pointcut used by relationships
+					// have been removed but the .ajmap file was created with 
+					// an aj version which includes them. Need to move
+					// to the correct place in the ois
+					for (int j = 0; j < numRels; j++) {
+						// get the source
+						ois.readInt();
+						// get the number of targets
+						int numTargets = ois.readInt();
+						for (int k = 0; k < numTargets; k++) {
+							// get the target
+							ois.readInt();
+						}
+					}
+					continue;
+				}
 				Map perRelMap = hasRuntimeTest(relType) ? perRelMaps[0]
 						: perRelMaps[1];
 				Map relMap = (Map) perRelMap.get(ajRel);
@@ -977,6 +1008,7 @@ public class AJProjectModel {
 				}
 	
 				for (int j = 0; j < numRels; j++) {
+					// get the source of the relationship
 					int sourceID = ois.readInt();
 					IJavaElement sourceEl = (IJavaElement) elementList
 							.get(sourceID);
@@ -989,9 +1021,10 @@ public class AJProjectModel {
 						l = new ArrayList();
 						relMap.put(sourceEl, l);
 					}
-	
+					// get the number of targets for this source
 					int numTargets = ois.readInt();
 					for (int k = 0; k < numTargets; k++) {
+						// get the target
 						int targetID = ois.readInt();
 						IJavaElement targetEl = (IJavaElement) elementList
 								.get(targetID);

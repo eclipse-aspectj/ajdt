@@ -15,6 +15,7 @@ package org.eclipse.ajdt.core.tests.model;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -105,6 +106,9 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	}
 	
 	public void testUsesPointcutRels() throws Exception {
+		// pr148027 - if we're not generating the uses pointcut relationship
+		// then just return
+		if (!AsmHierarchyBuilder.shouldAddUsesPointcut) return; 
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		try {
 			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.USES_POINTCUT };

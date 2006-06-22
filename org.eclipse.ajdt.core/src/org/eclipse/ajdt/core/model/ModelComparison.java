@@ -45,9 +45,9 @@ public class ModelComparison {
 	public List[] compareProjects(AJProjectModel fromModel,
 			AJProjectModel toModel) {
 		List fromRels = fromModel
-				.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+				.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 		List toRels = toModel
-				.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+				.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 
 		// lists to return
 		List addedList = new ArrayList();
@@ -97,9 +97,9 @@ public class ModelComparison {
 			AJProjectModel toModel, IJavaElement fromEl,
 			IJavaElement toEl) {
 		List fromRels = fromModel
-			.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+			.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 		List toRels = toModel
-			.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+			.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 
 		// lists to return
 		List addedList = new ArrayList();

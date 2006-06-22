@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -63,10 +64,7 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 			    { "declare soft: tjp.DemoException", "declare soft" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.itd(int)", "Demo.itd" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "Demo.f", "Demo.f" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "before(): <anonymous pointcut>", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "goCut()", "goCut" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "fieldSet()", "fieldSet" }, //$NON-NLS-1$ //$NON-NLS-2$
-				{ "demoExecs()", "demoExecs" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "before(): <anonymous pointcut>", "before" }, //$NON-NLS-1$ //$NON-NLS-2$	
 				{ "before(): demoExecs..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "before(): <anonymous pointcut>..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
 				{ "after(): fieldSet..", "after" }, //$NON-NLS-1$ //$NON-NLS-2$
@@ -75,6 +73,16 @@ public class AJModelTest3 extends AJDTCoreTestCase {
 				{ "printParameters(JoinPoint)", "printParameters" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		mappingTestForFile(project, filename, results);
+		
+		// see pr148027
+		if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
+			String[][] pcdResults = {
+					{ "goCut()", "goCut" }, //$NON-NLS-1$ //$NON-NLS-2$
+					{ "fieldSet()", "fieldSet" }, //$NON-NLS-1$ //$NON-NLS-2$
+					{ "demoExecs()", "demoExecs" }, //$NON-NLS-1$ //$NON-NLS-2$	
+			};
+			mappingTestForFile(project, filename, pcdResults);
+		}
 		
 		deleteProject(project);
 	}

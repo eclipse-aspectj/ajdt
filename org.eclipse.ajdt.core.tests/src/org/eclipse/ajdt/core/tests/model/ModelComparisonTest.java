@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
@@ -124,6 +125,44 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		}
 	}
 
+	public void testCompareWithCurrentSimpleCase() throws Exception {
+		IProject project = createPredefinedProject("simple.model.comparison"); //$NON-NLS-1$
+		try {
+			IResource ajmap = project.findMember("Simple.ajmap"); //$NON-NLS-1$
+						
+			assertNotNull("Couldn't find ajmap file", ajmap); //$NON-NLS-1$
+
+			AJProjectModel currentModel = AJModel.getInstance()
+					.getModelForProject(project);
+			assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
+
+			// load model from .ajmap file
+			AJProjectModel mapModel = new AJProjectModel(project);
+			boolean success = mapModel.loadModel(ajmap.getLocation());
+			assertTrue("Failed to load model from file: "+ajmap.getLocation(),success);
+
+			assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
+
+			// compare the two models: there should be no added or 
+			// removed relationships
+			List[] results = new ModelComparison(false).compareProjects(
+					mapModel, currentModel);
+			List added = results[0];
+			if ((added != null) && (added.size() > 0)) {
+				fail("List of added relationships should be empty or null. Found " //$NON-NLS-1$
+						+ added.size() + " relationships"); //$NON-NLS-1$
+			}
+			List removed = results[1];
+			if ((removed != null) && (removed.size() > 0)) {
+				fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
+						+ removed.size() + " relationships"); //$NON-NLS-1$
+			}
+		} finally {
+			deleteProject(project);
+		}
+	}
+
+	
 	public void testCompareElements() throws Exception {
 		IProject project = createPredefinedProject("Comparisons"); //$NON-NLS-1$
 		try {

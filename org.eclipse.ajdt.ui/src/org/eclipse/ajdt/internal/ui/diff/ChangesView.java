@@ -547,7 +547,7 @@ public class ChangesView extends ViewPart {
 				.setToolTipText(UIMessages.changesView_propagate_tooltip);
 		propagateToggleAction.setImageDescriptor(AspectJImages.PROPAGATE_UP.getImageDescriptor());
 
-		AJRelationshipType[] relationshipTypes = AJRelationshipManager.allRelationshipTypes;
+		AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelatinshipTypes();
 
 		List populatingList = new ArrayList();
 		for (int i = 0; i < relationshipTypes.length; i++) {
