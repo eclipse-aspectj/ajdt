@@ -689,17 +689,15 @@ M4 = Platform-specific fourth key
    <extension point="org.eclipse.ui.perspectiveExtensions">
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
-					<newWizardShortcut id="ajprojectwizard"/>
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
     	</perspectiveExtension>
     	<perspectiveExtension 
 			targetID="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
-					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
                         id="org.eclipse.jdt.ui.JavaPerspective"/>				
 					<!--
@@ -712,15 +710,15 @@ M4 = Platform-specific fourth key
     	</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.pde.ui.PDEPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 		</perspectiveExtension>
 		
 		<!--
@@ -728,17 +726,15 @@ M4 = Platform-specific fourth key
 		-->    	
     	<perspectiveExtension 
 			targetID="com.ibm.etools.j2ee.J2EEPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
-					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
     	</perspectiveExtension>
     	<perspectiveExtension 
 			targetID="com.ibm.etools.webtools.webperspective.WebToolsPerspective">
-					<actionSet id="ajnavigation"/>
+					<actionSet id="ajelementCreation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
-					<newWizardShortcut id="ajprojectwizard"/>	
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>				
     	</perspectiveExtension>
@@ -1928,7 +1924,7 @@ M4 = Platform-specific fourth key
                id="arv.sameProject"/>       
       </objectContribution>
    </extension>  
-       
+
 <!-- EXPERIMENTAL (for debugging purposes only)
   <extension point="org.eclipse.ui.views">
     <view name="Structure Model" 
