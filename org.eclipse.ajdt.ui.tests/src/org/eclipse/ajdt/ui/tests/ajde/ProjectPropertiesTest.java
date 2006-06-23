@@ -12,10 +12,14 @@ package org.eclipse.ajdt.ui.tests.ajde;
 
 import java.io.File;
 
+import org.aspectj.ajde.Ajde;
+import org.aspectj.ajde.ErrorHandler;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
  * 
@@ -53,16 +57,18 @@ public class ProjectPropertiesTest extends UITestCase {
 		// found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res1); //$NON-NLS-1$
-		
+		assertNotNull(
+				"Regression of bug 82258: handling of windows-style drive letters", res1); //$NON-NLS-1$
+
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82258: handling of windows-style drive letters",res2); //$NON-NLS-1$
+		assertNotNull(
+				"Regression of bug 82258: handling of windows-style drive letters", res2); //$NON-NLS-1$
 
 	}
-	
+
 	/**
-	 * Bug 82341  
+	 * Bug 82341
 	 */
 	public void testCaseInsensitive() throws Exception {
 		IProject project = createPredefinedProject("Hello World Project"); //$NON-NLS-1$
@@ -72,24 +78,25 @@ public class ProjectPropertiesTest extends UITestCase {
 		String fullpath1 = project.getLocation().toOSString() + File.separator
 				+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
 		String fullpath2;
-		
+
 		// if on windows then change the case
 		if ((fullpath1.charAt(1) == ':')) {
-			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
-							+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
+			fullpath2 = project.getLocation().toOSString().toUpperCase()
+					+ File.separator
+					+ "src" + File.separator + "HelloWorld.java"; //$NON-NLS-1$ //$NON-NLS-2$
 		} else {
 			fullpath2 = fullpath1;
-		}	
+		}
 		// now make sure both the resources can be found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82341",res1); //$NON-NLS-1$
-		
+		assertNotNull("Regression of bug 82341", res1); //$NON-NLS-1$
+
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82341",res2); //$NON-NLS-1$
+		assertNotNull("Regression of bug 82341", res2); //$NON-NLS-1$
 	}
-	
+
 	public void testCaseInsensitiveNoSrcFolder() throws Exception {
 		IProject project = createPredefinedProject("WithoutSourceFolder"); //$NON-NLS-1$
 
@@ -98,22 +105,86 @@ public class ProjectPropertiesTest extends UITestCase {
 		String fullpath1 = project.getLocation().toOSString() + File.separator
 				+ "C.java"; //$NON-NLS-1$
 		String fullpath2;
-		
+
 		// if on windows then change the case
 		if ((fullpath1.charAt(1) == ':')) {
-			fullpath2 = project.getLocation().toOSString().toUpperCase() + File.separator
-							+ "C.java"; //$NON-NLS-1$
+			fullpath2 = project.getLocation().toOSString().toUpperCase()
+					+ File.separator + "C.java"; //$NON-NLS-1$
 		} else {
 			fullpath2 = fullpath1;
 		}
 		// now make sure both the resources can be found
 		IResource res1 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath1, project);
-		assertNotNull("Regression of bug 82341",res1); //$NON-NLS-1$
-		
+		assertNotNull("Regression of bug 82341", res1); //$NON-NLS-1$
+
 		IResource res2 = AspectJUIPlugin.getDefault()
 				.getAjdtProjectProperties().findResource(fullpath2, project);
-		assertNotNull("Regression of bug 82341",res2); //$NON-NLS-1$
-		
+		assertNotNull("Regression of bug 82341", res2); //$NON-NLS-1$
+
+	}
+
+	public void testBug148055() throws Exception {
+		IProject project = createPredefinedProject("project.with.aop.xml.file"); //$NON-NLS-1$
+
+		IResource xml = project.findMember("src/META-INF/aop.xml"); //$NON-NLS-1$
+		assertNotNull("Couldn't find aop.xml file in project", xml); //$NON-NLS-1$
+		assertTrue("aop.xml file doesn't exist: " + xml, xml.exists()); //$NON-NLS-1$
+		File file = xml.getRawLocation().toFile();
+		assertNotNull("Couldn't find aop.xml as a java.io.File", file); //$NON-NLS-1$
+		assertTrue("aop.xml file doesn't exist: " + file, file.exists()); //$NON-NLS-1$
+
+		boolean deleted = file.delete();
+		assertTrue("Delete failed for file: " + file, deleted); //$NON-NLS-1$
+
+		ErrorHandler eh = Ajde.getDefault().getErrorHandler();
+		TestErrorHandler teh = new TestErrorHandler();
+		Ajde.getDefault().setErrorHandler(teh);
+		project.build(IncrementalProjectBuilder.FULL_BUILD,
+				new NullProgressMonitor());
+		assertFalse(
+				"Regression of bug 148055. The compiler threw an error with message: " //$NON-NLS-1$
+						+ teh.getLastMessage(), teh.errorOccurred());
+		Ajde.getDefault().setErrorHandler(eh);
+	}
+
+	private class TestErrorHandler implements ErrorHandler {
+
+		private boolean gotError = false;
+
+		private String lastMessage;
+
+		public void handleError(String message) {
+			lastMessage = message;
+			gotError = true;
+		}
+
+		public void handleError(String message, Throwable t) {
+			String newline = System.getProperty("line.separator"); //$NON-NLS-1$
+			StringBuffer sb = new StringBuffer();
+			if (t != null) {
+				StackTraceElement[] ste = t.getStackTrace();
+				sb.append(t.getClass().getName());
+				sb.append(newline);
+				for (int i = 0; i < ste.length; i++) {
+					sb.append("at "); //$NON-NLS-1$
+					sb.append(ste[i].toString());
+					sb.append(newline);
+				}
+			}
+			lastMessage = message + newline + sb.toString();	
+			gotError = true;
+		}
+
+		public void handleWarning(String message) {
+		}
+
+		public boolean errorOccurred() {
+			return gotError;
+		}
+
+		public String getLastMessage() {
+			return lastMessage;
+		}
 	}
 }
