@@ -20,6 +20,15 @@
 		</fileset>
 	</path>
 	<property name="bootclasspath" refid="path_bootclasspath"/>
+	<condition property="bundleBootClasspath" value="${J2SE-1.4}">
+		<isset property="J2SE-1.4"/>
+	</condition>
+	<condition property="bundleJavacSource" value="1.3">
+		<isset property="J2SE-1.4"/>
+	</condition>
+	<condition property="bundleJavacTarget" value="1.2">
+		<isset property="J2SE-1.4"/>
+	</condition>
 	<property name="bundleJavacSource" value="${javacSource}"/>
 	<property name="bundleJavacTarget" value="${javacTarget}"/>
 	<property name="bundleBootClasspath" value="${bootclasspath}"/>
@@ -59,33 +68,33 @@
 		<path id="xrefcoretests.jar.classpath">
 			<pathelement path="../org.eclipse.contribution.xref.core/bin/"/>
 			<pathelement path="../org.eclipse.contribution.xref.core/@dot"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.osgi_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.equinox.common_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.jobs_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060426/runtime_registry_compatibility.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060426"/>
-			<pathelement path="../../plugins/org.eclipse.equinox.registry_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.equinox.preferences_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060426/@dot"/>
-			<pathelement path="../../plugins/org.eclipse.core.contenttype_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.auth_3.2.0.v20060426.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime_3.2.0.v20060601b.jar"/>
+			<pathelement path="../../plugins/org.eclipse.osgi_3.2.0.v20060601.jar"/>
+			<pathelement path="../../plugins/org.eclipse.equinox.common_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.jobs_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060602/runtime_registry_compatibility.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060602"/>
+			<pathelement path="../../plugins/org.eclipse.equinox.registry_3.2.0.v20060601.jar"/>
+			<pathelement path="../../plugins/org.eclipse.equinox.preferences_3.2.0.v20060601.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.registry_3.2.0.v20060602/@dot"/>
+			<pathelement path="../../plugins/org.eclipse.core.contenttype_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility.auth_3.2.0.v20060601.jar"/>
 			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
-			<pathelement path="../../plugins/org.eclipse.jdt.core_3.2.0.v_661.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.resources_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.resources.compatibility_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.resources.win32_3.2.0.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility_3.1.100.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.update.configurator_3.1.100.v20060428.jar"/>
-			<pathelement path="../../plugins/org.eclipse.ant.core_3.1.100.v20060425.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.variables_3.1.100.v20060426.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.expressions_3.2.0.v20060427-1600.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.filesystem_1.0.0.v20060411.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.filesystem.win32.x86_1.0.0.v20051114.jar"/>
-			<pathelement path="../../plugins/org.eclipse.text_3.2.0.v20060427-1600.jar"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.core_3.2.0.v_670.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.resources_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.resources.compatibility_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.resources.win32_3.2.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.runtime.compatibility_3.1.100.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.update.configurator_3.2.0.v20060511.jar"/>
+			<pathelement path="../../plugins/org.eclipse.ant.core_3.1.100.v20060531.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.variables_3.1.100.v20060517.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.expressions_3.2.0.v20060602-0010.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.filesystem_1.0.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.filesystem.win32.x86_1.0.0.v20060601a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.text_3.2.0.v20060602-0010.jar"/>
 			<pathelement path="../../plugins/com.ibm.icu_3.4.4.1.jar"/>
-			<pathelement path="../../plugins/org.eclipse.core.commands_3.2.0.I20060427-0800.jar"/>
-			<pathelement path="../../plugins/org.eclipse.team.core_3.2.0.I200604261810.jar"/>
+			<pathelement path="../../plugins/org.eclipse.core.commands_3.2.0.I20060511-0800a.jar"/>
+			<pathelement path="../../plugins/org.eclipse.team.core_3.2.0.I200605181830.jar"/>
 			<pathelement path="../../plugins/org.junit_3.8.1/junit.jar"/>
 		</path>
 		<!-- compile the source code -->
@@ -157,7 +166,7 @@
 	</target>
 
 	<target name="refresh" depends="init" if="eclipse.running" description="Refresh this folder.">
-		<eclipse.convertPath fileSystemPath="E:/AJDTversions/eclipse-SDK-3.2RC2-win32/eclipse/workspace/org.eclipse.contribution.xref.core.tests" property="resourcePath"/>
+		<eclipse.convertPath fileSystemPath="E:/AJDTversions/eclipse-SDK-3.2RC7-win32/eclipse/workspace/org.eclipse.contribution.xref.core.tests" property="resourcePath"/>
 		<eclipse.refreshLocal resource="${resourcePath}" depth="infinite"/>
 	</target>
 
