@@ -3,6 +3,9 @@ Crosscutting Comparison view
 
 Check out "Figures Demo" from org.eclipse.ajdt.ui.tests/workspace
 
+Exclude the SaveAndRestore.aj file (in the figures.support package) from the
+build path. 
+
 Right-click on the project in the package explorer and select
 AspectJ Tools > Save Crosscutting Map
 
@@ -20,16 +23,16 @@ Crosscutting With Current Build. Check that the Crosscutting Comparison view
 is opened, and that the table shows no entries  (CCDIFF_4)
 
 Include the SaveAndRestore.aj file (in the figures.support package) in the
-build configuration. Three "added" entries should appear in the table, two
+build path.  Three "added" entries should appear in the table, two
 for the windowOpened and windowClosing methods being advised, and one for the
 declare parents on the FigureElement interface.  (CCDIFF_5)
 
 Double-click on the before advice entry and check that it is opened
 in the editor.   (CCDIFF_6)
 
-Filtering: The description should say "Showing 3 of 10 items". Press the
+Filtering: The description should say "Showing 3 of 6 items". Press the
 Filters... button to bring up the relationship filter dialog. Press "Deselect
-All", then press OK. Check that the view now shows all 10 entries.   (CCDIFF_7)
+All", then press OK. Check that the view now shows all 6 entries.   (CCDIFF_7)
 
 In the editor comment out the before advice, and save. A build
 should occur, and the corresponding entries should disappear from
@@ -44,15 +47,15 @@ Check out the "Comparisons" project from org.eclipse.ajdt.core.tests/workspace.
 
 Open foo/MyAspect.aj in the editor, then select the before and after advice
 in the outline view, right-click and select "Compare Crosscutting With >
-Each Other". The Crosscutting Comparison view should then show two entries,
-one added and one removed. (CCDIFF_9)
+Each Other". The Crosscutting Comparison view should then show one added
+entries. (CCDIFF_9)
 
 Now select the declare warning and the after advice in the outline view and
 select the same comparison option. The view should show four entries, two
 added and two removed. (CCDIFF_10)
 
 Press the "Propagate Up" button on the view, and the view should become
-empty, with the message including the text "Showing 0 of 1 items". (CCDIFF_11)
+empty. (CCDIFF_11)
 
 Pressing the button again should return the view to showing 4 entries. (CCDIFF_12)
 
