@@ -107,5 +107,39 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			deleteProject(project);
 		}
 	}
+	
+	public void testCompareWithCurrentSimpleCase() throws Exception {
+		IProject project = createPredefinedProject("simple.model.comparison"); //$NON-NLS-1$
+		try {
+			IResource ajmap = project.findMember("Simple.ajmap"); //$NON-NLS-1$
+						
+			assertNotNull("Couldn't find ajmap file", ajmap); //$NON-NLS-1$
+
+			AJProjectModel currentModel = AJModel.getInstance()
+					.getModelForProject(project);
+			assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
+
+			AJProjectModel mapModel = new AJProjectModel(project);
+			mapModel.loadModel(ajmap.getLocation());
+			assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
+
+			assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
+
+			// compare the two models: there should be no added or removed relationships
+			List[] results = ModelComparison.compare(mapModel, currentModel);
+			List added = results[0];
+			if ((added != null) && (added.size() > 0)) {
+				fail("List of added relationships should be empty or null. Found " //$NON-NLS-1$
+						+ added.size() + " relationships"); //$NON-NLS-1$
+			}
+			List removed = results[1];
+			if ((removed != null) && (removed.size() > 0)) {
+				fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
+						+ removed.size() + " relationships"); //$NON-NLS-1$
+			}
+		} finally {
+			deleteProject(project);
+		}
+	}
 
 }

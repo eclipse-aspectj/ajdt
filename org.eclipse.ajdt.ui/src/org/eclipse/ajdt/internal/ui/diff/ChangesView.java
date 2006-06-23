@@ -466,7 +466,7 @@ public class ChangesView extends ViewPart {
 	}
 
 	private void makeActions() {
-		AJRelationshipType[] relationshipTypes = AJRelationshipManager.allRelationshipTypes;
+		AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelatinshipTypes();
 
 		List populatingList = new ArrayList();
 		for (int i = 0; i < relationshipTypes.length; i++) {

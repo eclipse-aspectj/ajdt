@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.aspectj.ajde.Ajde;
+import org.aspectj.ajde.OutputLocationManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -462,6 +463,10 @@ public class CoreProjectProperties implements IProjectProperties {
 			Ajde.getDefault().getErrorHandler().handleWarning(NLS.bind(CoreMessages.missingJarsWarning, invalidEntries.toString()));
 		}
 		return fileSet;
+	}
+
+	public OutputLocationManager getOutputLocationManager() {
+		return null;
 	}
 
 }

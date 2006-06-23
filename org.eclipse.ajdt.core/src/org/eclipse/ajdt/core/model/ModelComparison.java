@@ -35,9 +35,9 @@ public class ModelComparison {
 	public static List[] compare(AJProjectModel fromModel,
 			AJProjectModel toModel) {
 		List fromRels = fromModel
-				.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+				.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 		List toRels = toModel
-				.getAllRelationships(AJRelationshipManager.allRelationshipTypes);
+				.getAllRelationships(AJRelationshipManager.getAllRelatinshipTypes());
 
 		// lists to return
 		List addedList = new ArrayList();
