@@ -146,8 +146,7 @@
 			<pathelement path="../org.aspectj.weaver/aspectjweaver.jar"/>
 			<pathelement path="../org.aspectj.runtime/aspectjrt.jar"/>
 			<pathelement path="../../plugins/org.eclipse.search_3.2.0.v20060602-0010.jar"/>
-			<pathelement path="../org.eclipse.jdt.ui/bin"/>
-			<pathelement path="../org.eclipse.jdt.ui/@dot"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.ui_3.2.0.v20060602-0010.jar"/>
 			<pathelement path="../../plugins/org.eclipse.ui.console_3.1.100.v20060518.jar"/>
 			<pathelement path="../../plugins/org.eclipse.debug.core_3.2.0.v20060601.jar"/>
 			<pathelement path="../../plugins/org.eclipse.debug.ui_3.2.0.v20060601.jar"/>

@@ -103,7 +103,7 @@
 			<pathelement path="../../plugins/org.eclipse.jdt.core_3.2.0.v_670.jar"/>
 			<pathelement path="../../plugins/org.eclipse.text_3.2.0.v20060602-0010.jar"/>
 			<pathelement path="../../plugins/org.eclipse.team.core_3.2.0.I200605181830.jar"/>
-			<pathelement path="../org.eclipse.jdt.ui/@dot"/>
+			<pathelement path="../../plugins/org.eclipse.jdt.ui_3.2.0.v20060602-0010.jar"/>
 			<pathelement path="../../plugins/org.eclipse.ui.console_3.1.100.v20060518.jar"/>
 			<pathelement path="../../plugins/org.eclipse.jface.text_3.2.0.v20060602-0010.jar"/>
 			<pathelement path="../../plugins/org.eclipse.ui.workbench.texteditor_3.2.0.v20060602-0010.jar"/>
