@@ -124,8 +124,6 @@ public class NewAspectWizardTest extends VisualTestCase {
 				.getWorkspace());
 		PackageExplorerPart packageExplorer = PackageExplorerPart
 				.getFromActivePerspective();
-		packageExplorer.setFocus();
-		packageExplorer.selectAndReveal(pack);
 		IFolder folder = (IFolder) pack.getResource();
 
 		for (int i = 0; i < testData.length; i++) {
@@ -134,6 +132,10 @@ public class NewAspectWizardTest extends VisualTestCase {
 			Boolean[] args = (Boolean[]) testData[i][2];
 			Integer perClause = (Integer) testData[i][3];
 			String expected = (String) testData[i][4];
+			
+			packageExplorer.setFocus();
+			packageExplorer.selectAndReveal(pack);
+
 			addNewAspect(aspectName, superName, args[0].booleanValue(), args[1]
 					.booleanValue(), args[2].booleanValue(), args[3]
 					.booleanValue(), args[4].booleanValue(), perClause
@@ -175,21 +177,24 @@ public class NewAspectWizardTest extends VisualTestCase {
 		postKeyUp(SWT.SHIFT);
 		postKeyUp(SWT.ALT);
 
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.ARROW_DOWN);
-		postKey(SWT.CR);
+		postKey('o'); // Other
 
 		Runnable r = new Runnable() {
 			public void run() {
+				sleep();
+				postString("Aspect"); //$NON-NLS-1$
+				sleep();
+				// we don't know which match will be initially
+				// selected - Aspect or AspectJ Project
+				// so we go to the bottom then up one
+				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_DOWN);
+				postKey(SWT.ARROW_UP);
+				postKey(SWT.CR);
+
 				sleep();
 				postString(aspectName);
 				postKey(SWT.TAB);
@@ -236,6 +241,7 @@ public class NewAspectWizardTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
+		sleep();
 		waitForJobsToComplete();
 	}
 }

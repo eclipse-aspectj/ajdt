@@ -46,22 +46,15 @@ public class Bug98663Test extends VisualTestCase {
 			postKeyUp(SWT.SHIFT);
 			postKeyUp(SWT.ALT);
 			
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.ARROW_DOWN);
-			postKey(SWT.CR);
+			postKey('r'); // Project
 			
 			Runnable r = new Runnable() {				
 				public void run() {
+					sleep();
+					postString("AspectJ Project"); //$NON-NLS-1$
+					postKey(SWT.ARROW_DOWN);
+					postKey(SWT.CR);
+
 					sleep();
 					postString("Project1"); //$NON-NLS-1$
 					postKey(SWT.CR);
