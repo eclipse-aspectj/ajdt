@@ -333,7 +333,9 @@ public class ProjectProperties extends CoreProjectProperties  {
 									&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
 									&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
 								File file = new File(fullPath);
-								map.put(relPath, file);
+								if (file.exists()) {
+									map.put(relPath, file);
+								}
 							}
 						}
 					}
