@@ -184,9 +184,9 @@
 			<pathelement path="../org.eclipse.contribution.xref.core.tests/xrefcoretests.jar"/>
 		</path>
 		<!-- compile the source code -->
-		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.0.20060327211000/"/>
-		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.0.20060327211000/"/>
-		<property name="aspectj.runtime.home" value="../../plugins/org.aspectj.runtime_1.5.2.20060615102738/"/>
+		<property name="aspectj.plugin.home" value="../../plugins/org.aspectj.ajde_1.5.2.20060626075446/"/>
+		<property name="aspectj.weaver.home" value="../../plugins/org.aspectj.weaver_1.5.2.20060626075446/"/>
+		<property name="aspectj.runtime.home" value="../../plugins/org.aspectj.runtime_1.5.2.20060626075446/"/>
 		<property name="eclipse.tools.home" value="../../plugins/org.eclipse.equinox.common_3.2.0.v20060601a.jar"/>
 		<taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
 			<classpath>
