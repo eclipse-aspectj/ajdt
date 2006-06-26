@@ -346,4 +346,18 @@
        }
      }
             </pre><p>Note that the ProceedingJoinPoint does not need to be passed to the proceed(..) arguments.
+            </p><p>In code style, the proceed method has the same signature as the advice, any reordering of
+            actual arguments to the joinpoint that is done in the advice signature must be respected.  Annotation
+            style is different.  The proceed(..) call takes, in this order:
+            <div class="itemizedlist"><ul><li><a name="d0e3914"></a>If 'this()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed first in proceed(..).
+          		</li><li><a name="d0e3919"></a>If 'target()' was used in the pointcut <span class="emphasis"><i>for binding</i></span>, it must be passed next in proceed(..) - it will be the 
+          		first argument to proceed(..) if this() was not used for binding.
+          		</li><li><a name="d0e3924"></a>Finally come <span class="emphasis"><i>all</i></span> the arguments expected at the join point, in the order they 
+          		are supplied at the join point.  Effectively the advice signature is ignored - it doesn't 
+          		matter if a subset of arguments were bound or the ordering was changed in the advice 
+          		signature, the proceed(..) calls takes all of them in the right order for the join point.
+          		</li></ul></div> 
+            </p><p>Since proceed(..) in this case takes an Object array, AspectJ cannot do as much compile time
+            checking as it can for code style.  If the rules above aren't obeyed then it will unfortunately
+            manifest as a runtime error.
             </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ataspectj-aspects.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="ataspectj-itds.html">Next</a></td></tr><tr><td width="40%" align="left">Aspect Declarations&nbsp;</td><td width="20%" align="center"><a accesskey="u" href="ataspectj.html">Up</a></td><td width="40%" align="right">&nbsp;Inter-type Declarations</td></tr></table></div></body></html>
