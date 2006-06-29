@@ -211,7 +211,13 @@ public class AllUITests {
 			window.getActivePage().showView(XReferenceView.ID);
 		} catch (PartInitException e1) {
 		}
-		
+
+		// open Console view
+		try {
+			window.getActivePage().showView("org.eclipse.ui.console.ConsoleView"); //$NON-NLS-1$
+		} catch (PartInitException e1) {
+		}
+
 		waitForJobsToComplete();
 		setupDone = true;
 	}

@@ -1,31 +1,6 @@
 Refactoring Tests
 ---------------------
 
-Test1 - Rename file extensions for individual files
----------------------------------------------------
-
- a.	Right click on a .java file in one of your AspectJ projects and then click
-    “Convert file extension to .aj”.  Check that the file extension changes
-    correctly.
-				(REF_1)
- b.	Right click on a .aj file in one of your AspectJ projects and then click
-    “Convert file extension to .java”.  Check that the extension changes correctly.
-				(REF_2)
-
-Test2 - Rename file extensions for multiple files
--------------------------------------------------
-
- a.	Right click on two or more .java files in one of your AspectJ projects and
-    then click “Convert file extension to .aj”.  Check that the file extensions
-    change correctly.
-				(REF_3)
- b.	Right click on two or more .aj file in one of your AspectJ projects and then
-    click “Convert file extension to .java”.  Check that the extensions change
-    correctly.
-				(REF_4)
- c.	Right click on a selection of two or more files with different extensions and
-    ensure that you see neither of the above actions in the menu.
-				(REF_5)
 
 Test3 - Rename excluded files
 -----------------------------

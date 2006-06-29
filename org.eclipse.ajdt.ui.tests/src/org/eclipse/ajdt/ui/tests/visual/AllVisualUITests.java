@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,16 +19,19 @@ public class AllVisualUITests {
 
 	public static Test suite() {
 		TestSuite suite = new TestSuite(AllVisualUITests.class.getName());
-				
-		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
+
+		suite.addTest(new TestSuite(AJDocTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(BuildConfigurationTest3.class));
+		suite.addTest(new TestSuite(Bug98663Test.class));
+		suite.addTest(new TestSuite(Bug100018Test.class));
+		suite.addTest(new TestSuite(ChangeFileExtensionTest.class));
+		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
+		suite.addTest(new TestSuite(LoadTimeWeavingTest.class));
 		suite.addTest(new TestSuite(DeleteAJTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 		suite.addTest(new TestSuite(NewAspectWizardTest.class));
-		suite.addTest(new TestSuite(Bug98663Test.class));
-		suite.addTest(new TestSuite(Bug100018Test.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest.class));
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 		suite.addTest(new TestSuite(OpenDeclarationTest.class));

@@ -11,9 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.core.resources.IFile;
@@ -22,7 +19,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.swt.SWT;
 
 public class NewAspectWizardTest extends VisualTestCase {
@@ -122,8 +118,6 @@ public class NewAspectWizardTest extends VisualTestCase {
 		// need this
 		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
 				.getWorkspace());
-		PackageExplorerPart packageExplorer = PackageExplorerPart
-				.getFromActivePerspective();
 		IFolder folder = (IFolder) pack.getResource();
 
 		for (int i = 0; i < testData.length; i++) {
@@ -133,8 +127,7 @@ public class NewAspectWizardTest extends VisualTestCase {
 			Integer perClause = (Integer) testData[i][3];
 			String expected = (String) testData[i][4];
 			
-			packageExplorer.setFocus();
-			packageExplorer.selectAndReveal(pack);
+			selectInPackageExplorer(pack);
 
 			addNewAspect(aspectName, superName, args[0].booleanValue(), args[1]
 					.booleanValue(), args[2].booleanValue(), args[3]
@@ -146,25 +139,12 @@ public class NewAspectWizardTest extends VisualTestCase {
 							+ aspectName, file);
 			String contents = readFile(file);
 			if(!contents.equals(expected)) {
-				System.out.println("CONTENTS: " + contents);
-				System.out.println("EXPECTED: " + expected);
+				System.out.println("CONTENTS: " + contents); //$NON-NLS-1$
+				System.out.println("EXPECTED: " + expected); //$NON-NLS-1$
 			}
 			assertEquals("Contents of new aspect " + aspectName //$NON-NLS-1$
 					+ " don't match expected", expected, contents); //$NON-NLS-1$
 		}
-	}
-
-	private String readFile(IFile file) throws Exception {
-		StringBuffer contents = new StringBuffer();
-		BufferedReader br = new BufferedReader(new InputStreamReader(file
-				.getContents()));
-		String line = br.readLine();
-		while (line != null) {
-			contents.append(line);
-			line = br.readLine();
-		}
-		br.close();
-		return contents.toString();
 	}
 
 	private void addNewAspect(final String aspectName, final String superName,

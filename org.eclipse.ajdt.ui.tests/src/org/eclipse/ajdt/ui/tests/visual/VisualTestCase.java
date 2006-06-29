@@ -11,12 +11,17 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
-import org.eclipse.ajdt.core.EclipseVersion;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.internal.console.ConsoleView;
+import org.eclipse.ui.internal.console.IOConsolePage;
 
 /**
  * Abstract superclass for Visual tests
@@ -29,9 +34,6 @@ public abstract class VisualTestCase extends UITestCase {
 	}
 
 	protected Display display = Display.getCurrent();
-
-	protected boolean runningEclipse31 = EclipseVersion.MINOR_VERSION == 1
-			&& EclipseVersion.MAJOR_VERSION == 3;
 
 	protected void gotoLine(final int line) {
 		Event event = new Event();
@@ -60,7 +62,7 @@ public abstract class VisualTestCase extends UITestCase {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 				}
-				
+
 				char[] chars = String.valueOf(line).toCharArray();
 				Event event;
 				for (int i = 0; i < chars.length; i++) {
@@ -217,5 +219,27 @@ public abstract class VisualTestCase extends UITestCase {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 		}
+	}
+
+	protected static void selectInPackageExplorer(Object element) {
+		PackageExplorerPart packageExplorer = PackageExplorerPart
+				.getFromActivePerspective();
+		packageExplorer.setFocus();
+		packageExplorer.selectAndReveal(element);
+	}
+
+	protected static String getConsoleViewContents() {
+		ConsoleView cview = null;
+		IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench()
+				.getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		for (int i = 0; i < views.length; i++) {
+			if (views[i].getView(false) instanceof ConsoleView) {
+				cview = (ConsoleView) views[i].getView(false);
+			}
+		}
+		assertNotNull("Console view should be open", cview); //$NON-NLS-1$
+		IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
+		TextViewer viewer = page.getViewer();
+		return viewer.getDocument().get();
 	}
 }

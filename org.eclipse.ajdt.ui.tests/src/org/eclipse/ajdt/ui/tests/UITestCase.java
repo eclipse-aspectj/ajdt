@@ -12,8 +12,10 @@
 
 package org.eclipse.ajdt.ui.tests;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import junit.framework.TestCase;
@@ -263,6 +265,20 @@ public abstract class UITestCase extends TestCase {
 			}
 		}
 		f.delete();
+	}
+
+
+	protected String readFile(IFile file) throws Exception {
+		StringBuffer contents = new StringBuffer();
+		BufferedReader br = new BufferedReader(new InputStreamReader(file
+				.getContents()));
+		String line = br.readLine();
+		while (line != null) {
+			contents.append(line);
+			line = br.readLine();
+		}
+		br.close();
+		return contents.toString();
 	}
 
 }
