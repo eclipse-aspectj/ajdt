@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@ package org.eclipse.internal.ajdt.utils;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 
 /**
- *
+ * Check some coding standards and conventions
  */
 public aspect Enforcement {
 
@@ -23,14 +23,14 @@ public aspect Enforcement {
 	declare warning : call(* Exception.printStackTrace(..)) : 
 	    "There should be no calls to printStackTrace"; //$NON-NLS-1$
 	
-	declare warning : call(void org.eclipse.ajdt.internal.utils.AJDTEventTrace.*(..)) 
+	declare warning : call(void org.eclipse.ajdt.internal.ui.tracing.EventTrace.*(..)) 
 		&& !call(void *.startup(..))
-		&& !within(org.eclipse.ajdt.internal.utils.AJDTEventTrace) 
-		&& !within(org.eclipse.ajdt.internal.ui.AJDTEventTraceView)
-		&& !within(org.eclipse.ajdt.internal.ui.EventTraceLogger) :
+		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTrace) 
+		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceView)
+		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger) :
 		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead"; //$NON-NLS-1$
 
-		declare error : call(void ErrorHandler.handleError(..)) :
+	declare error : call(void ErrorHandler.handleError(..)) :
 		"Calls to handleError should not come from within AJDT, use ErrorHandler.handleAJDTError instead"; //$NON-NLS-1$
 
 }
