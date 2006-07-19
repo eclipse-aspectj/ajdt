@@ -324,7 +324,15 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     private String removePrefix(String msg) {
         String ret = msg;
         IProject p = AspectJPlugin.getDefault().getCurrentProject();
+        
+        //Bug 150936                   
+        if (p == null || p.getLocation() == null) {
+        	AJLog.log("Could not find project location, " + p); //$NON-NLS-1$
+        	return ret;
+        };
+        	
         String projectLocation = p.getLocation().toOSString() + "\\"; //$NON-NLS-1$
+        
         if (msg.indexOf(projectLocation) != -1) {
             ret = msg.substring(0, msg.indexOf(projectLocation))
                     + msg.substring(msg.indexOf(projectLocation)
