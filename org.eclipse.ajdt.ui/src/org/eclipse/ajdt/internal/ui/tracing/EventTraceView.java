@@ -20,6 +20,7 @@ import java.util.List;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.help.IContextProvider;
@@ -61,7 +62,9 @@ public class EventTraceView extends ViewPart
 		super();
 	}
 
-	public void dispose( ) {
+	public void dispose( ) {		
+		AspectJPreferences.setEventTraceList(
+					filterAction.getCheckedList());		
 		DebugTracing.setDebug(false);
 		EventTrace.removeListener( this );
 	}
@@ -155,11 +158,19 @@ public class EventTraceView extends ViewPart
 		
 		String dlogTitle = UIMessages.eventTrace_filter_dialog_title;
 		String dlogMessage = UIMessages.eventTrace_filter_dialog_message;		
-		List populatingList = Arrays.asList(DebugTracing.categoryNames);
-		List checkedList = new ArrayList();
-		checkedList.add(DebugTracing.categoryNames[0]);
-		checkedList.add(DebugTracing.categoryNames[3]);
-		List defaultList = new ArrayList(checkedList);
+		List populatingList = Arrays.asList(DebugTracing.categoryNames);		
+
+		List checkedList = AspectJPreferences.getEventTraceCheckedList();
+		
+		List defaultList = new ArrayList();
+		defaultList.add(DebugTracing.categoryNames[0]);
+	    defaultList.add(DebugTracing.categoryNames[3]);
+		
+	    if (checkedList == null){
+	    	checkedList = new ArrayList(defaultList);
+	    }
+	    DebugTracing.setDebugCategories(checkedList);
+	    
 		filterAction = new FilterTraceAction(getSite().getShell(),
 				populatingList, checkedList, defaultList, dlogTitle,
 				dlogMessage, UIMessages.eventTrace_filter_action_tooltip);

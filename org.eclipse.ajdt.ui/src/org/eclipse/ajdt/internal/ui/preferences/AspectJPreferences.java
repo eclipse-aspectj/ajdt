@@ -216,6 +216,8 @@ public class AspectJPreferences {
 	
 	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
 
+	//Event Trace View
+	public static final String EVENT_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.tracing.checked.filters"; //$NON-NLS-1$
 	
 		public static String getFileExt() {
 		return ".aj";  //$NON-NLS-1$
@@ -566,7 +568,38 @@ public class AspectJPreferences {
 		}
 		return checkedList;
 	}
-	
+
+	public static void setEventTraceList(List l) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("set: "); //$NON-NLS-1$
+		for (Iterator iter = l.iterator(); iter.hasNext();) {
+			String name = (String) iter.next();
+			sb.append(name);
+			if (iter.hasNext()) {
+				sb.append(","); //$NON-NLS-1$
+			}
+		}
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		pstore.setValue(EVENT_CHECKED_FILTERS, sb.toString());
+	}
+
+	public static List getEventTraceCheckedList() {
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		String eventTraceCheckedFilters = pstore.getString(EVENT_CHECKED_FILTERS);
+		if (!eventTraceCheckedFilters.startsWith("set: ")) { //$NON-NLS-1$
+			return null;
+		}
+		eventTraceCheckedFilters = eventTraceCheckedFilters.substring("set: ".length()); //$NON-NLS-1$
+		List checkedList = new ArrayList();
+		StringTokenizer tokenizer = new StringTokenizer(eventTraceCheckedFilters, ","); //$NON-NLS-1$
+		while (tokenizer.hasMoreTokens()) {
+			checkedList.add(tokenizer.nextElement());
+		}
+		return checkedList;
+	}
+
 	public static void setCheckedInplaceFilters(List l) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("set: "); //$NON-NLS-1$
