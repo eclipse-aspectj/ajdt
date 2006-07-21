@@ -56,6 +56,8 @@ public class CoreMessages extends NLS {
 
 	public static String renameTypeReferences;
 
+	public static String ajRuntimeContainerName;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, CoreMessages.class);
 	}

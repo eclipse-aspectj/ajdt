@@ -300,10 +300,11 @@ public class AJDTUtilsTest extends UITestCase {
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
 			for (int i = 0; i < originalCP.length; i++) {
-				IPath path = originalCP[i].getPath();
-				if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
-						|| path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
-					return true;
+				if (originalCP[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER ) {
+					IPath path = originalCP[i].getPath();
+					if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+						return true;
+					}
 				}
 			}
 		} catch (JavaModelException e) {

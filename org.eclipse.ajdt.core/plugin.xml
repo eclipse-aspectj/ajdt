@@ -2,7 +2,15 @@
 <?eclipse version="3.0"?>
 <plugin>
 
-     <!-- ASPECTJRT_LIB classpath variable -->
+   <!-- ASPECTJRT classpath container -->
+   <!-- uses of the ASPECTJRT_LIB variable are migrated to this -->
+   <extension point="org.eclipse.jdt.core.classpathContainerInitializer">            
+     <classpathContainerInitializer                                          
+        id="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"                                                        
+        class="org.eclipse.ajdt.internal.core.AspectJRTContainerInitializer"/>                           
+   </extension>
+
+   <!-- ASPECTJRT_LIB classpath variable -->
    <extension point="org.eclipse.jdt.core.classpathVariableInitializer">
      <classpathVariableInitializer variable="ASPECTJRT_LIB"
        class="org.eclipse.ajdt.internal.core.AspectJRTInitializer"/>
