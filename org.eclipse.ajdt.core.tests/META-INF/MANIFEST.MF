@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT Core Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.core.tests
-Bundle-Version: 1.4.0.DEVELOPMENT
+Bundle-Version: 1.4.1.DEVELOPMENT
 Bundle-ClassPath: ajdtcoretests.jar
 Bundle-Activator: org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin
 Bundle-Vendor: Eclipse.org
