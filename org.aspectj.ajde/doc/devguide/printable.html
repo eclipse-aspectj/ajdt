@@ -1942,25 +1942,29 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
               &lt;!-- Do not weave types within the "bar" pakage --&gt;
               &lt;exclude within="bar.*"/&gt;
 
-              &lt;!-- Dump all types within the "somepack" package,
-                   both before are after they are woven,
+              &lt;!-- Dump all types within the "com.foo.bar" package
                    to the "./_ajdump" folder on disk (for diagnostic purposes) --&gt;
-              &lt;dump within="somepack.*" /&gt;
+              &lt;dump within="com.foo.bar.*"/&gt;
+
+              &lt;!-- Dump all types within the "com.foo.bar" package and sub-packages,
+                   both before are after they are woven,
+                   which can be used for byte-code generated at runtime
+              &lt;dump within="com.foo.bar..*" beforeandafter="true"/&gt; 
             &lt;/weaver&gt;
 
           &lt;/aspectj&gt;
 
 		  </pre><p>
-                An aop.xml file contains two key sections: "aspects" defines one
+                An aop.xml file contains two key sections: <tt>aspects</tt> defines one
                 or more aspects to the weaver and controls which aspects are to be
-                used in the weaving process; "weaver" defines weaver options and which
+                used in the weaving process; <tt>weaver</tt> defines weaver options and which
                 types should be woven.
             </p><p>
                 The simplest way to define an aspect to the weaver is to 
                 specify the fully-qualified name of the aspect type in an aspect element. 
                 You can also
                 declare (and define to the weaver) aspects inline in the aop.xml file.
-                This is done using the "concrete-aspect" element. A concrete-aspect
+                This is done using the <tt>concrete-aspect</tt> element. A concrete-aspect
                 declaration must provide a pointcut definition for every abstract 
                 pointcut in the abstract aspect it extends. This mechanism is a 
                 useful way of externalizing configuration for infrastructure and
@@ -1984,23 +1988,25 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 must be used to declare aspects to the weaver i.e. <tt>include</tt> and <tt>exclude</tt>
                 elements cannot be used find aspects on the class loader search path.
             </p><p>
-                The weaver element is used to pass options to the weaver and to specify
+                The <tt>weaver</tt> element is used to pass options to the weaver and to specify
                 the set of types that should be woven. If no include elements are specified
-                then all types visible to the weaver will be woven.
+                then all types visible to the weaver will be woven. In addition the <tt>dump</tt>
+                element can be used capture on disk byte-code of woven classes for diagnostic purposes both before,
+                in the case of those generated at runtime, and after the weaving process.
             </p><p> When several configuration files are visible from a given weaving class loader
                 their contents are conceptually merged. 
                 The files are merged in the order they are
                 found on the search path (with a regular <tt>getResourceAsStream</tt> lookup)
-                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2922"></a>The set of available aspects is the set of all
+                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2937"></a>The set of available aspects is the set of all
                     declared and defined aspects (<tt>aspect</tt> and
                     <tt>concrete-aspect</tt> elements of the <tt>aspects</tt>
-                    section).</p></li><li><p><a name="d0e2934"></a>The set of aspects used for weaving is the subset of the available
+                    section).</p></li><li><p><a name="d0e2949"></a>The set of aspects used for weaving is the subset of the available
                     aspects that are matched by at least one include statement and are not matched
                     by any exclude statements. If there are no include statements then all non-excluded
-                    aspects are included.</p></li><li><p><a name="d0e2937"></a> The set of types to be woven are those types matched by at
+                    aspects are included.</p></li><li><p><a name="d0e2952"></a> The set of types to be woven are those types matched by at
                     least one weaver <tt>include</tt> element and not matched by any 
                     weaver <tt>exclude</tt> element. If there are no weaver include
-                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2946"></a> The weaver options are derived by taking the union of the
+                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2961"></a> The weaver options are derived by taking the union of the
                     options specified in each of the weaver options attribute specifications. Where an
                     option takes a value e.g. <tt>-warn:none</tt> the most recently defined value
                     will be used.</p></li></ul></div><p>It is not an error for the same aspect to be defined to the weaver in 
@@ -2055,11 +2061,11 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 This aspect (in either style) can be made concrete using <tt>META-INF/aop.xml</tt>.
                 It defines the abstract pointcut <tt>scope()</tt>. When using this mechanism the 
                 following rules apply:
-                <div class="itemizedlist"><ul><li><p><a name="d0e3003"></a>The parent aspect must be abstract. It can be an @AspectJ or a
-                            regular code style aspect.</p></li><li><p><a name="d0e3006"></a>Only a simple abstract pointcut can be implemented i.e. a pointcut that doesn't expose
+                <div class="itemizedlist"><ul><li><p><a name="d0e3018"></a>The parent aspect must be abstract. It can be an @AspectJ or a
+                            regular code style aspect.</p></li><li><p><a name="d0e3021"></a>Only a simple abstract pointcut can be implemented i.e. a pointcut that doesn't expose
                             state (through <tt>args(), this(), target(), if()</tt>). In @AspectJ syntax
                             as illustrated in this sample, this means the method that hosts the pointcut must be abstract,
-                            have no arguments, and return void.</p></li><li><p><a name="d0e3012"></a>The concrete aspect must implement all inherited abstract pointcuts.</p></li><li><p><a name="d0e3015"></a>The concrete aspect may not implement methods so the abstract aspect it 
+                            have no arguments, and return void.</p></li><li><p><a name="d0e3027"></a>The concrete aspect must implement all inherited abstract pointcuts.</p></li><li><p><a name="d0e3030"></a>The concrete aspect may not implement methods so the abstract aspect it 
                             extends may not contain any abstract methods.</p></li></ul></div>
             </p><p>
 		        <span class="emphasis"><i>A limitation of the implementation of this feature in AspectJ 1.5.0 is that aspects defined using
@@ -2118,7 +2124,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 that will be then reserved for this concrete-aspect and must not conflict with other classes
                 you deploy.
             </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
-                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3089"><a name="d0e3089"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. Messages issued while the weaver is being 
+                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3104"><a name="d0e3104"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. Messages issued while the weaver is being 
                                    bootstrapped are accumulated until all options are parsed. If the messages are required to be output
                                    immediately you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line.
                             </td></tr><tr><td><tt>-Xlintfile:pathToAResource</tt></td><td>Configure lint messages as specified in the given resource (visible from this aop.xml file' classloader)</td></tr><tr><td><tt>-Xlint:default, -Xlint:ignore, ...</tt></td><td>Configure lint messages, refer to documentation for meaningfull values</td></tr><tr><td><tt>-nowarn, -warn:none</tt></td><td>Suppress warning messages</td></tr><tr><td><tt>-Xreweavable</tt></td><td>Produce class files that can subsequently be rewoven</td></tr><tr><td><tt>-XnoInline</tt></td><td>Don't inline around advice.</td></tr><tr><td><tt>-showWeaveInfo</tt></td><td>Issue informational messages whenever the weaver touches a class file</td></tr><tr><td><tt>-XmessageHandlerClass:...</tt></td><td>Provide alternative output destination to stdout/stderr for all weaver messages.
@@ -2131,7 +2137,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                             </td></tr></tbody></table></div></div></div><div class="sect1"><a name="ltw-specialcases"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-specialcases"></a>Special cases</h2></div></div><p>
             The following classes are not exposed to the LTW infrastructure regardless of 
             the <tt>aop.xml</tt> file(s) used:
-            <div class="itemizedlist"><ul><li><p><a name="d0e3165"></a>All <tt>org.aspectj.*</tt> classes (and subpackages) - as those are needed by the infrastructure itself</p></li><li><p><a name="d0e3171"></a>All <tt>java.*</tt> and <tt>javax.*</tt> classes (and subpackages)</p></li><li><p><a name="d0e3180"></a>All <tt>sun.reflect.*</tt> classes - as those are JDK specific classes used when reflective calls occurs</p></li></ul></div>
+            <div class="itemizedlist"><ul><li><p><a name="d0e3180"></a>All <tt>org.aspectj.*</tt> classes (and subpackages) - as those are needed by the infrastructure itself</p></li><li><p><a name="d0e3186"></a>All <tt>java.*</tt> and <tt>javax.*</tt> classes (and subpackages)</p></li><li><p><a name="d0e3195"></a>All <tt>sun.reflect.*</tt> classes - as those are JDK specific classes used when reflective calls occurs</p></li></ul></div>
         </p><p>
             Despite these restrictions, it is perfectly possible to match call join points for calls to these types providing the calling
             class is exposed to the weaver. Subtypes of these excluded types that are exposed to the weaver may of course be woven.

@@ -278,7 +278,7 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * circumstances get multiple calls to finish. This method is marked
      * synchronized to let one finish finish before another finish gets in!
      */
-    public synchronized void finish() {
+    public synchronized void finish(boolean wasFullBuild) {
         AJLog.log(AJLog.COMPILER,"AJDE Callback: finish()"); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
