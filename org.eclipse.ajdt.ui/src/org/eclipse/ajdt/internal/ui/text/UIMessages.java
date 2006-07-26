@@ -105,7 +105,11 @@ public class UIMessages extends NLS {
 	public static String CompilerPropertyPage_useworkspacesettings_label;
 	public static String CompilerPropertyPage_useworkspacesettings_change;
 	public static String CompilerPropertyPage_useprojectsettings_label;
-	public static String CompilerConfigurationBlock_aj_messages_tabtitle;
+	public static String CompilerConfigurationBlock_aj_messages_matching;
+	public static String CompilerConfigurationBlock_aj_messages_optimization;
+	public static String CompilerConfigurationBlock_aj_messages_java5;
+	public static String CompilerConfigurationBlock_aj_messages_programming;
+	public static String CompilerConfigurationBlock_aj_messages_information;
 	public static String CompilerConfigurationBlock_aj_messages_description;
 	public static String CompilerConfigurationBlock_aj_invalid_absolute_type_name_label;
 	public static String CompilerConfigurationBlock_aj_invalid_wildcard_type_name_label;
@@ -117,8 +121,6 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
 	public static String CompilerConfigurationBlock_aj_incompatible_serial_version_label;
 	public static String CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
-	public static String CompilerConfigurationBlock_aj_advanced_tabtitle;
-	public static String CompilerConfigurationBlock_aj_advanced_description;
 	public static String CompilerConfigurationBlock_aj_no_weave_label;
 	public static String CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 	public static String CompilerConfigurationBlock_aj_x_no_inline_label;
@@ -126,12 +128,9 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_x_has_member_label;
 	public static String CompilerConfigurationBlock_aj_out_xml;
 	public static String CompilerConfigurationBlock_aj_other_tabtitle;
-	public static String CompilerConfigurationBlock_aj_other_description;
 	public static String CompilerConfigurationBlock_aj_enable_incremental_label;
 	public static String CompilerConfigurationBlock_aj_enable_build_asm_label;
 	public static String CompilerConfigurationBlock_aj_enable_weave_messages_label;
-	public static String CompilerConfigurationBlock_aj_5_description;
-	public static String CompilerConfigurationBlock_aj_5_tabtitle;
 	public static String CompilerConfigurationBlock_noJoinpointsForBridgeMethods;
 	public static String CompilerConfigurationBlock_cantMatchArrayTypeOnVarargs;
 	public static String CompilerConfigurationBlock_enumAsTargetForDecpIgnored;

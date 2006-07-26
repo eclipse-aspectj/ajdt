@@ -79,25 +79,25 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
-	private static final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName;
+	private static final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName; //potential matching probs 1
 
 	private static final String PREF_AJ_SHADOW_NOT_IN_STRUCTURE = AspectJPreferences.OPTION_ReportShadowNotInStructure;
 
 	private static final String PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP = AspectJPreferences.OPTION_ReportCannotImplementLazyTJP;
 
-	private static final String PREF_AJ_INVALID_WILDCARD_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidWildcardTypeName;
+	private static final String PREF_AJ_INVALID_WILDCARD_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidWildcardTypeName; //potential matching probs 2
 
-	private static final String PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER = AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver;
+	private static final String PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER = AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver; //potential matching probs 3
 
 	private static final String PREF_AJ_UNRESOLVABLE_MEMBER = AspectJPreferences.OPTION_ReportUnresolvableMember;
 
-	private static final String PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL = AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall;
+	private static final String PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL = AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall; //potential matching probs 4
 
 	private static final String PREF_AJ_INCOMPATIBLE_SERIAL_VERSION = AspectJPreferences.OPTION_ReportIncompatibleSerialVersion;
 
 	private static final String PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD = AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField;
 
-	private static final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint;
+	private static final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint; //potential matching probs 5
 
 	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
 
@@ -393,6 +393,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				UIMessages.CompilerConfigurationBlock_error,
 				UIMessages.CompilerConfigurationBlock_warning,
 				UIMessages.CompilerConfigurationBlock_ignore };
+		
+		String[] enableDisableValues = new String[] { ENABLED, DISABLED };
 
 		int nColumns = 3;
 		final ScrolledPageContent pageContent = new ScrolledPageContent(parent);
@@ -403,88 +405,151 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		Composite composite= pageContent.getBody();
 		composite.setLayout(layout);
 
-		String label = UIMessages.CompilerConfigurationBlock_aj_messages_tabtitle;
+		String label = UIMessages.CompilerConfigurationBlock_aj_messages_matching;
 		ExpandableComposite excomposite = createStyleSection(composite, label,
 				nColumns);
 
 		Composite othersComposite = new Composite(excomposite, SWT.NONE);
 		excomposite.setClient(othersComposite);
 		othersComposite.setLayout(new GridLayout(nColumns, false));
-
-		Label description = new Label(othersComposite, SWT.WRAP);
-		description
-				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_description);
-		GridData gd = new GridData();
-		gd.horizontalSpan = nColumns;
-		description.setLayoutData(gd);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_absolute_type_name_label;
 		addComboBox(othersComposite, label, PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_wildcard_type_name_label;
 		addComboBox(othersComposite, label, PREF_AJ_INVALID_WILDCARD_TYPE_NAME,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_unresolvable_member_label;
-		addComboBox(othersComposite, label, PREF_AJ_UNRESOLVABLE_MEMBER,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_type_not_exposed_to_weaver_label;
 		addComboBox(othersComposite, label, PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_shadow_not_in_structure_label;
-		addComboBox(othersComposite, label, PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_unmatched_super_type_in_call_label;
 		addComboBox(othersComposite, label,
 				PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_cannot_implement_lazy_tjp_label;
-		addComboBox(othersComposite, label, PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP,
-				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
-		addComboBox(othersComposite, label,
-				PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, errorWarningIgnore,
-				errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_incompatible_serial_version_label;
-		addComboBox(othersComposite, label,
-				PREF_AJ_INCOMPATIBLE_SERIAL_VERSION, errorWarningIgnore,
-				errorWarningIgnoreLabels, 0);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
 		addComboBox(othersComposite, label,
 				PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_runtimeExceptionNotSoftened;
+//		 AJ5 options do not apply to Eclipse 3.0
+		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
+		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
 		addComboBox(othersComposite, label,
-				AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
+				AspectJPreferences.OPTION_adviceDidNotMatch,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		}
+		label = UIMessages.CompilerConfigurationBlock_aspect_excluded_by_configuration;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_aspectExcludedByConfiguration,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_messages_optimization;
+		excomposite = createStyleSection(composite, label, nColumns);
 
+		othersComposite = new Composite(excomposite, SWT.NONE);
+		excomposite.setClient(othersComposite);
+		othersComposite.setLayout(new GridLayout(nColumns, false));
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_cannot_implement_lazy_tjp_label;
+		addComboBox(othersComposite, label, PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
 		label = UIMessages.CompilerConfigurationBlock_multiple_advice_stopping_lazy_tjp;
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
+		
 		label = UIMessages.CompilerConfigurationBlock_no_guard_for_lazy_tjp;
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_noGuardForLazyTjp,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
+		addCheckBox(othersComposite, label, PREF_ENABLE_NO_INLINE,
+				enableDisableValues, 0);
 
+		//		 AJ5 options do not apply to Eclipse 3.0
+		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
+		label = UIMessages.CompilerConfigurationBlock_aj_messages_java5;
+		excomposite = createStyleSection(composite, label, nColumns);
+
+		othersComposite = new Composite(excomposite, SWT.NONE);
+		excomposite.setClient(othersComposite);
+		othersComposite.setLayout(new GridLayout(nColumns, false));
+		
+		label = UIMessages.CompilerConfigurationBlock_unmatchedTargetKind;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_unmatchedTargetKind,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_noJoinpointsForBridgeMethods;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_enumAsTargetForDecpIgnored;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+	
+		label = UIMessages.CompilerConfigurationBlock_annotationAsTargetForDecpIgnored;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_cantMatchArrayTypeOnVarargs;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_invalidTargetForAnnotation;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_invalidTargetForAnnotation,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_elementAlreadyAnnotated;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_elementAlreadyAnnotated,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_uncheckedArgument;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_uncheckedArgument,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_uncheckedAdviceConversion;
+		addComboBox(othersComposite, label,
+				AspectJPreferences.OPTION_uncheckedAdviceConversion,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+		}
+		label = UIMessages.CompilerConfigurationBlock_aj_messages_programming;
+		excomposite = createStyleSection(composite, label, nColumns);
+
+		othersComposite = new Composite(excomposite, SWT.NONE);
+		excomposite.setClient(othersComposite);
+		othersComposite.setLayout(new GridLayout(nColumns, false));
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
+		addComboBox(othersComposite, label,
+				PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, errorWarningIgnore,
+				errorWarningIgnoreLabels, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_incompatible_serial_version_label;
+		addComboBox(othersComposite, label,
+				PREF_AJ_INCOMPATIBLE_SERIAL_VERSION, errorWarningIgnore,
+				errorWarningIgnoreLabels, 0);
+		
 		label = UIMessages.CompilerConfigurationBlock_no_explicit_constructor_call;
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_noExplicitConstructorCall,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
-		label = UIMessages.CompilerConfigurationBlock_aspect_excluded_by_configuration;
+		label = UIMessages.CompilerConfigurationBlock_runtimeExceptionNotSoftened;
 		addComboBox(othersComposite, label,
-				AspectJPreferences.OPTION_aspectExcludedByConfiguration,
+				AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_unordered_advice_at_shadow;
@@ -496,30 +561,35 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addComboBox(othersComposite, label,
 				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-		String[] enableDisableValues = new String[] { ENABLED, DISABLED };
-
-		label = UIMessages.CompilerConfigurationBlock_aj_advanced_tabtitle;
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_messages_information;
 		excomposite = createStyleSection(composite, label, nColumns);
 
 		othersComposite = new Composite(excomposite, SWT.NONE);
 		excomposite.setClient(othersComposite);
 		othersComposite.setLayout(new GridLayout(nColumns, false));
 
-		description = new Label(othersComposite, SWT.WRAP);
-		description
-				.setText(UIMessages.CompilerConfigurationBlock_aj_advanced_description);
-		gd = new GridData();
-		gd.horizontalSpan = nColumns;
-		description.setLayoutData(gd);
-		makeScrollableCompositeAware(description);
+		label = UIMessages.CompilerConfigurationBlock_aj_unresolvable_member_label;
+		addComboBox(othersComposite, label, PREF_AJ_UNRESOLVABLE_MEMBER,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
+		label = UIMessages.CompilerConfigurationBlock_aj_shadow_not_in_structure_label;
+		addComboBox(othersComposite, label, PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
+				errorWarningIgnore, errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
+		addCheckBox(othersComposite, label, PREF_ENABLE_WEAVE_MESSAGES,
+				enableDisableValues, 0);
+		
+		label = UIMessages.CompilerConfigurationBlock_aj_other_tabtitle;
+		excomposite = createStyleSection(composite, label, nColumns);
+
+		othersComposite = new Composite(excomposite, SWT.NONE);
+		excomposite.setClient(othersComposite);
+		othersComposite.setLayout(new GridLayout(nColumns, false));
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 		addCheckBox(othersComposite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,
-				enableDisableValues, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_NO_INLINE,
 				enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
@@ -534,20 +604,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(othersComposite, label, PREF_ENABLE_OUTXML,
 				enableDisableValues, 0);
 
-		label = UIMessages.CompilerConfigurationBlock_aj_other_tabtitle;
-		excomposite = createStyleSection(composite, label, nColumns);
-
-		othersComposite = new Composite(excomposite, SWT.NONE);
-		excomposite.setClient(othersComposite);
-		othersComposite.setLayout(new GridLayout(nColumns, false));
-
-		description = new Label(othersComposite, SWT.WRAP);
-		description
-				.setText(UIMessages.CompilerConfigurationBlock_aj_other_description);
-		gd = new GridData();
-		gd.horizontalSpan = nColumns;
-		description.setLayoutData(gd);
-
 		label = UIMessages.CompilerConfigurationBlock_aj_enable_incremental_label;
 		addCheckBox(othersComposite, label, PREF_ENABLE_INCREMENTAL,
 				enableDisableValues, 0, false);
@@ -556,95 +612,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(othersComposite, label, PREF_ENABLE_BUILD_ASM,
 				enableDisableValues, 0, false);
 
-		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_WEAVE_MESSAGES,
-				enableDisableValues, 0);
-
-		// AJ5 options do not apply to Eclipse 3.0
-		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
-
-			label = UIMessages.CompilerConfigurationBlock_aj_5_tabtitle;
-			excomposite = createStyleSection(composite, label, nColumns);
-
-			othersComposite = new Composite(excomposite, SWT.NONE);
-			excomposite.setClient(othersComposite);
-			othersComposite.setLayout(new GridLayout(nColumns, false));
-
-			description = new Label(othersComposite, SWT.WRAP);
-			description
-					.setText(UIMessages.CompilerConfigurationBlock_aj_5_description);
-			gd = new GridData(GridData.FILL_HORIZONTAL
-					| GridData.GRAB_HORIZONTAL);
-			gd.horizontalSpan = nColumns;
-			description.setLayoutData(gd);
-
-			Label spacer = new Label(othersComposite, SWT.NONE);
-			gd = new GridData();
-			gd.horizontalSpan = nColumns;
-			spacer.setLayoutData(gd);
-
-			Label description2 = new Label(othersComposite, SWT.WRAP);
-			description2
-					.setText(UIMessages.CompilerConfigurationBlock_aj_messages_description);
-			GridData gd2 = new GridData();
-			gd2.horizontalSpan = nColumns;
-			description2.setLayoutData(gd2);
-
-			label = UIMessages.CompilerConfigurationBlock_noJoinpointsForBridgeMethods;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_cantMatchArrayTypeOnVarargs;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_enumAsTargetForDecpIgnored;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_annotationAsTargetForDecpIgnored;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_invalidTargetForAnnotation;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_invalidTargetForAnnotation,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_elementAlreadyAnnotated;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_elementAlreadyAnnotated,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_adviceDidNotMatch,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_unmatchedTargetKind;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_unmatchedTargetKind,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_uncheckedArgument;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_uncheckedArgument,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-
-			label = UIMessages.CompilerConfigurationBlock_uncheckedAdviceConversion;
-			addComboBox(othersComposite, label,
-					AspectJPreferences.OPTION_uncheckedAdviceConversion,
-					errorWarningIgnore, errorWarningIgnoreLabels, 0);
-			
-			IDialogSettings section= JavaPlugin.getDefault().getDialogSettings().getSection(SETTINGS_SECTION_NAME);
-			restoreSectionExpansionStates(section);
-
-		}
-
+		IDialogSettings section= JavaPlugin.getDefault().getDialogSettings().getSection(SETTINGS_SECTION_NAME);
+		restoreSectionExpansionStates(section);
+		
 		return pageContent;
 	}
 
