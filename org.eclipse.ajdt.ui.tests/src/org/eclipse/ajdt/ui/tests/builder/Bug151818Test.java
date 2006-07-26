@@ -18,7 +18,7 @@ import org.eclipse.ui.views.markers.internal.ProblemView;
 public class Bug151818Test extends UITestCase {
 
 	public void testBug151818() throws Exception {
-		IProject project = createPredefinedProject("bug151818"); //$NON-NLS-1$
+		createPredefinedProject("bug151818"); //$NON-NLS-1$
 		ProblemView problemView = (ProblemView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");		 //$NON-NLS-1$
 		assertEquals("There should be one problem in the project", 1, problemView.getCurrentMarkers().getSize()); //$NON-NLS-1$
 	}

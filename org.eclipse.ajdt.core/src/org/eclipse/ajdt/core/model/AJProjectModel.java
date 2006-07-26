@@ -363,8 +363,6 @@ public class AJProjectModel {
 							// element. In future we could look for the resource in the
 							// workspace, and locate the real java element for it
 							if (link.getParent() == null) {
-								int ln = AsmManager.getDefault().getHandleProvider().getLineNumberForHandle(link.getHandleIdentifier());
-								
 								// if the problem element has no parent, then we
 								// have a binary/injar aspect, otherwise we
 								// don't know what it is, so we skip it
