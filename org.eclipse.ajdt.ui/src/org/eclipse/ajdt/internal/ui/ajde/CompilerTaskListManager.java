@@ -32,7 +32,6 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -83,6 +82,10 @@ public class CompilerTaskListManager implements TaskListManager {
      */
     private static Map otherProjectMarkers = new HashMap();
     
+    /**
+     * Indicates whether the most recent build was full or incremental
+     */
+    private static boolean lastBuildWasFull;
 
     /**
      * Add a problem to the tasks list for the given file and line number
@@ -216,7 +219,7 @@ public class CompilerTaskListManager implements TaskListManager {
                                 ir.deleteMarkers(IMarker.TASK, true,
                                         IResource.DEPTH_INFINITE);
                             }
-                        } catch (ResourceException re) {
+                        } catch (CoreException re) {
                         	AJLog.log("Failed marker deletion: resource=" //$NON-NLS-1$
                                             + ir.getLocation());
                             throw re;
@@ -233,7 +236,7 @@ public class CompilerTaskListManager implements TaskListManager {
                         try {
                         	if (p.location != null) {
                                 ir = locationToResource(p.location, project);
-                                if (affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
+                                if (lastBuildWasFull || affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
 	                                int prio = getTaskPriority(p);
 	                                if (prio != -1) {
 	                                    marker = ir.createMarker(IMarker.TASK);
@@ -299,7 +302,7 @@ public class CompilerTaskListManager implements TaskListManager {
 	                            
 	                            setMessage(marker, p.message);
                             }
-                        } catch (ResourceException re) {
+                        } catch (CoreException re) {
                         	AJLog.log("Failed marker creation: resource=" //$NON-NLS-1$
                                             + p.location.getSourceFile()
                                                     .getPath()
@@ -548,6 +551,10 @@ public class CompilerTaskListManager implements TaskListManager {
         l.add(m);
     }
 
+    void setLastBuildType(boolean wasFullBuild) {
+    	lastBuildWasFull = wasFullBuild;
+    }
+    
     /**
      * Inner class used to track problems found during compilation Values of -1
      * are used to indicate no line or column number available.

@@ -279,10 +279,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * synchronized to let one finish finish before another finish gets in!
      */
     public synchronized void finish(boolean wasFullBuild) {
-        AJLog.log(AJLog.COMPILER,"AJDE Callback: finish()"); //$NON-NLS-1$
+        AJLog.log(AJLog.COMPILER,"AJDE Callback: finish. Was full build: "+wasFullBuild); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
+        CompilerTaskListManager.getInstance().setLastBuildType(wasFullBuild);
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
