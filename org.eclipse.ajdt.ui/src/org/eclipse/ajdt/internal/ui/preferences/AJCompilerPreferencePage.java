@@ -41,6 +41,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage;
 import org.eclipse.jdt.internal.ui.preferences.ScrolledPageContent;
+import org.eclipse.jdt.internal.ui.util.PixelConverter;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -889,8 +890,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		optiondesc = optiondesc.trim();
 
 		GridData gd = new GridData();
-		if (fillGridVertically)
+		if (fillGridVertically) {
 			gd.verticalAlignment = GridData.FILL;
+		}
 		gd.horizontalSpan = 3;
 		gd.horizontalIndent = indent;
 
@@ -1025,7 +1027,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	}
 
 	protected Control createPreferenceContent(Composite parent) {
-
 		Composite mainComp = new Composite(parent, SWT.NONE);
 		mainComp.setFont(parent.getFont());
 		GridLayout layout = new GridLayout();
@@ -1034,7 +1035,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		mainComp.setLayout(layout);
 
 		Composite othersComposite = createCompilerPreferencesContent(mainComp);
-		GridData gridData = new GridData();
+		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
+		gridData.heightHint= new PixelConverter(parent).convertHeightInCharsToPixels(20);
 		othersComposite.setLayoutData(gridData);
 
 		return mainComp;
