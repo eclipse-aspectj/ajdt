@@ -1034,8 +1034,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		mainComp.setLayout(layout);
 
 		Composite othersComposite = createCompilerPreferencesContent(mainComp);
-		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true,
-				true);
+		GridData gridData = new GridData();
 		othersComposite.setLayoutData(gridData);
 
 		return mainComp;
