@@ -108,6 +108,7 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_messages_matching;
 	public static String CompilerConfigurationBlock_aj_messages_optimization;
 	public static String CompilerConfigurationBlock_aj_messages_java5;
+	public static String CompilerConfigurationBlock_aj_messages_java5_label;
 	public static String CompilerConfigurationBlock_aj_messages_programming;
 	public static String CompilerConfigurationBlock_aj_messages_information;
 	public static String CompilerConfigurationBlock_aj_messages_description;

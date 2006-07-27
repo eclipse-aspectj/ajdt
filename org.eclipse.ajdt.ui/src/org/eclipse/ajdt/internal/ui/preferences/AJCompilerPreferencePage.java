@@ -11,6 +11,7 @@
  Changes:
  Bug 104334 - Update AspectJ compiler preferences and property pages
  Changed from tabs, to twistys.
+ Bug 151707 - Reorganise AspectJ compiler style options
  **********************************************************************/
 
 package org.eclipse.ajdt.internal.ui.preferences;
@@ -55,6 +56,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -475,10 +477,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
 		label = UIMessages.CompilerConfigurationBlock_aj_messages_java5;
 		excomposite = createStyleSection(composite, label, nColumns);
-
+		
 		othersComposite = new Composite(excomposite, SWT.NONE);
 		excomposite.setClient(othersComposite);
 		othersComposite.setLayout(new GridLayout(nColumns, false));
+		
+		Text description = new Text(othersComposite, SWT.WRAP | SWT.READ_ONLY);
+		description
+				.setText(UIMessages.CompilerConfigurationBlock_aj_messages_java5_label);
+		GridData gd= new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
+		gd.horizontalSpan = nColumns;
+		description.setLayoutData(gd);
+
 		
 		label = UIMessages.CompilerConfigurationBlock_unmatchedTargetKind;
 		addComboBox(othersComposite, label,
@@ -923,13 +933,13 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		labelControl.setText(label);
 		labelControl.setLayoutData(gd);
 
-		Combo comboBox = new Combo(parent, SWT.READ_ONLY);
-		comboBox.setItems(valueLabels);
-		comboBox.setData(data);
-		comboBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-
 		Label placeHolder = new Label(parent, SWT.NONE);
 		placeHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		Combo comboBox = new Combo(parent, SWT.READ_ONLY);
+		comboBox.setItems(valueLabels);
+		comboBox.setData(data); 
+		comboBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
 		String currValue = getPreferenceStore().getString(key);
 		if ((currValue != null) && (currValue.length() > 0)) {
