@@ -1,5 +1,5 @@
 /**********************************************************************
- Copyright (c) 2002, 2005 IBM Corporation and others.
+ Copyright (c) 2002, 2006 IBM Corporation and others.
  All rights reserved. This program and the accompanying materials
  are made available under the terms of the Eclipse Public License v1.0
  which accompanies this distribution, and is available at
@@ -491,24 +491,29 @@ public class AspectJPreferences {
 	// Project scope preferences
 
 	public static void setCompilerOptions(IProject project, String value) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.PLUGIN_ID);
-		projectNode.put(COMPILER_OPTIONS, value);
-		if (value.length()==0) {
-			projectNode.remove(COMPILER_OPTIONS);
+		if (AspectJPreferences.isUsingProjectSettings(project)) {
+			IScopeContext projectScope = new ProjectScope(project);
+			IEclipsePreferences projectNode = projectScope
+					.getNode(AspectJPlugin.PLUGIN_ID);
+			projectNode.put(COMPILER_OPTIONS, value);
+			if (value.length()==0) {
+				projectNode.remove(COMPILER_OPTIONS);
+			}
+			try {
+				projectNode.flush();
+			} catch (BackingStoreException e) {
+			}
 		}
-		try {
-			projectNode.flush();
-		} catch (BackingStoreException e) {
+		else {
+		IPreferenceStore store = AspectJUIPlugin.getDefault()
+		.getPreferenceStore();
+		store.setValue(COMPILER_OPTIONS, value);
 		}
 	}
 
 	public static String getCompilerOptions(IProject project) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.PLUGIN_ID);
-		return projectNode.get(COMPILER_OPTIONS, ""); //$NON-NLS-1$
+		String compilerOptions = getStringPrefValue(project, COMPILER_OPTIONS);
+		return compilerOptions; //$NON-NLS-1$
 	}
 	
 	public static String getStringPrefValue(IProject project, String key) {

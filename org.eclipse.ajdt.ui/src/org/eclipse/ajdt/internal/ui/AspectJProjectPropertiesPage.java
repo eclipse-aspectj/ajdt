@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
+Copyright (c) 2002, 2006 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
@@ -46,9 +46,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	// compiler options for ajc 
 	private StringFieldEditor outputJarEditor;
 
-	// Non standard compiler options that should be passed to ajc
-	private StringFieldEditor nonStandardOptionsEditor;
-
 	// Relevant project for which the properties are being set
 	private IProject thisProject;
 
@@ -74,14 +71,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		  new StringFieldEditor("", //$NON-NLS-1$
 				  UIMessages.compilerPropsPage_outputJar,
             row3Comp);
-				
-		nonStandardOptionsEditor =
-			new StringFieldEditor(
-				"", //$NON-NLS-1$
-				UIMessages.compilerPropsPage_nonStandardOptions,
-				StringFieldEditor.UNLIMITED,
-				pageComposite);
-				
+								
 		createLabel(pageComposite,"");				 //$NON-NLS-1$
 
 		createLabel(pageComposite,""); //$NON-NLS-1$
@@ -216,9 +206,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
         		);
 		}
 		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
-		AJLog.log("Compiler properties changed for project: " + thisProject.getName()); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
-		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
 	}
 	
@@ -230,7 +218,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	public void performDefaults() {
 		AJLog.log("Compiler properties reset to default for project: " + thisProject.getName()); //$NON-NLS-1$
 		outputJarEditor.setStringValue(""); //$NON-NLS-1$
-		nonStandardOptionsEditor.setStringValue(""); //$NON-NLS-1$
 	}
 
 	/**
@@ -238,7 +225,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 */
 	public void updatePageContents() {
 		outputJarEditor.setStringValue(AspectJCorePreferences.getProjectOutJar(thisProject));
-		nonStandardOptionsEditor.setStringValue(AspectJPreferences.getCompilerOptions(thisProject));
 	}
  	
     /**

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
@@ -48,6 +49,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -133,6 +135,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	protected List fCheckBoxes;
 
 	protected final ArrayList fExpandedComposites;
+	
+	// Non standard compiler options that should be passed to ajc
+	private StringFieldEditor nonStandardOptionsEditor;
 	
 	private static final String SETTINGS_EXPANDED= "expanded"; //$NON-NLS-1$
 	
@@ -237,6 +242,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		defaultValueMap.put(
 				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				AspectJPreferences.VALUE_IGNORE);
+		
+		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, "");
 	}
 
 	/**
@@ -276,7 +283,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			AspectJPreferences.OPTION_unmatchedTargetKind,
 			AspectJPreferences.OPTION_uncheckedArgument,
 			AspectJPreferences.OPTION_uncheckedAdviceConversion,
-			AspectJPreferences.OPTION_swallowedExceptionInCatchBlock };
+			AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
+			AspectJPreferences.COMPILER_OPTIONS };
 
 	public AJCompilerPreferencePage() {
 		super();
@@ -623,6 +631,29 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addCheckBox(othersComposite, label, PREF_ENABLE_BUILD_ASM,
 				enableDisableValues, 0, false);
 
+		Composite row3Comp = createRowComposite(othersComposite,2);
+
+		//fills the editor with the stored preference if there is one.
+		String currValue = "";
+		if (isProjectPreferencePage()) {
+			if (hasProjectSpecificOptions(getProject())) {
+				currValue = AspectJPreferences.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS);
+			} else {
+				currValue = getPreferenceStore().getString(AspectJPreferences.COMPILER_OPTIONS);
+			}
+		} else {
+			currValue = getPreferenceStore().getString(AspectJPreferences.COMPILER_OPTIONS);
+		}
+		
+		nonStandardOptionsEditor =
+			new StringFieldEditor(
+				currValue, //$NON-NLS-1$
+				UIMessages.compilerPropsPage_nonStandardOptions,
+				StringFieldEditor.UNLIMITED,
+				row3Comp);
+
+		nonStandardOptionsEditor.setStringValue(currValue);		
+
 		IDialogSettings section= JavaPlugin.getDefault().getDialogSettings().getSection(SETTINGS_SECTION_NAME);
 		restoreSectionExpansionStates(section);
 		
@@ -635,7 +666,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	protected IPreferenceStore doGetPreferenceStore() {
 		return AspectJUIPlugin.getDefault().getPreferenceStore();
 	}
-
+	
 	/*
 	 * (non-Javadoc) Method declared on PreferencePage
 	 */
@@ -666,10 +697,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 					store.setValue(data.getKey(), value);
 				}
 			}
-
+			
+			boolean compilerChanges = false;
+			String value = nonStandardOptionsEditor.getStringValue();
+			if (value != store.getString(AspectJPreferences.COMPILER_OPTIONS)){
+				store.setValue(AspectJPreferences.COMPILER_OPTIONS,nonStandardOptionsEditor.getStringValue());
+				AJLog.log("Non Standard Compiler properties changed: " + store.getString(AspectJPreferences.COMPILER_OPTIONS)); //$NON-NLS-1$
+				compilerChanges = true;
+			}
+			
 			AspectJUIPlugin.getDefault().savePluginPreferences();
 
-			if (lintChanges || advancedOrOtherChanges) {
+			if (lintChanges || advancedOrOtherChanges || compilerChanges) {
 				boolean doBuild = false;
 				String[] strings = getFullBuildDialogStrings();
 				if (strings != null) {
@@ -690,7 +729,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 					doFullBuild();
 				}
 			}
-
+			
 			return true;
 		}
 	}
@@ -729,10 +768,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 						: VALUE_FALSE);
 			}
 		}
-
+		
+		String value = nonStandardOptionsEditor.getStringValue();
+		if (value != AspectJPreferences
+				.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS)){
+			settingsChanged = true;
+			setPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS, value);
+		}
+	
 		if (settingsChanged) {
 			flushPrefs(getProject());
 		}
+		
 		return settingsChanged;
 	}
 
@@ -863,6 +910,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 					data.getKey());
 			curr.setSelection(defaultValue.equals("true")); //$NON-NLS-1$
 		}
+		
+		AJLog.log("Non Standard Compiler properties reset to default"); //$NON-NLS-1$
+		nonStandardOptionsEditor.setStringValue(""); //$NON-NLS-1$
+
 	}
 
 	private Label createLabel(Composite parent, String text) {
@@ -874,6 +925,24 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		label.setLayoutData(data);
 		return label;
 	}
+
+	private Composite createRowComposite(Composite parent, int numColumns)
+	    {
+	        Composite composite = new Composite(parent, SWT.NONE);
+
+	        GridLayout layout = new GridLayout();
+	        layout.numColumns = numColumns;
+	        layout.makeColumnsEqualWidth = true;
+	        composite.setLayout(layout);
+
+	        GridData data = new GridData();
+	        data.verticalAlignment = GridData.FILL;
+	        data.horizontalAlignment = GridData.FILL;
+	        data.horizontalSpan = 3;
+	        composite.setLayoutData(data);
+
+	        return composite;   
+	    }
 
 	protected Button addCheckBox(Composite parent, String label, String key,
 			String[] values, int indent) {
