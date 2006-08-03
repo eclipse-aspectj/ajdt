@@ -667,6 +667,13 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		return AspectJUIPlugin.getDefault().getPreferenceStore();
 	}
 	
+	/**
+	 * overriding performApply() for PreferencePageBuilder.aj
+	 */
+	public void performApply() {  
+	    performOk();
+	}
+	
 	/*
 	 * (non-Javadoc) Method declared on PreferencePage
 	 */
@@ -700,7 +707,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			
 			boolean compilerChanges = false;
 			String value = nonStandardOptionsEditor.getStringValue();
-			if (value != store.getString(AspectJPreferences.COMPILER_OPTIONS)){
+			if (!value.equals(store.getString(AspectJPreferences.COMPILER_OPTIONS))){
 				store.setValue(AspectJPreferences.COMPILER_OPTIONS,nonStandardOptionsEditor.getStringValue());
 				AJLog.log("Non Standard Compiler properties changed: " + store.getString(AspectJPreferences.COMPILER_OPTIONS)); //$NON-NLS-1$
 				compilerChanges = true;
@@ -725,9 +732,11 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 						return false; // cancel pressed
 					}
 				}
-				if (doBuild) {
-					doFullBuild();
-				}
+				// PreferencePageBuilder handles building so
+				// don't need to do it here
+//				if (doBuild) {
+//					doFullBuild();
+//				}
 			}
 			
 			return true;
@@ -770,8 +779,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		}
 		
 		String value = nonStandardOptionsEditor.getStringValue();
-		if (value != AspectJPreferences
-				.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS)){
+		if (!value.equals(AspectJPreferences
+				.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS))){
 			settingsChanged = true;
 			setPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS, value);
 		}
@@ -837,7 +846,23 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 						new String[] { IDialogConstants.YES_LABEL,
 								IDialogConstants.NO_LABEL,
 								IDialogConstants.CANCEL_LABEL }, 2);
+				// if we're testing then we don't want to block
+				// the dialog on open otherwise we require real user input
+				// rather than being able to simulate it
+				if (isTesting) {
+					dialog.setBlockOnOpen(false);
+				}
 				int res = dialog.open();
+				// simulate user input if we're testing
+				if (isTesting) {
+					// choices are "Yes", "No" or "Cancel"
+					dialog.close();
+					if (buildNow) {
+						res = dialog.OK;
+					} else {
+						res = dialog.CANCEL; // simulating cancel or no being pressed.
+					}
+				}
 				if ((res == 0)) {
 					// by only setting compilerSettingsUpdated to be true here,
 					// means that
@@ -1168,6 +1193,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	// Override to make visible to PreferencePageBuilder aspect
 	protected IProject getProject() {
+		if (isTesting) {
+			return project;
+		}
 		return super.getProject();
 	}
 
@@ -1187,7 +1215,71 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	// Override to make it possible to be called by PreferencePageBuilder aspect
 	protected boolean useProjectSettings() {
+		if (isTesting) {
+			return isProjectPreferencePage() && testingProjectSettings; 
+		}
 		return super.useProjectSettings();
 	}
 
+	// ---------------- methods and fields used for testing ----------------
+	private IProject project;
+	private boolean isTesting; 
+	private boolean buildNow;
+	private boolean testingProjectSettings;
+	public void setProject(IProject project) {
+		this.project = project;
+	}
+	public void setIsTesting(boolean isTesting) {
+		this.isTesting = isTesting;
+	}
+	public void setIsUsingProjectSettings(boolean useProjectSettings) {
+		testingProjectSettings = isTesting;
+	}
+	// changes one of the button values to simulate user input
+	public void setButtonChanged() {
+		Button curr = (Button) fCheckBoxes.get(0);
+		boolean value = curr.getSelection();
+		curr.setSelection(!value);
+	}
+	
+	// override so we can use this in testing
+	protected boolean isProjectPreferencePage() {
+		if (isTesting) {
+			return project != null;
+		}
+		return super.isProjectPreferencePage();
+	}
+
+	/** 
+	 * Set whether or not to perform a build now - used to
+	 * simulate user input in the "Compiler Settings Have Changed: do
+	 * you want to build now" dialog. If want to answer "yes" then call
+	 * this method with "true" otherwise, call with false.
+	 */
+	public void setBuildNow(boolean buildNow) {
+		this.buildNow = buildNow;
+	}
+	
+	/**
+	 * Setting this to true enables us to simulate user input
+	 * when testing
+	 */
+	public boolean isTesting(){
+		return isTesting;
+	}
+	
+	/**
+	 * @return true if have set that want to build now in the "Compiler
+	 * Settings Have Changed" dialog, false otherwise.
+	 */
+	public boolean isBuildNow() {
+		return buildNow;
+	}
+	
+	/**
+	 * Sets the non standard options field to have the given contents
+	 */
+	public void setNonStandardOption(String option) {
+		nonStandardOptionsEditor.setStringValue(option);
+	}
 }
