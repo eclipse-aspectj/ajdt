@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -56,7 +57,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	protected Control createContents(Composite parent) {
 		// Grab the resource (must be a project) for which this property page
 		// is being created
-		thisProject = (IProject) getElement();
+		thisProject = getProject();
 		Composite pageComposite = createPageComposite(parent, 3);
 
         // This will cover the top row of the panel.
@@ -156,7 +157,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
     }
 	
 	/**
-	 * overriding performApply() for PreferencePaageBuilder.aj
+	 * overriding performApply() for PreferencePageBuilder.aj
 	 */
 	public void performApply() {  
 	    performOk();
@@ -240,4 +241,35 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	public void dispose() {
 		super.dispose();
 	}  
+	
+	private IProject getProject() {
+		if (testing) {
+			return thisProject;
+		} else {
+			return (IProject) getElement();
+		}
+	}
+	
+	// ---------------- methods for testing -----------------
+	private boolean testing = false;
+	
+	// set the project for which this properties page is dealing with
+	public void setThisProject(IProject project) {
+		thisProject = project;
+	}
+	
+	// set whether or not we are testing
+	public void setIsTesting(boolean isTesting) {
+		testing = isTesting;
+	}
+	
+	// set the outjar value
+	public void setOutjarValue(String outjar) {
+		outputJarEditor.setStringValue(outjar);
+	}
+	
+	// get the outjar value
+	public String getOutjarValue() {
+		return outputJarEditor.getStringValue();
+	}
 }
