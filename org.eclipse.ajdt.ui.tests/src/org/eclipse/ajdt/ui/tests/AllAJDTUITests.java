@@ -48,8 +48,10 @@ import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest2;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
+import org.eclipse.ajdt.ui.tests.preferences.AjCompilerPreferencePageTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
+import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
@@ -94,6 +96,8 @@ public class AllAJDTUITests {
 
 		// internal.ui tests
 		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
+		suite.addTest(new TestSuite(AjCompilerPreferencePageTest2.class));
+		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
 
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
