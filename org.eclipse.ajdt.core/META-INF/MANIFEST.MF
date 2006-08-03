@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.ajdt.core; singleton:=true
-Bundle-Version: 1.4.1.DEVELOPMENT
+Bundle-Version: 1.4.1.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -25,13 +25,11 @@ Export-Package: org.eclipse.ajdt.codeconversion,
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.pde.build,
  org.eclipse.update.core,
- org.aspectj.ajde,
  org.eclipse.core.resources,
  org.eclipse.jdt.core,
  org.eclipse.team.core;resolution:=optional,
- org.aspectj.runtime,
- org.aspectj.weaver,
  org.eclipse.text,
- org.eclipse.ltk.core.refactoring
+ org.eclipse.ltk.core.refactoring,
+ org.aspectj.ajde
 Eclipse-LazyStart: true
 Bundle-RequiredExecutionEnvironment: J2SE-1.4

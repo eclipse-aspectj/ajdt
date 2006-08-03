@@ -4,6 +4,6 @@
 <plugin
   name="%pluginName"
   id="org.eclipse.aspectj"
-  version="92.2.29"
+  version="1.4.1.qualifier"
   provider-name="%providerName">
 </plugin>

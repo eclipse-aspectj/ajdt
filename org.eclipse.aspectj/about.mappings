@@ -4,5 +4,5 @@
 # This file does not need to be translated.
 
 # VERSION-STRING
-0=@AJRELNAME@
-1=@AJDTBUILDID@
+0=@AJVERSION@
+

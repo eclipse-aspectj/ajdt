@@ -248,4 +248,25 @@ Creates a packaged plug-in jar for AJDE
 		update from them. Also need to copy aspectjrt.jar to org.aspectj.runtime plugin.">
 	</target>
 
+	<target name="build.jars" depends="packaged-plugin">
+	</target>
+
+	<target name="gather.bin.parts">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}"/>
+		<copy todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="true" overwrite="false">
+			<fileset dir="${build.dir}" includes="**" />
+		</copy>
+	</target>
+
+	<target name="gather.logs">
+	</target>
+	
+	<target name="build.sources">
+	</target>
+
+	<target name="gather.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}"/>
+		<copy file="ajdesrc.zip" todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
+
 </project>

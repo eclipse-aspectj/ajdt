@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.eclipse.aspectj"
+      id="org.eclipse.aspectj.feature"
       label="%featureName"
-      version="@AJFVERSION@"
-      provider-name="Eclipse.org"
-      image="aspectjLogo.gif">
+      version="1.4.1.qualifier"
+      provider-name="%providerName"
+      plugin="org.eclipse.aspectj">
 
    <description>
       %description
@@ -18,9 +18,9 @@
       %license
    </license>
 
-   <url>
-      <update label="AJDT Update Site" url="@UPDATEURL@"/>
-   </url>
+   <includes
+         id="org.eclipse.aspectj.feature.source"
+         version="0.0.0"/>
 
    <requires>
       <import plugin="org.eclipse.core.runtime" version="3.2.0" match="compatible"/>
@@ -40,74 +40,69 @@
    </requires>
 
    <plugin
-         id="org.eclipse.aspectj"
+         id="org.aspectj.ajde"
          download-size="0"
          install-size="0"
-         version="@AJFVERSION@"/>
-
-   <plugin
-         id="org.eclipse.ajdt.source"
-         download-size="0"
-         install-size="0"
-         version="@AJFVERSION@"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.aspectj.runtime"
          download-size="0"
          install-size="0"
-         version="@AJDEVERSION@"/>
-         
+         version="0.0.0"/>
+
    <plugin
          id="org.aspectj.weaver"
          download-size="0"
          install-size="0"
-         version="@AJDEVERSION@"/>
-
-   <plugin
-         id="org.aspectj.ajde"
-         download-size="0"
-         install-size="0"
-         version="@AJDEVERSION@"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.ajdt.core"
          download-size="0"
          install-size="0"
-         unpack="false"
-         version="@AJDTVERSION@"/>
-
-   <plugin
-         id="org.eclipse.ajdt.ui"
-         download-size="0"
-         install-size="0"
-         unpack="false"
-         version="@AJDTVERSION@"/>
-
-   <plugin
-         id="org.eclipse.ajdt.examples"
-         download-size="0"
-         install-size="0"
-         version="@AJDTVERSION@"/>
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.eclipse.contribution.visualiser"
          download-size="0"
          install-size="0"
-         unpack="false"
-         version="@VISVERSION@"/>
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.eclipse.contribution.xref.core"
          download-size="0"
          install-size="0"
-         unpack="false"
-         version="@XREFVERSION@"/>
-         
+         version="0.0.0"
+         unpack="false"/>
+
    <plugin
          id="org.eclipse.contribution.xref.ui"
          download-size="0"
          install-size="0"
-         unpack="false"
-         version="@XREFVERSION@"/>
-         
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.ajdt.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.ajdt.examples"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.aspectj"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
