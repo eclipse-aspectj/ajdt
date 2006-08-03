@@ -403,10 +403,14 @@ aspect PreferencePageBuilder {
         call(* open()) && target(dialog) && this(page);
     
     after(MessageDialog dialog, IWorkbenchPropertyPage page ) returning : 
-        openingMessageDialog(dialog,page) && within(AJCompilerPreferencePage) {        
-        if (dialog.getReturnCode() == 0) {
-            compilerPageDoBuild = true;
-        } 
+        openingMessageDialog(dialog,page) && within(AJCompilerPreferencePage) {
+    	if (!((AJCompilerPreferencePage)page).isTesting()) {
+            if (dialog.getReturnCode() == 0) {
+                compilerPageDoBuild = true;
+            }     		
+    	} else if (((AJCompilerPreferencePage)page).isBuildNow()) {
+				compilerPageDoBuild = true;
+    	}
     }
     
     /**
