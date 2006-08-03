@@ -258,9 +258,16 @@ public class InPathPropertyPage extends PropertyPage implements
     }
     
 	/**
-	 * overriding dispose() for PreferencePaageBuilder.aj
+	 * overriding dispose() for PreferencePageBuilder.aj
 	 */   
 	public void dispose() {
 		super.dispose();
+	}
+	
+	/**
+	 * overriding performApply() for PreferencePageBuilder.aj
+	 */
+	public void performApply() {  
+	    performOk();
 	}
 }
