@@ -240,29 +240,29 @@ public class AjCompilerPreferencePageTest2 extends UITestCase {
 	 * 1. press "Apply" and "no" to rebuild now ==> don't expect a build
 	 * 2. press "Ok" and "yes" to rebuild now ==> do expect a build
 	 */
-//	public void testChangeNonStandardOptionsAndApply_3() {
-//		setUseProjectSettings();
-//		// make a change on the page which should result in asking
-//		// whether the user wants to do a build
-//		page.setNonStandardOption("-showWeaveInfo");
-//		// don't want to do a build when asked after pressing "apply"
-//		page.setBuildNow(false);
-//		// perform Apply - don't expect there to be a build
-//		testLog.clearLog();			
-//		page.performApply();
-//		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-//		assertFalse("did not expect a build to occur after pressing Apply" +
-//				" because said didn't want one but build happened anyway",didBuild);
-//		// pressing "Ok" now should result in a build because we've chosen
-//		// to build
-//		page.setBuildNow(true);
-//		testLog.clearLog();
-//		page.performOk();
-//		didBuild = testLog.containsMessage("AspectJ reports build successful");
-//		assertTrue("expected a build to occur after performOk " +
-//				"but one didn't happen",didBuild);	
-//
-//	}
+	public void testChangeNonStandardOptionsAndApply_3() {
+		setUseProjectSettings();
+		// make a change on the page which should result in asking
+		// whether the user wants to do a build
+		page.setNonStandardOption("-showWeaveInfo");
+		// don't want to do a build when asked after pressing "apply"
+		page.setBuildNow(false);
+		// perform Apply - don't expect there to be a build
+		testLog.clearLog();			
+		page.performApply();
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
+		assertFalse("did not expect a build to occur after pressing Apply" +
+				" because said didn't want one but build happened anyway",didBuild);
+		// pressing "Ok" now should still not result in a build - this is 
+		// mirroring the jdt compiler pages
+		page.setBuildNow(true);
+		testLog.clearLog();
+		page.performOk();
+		didBuild = testLog.containsMessage("AspectJ reports build successful");
+		assertFalse("did not expect a build to occur after pressing ok" +
+				" but build happened anyway",didBuild);
+
+	}
 	
 	private void setUseProjectSettings() {
 		AspectJPreferences.setUsingProjectSettings(project,true);
