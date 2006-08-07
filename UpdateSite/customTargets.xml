@@ -205,8 +205,31 @@
 	<!-- ===================================================================== -->
 	<target name="postBuild">
 		<antcall target="gatherLogs" />
+		<property name="UpdateSiteStagingLocation" value="${buildDirectory}/updateSite"/>	
+		<antcall target="generateUpdateSite"/>
 	</target>
 
+	<target name="generateUpdateSite">
+	  <!-- Create the directory structure -->
+	  <mkdir dir="${UpdateSiteStagingLocation}"/>
+	  <mkdir dir="${UpdateSiteStagingLocation}/features"/>
+	  <mkdir dir="${UpdateSiteStagingLocation}/plugins"/>
+	  <!-- Build the jar files -->
+	  <antcall target="allElements">
+	    <param name="genericTargets" value="${builder}/customTargets.xml"/>
+	    <param name="target" value="updateSiteExport"/>
+	  </antcall>
+	  <!-- add site.xml with correct version -->
+	  <copy file="${builder}/site.xml" tofile="${UpdateSiteStagingLocation}/site.xml"/>
+	</target>
+	
+	<target name="updateSiteExport">
+	  <ant antfile="build.xml" dir="${buildDirectory}/features/${id}/" target="build.update.jar">
+	    <property name="feature.destination" value="${UpdateSiteStagingLocation}/features"/>
+	    <property name="plugin.destination" value="${UpdateSiteStagingLocation}/plugins"/>
+	  </ant>
+	</target>
+			
 	<!-- ===================================================================== -->
 	<!-- Steps to do to test the build results -->
 	<!-- ===================================================================== -->
