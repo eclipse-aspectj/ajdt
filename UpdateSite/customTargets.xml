@@ -219,7 +219,7 @@
 	    <param name="genericTargets" value="${builder}/customTargets.xml"/>
 	    <param name="target" value="updateSiteExport"/>
 	  </antcall>
-	  <!-- add site.xml with correct version -->
+	  <!-- add site.xml -->
 	  <copy file="${builder}/site.xml" tofile="${UpdateSiteStagingLocation}/site.xml"/>
 	</target>
 	
