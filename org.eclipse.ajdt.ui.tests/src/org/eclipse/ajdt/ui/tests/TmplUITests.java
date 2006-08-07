@@ -70,112 +70,23 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.intro.IIntroPart;
 
-public class AllUITests {
+public class TmplUITests {
 
 	public static Test suite() {
-		TestSuite suite = new TestSuite(AllUITests.class.getName());
+		TestSuite suite = new TestSuite(TmplUITests.class.getName());
 		//$JUnit-BEGIN$
 		
 		boolean is50 = System.getProperty("java.version").startsWith("1.5"); //$NON-NLS-1$ //$NON-NLS-2$
-		
-		// all tests from the core tests plugin
-		//suite.addTest(AllAJDTCoreTests.suite());
-		
-		suite.addTest(new TestSuite(ErrorLogTest.class));
-		suite.addTest(new TestSuite(VerificationTest.class));
-		suite.addTest(new TestSuite(Bug106813Test.class));
-		
-		
-		// test the predefined project tool
-		suite.addTest(new TestSuite(TestForPredefinedProjectsTool.class));
-		
-		// build configuration tests
-		suite.addTest(new TestSuite(BuildConfigurationTest.class));
-		suite.addTest(new TestSuite(BuildConfigurationTest2.class));
-		
-		// internal.core tests
-		suite.addTest(new TestSuite(AJDTUtilsTest.class));
 
 		// internal.ui tests
 		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
 		suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
 		suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
 		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
-
-		// internal.ui.actions tests
-		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
-		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
 		
 		// internal.ui.preferences tests
 		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
-		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
-
-		// internal.ui.editor tests
-		suite.addTest(new TestSuite(AspectJEditorTest.class));
-		suite.addTest(new TestSuite(AspectJBreakpointRulerActionTest.class));
-		suite.addTest(new TestSuite(AspectJEditorIconTest.class));
 		
-		// code format tests
-		suite.addTest(new TestSuite(CodeFormatTest.class));
-		
-		// internal.ui.ajde tests
-		suite.addTest(new TestSuite(BuildOptionsAdapterTest.class));
-		suite.addTest(new TestSuite(ClasspathOrderTest.class));
-		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
-
-		// internal.ui.editor.quickfix tests
-		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
-		
-		// launching tests
-		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
-		suite.addTest(new TestSuite(LTWUtilsTest.class));
-		suite.addTest(new TestSuite(LTWUtilsTest2.class));
-		
-		// ui tests
-		suite.addTest(new TestSuite(CodeTemplatesTest.class));
-		suite.addTest(new TestSuite(ContentAssistTest.class));
-		
-		// new aspectJ project wizard
-		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
-		
-		// export wizard tests
-		suite.addTest(new TestSuite(AJCTaskTest.class));
-		suite.addTest(new TestSuite(ExportPluginTest.class));
-		suite.addTest(new TestSuite(ExportProductTest.class));
-		
-		// internal.builder tests
-		suite.addTest(new TestSuite(ProjectDependenciesTest.class));		
-		suite.addTest(new TestSuite(ProjectDependenciesWithJarFilesTest.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest2.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
-		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
-		suite.addTest(new TestSuite(Bug128803Test.class));
-		suite.addTest(new TestSuite(Bug151818Test.class));
-		suite.addTest(new TestSuite(BuilderTest.class));
-		suite.addTest(new TestSuite(CustomMarkersTest.class));
-		suite.addTest(new TestSuite(ProblemMarkerTest.class));
-		
-		// javamodel tests
-		suite.addTest(new TestSuite(AJCompilationUnitManagerTest.class));		
-		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
-		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
-		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
-		if(is50) {
-			suite.addTest(new TestSuite(Bug117327Test.class));
-		}
-		
-		// ras tests
-		suite.addTest(new TestSuite(PluginFFDCTest.class));		
-
-		// xref tests
-		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());
-		suite.addTest(org.eclipse.contribution.xref.ui.tests.AllTests.suite());
-		suite.addTest(new TestSuite(XReferenceViewContentsTest.class));
-
-		// visualiser tests
-		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
 
 		//$JUnit-END$
 		return suite;

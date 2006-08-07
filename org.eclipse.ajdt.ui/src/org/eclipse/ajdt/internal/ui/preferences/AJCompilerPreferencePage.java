@@ -38,7 +38,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage;
 import org.eclipse.jdt.internal.ui.preferences.ScrolledPageContent;
@@ -135,6 +137,8 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	protected List fCheckBoxes;
 
 	protected final ArrayList fExpandedComposites;
+	
+	private IProject[] projects;
 	
 	// Non standard compiler options that should be passed to ajc
 	private StringFieldEditor nonStandardOptionsEditor;
@@ -725,9 +729,23 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 									IDialogConstants.YES_LABEL,
 									IDialogConstants.NO_LABEL,
 									IDialogConstants.CANCEL_LABEL }, 2);
+					if (isTesting) {
+						dialog.setBlockOnOpen(false);
+					}
 					int res = dialog.open();
+					// simulate user input if we're testing
+					if (isTesting) {
+						// choices are "Yes", "No" or "Cancel"
+						dialog.close();
+						if (buildNow) {
+							res = dialog.OK;
+						} else {
+							res = dialog.CANCEL; // simulating cancel or no being pressed.
+						}
+					}
 					if (res == 0) {
 						doBuild = true;
+						projects= (ResourcesPlugin.getWorkspace().getRoot().getProjects());
 					} else if (res != 1) {
 						return false; // cancel pressed
 					}
@@ -741,6 +759,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			
 			return true;
 		}
+	}
+	
+	public IProject[] getProjects() {
+		return projects;
 	}
 
 	/**

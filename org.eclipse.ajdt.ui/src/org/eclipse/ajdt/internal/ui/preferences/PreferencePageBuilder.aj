@@ -28,6 +28,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.ListDialogField;
 import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogField;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -437,7 +438,13 @@ aspect PreferencePageBuilder {
         } else if (prefPage instanceof InPathPropertyPage) {
             tempProject = ((InPathPropertyPage) prefPage).getThisProject();
         } else if (prefPage instanceof AJCompilerPreferencePage) {
-            tempProject = ((AJCompilerPreferencePage) prefPage).getProject();
+        	
+        	AJCompilerPreferencePage Ajpage = ((AJCompilerPreferencePage) prefPage);
+        	
+        	if (!Ajpage.isProjectPreferencePage()){
+        		buildAllProjects(Ajpage);
+        	}
+        	else tempProject = ((AJCompilerPreferencePage) prefPage).getProject();
         } else if (prefPage instanceof AspectJProjectPropertiesPage) {
             tempProject = ((AspectJProjectPropertiesPage) prefPage)
                     .getThisProject();
@@ -472,6 +479,46 @@ aspect PreferencePageBuilder {
 	        } catch (InvocationTargetException e) {
 	        }
     	}
+    }
+    
+    private void buildAllProjects(AJCompilerPreferencePage prefPage){
+    	 IProject[] projects = prefPage.getProjects();
+    	 for (int i = 0; i < projects.length; i++) {
+			IProject AJproject = projects[i];
+			
+			 final IProject project = (AJproject);
+		        if(project != null) {
+			        ProgressMonitorDialog dialog = new ProgressMonitorDialog(
+			                ((PreferencePage) prefPage).getShell());
+			        try {
+			            dialog.run(true, true, new IRunnableWithProgress() {
+			                public void run(IProgressMonitor monitor)
+			                        throws InvocationTargetException {
+			                    monitor.beginTask("", 2); //$NON-NLS-1$
+			                    try {
+			                        monitor
+			                                .setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
+			                        project.build(IncrementalProjectBuilder.FULL_BUILD,
+			                                AspectJPlugin.ID_BUILDER, null,
+			                                new SubProgressMonitor(monitor, 2));
+			                    } catch (CoreException e) {
+			                       ErrorHandler
+										.handleAJDTError(
+												UIMessages.OptionsConfigurationBlock_builderror_message,
+												e);
+			                    } finally {
+			                        monitor.done();
+			                    }
+			                }
+			            });
+			        } catch (InterruptedException e) {
+			            // cancelled by user
+			        } catch (InvocationTargetException e) {
+			        }
+		    	}
+			
+		}
+    	
     }
 
 }
