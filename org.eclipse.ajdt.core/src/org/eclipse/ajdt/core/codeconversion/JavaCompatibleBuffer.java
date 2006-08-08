@@ -8,7 +8,7 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.codeconversion;
+package org.eclipse.ajdt.core.codeconversion;
 
 import java.util.ArrayList;
 

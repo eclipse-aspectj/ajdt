@@ -8,9 +8,9 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.contentassist;
+package org.eclipse.ajdt.internal.core.contentassist;
 
-import org.eclipse.ajdt.codeconversion.JavaCompatibleBuffer;
+import org.eclipse.ajdt.core.codeconversion.JavaCompatibleBuffer;
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.CompletionRequestor;
 

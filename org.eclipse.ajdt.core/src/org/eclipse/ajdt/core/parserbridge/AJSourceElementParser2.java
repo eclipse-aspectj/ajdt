@@ -10,7 +10,7 @@
  *      Andy Clement - updated for AspectJ 5
  *      Sian January - updated for eager parsing
  *******************************************************************************/
-package org.eclipse.ajdt.parserbridge;
+package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
 

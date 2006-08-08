@@ -7,7 +7,7 @@
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
-package org.eclipse.ajdt.exports;
+package org.eclipse.ajdt.core.exports;
 
 import java.io.IOException;
 import java.net.URL;

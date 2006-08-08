@@ -14,8 +14,8 @@ package org.eclipse.ajdt.internal.ui.editor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
-import org.eclipse.ajdt.codeconversion.ConversionOptions;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.ConversionOptions;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.internal.corext.util.CodeFormatterUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;

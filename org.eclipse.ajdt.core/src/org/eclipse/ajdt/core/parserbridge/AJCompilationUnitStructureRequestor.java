@@ -8,7 +8,7 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.parserbridge;
+package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -40,7 +40,7 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.javaelements.IntertypeElementInfo;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
-import org.eclipse.ajdt.internal.parserbridge.IAspectSourceElementRequestor;
+import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;

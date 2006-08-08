@@ -10,7 +10,7 @@
  * 		Luzius Meisser - Adapted for use with AspectJ
  *      Andy Clement - updated for AspectJ 5
  *******************************************************************************/
-package org.eclipse.ajdt.parserbridge;
+package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.ArrayList;
 
@@ -76,7 +76,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
 import org.aspectj.org.eclipse.jdt.internal.core.util.CommentRecorderParser;
-import org.eclipse.ajdt.internal.parserbridge.IAspectSourceElementRequestor;
+import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
 
 /*
  * Luzius:

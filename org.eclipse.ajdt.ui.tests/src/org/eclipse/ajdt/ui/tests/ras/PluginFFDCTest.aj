@@ -1,6 +1,6 @@
 package org.eclipse.ajdt.ui.tests.ras;
 
-import org.eclipse.ajdt.ras.PluginFFDC;
+import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.tests.AspectJTestPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.runtime.ILogListener;

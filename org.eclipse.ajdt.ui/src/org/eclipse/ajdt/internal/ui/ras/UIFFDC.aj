@@ -16,7 +16,7 @@ import org.eclipse.ajdt.internal.ui.dialogs.AJTypeInfoHistory;
 import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;
 //import org.eclipse.ajdt.pde.internal.ui.editor.context.FileDocumentProvider;
-import org.eclipse.ajdt.ras.PluginFFDC;
+import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.BadLocationException;

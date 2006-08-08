@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.codeconversion;
+package org.eclipse.ajdt.core.codeconversion;
 
 import java.io.File;
 import java.io.FileNotFoundException;

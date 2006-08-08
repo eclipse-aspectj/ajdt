@@ -7,7 +7,7 @@
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
-package org.eclipse.ajdt.exports;
+package org.eclipse.ajdt.core.exports;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -14,8 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.ajdt.codeconversion.CodeChecker;
 import org.eclipse.ajdt.core.BuildConfig;
+import org.eclipse.ajdt.core.codeconversion.CodeChecker;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

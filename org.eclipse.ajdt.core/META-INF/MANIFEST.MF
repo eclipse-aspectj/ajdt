@@ -6,22 +6,22 @@ Bundle-Version: 1.4.1.qualifier
 Bundle-Activator: org.eclipse.ajdt.core.AspectJPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.eclipse.ajdt.codeconversion,
- org.eclipse.ajdt.core,
+Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.core.builder,
+ org.eclipse.ajdt.core.codeconversion,
  org.eclipse.ajdt.core.dom.rewrite,
+ org.eclipse.ajdt.core.exports,
  org.eclipse.ajdt.core.javaelements,
  org.eclipse.ajdt.core.model,
+ org.eclipse.ajdt.core.parserbridge,
+ org.eclipse.ajdt.core.ras,
  org.eclipse.ajdt.core.text,
- org.eclipse.ajdt.exports,
- org.eclipse.ajdt.internal.contentassist;x-internal:=true,
  org.eclipse.ajdt.internal.core;x-internal:=true,
  org.eclipse.ajdt.internal.core.builder;x-internal:=true,
+ org.eclipse.ajdt.internal.core.contentassist;x-internal:=true,
+ org.eclipse.ajdt.internal.core.parserbridge;x-internal:=true,
  org.eclipse.ajdt.internal.core.ras;x-internal:=true,
- org.eclipse.ajdt.internal.core.refactoring,
- org.eclipse.ajdt.internal.parserbridge;x-internal:=true,
- org.eclipse.ajdt.parserbridge,
- org.eclipse.ajdt.ras
+ org.eclipse.ajdt.internal.core.refactoring;x-internal:=true
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.pde.build,
  org.eclipse.update.core,

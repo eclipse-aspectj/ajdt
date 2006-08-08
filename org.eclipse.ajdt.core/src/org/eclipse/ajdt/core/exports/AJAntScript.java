@@ -8,7 +8,7 @@
  * ...
  **********************************************************************/
 
-package org.eclipse.ajdt.exports;
+package org.eclipse.ajdt.core.exports;
 
 import java.io.IOException;
 import java.io.OutputStream;

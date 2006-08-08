@@ -6,7 +6,7 @@
  * 
  * Contributors: Sian January - initial version
  ******************************************************************************/
-package org.eclipse.ajdt.internal.parserbridge;
+package org.eclipse.ajdt.internal.core.parserbridge;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.ajdt.core.AJLog;

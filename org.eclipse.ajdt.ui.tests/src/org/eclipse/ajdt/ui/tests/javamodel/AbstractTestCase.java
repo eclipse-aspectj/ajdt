@@ -12,7 +12,7 @@ package org.eclipse.ajdt.ui.tests.javamodel;
 
 import java.io.File;
 
-import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.ui.tests.UITestCase;

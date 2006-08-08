@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.ajdt.exports;
+package org.eclipse.ajdt.core.exports;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

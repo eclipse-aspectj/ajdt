@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
-import org.eclipse.ajdt.exports.AJBuildScriptGenerator;
+import org.eclipse.ajdt.core.exports.AJBuildScriptGenerator;
 import org.eclipse.ajdt.internal.core.exports.FeatureExportOperation;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
 

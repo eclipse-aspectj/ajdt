@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  * 	   Luzius Meisser - Copied into AJDT
  *******************************************************************************/
-package org.eclipse.ajdt.internal.parserbridge;
+package org.eclipse.ajdt.internal.core.parserbridge;
 
 /*
  * Luzius:

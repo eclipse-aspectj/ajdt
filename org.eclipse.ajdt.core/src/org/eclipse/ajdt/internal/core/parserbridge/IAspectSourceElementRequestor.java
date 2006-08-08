@@ -9,7 +9,7 @@
  *    	IBM Corporation - initial API and implementation
  * 	  	Luzius Meisser - added support for creating AspectJElements
  *******************************************************************************/
-package org.eclipse.ajdt.internal.parserbridge;
+package org.eclipse.ajdt.internal.core.parserbridge;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.DeclareDeclaration;

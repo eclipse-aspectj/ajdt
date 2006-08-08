@@ -10,13 +10,13 @@
  *     Sian January - copied to AJDT and adapted to enable AspectJ problems
  *                    to be found
  ******************************************************************************/
-package org.eclipse.ajdt.parserbridge;
+package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.Map;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
-import org.eclipse.ajdt.internal.parserbridge.AJCompilationUnitDeclarationWrapper;
+import org.eclipse.ajdt.internal.core.parserbridge.AJCompilationUnitDeclarationWrapper;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
