@@ -9,7 +9,7 @@
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
 
-package org.eclipse.ajdt.internal.ui;
+package org.eclipse.ajdt.internal.ui.lazystart;
 
 import java.util.ArrayList;
 
@@ -26,6 +26,7 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -47,7 +48,14 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.internal.decorators.DecoratorManager;
+import org.osgi.framework.Bundle;
 
+/*
+ * Loading classes in this lazystart package does not immediately cause the
+ * plugin to active (as specified in MANIFEST.MF). This is done to avoid early
+ * activation of AJDT plugins. Once AJDT classes outside this package are
+ * referred to, the plugins are then activated.
+ */
 /**
  * @see ILabelDecorator
  */
@@ -58,9 +66,7 @@ public class ImageDecorator implements ILabelDecorator {
 	private boolean preventRecursion = false;
 	private TreeHierarchyLayoutProblemsDecorator problemsDecorator;
 	private DecoratorManager decman;
-	
-	private AspectJImages iconRegistry = AspectJImages.instance();
-	
+		
 	/**
 	 *
 	 */
@@ -92,6 +98,10 @@ public class ImageDecorator implements ILabelDecorator {
 		if (preventRecursion)
 			return null;
 
+		if (Platform.getBundle("org.eclipse.ajdt.ui").getState() != Bundle.ACTIVE) { //$NON-NLS-1$
+			return null;
+		}
+		
 		Image img = null;
 		if (element instanceof ICompilationUnit){
 			ICompilationUnit comp = (ICompilationUnit)element;
@@ -126,16 +136,16 @@ public class ImageDecorator implements ILabelDecorator {
 					AJDTIcon icon = null;
 					if (acceb == null){
 						if (ajElem instanceof AdviceElement) {						
-							icon = (AJDTIcon)iconRegistry.getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
+							icon = (AJDTIcon)AspectJImages.instance().getAdviceIcon(ajElem.getAJExtraInformation(), AJModel.getInstance().hasRuntimeTest(ajElem));
 						} else if (ajElem instanceof IntertypeElement) {
-							icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+							icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 						} else if (ajElem instanceof DeclareElement) {
-							icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+							icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 						} else {
-							icon = (AJDTIcon)iconRegistry.getIcon(ajElem.getAJKind());
+							icon = (AJDTIcon)AspectJImages.instance().getIcon(ajElem.getAJKind());
 						}
 					} else {
-						icon = (AJDTIcon)iconRegistry.getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
+						icon = (AJDTIcon)AspectJImages.instance().getStructureIcon(ajElem.getAJKind(), ajElem.getAJAccessibility());
 					}
 					if (icon != null){
 						img = getImageLabel(getJavaImageDescriptor(icon.getImageDescriptor(), image.getBounds(), computeJavaAdornmentFlags(ajElem)));
@@ -188,21 +198,21 @@ public class ImageDecorator implements ILabelDecorator {
 	 * @see ILabelDecorator#decorateText
 	 */
 	public String decorateText(String text, Object element)  {
-		if (element instanceof AJCompilationUnit){
-			return text.replaceFirst(".java", ".aj");  //$NON-NLS-1$  //$NON-NLS-2$
-		} else {
-			if (element instanceof IAspectJElement){
-				try {
-					if(((IAspectJElement)element).getJavaProject().getProject().exists()) {
-						IProgramElement.Kind kind = ((IAspectJElement)element).getAJKind();
-						if (!((kind == IProgramElement.Kind.ASPECT) || (kind == IProgramElement.Kind.ADVICE) || (kind == IProgramElement.Kind.POINTCUT) || (kind == IProgramElement.Kind.INTER_TYPE_METHOD) || (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR))){
-							return text.substring(0, text.length() - 2);
-						}
-					}
-				} catch (JavaModelException e) {
-				}
-			}
-		}
+//		if (element instanceof AJCompilationUnit){
+//			return text.replaceFirst(".java", ".aj");  //$NON-NLS-1$  //$NON-NLS-2$
+//		} else {
+//			if (element instanceof IAspectJElement){
+//				try {
+//					if(((IAspectJElement)element).getJavaProject().getProject().exists()) {
+//						IProgramElement.Kind kind = ((IAspectJElement)element).getAJKind();
+//						if (!((kind == IProgramElement.Kind.ASPECT) || (kind == IProgramElement.Kind.ADVICE) || (kind == IProgramElement.Kind.POINTCUT) || (kind == IProgramElement.Kind.INTER_TYPE_METHOD) || (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR))){
+//							return text.substring(0, text.length() - 2);
+//						}
+//					}
+//				} catch (JavaModelException e) {
+//				}
+//			}
+//		}
 		return null;
 	}
 	

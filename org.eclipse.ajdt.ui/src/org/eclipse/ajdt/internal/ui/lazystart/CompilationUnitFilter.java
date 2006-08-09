@@ -8,7 +8,7 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *******************************************************************************/
-package org.eclipse.ajdt.internal.javamodel;
+package org.eclipse.ajdt.internal.ui.lazystart;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -31,7 +32,14 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.widgets.Display;
+import org.osgi.framework.Bundle;
 
+/*
+ * Loading classes in this lazystart package does not immediately cause the
+ * plugin to active (as specified in MANIFEST.MF). This is done to avoid early
+ * activation of AJDT plugins. Once AJDT classes outside this package are
+ * referred to, the plugins are then activated.
+ */
 /**
  * 
  * To prevent the .aj files to be displayed twice (as IFile and as ICompilationUnit),
@@ -56,10 +64,14 @@ public class CompilationUnitFilter extends ViewerFilter {
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
-		if (AspectJPlugin.usingCUprovider) {
+		if (Platform.getBundle("org.eclipse.ajdt.ui").getState() != Bundle.ACTIVE) { //$NON-NLS-1$
 			return true;
 		}
 		
+		if (AspectJPlugin.usingCUprovider) {
+			return true;
+		}
+
 		if ((element instanceof ICompilationUnit)
 				&& !(element instanceof AJCompilationUnit)) {
 			try {

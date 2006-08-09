@@ -105,7 +105,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
 
-	private static final String VISUALISER_ID = "org.eclipse.contribution.visualiser";  //$NON-NLS-1$
+	public static final String VISUALISER_ID = "org.eclipse.contribution.visualiser";  //$NON-NLS-1$
 
 	private static final String XREF_CORE_ID = "org.eclipse.contribution.xref.core";  //$NON-NLS-1$
 

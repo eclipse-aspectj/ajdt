@@ -20,7 +20,7 @@ import org.aspectj.ajde.BuildManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
-import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
+import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
@@ -40,11 +40,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.Bundle;
 
 /**
  * 
@@ -57,7 +59,7 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private HashMap outjars = null;
 
-	private ListenerList fListeners;
+	private ListenerList fListeners = new ListenerList();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
@@ -198,11 +200,16 @@ public class UIBuildListener implements IAJBuildListener {
 
 					// refresh Visualiser
 					if (AspectJUIPlugin.usingVisualiser) {
-						if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
-							AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
-									.getContentProvider();
-							provider.reset();
-							VisualiserPlugin.refresh();
+						Bundle vis = Platform
+								.getBundle(AspectJUIPlugin.VISUALISER_ID);
+						// avoid activating the bundle if it's not active already
+						if ((vis != null) && (vis.getState() == Bundle.ACTIVE)) {
+							if (ProviderManager.getContentProvider() instanceof AJDTContentProvider) {
+								AJDTContentProvider provider = (AJDTContentProvider) ProviderManager
+										.getContentProvider();
+								provider.reset();
+								VisualiserPlugin.refresh();
+							}
 						}
 					}
 				}
@@ -211,16 +218,11 @@ public class UIBuildListener implements IAJBuildListener {
 	}
 
 	public void addAdviceListener(IAdviceChangedListener adviceListener) {
-		if (fListeners == null) {
-			fListeners= new ListenerList();
-		}
 		fListeners.add(adviceListener);
 	}
 
 	public void removeAdviceListener(IAdviceChangedListener adviceListener) {
-		if (fListeners != null) {
-			fListeners.remove(adviceListener);
-		}
+		fListeners.remove(adviceListener);
 	}
 
 	/**

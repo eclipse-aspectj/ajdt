@@ -28,6 +28,8 @@ public aspect UIFFDC extends PluginFFDC {
 
 	public pointcut ffdcScope () :
 		within(org.eclipse.ajdt..*)
+		// Exclude lazy start package to avoid early plugin activation
+		&& !within(org.eclipse.ajdt.internal.ui.lazystart..*)
 		// Exclude programming by exception cases
 		&& !within(OpenTypeSelectionDialog)
 		//&& !within(FileDocumentProvider)

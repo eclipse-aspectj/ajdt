@@ -12,6 +12,7 @@ Export-Package: org.eclipse.ajdt.core,
  org.eclipse.ajdt.core.dom.rewrite,
  org.eclipse.ajdt.core.exports,
  org.eclipse.ajdt.core.javaelements,
+ org.eclipse.ajdt.core.lazystart,
  org.eclipse.ajdt.core.model,
  org.eclipse.ajdt.core.parserbridge,
  org.eclipse.ajdt.core.ras,
@@ -31,5 +32,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.text,
  org.eclipse.ltk.core.refactoring,
  org.aspectj.ajde
-Eclipse-LazyStart: true
+Eclipse-LazyStart: true; exceptions="org.eclipse.ajdt.core.lazystart"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4

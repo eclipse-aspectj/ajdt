@@ -9,13 +9,15 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ui;
+package org.eclipse.ajdt.internal.ui.lazystart;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
-import org.eclipse.ajdt.core.builder.IAdviceChangedListener;
+import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -26,8 +28,14 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 
+/*
+ * Loading classes in this lazystart package does not immediately cause the
+ * plugin to active (as specified in MANIFEST.MF). This is done to avoid early
+ * activation of AJDT plugins. Once AJDT classes outside this package are
+ * referred to, the plugins are then activated.
+ */
 public class AdviceImageDecorator implements ILightweightLabelDecorator {
-	
+
 	private ListenerList fListeners;
 	
 	private IAdviceChangedListener fAdviceChangedListener;
@@ -39,20 +47,31 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			IJavaElement je = (IJavaElement) element;
 			IJavaProject jp = je.getJavaProject();
 			// only query the model if the element is in an AJ project
-			if ((jp != null) && AspectJPlugin.isAJProject(jp.getProject())) {
+			if ((jp != null) && isAJProject(jp.getProject())) {
+				// causes plugin activation
+				ensureAdviceListenerIsRegistered();
 				if (AJModel.getInstance().isAdvised(je)) {
-					decoration.addOverlay(AspectJImages.ADVICE_OVERLAY.getImageDescriptor(),
-							IDecoration.TOP_LEFT);
+					AspectJUIPlugin.getDefault();
+					decoration.addOverlay(AspectJImages.ADVICE_OVERLAY
+							.getImageDescriptor(), IDecoration.TOP_LEFT);
 				}
 			}
 		}
 	}
-		
-	public void addListener(ILabelProviderListener listener) {
-		if (fListeners == null) {
-			fListeners= new ListenerList();
+
+	private static boolean isAJProject(IProject project) {
+		if(project.isOpen()) {			
+			try {
+				if ((project!=null) && project.hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$
+					return true;
+				}
+			} catch (CoreException e) {
+			}
 		}
-		fListeners.add(listener);
+		return false;
+	}
+	
+	private void ensureAdviceListenerIsRegistered() {
 		if (fAdviceChangedListener == null) {
 			fAdviceChangedListener= new IAdviceChangedListener() {
 				public void adviceChanged() {
@@ -62,6 +81,14 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			AJBuilder.addAdviceListener(fAdviceChangedListener);
 		}
 	}
+
+	public void addListener(ILabelProviderListener listener) {
+		if (fListeners == null) {
+			fListeners= new ListenerList();
+		}
+		fListeners.add(listener);
+	}
+	
 
 	private void fireAdviceChanged() {
 		if (fListeners != null && !fListeners.isEmpty()) {
@@ -93,5 +120,4 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			}
 		}
 	}
-
 }

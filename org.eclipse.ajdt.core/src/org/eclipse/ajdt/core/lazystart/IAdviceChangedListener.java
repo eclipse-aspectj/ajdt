@@ -9,7 +9,14 @@
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
  *******************************************************************************/
-package org.eclipse.ajdt.core.builder;
+package org.eclipse.ajdt.core.lazystart;
+
+/*
+ * Loading classes in this lazystart package does not immediately cause the
+ * plugin to active (as specified in MANIFEST.MF). This is done to avoid early
+ * activation of AJDT plugins. Once AJDT classes outside this package are
+ * referred to, the plugins are then activated.
+ */
 
 public interface IAdviceChangedListener {
 
