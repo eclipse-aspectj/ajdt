@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Helen Hawkins   - updated for Eclipse 3.1 (bug 109484)
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ajdocexport;
+package org.eclipse.ajdt.internal.ui.ajdocexport;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

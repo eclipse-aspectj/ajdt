@@ -10,7 +10,7 @@
  *     Helen Hawkins   - adjusted for ajdoc
  *******************************************************************************/
 
-package org.eclipse.ajdt.internal.ajdocexport;
+package org.eclipse.ajdt.internal.ui.ajdocexport;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

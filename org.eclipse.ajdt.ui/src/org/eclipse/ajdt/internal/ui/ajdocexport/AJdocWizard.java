@@ -9,7 +9,7 @@
  * Luzius Meisser - adjusted for ajdoc 
  * Helen Hawkins - updated for Eclipse 3.1 (bug 109484)
  ******************************************************************************/
-package org.eclipse.ajdt.internal.ajdocexport;
+package org.eclipse.ajdt.internal.ui.ajdocexport;
 
 import java.io.File;
 import java.io.IOException;

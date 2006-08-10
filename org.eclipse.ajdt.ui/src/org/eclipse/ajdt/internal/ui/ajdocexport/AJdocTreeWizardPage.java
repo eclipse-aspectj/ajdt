@@ -10,7 +10,7 @@
  *     Luzius Meisser  - adjusted for ajdoc 
  *     Helen Hawkins   - updated to Eclipse 3.1
  *******************************************************************************/
-package org.eclipse.ajdt.internal.ajdocexport;
+package org.eclipse.ajdt.internal.ui.ajdocexport;
 
 import java.io.File;
 import java.util.ArrayList;

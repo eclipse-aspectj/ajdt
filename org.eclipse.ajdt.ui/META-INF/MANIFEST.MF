@@ -6,8 +6,7 @@ Bundle-Version: 1.4.1.qualifier
 Bundle-Activator: org.eclipse.ajdt.ui.AspectJUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
- org.eclipse.ajdt.internal.builder;x-internal:=true,
+Export-Package: org.eclipse.ajdt.internal.builder;x-internal:=true,
  org.eclipse.ajdt.internal.buildpath;x-internal:=true,
  org.eclipse.ajdt.internal.debug.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.javamodel;x-internal:=true,
@@ -15,6 +14,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui;x-internal:=true,
  org.eclipse.ajdt.internal.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ajde;x-internal:=true,
+ org.eclipse.ajdt.internal.ui.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui.dialogs;x-internal:=true,
  org.eclipse.ajdt.internal.ui.diff;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor;x-internal:=true,
