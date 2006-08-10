@@ -45,4 +45,36 @@ Creates a packaged plug-in jar for aspectjrt.jar runtime plugin
 		</zip>
 	</target>
 
+	<target name="build.jars" depends="packaged-plugin">
+	</target>
+
+	<target name="gather.bin.parts">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}"/>
+		<copy todir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}" failonerror="true" overwrite="false">
+			<fileset dir="${build.dir}" includes="**" />
+		</copy>
+	</target>
+
+	<target name="gather.logs">
+	</target>
+
+	<target name="build.sources">
+	</target>
+
+	<target name="gather.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}"/>
+		<copy file="aspectjweaversrc.zip" todir="${destination.temp.folder}/org.aspectj.weaver_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
+
+	<target name="build.update.jar">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<zip destfile="${plugin.destination}/org.aspectj.weaver_${ajde.version}.jar" basedir="${temp.folder}/org.aspectj.weaver_${ajde.version}" filesonly="false" whenempty="skip" update="false"/>
+		<delete dir="${temp.folder}"/>
+	</target>
+
 </project>
