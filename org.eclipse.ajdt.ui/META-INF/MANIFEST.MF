@@ -2,12 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.ajdt.ui; singleton:=true
-Bundle-Version: 1.4.0.DEVELOPMENT
+Bundle-Version: 1.4.1.qualifier
 Bundle-Activator: org.eclipse.ajdt.ui.AspectJUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
- org.eclipse.ajdt.internal.builder;x-internal:=true,
+Export-Package: org.eclipse.ajdt.internal.builder;x-internal:=true,
  org.eclipse.ajdt.internal.buildpath;x-internal:=true,
  org.eclipse.ajdt.internal.debug.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.javamodel;x-internal:=true,
@@ -15,6 +14,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui;x-internal:=true,
  org.eclipse.ajdt.internal.ui.actions;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ajde;x-internal:=true,
+ org.eclipse.ajdt.internal.ui.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui.dialogs;x-internal:=true,
  org.eclipse.ajdt.internal.ui.diff;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor;x-internal:=true,
@@ -23,6 +23,7 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor.outline;x-internal:=true,
  org.eclipse.ajdt.internal.ui.editor.quickfix;x-internal:=true,
  org.eclipse.ajdt.internal.ui.help;x-internal:=true,
+ org.eclipse.ajdt.internal.ui.lazystart;x-internal:=true,
  org.eclipse.ajdt.internal.ui.markers;x-internal:=true,
  org.eclipse.ajdt.internal.ui.preferences;x-internal:=true,
  org.eclipse.ajdt.internal.ui.ras;x-internal:=true,
@@ -38,7 +39,9 @@ Export-Package: org.eclipse.ajdt.internal.ajdocexport;x-internal:=true,
  org.eclipse.ajdt.pde.internal.core;x-internal:=true,
  org.eclipse.ajdt.ui,
  org.eclipse.ajdt.ui.buildpath
-Require-Bundle: org.eclipse.ui.forms,
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui.forms,
  org.eclipse.ui.workbench,
  org.eclipse.jface,
  org.eclipse.ui.ide,
@@ -48,8 +51,6 @@ Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.ui.editors,
  org.aspectj.ajde,
  org.eclipse.search,
- org.eclipse.core.runtime,
- org.eclipse.core.resources,
  org.eclipse.ui,
  org.eclipse.jdt.ui,
  org.eclipse.debug.core,
@@ -79,5 +80,5 @@ Require-Bundle: org.eclipse.ui.forms,
  org.eclipse.help,
  org.aspectj.weaver,
  org.eclipse.core.filesystem
-Eclipse-LazyStart: true
+Eclipse-LazyStart: true; exceptions="org.eclipse.ajdt.internal.ui.lazystart"
 Bundle-RequiredExecutionEnvironment: J2SE-1.4

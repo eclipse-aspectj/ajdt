@@ -87,11 +87,11 @@ public class CompilerMonitor implements IAJCompilerMonitor {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.aspectj.ajde.BuildProgressMonitor#finish()
+	 * @see org.aspectj.ajde.BuildProgressMonitor#finish(boolean)
 	 */
-	public void finish() {
+	public void finish(boolean wasFullBuild) {
 		compilationInProgress = false;
-		AJLog.log(AJLog.COMPILER,"AJC: Build finished"); //$NON-NLS-1$
+		AJLog.log(AJLog.COMPILER,"AJC: Build finished. Was full build: "+wasFullBuild); //$NON-NLS-1$
 	}
 
 	/**

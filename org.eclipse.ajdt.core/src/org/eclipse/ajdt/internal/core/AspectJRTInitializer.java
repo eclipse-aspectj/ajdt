@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2003, 2005 IBM Corporation and others.
+Copyright (c) 2003, 2006 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
@@ -18,11 +18,14 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
- * @author colyer
+ * Initialise ASPECTJRT_LIB variable - references to this should now be
+ * migrated to the ASPECTJRT classpath container when a project is built
  *
  */
 public class AspectJRTInitializer extends ClasspathVariableInitializer {
 
+	public static boolean hasBeenUsed = false;
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.ClasspathVariableInitializer#initialize(java.lang.String)
 	 */
@@ -33,6 +36,7 @@ public class AspectJRTInitializer extends ClasspathVariableInitializer {
 			try {
 				JavaCore.setClasspathVariable("ASPECTJRT_LIB", //$NON-NLS-1$
 						new Path(ajrtPath),null);
+				hasBeenUsed = true;
 			} catch (JavaModelException e) {
 			}
 		}

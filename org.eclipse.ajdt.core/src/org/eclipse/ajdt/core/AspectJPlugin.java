@@ -63,6 +63,8 @@ public class AspectJPlugin extends Plugin {
 	
 	public static final String AJ_FILE_EXT = "aj"; //$NON-NLS-1$
 	
+	public static final String ASPECTJRT_CONTAINER = PLUGIN_ID + ".ASPECTJRT_CONTAINER"; //$NON-NLS-1$
+	
 	// AspectJ keywords
     public static final String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		// Pointcut designators: methods and constructora

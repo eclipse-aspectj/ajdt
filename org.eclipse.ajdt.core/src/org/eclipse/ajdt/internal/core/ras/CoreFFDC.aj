@@ -11,8 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.ras;
 
-import org.eclipse.ajdt.ras.PluginFFDC;
-import org.eclipse.ajdt.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.core.ras.PluginFFDC;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.CoreErrorHandler;
 import org.eclipse.core.runtime.IStatus;

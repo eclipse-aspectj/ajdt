@@ -17,8 +17,8 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclarat
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
-import org.eclipse.ajdt.parserbridge.AJCompilationUnitStructureRequestor;
-import org.eclipse.ajdt.parserbridge.AJSourceElementParser;
+import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
+import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IBuffer;
 import org.eclipse.jdt.core.ICompilationUnit;

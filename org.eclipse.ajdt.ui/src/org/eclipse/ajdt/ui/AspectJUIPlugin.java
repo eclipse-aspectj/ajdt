@@ -36,7 +36,6 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
 import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -106,7 +105,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 
 	private static final String AJDE_VERSION_KEY_PREVIOUS = "ajde.version.at.previous.startup"; //$NON-NLS-1$
 
-	private static final String VISUALISER_ID = "org.eclipse.contribution.visualiser";  //$NON-NLS-1$
+	public static final String VISUALISER_ID = "org.eclipse.contribution.visualiser";  //$NON-NLS-1$
 
 	private static final String XREF_CORE_ID = "org.eclipse.contribution.xref.core";  //$NON-NLS-1$
 
@@ -516,11 +515,8 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			IClasspathEntry[] originalCP = javaProject.getRawClasspath();
-			IClasspathEntry ajrtLIB = JavaCore.newVariableEntry(new Path(
-					"ASPECTJRT_LIB"), // library location //$NON-NLS-1$
-					null, // no source
-					null // no source
-					);
+			IClasspathEntry ajrtLIB = JavaCore.newContainerEntry(
+					new Path(AspectJPlugin.ASPECTJRT_CONTAINER), false);
 			// Update the raw classpath with the new ajrtCP entry.
 			int originalCPLength = originalCP.length;
 			IClasspathEntry[] newCP = new IClasspathEntry[originalCPLength + 1];
@@ -548,8 +544,17 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			// to the collection of new classpath entries.
 			for (int i = 0; i < originalCP.length; i++) {
 				IPath path = originalCP[i].getPath();
-				if (!path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
-						&& !path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
+				boolean keep = true;
+				if (path.toOSString().endsWith("ASPECTJRT_LIB") //$NON-NLS-1$
+						|| path.toOSString().endsWith("aspectjrt.jar")) { //$NON-NLS-1$
+					keep = false;
+				}
+				if (originalCP[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+					if (path.segment(0).equals(AspectJPlugin.ASPECTJRT_CONTAINER)) {
+						keep = false;
+					}
+				}
+				if (keep) {			
 					tempCP.add(originalCP[i]);
 				}
 			}// end for

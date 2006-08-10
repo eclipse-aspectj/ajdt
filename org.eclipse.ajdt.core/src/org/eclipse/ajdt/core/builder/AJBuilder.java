@@ -32,8 +32,10 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.TimerLogEvent;
+import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.text.CoreMessages;
+import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -46,6 +48,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -211,6 +215,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				}
 			}
 		}
+
+		migrateToRTContainerIfNecessary(javaProject);
 
 		IAJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
 		if (kind == FULL_BUILD) {
@@ -957,4 +963,29 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	public static void removeStateListener() {
 		AjState.stateListener = null;
 	}
+	
+	private void migrateToRTContainerIfNecessary(IJavaProject javaProject) {
+		if (!AspectJRTInitializer.hasBeenUsed) {
+			// if the old ASPECTJRT_LIB var hasn't been initialized
+			// then there definitely won't be anything to migrate
+			return;
+		}
+		try {
+			IClasspathEntry[] entries = javaProject.getRawClasspath();
+			for (int i = 0; i < entries.length; i++) {
+				if (entries[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE) {
+					String var = entries[i].getPath().segment(0);
+					if (var.equals("ASPECTJRT_LIB")) { //$NON-NLS-1$
+						// replace with AspectJRT container
+						entries[i] = JavaCore.newContainerEntry(
+								new Path(AspectJPlugin.ASPECTJRT_CONTAINER), false);
+						javaProject.setRawClasspath(entries, new NullProgressMonitor());
+						return;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+	}
+
 }

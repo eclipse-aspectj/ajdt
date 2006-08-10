@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
+import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.core.resources.IProject;
 
 /**

@@ -364,7 +364,7 @@
       <filter
             targetId="org.eclipse.jdt.ui.PackageExplorer"
             enabled="true"
-            class="org.eclipse.ajdt.internal.javamodel.CompilationUnitFilter"
+            class="org.eclipse.ajdt.internal.ui.lazystart.CompilationUnitFilter"
             description="%ajFileFilterDesc"
             name="%ajFileFilter"
             id="org.eclipse.ajdt.javamodel.CompilationUnitFilter"/>
@@ -1489,7 +1489,7 @@ M4 = Platform-specific fourth key
       <decorator
             lightweight="false"
             label="%ajElementDecorator.label"
-            class="org.eclipse.ajdt.internal.ui.ImageDecorator"
+            class="org.eclipse.ajdt.internal.ui.lazystart.ImageDecorator"
             state="true"
             id="org.eclipse.ajdt.ui.decorator">
          <description>
@@ -1504,7 +1504,7 @@ M4 = Platform-specific fourth key
       <decorator
             lightweight="true"
             label="%advisesDecorator.label"
-            class="org.eclipse.ajdt.internal.ui.AdviceImageDecorator"
+            class="org.eclipse.ajdt.internal.ui.lazystart.AdviceImageDecorator"
             state="true"
             adaptable="true"
             id="org.eclipse.ajdt.ui.advicedecorator">
@@ -1513,7 +1513,7 @@ M4 = Platform-specific fourth key
 		 </description>
          <enablement>
             <objectClass
-                  name="java.lang.Object">
+                  name="org.eclipse.jdt.core.IJavaElement">
             </objectClass>
          </enablement>
       </decorator>

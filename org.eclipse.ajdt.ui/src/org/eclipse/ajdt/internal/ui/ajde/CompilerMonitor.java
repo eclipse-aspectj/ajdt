@@ -278,11 +278,12 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * circumstances get multiple calls to finish. This method is marked
      * synchronized to let one finish finish before another finish gets in!
      */
-    public synchronized void finish() {
-        AJLog.log(AJLog.COMPILER,"AJDE Callback: finish()"); //$NON-NLS-1$
+    public synchronized void finish(boolean wasFullBuild) {
+        AJLog.log(AJLog.COMPILER,"AJDE Callback: finish. Was full build: "+wasFullBuild); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
+        CompilerTaskListManager.getInstance().setLastBuildType(wasFullBuild);
         WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
@@ -324,7 +325,15 @@ public class CompilerMonitor implements IAJCompilerMonitor {
     private String removePrefix(String msg) {
         String ret = msg;
         IProject p = AspectJPlugin.getDefault().getCurrentProject();
+        
+        //Bug 150936                   
+        if (p == null || p.getLocation() == null) {
+        	AJLog.log("Could not find project location, " + p); //$NON-NLS-1$
+        	return ret;
+        };
+        	
         String projectLocation = p.getLocation().toOSString() + "\\"; //$NON-NLS-1$
+        
         if (msg.indexOf(projectLocation) != -1) {
             ret = msg.substring(0, msg.indexOf(projectLocation))
                     + msg.substring(msg.indexOf(projectLocation)

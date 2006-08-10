@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
+Copyright (c) 2002, 2006 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
@@ -13,7 +13,6 @@ package org.eclipse.ajdt.internal.ui;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -46,9 +45,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	// compiler options for ajc 
 	private StringFieldEditor outputJarEditor;
 
-	// Non standard compiler options that should be passed to ajc
-	private StringFieldEditor nonStandardOptionsEditor;
-
 	// Relevant project for which the properties are being set
 	private IProject thisProject;
 
@@ -59,7 +55,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	protected Control createContents(Composite parent) {
 		// Grab the resource (must be a project) for which this property page
 		// is being created
-		thisProject = (IProject) getElement();
+		thisProject = getProject();
 		Composite pageComposite = createPageComposite(parent, 3);
 
         // This will cover the top row of the panel.
@@ -74,14 +70,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 		  new StringFieldEditor("", //$NON-NLS-1$
 				  UIMessages.compilerPropsPage_outputJar,
             row3Comp);
-				
-		nonStandardOptionsEditor =
-			new StringFieldEditor(
-				"", //$NON-NLS-1$
-				UIMessages.compilerPropsPage_nonStandardOptions,
-				StringFieldEditor.UNLIMITED,
-				pageComposite);
-				
+								
 		createLabel(pageComposite,"");				 //$NON-NLS-1$
 
 		createLabel(pageComposite,""); //$NON-NLS-1$
@@ -166,7 +155,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
     }
 	
 	/**
-	 * overriding performApply() for PreferencePaageBuilder.aj
+	 * overriding performApply() for PreferencePageBuilder.aj
 	 */
 	public void performApply() {  
 	    performOk();
@@ -216,9 +205,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
         		);
 		}
 		LaunchConfigurationManagementUtils.updateOutJar(JavaCore.create(thisProject), oldEntry, newEntry);
-		AJLog.log("Compiler properties changed for project: " + thisProject.getName()); //$NON-NLS-1$
 		AspectJCorePreferences.setProjectOutJar(thisProject,outputJarEditor.getStringValue());
-		AspectJPreferences.setCompilerOptions(thisProject,nonStandardOptionsEditor.getStringValue());
 		return true;
 	}
 	
@@ -230,7 +217,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	public void performDefaults() {
 		AJLog.log("Compiler properties reset to default for project: " + thisProject.getName()); //$NON-NLS-1$
 		outputJarEditor.setStringValue(""); //$NON-NLS-1$
-		nonStandardOptionsEditor.setStringValue(""); //$NON-NLS-1$
 	}
 
 	/**
@@ -238,7 +224,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	 */
 	public void updatePageContents() {
 		outputJarEditor.setStringValue(AspectJCorePreferences.getProjectOutJar(thisProject));
-		nonStandardOptionsEditor.setStringValue(AspectJPreferences.getCompilerOptions(thisProject));
 	}
  	
     /**
@@ -254,4 +239,35 @@ public class AspectJProjectPropertiesPage extends PropertyPage {
 	public void dispose() {
 		super.dispose();
 	}  
+	
+	private IProject getProject() {
+		if (testing) {
+			return thisProject;
+		} else {
+			return (IProject) getElement();
+		}
+	}
+	
+	// ---------------- methods for testing -----------------
+	private boolean testing = false;
+	
+	// set the project for which this properties page is dealing with
+	public void setThisProject(IProject project) {
+		thisProject = project;
+	}
+	
+	// set whether or not we are testing
+	public void setIsTesting(boolean isTesting) {
+		testing = isTesting;
+	}
+	
+	// set the outjar value
+	public void setOutjarValue(String outjar) {
+		outputJarEditor.setStringValue(outjar);
+	}
+	
+	// get the outjar value
+	public String getOutjarValue() {
+		return outputJarEditor.getStringValue();
+	}
 }

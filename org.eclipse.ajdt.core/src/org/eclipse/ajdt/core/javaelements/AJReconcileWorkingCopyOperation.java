@@ -14,7 +14,7 @@ package org.eclipse.ajdt.core.javaelements;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import org.eclipse.ajdt.parserbridge.AJCompilationUnitProblemFinder;
+import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitProblemFinder;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelStatus;
 import org.eclipse.jdt.core.IJavaModelStatusConstants;
