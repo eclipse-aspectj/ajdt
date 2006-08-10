@@ -63,6 +63,10 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	protected List aspectpath;
 	protected List inpath;
 	
+	public static final String PROPERTY_INPATH = "inpath"; //$NON-NLS-1$
+	public static final String PROPERTY_ASPECTPATH = "aspectpath"; //$NON-NLS-1$
+	// AspectJ Change end
+	
 	/**
 	 * Represents a entry that must be compiled and which is listed in the build.properties file.
 	 */
@@ -257,6 +261,19 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			customBuildCallbacks = DEFAULT_CUSTOM_BUILD_CALLBACKS_FILE;
 		else if (FALSE.equalsIgnoreCase(customBuildCallbacks))
 			customBuildCallbacks = null;
+		
+		// AspectJ change begin
+		String inpathProp = getBuildProperties().getProperty(PROPERTY_INPATH);
+		if (inpathProp != null) {
+			inpath = new ArrayList();
+			inpath.add(inpathProp);
+		}
+		String aspectpathProp = getBuildProperties().getProperty(PROPERTY_ASPECTPATH);
+		if (aspectpathProp != null) {
+			aspectpath = new ArrayList();
+			aspectpath.add(aspectpathProp);
+		}
+		// AspectJ change end
 	}
 
 	protected static boolean findAndReplaceDot(String[] classpathInfo) {
