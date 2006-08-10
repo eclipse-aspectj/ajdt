@@ -355,12 +355,12 @@ public class AspectJPreferencesTest extends UITestCase {
 	public void testSetCompilerOptions() throws Exception {
 	    assertFalse("project shouldn't have any error markers", //$NON-NLS-1$
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
-	    AspectJPreferences.setCompilerOptions(project,"blah"); //$NON-NLS-1$
+	    AspectJPreferences.setCompilerOptions(project, "blah"); //$NON-NLS-1$
 	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	    waitForJobsToComplete();
 	    assertTrue("build should fail because can't understand compiler options", //$NON-NLS-1$
 	            ProjectDependenciesUtils.projectIsMarkedWithError(project,null));
-	    AspectJPreferences.setCompilerOptions(project,""); //$NON-NLS-1$
+	    AspectJPreferences.setCompilerOptions(project, ""); //$NON-NLS-1$
 	    project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 	    waitForJobsToComplete();
 	    assertFalse("project shouldn't have any error markers", //$NON-NLS-1$
@@ -368,12 +368,12 @@ public class AspectJPreferencesTest extends UITestCase {
 	}
 	
 	public void testGetCompilerOptions() throws Exception {
-	    AspectJPreferences.setCompilerOptions(project,"blah"); //$NON-NLS-1$
+	    AspectJPreferences.setCompilerOptions(project, "blah"); //$NON-NLS-1$
 	    String compilerOptions = AspectJPreferences.getCompilerOptions(project);
 	    assertEquals("should have \"blah\" as compiler options, instead has " + compilerOptions, //$NON-NLS-1$
 	            "blah", //$NON-NLS-1$
 	            compilerOptions);
-	    AspectJPreferences.setCompilerOptions(project,""); //$NON-NLS-1$
+	    AspectJPreferences.setCompilerOptions(project, ""); //$NON-NLS-1$
 	    compilerOptions = AspectJPreferences.getCompilerOptions(project);
 	    assertEquals("should have \" \" as compiler options, instead has " + compilerOptions, //$NON-NLS-1$
 	            "", //$NON-NLS-1$

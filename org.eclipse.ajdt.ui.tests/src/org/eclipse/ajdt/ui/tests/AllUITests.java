@@ -25,6 +25,7 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest4;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest5;
 import org.eclipse.ajdt.ui.tests.builder.Bug128803Test;
+import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.CustomMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
@@ -47,8 +48,11 @@ import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest2;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
+import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest2;
+import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageWorkbenchTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
+import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
@@ -94,6 +98,9 @@ public class AllUITests {
 
 		// internal.ui tests
 		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
+		suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
+		suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
+		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
 
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
@@ -145,6 +152,7 @@ public class AllUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
 		suite.addTest(new TestSuite(Bug128803Test.class));
+		suite.addTest(new TestSuite(Bug151818Test.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
 		suite.addTest(new TestSuite(CustomMarkersTest.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));

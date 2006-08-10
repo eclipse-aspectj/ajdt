@@ -17,6 +17,8 @@ import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.ajde.Ajde;
+import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
@@ -564,6 +566,31 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 			AspectJPlugin.getDefault().setAJLogger(null);
 			deleteProject(pA);
 			deleteProject(pB);
+		}
+	}
+	
+	/**
+	 * Test for by 107027 - we didn't flush the classpath after building
+	 * when just running with the core plugin
+	 */
+	public void testBug107027() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject p = createPredefinedProject("bug99133a"); //$NON-NLS-1$
+		waitForAutoBuild();
+		IProject bean = createPredefinedProject("Bean Example");
+		waitForAutoBuild();
+		try {
+			ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+			// expect the classpath to mention the "Bean Example" if everything
+			// has been flushed correctly. Otherwise it will just contain
+			// the flushed version which is the classpath for project bug99133a.
+			assertTrue("classpath should have been flushed but wasn't",
+					adapter.getClasspath().indexOf("Bean") != -1);
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(p);
+			deleteProject(bean);
 		}
 	}
 	
