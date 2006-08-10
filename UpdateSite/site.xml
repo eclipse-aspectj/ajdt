@@ -5,8 +5,8 @@
 	tools.
 	</description>
 	<!-- VERSION-STRING -->	
-	<feature id="org.eclipse.aspectj" version="@AJFVERSION@"
-	         url="features/org.eclipse.aspectj_@AJFVERSION@.jar">
+	<feature id="org.eclipse.aspectj.feature" version="@AJFVERSION@"
+	         url="features/org.eclipse.aspectj.feature_@AJFVERSION@.jar">
 		<category name="org.eclipse.aspectj"/>
 	</feature>
 

@@ -21,11 +21,11 @@ excludes the source code, examples, and the visualiser and xref plugins.
 	
 <property name="cctimestamp" value="DEVELOPMENT" /> <!-- set by CruiseControl -->
 <property name="ajdt.version.file" location="ajdtbuildversion.txt" /> <!-- set by CruiseControl -->
-<property name="aspectj.feature.version" value="1.4.0.${cctimestamp}" />
-<property name="ajdt.version" value="1.4.0.${cctimestamp}" />
-<property name="ajde.version" value="1.5.0.${cctimestamp}" />
-<property name="aspectj.release.name" value="1.5.1.20060131132251" />
-<property name="aspectj.version" value="1.5.1" />
+<property name="aspectj.feature.version" value="1.4.1.${cctimestamp}" />
+<property name="ajdt.version" value="1.4.1.${cctimestamp}" />
+<property name="ajde.version" value="1.5.3.${cctimestamp}" />
+<property name="aspectj.release.name" value="1.5.3.20060726092219" />
+<property name="aspectj.version" value="1.5.3" />
 	
 <property name="temp.folder" value="temp-folder" />
 
