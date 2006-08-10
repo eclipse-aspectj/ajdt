@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.internal.debug.ui.actions.ToggleBreakpointAdapter;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -23,7 +24,6 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointManager;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
-import org.eclipse.jdt.internal.debug.ui.actions.ActionMessages;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -54,7 +54,7 @@ public class AspectJBreakpointRulerAction extends Action {
 
 	public AspectJBreakpointRulerAction(IVerticalRulerInfo ruler,
 			ITextEditor editor, IEditorPart editorPart) {
-		super(ActionMessages.ManageBreakpointRulerAction_label); //$NON-NLS-1$
+		super(UIMessages.ManageBreakpointRulerAction_label); //$NON-NLS-1$
 		fRuler = ruler;
 		fTextEditor = editor;
 		fStatusLine = (IEditorStatusLine) editorPart
@@ -133,7 +133,7 @@ public class AspectJBreakpointRulerAction extends Action {
 				}
 			}
 		} catch (CoreException e) {
-			JDIDebugUIPlugin.errorDialog(ActionMessages.ManageBreakpointRulerAction_error_adding_message1, e); //$NON-NLS-1$
+			JDIDebugUIPlugin.errorDialog(UIMessages.ManageBreakpointRulerAction_error_adding_message1, e); //$NON-NLS-1$
 		}	
 	}
 

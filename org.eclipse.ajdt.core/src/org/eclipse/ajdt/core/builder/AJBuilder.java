@@ -332,7 +332,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		ArrayList projects = new ArrayList();
 		try {
-			IClasspathEntry[] entries = javaProject.getExpandedClasspath(true);
+			IClasspathEntry[] entries = javaProject.getExpandedClasspath();
 			for (int i = 0, l = entries.length; i < l; i++) {
 				IClasspathEntry entry = entries[i];
 				IPath path = entry.getPath();

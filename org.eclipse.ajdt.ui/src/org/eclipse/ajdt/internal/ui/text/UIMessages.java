@@ -389,6 +389,10 @@ public class UIMessages extends NLS {
 	public static String eventTrace_category_builder;
 	public static String eventTrace_category_builder_classpath;
 
+	public static String ManageBreakpointRulerAction_label;
+	public static String ManageBreakpointRulerAction_error_adding_message1;
+	public static String ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}

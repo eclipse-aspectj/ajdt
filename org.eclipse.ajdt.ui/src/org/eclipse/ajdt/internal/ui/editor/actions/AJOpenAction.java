@@ -20,10 +20,10 @@ import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.PointcutElement;
 import org.eclipse.ajdt.core.javaelements.PointcutUtilities;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -31,20 +31,21 @@ import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
-import org.eclipse.jdt.internal.ui.IJavaStatusConstants;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.actions.ActionMessages;
 import org.eclipse.jdt.internal.ui.actions.ActionUtil;
-import org.eclipse.jdt.internal.ui.actions.OpenActionUtil;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
+import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
+import org.eclipse.jdt.internal.ui.viewsupport.JavaUILabelProvider;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.actions.SelectionDispatchAction;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -155,7 +156,7 @@ public class AJOpenAction extends SelectionDispatchAction {
 			} else {
 				element = elements[0];
 				if (elements.length > 1)
-					element= OpenActionUtil.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
+					element= SelectionConverter.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
 			}
 			// end AspectJ change
 			if (element == null) {
@@ -205,46 +206,29 @@ public class AJOpenAction extends SelectionDispatchAction {
 	public void run(Object[] elements) {
 		if (elements == null)
 			return;
-		for (int i = 0; i < elements.length; i++) {
-			Object element = elements[i];
+		
+		MultiStatus status= new MultiStatus(JavaUI.ID_PLUGIN, IStatus.OK, ActionMessages.OpenAction_multistatus_message, null);
+		
+		for (int i= 0; i < elements.length; i++) {
+			Object element= elements[i];
 			try {
-				element = getElementToOpen(element);
-				boolean activateOnOpen = fEditor != null ? true : OpenStrategy
-						.activateOnOpen();
-				OpenActionUtil.open(element, activateOnOpen);
-			} catch (JavaModelException e) {
-				JavaPlugin.log(new Status(IStatus.ERROR, JavaPlugin
-						.getPluginId(), IJavaStatusConstants.INTERNAL_ERROR,
-						ActionMessages.OpenAction_error_message, e));
-
-				ErrorDialog.openError(getShell(), getDialogTitle(),
-						ActionMessages.OpenAction_error_messageProblems, e
-								.getStatus());
-
-			} catch (PartInitException x) {
-
-				String name = null;
-
-				if (element instanceof IJavaElement) {
-					name = ((IJavaElement) element).getElementName();
-				} else if (element instanceof IStorage) {
-					name = ((IStorage) element).getName();
-				} else if (element instanceof IResource) {
-					name = ((IResource) element).getName();
-				}
-
-				if (name != null) {
-					MessageDialog
-							.openError(
-									getShell(),
-									ActionMessages.OpenAction_error_messageProblems,
-									Messages
-											.format(
-													ActionMessages.OpenAction_error_messageArgs,
-													new String[] { name,
-															x.getMessage() }));
-				}
+				element= getElementToOpen(element);
+				boolean activateOnOpen= fEditor != null ? true : OpenStrategy.activateOnOpen();
+				IEditorPart part= EditorUtility.openInEditor(element, activateOnOpen);
+				if (part != null && element instanceof IJavaElement)
+					JavaUI.revealInEditor(part, (IJavaElement)element);
+			} catch (PartInitException e) {
+				String message= Messages.format(ActionMessages.OpenAction_error_problem_opening_editor, new String[] { new JavaUILabelProvider().getText(element), e.getStatus().getMessage() });
+				status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+			} catch (CoreException e) {
+				String message= Messages.format(ActionMessages.OpenAction_error_problem_opening_editor, new String[] { new JavaUILabelProvider().getText(element), e.getStatus().getMessage() });
+				status.add(new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, message, null));
+				JavaPlugin.log(e);
 			}
+		}
+		if (!status.isOK()) {
+			IStatus[] children= status.getChildren();
+			ErrorDialog.openError(getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message, children.length == 1 ? children[0] : status);
 		}
 	}
 
