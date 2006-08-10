@@ -10,7 +10,6 @@
 package org.eclipse.ajdt.ui.tests.preferences;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -19,7 +18,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jface.preference.StringFieldEditor;
 
 public class AJCompilerPreferencePageTest2 extends UITestCase {
 

@@ -17,7 +17,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jface.preference.StringFieldEditor;
 
 public class AspectJProjectPropertiesPageTest extends UITestCase {
 

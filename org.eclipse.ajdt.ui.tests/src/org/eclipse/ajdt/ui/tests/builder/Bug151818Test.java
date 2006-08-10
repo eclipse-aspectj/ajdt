@@ -12,7 +12,6 @@ package org.eclipse.ajdt.ui.tests.builder;
 
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.ui.views.markers.internal.ProblemView;
 
 public class Bug151818Test extends UITestCase {

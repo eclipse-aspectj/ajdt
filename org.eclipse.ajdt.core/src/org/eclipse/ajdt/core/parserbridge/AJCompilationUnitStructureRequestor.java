@@ -49,8 +49,6 @@ import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.CompilationUnitStructureRequestor;
 import org.eclipse.jdt.internal.core.JavaElement;
-import org.eclipse.jdt.internal.core.OpenableElementInfo;
-import org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
