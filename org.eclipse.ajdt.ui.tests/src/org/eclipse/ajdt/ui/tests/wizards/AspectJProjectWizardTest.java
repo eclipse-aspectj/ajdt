@@ -120,8 +120,9 @@ public class AspectJProjectWizardTest extends UITestCase {
 		IJavaProject jp = JavaCore.create(wizardCreatedProject);
 
 		try {
-			assertTrue("The wizard created project does not have the correct output folder", //$NON-NLS-1$
-				jp.getOutputLocation().equals(jp.getPath()));
+			//Eclipse 3.3: the default is now to create projects with a bin folder
+			assertEquals("The wizard created project does not have the correct output folder", //$NON-NLS-1$
+					jp.getPath().append("bin"),jp.getOutputLocation()); //$NON-NLS-1$
 		} catch (JavaModelException e) {
 			fail("Failed attempting to find the output location of the project"); //$NON-NLS-1$
 		}
