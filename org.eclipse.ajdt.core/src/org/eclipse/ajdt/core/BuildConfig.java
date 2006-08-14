@@ -29,6 +29,8 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.core.util.Util;
 
 public class BuildConfig {
 	
@@ -49,7 +51,11 @@ public class BuildConfig {
 			IJavaProject jp = JavaCore.create(project);
 			IClasspathEntry[] cpes = jp.getRawClasspath();
 			for (int i = 0; i < cpes.length; i++) {
-				if (cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+				if ((cpes[i] instanceof ClasspathEntry) &&
+						(cpes[i].getEntryKind() == IClasspathEntry.CPE_SOURCE)) {
+					ClasspathEntry cp = (ClasspathEntry)cpes[i];
+					char[][] incl = cp.fullInclusionPatternChars();
+					char[][] excl = cp.fullExclusionPatternChars();
 					IPath path = cpes[i].getPath();
 					IResource res = project.findMember(path
 							.removeFirstSegments(1));
@@ -57,7 +63,7 @@ public class BuildConfig {
 						List l = allFiles((IContainer) res);
 						for (Iterator iter = l.iterator(); iter.hasNext();) {
 							IFile file = (IFile) iter.next();
-							if(!((ClasspathModifier.isExcluded(file, jp)) || ClasspathModifier.parentExcluded(file, jp))) {
+							if (!Util.isExcluded(file,incl,excl)) {
 								sourceFiles.add(file);
 							}
 						}
