@@ -17,6 +17,8 @@ import java.util.Map;
 
 import org.aspectj.ajde.OutputLocationManager;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -31,13 +33,22 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 	
 	private Map /*File*/ srcFolderToOutput = new HashMap();
 	
-	private static File workspacePathToFile(IPath path) {
-		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
-				path);
+	private boolean outputIsRoot;
+	
+	private File workspacePathToFile(IPath path) {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		if (path.segmentCount()==1) {
+			// bug 153682: getFolder fails when the path is a project
+			IResource res = root.findMember(path);
+			outputIsRoot = true;
+			return res.getLocation().toFile();
+		}
+		IFolder out = root.getFolder(path);
 		return out.getLocation().toFile();
 	}
 	
 	public CoreOutputLocationManager(IJavaProject jp) {
+		outputIsRoot = false;
 		projectName = jp.getProject().getName();
 		try {
 			defaultOutput = workspacePathToFile(jp.getOutputLocation());
@@ -50,6 +61,11 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 						String srcFolder = cpe[i].getPath().lastSegment();
 						File out = workspacePathToFile(output);
 						srcFolderToOutput.put(srcFolder,out);
+						if (outputIsRoot) {
+							// bug 153682: if the project is the source folder
+							//  then this output folder will always apply
+							defaultOutput = out;
+						}
 					}
 				}
 			}

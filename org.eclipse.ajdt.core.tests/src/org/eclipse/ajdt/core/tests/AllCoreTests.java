@@ -17,6 +17,7 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
@@ -72,6 +73,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AspectElementTests.class));
 
 		// builder tests
+		suite.addTest(new TestSuite(CoreOutputLocationManagerTest.class));
 		suite.addTest(new TestSuite(AJBuilderTest.class));
 		suite.addTest(new TestSuite(AJBuilderTest2.class));
 		suite.addTest(new TestSuite(Bug99133Test.class));
