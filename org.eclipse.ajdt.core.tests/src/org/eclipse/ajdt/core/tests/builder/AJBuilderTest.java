@@ -223,6 +223,42 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		}
 	}
 	
+	public void testBug153682() throws Exception {
+		TestLogger testLog = new TestLogger();
+		AspectJPlugin.getDefault().setAJLogger(testLog);
+		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
+		try {
+			// check class files end up in correct output folder
+			IFolder bin = project.getFolder("bin"); //$NON-NLS-1$
+			if (!bin.exists()) {
+				bin.create(true, true, null);
+			}
+			IFolder binPack = bin.getFolder("foo"); //$NON-NLS-1$
+			if (!binPack.exists()) {
+				binPack.create(true, true, null);
+			}
+			IFile binC = binPack.getFile("Test.class"); //$NON-NLS-1$
+			assertTrue("class file Test.class should exist in bin", binC.exists()); //$NON-NLS-1$
+			
+			binC = project.getFile("Test.class"); //$NON-NLS-1$
+			assertFalse("class file Test.class should NOT exist in project root", binC.exists()); //$NON-NLS-1$
+			
+			project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+
+			assertTrue(
+					"should have deleted 1 class file from the output dirs", //$NON-NLS-1$
+					testLog.containsMessage("Builder: Tidied output folder(s), deleted 1 .class files")); //$NON-NLS-1$
+
+			binPack.refreshLocal(IResource.DEPTH_INFINITE, null);
+			binC = binPack.getFile("Test.class"); //$NON-NLS-1$
+			assertFalse("class file Demo.class should no longer exist in bin", binC.exists()); //$NON-NLS-1$
+
+		} finally {
+			AspectJPlugin.getDefault().setAJLogger(null);
+			deleteProject(project);
+		}
+	}
+
 	public void testIncrementalBuildWithSrcFolder() throws Exception {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
