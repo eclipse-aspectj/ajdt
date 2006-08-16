@@ -754,29 +754,6 @@ M4 = Platform-specific fourth key
                value="org.eclipse.ajdt.ui.ajnature">
          </filter>
       </page>
-      <!-- inpath and aspectpath -->
-      <page
-            objectClass="org.eclipse.core.resources.IProject"
-            name="%aspectJInpath"
-            adaptable="true"
-            class="org.eclipse.ajdt.internal.ui.preferences.InPathPropertyPage"
-            id="org.eclipse.ajdt.ui.InPathPropertyPage">
-         <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-         </filter>
-      </page>      
-      <page
-            objectClass="org.eclipse.core.resources.IProject"
-            name="%aspectJAspectPath"
-            adaptable="true"
-            class="org.eclipse.ajdt.internal.ui.preferences.AspectPathPropertyPage"
-            id="org.eclipse.ajdt.ui.AspectPathPropertyPage">
-         <filter
-               name="projectNature"
-               value="org.eclipse.ajdt.ui.ajnature">
-         </filter>
-      </page>
       <page
             adaptable="true"
             objectClass="org.eclipse.core.resources.IProject"
