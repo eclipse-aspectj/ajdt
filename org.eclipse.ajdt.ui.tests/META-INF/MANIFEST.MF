@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: AJDT Tests Plug-in
+Bundle-Name: AJDT UI Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.ui.tests
 Bundle-Version: 1.4.1.qualifier
 Bundle-ClassPath: ajdtuitests.jar
@@ -23,7 +23,6 @@ Export-Package: org.eclipse.ajdt.ui.tests,
  org.eclipse.ajdt.ui.tests.ras,
  org.eclipse.ajdt.ui.tests.testutils,
  org.eclipse.ajdt.ui.tests.utils,
- org.eclipse.ajdt.ui.tests.visual,
  org.eclipse.ajdt.ui.tests.wizards,
  org.eclipse.ajdt.ui.tests.wizards.export
 Require-Bundle: org.eclipse.ui,
