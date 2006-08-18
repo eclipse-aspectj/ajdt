@@ -151,19 +151,21 @@ public class NewAspectWizardTest extends VisualTestCase {
 			final boolean makeDefault, final boolean makeAbstract,
 			final boolean makeFinal, final boolean makePrivileged,
 			final boolean createMain, final int perClause) {
-		postKeyDown(SWT.ALT);
-		postKeyDown(SWT.SHIFT);
+		postKeyDown(SWT.CTRL);		
 		postKey('n');
-		postKeyUp(SWT.SHIFT);
-		postKeyUp(SWT.ALT);
-
-		postKey('o'); // Other
+		postKeyUp(SWT.CTRL);
 
 		Runnable r = new Runnable() {
 			public void run() {
 				sleep();
-				postString("Aspect"); //$NON-NLS-1$
-				sleep();
+				
+				// select the filter
+				postKeyDown(SWT.ALT);		
+				postKey('W');
+				postKeyUp(SWT.ALT);
+				
+				postString("Aspect"); //$NON-NLS-1$				
+				sleep();			
 				// we don't know which match will be initially
 				// selected - Aspect or AspectJ Project
 				// so we go to the bottom then up one
@@ -221,7 +223,6 @@ public class NewAspectWizardTest extends VisualTestCase {
 			}
 		};
 		new Thread(r).start();
-		sleep();
 		waitForJobsToComplete();
 	}
 }

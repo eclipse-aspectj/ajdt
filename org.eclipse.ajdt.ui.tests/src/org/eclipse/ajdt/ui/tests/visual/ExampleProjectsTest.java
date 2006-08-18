@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Sian January  - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.visual;
 
@@ -21,9 +20,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
 /**
- * Tests for build configurations in the AspectJ example projects
+ * Tests that the AspectJ example projects can be created using
+ * the examples wizard, and that they have the correct build
+ * configuration
  */
-public class BuildConfigurationTest3 extends VisualTestCase {
+public class ExampleProjectsTest extends VisualTestCase {
 
 	/**
 	 * Test the Bean Example Project
@@ -286,7 +287,6 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		IProject project = getProject("TJP Example"); //$NON-NLS-1$
 		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
 		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
-
 	}
 
 	/**
@@ -338,6 +338,45 @@ public class BuildConfigurationTest3 extends VisualTestCase {
 		IFile circle = (IFile)project.findMember("src/tracing/Circle.java"); //$NON-NLS-1$
 		assertNotNull("Couldn't find Circle.java",circle); //$NON-NLS-1$
 		assertTrue("Circle.java should be included",BuildConfig.isIncluded(circle)); //$NON-NLS-1$
+	}
+
+	/**
+	 * Test the Progress Monitor plugin project
+	 * @throws Exception
+	 */
+	public void testProgressMonitorExample() throws Exception {
+		startNewWizard();		
+		
+		// Give the wizard chance to pop up
+		Runnable r = new Runnable() {
+			public void run() {
+				sleep();	
+							
+				// use text filter to select the right wizard
+				postString("progress monitor"); //$NON-NLS-1$
+				sleep();
+				postKey(SWT.CR);
+				sleep();
+
+				// Create the project
+				postKey(SWT.CR);
+				sleep();	
+				postKey(SWT.CR);
+			}
+		};
+		new Thread(r).start();
+					
+		// Wait for the project to be created
+		waitForJobsToComplete();	
+		
+		IProject project = getProject("org.eclipse.ajdt.examples.progressmon"); //$NON-NLS-1$
+		IFile defaultBuildFile = (IFile)project.findMember("build."+AJProperties.EXTENSION); //$NON-NLS-1$
+		assertNull("Should not have created a default build configuration file", defaultBuildFile); //$NON-NLS-1$
+
+		// check that a file exists
+		IFile manifest = (IFile)project.findMember("META-INF/MANIFEST.MF"); //$NON-NLS-1$
+		assertNotNull("Couldn't find MANIFEST.MF",manifest); //$NON-NLS-1$
+
 	}
 
 	/**
