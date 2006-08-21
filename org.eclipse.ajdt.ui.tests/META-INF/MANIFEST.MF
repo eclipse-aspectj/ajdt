@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: AJDT Tests Plug-in
+Bundle-Name: AJDT UI Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.ui.tests
 Bundle-Version: 1.5.0.qualifier
 Bundle-ClassPath: ajdtuitests.jar
@@ -58,5 +58,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.ui,
  org.eclipse.contribution.xref.core,
  org.eclipse.ui.views,
- org.eclipse.pde.runtime
+ org.eclipse.pde.runtime,
+ org.eclipse.ui.browser
 Eclipse-LazyStart: true

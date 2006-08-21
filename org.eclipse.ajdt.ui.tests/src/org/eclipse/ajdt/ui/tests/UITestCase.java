@@ -41,6 +41,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.browser.IBrowserViewerContainer;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -239,6 +240,8 @@ public abstract class UITestCase extends TestCase {
 				((ITextEditor)editor).close(false);
 			} else if (editor instanceof FormEditor) {
 				((FormEditor)editor).close(false);
+			} else if (editor instanceof IBrowserViewerContainer) {
+				((IBrowserViewerContainer)editor).close();
 			}
 		}
 	}

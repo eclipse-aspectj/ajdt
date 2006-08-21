@@ -27,3 +27,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.aspectj.runtime
 Eclipse-LazyStart: true
 Bundle-Vendor: Eclipse.org
+Export-Package: org.eclipse.ajdt.ui.visual.tests
+Bundle-ClassPath: ajdtuivisualtests.jar

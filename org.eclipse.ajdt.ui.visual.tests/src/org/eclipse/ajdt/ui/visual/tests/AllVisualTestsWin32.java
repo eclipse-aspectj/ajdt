@@ -15,10 +15,11 @@ package org.eclipse.ajdt.ui.visual.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-public class AllVisualUITests {
+public class AllVisualTestsWin32 {
 
+	// this is the full set of tests which only runs on Windows
 	public static Test suite() {
-		TestSuite suite = new TestSuite(AllVisualUITests.class.getName());
+		TestSuite suite = new TestSuite(AllVisualTestsWin32.class.getName());
 
 		suite.addTest(new TestSuite(AJDocTest.class));
 		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));

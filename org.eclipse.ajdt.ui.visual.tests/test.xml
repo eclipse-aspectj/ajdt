@@ -6,7 +6,7 @@
   <property name="eclipse-home" value="${basedir}\..\.."/>
 
   <!-- sets the properties eclipse-home, and library-file -->
-  <property name="plugin-name" value="org.eclipse.ajdt.ui.tests"/>
+  <property name="plugin-name" value="org.eclipse.ajdt.ui.visual.tests"/>
   <property name="library-file"
             value="${eclipse-home}/plugins/org.eclipse.test/library.xml"/>
 
@@ -30,7 +30,7 @@
       <property name="data-dir" value="${session-folder}"/>
       <property name="plugin-name" value="${plugin-name}"/>
       <property name="classname" 
-                value="org.eclipse.ajdt.ui.visual.tests.AllVisualUITests"/>
+                value="org.eclipse.ajdt.ui.visual.tests.AllVisualTests"/>
   
     </ant>
     
