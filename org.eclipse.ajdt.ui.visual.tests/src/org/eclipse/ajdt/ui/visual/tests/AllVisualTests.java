@@ -21,7 +21,7 @@ public class AllVisualTests {
 		TestSuite suite = new TestSuite(AllVisualTests.class.getName());
 
 //		suite.addTest(new TestSuite(AJDocTest.class));
-		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
+//		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(ExampleProjectsTest.class));
 //		suite.addTest(new TestSuite(Bug98663Test.class));
 		suite.addTest(new TestSuite(Bug100018Test.class));
