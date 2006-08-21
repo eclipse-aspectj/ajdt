@@ -11,7 +11,7 @@
  	<target name="allElementsDelegator">
  		<ant antfile="${genericTargets}" target="${target}">
 	 		<property name="type" value="feature" />
-	 		<property name="id" value="org.eclipse.aspectj.feature" />
+	 		<property name="id" value="org.eclipse.ajdt" />
  		</ant>
  		<ant antfile="${genericTargets}" target="${target}">
 	 		<property name="type" value="feature" />
@@ -26,7 +26,7 @@
  	<!-- Add one target for each root element and each configuration           -->
  	<!-- Replace element.id with the id of the top level element being built   -->
  	<!-- ===================================================================== -->
- 	<target name="assemble.org.eclipse.aspectj.feature">
+ 	<target name="assemble.org.eclipse.ajdt">
  		<ant antfile="${assembleScriptName}" dir="${buildDirectory}"/>
  	</target>
  	<target name="assemble.org.eclipse.aspectj.feature_tests">

@@ -73,8 +73,8 @@
 		<mkdir dir="${buildDirectory}/features"/>
 		<mkdir dir="${buildDirectory}/plugins"/>
 		
-		<copy todir="${buildDirectory}/features/org.eclipse.aspectj.feature">
-			<fileset dir="${builder}/../org.eclipse.aspectj.feature"/>
+		<copy todir="${buildDirectory}/features/org.eclipse.ajdt-feature">
+			<fileset dir="${builder}/../org.eclipse.ajdt-feature"/>
 		</copy>
 		<copy todir="${buildDirectory}/features/org.eclipse.aspectj.feature_tests">
 			<fileset dir="${builder}/../org.eclipse.aspectj.feature_tests"/>
