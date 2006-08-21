@@ -5,11 +5,11 @@
 	tools.
 	</description>
 	<!-- VERSION-STRING -->	
-	<feature id="org.eclipse.aspectj.feature" version="@AJFVERSION@"
-	         url="features/org.eclipse.aspectj.feature_@AJFVERSION@.jar">
-		<category name="org.eclipse.aspectj"/>
+	<feature id="org.eclipse.ajdt" version="@AJFVERSION@"
+	         url="features/org.eclipse.ajdt_@AJFVERSION@.jar">
+		<category name="org.eclipse.ajdt"/>
 	</feature>
 
-	<category-def name="org.eclipse.aspectj" label="AspectJ"/>
+	<category-def name="org.eclipse.ajdt" label="AspectJ Development Tools"/>
 </site>
   
