@@ -1431,10 +1431,12 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	This CompilerAdapter can be used in javac task calls by setting the 
 	<tt>build.compiler</tt> property. 
 	This enables users to to easily switch between the Javac and AspectJ 
-	compilers. 
-	However, the Javac task's pruning of source files prevents the 
-	adapter from doing a correct compile in some cases, 
-	so use AjcTask where possible.
+	compilers. However, because there are differences in source file 
+    handling between the Javac task and the ajc compiler, not all
+    Javac task invocations can be turned over to iajc.  However, ajc can
+    compile anything that Javac can, so it should be possible for any
+    given compile job to restate the Javac task in a way that can be
+    handled by iajc/ajc.
     </p><div class="sect2"><a name="antTasks-adapter-sample"></a><div class="titlepage"><div><h3 class="title"><a name="antTasks-adapter-sample"></a>Sample of compiler adapter</h3></div></div><p>
 		To build using the adapter, put the 
 		<tt>aspectjtools.jar</tt> 
@@ -1478,48 +1480,62 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
     &lt;compilerarg compiler="${ajc}" line="-argfile src/args.lst"/&gt;
   &lt;javac/&gt;
 
-		</pre></div><div class="sect2"><a name="antTasks-adapter-options"></a><div class="titlepage"><div><h3 class="title"><a name="antTasks-adapter-options"></a>Compiler adapter compilerarg options</h3></div></div><p>
+		</pre><p>The Javac task does special handling of source files that 
+        can interfere with ajc.  It removes any files that are not out-of-date
+        with respect to the corresponding .class files.  But ajc requires all 
+        source files, since an aspect may affect a source file that is not out
+        of date.  (For a solution to this, see the <tt>build.compiler.clean</tt>
+        property described below.)  Conversely, developers sometimes specify a source directory 
+        to javac, and let it search for files for types it cannot find.
+        AspectJ will not do this kind of searching under the source directory
+        (since the programmer needs to control which sources are affected).
+        (Don't confuse the source directory used by Javac with the source root
+        used by ajc; if you specify a source root to ajc, it will compile
+        any source file under that source root (without exception or filtering).)
+        To replace source dir searching in Javac, use an Ant filter to specify
+        the source files.
+        </p></div><div class="sect2"><a name="antTasks-adapter-options"></a><div class="titlepage"><div><h3 class="title"><a name="antTasks-adapter-options"></a>Compiler adapter compilerarg options</h3></div></div><p>
 	The adapter supports any ajc command-line option passed using compilerarg, 
 	as well as the following options available only in AjcTask. 
 	Find more details on the following options in <a href="#antTasks-iajc">AjcTask (iajc)</a>.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2225"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2230"></a>
 		<tt>-Xmaxmem</tt>: 
 			set maximum memory for forking (also settable in javac).		
-		</p></li><li><p><a name="d0e2231"></a>
+		</p></li><li><p><a name="d0e2236"></a>
 		<tt>-Xlistfileargs</tt>: 
 			list file arguments (also settable in javac).		
-		</p></li><li><p><a name="d0e2237"></a>
+		</p></li><li><p><a name="d0e2242"></a>
 		<tt>-Xfailonerror</tt>: 
 			throw BuildException on compiler error (also settable in javac).
-		</p></li><li><p><a name="d0e2243"></a>
+		</p></li><li><p><a name="d0e2248"></a>
 		<tt>-Xmessageholderclass</tt>: 
 			specify fully-qualified name of class to use as the message holder.	
-		</p></li><li><p><a name="d0e2249"></a>
+		</p></li><li><p><a name="d0e2254"></a>
 		<tt>-Xcopyinjars</tt>: 
 			copy resources from any input jars to output
 			(default behavior since 1.1.1)
-		</p></li><li><p><a name="d0e2255"></a>
+		</p></li><li><p><a name="d0e2260"></a>
 		<tt>-Xsourcerootcopyfilter {filter}</tt>: 
 			copy resources from source directories to output (minus files specified in filter)
-		</p></li><li><p><a name="d0e2261"></a>
+		</p></li><li><p><a name="d0e2266"></a>
 		<tt>-Xtagfile {file}</tt>: 
 			use file to control incremental compilation		
-		</p></li><li><p><a name="d0e2267"></a>
+		</p></li><li><p><a name="d0e2272"></a>
 		<tt>-Xsrcdir {dir}</tt>: 		
 			add to list of ajc source roots (all source files will be included).
 		</p></li></ul></div><p>
 	Special considerations when using Javac and compilerarg:
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2276"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2281"></a>
 		The names above may differ slightly from what you might expect 
 		from AjcTask; use these forms when specifying compilerarg.
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2280"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2285"></a>
 		By default the adapter will mimic the Javac task's copying of resource 
 		files by specifying 
 		<tt>"**/CVS/*,**/*.java,**/*.aj"</tt>
 		for the sourceroot copy filter. 
 		To change this behavior, supply your own value 
 		(e.g., <tt>"**/*"</tt> to copy nothing).
-		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2290"></a>
+		</p></li></ul></div><div class="itemizedlist"><ul><li><p><a name="d0e2295"></a>
 		Warning - define the system property
 		<tt>build.compiler.clean</tt> to compile all files, 
 		when available.
@@ -1542,20 +1558,20 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 		</pre><p>		
 		Caveats to consider when using this global 
 		<tt>build.compiler.clean</tt> property:
-		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2309"></a>
+		</p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2314"></a>
 		   If javac believes there are no out-of-date source files, 
 		   then the adapter is never called and cannot clean up, 
 		   and the "compile" will appear to complete successfully 
 		   though it did nothing.
-			</p></li><li><p><a name="d0e2312"></a>
+			</p></li><li><p><a name="d0e2317"></a>
 		   Cleaning will makes stepwise build processes fail if 
 		   they depend on the results of the prior compilation being 
 		   in the same directory, since cleaning deletes all .class files.
-			</p></li><li><p><a name="d0e2315"></a>
+			</p></li><li><p><a name="d0e2320"></a>
 		   This clean process only permits one compile process at a 
 		   time for each destination directory because it tracks 
 		   recursion by writing a tag file to the destination directory.
-			</p></li><li><p><a name="d0e2318"></a>
+			</p></li><li><p><a name="d0e2323"></a>
 		   When running incrementally, the clean happens only before 
 		   the initial compile.
 			</p></li></ol></div></li></ul></div></div></div><div class="sect1"><a name="antTasks-ajc"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="antTasks-ajc"></a>Ajc10 (ajc)</h2></div></div><p>
@@ -1579,7 +1595,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	    <tt>srcdir</tt> (with patterns)).
 	    </p><p>Boolean parameters default to <tt>false</tt>
 	    unless otherwise stated.
-	    </p><div class="table"><p><a name="d0e2352"></a><b>Table 4.1. AjcTask (ajc) options for specifying sources</b></p><table summary="AjcTask (ajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>srcdir
+	    </p><div class="table"><p><a name="d0e2357"></a><b>Table 4.1. AjcTask (ajc) options for specifying sources</b></p><table summary="AjcTask (ajc) options for specifying sources" border="1"><colgroup><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>srcdir
 				</p></td><td><p>
 				The base directory of the java files.
 				See 
@@ -1639,7 +1655,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td></tr><tr><td><p>source
 				</p></td><td><p>
 				Value of -source option - ignored unless <tt>1.4</tt>.
-				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e2484"></a><b>Table 4.2. Parameters ignored by the old ajc taskdef, 
+				</p></td></tr></tbody></table></div><div class="table"><p><a name="d0e2489"></a><b>Table 4.2. Parameters ignored by the old ajc taskdef, 
 				but now supported or buggy</b></p><table summary="Parameters ignored by the old ajc taskdef, &#xA;				but now supported or buggy" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th><th>Supported?</th></tr></thead><tbody><tr><td><p>encoding
 				</p></td><td><p>Default encoding of source files.
 				</p></td><td><p>yes
@@ -1670,7 +1686,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td></tr></tbody></table></div><p>
 		The following table shows that many of the unique parameters in 
 		AspectJ 1.0 are no longer supported.
-		</p><div class="table"><p><a name="d0e2572"></a><b>Table 4.3. Parameters unique to ajc</b></p><table summary="Parameters unique to ajc" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>X
+		</p><div class="table"><p><a name="d0e2577"></a><b>Table 4.3. Parameters unique to ajc</b></p><table summary="Parameters unique to ajc" border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Attribute</th><th>Description</th></tr></thead><tbody><tr><td><p>X
 				</p></td><td><p>
 				 	deprecated X options include
 					reweavable (on by default)
@@ -1682,7 +1698,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 				</p></td><td><p>
 				A comma-delimited list of argfiles that contain a line-delimited 
 				list of source file paths (absolute or relative to the argfile).
-				</p></td></tr></tbody></table></div><div class="sect3"><a name="d0e2604"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2604"></a>argfiles - argument list files</h4></div></div><p>
+				</p></td></tr></tbody></table></div><div class="sect3"><a name="d0e2609"></a><div class="titlepage"><div><h4 class="title"><a name="d0e2609"></a>argfiles - argument list files</h4></div></div><p>
 		An argument file is a file (usually <tt>{file}.lst</tt>) 
 		containing a list of source file paths 
 		(absolute or relative to the argfile). 
@@ -1779,15 +1795,15 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
 	If you have problems with the tasks not solved by the documentation, 
 	please try to see if you have the same problems when running ajc 
 	directly on the command line.
-	</p><div class="itemizedlist"><ul><li><p><a name="d0e2706"></a>
+	</p><div class="itemizedlist"><ul><li><p><a name="d0e2711"></a>
 		If the problem occurs on the command line also, then the problem 
 		is not in the task. 
 		(It may be in the tools; please send bug reports.)
-		</p></li><li><p><a name="d0e2709"></a>
+		</p></li><li><p><a name="d0e2714"></a>
 		If the problem does not occur on the command line, then it may 
 		lie in the parameters you are supplying in Ant or in the task's 
 		handling of them.
-		</p></li><li><p><a name="d0e2712"></a>
+		</p></li><li><p><a name="d0e2717"></a>
 		If the build script looks correct and the problem only occurs when 
 		building from Ant, then please send a report 
 		(including your build file, if possible).
@@ -1835,7 +1851,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
             The weaving process itself can take place at one of three different times: compile-time,
             post-compile time, and load-time. The class files produced by the weaving process (and
             hence the run-time behaviour of an application) are the same regardless of the approach
-            chosen. </p><div class="itemizedlist"><ul><li><p><a name="d0e2764"></a>Compile-time weaving is the simplest approach. When you have the source code
+            chosen. </p><div class="itemizedlist"><ul><li><p><a name="d0e2769"></a>Compile-time weaving is the simplest approach. When you have the source code
                 for an application, ajc will compile from source and produce woven class files as
                 output. The invocation of the weaver is integral to the ajc compilation process. The
                 aspects themselves may be in source or binary form. 
@@ -1843,10 +1859,10 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 you must weave at compile-time.  Aspects are required, e.g., when they
                 add members to a class and other classes being compiled reference the 
                 added members.
-                </p></li><li><p><a name="d0e2767"></a>Post-compile weaving (also sometimes called binary weaving) is used to weave
+                </p></li><li><p><a name="d0e2772"></a>Post-compile weaving (also sometimes called binary weaving) is used to weave
                 existing class files and JAR files. As with compile-time weaving,
                 the aspects used for weaving may be in source or binary form,
-                and may themselves be woven by aspects.</p></li><li><p><a name="d0e2770"></a>Load-time weaving (LTW) is simply binary weaving defered until the point that
+                and may themselves be woven by aspects.</p></li><li><p><a name="d0e2775"></a>Load-time weaving (LTW) is simply binary weaving defered until the point that
                 a class loader loads a class file and defines the class to the JVM. To support this,
                 one or more "weaving class loaders", either provided explicitly by the run-time
                 environment or enabled through a "weaving agent" are required. </p></li></ul></div><p> You may also hear the term "run-time weaving". We define this as the weaving of
@@ -1860,21 +1876,21 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 to support subsequent reweaving. </p></div></div><div class="sect1"><a name="ltw-rules"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-rules"></a>Load-time Weaving Requirements</h2></div></div><p> All load-time weaving is done in the context of a class loader, and hence the set of
             aspects used for weaving and the types that can be woven are affected by the class
             loader delegation model. This ensures that LTW complies with the Java 2 security model.
-            The following rules govern the interaction of load-time weaving with class loading: </p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2789"></a>All aspects to be used for weaving must be defined to the weaver before any
+            The following rules govern the interaction of load-time weaving with class loading: </p><div class="orderedlist"><ol type="1"><li><p><a name="d0e2794"></a>All aspects to be used for weaving must be defined to the weaver before any
                 types to be woven are loaded.  This avoids types being "missed" by aspects added
-                later, with the result that invariants across types fail.</p></li><li><p><a name="d0e2792"></a>All aspects visible to the weaver are usable.
+                later, with the result that invariants across types fail.</p></li><li><p><a name="d0e2797"></a>All aspects visible to the weaver are usable.
                 A visible aspect is one defined by the
                 weaving class loader or one of its parent class loaders.
                 All concrete visible aspects are woven and all abstract visible aspects
                 may be extended.
-            </p></li><li><p><a name="d0e2795"></a>A class loader may only weave classes that it defines. It may not weave
+            </p></li><li><p><a name="d0e2800"></a>A class loader may only weave classes that it defines. It may not weave
                 classes loaded by a delegate or parent class loader.</p></li></ol></div></div><div class="sect1"><a name="ltw-configuration"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-configuration"></a>Configuration</h2></div></div><p>New in AspectJ 5 are a number of mechanisms to make load-time weaving
         easy to use. The load-time weaving mechanism is chosen through JVM startup options. 
         Configuration files determine the set of aspects to be used for weaving and which 
         types will be woven. Additional diagnostic options allow the user to debug the configuration and 
         weaving process. </p><div class="sect2"><a name="enabling-load-time-weaving"></a><div class="titlepage"><div><h3 class="title"><a name="enabling-load-time-weaving"></a>Enabling Load-time Weaving</h3></div></div><p> AspectJ 5 supports several ways of enabling load-time weaving for
             an application: agents, a command-line launch script, and a set of interfaces for
-            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e2809"></a><span class="term">Agents</span></dt><dd><p><a name="d0e2812"></a>AspectJ 5 ships with a number of load-time weaving agents that
+            integration of AspectJ load-time weaving in custom environments. </p><div class="variablelist"><dl><dt><a name="d0e2814"></a><span class="term">Agents</span></dt><dd><p><a name="d0e2817"></a>AspectJ 5 ships with a number of load-time weaving agents that
                             enable load-time weaving. These agents and their configuration
                             are execution environment dependent. Configuration for the supported environments is discussed
                             later in this chapter.</p><p>
@@ -1882,7 +1898,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                             to the JVM.</p><p>
                             Using BEA JRockit and Java 1.3/1.4, the very same behavior can be obtained using BEA JRockit JMAPI features with
                             the <tt>-Xmanagement:class=org.aspectj.weaver.loadtime.JRockitAgent</tt>
-                        </p></dd><dt><a name="d0e2825"></a><span class="term">Command-line wrapper scripts <tt>aj</tt></span></dt><dd><p><a name="d0e2830"></a>The <b>aj</b> command runs Java programs in Java 1.4 or
+                        </p></dd><dt><a name="d0e2830"></a><span class="term">Command-line wrapper scripts <tt>aj</tt></span></dt><dd><p><a name="d0e2835"></a>The <b>aj</b> command runs Java programs in Java 1.4 or
                         later by setting up <tt>WeavingURLClassLoader</tt> as the 
                             system class loader.  
                             For more information, see <a href="#aj">aj</a>.
@@ -1890,7 +1906,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                         by using the <tt>-javaagent:pathto/aspectjweaver.jar</tt> option 
                             described above.
                             For more information, see <a href="#aj">aj</a>.
-                        </p></dd><dt><a name="d0e2851"></a><span class="term">Custom class loader</span></dt><dd><p><a name="d0e2854"></a> A public interface is provided to allow a user written class loader
+                        </p></dd><dt><a name="d0e2856"></a><span class="term">Custom class loader</span></dt><dd><p><a name="d0e2859"></a> A public interface is provided to allow a user written class loader
                             to instantiate a weaver and weave classes after loading and before
                             defining them in the JVM. This enables load-time weaving to be supported in
                             environments where no weaving agent is available. It also allows the
@@ -1997,16 +2013,16 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 their contents are conceptually merged. 
                 The files are merged in the order they are
                 found on the search path (with a regular <tt>getResourceAsStream</tt> lookup)
-                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2937"></a>The set of available aspects is the set of all
+                according to the following rules: </p><div class="itemizedlist"><ul><li><p><a name="d0e2942"></a>The set of available aspects is the set of all
                     declared and defined aspects (<tt>aspect</tt> and
                     <tt>concrete-aspect</tt> elements of the <tt>aspects</tt>
-                    section).</p></li><li><p><a name="d0e2949"></a>The set of aspects used for weaving is the subset of the available
+                    section).</p></li><li><p><a name="d0e2954"></a>The set of aspects used for weaving is the subset of the available
                     aspects that are matched by at least one include statement and are not matched
                     by any exclude statements. If there are no include statements then all non-excluded
-                    aspects are included.</p></li><li><p><a name="d0e2952"></a> The set of types to be woven are those types matched by at
+                    aspects are included.</p></li><li><p><a name="d0e2957"></a> The set of types to be woven are those types matched by at
                     least one weaver <tt>include</tt> element and not matched by any 
                     weaver <tt>exclude</tt> element. If there are no weaver include
-                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2961"></a> The weaver options are derived by taking the union of the
+                    statements then all non-excluded types are included.</p></li><li><p><a name="d0e2966"></a> The weaver options are derived by taking the union of the
                     options specified in each of the weaver options attribute specifications. Where an
                     option takes a value e.g. <tt>-warn:none</tt> the most recently defined value
                     will be used.</p></li></ul></div><p>It is not an error for the same aspect to be defined to the weaver in 
@@ -2061,11 +2077,11 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 This aspect (in either style) can be made concrete using <tt>META-INF/aop.xml</tt>.
                 It defines the abstract pointcut <tt>scope()</tt>. When using this mechanism the 
                 following rules apply:
-                <div class="itemizedlist"><ul><li><p><a name="d0e3018"></a>The parent aspect must be abstract. It can be an @AspectJ or a
-                            regular code style aspect.</p></li><li><p><a name="d0e3021"></a>Only a simple abstract pointcut can be implemented i.e. a pointcut that doesn't expose
+                <div class="itemizedlist"><ul><li><p><a name="d0e3023"></a>The parent aspect must be abstract. It can be an @AspectJ or a
+                            regular code style aspect.</p></li><li><p><a name="d0e3026"></a>Only a simple abstract pointcut can be implemented i.e. a pointcut that doesn't expose
                             state (through <tt>args(), this(), target(), if()</tt>). In @AspectJ syntax
                             as illustrated in this sample, this means the method that hosts the pointcut must be abstract,
-                            have no arguments, and return void.</p></li><li><p><a name="d0e3027"></a>The concrete aspect must implement all inherited abstract pointcuts.</p></li><li><p><a name="d0e3030"></a>The concrete aspect may not implement methods so the abstract aspect it 
+                            have no arguments, and return void.</p></li><li><p><a name="d0e3032"></a>The concrete aspect must implement all inherited abstract pointcuts.</p></li><li><p><a name="d0e3035"></a>The concrete aspect may not implement methods so the abstract aspect it 
                             extends may not contain any abstract methods.</p></li></ul></div>
             </p><p>
 		        <span class="emphasis"><i>A limitation of the implementation of this feature in AspectJ 1.5.0 is that aspects defined using
@@ -2124,7 +2140,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                 that will be then reserved for this concrete-aspect and must not conflict with other classes
                 you deploy.
             </p></div><div class="sect2"><a name="weaver-options"></a><div class="titlepage"><div><h3 class="title"><a name="weaver-options"></a>Weaver Options</h3></div></div><p> The table below lists the AspectJ options supported by LTW. All other options
-                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3104"><a name="d0e3104"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. Messages issued while the weaver is being 
+                will be ignored and a warning issued. </p><div class="informaltable" id="d0e3109"><a name="d0e3109"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Purpose</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>Issue informational messages about the weaving process. Messages issued while the weaver is being 
                                    bootstrapped are accumulated until all options are parsed. If the messages are required to be output
                                    immediately you can use the option <tt>-Daj.weaving.verbose=true</tt> on the JVM startup command line.
                             </td></tr><tr><td><tt>-Xlintfile:pathToAResource</tt></td><td>Configure lint messages as specified in the given resource (visible from this aop.xml file' classloader)</td></tr><tr><td><tt>-Xlint:default, -Xlint:ignore, ...</tt></td><td>Configure lint messages, refer to documentation for meaningfull values</td></tr><tr><td><tt>-nowarn, -warn:none</tt></td><td>Suppress warning messages</td></tr><tr><td><tt>-Xreweavable</tt></td><td>Produce class files that can subsequently be rewoven</td></tr><tr><td><tt>-XnoInline</tt></td><td>Don't inline around advice.</td></tr><tr><td><tt>-showWeaveInfo</tt></td><td>Issue informational messages whenever the weaver touches a class file</td></tr><tr><td><tt>-XmessageHandlerClass:...</tt></td><td>Provide alternative output destination to stdout/stderr for all weaver messages.
@@ -2137,7 +2153,7 @@ File0;File1[Number1];File2[Number2] ... :LineNumber
                             </td></tr></tbody></table></div></div></div><div class="sect1"><a name="ltw-specialcases"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltw-specialcases"></a>Special cases</h2></div></div><p>
             The following classes are not exposed to the LTW infrastructure regardless of 
             the <tt>aop.xml</tt> file(s) used:
-            <div class="itemizedlist"><ul><li><p><a name="d0e3180"></a>All <tt>org.aspectj.*</tt> classes (and subpackages) - as those are needed by the infrastructure itself</p></li><li><p><a name="d0e3186"></a>All <tt>java.*</tt> and <tt>javax.*</tt> classes (and subpackages)</p></li><li><p><a name="d0e3195"></a>All <tt>sun.reflect.*</tt> classes - as those are JDK specific classes used when reflective calls occurs</p></li></ul></div>
+            <div class="itemizedlist"><ul><li><p><a name="d0e3185"></a>All <tt>org.aspectj.*</tt> classes (and subpackages) - as those are needed by the infrastructure itself</p></li><li><p><a name="d0e3191"></a>All <tt>java.*</tt> and <tt>javax.*</tt> classes (and subpackages)</p></li><li><p><a name="d0e3200"></a>All <tt>sun.reflect.*</tt> classes - as those are JDK specific classes used when reflective calls occurs</p></li></ul></div>
         </p><p>
             Despite these restrictions, it is perfectly possible to match call join points for calls to these types providing the calling
             class is exposed to the weaver. Subtypes of these excluded types that are exposed to the weaver may of course be woven.
