@@ -75,5 +75,5 @@ Require-Bundle: org.apache.ant,
  org.eclipse.core.runtime,
  org.eclipse.core.runtime.compatibility,
  org.eclipse.text,
- org.aspectj.weaver;visibility:=reexport
+ org.aspectj.weaver;bundle-version="92.2.29";visibility:=reexport
 Eclipse-AutoStart: true
