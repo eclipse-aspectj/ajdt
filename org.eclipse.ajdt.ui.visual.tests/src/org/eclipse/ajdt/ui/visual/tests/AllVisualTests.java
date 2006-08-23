@@ -28,7 +28,7 @@ public class AllVisualTests {
 //		suite.addTest(new TestSuite(ChangeFileExtensionTest.class));
 		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 //		suite.addTest(new TestSuite(LoadTimeWeavingTest.class));
-//		suite.addTest(new TestSuite(DeleteAJTest.class));
+		suite.addTest(new TestSuite(DeleteAJTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 //		suite.addTest(new TestSuite(NewAspectWizardTest.class));
