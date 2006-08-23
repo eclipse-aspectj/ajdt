@@ -513,9 +513,7 @@ public class CompilerTaskListManager implements TaskListManager {
                 }
             }
         } catch (JavaModelException jmEx) {
-        	ErrorHandler.handleAJDTError(
-        			UIMessages.ajErrorDialogTitle,
-        			UIMessages.jmCoreException, jmEx);
+        	ErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
         }
 
         if (ret == null)
