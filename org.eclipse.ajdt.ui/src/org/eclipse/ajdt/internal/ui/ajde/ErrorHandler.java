@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2002 IBM Corporation and others.
+Copyright (c) 2002 2006 IBM Corporation and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
@@ -10,43 +10,59 @@ Adrian Colyer, Andy Clement, Tracy Gardner - initial version
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
- * ErrorHandler displays warnings and errors produced from the AJ Tools plugin
+ * ErrorHandler handles warnings and errors produced from the AJ Tools plugin
  */
 public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 
+	private static final int MSG_LIMIT = 600;
+	
 	/**
-	 * Display a warning dialog
+	 * Handle warnings reported by AspectJ
 	 */
 	public void handleWarning(final String message) {
-		// Need to open the dialog on the right thread.  In some cases we *might*
-		// be on the right thread - since this ErrorHandler class is usable from
-		// inside the plugin as well as AJDE.  This might not be the best approach,
-		// perhaps we need our own to use from the plugin, so that we are not
-		// creating unnecessary threads.  But I suppose this is the 'error case'
-		// so performance isn't the critical factor here.
+		// 154483 instead of displaying a dialog we create a problem marker
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
-					IWorkbenchWindow iww = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
-					// This really should not be null ...
-					if (iww != null) {
-						Shell shell = iww.getShell();
-						MessageDialog.openWarning(
-							shell,
-							UIMessages.ajWarningDialogTitle,
-							message);
-					}
-				} catch (Exception t) {
+					IWorkspaceRunnable r = new IWorkspaceRunnable() {
+						public void run(IProgressMonitor monitor) {
+							IProject project = AspectJPlugin.getDefault()
+									.getCurrentProject();
+							if (project != null) {
+								try {
+									IMarker marker = project
+											.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+									marker
+											.setAttribute(
+													IMarker.SEVERITY,
+													new Integer(
+															IMarker.SEVERITY_ERROR));
+									marker.setAttribute(IMarker.MESSAGE,
+											limitMessageLength(message,
+													MSG_LIMIT));
+								} catch (CoreException e) {
+								}
+							}
+						}
+					};
+					AspectJPlugin.getWorkspace().run(r, null);
+				} catch (CoreException t) {
 				}
 			}
 		});
@@ -66,7 +82,7 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 						MessageDialog.openError(
 							shell,
 							UIMessages.ajErrorDialogTitle,
-							message);
+							limitMessageLength(message,MSG_LIMIT));
 					}
 				} catch (Exception t) {
 				}
@@ -95,6 +111,19 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	public static void handleAJDTError(String message, CoreException t) {
 		handleInternalError(UIMessages.ajdtErrorDialogTitle, message, t);
 	}
+	
+	// 154483: limit the length of messages used in dialogs
+	private static String limitMessageLength(String msg, int length) {
+		if (msg.length() > length) {
+			int endLength = 150;
+			String gap = " ... ";
+			return msg.substring(0, length - endLength - gap.length())
+				+ " ... " + msg.substring(msg.length() - endLength);
+		} else {
+			return msg;
+		}
+	}
+	
 	/**
 	 * Display an error dialog with exception
 	 */
@@ -131,24 +160,15 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 		// it will not have been handled by our FFDC aspect
 		AspectJUIPlugin.getDefault().getLog().log(status);
 		
-		// See notes in handleWarning - could collapse these two code blocks
-		// that create threads into one.
-
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				try {
-					IWorkbenchWindow iww = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow();
-					// This really should not be null ...
-					if (iww != null) {
-						Shell shell = iww.getShell();
-						AJDTErrorDialog.openError(
-							shell,
-							title,
-							shortMessage,
-							longMessage);
-
-					}
-				} catch (Exception e) {
+				IWorkbenchWindow iww = AspectJUIPlugin.getDefault()
+						.getActiveWorkbenchWindow();
+				// This really should not be null ...
+				if (iww != null) {
+					Shell shell = iww.getShell();
+					AJDTErrorDialog.openError(shell, title, shortMessage,
+							limitMessageLength(longMessage, MSG_LIMIT));
 				}
 			}
 		});
