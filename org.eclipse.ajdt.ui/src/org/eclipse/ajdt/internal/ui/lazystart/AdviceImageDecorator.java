@@ -16,8 +16,6 @@ import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -47,28 +45,16 @@ public class AdviceImageDecorator implements ILightweightLabelDecorator {
 			IJavaElement je = (IJavaElement) element;
 			IJavaProject jp = je.getJavaProject();
 			// only query the model if the element is in an AJ project
-			if ((jp != null) && isAJProject(jp.getProject())) {
-				// causes plugin activation
-				ensureAdviceListenerIsRegistered();
+			if ((jp != null) && Utils.isAJProject(jp.getProject())) {
 				if (AJModel.getInstance().isAdvised(je)) {
+					ensureAdviceListenerIsRegistered();
+					// causes bundle activation
 					AspectJUIPlugin.getDefault();
 					decoration.addOverlay(AspectJImages.ADVICE_OVERLAY
 							.getImageDescriptor(), IDecoration.TOP_LEFT);
 				}
 			}
 		}
-	}
-
-	private static boolean isAJProject(IProject project) {
-		if(project.isOpen()) {			
-			try {
-				if ((project!=null) && project.hasNature("org.eclipse.ajdt.ui.ajnature")) { //$NON-NLS-1$
-					return true;
-				}
-			} catch (CoreException e) {
-			}
-		}
-		return false;
 	}
 	
 	private void ensureAdviceListenerIsRegistered() {

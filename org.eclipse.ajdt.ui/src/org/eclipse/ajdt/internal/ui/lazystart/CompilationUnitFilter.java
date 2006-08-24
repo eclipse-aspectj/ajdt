@@ -20,7 +20,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -32,7 +31,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.widgets.Display;
-import org.osgi.framework.Bundle;
 
 /*
  * Loading classes in this lazystart package does not immediately cause the
@@ -64,7 +62,8 @@ public class CompilationUnitFilter extends ViewerFilter {
 	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
-		if (Platform.getBundle("org.eclipse.ajdt.ui").getState() != Bundle.ACTIVE) { //$NON-NLS-1$
+		// 152922: only run if the ajdt.ui bundle is already active
+		if (!Utils.isBundleActive()) {
 			return true;
 		}
 		

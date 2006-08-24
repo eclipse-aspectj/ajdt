@@ -32,6 +32,7 @@ import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
 import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
+import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
@@ -95,11 +96,8 @@ import org.osgi.framework.Constants;
 public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		implements ISelectionListener {
 
-	// VERSION-STRING - set when plugin is loaded
-	//public static String VERSION = "unset"; //$NON-NLS-1$
-
 	// the id of this plugin
-	public static final String PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = Utils.PLUGIN_ID; //$NON-NLS-1$
 
 	public static final String ID_OUTLINE = PLUGIN_ID + ".ajoutlineview"; //$NON-NLS-1$
 
