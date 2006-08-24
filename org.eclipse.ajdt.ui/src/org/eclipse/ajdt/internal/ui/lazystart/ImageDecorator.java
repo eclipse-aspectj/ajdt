@@ -25,11 +25,12 @@ import org.eclipse.ajdt.core.javaelements.IntertypeElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -48,7 +49,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.internal.decorators.DecoratorManager;
-import org.osgi.framework.Bundle;
 
 /*
  * Loading classes in this lazystart package does not immediately cause the
@@ -98,7 +98,17 @@ public class ImageDecorator implements ILabelDecorator {
 		if (preventRecursion)
 			return null;
 
-		if (Platform.getBundle("org.eclipse.ajdt.ui").getState() != Bundle.ACTIVE) { //$NON-NLS-1$
+		// 152922: make sure the ajdt.ui bundle is activated if
+		// there is an open AspectJ project present
+		if (element instanceof IJavaProject) {
+			IJavaProject jp = (IJavaProject)element;
+			if (Utils.isAJProject(jp.getProject())) {
+				// causes bundle activation
+				AspectJUIPlugin.getDefault();
+			}
+		}
+		// otherwise only run the decorator if the bundle is already active
+		if (!Utils.isBundleActive()) {
 			return null;
 		}
 		

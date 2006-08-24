@@ -29,6 +29,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.javamodel.AJCompilationUnitUtils;
 import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.dialogs.MessageDialogWithToggle;
+import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -95,8 +96,6 @@ public class AJDTUtils {
 
 	private static int previousExecutionTime;
 	
-	private static final String ID_NATURE = AspectJUIPlugin.PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
-
 	/**
 	 * Return the fully-qualifed native OS path of the workspace. e.g.
 	 * D:\eclipse\workspace
@@ -178,7 +177,7 @@ public class AJDTUtils {
 		String[] prevNatures = description.getNatureIds();
 		String[] newNatures = new String[prevNatures.length + 1];
 		System.arraycopy(prevNatures, 0, newNatures, 1, prevNatures.length);
-		newNatures[0] = ID_NATURE;
+		newNatures[0] = Utils.ID_NATURE;
 		description.setNatureIds(newNatures);
 		project.setDescription(description, null);
 
@@ -565,7 +564,7 @@ public class AJDTUtils {
 		String[] newNatures = new String[prevNatures.length - 1];
 		int newPosition = 0;
 		for (int i = 0; i < prevNatures.length; i++) {
-			if (!prevNatures[i].equals(ID_NATURE)) {
+			if (!prevNatures[i].equals(Utils.ID_NATURE)) {
 				// guard against array out of bounds which will occur if we
 				// get to here in a project that DOES NOT have the aj nature
 				// (should never happen).
