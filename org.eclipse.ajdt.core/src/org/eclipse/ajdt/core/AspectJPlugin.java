@@ -13,6 +13,8 @@ package org.eclipse.ajdt.core;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
+import org.aspectj.asm.AsmManager;
+import org.aspectj.asm.internal.JDTLikeHandleProvider;
 import org.aspectj.weaver.World;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
 import org.eclipse.ajdt.core.builder.CoreBuildOptions;
@@ -130,6 +132,7 @@ public class AspectJPlugin extends Plugin {
 		IncrementalStateManager.recordIncrementalStates=true;
 		IncrementalStateManager.debugIncrementalStates=true;
 		World.createInjarHierarchy = false;
+		AsmManager.getDefault().setHandleProvider(new JDTLikeHandleProvider());
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
 				new CoreProjectProperties(), new CoreBuildOptions(),
