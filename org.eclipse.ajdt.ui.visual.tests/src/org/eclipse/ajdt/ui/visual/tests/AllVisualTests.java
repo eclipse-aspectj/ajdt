@@ -21,14 +21,14 @@ public class AllVisualTests {
 		TestSuite suite = new TestSuite(AllVisualTests.class.getName());
 
 //		suite.addTest(new TestSuite(AJDocTest.class));
-		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
+//		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(ExampleProjectsTest.class));
 //		suite.addTest(new TestSuite(Bug98663Test.class));
 		suite.addTest(new TestSuite(Bug100018Test.class));
 //		suite.addTest(new TestSuite(ChangeFileExtensionTest.class));
 		suite.addTest(new TestSuite(OutjarLaunchingTest.class));
 //		suite.addTest(new TestSuite(LoadTimeWeavingTest.class));
-//		suite.addTest(new TestSuite(DeleteAJTest.class));
+		suite.addTest(new TestSuite(DeleteAJTest.class));
 		suite.addTest(new TestSuite(EagerParsingTest.class));
 		suite.addTest(new TestSuite(LinkWithEditorTest.class));
 //		suite.addTest(new TestSuite(NewAspectWizardTest.class));
@@ -36,6 +36,7 @@ public class AllVisualTests {
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 //		suite.addTest(new TestSuite(OpenDeclarationTest.class));
 //		suite.addTest(new TestSuite(OpenTypesTest.class));
+//		suite.addTest(new TestSuite(AspectpathAndInpathTest.class));
 		
 		// xref view tests
 		//suite.addTest(AllXRefVisualTests.suite());
