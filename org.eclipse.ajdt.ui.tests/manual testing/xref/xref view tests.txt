@@ -26,6 +26,38 @@ Test2 - link with editor button
 - click around the file and the entries in the xref view should 
   mirror your selection 
 							(XREF_VIEW_2)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view should now contain the 
+  cross references for this new selection
+							(XREF_VIEW_3)
+- return to having debug.aj active in the editor
+- turn off "link with editor"
+- click around the file and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_4)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view shouldn't change
+							(XREF_VIEW_5)
+
+- open Game.java in the editor
+- ensure that "link with editor" is selected
+- click around the file and the entries in the xref view should 
+  mirror your selection 
+							(XREF_VIEW_6)
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view should now contain the 
+  cross references for this new selection
+							(XREF_VIEW_7)
+- return to having Game.java active in the editor
+- turn off "link with editor"
+- click around the file and the contents of the xref view shouldn't 
+  change.
+							(XREF_VIEW_8)
+
+- follow one of the links in the XRef view that opens
+  a new file - the contents of the XRef view shouldn't change
+							(XREF_VIEW_9)
+
 
 Test3 - ensure follows selections in the outline view
 -----------------------------------------------------

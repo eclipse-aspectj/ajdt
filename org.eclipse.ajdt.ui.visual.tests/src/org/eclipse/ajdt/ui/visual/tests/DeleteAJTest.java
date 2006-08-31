@@ -33,7 +33,7 @@ public class DeleteAJTest extends VisualTestCase {
 		deleteFile(project, "src/p2/Aspect.aj"); //$NON-NLS-1$
 	}
 
-	private void deleteFile(IProject project, String aj) {
+	private void deleteFile(IProject project, String aj) throws CoreException {
 		IFile ajFile = (IFile)project.findMember(aj);
 		assertNotNull("Could not find file for "+aj,ajFile); //$NON-NLS-1$
 		
@@ -57,6 +57,10 @@ public class DeleteAJTest extends VisualTestCase {
 		};
 		new Thread(r).start();
 		
+		waitForJobsToComplete();
+
+		project.refreshLocal(IResource.DEPTH_INFINITE, null);
+
 		waitForJobsToComplete();
 
 		IResource ajFile2 = project.findMember(aj);
