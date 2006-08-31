@@ -37,6 +37,7 @@ public class AllVisualTestsWin32 {
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 		suite.addTest(new TestSuite(OpenDeclarationTest.class));
 		suite.addTest(new TestSuite(OpenTypesTest.class));
+		suite.addTest(new TestSuite(AspectpathAndInpathTest.class));
 		
 		// xref view tests
 		suite.addTest(AllXRefVisualTests.suite());
