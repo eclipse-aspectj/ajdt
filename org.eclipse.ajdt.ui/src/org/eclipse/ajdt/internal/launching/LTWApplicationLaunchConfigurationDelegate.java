@@ -148,7 +148,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 	}
 
 	/**
-	 * Generate aop.xml files for any projects on the LTW aspectpath
+	 * Generate aop-ajc.xml files for any projects on the LTW aspectpath
 	 * @param configuration
 	 * @throws CoreException
 	 */
@@ -168,7 +168,7 @@ public class LTWApplicationLaunchConfigurationDelegate
 				}
 			}
 		}
-		// Generate aop.xml file for main project if it's an AspectJ project
+		// Generate aop-ajc.xml file for main project if it's an AspectJ project
 		String projectName = configuration.getAttribute(
 				IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
 				(String) null);

@@ -62,11 +62,11 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class LTWUtils {
 
-	public final static String AOP_XML_LOCATION = "META-INF/aop.xml"; //$NON-NLS-1$
+	public final static String AOP_XML_LOCATION = "META-INF/aop-ajc.xml"; //$NON-NLS-1$
 	
 	/**
-	 * Generate one aop.xml file for each source directory in the given project.
-	 * The aop.xml files will list all concrete aspects included in the active
+	 * Generate one aop-ajc.xml file for each source directory in the given project.
+	 * The aop-ajc.xml files will list all concrete aspects included in the active
 	 * build configuration.
 	 * @param project
 	 */
@@ -86,11 +86,11 @@ public class LTWUtils {
 					}
 					IFile ltwConfigFile = (IFile) project.getProject().findMember(path);
 					
-					// If the source folder does not already contain an aop.xml file:
+					// If the source folder does not already contain an aop-ajc.xml file:
 					if (ltwConfigFile == null) { 
 						if (aspects.size() != 0) { // If there are aspects in the list
 							
-							// Create the META-INF folder and the aop.xml file
+							// Create the META-INF folder and the aop-ajc.xml file
 							IFolder metainf = (IFolder) ((Workspace)ResourcesPlugin.getWorkspace()).
 							newResource(project.getPath().append("/" + root.getElementName() + "/META-INF"), //$NON-NLS-1$ //$NON-NLS-2$
 									IResource.FOLDER);
@@ -103,7 +103,7 @@ public class LTWUtils {
 							aopFile.create(new ByteArrayInputStream(new byte[0]), true, null);
 							project.getProject().refreshLocal(4, null);
 							
-							// Add the xml content to the aop.xml file
+							// Add the xml content to the aop-ajc.xml file
 							addAspectsToLTWConfigFile(false, aspects, aopFile);
 							copyToOutputFolder(aopFile, project, root.getRawClasspathEntry());
 						}
@@ -173,7 +173,7 @@ public class LTWUtils {
 	}
 	
 	/**
-	 * Updates the given aop.xml file with the current aspects to be included.
+	 * Updates the given aop-ajc.xml file with the current aspects to be included.
 	 * The file should exist when this method is called.
 	 * @param readFileFirst - if true then file already contains xml content
 	 * @param aspects - the list of aspects (IAspectElement)
@@ -184,7 +184,7 @@ public class LTWUtils {
 			List aspects, IFile configFile) 
 			throws Exception {
 		Document doc;
-		if (readFileFirst) { // If the aop.xml file already exists load the existing document
+		if (readFileFirst) { // If the aop-ajc.xml file already exists load the existing document
 			doc = readFile(configFile);
 		} else { // Otherwise create a new document
 			doc = createNewXMLDocument();
@@ -341,7 +341,7 @@ public class LTWUtils {
 		 */
 		public void error(SAXParseException exception) throws SAXException {
 			throw new AOPXMLException(
-				"A problem occurred parsing aop.xml file " //$NON-NLS-1$
+				"A problem occurred parsing aop-ajc.xml file " //$NON-NLS-1$
 					+ exception.getSystemId().substring(
 						exception.getSystemId().indexOf("file:///") + 8) //$NON-NLS-1$
 					+ "[" //$NON-NLS-1$

@@ -125,14 +125,14 @@ public class ProjectPropertiesTest extends UITestCase {
 	}
 
 	public void testBug148055() throws Exception {
-		IProject project = createPredefinedProject("project.with.aop.xml.file"); //$NON-NLS-1$
+		IProject project = createPredefinedProject("project.with.aop-ajc.xml.file"); //$NON-NLS-1$
 
-		IResource xml = project.findMember("src/META-INF/aop.xml"); //$NON-NLS-1$
-		assertNotNull("Couldn't find aop.xml file in project", xml); //$NON-NLS-1$
-		assertTrue("aop.xml file doesn't exist: " + xml, xml.exists()); //$NON-NLS-1$
+		IResource xml = project.findMember("src/META-INF/aop-ajc.xml"); //$NON-NLS-1$
+		assertNotNull("Couldn't find aop-ajc.xml file in project", xml); //$NON-NLS-1$
+		assertTrue("aop-ajc.xml file doesn't exist: " + xml, xml.exists()); //$NON-NLS-1$
 		File file = xml.getRawLocation().toFile();
-		assertNotNull("Couldn't find aop.xml as a java.io.File", file); //$NON-NLS-1$
-		assertTrue("aop.xml file doesn't exist: " + file, file.exists()); //$NON-NLS-1$
+		assertNotNull("Couldn't find aop-ajc.xml as a java.io.File", file); //$NON-NLS-1$
+		assertTrue("aop-ajc.xml file doesn't exist: " + file, file.exists()); //$NON-NLS-1$
 
 		boolean deleted = file.delete();
 		assertTrue("Delete failed for file: " + file, deleted); //$NON-NLS-1$
