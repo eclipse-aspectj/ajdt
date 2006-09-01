@@ -104,11 +104,14 @@ public class AJCTask extends JavacTask {
 				ajScript.print("/>"); //$NON-NLS-1$
 				ajScript.println();
 			}
-			
+
+			ajScript.printProperty("ajcArgFile",""); //$NON-NLS-1$ //$NON-NLS-2$
+
 			ajScript.printTab();
 			ajScript.print("<iajc"); //$NON-NLS-1$
 			ajScript.printAttribute("destDir", destdir, false); //$NON-NLS-1$
 			ajScript.printAttribute("failonerror", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.printAttribute("argfiles", "${ajcArgFile}", false); //$NON-NLS-1$ //$NON-NLS-2$	
 			ajScript.printAttribute("verbose", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.printAttribute("fork", "true", false); //$NON-NLS-1$ //$NON-NLS-2$
 			if (useBuildConfig) {
