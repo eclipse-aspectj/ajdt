@@ -761,7 +761,7 @@ public class AJProjectModel {
 	
 		private List elementList;
 	
-		private AJRelationshipType[] relTypes = AJRelationshipManager.getAllRelatinshipTypes();
+		private AJRelationshipType[] relTypes = AJRelationshipManager.getAllRelationshipTypes();
 	
 		private Map relIDs;
 	
