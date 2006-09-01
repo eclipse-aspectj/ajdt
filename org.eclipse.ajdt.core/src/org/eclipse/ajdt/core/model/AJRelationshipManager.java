@@ -69,7 +69,7 @@ public class AJRelationshipManager {
 	 */
 	private static AJRelationshipType[] allRelationshipTypes = null;
 	
-	public static AJRelationshipType[] getAllRelatinshipTypes() {
+	public static AJRelationshipType[] getAllRelationshipTypes() {
 		if (allRelationshipTypes == null) {
 			if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
 				allRelationshipTypes = new AJRelationshipType[] {
@@ -85,4 +85,43 @@ public class AJRelationshipManager {
 		return allRelationshipTypes;
 	}
 	
+	public static AJRelationshipType getOppositeRelationship(AJRelationshipType type) {
+		if (type == ADVISES) {
+			return ADVISED_BY;
+		}
+		if (type == ADVISED_BY) {
+			return ADVISES;
+		}
+		if (type == DECLARED_ON) {
+			return ASPECT_DECLARATIONS;
+		}
+		if (type == ASPECT_DECLARATIONS) {
+			return DECLARED_ON;
+		}
+		if (type == MATCHED_BY) {
+			return MATCHES_DECLARE;
+		}
+		if (type == MATCHES_DECLARE) {
+			return MATCHED_BY;
+		}
+		if (type == ANNOTATES) {
+			return ANNOTATED_BY;
+		}
+		if (type == ANNOTATED_BY) {
+			return ANNOTATES;
+		}
+		if (type == SOFTENS) {
+			return SOFTENED_BY;
+		}
+		if (type == SOFTENED_BY) {
+			return SOFTENS;
+		}
+		if (type == USES_POINTCUT) {
+			return POINTCUT_USED_BY;
+		}
+		if (type == POINTCUT_USED_BY) {
+			return USES_POINTCUT;
+		}
+		return null;
+	}
 }
