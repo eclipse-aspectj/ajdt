@@ -131,7 +131,7 @@ public class PointcutUtilities {
 				// now narrow down to after the colon and before
 				// the start of the advice body or the end of the pointcut
 				ajcu.requestOriginalContentMode();
-				String source = ajcu.getSource();
+				String source = ((ISourceReference) ajcu).getSource();
 				ajcu.discardOriginalContentMode();
 				ISourceRange range = ((ISourceReference) el).getSourceRange();
 				int start = range.getOffset();
