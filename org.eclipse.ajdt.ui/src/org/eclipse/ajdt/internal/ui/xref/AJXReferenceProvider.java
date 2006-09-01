@@ -33,7 +33,7 @@ public class AJXReferenceProvider implements IXReferenceProvider {
 
 	private static final Class[] myClasses = new Class[] { IJavaElement.class };
 
-	private AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelatinshipTypes();
+	private AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelationshipTypes();
 
 	/*
 	 * (non-Javadoc)
