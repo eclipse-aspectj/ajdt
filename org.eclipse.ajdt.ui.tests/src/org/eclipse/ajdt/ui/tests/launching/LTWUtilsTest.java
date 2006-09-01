@@ -77,8 +77,8 @@ public class LTWUtilsTest extends UITestCase{
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		
-		assertNull("aop.xml shouldn't exist in src directory because there are no aspects",r1); //$NON-NLS-1$
-		assertNull("aop.xml shouldn't exist in src2 directory because there are no aspects",r2); //$NON-NLS-1$
+		assertNull("aop-ajc.xml shouldn't exist in src directory because there are no aspects",r1); //$NON-NLS-1$
+		assertNull("aop-ajc.xml shouldn't exist in src2 directory because there are no aspects",r2); //$NON-NLS-1$
 	}
 	
 	// one source folder with aspects
@@ -90,7 +90,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
@@ -109,7 +109,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 				
 		IResource r2 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r2); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r2); //$NON-NLS-1$
 
 		compareFileContentsWithExpected((IFile)r2, expectedLines);
 	}
@@ -123,7 +123,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember(LTWUtils.AOP_XML_LOCATION);		
-		assertNotNull("aop.xml should exist in project directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in project directory because there are aspects",r1); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
@@ -147,7 +147,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember(LTWUtils.AOP_XML_LOCATION);		
-		assertNull("aop.xml should not exist in the project directory because there are no aspects",r1); //$NON-NLS-1$
+		assertNull("aop-ajc.xml should not exist in the project directory because there are no aspects",r1); //$NON-NLS-1$
 
 	}
 	
@@ -162,8 +162,8 @@ public class LTWUtilsTest extends UITestCase{
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		IResource r2 = jp.getProject().findMember("src2/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
 		
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src2 directory because there are aspects",r2); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src2 directory because there are aspects",r2); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
@@ -203,7 +203,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
@@ -217,7 +217,7 @@ public class LTWUtilsTest extends UITestCase{
 		
 		compareFileContentsWithExpected(file, expectedLines);
 		
-		// activate a different build config to see if aop.xml updates correctly
+		// activate a different build config to see if aop-ajc.xml updates correctly
 		propertiesFile = project.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
@@ -228,7 +228,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 		
 		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
@@ -242,7 +242,7 @@ public class LTWUtilsTest extends UITestCase{
 		compareFileContentsWithExpected(file, expectedLines);
 		
 		// activate a config where no aspects are included. This should
-		// clear the "aspects" part of the aop.xml file.
+		// clear the "aspects" part of the aop-ajc.xml file.
 		propertiesFile = project.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
 		assertTrue(propertiesFile.exists());		
@@ -253,7 +253,7 @@ public class LTWUtilsTest extends UITestCase{
 		waitForJobsToComplete();
 		
 		r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION); //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		file = (IFile)r1;
 		expectedLines = new String[]{
@@ -266,17 +266,17 @@ public class LTWUtilsTest extends UITestCase{
 		
 	}
 	
-	// one source folder with aspects and aop.xml file which
+	// one source folder with aspects and aop-ajc.xml file which
 	// contains other contents
 	public void testGenerateLTWConfigFile7() throws Exception {
-		IProject project = createPredefinedProject("project.with.aop.xml.file"); //$NON-NLS-1$
+		IProject project = createPredefinedProject("project.with.aop-ajc.xml.file"); //$NON-NLS-1$
 		waitForJobsToComplete();
 		IJavaProject jp = JavaCore.create(project);
 		LTWUtils.generateLTWConfigFile(jp);
 		waitForJobsToComplete();
 		
 		IResource r1 = jp.getProject().findMember("src/" + LTWUtils.AOP_XML_LOCATION);		 //$NON-NLS-1$
-		assertNotNull("aop.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
+		assertNotNull("aop-ajc.xml should exist in src directory because there are aspects",r1); //$NON-NLS-1$
 		
 		IFile file = (IFile)r1;
 		String[] expectedLines = new String[]{
