@@ -153,7 +153,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 							AspectJEditor.this);
 					fCorrectionAssistant.install(getSourceViewer());
 				}
-				String msg = fCorrectionAssistant.showPossibleCompletions();
+				String msg = fCorrectionAssistant.showPossibleQuickAssists();
 				setStatusLineErrorMessage(msg);
 			} else if (operation == JavaSourceViewer.SHOW_OUTLINE) {
 				// use our own outline presenter
