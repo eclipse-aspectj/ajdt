@@ -11,9 +11,13 @@
 
 package org.eclipse.ajdt.internal.ui.editor.quickfix;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.internal.ui.text.correction.QuickAssistLightBulbUpdater;
 import org.eclipse.jdt.ui.JavaUI;
@@ -32,28 +36,34 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
+import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.text.correction.JavaCorrectionAssistant
  * Any changes marked with // AspectJ Change
  */
-public class JavaCorrectionAssistant extends ContentAssistant {
+public class JavaCorrectionAssistant extends QuickAssistAssistant {
 
 	private ITextViewer fViewer;
 	private ITextEditor fEditor;
 	private Position fPosition;
-		
+	private Annotation[] fCurrentAnnotations;
+
 	private QuickAssistLightBulbUpdater fLightBulbUpdater;
-	
+
+
 	/**
 	 * Constructor for JavaCorrectionAssistant.
 	 */
@@ -61,19 +71,11 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 		super();
 		Assert.isNotNull(editor);
 		fEditor= editor;
-		JavaCorrectionProcessor processor= new JavaCorrectionProcessor(this); 
-		
-		setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_STRING);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_CHARACTER);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_DOC);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
-		setContentAssistProcessor(processor, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
-	
-		enableAutoActivation(false);
-		enableAutoInsert(false);
-		
-		setContextInformationPopupOrientation(CONTEXT_INFO_ABOVE);
+
+		JavaCorrectionProcessor processor= new JavaCorrectionProcessor(this);
+
+		setQuickAssistProcessor(processor);
+
 		setInformationControlCreator(getInformationControlCreator());
 
 		JavaTextTools textTools= JavaPlugin.getDefault().getJavaTextTools();
@@ -83,40 +85,40 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 
 		Color c= getColor(store, PreferenceConstants.CODEASSIST_PROPOSALS_FOREGROUND, manager);
 		setProposalSelectorForeground(c);
-		
+
 		c= getColor(store, PreferenceConstants.CODEASSIST_PROPOSALS_BACKGROUND, manager);
 		setProposalSelectorBackground(c);
 	}
-	
+
 	public IEditorPart getEditor() {
 		return fEditor;
 	}
-	
-		
+
+
 	private IInformationControlCreator getInformationControlCreator() {
 		return new IInformationControlCreator() {
 			public IInformationControl createInformationControl(Shell parent) {
 				return new DefaultInformationControl(parent, new HTMLTextPresenter());
 			}
 		};
-	}	
-	
+	}
+
 	private static Color getColor(IPreferenceStore store, String key, IColorManager manager) {
 		RGB rgb= PreferenceConverter.getColor(store, key);
 		return manager.getColor(rgb);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.text.contentassist.IContentAssistant#install(org.eclipse.jface.text.ITextViewer)
 	 */
-	public void install(ITextViewer textViewer) {
-		super.install(textViewer);
-		fViewer= textViewer;
-		
-		fLightBulbUpdater= new QuickAssistLightBulbUpdater(fEditor, textViewer);
+	public void install(ISourceViewer sourceViewer) {
+		super.install(sourceViewer);
+		fViewer= sourceViewer;
+
+		fLightBulbUpdater= new QuickAssistLightBulbUpdater(fEditor, sourceViewer);
 		fLightBulbUpdater.install();
 	}
-	
+
 
 
 	/* (non-Javadoc)
@@ -130,91 +132,146 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 		super.uninstall();
 	}
 
+	/*
+	 * @see org.eclipse.jface.text.quickassist.QuickAssistAssistant#showPossibleQuickAssists()
+	 * @since 3.2
+	 */
+
 	/**
 	 * Show completions at caret position. If current
 	 * position does not contain quick fixes look for
 	 * next quick fix on same line by moving from left
 	 * to right and restarting at end of line if the
 	 * beginning of the line is reached.
-	 * 
-	 * @see org.eclipse.jface.text.contentassist.IContentAssistant#showPossibleCompletions()
+	 *
+	 * @see IQuickAssistAssistant#showPossibleQuickAssists()
 	 */
-	public String showPossibleCompletions() {
+	public String showPossibleQuickAssists() {
+		fPosition= null;
+		fCurrentAnnotations= null;
+		
 		if (fViewer == null || fViewer.getDocument() == null)
 			// Let superclass deal with this
-			return super.showPossibleCompletions();
-		
-		Point selectedRange= fViewer.getSelectedRange();
-		fPosition= null;
-		
-		if (selectedRange.y == 0) {
-			int invocationOffset= computeOffsetWithCorrection(selectedRange.x);
-			if (invocationOffset != -1) {
-				storePosition();
-				fViewer.setSelectedRange(invocationOffset, 0);
-				fViewer.revealRange(invocationOffset, 0);	
-			}
-		}
-		return super.showPossibleCompletions();
-	}
+			return super.showPossibleQuickAssists();
 
-	/**
-	 * Find offset which contains corrections.
-	 * Search on same line by moving from left
-	 * to right and restarting at end of line if the
-	 * beginning of the line is reached.
-	 * 
-	 * @return an offset where corrections are available or -1 if none
-	 */
-	private int computeOffsetWithCorrection(int initalOffset) {
-		IRegion lineInfo= null;
+
+		ArrayList resultingAnnotations= new ArrayList(20);
 		try {
-			lineInfo= fViewer.getDocument().getLineInformationOfOffset(initalOffset);
-		} catch (BadLocationException ex) {
-			return -1;
+			Point selectedRange= fViewer.getSelectedRange();
+			int currOffset= selectedRange.x;
+			int currLength= selectedRange.y;
+			boolean goToClosest= (currLength == 0);
+			
+			int newOffset= collectQuickFixableAnnotations(fEditor, currOffset, goToClosest, resultingAnnotations);
+			if (newOffset != currOffset) {
+				storePosition(currOffset, currLength);
+				fViewer.setSelectedRange(newOffset, 0);
+				fViewer.revealRange(newOffset, 0);
+			}
+		} catch (BadLocationException e) {
+			JavaPlugin.log(e);
 		}
-		int startOffset= lineInfo.getOffset();
-		int endOffset= startOffset + lineInfo.getLength();
+		fCurrentAnnotations= (Annotation[]) resultingAnnotations.toArray(new Annotation[resultingAnnotations.size()]);
+
+		return super.showPossibleQuickAssists();
+	}
+	
+	
+	private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation) throws BadLocationException {
+		IDocumentProvider documentProvider= editor.getDocumentProvider();
+		if (documentProvider == null) {
+			return null;
+		}
+		IDocument document= documentProvider.getDocument(editor.getEditorInput());
+		if (document == null) {
+			return null;
+		}
+		return document.getLineInformationOfOffset(invocationLocation);
+	}
+	
+	public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation, boolean goToClosest, ArrayList resultingAnnotations) throws BadLocationException {
+		IAnnotationModel model= JavaUI.getDocumentProvider().getAnnotationModel(editor.getEditorInput());
+		if (model == null) {
+			return invocationLocation;
+		}
 		
-		int result= computeOffsetWithCorrection(startOffset, endOffset, initalOffset);
-		if (result > 0 && result != initalOffset)
-			return result;
-		else
-			return -1;
+		ensureUpdatedAnnotations(editor);
+		
+		Iterator iter= model.getAnnotationIterator();
+		if (goToClosest) {
+			IRegion lineInfo= getRegionOfInterest(editor, invocationLocation);
+			if (lineInfo == null) {
+				return invocationLocation;
+			}
+			int rangeStart= lineInfo.getOffset();
+			int rangeEnd= rangeStart + lineInfo.getLength();
+			
+			ArrayList allAnnotations= new ArrayList();
+			ArrayList allPositions= new ArrayList();
+			int bestOffset= Integer.MAX_VALUE;
+			while (iter.hasNext()) {
+				Annotation annot= (Annotation) iter.next();
+				if (JavaCorrectionProcessor.isQuickFixableType(annot)) {
+					Position pos= model.getPosition(annot);
+					if (pos != null && isInside(pos.offset, rangeStart, rangeEnd)) { // inside our range?
+						allAnnotations.add(annot);
+						allPositions.add(pos);
+						bestOffset= processAnnotation(annot, pos, invocationLocation, bestOffset);
+					}
+				}
+			}
+			if (bestOffset == Integer.MAX_VALUE) {
+				return invocationLocation;
+			}
+			for (int i= 0; i < allPositions.size(); i++) {
+				Position pos= (Position) allPositions.get(i);
+				if (isInside(bestOffset, pos.offset, pos.offset + pos.length)) {
+					resultingAnnotations.add(allAnnotations.get(i));
+				}
+			}
+			return bestOffset;
+		} else {
+			while (iter.hasNext()) {
+				Annotation annot= (Annotation) iter.next();
+				if (JavaCorrectionProcessor.isQuickFixableType(annot)) {
+					Position pos= model.getPosition(annot);
+					if (pos != null && isInside(invocationLocation, pos.offset, pos.offset + pos.length)) {
+						resultingAnnotations.add(annot);
+					}
+				}
+			}
+			return invocationLocation;
+		}
 	}
 
-	/**
-	 * @return the best matching offset with corrections or -1 if nothing is found
-	 */
-	private int computeOffsetWithCorrection(int startOffset, int endOffset, int initialOffset) {
-		IAnnotationModel model= JavaUI.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+	private static void ensureUpdatedAnnotations(ITextEditor editor) {
+		Object inputElement= editor.getEditorInput().getAdapter(IJavaElement.class);
+		if (inputElement instanceof ICompilationUnit) {
+			JavaPlugin.getDefault().getASTProvider().getAST((ICompilationUnit) inputElement, ASTProvider.WAIT_ACTIVE_ONLY, null);
+		}
+	}
 
-		int invocationOffset= -1;
-		int offsetOfFirstProblem= Integer.MAX_VALUE;
-
-		Iterator iter= model.getAnnotationIterator();
-		while (iter.hasNext()) {
-			Annotation annot= (Annotation) iter.next();
-			if (JavaCorrectionProcessor.isQuickFixableType(annot)) {
-				Position pos= model.getPosition(annot);
-				if (isIncluded(pos, startOffset, endOffset)) {
-					if (JavaCorrectionProcessor.hasCorrections(annot)) {
-						offsetOfFirstProblem= Math.min(offsetOfFirstProblem, pos.getOffset());
-						invocationOffset= computeBestOffset(invocationOffset, pos, initialOffset);
-						if (initialOffset == invocationOffset)
-							return initialOffset;
+	private static int processAnnotation(Annotation annot, Position pos, int invocationLocation, int bestOffset) {
+		int posBegin= pos.offset;
+		int posEnd= posBegin + pos.length;
+		if (isInside(invocationLocation, posBegin, posEnd)) { // covers invocation location?
+			return invocationLocation;
+		} else if (bestOffset != invocationLocation) {
+			int newClosestPosition= computeBestOffset(posBegin, invocationLocation, bestOffset);
+			if (newClosestPosition != -1) { 
+				if (newClosestPosition != bestOffset) { // new best
+					if (JavaCorrectionProcessor.hasCorrections(annot)) { // only jump to it if there are proposals
+						return newClosestPosition;
 					}
 				}
 			}
 		}
-		if (initialOffset < offsetOfFirstProblem && offsetOfFirstProblem != Integer.MAX_VALUE)
-			return offsetOfFirstProblem;
-		else
-			return invocationOffset;
+		return bestOffset;
 	}
 
-	private boolean isIncluded(Position pos, int lineStart, int lineEnd) {
-		return (pos != null) && (pos.getOffset() >= lineStart && (pos.getOffset() +  pos.getLength() <= lineEnd));
+
+	private static boolean isInside(int offset, int start, int end) {
+		return offset == start || (offset > start && offset < end); // make sure to handle 0-length ranges
 	}
 
 	/**
@@ -225,28 +282,25 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 	 * The closest offset to the left of the initial offset is the
 	 * best. If there is no offset on the left, the closest on the
 	 * right is the best.</p>
+	 * @return -1 is returned if the given offset is not closer or the new best offset
 	 */
-	private int computeBestOffset(int invocationOffset, Position pos, int initalOffset) {
-		int newOffset= pos.offset;
-		if (newOffset <= initalOffset && initalOffset <= newOffset + pos.length)
-			return initalOffset;
+	private static int computeBestOffset(int newOffset, int invocationLocation, int bestOffset) {
+		if (newOffset <= invocationLocation) {
+			if (bestOffset > invocationLocation) {
+				return newOffset; // closest was on the right, prefer on the left
+			} else if (bestOffset <= newOffset) {
+				return newOffset; // we are closer or equal
+			}
+			return -1; // further away
+		}
 
-		if (invocationOffset < 0)
-			return newOffset;
+		if (newOffset <= bestOffset)
+			return newOffset; // we are closer or equal
 
-		if (newOffset <= initalOffset && invocationOffset >= initalOffset)
-			return newOffset;
-
-		if (newOffset <= initalOffset && invocationOffset < initalOffset)
-			return Math.max(invocationOffset, newOffset);
-
-		if (invocationOffset <= initalOffset)
-			return invocationOffset;
-		
-		return Math.max(invocationOffset, newOffset);
+		return -1; // further away
 	}
 
-	/* 
+	/*
 	 * @see org.eclipse.jface.text.contentassist.ContentAssistant#possibleCompletionsClosed()
 	 */
 	protected void possibleCompletionsClosed() {
@@ -254,10 +308,8 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 		restorePosition();
 	}
 
-	private void storePosition() {
-		int initalOffset= fViewer.getSelectedRange().x;
-		int length= fViewer.getSelectedRange().y;
-		fPosition= new Position(initalOffset, length);
+	private void storePosition(int currOffset, int currLength) {
+		fPosition= new Position(currOffset, currLength);
 	}
 
 	private void restorePosition() {
@@ -267,12 +319,18 @@ public class JavaCorrectionAssistant extends ContentAssistant {
 		}
 		fPosition= null;
 	}
-	
+
 	/**
 	 * Returns true if the last invoked completion was called with an updated offset.
 	 */
 	public boolean isUpdatedOffset() {
 		return fPosition != null;
 	}
-	
+
+	/**
+	 * Returns the annotations at the current offset
+	 */
+	public Annotation[] getAnnotationsAtOffset() {
+		return fCurrentAnnotations;
+	}
 }

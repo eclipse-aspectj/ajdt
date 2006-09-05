@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * Copyright (c) 2000, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import org.eclipse.osgi.util.NLS;
  * Copied from org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages.
  * Changes flagged with AspectJ change
  */
-final class CorrectionMessages extends NLS {
+public final class CorrectionMessages extends NLS {
 
 	// Begin AspectJ change
 	//private static final String BUNDLE_NAME= CorrectionMessages.class.getName();
@@ -36,6 +36,9 @@ final class CorrectionMessages extends NLS {
 	public static String SerialVersionLaunchConfigurationDelegate_launching_vm;
 	public static String SerialVersionLaunchConfigurationDelegate_verifying_launch_attributes;
 	public static String SerialVersionLaunchConfigurationDelegate_constructing_command_line;
+	public static String SerialVersionLaunchConfigurationDelegate_temp_file_not_exists;
+	public static String SerialVersionLaunchConfigurationDelegate_error_getting_separator_property;
+	public static String SerialVersionLaunchConfigurationDelegate_error_getting_temp_dir_property;
 	public static String SerialVersionDefaultProposal_message_default_info;
 	public static String SerialVersionHashProposal_message_generated_info;
 	public static String SerialVersionHashProposal_dialog_error_caption;
@@ -72,7 +75,6 @@ final class CorrectionMessages extends NLS {
 	public static String LocalCorrectionsSubProcessor_surroundwith_description;
 	public static String LocalCorrectionsSubProcessor_addthrows_description;
 	public static String LocalCorrectionsSubProcessor_addadditionalcatch_description;
-	public static String LocalCorrectionsSubProcessor_unnecessarycast_description;
 	public static String LocalCorrectionsSubProcessor_unnecessaryinstanceof_description;
 	public static String LocalCorrectionsSubProcessor_unnecessarythrow_description;
 	public static String LocalCorrectionsSubProcessor_classtointerface_description;
@@ -95,6 +97,8 @@ final class CorrectionMessages extends NLS {
 	public static String LocalCorrectionsSubProcessor_hiding_argument_label;
 	public static String LocalCorrectionsSubProcessor_setparenteses_description;
 	public static String LocalCorrectionsSubProcessor_setparenteses_instanceof_description;
+	public static String LocalCorrectionsSubProcessor_InferGenericTypeArguments;
+	public static String LocalCorrectionsSubProcessor_InferGenericTypeArguments_description;
 	public static String TypeMismatchSubProcessor_addcast_description;
 	public static String TypeMismatchSubProcessor_changecast_description;
 	public static String TypeMismatchSubProcessor_changereturntype_description;
@@ -238,7 +242,6 @@ final class CorrectionMessages extends NLS {
 	public static String QuickAssistProcessor_typetoarrayInitializer_description;
 	public static String QuickAssistProcessor_createmethodinsuper_description;
 	public static String QuickAssistProcessor_forLoop_description;
-	public static String QuickAssistProcessor_surround_with_runnable;
 	public static String LinkedNamesAssistProposal_proposalinfo;
 	public static String LinkedNamesAssistProposal_description;
 	public static String QuickTemplateProcessor_surround_label;
@@ -302,12 +305,21 @@ final class CorrectionMessages extends NLS {
 	public static String ReorgCorrectionsSubProcessor_configure_buildpath_label;
 	public static String ReorgCorrectionsSubProcessor_configure_buildpath_description;
 	public static String QuickAssistProcessor_extract_to_local_description;
-	public static String ModifierCorrectionSubProcessor_suppress_warnings_initializer_label;
-	public static String ModifierCorrectionSubProcessor_suppress_warnings_label;
+	public static String SuppressWarningsSubProcessor_suppress_warnings_initializer_label;
+	public static String SuppressWarningsSubProcessor_suppress_warnings_label;
 	public static String ReorgCorrectionsSubProcessor_accessrules_description;
 	public static String UnresolvedElementsSubProcessor_change_full_type_description;
 	public static String LocalCorrectionsSubProcessor_remove_nls_tag_description;
 	public static String LocalCorrectionsSubProcessor_qualify_left_hand_side_description;
 	public static String LocalCorrectionsSubProcessor_LocalCorrectionsSubProcessor_qualify_right_hand_side_description;
 	public static String CorrectionMessages_add_type_parameters_to_instantiation;
+	public static String UnresolvedElementsSubProcessor_UnresolvedElementsSubProcessor_changetoattribute_description;
+	public static String UnresolvedElementsSubProcessor_UnresolvedElementsSubProcessor_createattribute_description;
+	public static String MissingAnnotationAttributesProposal_add_missing_attributes_label;
+	public static String FixCorrectionProposal_HitCtrlEnter_description;
+	public static String FixCorrectionProposal_hitCtrlEnter_variable_description;
+	public static String CorrectionMarkerResolutionGenerator__multiFixErrorDialog_Titel;
+	public static String CorrectionMarkerResolutionGenerator_multiFixErrorDialog_description;
+	public static String LocalCorrectionsSubProcessor_insert_break_statement;
+	public static String SuppressWarningsSubProcessor_fix_suppress_token_label;
 }
