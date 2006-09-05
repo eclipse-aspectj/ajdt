@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
+ * Copyright (c) 2005, 2006 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,8 +42,9 @@ import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
 import org.eclipse.jface.util.ListenerList;
 
 /**
- * Wrapper for a CompilationUnitAnnotationModel.  Uses AspectJ's eager parser
- * to report errors and ignores errors from the JDT.
+ * Wrapper for a CompilationUnitAnnotationModel. Only used for non-.aj files
+ * (i.e. usually .java files)
+ * Uses AspectJ's eager parser to report errors and ignores errors from the JDT.
  */
 public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, IProblemRequestor, IProblemRequestorExtension  {
 
@@ -176,14 +177,17 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 	 * @see org.eclipse.jdt.core.IProblemRequestor#acceptProblem(org.eclipse.jdt.core.compiler.IProblem)
 	 */
 	public void acceptProblem(IProblem problem) {
-		// do nothing with problems from the JDT..
+		// bug 155225: use delegate for Task problems, ignore everything else
+		if ((delegate != null) && (problem.getID() == IProblem.Task)) {
+			((IProblemRequestor)delegate).acceptProblem(problem);
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.core.IProblemRequestor#beginReporting()
 	 */
 	public void beginReporting() {
-		if(delegate != null) {
+		if (delegate != null) {
 			((IProblemRequestor)delegate).beginReporting();
 			
 			IJavaProject project = unit.getJavaProject();
