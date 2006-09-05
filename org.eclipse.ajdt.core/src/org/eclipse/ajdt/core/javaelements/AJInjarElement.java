@@ -14,6 +14,8 @@ package org.eclipse.ajdt.core.javaelements;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.ISourceRange;
+import org.eclipse.jdt.internal.core.SourceRange;
 
 /**
  * Used to represent injar aspects (which have no parent)
@@ -30,6 +32,10 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 	public AJInjarElement(String name, IProgramElement.ExtraInformation extraInfo) {
 		super(null,0,name); //$NON-NLS-1$
 		this.extraInfo = extraInfo;
+	}
+	
+	public ISourceRange getNameRange() {
+		return new SourceRange(this.nameStart, this.nameEnd-this.nameStart+1);
 	}
 	
 	/**
