@@ -189,24 +189,37 @@ public class AJProjectModel {
 	}
 	
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
+		// Get related elements for given relationship.
+		// Avoid creating a new List if at all possible.
 		List rels = getLocalRelatedElements(rel, je);
-		
+		if ((rels != null) && (rels.size() == 0)) {
+			rels = null;
+		}
 		// add anything contributed from other projects
+		List otherRels = null;
 		for (Iterator iter = projectsToAsk.iterator(); iter.hasNext();) {
 			IProject otherProject = (IProject) iter.next();
 			AJProjectModel otherModel = AJModel.getInstance().getModelForProject(otherProject);
 			List l = otherModel.getOtherProjectRelatedElements(rel, je);
-			if (l != null) {
-				if (rels == null) {
-					rels = new ArrayList();
+			if ((l != null) && (l.size()>0)) {
+				if (otherRels == null) {
+					otherRels = new ArrayList();
 				}
-				rels.addAll(l);
+				otherRels.addAll(l);
 			}
-		}
-		if ((rels == null) || (rels.size() == 0)) {
+		}		
+		if ((rels == null) && (otherRels == null)) {
 			return null;
 		}
-		return rels;
+		if (otherRels == null) {
+			return rels;
+		}
+		if (rels == null) {
+			return otherRels;
+		}
+		List combined = new ArrayList(rels);
+		combined.addAll(otherRels);
+		return combined;
 	}
 	
 	private List getLocalRelatedElements(AJRelationshipType rel, IJavaElement je) {
@@ -458,13 +471,11 @@ public class AJProjectModel {
 								}
 								if (foundTarget != null) {
 									targetEl = foundTarget;
-									System.out.println("rel: " + rel.getName());
 									int line = link.getSourceLocation()
 											.getLine();
 									addOppositeRelationship(ajRel, sourceEl,
 											targetEl, line);
 								} else {
-									// System.out.println("t: "+t);
 									if (link.getParent() == null) {
 										// if the problem element has no parent,
 										// then we have a binary/injar aspect, otherwise
