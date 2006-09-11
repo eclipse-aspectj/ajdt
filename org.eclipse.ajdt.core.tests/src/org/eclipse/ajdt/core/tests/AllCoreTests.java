@@ -30,6 +30,8 @@ import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
+import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
+import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.ModelComparisonTest;
 import org.eclipse.ajdt.core.tests.refactoring.PointcutRenameParticipantTest;
 
@@ -68,6 +70,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest2.class));
 		suite.addTest(new TestSuite(ModelComparisonTest.class));
+		suite.addTest(new TestSuite(AJRelationshipManagerTest.class));
+		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
 		
 		// Java Element tests
 		suite.addTest(new TestSuite(AspectElementTests.class));

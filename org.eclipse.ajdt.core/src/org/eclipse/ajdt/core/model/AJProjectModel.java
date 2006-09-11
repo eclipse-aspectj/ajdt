@@ -59,6 +59,7 @@ import org.eclipse.ajdt.core.javaelements.MockSourceMethod;
 import org.eclipse.ajdt.core.javaelements.PointcutElementInfo;
 import org.eclipse.ajdt.core.javaelements.MockSourceMethod.MethodElementInfo;
 import org.eclipse.ajdt.core.text.CoreMessages;
+import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -83,7 +84,7 @@ public class AJProjectModel {
 
 	// Note: when this number is changed the file 'Spacewar Example.ajmap' in the spacewar
 	// project under workspace will need to be regenerated for the tests to pass.
-	private static final int MODEL_VERSION = 105;
+	private static final int MODEL_VERSION = 106;
 	private static final String MODEL_FILE = ".elementMap"; //$NON-NLS-1$
 
 	IProject project;
@@ -94,7 +95,8 @@ public class AJProjectModel {
 
 	// perRelMaps[0] = rels with runtime test
 	// perRelMaps[1] = rels without runtime test
-	private Map[] perRelMaps = new Map[] { new HashMap(), new HashMap() };
+	// perRelMaps[2] = rels with source in a separate projects
+	private Map[] perRelMaps = new Map[] { new HashMap(), new HashMap(), new HashMap() };
 
 	// map asm kind strings to AJRelationships
 	private Map kindMap = new HashMap();
@@ -117,6 +119,8 @@ public class AJProjectModel {
 	
 	// map of ICompilationUnits to Set of AspectElements
 	private Map aspectsInJavaFiles = new HashMap();
+	
+	private List projectsToAsk = new ArrayList();
 	
 	public AJProjectModel(IProject project) {
 		this.project = project;
@@ -185,10 +189,32 @@ public class AJProjectModel {
 	}
 	
 	public List getRelatedElements(AJRelationshipType rel, IJavaElement je) {
+		List rels = getLocalRelatedElements(rel, je);
+		
+		// add anything contributed from other projects
+		for (Iterator iter = projectsToAsk.iterator(); iter.hasNext();) {
+			IProject otherProject = (IProject) iter.next();
+			AJProjectModel otherModel = AJModel.getInstance().getModelForProject(otherProject);
+			List l = otherModel.getOtherProjectRelatedElements(rel, je);
+			if (l != null) {
+				if (rels == null) {
+					rels = new ArrayList();
+				}
+				rels.addAll(l);
+			}
+		}
+		if ((rels == null) || (rels.size() == 0)) {
+			return null;
+		}
+		return rels;
+	}
+	
+	private List getLocalRelatedElements(AJRelationshipType rel, IJavaElement je) {
 		// Get related elements for given relationship, both with and without
 		// runtime test. Avoid creating a new List if at all possible.
 		Map relMap1 = (Map) perRelMaps[0].get(rel);
 		Map relMap2 = (Map) perRelMaps[1].get(rel);
+
 		List l1 = null;
 		List l2 = null;
 		if (relMap1 != null) {
@@ -211,10 +237,45 @@ public class AJProjectModel {
 		return combined;
 	}
 
+	private List getOtherProjectRelatedElements(AJRelationshipType rel, IJavaElement je) {
+		Map relMap1 = (Map) perRelMaps[2].get(rel);
+		List l1 = null;
+		if (relMap1 != null ) {
+			l1 = (List) relMap1.get(je);
+		}
+		return l1;
+	}
+	
+	/**
+	 * Get all the relationships that this project holds on behalf of other
+	 * projects - such as when weaving across projects
+	 * @param rels
+	 * @return
+	 */
+	public List getOtherProjectAllRelationships(AJRelationshipType[] rels) {
+		List allRels = new ArrayList();
+		for (int i = 0; i < rels.length; i++) {
+			Map relMap = (Map) perRelMaps[2].get(rels[i]);
+			if (relMap != null) {
+				for (Iterator iter = relMap.keySet().iterator(); iter.hasNext();) {
+					IJavaElement source = (IJavaElement) iter.next();
+					List targetList = (List) relMap.get(source);
+					for (Iterator iter2 = targetList.iterator(); iter2
+							.hasNext();) {
+						IJavaElement target = (IJavaElement) iter2.next();
+						allRels.add(new AJRelationship(source, rels[i], target,
+								false));
+					}
+				}
+			}
+		}
+		return allRels;
+	}
+	
 	public List getAllRelationships(AJRelationshipType[] rels) {
 		List allRels = new ArrayList();
 		for (int i = 0; i < rels.length; i++) {
-			for (int j = 0; j <= 1; j++) { // with and without runtime test
+			for (int j = 0; j <= 1; j++) { // with and without runtime test and rels from other projects
 				Map relMap = (Map) perRelMaps[j].get(rels[i]);
 				if (relMap != null) {
 					for (Iterator iter = relMap.keySet().iterator(); iter
@@ -231,6 +292,18 @@ public class AJProjectModel {
 				}
 			}
 		}
+		
+		// add anything contributed from other projects
+		for (Iterator iter = projectsToAsk.iterator(); iter.hasNext();) {
+			IProject otherProject = (IProject) iter.next();
+			AJProjectModel otherModel = AJModel.getInstance().getModelForProject(otherProject);
+			List l = otherModel.getOtherProjectAllRelationships(rels);
+			if (l != null) {
+				allRels.addAll(l);
+			}
+		}
+
+		
 		return allRels;
 	}
 
@@ -276,6 +349,15 @@ public class AJProjectModel {
 		Integer i = (Integer) lineNumbers.get(je);
 		if (i != null) {
 			return i.intValue();
+		}
+		// try other projects
+		for (Iterator iter = projectsToAsk.iterator(); iter.hasNext();) {
+			IProject otherProject = (IProject) iter.next();
+			AJProjectModel otherModel = AJModel.getInstance().getModelForProject(otherProject);
+			int l = otherModel.getJavaElementLineNumber(je);
+			if (l != -1) {
+				return l;
+			}
 		}
 		return -1;
 	}
@@ -341,6 +423,8 @@ public class AJProjectModel {
 				for (Iterator iterator = relationships.iterator(); iterator
 						.hasNext();) {
 					Relationship rel = (Relationship) iterator.next();
+					AJRelationshipType ajRel = (AJRelationshipType) kindMap
+							.get(rel.getName());
 					List targets = rel.getTargets();
 					for (Iterator iterator2 = targets.iterator(); iterator2
 							.hasNext();) {
@@ -356,40 +440,62 @@ public class AJProjectModel {
 						IJavaElement targetEl = (IJavaElement) ipeToije
 								.get(link);
 
-						if (targetEl == null) {
-							// There is no java element corresponding to the target program
-							// element in this project - it is either in a different project
-							// or in a jar, or outside the workspace. Create a placeholder
-							// element. In future we could look for the resource in the
-							// workspace, and locate the real java element for it
-							if (link.getParent() == null) {
-								// if the problem element has no parent, then we
-								// have a binary/injar aspect, otherwise we
-								// don't know what it is, so we skip it
-								String name = NLS.bind(CoreMessages.injarElementLabel, link.getName());
-								targetEl = new AJInjarElement(name, link.getExtraInfo());
-								
-								// store this elements, so that it gets saved
-								jeLinkNames.put(targetEl, name);
-								lineNumbers.put(targetEl, new Integer(0));
-							} 
-						}
+						if ((ajRel != null) && (sourceEl != null)) {
 
-						AJRelationshipType ajRel = (AJRelationshipType) kindMap
-								.get(rel.getName());
-						if (ajRel != null) {
+							if (targetEl == null) {
+								// There is no java element corresponding to the
+								// target program
+								// element in this project - it is either in a
+								// different project
+								// or in a jar, or outside the workspace. Create
+								// a placeholder
+								// element.
+								IJavaElement foundTarget = null;
+								if (BinaryWeavingSupport.isActive) {
+									// look for the resource in the workspace
+									foundTarget = BinaryWeavingSupport
+											.locateBinaryElementsInWorkspace(link);
+								}
+								if (foundTarget != null) {
+									targetEl = foundTarget;
+									System.out.println("rel: " + rel.getName());
+									int line = link.getSourceLocation()
+											.getLine();
+									addOppositeRelationship(ajRel, sourceEl,
+											targetEl, line);
+								} else {
+									// System.out.println("t: "+t);
+									if (link.getParent() == null) {
+										// if the problem element has no parent,
+										// then we have a binary/injar aspect, otherwise
+										// we don't know what it is, so we skip it
+										String name = NLS.bind(
+												CoreMessages.injarElementLabel,
+												link.getName());
+										targetEl = new AJInjarElement(name,
+												link.getExtraInfo());
+
+										// store this elements, so that it gets
+										// saved
+										jeLinkNames.put(targetEl, name);
+										lineNumbers.put(targetEl,
+												new Integer(0));
+									}
+								}
+							}
+
 							// System.out.println("Rel: " + rel.getName()
 							// + " source: " + sourceEl + " hashcode: "
 							// + sourceEl.hashCode() + ", target: "
 							// + targetEl
 							// + " hashcode: " + targetEl.hashCode());
 							if ((sourceEl != null) && (targetEl != null)) {
-								if(sourceEl instanceof AdviceElement) {
+								if (sourceEl instanceof AdviceElement) {
 									if (rel.hasRuntimeTest()) {
 										hasRuntime.add(sourceEl);
 									}
 								}
-								
+
 								Map perRelMap = rel.hasRuntimeTest() ? perRelMaps[0]
 										: perRelMaps[1];
 								Map relMap = (Map) perRelMap.get(ajRel);
@@ -412,6 +518,35 @@ public class AJProjectModel {
 		}
 	}
 
+	private void addRelationshipProvidingProject(IProject otherProject) {
+		if (!projectsToAsk.contains(otherProject)) {
+			projectsToAsk.add(otherProject);
+		}
+	}
+	
+	private void addOppositeRelationship(AJRelationshipType rel,
+			IJavaElement sourceEl, IJavaElement targetEl, int line) {
+		AJRelationshipType oppRel = AJRelationshipManager.getInverseRelationship(rel);
+		IProject otherProject = targetEl.getJavaProject().getProject();
+		AJProjectModel otherModel = AJModel.getInstance().getModelForProject(otherProject);
+		otherModel.addRelationshipProvidingProject(project);
+		
+		Map perRelMap = perRelMaps[2];
+		Map relMap = (Map) perRelMap.get(oppRel);
+		if (relMap == null) {
+			relMap = new HashMap();
+			perRelMap.put(oppRel, relMap);
+		}
+		List l = (List) relMap.get(targetEl);
+		if (l == null) {
+			l = new ArrayList();
+			relMap.put(targetEl, l);
+		}
+		l.add(sourceEl);
+		
+		lineNumbers.put(targetEl, new Integer(line));
+	}
+			
 	private void createMapForFile(final IFile file) {
 		IProject project = file.getProject();
 
@@ -754,7 +889,9 @@ public class AJProjectModel {
 	private class Persistence {
 	
 		private static final int RUNTIME_OFFSET = 100;
-	
+
+		private static final int OTHER_PROJ_OFFSET = 200;
+
 		private Map idMap;
 	
 		private int idCount;
@@ -800,6 +937,7 @@ public class AJProjectModel {
 				saveRelationships(oos);
 				saveExtraChildren(oos);
 				saveAspects(oos);
+				saveOtherProjectList(oos);
 				oos.flush();
 				fos.flush();
 				oos.close();
@@ -825,11 +963,14 @@ public class AJProjectModel {
 				ObjectInputStream ois = new ObjectInputStream(fis);
 				int version = loadVersion(ois);
 				//System.out.println("loading model version: " + version);
-				if (version == MODEL_VERSION) {
+				if ((version==105) || (version == MODEL_VERSION)) {
 					loadJavaElements(ois);
 					loadRelationships(ois);
 					loadExtraChildren(ois);
 					loadAspects(ois);
+				}
+				if (version == MODEL_VERSION) {
+					loadOtherProjectList(ois);
 				}
 				ois.close();
 				fis.close();
@@ -902,15 +1043,21 @@ public class AJProjectModel {
 			}
 		}
 	
-		private int encodeRelType(AJRelationshipType rel, boolean hasRuntimeTest) {
+		private int encodeRelType(AJRelationshipType rel, boolean hasRuntimeTest,
+				boolean isOtherProjectRel) {
 			int id = ((Integer) relIDs.get(rel)).intValue();
 			if (hasRuntimeTest) {
 				id += RUNTIME_OFFSET;
+			} else if (isOtherProjectRel) {
+				id += OTHER_PROJ_OFFSET;
 			}
 			return id;
 		}
 	
 		private AJRelationshipType decodeRelType(int id) {
+			if (id >= OTHER_PROJ_OFFSET) {
+				id -= OTHER_PROJ_OFFSET;
+			}
 			if (id >= RUNTIME_OFFSET) {
 				id -= RUNTIME_OFFSET;
 			} 
@@ -921,15 +1068,19 @@ public class AJProjectModel {
 		}
 	
 		private boolean hasRuntimeTest(int id) {
-			return (id >= RUNTIME_OFFSET);
+			return (id >= RUNTIME_OFFSET) && (id < OTHER_PROJ_OFFSET);
 		}
-	
+
+		private boolean isOtherProjectRel(int id) {
+			return (id >= OTHER_PROJ_OFFSET);
+		}
+
 		void saveRelationships(ObjectOutputStream oos) throws IOException {
 			// first count total number of relationship types
 			int numRelTypes = 0;
 			for (Iterator iter = kindMap.values().iterator(); iter.hasNext();) {
 				AJRelationshipType rel = (AJRelationshipType) iter.next();
-				for (int i = 0; i <= 1; i++) { // with and without runtime test
+				for (int i = 0; i <= 2; i++) { // with and without runtime test
 					Map relMap = (Map) perRelMaps[i].get(rel);
 					if (relMap != null) {
 						numRelTypes++;
@@ -937,16 +1088,16 @@ public class AJProjectModel {
 				}
 			}
 			// write the total number of relationship types (without runtime test 
-			// + with runtime test)
+			// + with runtime test + other project rels)
 			oos.writeInt(numRelTypes);
 	
 			for (Iterator iter = kindMap.values().iterator(); iter.hasNext();) {
 				AJRelationshipType rel = (AJRelationshipType) iter.next();
-				for (int i = 0; i <= 1; i++) { // with and without runtime test
+				for (int i = 0; i <= 2; i++) { // with and without runtime test
 					Map relMap = (Map) perRelMaps[i].get(rel);
 					if (relMap != null) {
 						// write the relationship type
-						oos.writeInt(encodeRelType(rel, (i == 0)));
+						oos.writeInt(encodeRelType(rel, (i == 0), (i==2)));
 						// write the number of rels for this relationship type
 						// (i=0 without runtime test, i=1 with runtime test)
 						oos.writeInt(relMap.size());
@@ -1001,6 +1152,9 @@ public class AJProjectModel {
 				}
 				Map perRelMap = hasRuntimeTest(relType) ? perRelMaps[0]
 						: perRelMaps[1];
+				if (isOtherProjectRel(relType)) {
+					perRelMap = perRelMaps[2];
+				}
 				Map relMap = (Map) perRelMap.get(ajRel);
 				if (relMap == null) {
 					relMap = new HashMap();
@@ -1107,6 +1261,24 @@ public class AJProjectModel {
 				aspectsForFile.add(aspect);
 			}
 		}
-				
+
+		void saveOtherProjectList(ObjectOutputStream oos) throws IOException {
+			int numProjects = projectsToAsk.size();
+			oos.writeInt(numProjects);
+			for (Iterator iter = projectsToAsk.iterator(); iter
+					.hasNext();) {
+				IProject project = (IProject) iter.next();
+				oos.writeObject(project.getName());
+			}
+		}
+		
+		void loadOtherProjectList(ObjectInputStream ois) throws IOException,
+			ClassNotFoundException {
+			int numProjects = ois.readInt();
+			for (int i = 0; i < numProjects; i++) {
+				String projName = (String)ois.readObject();
+				projectsToAsk.add(AspectJPlugin.getWorkspace().getRoot().getProject(projName));
+			}
+		}
 	}
 }

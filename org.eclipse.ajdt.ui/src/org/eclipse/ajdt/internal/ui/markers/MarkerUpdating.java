@@ -89,6 +89,18 @@ public class MarkerUpdating {
 				AJRelationshipManager.ASPECT_DECLARATIONS,
 				AJRelationshipManager.SOFTENS,
 				AJRelationshipManager.SOFTENED_BY});
+		List allOtherRels = ajModel.getModelForProject(project).getOtherProjectAllRelationships(new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY, 
+				AJRelationshipManager.ADVISES, 
+				AJRelationshipManager.ANNOTATED_BY, 
+				AJRelationshipManager.ANNOTATES, 
+				AJRelationshipManager.DECLARED_ON, 
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.SOFTENS,
+				AJRelationshipManager.SOFTENED_BY});
+		if (allOtherRels != null) {
+			allRelationships.addAll(allOtherRels);
+		}
 		Map cUsToListsOfRelationships = new HashMap();
 		for (Iterator iter = allRelationships.iterator(); iter.hasNext();) {
 			AJRelationship relationship = (AJRelationship) iter.next();
