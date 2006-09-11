@@ -39,6 +39,15 @@ import org.eclipse.jdt.core.JavaCore;
  */
 public class AJDTCoreTestCase extends TestCase {
 
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < allProjects.length; i++) {
+			IProject project = allProjects[i];
+			deleteProject(project);
+		}
+	}
+
 	/**
 	 * Returns the OS path to the directory that contains this plugin.
 	 */

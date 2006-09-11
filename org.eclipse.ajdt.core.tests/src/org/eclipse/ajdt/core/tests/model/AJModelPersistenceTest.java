@@ -28,6 +28,7 @@ import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -50,93 +51,83 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 	 */
 	public void testReloadingModel() throws Exception {
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.ADVISED_BY,
-					AJRelationshipManager.ADVISES };
-			compareAfterReloadingModel(rels, project);
-		} finally {
-			deleteProject(project);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES };
+		compareAfterReloadingModel(rels, project);
 	}
 
 	public void testReloadingModel2() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.ADVISED_BY,
-					AJRelationshipManager.ADVISES,
-					AJRelationshipManager.DECLARED_ON,
-					AJRelationshipManager.ASPECT_DECLARATIONS };
-			compareAfterReloadingModel(rels, project);
-		} finally {
-			deleteProject(project);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS };
+		compareAfterReloadingModel(rels, project);
 	}
 
 	public void testReloadingModel3() throws Exception {
 		IProject project = createPredefinedProject("MarkersTest"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.ADVISED_BY,
-					AJRelationshipManager.ADVISES,
-					AJRelationshipManager.DECLARED_ON,
-					AJRelationshipManager.ASPECT_DECLARATIONS,
-					AJRelationshipManager.MATCHED_BY,
-					AJRelationshipManager.MATCHES_DECLARE };
-			compareAfterReloadingModel(rels, project);
-		} finally {
-			deleteProject(project);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
+		compareAfterReloadingModel(rels, project);
 	}
 
 	public void testReloadingModel4() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.ADVISED_BY,
-					AJRelationshipManager.ADVISES,
-					AJRelationshipManager.DECLARED_ON,
-					AJRelationshipManager.ASPECT_DECLARATIONS,
-					AJRelationshipManager.MATCHED_BY,
-					AJRelationshipManager.MATCHES_DECLARE };
-			compareAfterReloadingModel(rels, project);
-		} finally {
-			deleteProject(project);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
+		compareAfterReloadingModel(rels, project);
 	}
 
 	public void testReloadingModel5() throws Exception {
-		IProject libProject = (IProject)getWorkspaceRoot().findMember("MyAspectLibrary"); //$NON-NLS-1$
-		if (libProject==null) {
+		IProject libProject = (IProject) getWorkspaceRoot().findMember(
+				"MyAspectLibrary"); //$NON-NLS-1$
+		if (libProject == null) {
 			libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
 		}
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
-			compareAfterReloadingModel(rels, weaveMeProject);
-		} finally {
-			deleteProject(weaveMeProject);
-			// TODO: reinstate the deletion when we can make it work reliably
-			//deleteProject(libProject);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		compareAfterReloadingModel(rels, weaveMeProject);
 	}
 
 	// Sian: added test for project with aspects in .java files
 	public void testReloadingModel6() throws Exception {
 		IProject project = createPredefinedProject("MarkersTestWithAspectsInJavaFiles"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.ADVISED_BY,
-					AJRelationshipManager.ADVISES,
-					AJRelationshipManager.DECLARED_ON,
-					AJRelationshipManager.ASPECT_DECLARATIONS,
-					AJRelationshipManager.MATCHED_BY,
-					AJRelationshipManager.MATCHES_DECLARE };
-			compareAfterReloadingModel(rels, project);
-		} finally {
-			deleteProject(project);
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
+		compareAfterReloadingModel(rels, project);
+	}
+
+	public void testReloadingModelBinaryWeaving() throws Exception {
+		if (!BinaryWeavingSupport.isActive) {
+			return;
 		}
+		IProject libProject = createPredefinedProject("MyAspectLibrary2"); //$NON-NLS-1$
+		IProject weaveMeProject = createPredefinedProject("WeaveMe2"); //$NON-NLS-1$
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.ADVISED_BY,
+				AJRelationshipManager.ADVISES,
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS,
+				AJRelationshipManager.MATCHED_BY,
+				AJRelationshipManager.MATCHES_DECLARE };
+		compareAfterReloadingModel(rels, libProject, weaveMeProject);
 	}
 
 	public void testLoadingModelFromFile() throws Exception {
@@ -179,7 +170,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			project2 = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 			model = new AJProjectModel(project2);
 			boolean success = model.loadModel(ajmap);
-			assertTrue("Failed to load model from file: "+ajmap,success);
+			assertTrue("Failed to load model from file: " + ajmap, success); //$NON-NLS-1$
 			allRels = model.getAllRelationships(rels);
 			assertNotNull(
 					"Loaded model should have non-null relationship list", //$NON-NLS-1$
@@ -187,37 +178,24 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			assertTrue("Loaded model should have non-empty relationship list", //$NON-NLS-1$
 					allRels.size() > 0);
 		} finally {
-			if (project != null) {
-				deleteProject(project);
-			}
-			if (project2 != null) {
-				deleteProject(project2);
-			}
 			if (ajmap != null) {
 				ajmap.toFile().delete();
 			}
 		}
 	}
-	
+
 	public void testModelFileDeletion() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		try{
-			AJModel.getInstance().saveModel(project);
-			File modelFile = new File(getFileName(project));
-			assertTrue("File has not been saved", modelFile.exists()); //$NON-NLS-1$
+		AJModel.getInstance().saveModel(project);
+		File modelFile = new File(getFileName(project));
+		assertTrue("File has not been saved", modelFile.exists()); //$NON-NLS-1$
 
-			AJModel.getInstance().getModelForProject(project).deleteModelFile();
-						
-			// Check that the file has been deleted
-			assertFalse("File has not been deleted", modelFile.exists()); //$NON-NLS-1$
-			
-		} finally {
-			if (project != null) {
-				deleteProject(project);
-			}			
-		}
+		AJModel.getInstance().getModelForProject(project).deleteModelFile();
+
+		// Check that the file has been deleted
+		assertFalse("File has not been deleted", modelFile.exists()); //$NON-NLS-1$
 	}
-	
+
 	// can be used to read the contents of an element map file
 	public static void main(String[] args) {
 		new AJModelPersistenceTest().readModelFile(new File(args[0]));
@@ -244,42 +222,42 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 				}
 
 				int numRelTypes = ois.readInt();
-				
+
 				System.out.println("===="); //$NON-NLS-1$
 				System.out.println("num rel types=" + numRelTypes); //$NON-NLS-1$
 
 				for (int i = 0; i < numRelTypes; i++) {
 					int relType = ois.readInt();
 					int numRels = ois.readInt();
-					System.out.println(numRels+" rels of type: "+relType); //$NON-NLS-1$
+					System.out.println(numRels + " rels of type: " + relType); //$NON-NLS-1$
 					for (int j = 0; j < numRels; j++) {
 						int sourceID = ois.readInt();
-						System.out.print("source: "+sourceID+" targets: "); //$NON-NLS-1$ //$NON-NLS-2$
+						System.out.print("source: " + sourceID + " targets: "); //$NON-NLS-1$ //$NON-NLS-2$
 						int numTargets = ois.readInt();
 						for (int k = 0; k < numTargets; k++) {
 							int targetID = ois.readInt();
-							System.out.print(targetID+" "); //$NON-NLS-1$
+							System.out.print(targetID + " "); //$NON-NLS-1$
 						}
 						System.out.println();
 					}
 				}
 
 				System.out.println("===="); //$NON-NLS-1$
-				
+
 				int numParents = ois.readInt();
 				System.out.println("num parents: " + numParents); //$NON-NLS-1$
 				for (int i = 0; i < numParents; i++) {
-					String parentHandle = (String)ois.readObject();
+					String parentHandle = (String) ois.readObject();
 					System.out.println("parent: " + parentHandle); //$NON-NLS-1$
 					int numChildren = ois.readInt();
 					System.out.print("extra children: "); //$NON-NLS-1$
 					for (int j = 0; j < numChildren; j++) {
 						int childID = ois.readInt();
-						System.out.print(childID+" "); //$NON-NLS-1$
+						System.out.print(childID + " "); //$NON-NLS-1$
 					}
 					System.out.println();
 				}
-				
+
 				System.out.println("===="); //$NON-NLS-1$
 				System.out.println("end of model"); //$NON-NLS-1$
 			} else {
@@ -298,7 +276,21 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 
 	private void compareAfterReloadingModel(AJRelationshipType[] rels,
 			IProject project) throws IOException {
-		List allRels = AJModel.getInstance().getAllRelationships(project, rels);
+		compareAfterReloadingModel(rels, project, null);
+	}
+
+	/*
+	 * Check that persistence restores relationships in the given project - if
+	 * project2 is non-null, the relationships from both projects are combined.
+	 */
+	private void compareAfterReloadingModel(AJRelationshipType[] rels,
+			IProject project1, IProject project2) throws IOException {
+		List allRels = AJModel.getInstance()
+				.getAllRelationships(project1, rels);
+		if (project2 != null) {
+			allRels.addAll(AJModel.getInstance().getAllRelationships(project2,
+					rels));
+		}
 
 		List sourceList = new ArrayList(allRels.size());
 		List targetList = new ArrayList(allRels.size());
@@ -312,41 +304,72 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			targetList.add(target.getHandleIdentifier().intern());
 			relationList.add(rel.getRelationship().getInternalName().intern());
 		}
-		AJModel.getInstance().saveModel(project);
-		File modelFile = new File(getFileName(project));
+		AJModel.getInstance().saveModel(project1);
+		File modelFile = new File(getFileName(project1));
 		assertTrue(
 				"Serialized project model file does not exist: " + modelFile, //$NON-NLS-1$
 				modelFile.exists());
 		assertTrue("Serialized project model file should not be empty: " //$NON-NLS-1$
 				+ modelFile, modelFile.length() > 0);
+		File modelFile2 = null;
+		if (project2 != null) {
+			AJModel.getInstance().saveModel(project2);
+			modelFile2 = new File(getFileName(project2));
+			assertTrue(
+					"Serialized project model file does not exist: " + modelFile2, //$NON-NLS-1$
+					modelFile2.exists());
+			assertTrue("Serialized project model file should not be empty: " //$NON-NLS-1$
+					+ modelFile2, modelFile2.length() > 0);
 
+		}
 
 		// we have to move the saved file out of the way, to make sure the
 		// model really is empty, otherwise the getAllRelationships call
 		// would cause the model to be loaded
 		File tmpFile = new File(modelFile.getPath() + ".tmp"); //$NON-NLS-1$
 		copy(modelFile, tmpFile);
-
-		AJModel.getInstance().clearMap(project, true);
-		
+		AJModel.getInstance().clearMap(project1, true);
 		assertTrue("Failed to create temporary model file", tmpFile.exists()); //$NON-NLS-1$
 		assertTrue("Failed to delete model file", !modelFile.exists()); //$NON-NLS-1$
+		File tmpFile2 = null;
+		if (project2 != null) {
+			tmpFile2 = new File(modelFile2.getPath() + ".tmp"); //$NON-NLS-1$
+			copy(modelFile2, tmpFile2);
+			AJModel.getInstance().clearMap(project2, true);
+			assertTrue(
+					"Failed to create temporary model file", tmpFile2.exists()); //$NON-NLS-1$
+			assertTrue("Failed to delete model file", !modelFile2.exists()); //$NON-NLS-1$	
+		}
 
-		allRels = AJModel.getInstance().getAllRelationships(project, rels);
+		allRels = AJModel.getInstance().getAllRelationships(project1, rels);
+		if (project2 != null) {
+			allRels.addAll(AJModel.getInstance().getAllRelationships(project2,
+					rels));
+		}
 		assertTrue("Model should be empty after saving and clearing", //$NON-NLS-1$
 				(allRels == null) || (allRels.size() == 0));
 
-		AJModel.getInstance().clearMap(project, true);
-
+		AJModel.getInstance().clearMap(project1, true);
 		// copy back to model file
 		copy(tmpFile, modelFile);
 		tmpFile.delete();
-
 		assertTrue("Failed to restore model file", modelFile.exists()); //$NON-NLS-1$
+		if (project2 != null) {
+			AJModel.getInstance().clearMap(project2, true);
+			// copy back to model file
+			copy(tmpFile2, modelFile2);
+			tmpFile2.delete();
+			assertTrue("Failed to restore model file", modelFile2.exists()); //$NON-NLS-1$			
+		}
 
 		// now we ask for relationships again, but this time the persisted model
 		// should be detected and loaded
-		allRels = AJModel.getInstance().getAllRelationships(project, rels);
+		allRels = AJModel.getInstance().getAllRelationships(project1, rels);
+		if (project2 != null) {
+			allRels.addAll(AJModel.getInstance().getAllRelationships(project2,
+					rels));
+		}
+
 		assertTrue(
 				"Model should NOT be empty - persisted model should have been loaded", //$NON-NLS-1$
 				allRels.size() > 0);
@@ -384,7 +407,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		for (int i = 0; i < sourceList.size(); i++) {
 			Object obj = sourceList.get(i);
 			if (obj != null) {
-				missed += (String) obj + " "; //$NON-NLS-1$
+				missed += (String) obj + "\n"; //$NON-NLS-1$
 			}
 		}
 		assertTrue("Missing elements in reloaded model: " + missed, missed //$NON-NLS-1$

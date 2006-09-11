@@ -17,23 +17,20 @@ import org.eclipse.core.resources.IProject;
 
 /**
  * AJCoreTests that are require a 5.0 compliance setting
- *
+ * 
  */
 public class AJCoreTestJava5 extends AJDTCoreTestCase {
 	/**
 	 * Test use of generic types in a 5.0 project
+	 * 
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtripBug108552() throws Exception {
 		// the project has a .settings file to set source level to 5.0
 		IProject project = createPredefinedProject("bug108552"); //$NON-NLS-1$
-		try {
-			AJRelationshipType[] rels = new AJRelationshipType[] {
-					AJRelationshipManager.DECLARED_ON,
-					AJRelationshipManager.ASPECT_DECLARATIONS };
-			AJCoreTest.compareElementsFromRelationships(rels, project);
-		} finally {
-			deleteProject(project);
-		}
+		AJRelationshipType[] rels = new AJRelationshipType[] {
+				AJRelationshipManager.DECLARED_ON,
+				AJRelationshipManager.ASPECT_DECLARATIONS };
+		AJCoreTest.compareElementsFromRelationships(rels, project);
 	}
 }

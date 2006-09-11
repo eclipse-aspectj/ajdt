@@ -55,14 +55,6 @@ public class AJCodeElementTest extends AJDTCoreTestCase {
 		
 	}
 
-	/*
-	 * @see TestCase#tearDown()
-	 */
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		deleteProject(project);
-	}
-
 	public void testHashCode() {
 		// through the normal running of a program, the hashcode must always return the same answer
 		int hash1 = ajCodeElements[0].hashCode();

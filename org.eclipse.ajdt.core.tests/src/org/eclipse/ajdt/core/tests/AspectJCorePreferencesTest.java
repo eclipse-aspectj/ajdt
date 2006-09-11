@@ -29,14 +29,6 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
         project = createPredefinedProject("CorePreferencesTestProject"); //$NON-NLS-1$
     }
 
-    /*
-     * @see TestCase#tearDown()
-     */
-    protected void tearDown() throws Exception {
-        super.tearDown();
-        deleteProject(project);
-    }
-
     public void testGetProjectOutJar() {
     	String outjar = AspectJCorePreferences.getProjectOutJar(project);
     	assertEquals("outjar should be set","outjar.jar",outjar); //$NON-NLS-1$ //$NON-NLS-2$

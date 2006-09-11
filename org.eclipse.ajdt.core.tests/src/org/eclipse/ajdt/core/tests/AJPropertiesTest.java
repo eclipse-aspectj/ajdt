@@ -30,20 +30,16 @@ public class AJPropertiesTest extends AJDTCoreTestCase {
 	 */
 	public void testGetAJPropertiesFiles() throws Exception {
 		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
-		try {
-			List props = AJProperties.getAJPropertiesFiles(project);
-			assertEquals("Project should contain two .ajproperties files", 2, //$NON-NLS-1$
-					props.size());
-			String name1 = ((IFile)props.get(0)).getName();
-			String name2 = ((IFile)props.get(1)).getName();
-			if (!(name1.equals("demo.ajproperties") || name2.equals("demo.ajproperties"))) {  //$NON-NLS-1$//$NON-NLS-2$
-				fail("getAJPropertiesFiles didn't return demo.ajproperties"); //$NON-NLS-1$
-			}
-			if (!(name1.equals("debug.ajproperties") || name2.equals("debug.ajproperties"))) { //$NON-NLS-1$ //$NON-NLS-2$
-				fail("getAJPropertiesFiles didn't return debug.ajproperties"); //$NON-NLS-1$
-			}
-		} finally {
-			deleteProject(project);
+		List props = AJProperties.getAJPropertiesFiles(project);
+		assertEquals("Project should contain two .ajproperties files", 2, //$NON-NLS-1$
+				props.size());
+		String name1 = ((IFile) props.get(0)).getName();
+		String name2 = ((IFile) props.get(1)).getName();
+		if (!(name1.equals("demo.ajproperties") || name2.equals("demo.ajproperties"))) { //$NON-NLS-1$//$NON-NLS-2$
+			fail("getAJPropertiesFiles didn't return demo.ajproperties"); //$NON-NLS-1$
+		}
+		if (!(name1.equals("debug.ajproperties") || name2.equals("debug.ajproperties"))) { //$NON-NLS-1$ //$NON-NLS-2$
+			fail("getAJPropertiesFiles didn't return debug.ajproperties"); //$NON-NLS-1$
 		}
 	}
 
