@@ -70,8 +70,6 @@ public class Bug99133Test extends AJDTCoreTestCase {
 		AspectJPlugin.getDefault().setAJLogger(null);
 		testLog = null;
 		numberOfBuilds = 0;
-		deleteProject(pA);
-		deleteProject(pB);
 	}
 	
 	/**

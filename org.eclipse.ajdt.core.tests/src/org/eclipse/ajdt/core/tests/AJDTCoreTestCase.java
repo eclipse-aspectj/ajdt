@@ -39,6 +39,20 @@ import org.eclipse.jdt.core.JavaCore;
  */
 public class AJDTCoreTestCase extends TestCase {
 
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < allProjects.length; i++) {
+			IProject project = allProjects[i];
+			deleteProject(project,false);
+		}
+		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		for (int i = 0; i < allProjects.length; i++) {
+			IProject project = allProjects[i];
+			deleteProject(project,true);
+		}
+	}
+
 	/**
 	 * Returns the OS path to the directory that contains this plugin.
 	 */
@@ -194,24 +208,24 @@ public class AJDTCoreTestCase extends TestCase {
 		return getWorkspaceRoot().getProject(project);
 	}
 
-	protected void deleteProject(IProject project) throws CoreException {
+	protected void deleteProject(IProject project, boolean force) throws CoreException {
 		if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
 			project.open(null);
 		}
-		deleteResource(project);
+		deleteResource(project,force);
 	}
 	
 	protected void deleteProject(String projectName) throws CoreException {
-		deleteProject(this.getProject(projectName));
+		deleteProject(this.getProject(projectName),true);
 	}
 	
 	/**
 	 * Delete this resource.
 	 */
-	public void deleteResource(IResource resource) throws CoreException {
+	public void deleteResource(IResource resource, boolean force) throws CoreException {
 		CoreException lastException = null;
 		try {
-			resource.delete(true, null);
+			resource.delete(false, null);
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
@@ -219,6 +233,9 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (IllegalArgumentException iae) {
 			// just print for info
 			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		if (!force) {
+			return;
 		}
 		int retryCount = 60; // wait 1 minute at most
 		while (resource.isAccessible() && --retryCount >= 0) {
