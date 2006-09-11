@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -38,6 +39,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
@@ -130,19 +132,31 @@ public abstract class UITestCase extends TestCase {
 		return project;
 	}
 
-	protected void deleteProject(IProject project) {
+	protected void deleteProject(final IProject project) {
 		// make sure nothing is still using the project
 		waitForJobsToComplete();
-		String projectName = project.getName();
+		final String projectName = project.getName();
+            	
+		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
+			protected void execute(IProgressMonitor monitor)
+					throws CoreException {
+				try {
+					// perform the delete
+					project.delete(true, false, null);
+					project.delete(true, true, null);
+				} catch (CoreException e) {
+					System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
+					e.printStackTrace();
+					fail("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
+				}
+			}
+		};
 		try {
-			// perform the delete
-			project.delete(true, true, null);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
-			e.printStackTrace();
+			op.run(null);
+		} catch (InvocationTargetException ex) {
+		} catch (InterruptedException e) {
 		}
-		
+
 		// make sure delete has finished
 		waitForJobsToComplete();
 	}
