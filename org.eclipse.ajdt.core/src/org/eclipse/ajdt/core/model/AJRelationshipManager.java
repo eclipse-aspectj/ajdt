@@ -85,7 +85,7 @@ public class AJRelationshipManager {
 		return allRelationshipTypes;
 	}
 	
-	public static AJRelationshipType getOppositeRelationship(AJRelationshipType type) {
+	public static AJRelationshipType getInverseRelationship(AJRelationshipType type) {
 		if (type == ADVISES) {
 			return ADVISED_BY;
 		}
