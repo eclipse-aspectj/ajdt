@@ -10,7 +10,9 @@
  *     Sian January  - initial version
  *******************************************************************************/
 
-package org.eclipse.ajdt.ui.tests;
+package org.eclipse.ajdt.ui.tests.testutils;
+
+import org.eclipse.ajdt.ui.tests.UITestCase;
 
 import junit.framework.TestCase;
 
@@ -19,6 +21,6 @@ public aspect Enforcement {
 	declare error: execution(* TestCase+.*(..)) && !execution(* UITestCase+.*(..)):
 		"All test classes should extend UITestCase"; //$NON-NLS-1$
 	
-	declare warning: call(* UITestCase.deleteProject(..)) && !within(UITestCase):
+	declare error: call(* UITestCase.deleteProject(..)) && !within(UITestCase):
 		"Projects are automatically deleted for you at the end of each test."; //$NON-NLS-1$
 }

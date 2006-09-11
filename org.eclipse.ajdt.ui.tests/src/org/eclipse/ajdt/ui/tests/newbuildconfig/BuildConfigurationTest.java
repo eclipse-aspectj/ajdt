@@ -29,13 +29,8 @@ public class BuildConfigurationTest extends UITestCase {
 
 	IProject project;
 	
-	protected void setUp() throws Exception {
-		super.setUp();		
-		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
-		waitForJobsToComplete();	
-	}
-	
 	public void testApplyAndSaveNoTrace() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("notrace.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
@@ -53,6 +48,7 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 
 	public void testApplyAndSaveTraceLib() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("tracelib.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
@@ -72,7 +68,8 @@ public class BuildConfigurationTest extends UITestCase {
 		compareFiles(propertiesFile, newPropertiesFile);
 	}
 
-	public void testApplyTraceV1() {
+	public void testApplyTraceV1() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("tracev1.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
@@ -85,7 +82,8 @@ public class BuildConfigurationTest extends UITestCase {
 		checkFileIncluded("src/tracing/version1/Trace.java"); //$NON-NLS-1$
 	}
 	
-	public void testApplyTraceV2() {
+	public void testApplyTraceV2() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("tracev2.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
@@ -98,7 +96,8 @@ public class BuildConfigurationTest extends UITestCase {
 		checkFileIncluded("src/tracing/version2/Trace.aj"); //$NON-NLS-1$
 	}
 	
-	public void testApplyTraceV3() {
+	public void testApplyTraceV3() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("tracev3.ajproperties"); //$NON-NLS-1$
 		assertNotNull(propertiesFile);
@@ -113,6 +112,7 @@ public class BuildConfigurationTest extends UITestCase {
 	}
 	
 	public void testExcludeAll() throws Exception {
+		project = createPredefinedProject("Tracing Example"); //$NON-NLS-1$		
 		checkIncluded(12);
 		IFile propertiesFile = project.getFile("none.ajproperties"); //$NON-NLS-1$
 		propertiesFile.create(new ReaderInputStream(new StringReader("src.excludes = src/")), true, null); //$NON-NLS-1$
