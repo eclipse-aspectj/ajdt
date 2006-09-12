@@ -689,5 +689,6 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
 		}
 	}   
 
-
+	public void setFocus() {
+	}
 }

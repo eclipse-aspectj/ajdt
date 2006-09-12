@@ -666,4 +666,6 @@ public class AspectPathLibrariesWorkbookPage extends
 		}		
 	}   
 
+	public void setFocus() {
+	}
 }

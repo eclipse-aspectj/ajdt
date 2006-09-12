@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
+import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -41,7 +42,6 @@ import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jdt.internal.debug.ui.BreakpointUtils;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
 import org.eclipse.jdt.internal.debug.ui.actions.ActionDelegateHelper;
-import org.eclipse.jdt.internal.debug.ui.actions.ActionMessages;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -152,7 +152,7 @@ public class ToggleBreakpointAdapter implements IToggleBreakpointsTargetExtensio
                                     if (offset < start || offset > end) {
                                         // not in the inner type
                                         IStatusLineManager statusLine = editorPart.getEditorSite().getActionBars().getStatusLineManager();
-                                        statusLine.setErrorMessage(MessageFormat.format(ActionMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() })); //$NON-NLS-1$
+                                        statusLine.setErrorMessage(MessageFormat.format(UIMessages.ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1, new String[] { type.getTypeQualifiedName() })); //$NON-NLS-1$
                                         Display.getCurrent().beep();
                                         return Status.OK_STATUS;
                                     }
