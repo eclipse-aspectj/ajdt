@@ -38,7 +38,10 @@ public class UIMessages extends NLS {
 	public static String ajErrorDialogTitle;	
 	public static String ajErrorText;
 	public static String ajdtErrorDialogTitle;
-	public static String jmCoreException;	
+	public static String jmCoreException;
+	public static String buildpathwarning_title;
+	public static String addtoinpathwarning;
+	public static String addtoaspectpathwarning;
 	public static String newConfig;	
 	public static String BuildConfig_createLstFile;
 	public static String BuildConfig_createLstDesc;	
@@ -323,15 +326,6 @@ public class UIMessages extends NLS {
 	public static String PointcutNavigatorView_pin_structure_model;
 	public static String PointcutNavigatorView_pin_structure_model_tooltip;
 	public static String AJCompilerPreferencePage_aspectj_compiler;
-	public static String AspectJPreferencePage_support_information;
-	public static String AspectJPreferencePage_refer_to_forum;
-	public static String AspectJPreferencePage_on_the_website;
-	public static String AspectJPreferencePage_licensing;
-	public static String AspectJPreferencePage_copyright;
-	public static String AspectJPreferencePage_copyright2;
-	public static String AspectJPreferencePage_copyright3;
-	public static String AspectJPreferencePage_copyright4;
-	public static String AspectJPreferencePage_copyright5;
 	public static String AJXReferenceProvider_description;
 	public static String AJDTUtils_project_cannot_be_rebuilt;
 	public static String AJDTUtils_cleaning_recommended;
