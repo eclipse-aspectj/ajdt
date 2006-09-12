@@ -68,35 +68,38 @@ public abstract class AJBuildPathAction {
 		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
 
 		String inpath = jarFile.getFullPath().toPortableString();
-		String outJar = AspectJCorePreferences.getProjectOutJar(project);
-		
-		//Also check if trying to add outJar
 
 		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
-			if ((seperatedOldAspectpath[j].equals(inpath)) ||
-					!(seperatedOldAspectpath[j].indexOf(outJar) != -1)) {
+			if ((seperatedOldAspectpath[j].equals(inpath))) {
 				return true;
 			}
 		}
 		return false;
 	}
+	
+	protected boolean checkIfAddingOutjar(IProject project) {
+
+		String inpath = jarFile.getFullPath().toPortableString();
+		String outJar = AspectJCorePreferences.getProjectOutJar(project);
+			if (outJar.length()>0 && (inpath.indexOf(outJar) != -1)) {
+				return true;
+			}
+		
+		return false;
+	}
+	
 
 	protected boolean checkIfOnInpath(IProject project) {
 		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
 		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
 
 		String inpath = jarFile.getFullPath().toPortableString();
-		String outJar = AspectJCorePreferences.getProjectOutJar(project);
-		
-		//Also check if trying to add outJar
 
 		for (int j = 0; j < seperatedOldInpath.length; j++) {
-			if ((seperatedOldInpath[j].equals(inpath))||
-					!(seperatedOldInpath[j].indexOf(outJar) != -1)) {
+			if ((seperatedOldInpath[j].equals(inpath))) {
 				return true;
 			}
 		}
 		return false;
 	}
-
 }

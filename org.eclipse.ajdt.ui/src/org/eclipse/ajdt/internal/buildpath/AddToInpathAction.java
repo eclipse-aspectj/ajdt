@@ -79,12 +79,14 @@ public class AddToInpathAction extends AJBuildPathAction implements IObjectActio
 				jarFile = getJARFile(selection);
 				if (jarFile != null) {
 					IProject project = jarFile.getProject();
-					enable = !checkIfOnInpath(project);
+					enable = (!checkIfOnInpath(project)&&
+					!checkIfAddingOutjar(project));
+
 				}
 			} catch (JavaModelException e) {
 			}
+			action.setEnabled(enable);					
 		}
-		action.setEnabled(enable);					
 	}
 
 }

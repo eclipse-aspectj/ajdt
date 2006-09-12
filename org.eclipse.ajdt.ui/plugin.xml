@@ -1861,6 +1861,9 @@ M4 = Platform-specific fourth key
             <separator
                name="group1">
             </separator>
+            <separator
+            	name="group2">
+            </separator>
          </menu> 
     	 <action
 		     label="%RemoveFromInpath"
@@ -1886,6 +1889,12 @@ M4 = Platform-specific fourth key
     		 class="org.eclipse.ajdt.internal.buildpath.AddToAspectpathAction"
     		 id="org.eclipse.ajdt.addtoaspectpath">
     	 </action>
+    	 <action
+    	 	label="%ConfigureBuildPath"   
+    	 	menubarPath="org.eclipse.ajdt.ui.feature.tools/group2"
+    		class="org.eclipse.ajdt.internal.buildpath.ConfigureAJBuildPathAction"
+    		id="configbuildpath">
+    	 </action> 
       </objectContribution>
       </extension>
     <!--	ADD TO INPATH/ASPECT PATH (ZIP)-->
