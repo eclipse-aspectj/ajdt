@@ -350,7 +350,15 @@ public class InPathBlock {
               for (int i= 0; i < selected.length; i++) {
                   IPath curr= selected[i];
                   IResource resource= fWorkspaceRoot.findMember(curr);
-                  if (resource instanceof IFile) {
+                  
+                  String outJar = AspectJCorePreferences.getProjectOutJar(fCurrJProject.getProject());
+                  StringBuffer projectOutJar = new StringBuffer();
+				  projectOutJar.append(fCurrJProject.getPath().toString());
+				  projectOutJar.append("/"+outJar);
+				  
+				  if (resource.getFullPath().toString().equals(projectOutJar.toString())){
+				    	MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, UIMessages.addtoinpathwarning);
+				    } else if (resource instanceof IFile) {
                       res.add(newCPLibraryElement(resource));
                   }
               }

@@ -354,7 +354,15 @@ public class AspectPathBlock {
 				for (int i = 0; i < selected.length; i++) {
 					IPath curr = selected[i];
 					IResource resource = fWorkspaceRoot.findMember(curr);
-					if (resource instanceof IFile) {
+					
+					String outJar = AspectJCorePreferences.getProjectOutJar(fCurrJProject.getProject());
+					StringBuffer projectOutJar = new StringBuffer();
+					projectOutJar.append(fCurrJProject.getPath().toString());
+					projectOutJar.append("/"+outJar); //$NON-NLS-1$
+					
+				    if (resource.getFullPath().toString().equals(projectOutJar.toString())){
+				    	MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, UIMessages.addtoaspectpathwarning);
+				    } else if (resource instanceof IFile) {
 						res.add(newCPLibraryElement(resource));
 					}
 				}

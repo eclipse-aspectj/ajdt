@@ -68,9 +68,13 @@ public abstract class AJBuildPathAction {
 		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
 
 		String inpath = jarFile.getFullPath().toPortableString();
+		String outJar = AspectJCorePreferences.getProjectOutJar(project);
+		
+		//Also check if trying to add outJar
 
 		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
-			if ((seperatedOldAspectpath[j].equals(inpath))) {
+			if ((seperatedOldAspectpath[j].equals(inpath)) ||
+					!(seperatedOldAspectpath[j].indexOf(outJar) != -1)) {
 				return true;
 			}
 		}
@@ -82,9 +86,13 @@ public abstract class AJBuildPathAction {
 		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
 
 		String inpath = jarFile.getFullPath().toPortableString();
+		String outJar = AspectJCorePreferences.getProjectOutJar(project);
+		
+		//Also check if trying to add outJar
 
 		for (int j = 0; j < seperatedOldInpath.length; j++) {
-			if ((seperatedOldInpath[j].equals(inpath))) {
+			if ((seperatedOldInpath[j].equals(inpath))||
+					!(seperatedOldInpath[j].indexOf(outJar) != -1)) {
 				return true;
 			}
 		}
