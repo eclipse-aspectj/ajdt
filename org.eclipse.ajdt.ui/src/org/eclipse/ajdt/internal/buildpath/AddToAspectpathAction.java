@@ -81,7 +81,8 @@ public class AddToAspectpathAction extends AJBuildPathAction implements IObjectA
 				jarFile = getJARFile(selection);
 				if (jarFile != null) {
 					IProject project = jarFile.getProject();
-					enable = !checkIfOnAspectpath(project);
+					enable = (!checkIfOnAspectpath(project)&&
+							!checkIfAddingOutjar(project));
 				}
 			} catch (JavaModelException e) {
 			}
