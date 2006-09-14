@@ -1057,7 +1057,15 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		comboBox.setData(data); 
 		comboBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
-		String currValue = getPreferenceStore().getString(key);
+		String currValue;
+		
+		if (hasProjectSpecificOptions(getProject())) {
+			currValue = (AspectJPreferences
+					.getStringPrefValue(getProject(), key));
+		} else {
+			currValue = getPreferenceStore().getString(key);
+		}
+	
 		if ((currValue != null) && (currValue.length() > 0)) {
 			comboBox.select(data.getSelection(currValue));
 		}
