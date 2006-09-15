@@ -308,9 +308,9 @@ public class CompilerMonitor implements IAJCompilerMonitor {
      * circumstances get multiple calls to finish. This method is marked
      * synchronized to let one finish finish before another finish gets in!
      */
-    public synchronized void finish() {
+    public synchronized void finish(boolean wasFullBuild) {
         if (AspectJUIPlugin.DEBUG_COMPILER)
-            System.err.println("AJDE Callback: finish()"); //$NON-NLS-1$
+            System.err.println("AJDE Callback: finish(). Was full build: "+wasFullBuild); //$NON-NLS-1$
         // AMC - moved this next monitor var set outside of thread -
         // this status change must be instantly visible
         compilationInProgress = false;
