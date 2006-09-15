@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.aspectj.asm.AsmManager;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -57,24 +58,29 @@ public class AJModelTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("MarkersTest");
 		String filename = "src/tjp/GetInfo.aj";
 		String[][] results = {
-				{ "declare warning: \"field set\"", "declare warning: \"field set\"" },
-				{ "declare parents: implements Serializable", "declare parents" },
-			    { "declare soft: tjp.DemoException", "declare soft" },
-				{ "Demo.itd(int)", "Demo.itd" },
-				{ "Demo.f", "Demo.f" },
-				{ "before(): <anonymous pointcut>", "before" },
-				{ "goCut()", "goCut" },
-				{ "fieldSet()", "fieldSet" },
-				{ "demoExecs()", "demoExecs" },
-				{ "before(): demoExecs..", "before" },
-				{ "before(): <anonymous pointcut>..", "before" },
-				{ "after(): fieldSet..", "after" },
-				{ "around(): demoExecs()..", "around" },
-				{ "after(): <anonymous pointcut>", "after" },
-				{ "printParameters(JoinPoint)", "printParameters" }
+				{ "declare warning: \"field set\"", "declare warning: \"field set\"" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "declare parents: implements Serializable", "declare parents" }, //$NON-NLS-1$ //$NON-NLS-2$
+			    { "declare soft: tjp.DemoException", "declare soft" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "Demo.itd(int)", "Demo.itd" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "Demo.f", "Demo.f" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "before(): <anonymous pointcut>", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "before(): demoExecs..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "before(): <anonymous pointcut>..", "before" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "after(): fieldSet..", "after" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "around(): demoExecs()..", "around" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "after(): <anonymous pointcut>", "after" }, //$NON-NLS-1$ //$NON-NLS-2$
+				{ "printParameters(JoinPoint)", "printParameters" } //$NON-NLS-1$ //$NON-NLS-2$
 		};
 		mappingTestForFile(project, filename, results);
-		
+		// see pr148027
+		if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
+			String[][] pcdResults = {
+					{ "goCut()", "goCut" }, //$NON-NLS-1$ //$NON-NLS-2$
+					{ "fieldSet()", "fieldSet" }, //$NON-NLS-1$ //$NON-NLS-2$
+					{ "demoExecs()", "demoExecs" }, //$NON-NLS-1$ //$NON-NLS-2$	
+			};
+			mappingTestForFile(project, filename, pcdResults);
+		}
 		deleteProject(project);
 	}
 	
