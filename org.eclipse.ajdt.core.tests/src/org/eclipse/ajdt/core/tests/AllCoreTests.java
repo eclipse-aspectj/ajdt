@@ -17,6 +17,7 @@ import junit.framework.TestSuite;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
 import org.eclipse.ajdt.core.tests.dom.rewrite.ASTRewritingPointcutDeclTest;
 import org.eclipse.ajdt.core.tests.javaelements.AspectElementTests;
@@ -28,6 +29,7 @@ import org.eclipse.ajdt.core.tests.model.AJModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJModelTest3;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest;
 import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
+import org.eclipse.ajdt.core.tests.model.ModelComparisonTest;
 
 /**
  * 
@@ -41,6 +43,7 @@ public class AllCoreTests {
 
 		suite.addTest(new TestSuite(CodeCheckerTest.class));
 		
+		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AspectJCorePreferencesTest.class));
 	
 		// model tests
@@ -52,6 +55,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJModelPersistenceTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest.class));
 		suite.addTest(new TestSuite(AJProjectModelTest2.class));
+		suite.addTest(new TestSuite(ModelComparisonTest.class));
 
 		// Java Elemenet tests
 		suite.addTest(new TestSuite(AspectElementTests.class));
