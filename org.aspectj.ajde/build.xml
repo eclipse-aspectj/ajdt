@@ -96,10 +96,7 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajde.jar since they're contained in aspectjrt.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<!-- bug 118235: currently the commented out classes appear in both ajde.jar and aspectjrt.jar
-				uncomment this if decide it should only live in aspectjrt.jar
-				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
-				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
+				<include name="org/aspectj/internal/**" />
 				<include name="org/aspectj/runtime/**" />
 				<include name="org/aspectj/lang/**" />
 			</fileset>
@@ -140,12 +137,17 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjrtsrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<!-- bug 118235: currently the commented out classes appear in both ajde.jar and aspectjrt.jar
-				uncomment this if decide it should only live in aspectjrt.jar
-				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
-				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
+				<include name="org/aspectj/internal/**" />
 				<include name="org/aspectj/runtime/**" />
 				<include name="org/aspectj/lang/**" />
+			</fileset>
+		</delete>
+
+		<!-- delete everything which shouldn't be anywhere at all -->
+		<echo message="Removing other files not required in ajdesrc.zip"/>
+		<delete includeemptydirs="true">
+			<fileset dir="${ajde.build.dir}">
+				<include name="org/aspectj/lib/**" />
 			</fileset>
 		</delete>
 		
@@ -244,6 +246,38 @@ Creates a packaged plug-in jar for AJDE
 		aspectjrt.jar and aspectjtools.jar from the AJ lib directory into 
 		the org.aspectj.ajde directory, and then run 'ant ajde.jar' to create an ajde.jar 
 		update from them. Also need to copy aspectjrt.jar to org.aspectj.runtime plugin.">
+	</target>
+
+	<target name="build.jars" depends="packaged-plugin">
+	</target>
+
+	<target name="gather.bin.parts">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}"/>
+		<copy todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="true" overwrite="false">
+			<fileset dir="${build.dir}" includes="**" />
+		</copy>
+	</target>
+
+	<target name="gather.logs">
+	</target>
+	
+	<target name="build.sources">
+	</target>
+
+	<target name="gather.sources" depends="init" if="destination.temp.folder">
+		<mkdir dir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}"/>
+		<copy file="ajdesrc.zip" todir="${destination.temp.folder}/org.aspectj.ajde_${ajde.version}" failonerror="false" overwrite="false"/>
+	</target>
+
+	<target name="build.update.jar">
+		<delete dir="${temp.folder}"/>
+		<mkdir dir="${temp.folder}"/>
+		<antcall target="build.jars"/>
+		<antcall target="gather.bin.parts">
+			<param name="destination.temp.folder" value="${temp.folder}/"/>
+		</antcall>
+		<zip destfile="${plugin.destination}/org.aspectj.ajde_${ajde.version}.jar" basedir="${temp.folder}/org.aspectj.ajde_${ajde.version}" filesonly="false" whenempty="skip" update="false"/>
+		<delete dir="${temp.folder}"/>
 	</target>
 
 </project>
