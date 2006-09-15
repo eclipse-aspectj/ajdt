@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
+import org.aspectj.ajdt.internal.core.builder.AsmHierarchyBuilder;
 import org.eclipse.ajdt.core.AspectJPlugin;
 
 /**
@@ -70,12 +71,25 @@ public class AJRelationshipManager {
 
 	public static final AJRelationshipType POINTCUT_USED_BY = new AJRelationshipType(
 			"pointcut_used_by", AspectJPlugin.getResourceString("pointcut_used_by.displayName")); //$NON-NLS-1$
-
+	
 	/**
 	 * Array of all known relationship types
 	 */
-	public static AJRelationshipType[] allRelationshipTypes = new AJRelationshipType[] {
-			ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
-			MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY,
-			USES_POINTCUT, POINTCUT_USED_BY };
+	private static AJRelationshipType[] allRelationshipTypes = null;
+	
+	public static AJRelationshipType[] getAllRelatinshipTypes() {
+		if (allRelationshipTypes == null) {
+			if (AsmHierarchyBuilder.shouldAddUsesPointcut) {
+				allRelationshipTypes = new AJRelationshipType[] {
+						ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
+						MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY,
+						USES_POINTCUT, POINTCUT_USED_BY };
+			} else {
+				allRelationshipTypes = new AJRelationshipType[] {
+						ADVISES, ADVISED_BY, DECLARED_ON, ASPECT_DECLARATIONS, MATCHED_BY,
+						MATCHES_DECLARE, ANNOTATES, ANNOTATED_BY, SOFTENS, SOFTENED_BY};	
+			}		
+		}
+		return allRelationshipTypes;
+	}
 }
