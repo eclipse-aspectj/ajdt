@@ -4,9 +4,9 @@
 <!--               2002 Palo Alto Research Center, Incorporated (PARC).        -->
 <!-- All rights reserved.                                                      -->
 <!-- This program and the accompanying materials are made available            -->
-<!-- under the terms of the Common Public License v1.0                         -->
+<!-- under the terms of the Eclipse Public License v1.0                        -->
 <!-- which accompanies this distribution and is available at                   -->
-<!-- http://www.eclipse.org/legal/cpl-v10.html                                 -->
+<!-- http://www.eclipse.org/legal/epl-v10.html                                 -->
 <!--                                                                           -->
 <!-- Contributors:                                                             -->
 <!--     Xerox/PARC     initial implementation                                 -->
@@ -445,7 +445,7 @@
             <pathelement path="${aspectjweaver.jar}"/> 
          </classpath>
 		 <jvmarg line="-showversion"/>
-		 <sysproperty key="java.system.class.loader" value="org.aspectj.weaver.WeavingURLClassLoader"/>
+		 <sysproperty key="java.system.class.loader" value="org.aspectj.weaver.loadtime.WeavingURLClassLoader"/>
          <sysproperty key="aj.weaving.verbose" value="True"/>
        	 <sysproperty key="org.aspectj.weaver.showWeaveInfo" value="True"/>
          <sysproperty key="aj.class.path" path="${jar.dir}/tracingLib.jar:${jar.dir}/tracingApp.jar"/>

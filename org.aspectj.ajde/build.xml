@@ -82,11 +82,12 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajde.jar since they're contained in aspectjweaver.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<include name="org/aspectj/asm/**/*.*" />
-				<include name="org/aspectj/weaver/**/*.*" />
-				<include name="org/aspectj/apache/bcel/**/*.*" />
-				<include name="org/aspectj/bridge/**/*.*" />
-				<include name="org/aspectj/util/**/*.*" />
+				<include name="org/aspectj/asm/**" />
+				<include name="org/aspectj/weaver/**" />
+				<include name="org/aspectj/apache/**" />
+				<include name="org/aspectj/bridge/**" />
+				<include name="org/aspectj/util/**" />
+				<include name="org/aspectj/org/objectweb/**" />
 			</fileset>
 		</delete>
 		
@@ -94,12 +95,9 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajde.jar since they're contained in aspectjrt.jar"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<!-- bug 118235: currently the commented out classes appear in both ajde.jar and aspectjrt.jar
-				uncomment this if decide it should only live in aspectjrt.jar
-				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
-				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
-				<include name="org/aspectj/runtime/**/*.*" />
-				<include name="org/aspectj/lang/**/*.*" />
+				<include name="org/aspectj/internal/**" />
+				<include name="org/aspectj/runtime/**" />
+				<include name="org/aspectj/lang/**" />
 			</fileset>
 		</delete>
 	
@@ -125,11 +123,12 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjweaversrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<include name="org/aspectj/asm/**/*.*" />
-				<include name="org/aspectj/weaver/**/*.*" />
-				<include name="org/aspectj/apache/bcel/**/*.*" />
-				<include name="org/aspectj/bridge/**/*.*" />
-				<include name="org/aspectj/util/**/*.*" />
+				<include name="org/aspectj/asm/**" />
+				<include name="org/aspectj/weaver/**" />
+				<include name="org/aspectj/apache/**" />
+				<include name="org/aspectj/bridge/**" />
+				<include name="org/aspectj/util/**" />
+				<include name="org/aspectj/org/objectweb/**" />
 			</fileset>
 		</delete>
 		
@@ -137,12 +136,17 @@ Creates a packaged plug-in jar for AJDE
 		<echo message="Removing files not required in ajdesrc.zip since they're contained in aspectjrtsrc.zip"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${ajde.build.dir}">
-				<!-- bug 118235: currently the commented out classes appear in both ajde.jar and aspectjrt.jar
-				uncomment this if decide it should only live in aspectjrt.jar
-				<include name="org/aspectj/internal/lang/annotation/**/*.*" />
-				<include name="org/aspectj/internal/lang/reflect/**/*.*" /> -->
-				<include name="org/aspectj/runtime/**/*.*" />
-				<include name="org/aspectj/lang/**/*.*" />
+				<include name="org/aspectj/internal/**" />
+				<include name="org/aspectj/runtime/**" />
+				<include name="org/aspectj/lang/**" />
+			</fileset>
+		</delete>
+
+		<!-- delete everything which shouldn't be anywhere at all -->
+		<echo message="Removing other files not required in ajdesrc.zip"/>
+		<delete includeemptydirs="true">
+			<fileset dir="${ajde.build.dir}">
+				<include name="org/aspectj/lib/**" />
 			</fileset>
 		</delete>
 		
@@ -169,6 +173,7 @@ Creates a packaged plug-in jar for AJDE
 				<exclude name="org/aspectj/bridge/**/*.*" />
 				<exclude name="org/aspectj/util/**/*.*" />
 				<exclude name="org/aspectj/weaver/**/*.*" />
+				<exclude name="org/aspectj/org/objectweb/**/*.*" />
 			</fileset>
 		</delete>
 	
