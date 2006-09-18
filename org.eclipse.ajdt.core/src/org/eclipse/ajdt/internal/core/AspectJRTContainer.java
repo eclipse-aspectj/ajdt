@@ -13,6 +13,9 @@ package org.eclipse.ajdt.internal.core;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.text.CoreMessages;
@@ -65,25 +68,30 @@ public class AspectJRTContainer implements IClasspathContainer {
 	 */
 	public static String[] getAspectjrtClasspath() {
 		if (aspectjrtPath == null) {
-			aspectjrtPath = new String[1];
+			List pathList = new LinkedList();
 			Bundle runtime = Platform
 					.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
 			if (runtime != null) {
-				URL installLoc = runtime.getEntry("aspectjrt.jar"); //$NON-NLS-1$
-				if (installLoc == null) {
+				Enumeration enu = runtime.findEntries("/","*.jar",false); //$NON-NLS-1$  //$NON-NLS-2$
+				if (enu != null) {
+					while (enu.hasMoreElements()) {
+						URL installLoc = (URL)enu.nextElement();
+						try {
+							pathList.add(FileLocator.resolve(installLoc).getFile());
+						} catch (IOException e) {
+						}
+					}
+				}
+				if (pathList.size()==0) {
 					// maybe it's a JARed bundle
 					IPath path = new Path(runtime.getLocation().split("@")[1]); //$NON-NLS-1$
 					IPath full = new Path(Platform.getInstallLocation()
 							.getURL().getFile()).append(path);
-					aspectjrtPath[0] = full.toString();
-				} else {
-					try {
-						aspectjrtPath[0] = FileLocator.resolve(installLoc)
-								.getFile();
-					} catch (IOException e) {
-					}
+					pathList.add(full.toString());
 				}
 			}
+			aspectjrtPath = new String[pathList.size()];
+			pathList.toArray(aspectjrtPath);
 		}
 		return aspectjrtPath;
 	}
