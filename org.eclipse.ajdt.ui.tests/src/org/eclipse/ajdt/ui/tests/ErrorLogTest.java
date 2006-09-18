@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -26,28 +27,40 @@ import org.eclipse.ui.internal.Workbench;
  */
 public class ErrorLogTest extends UITestCase {
 
-	
+	private static final String KNOWN_MSG = "org.eclipse.contribution.xref.core.tests.unknownprovider"; //$NON-NLS-1$
+
 	public void testNoWarningsOnStartup() throws Exception {
-		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-		if(view instanceof LogView) {
-			LogView logView = (LogView)view;
+		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow()
+				.getActivePage().getActivePart().getSite().getPage().showView(
+						"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+		if (view instanceof LogView) {
+			LogView logView = (LogView) view;
 			LogEntry[] logs = logView.getLogs();
 			// Ignore information entries in the log
 			List errorsAndWarnings = new ArrayList();
 			for (int i = 0; i < logs.length; i++) {
-				if(logs[i].getSeverity() == IStatus.ERROR || 
-						logs[i].getSeverity() == IStatus.WARNING) {
-					errorsAndWarnings.add(logs[i]);
+				if (logs[i].getSeverity() == IStatus.ERROR
+						|| logs[i].getSeverity() == IStatus.WARNING) {
+					if (logs[i].getMessage().toLowerCase().indexOf(KNOWN_MSG) == -1) {
+						errorsAndWarnings.add(logs[i]);
+					}
 				}
 			}
-			LogEntry[] logsMinusInfos = new LogEntry[errorsAndWarnings.size()];
-			for (int i = 0; i < logsMinusInfos.length; i++) {
-				logsMinusInfos[i] = (LogEntry) errorsAndWarnings.get(i);
+			if (errorsAndWarnings.size() > 0) {
+				StringBuffer errors = new StringBuffer();
+				for (Iterator iter = errorsAndWarnings.iterator(); iter
+						.hasNext();) {
+					LogEntry element = (LogEntry) iter.next();
+					errors.append(element.getMessage());
+					errors.append(" plugin:"); //$NON-NLS-1$
+					errors.append(element.getPluginId());
+					errors.append("\n"); //$NON-NLS-1$
+				}
+				fail("There should be no unexpected entries in the error log. Found:\n" + errors.toString()); //$NON-NLS-1$
 			}
-			assertTrue("There should be exactly two entries in the log, found " + logsMinusInfos.length + ": " + logsMinusInfos[logsMinusInfos.length - 1].getMessage() + ", ...", logsMinusInfos.length == 2); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		} else {
 			fail("Could not find the Error log."); //$NON-NLS-1$
 		}
 	}
-	
+
 }
