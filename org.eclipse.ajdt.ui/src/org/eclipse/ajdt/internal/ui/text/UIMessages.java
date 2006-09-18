@@ -201,6 +201,7 @@ public class UIMessages extends NLS {
 	public static String Path_entryNotFound_warningTitle;
 	public static String Path_entryNotFound_warningMessage;
 	public static String BuildPage_name;
+	public static String buildConfig_invalidOutjar ;
 	public static String AJPropsEditor_BuildPage_title ;
 	public static String AJPropsEditor_SrcSection_title ;
 	public static String AJPropsEditor_SrcSection_desc ;

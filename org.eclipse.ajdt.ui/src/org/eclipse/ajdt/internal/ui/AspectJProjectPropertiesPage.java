@@ -40,6 +40,7 @@ import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -275,6 +276,35 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 		return composite;
 	}
+	
+	private boolean checkIfOnInpath(IProject project, String string) {
+		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
+		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
+
+		String outJar = ('/'+thisProject.getName()+'/'+string);
+		for (int j = 0; j < seperatedOldInpath.length; j++) {
+			if ((seperatedOldInpath[j].equals(outJar))&& 
+					!(seperatedOldInpath[j].equals(""))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean checkIfOnAspectpath(IProject project, String string) {
+		String[] oldAspectpath = AspectJCorePreferences
+				.getProjectAspectPath(project);
+		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
+		
+		String outJar = ('/'+thisProject.getName()+'/'+string);
+		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
+			if ((seperatedOldAspectpath[j].equals(outJar)) && 
+					!(seperatedOldAspectpath[j].equals(""))) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * overriding performApply() for PreferencePageBuilder.aj
@@ -328,11 +358,16 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					new IClasspathAttribute[0] // extra attributes?
 			);
 		}
+		if (checkIfOnInpath(thisProject, outJar)||
+				checkIfOnAspectpath(thisProject, outJar)){
+			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, UIMessages.buildConfig_invalidOutjar);
+			outputJarEditor.setStringValue(oldOutJar);
+		}else{
 		LaunchConfigurationManagementUtils.updateOutJar(JavaCore
 				.create(thisProject), oldEntry, newEntry);
 		AspectJCorePreferences.setProjectOutJar(thisProject, outputJarEditor
 				.getStringValue());
-
+		}
 		if (fInPathBlock != null) {
 			Shell shell = getControl().getShell();
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
@@ -385,7 +420,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 				return false;
 			}
 		}
-
 		return true;
 	}
 
