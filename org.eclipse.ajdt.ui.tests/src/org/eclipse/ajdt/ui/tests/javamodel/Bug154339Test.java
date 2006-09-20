@@ -12,6 +12,7 @@ package org.eclipse.ajdt.ui.tests.javamodel;
 
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -56,6 +57,30 @@ public class Bug154339Test extends UITestCase {
 				.getBuildConfigurationFile(project));
 		assertNotNull(
 				"IncrementalStateManager didn't find state after opening and building a closed project", object); //$NON-NLS-1$		
+	}
+	
+	public void testWhenProjectIsConverted() throws CoreException {
+		IProject project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
+		waitForJobsToComplete();
+		
+		Object object = IncrementalStateManager.retrieveStateFor(AspectJPlugin
+				.getBuildConfigurationFile(project));
+		assertNotNull(
+				"IncrementalStateManager didn't find state for project", object); //$NON-NLS-1$
+		
+		AspectJUIPlugin.convertFromAspectJProject(project);
+		waitForJobsToComplete();
+		object = IncrementalStateManager.retrieveStateFor(AspectJPlugin
+				.getBuildConfigurationFile(project));
+		assertNull(
+				"IncrementalStateManager should not find state for project", object); //$NON-NLS-1$
+		
+		AspectJUIPlugin.convertToAspectJProject(project);
+		waitForJobsToComplete();
+		object = IncrementalStateManager.retrieveStateFor(AspectJPlugin
+				.getBuildConfigurationFile(project));
+		assertNotNull(
+				"IncrementalStateManager didn't find state for project", object); //$NON-NLS-1$
 	}
 
 }
