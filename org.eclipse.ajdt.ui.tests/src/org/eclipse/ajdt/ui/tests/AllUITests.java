@@ -40,6 +40,7 @@ import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
+import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
@@ -162,6 +163,7 @@ public class AllUITests {
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
+		suite.addTest(new TestSuite(Bug154339Test.class));
 		if(is50) {
 			suite.addTest(new TestSuite(Bug117327Test.class));
 		}
