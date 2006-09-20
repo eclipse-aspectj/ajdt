@@ -19,6 +19,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.core.AJLog;
@@ -599,6 +600,10 @@ public class AJDTUtils {
 			// Update the build classpath to try and remove the aspectjrt.jar
 			AspectJUIPlugin.removeAjrtFromBuildPath(project);
 		}
+		
+		IncrementalStateManager
+		.removeIncrementalStateInformationFor(AspectJPlugin
+				.getBuildConfigurationFile(project));
 
 		removeMarkerOnReferencingProjects(project);
 
