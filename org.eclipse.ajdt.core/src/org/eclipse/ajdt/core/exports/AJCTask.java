@@ -9,70 +9,46 @@
  **********************************************************************/
 package org.eclipse.ajdt.core.exports;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.pde.internal.build.Utils;
 import org.eclipse.pde.internal.build.ant.AntScript;
 import org.eclipse.pde.internal.build.ant.JavacTask;
-import org.osgi.framework.Bundle;
 
 
 public class AJCTask extends JavacTask {
-	private String baseLocation;
 
 	private String buildConfig;
 
-	private String toolsLocation;
+	private String[] ajdeClasspath;
 
 	protected List aspectpath;
 	protected List inpath;
 
-	public AJCTask(String location, String config, String toolsLocation) {
+	public AJCTask(String config, String[] ajdeClasspath) {
 		super();
-		this.baseLocation = location;
 		this.buildConfig = config;
-		this.toolsLocation = toolsLocation;
+		this.ajdeClasspath = ajdeClasspath;
 	}
 	
 	public void print(AntScript script) {
 		if(script instanceof AJAntScript) {
 			AJAntScript ajScript = (AJAntScript)script;
-			Bundle toolsBundle = Platform.getBundle(AspectJPlugin.TOOLS_PLUGIN_ID);
-			Bundle weaverBundle = Platform.getBundle(AspectJPlugin.WEAVER_PLUGIN_ID);
-			Bundle runtimeBundle = Platform.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
-			try {
-				URL resolved = FileLocator.resolve(toolsBundle.getEntry("/")); //$NON-NLS-1$
-				IPath ajdeLocation = Utils.makeRelative(new Path(resolved
-						.getFile()), new Path(baseLocation));
-				resolved = FileLocator.resolve(weaverBundle.getEntry("/")); //$NON-NLS-1$
-				IPath weaverLocation = Utils.makeRelative(new Path(resolved
-						.getFile()), new Path(baseLocation));
-				resolved = FileLocator.resolve(runtimeBundle.getEntry("/")); //$NON-NLS-1$
-				IPath runtimeLocation = Utils.makeRelative(new Path(resolved
-						.getFile()), new Path(baseLocation));
-				// toolsLocation locates the eclipse classes required by the iajc task,
-				// such as OperationCanceledException from org.eclipse.equinox.common
-				IPath eqcomLocation = Utils.makeRelative(new Path(toolsLocation),
-						new Path(baseLocation));
-				ajScript.printProperty(
-						"aspectj.plugin.home", ajdeLocation.toPortableString()); //$NON-NLS-1$
-				ajScript.printProperty(
-						"aspectj.weaver.home", weaverLocation.toPortableString()); //$NON-NLS-1$
-				ajScript.printProperty(
-						"aspectj.runtime.home", runtimeLocation.toPortableString()); //$NON-NLS-1$
-				ajScript.printProperty(
-						"eclipse.tools.home", eqcomLocation.toPortableString()); //$NON-NLS-1$
-			} catch (IOException e) {
-			}
 			
+			ajScript.println("<path id=\"ajde.classpath\">");
+			ajScript.indent++;
+			for (int i = 0; i < ajdeClasspath.length; i++) {		
+				ajScript.printTab();
+				ajScript.print("<pathelement"); //$NON-NLS-1$
+				ajScript.printAttribute("path", ajdeClasspath[i], true); //$NON-NLS-1$ //$NON-NLS-2$
+				ajScript.print("/>"); //$NON-NLS-1$
+				ajScript.println();
+			}
+			ajScript.indent--;
+			ajScript.printTab();
+			ajScript.print("</path>"); //$NON-NLS-1$
+			ajScript.println();
+						
 			// 101041: use includes/excludes from a build config file if one has
 			// been specified, otherwise use all source folders
 			boolean useBuildConfig = (buildConfig != null)
@@ -80,20 +56,7 @@ public class AJCTask extends JavacTask {
 			
 			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">"); //$NON-NLS-1$
 			ajScript.indent++;
-			ajScript.printStartTag("classpath"); //$NON-NLS-1$
-			ajScript.indent++;
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.weaver.home}/aspectjweaver.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			ajScript.indent--;
-			ajScript.printEndTag("classpath"); //$NON-NLS-1$
+			ajScript.println("<classpath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ //$NON-NLS-2$
 			ajScript.indent--;
 			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
 			
@@ -130,32 +93,7 @@ public class AJCTask extends JavacTask {
 			ajScript.indent++;
 	
 			ajScript.println("<forkclasspath refid=\"" + classpathId + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.printStartTag("forkclasspath"); //$NON-NLS-1$
-			ajScript.indent++;
-			// Add ajde.jar and aspectjweaver.jar to this classpath too because we have forked
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.plugin.home}/ajde.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.weaver.home}/aspectjweaver.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${aspectj.runtime.home}/aspectjrt.jar", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			ajScript.printTab();
-			ajScript.print("<pathelement"); //$NON-NLS-1$
-			ajScript.printAttribute("path", "${eclipse.tools.home}", true); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.print("/>"); //$NON-NLS-1$
-			ajScript.println();
-			
-			ajScript.indent--;
-			ajScript.printEndTag("forkclasspath"); //$NON-NLS-1$
+			ajScript.println("<forkclasspath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ //$NON-NLS-2$
 	
 			// Add aspectpath and inpath
 			if(aspectpath != null) {
@@ -207,6 +145,5 @@ public class AJCTask extends JavacTask {
 	public void setInpath(List inpath) {
 		this.inpath = inpath;
 	}
-
 	
 }

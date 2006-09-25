@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -984,24 +985,14 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		}
 
 		script.printComment("compile the source code"); //$NON-NLS-1$
-		// AspectJ Change Begin
-		String toolsLocation = "";
+		// AspectJ Change Begin		
+		String[] ajdeClasspath = null;
 		try {
-			// locate the eclipse classes required by the iajc task, such as
-			// OperationCanceledException from org.eclipse.equinox.common
-			BundleDescription model = getSite(false).getRegistry()
-					.getResolvedBundle("org.eclipse.equinox.common"); //$NON-NLS-1$
-			if (model == null) {
-				// might be an Eclipse 3.1 target
-				model = getSite(false).getRegistry()
-					.getResolvedBundle("org.eclipse.core.runtime"); //$NON-NLS-1$
-			}
-			if (model != null) {
-				toolsLocation = model.getLocation();
-			}
+			added = new ArrayList();
+			ajdeClasspath = bundleToCP(getModel("org.aspectj.ajde")); //$NON-NLS-1$
 		} catch (CoreException e) {
-		}				
-		AJCTask javac = new AJCTask(getModel().getLocation(), buildConfig, toolsLocation);
+		}		
+		AJCTask javac = new AJCTask(buildConfig, ajdeClasspath);
 		javac.setAspectpath(aspectpath);
 		javac.setInpath(inpath);
 		// AspectJ Change End
@@ -1293,6 +1284,43 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 	}
 	public void setInpath(List inpath) {
 		this.inpath = inpath;
+	}
+	
+	private List added;
+	
+	private String[] bundleToCP(BundleDescription bundle) throws CoreException {
+		if (added.contains(bundle)) {
+			return new String[]{};
+		}
+		added.add(bundle);
+		if (bundle.getName().equals("org.apache.ant")) { //$NON-NLS-1$
+			return new String[]{};
+		}
+		
+		List pathList = new ArrayList();
+		String loc = bundle.getLocation();
+		Path absPath = new Path(loc);
+		IPath basePath = Utils.makeRelative(absPath, new Path(getLocation(model)));
+		
+		if ("jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
+			pathList.add(basePath.toString());
+		} else {
+			String[] cpe = getClasspathEntries(bundle);
+			for (int i = 0; i < cpe.length; i++) {
+				pathList.add(basePath.append(cpe[i]).toString());
+			}
+		}		
+		
+		// now add prerequisite bundles
+		BundleDescription[] prereqs = bundle.getResolvedRequires();
+		for (int i = 0; i < prereqs.length; i++) {
+			String[] pcp = bundleToCP(prereqs[i]);
+			pathList.addAll(Arrays.asList(pcp));
+		}
+		
+		String[] path = new String[pathList.size()];
+		pathList.toArray(path);
+		return path;
 	}
 	// AspectJ Change End
 }
