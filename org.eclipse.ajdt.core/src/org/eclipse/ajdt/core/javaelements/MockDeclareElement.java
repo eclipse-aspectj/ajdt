@@ -70,21 +70,6 @@ public class MockDeclareElement extends DeclareElement implements IMockElement {
 		for (int i = 0; i < IProgramElement.Kind.ALL.length; i++) {
 			if (kindString.startsWith(IProgramElement.Kind.ALL[i].toString())) return IProgramElement.Kind.ALL[i];	
 		}
-		
-		// TODO: Remove when IProgramElement.Kind.ALL is updated to include these
-		if(kindString.startsWith("declare @constructor")) { //$NON-NLS-1$
-			return IProgramElement.Kind.DECLARE_ANNOTATION_AT_CONSTRUCTOR;
-		}
-		if(kindString.startsWith("declare @method")) { //$NON-NLS-1$
-			return IProgramElement.Kind.DECLARE_ANNOTATION_AT_METHOD;
-		}
-		if(kindString.startsWith("declare @field")) { //$NON-NLS-1$
-			return IProgramElement.Kind.DECLARE_ANNOTATION_AT_FIELD;
-		}
-		if(kindString.startsWith("declare @type")) { //$NON-NLS-1$
-			return IProgramElement.Kind.DECLARE_ANNOTATION_AT_TYPE;
-		}
-		
 		return IProgramElement.Kind.ERROR;
 	}
 }
