@@ -14,11 +14,8 @@ package org.eclipse.ajdt.internal.ui.editor.quickfix;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
@@ -26,35 +23,7 @@ import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
-
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.contentassist.ContentAssistEvent;
-import org.eclipse.jface.text.contentassist.ICompletionListener;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
-import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.IAnnotationModel;
-
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IMarkerHelpRegistry;
-import org.eclipse.ui.IMarkerResolution;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
-
 import org.eclipse.jdt.core.ICompilationUnit;
-
-import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jdt.ui.text.java.CompletionProposalComparator;
-import org.eclipse.jdt.ui.text.java.IInvocationContext;
-import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
-import org.eclipse.jdt.ui.text.java.IProblemLocation;
-import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
-import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
-
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.IJavaAnnotation;
 import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
@@ -64,7 +33,27 @@ import org.eclipse.jdt.internal.ui.text.correction.CorrectionMessages;
 import org.eclipse.jdt.internal.ui.text.correction.IStatusLineProposal;
 import org.eclipse.jdt.internal.ui.text.correction.MarkerResolutionProposal;
 import org.eclipse.jdt.internal.ui.text.correction.ProblemLocation;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.text.java.CompletionProposalComparator;
+import org.eclipse.jdt.ui.text.java.IInvocationContext;
+import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
+import org.eclipse.jdt.ui.text.java.IProblemLocation;
+import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
+import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.contentassist.ContentAssistEvent;
+import org.eclipse.jface.text.contentassist.ICompletionListener;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.ltk.core.refactoring.NullChange;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IMarkerHelpRegistry;
+import org.eclipse.ui.IMarkerResolution;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.text.correction.JavaCorrectionProcessor
