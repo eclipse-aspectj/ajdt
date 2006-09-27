@@ -13,8 +13,6 @@ package org.eclipse.ajdt.core;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
-import org.aspectj.asm.AsmManager;
-import org.aspectj.asm.internal.JDTLikeHandleProvider;
 import org.aspectj.weaver.World;
 import org.eclipse.ajdt.core.builder.CompilerMonitor;
 import org.eclipse.ajdt.core.builder.CoreBuildOptions;
