@@ -110,7 +110,6 @@ public class AspectJPlugin extends Plugin {
 		IncrementalStateManager.recordIncrementalStates=true;
 		IncrementalStateManager.debugIncrementalStates=true;
 		World.createInjarHierarchy = false;
-		AsmManager.getDefault().setHandleProvider(new JDTLikeHandleProvider());
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
 				new CoreProjectProperties(), new CoreBuildOptions(),
