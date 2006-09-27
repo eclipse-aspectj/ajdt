@@ -62,26 +62,8 @@ public class RefactoringParticipationTest extends VisualTestCase {
 					postKey(SWT.CR); // finish
 					return Status.OK_STATUS;
 				}	
-			}.schedule(4000);			
+			}.schedule(6000);			
 		}
-		
-//		Runnable r = new Runnable() {
-//			public void run() {
-//				sleep();
-//				postString(newName); //$NON-NLS-1$
-//				postKey(SWT.CR); // finish
-//				if (doMain) {
-//					Runnable r2 = new Runnable() {
-//						public void run() {
-//							sleep();
-//							postKey(SWT.CR); // ok dialog about main methods
-//						}
-//					};
-//					new Thread(r2).start();
-//				}
-//			}
-//		};
-//		new Thread(r).start();
 		waitForJobsToComplete();
 	}
 
