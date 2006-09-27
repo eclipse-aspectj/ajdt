@@ -37,7 +37,7 @@ public class SynchronizationUtils {
 		}
 		
 		// Join jobs
-		joinJobs(0, 0, 500);
+		joinJobs(100, 0, 500);
 	}
 
 

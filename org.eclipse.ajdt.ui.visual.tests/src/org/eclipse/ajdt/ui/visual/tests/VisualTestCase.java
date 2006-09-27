@@ -14,6 +14,9 @@ package org.eclipse.ajdt.ui.visual.tests;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.AllUITests;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.SWT;
@@ -22,6 +25,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.internal.console.IOConsolePage;
+import org.eclipse.ui.progress.UIJob;
 
 /**
  * Abstract superclass for Visual tests
@@ -36,61 +40,22 @@ public abstract class VisualTestCase extends UITestCase {
 	protected Display display = Display.getCurrent();
 
 	protected void gotoLine(final int line) {
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = SWT.CTRL;
-		display.post(event);
+		postKeyDown(SWT.CTRL);
+		postKey('l');
+		postKeyUp(SWT.CTRL);
 
-		event = new Event();
-		event.type = SWT.KeyDown;
-		event.character = 'l';
-		display.post(event);
-
-		event = new Event();
-		event.character = 'l';
-		event.type = SWT.KeyUp;
-		display.post(event);
-
-		event = new Event();
-		event.type = SWT.KeyUp;
-		event.keyCode = SWT.CTRL;
-		display.post(event);
-
-		Runnable r = new Runnable() {
-			public void run() {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-				}
-
+		new UIJob("post key job") { //$NON-NLS-1$
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				sleep();
 				char[] chars = String.valueOf(line).toCharArray();
-				Event event;
 				for (int i = 0; i < chars.length; i++) {
 					char c = chars[i];
-					event = new Event();
-					event.type = SWT.KeyDown;
-					event.character = c;
-					display.post(event);
-
-					event = new Event();
-					event.character = c;
-					event.type = SWT.KeyUp;
-					display.post(event);
-				}
-
-				event = new Event();
-				event.type = SWT.KeyDown;
-				event.character = SWT.CR;
-				display.post(event);
-
-				event = new Event();
-				event.type = SWT.KeyUp;
-				event.character = SWT.CR;
-				display.post(event);
-
+					postKey(c);
+				}				
+				postKey(SWT.CR);
+				return Status.OK_STATUS;
 			}
-		};
-		new Thread(r).start();
+		}.schedule(1000);
 		waitForJobsToComplete();
 	}
 
