@@ -59,5 +59,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.contribution.xref.core,
  org.eclipse.ui.views,
  org.eclipse.pde.runtime,
- org.eclipse.ui.browser
+ org.eclipse.ui.browser,
+ org.eclipse.contribution.visualiser
 Eclipse-LazyStart: true

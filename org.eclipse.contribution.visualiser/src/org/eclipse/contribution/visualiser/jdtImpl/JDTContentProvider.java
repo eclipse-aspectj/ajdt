@@ -44,8 +44,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 
-public class JDTContentProvider
-	implements IContentProvider, ISelectionListener {
+public class JDTContentProvider implements IContentProvider, ISelectionListener {
 
 	protected IJavaProject currentProject;
 	private IResource currentlySelectedResource;
@@ -90,7 +89,7 @@ public class JDTContentProvider
 	 * in this class, as this method is called whenever a user changes
 	 * their selection in the workspace.
 	 */
-	public void selectionChanged(IWorkbenchPart iwp, ISelection is) {
+	public void selectionChanged(IWorkbenchPart workbenchPart, ISelection selection) {
 		if(!(ProviderManager.getContentProvider().equals(this))){
 			return;
 		}
@@ -98,28 +97,28 @@ public class JDTContentProvider
 		boolean updateRequired = false;
 
 		try {
-			if (is instanceof IStructuredSelection) {
+			if (selection instanceof IStructuredSelection) {
 				IStructuredSelection structuredSelection =
-					(IStructuredSelection) is;
-				Object o = structuredSelection.getFirstElement();
+					(IStructuredSelection) selection;
+				Object firstElement = structuredSelection.getFirstElement();
 
-				if (o != null) {
-					if (o instanceof IResource) {
-						currentlySelectedResource = (IResource) o;
-					} else if (o instanceof IJavaElement) {
-						IJavaElement je = (IJavaElement) o;
-						currentlySelectedJE = je;
-						if(je.getUnderlyingResource() != null){
-							if (!je.getUnderlyingResource().equals(currentlySelectedResource)) updateRequired=true;
-							currentlySelectedResource = je.getUnderlyingResource();
+				if (firstElement != null) {
+					if (firstElement instanceof IResource) {
+						currentlySelectedResource = (IResource) firstElement;
+					} else if (firstElement instanceof IJavaElement) {
+						IJavaElement javaElement = (IJavaElement) firstElement;
+						currentlySelectedJE = javaElement;
+						if(javaElement.getUnderlyingResource() != null){
+							if (!javaElement.getUnderlyingResource().equals(currentlySelectedResource)) updateRequired=true;
+							currentlySelectedResource = javaElement.getUnderlyingResource();
 							// Might be null!
 						}
-						if (je.getJavaProject() != null) {
-							setCurrentProject(je.getJavaProject());
+						if (javaElement.getJavaProject() != null) {
+							setCurrentProject(javaElement.getJavaProject());
 						} 
 					}
 				}
-			} else if (is instanceof ITextSelection) {
+			} else if (selection instanceof ITextSelection) {
 			}
 			if (updateRequired) {
 				VisualiserPlugin.refresh();
@@ -252,10 +251,7 @@ public class JDTContentProvider
 	 * Process a mouse click on a member
 	 * @see org.eclipse.contribution.visualiser.interfaces.IContentProvider#processMouseclick(IMember, boolean, int)
 	 */
-	public boolean processMouseclick(
-		IMember member,
-		boolean markupWasClicked,
-		int buttonClicked) {
+	public boolean processMouseclick(IMember member, boolean markupWasClicked, int buttonClicked) {
 		
 		if(buttonClicked != 1){
 			return true;	
@@ -264,9 +260,9 @@ public class JDTContentProvider
 			return false;
 		}
 		if(member instanceof JDTMember) {
-			IJavaElement jEl = ((JDTMember)member).getResource();
-			if(jEl != null) {
-				JDTUtils.openInEditor(jEl.getResource(), JDTUtils.getClassDeclLineNum(jEl));
+			IJavaElement javaElement = ((JDTMember)member).getResource();
+			if(javaElement != null) {
+				JDTUtils.openInEditor(javaElement.getResource(), JDTUtils.getClassDeclLineNum(javaElement));
 			}
 		}
 		
@@ -279,20 +275,20 @@ public class JDTContentProvider
 	 */
 	public List getAllGroups() {
 
-		List retval = null;
+		List groupList = null;
 		// Depending on what is selected, the groups are different things...
 
 		// (1) Project is currently selected
 		if (currentlySelectedResource instanceof IProject
 		    && !(currentlySelectedJE instanceof IPackageFragment)) {
-			retval = getAllJDTGroups(getCurrentProject());
+			groupList = getAllJDTGroups(getCurrentProject());
 		} else if (currentlySelectedJE instanceof IPackageFragment) {
-			retval = new ArrayList();
+			groupList = new ArrayList();
 			JDTGroup oneGroup =
 				getGroupForFragment((IPackageFragment) currentlySelectedJE);
-			retval.add(oneGroup);
+			groupList.add(oneGroup);
 		} else {
-		    retval = new ArrayList();
+		    groupList = new ArrayList();
 		    List pkgfrags = getAllJDTGroups(getCurrentProject());
 		    for (Iterator pkgfragiter = pkgfrags.iterator(); pkgfragiter.hasNext();) {
 				IGroup grp = (IGroup) pkgfragiter.next();
@@ -300,13 +296,13 @@ public class JDTContentProvider
 			  	for (Iterator memIter = mems.iterator(); memIter.hasNext();) {
 					JDTMember element = (JDTMember) memIter.next();
 					if (element.getResource().equals(currentlySelectedJE)) {
-						retval.add(element.getContainingGroup());
+						groupList.add(element.getContainingGroup());
 						break;
 					}
 				}
 		    }
 	    }
-		return retval;
+		return groupList;
 	}
 
 	
@@ -354,8 +350,9 @@ public class JDTContentProvider
 				IPackageFragment fragments[] = JP.getPackageFragments();
 				for (int i = 0; i < fragments.length; i++) {
 					JDTGroup group = getGroupForFragment(fragments[i]);
-					if (group != null)
+					if (group != null){
 						returningPackages.add(group);
+					}
 				}
 			} catch (JavaModelException e) {
 				e.printStackTrace();
@@ -376,8 +373,7 @@ public class JDTContentProvider
 			if (containsUsefulStuff(PF)) {
 				IJavaElement[] ijes = PF.getChildren();
 				for (int j = 0; j < ijes.length; j++) {
-					if (ijes[j].getElementType()
-						== IJavaElement.COMPILATION_UNIT) {
+					if (ijes[j].getElementType() == IJavaElement.COMPILATION_UNIT) {
 						String memberName = ijes[j].getElementName();
 						if(memberName.endsWith(".java")){ //$NON-NLS-1$
 							memberName = memberName.substring(0, memberName.length() - 5); 					

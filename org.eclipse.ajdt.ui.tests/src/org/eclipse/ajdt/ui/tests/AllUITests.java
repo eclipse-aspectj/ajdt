@@ -58,6 +58,7 @@ import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
+import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
 import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
@@ -179,6 +180,9 @@ public class AllUITests {
 		// visualiser tests
 		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
 
+		// AJDT visualiser content provider tests
+		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
+		
 		//$JUnit-END$
 		return suite;
 	}
