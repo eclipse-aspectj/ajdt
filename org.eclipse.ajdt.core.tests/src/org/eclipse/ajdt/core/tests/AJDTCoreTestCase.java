@@ -44,12 +44,7 @@ public class AJDTCoreTestCase extends TestCase {
 		IProject[] allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 		for (int i = 0; i < allProjects.length; i++) {
 			IProject project = allProjects[i];
-			deleteProject(project,false);
-		}
-		allProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		for (int i = 0; i < allProjects.length; i++) {
-			IProject project = allProjects[i];
-			deleteProject(project,true);
+			deleteProject(project);
 		}
 	}
 
@@ -208,24 +203,24 @@ public class AJDTCoreTestCase extends TestCase {
 		return getWorkspaceRoot().getProject(project);
 	}
 
-	protected void deleteProject(IProject project, boolean force) throws CoreException {
+	protected void deleteProject(IProject project) throws CoreException {
 		if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
 			project.open(null);
 		}
-		deleteResource(project,force);
+		deleteResource(project);
 	}
 	
 	protected void deleteProject(String projectName) throws CoreException {
-		deleteProject(this.getProject(projectName),true);
+		deleteProject(this.getProject(projectName));
 	}
 	
 	/**
 	 * Delete this resource.
 	 */
-	public void deleteResource(IResource resource, boolean force) throws CoreException {
+	public void deleteResource(IResource resource) throws CoreException {
 		CoreException lastException = null;
 		try {
-			resource.delete(false, null);
+			resource.delete(true, null);
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
@@ -234,9 +229,6 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (IllegalArgumentException iae) {
 			// just print for info
 			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		if (!force) {
-			return;
 		}
 		int retryCount = 10;
 		while (resource.isAccessible() && --retryCount >= 0) {
@@ -249,7 +241,7 @@ public class AJDTCoreTestCase extends TestCase {
 			} catch (CoreException e) {
 				lastException = e;
 				// just print for info
-				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			} catch (IllegalArgumentException iae) {
 				// just print for info
 				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
