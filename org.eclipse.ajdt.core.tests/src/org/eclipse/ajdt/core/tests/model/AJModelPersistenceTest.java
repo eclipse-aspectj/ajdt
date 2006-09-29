@@ -152,7 +152,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 			copy(res.getLocation().toFile(), ajmap.toFile());
 
 			// delete project to clear model
-			deleteProject(project);
+			deleteProject(project,true);
 
 			// make sure project model is clear
 			AJProjectModel model = AJModel.getInstance().getModelForProject(
