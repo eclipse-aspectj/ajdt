@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Matt Chapman - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.core.tests.refactoring;
 
@@ -15,7 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.internal.core.refactoring.PointcutRenameParticipant;
+import org.eclipse.ajdt.internal.core.refactoring.AspectRenameParticipant;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -26,11 +27,11 @@ import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.participants.RenameArguments;
 
-public class PointcutRenameParticipantTest extends AJDTCoreTestCase {
+public class AspectRenameParticipantTest extends AJDTCoreTestCase {
 
 	public void testTJPTypeRename() throws Exception {
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
-		PointcutRenameParticipantTester participant = new PointcutRenameParticipantTester(
+		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
 				"Demo2"); //$NON-NLS-1$
 		IFile file = project.getFile("src/tjp/Demo.java"); //$NON-NLS-1$
 		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
@@ -79,7 +80,7 @@ public class PointcutRenameParticipantTest extends AJDTCoreTestCase {
 
 	public void testBeanTypeRename() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		PointcutRenameParticipantTester participant = new PointcutRenameParticipantTester(
+		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
 				"Line"); //$NON-NLS-1$
 		IFile file = project.getFile("src/bean/Point.java"); //$NON-NLS-1$
 		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
@@ -130,6 +131,77 @@ public class PointcutRenameParticipantTest extends AJDTCoreTestCase {
 		checkForExpected(getInfo, expected);
 	}
 
+	public void testTypeRenameWithImports() throws Exception {
+		IProject project = createPredefinedProject("RenameParticipation"); //$NON-NLS-1$
+		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
+				"Lemur"); //$NON-NLS-1$
+		IFile file = project.getFile("src/p1/Test.java"); //$NON-NLS-1$
+		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
+		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
+		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
+				cu);
+		IType test1 = cu.getType("Test"); //$NON-NLS-1$
+		assertTrue("Compilation unit does not contain Test type", test1 //$NON-NLS-1$
+				.exists());
+
+		// set up participant
+		participant.initialize(test1);
+
+		// ask for changes
+		Change allChanges = participant.createChange(new NullProgressMonitor());
+		assertNotNull("Refactoring participant returned null change", //$NON-NLS-1$
+				allChanges);
+		assertTrue(
+				"Expected refactoring participant to return a CompositeChange", //$NON-NLS-1$
+				allChanges instanceof CompositeChange);
+		CompositeChange composite = (CompositeChange) allChanges;
+		Change[] children = composite.getChildren();
+		assertEquals("Wrong number of children in CompositeChange", 1, //$NON-NLS-1$
+				children.length);
+		Change change = children[0];
+		assertNotNull("name of change should not be null", change.getName()); //$NON-NLS-1$
+		assertNotNull("getModifiedElement should not be null", change //$NON-NLS-1$
+				.getModifiedElement());
+		assertTrue(
+				"Modified element should be MyAspect.aj", //$NON-NLS-1$
+				change.getModifiedElement().toString().indexOf("MyAspect.aj") != -1); //$NON-NLS-1$
+
+		// now apply the changes
+		allChanges.perform(new NullProgressMonitor());
+
+		// check the results
+		IFile myaspect = project.getFile("src/test/MyAspect.aj"); //$NON-NLS-1$
+		assertTrue("File doesn't exist: " + myaspect, myaspect.exists()); //$NON-NLS-1$
+
+		String[] expected = new String[] { "before() : execution(void Lemur.foo(..))", //$NON-NLS-1$
+		};
+		checkForExpected(myaspect, expected);
+	}
+
+	public void testTypeRenameWithImports2() throws Exception {
+		IProject project = createPredefinedProject("RenameParticipation"); //$NON-NLS-1$
+		AspectRenameParticipantTester participant = new AspectRenameParticipantTester(
+				"Lemur"); //$NON-NLS-1$
+		IFile file = project.getFile("src/p2/Test.java"); //$NON-NLS-1$
+		assertTrue("File doesn't exist: " + file, file.exists()); //$NON-NLS-1$
+		ICompilationUnit cu = JavaCore.createCompilationUnitFrom(file);
+		assertNotNull("Couldn't obtain compilation unit for file " + file, //$NON-NLS-1$
+				cu);
+		IType test2 = cu.getType("Test"); //$NON-NLS-1$
+		assertTrue("Compilation unit does not contain Test type", test2 //$NON-NLS-1$
+				.exists());
+
+		// set up participant
+		participant.initialize(test2);
+
+		// ask for changes
+		Change allChanges = participant.createChange(new NullProgressMonitor());
+		assertNull(
+				"Refactoring participant should have returned null change as "
+						+ "aspect references p1.Test not p2.Test", //$NON-NLS-1$
+				allChanges);
+	}
+
 	private void checkForExpected(IFile file, String[] expected)
 			throws Exception {
 		boolean[] got = new boolean[expected.length];
@@ -166,10 +238,10 @@ public class PointcutRenameParticipantTest extends AJDTCoreTestCase {
 	}
 }
 
-class PointcutRenameParticipantTester extends PointcutRenameParticipant {
+class AspectRenameParticipantTester extends AspectRenameParticipant {
 	private String newName;
 
-	public PointcutRenameParticipantTester(String newName) {
+	public AspectRenameParticipantTester(String newName) {
 		super();
 		this.newName = newName;
 	}

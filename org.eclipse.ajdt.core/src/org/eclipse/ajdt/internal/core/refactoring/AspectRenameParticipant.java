@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Matt Chapman - initial version
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.refactoring;
 
@@ -30,6 +31,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IImportDeclaration;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.ISourceReference;
@@ -51,7 +53,11 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-public class PointcutRenameParticipant extends RenameParticipant {
+/**
+ * When types are renamed this participant updates any references in to
+ * that type in aspects (in the same project)
+ */
+public class AspectRenameParticipant extends RenameParticipant {
 
 	private IType fType;
 
@@ -67,6 +73,7 @@ public class PointcutRenameParticipant extends RenameParticipant {
 		final String newName = getArguments().getNewName();
 		IProject project = fType.getResource().getProject();
 		AJLog.log("Rename type references in aspects from "+oldName+" to "+newName); //$NON-NLS-1$ //$NON-NLS-2$
+		AJLog.log("qualified name: "+fType.getFullyQualifiedName());
 		List ajs = AJCompilationUnitManager.INSTANCE.getCachedCUs(project);
 		pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
 		for (Iterator iter = ajs.iterator(); iter.hasNext();) {
@@ -116,7 +123,7 @@ public class PointcutRenameParticipant extends RenameParticipant {
 		for (int i = 0; i < types.length; i++) {
 			if (types[i] instanceof AspectElement) {
 				AspectChange[] aspectChanges = searchForReferenceInPointcut(
-						ajcu, (AspectElement) types[i], name);
+						ajcu, (AspectElement) types[i], name, type.getFullyQualifiedName());
 				if (aspectChanges.length > 0) {
 					for (int j = 0; j < aspectChanges.length; j++) {
 						if (aspectChanges[j].element instanceof ISourceReference) {
@@ -163,10 +170,8 @@ public class PointcutRenameParticipant extends RenameParticipant {
 					final ITypeBinding binding= node.resolveTypeBinding();
 					if (binding != null) {
 						String qual = binding.getQualifiedName();
-						//System.out.println("qual: "+qual);
 						if (qual.equals(fqn)) {
 							int endPos = node.getStartPosition()+node.getLength();
-							//System.out.println("match: endPos="+endPos);
 							if (endPos < origLen) {
 								SimpleName replacement = cu.getAST().newSimpleName(newName);
 								rewrite.replace(node, replacement, null);
@@ -185,7 +190,10 @@ public class PointcutRenameParticipant extends RenameParticipant {
 	}
 		
 	private AspectChange[] searchForReferenceInPointcut(AJCompilationUnit ajcu,
-			AspectElement aspect, String name) throws JavaModelException {
+			AspectElement aspect, String name, String qualifiedName) throws JavaModelException {
+		boolean samePackage = removeTypeName(
+				((IType) aspect).getFullyQualifiedName()).equals(
+				removeTypeName(qualifiedName));
 		List elementsToChange = new ArrayList();
 		List elementsToSearch = new ArrayList();
 		elementsToSearch.addAll(Arrays.asList(aspect.getAdvice()));
@@ -204,17 +212,29 @@ public class PointcutRenameParticipant extends RenameParticipant {
 							.hasNext();) {
 						String id = (String) iter2.next();
 						if (id.equals(name)) {
-							//System.out.println("found reference");
-							AspectChange ac = new AspectChange();
-							ac.element = element;
-							ac.offsets = (List) map.get(id);
-							elementsToChange.add(ac);
+							IImportDeclaration imp = ((ICompilationUnit) ajcu)
+									.getImport(qualifiedName);
+							if (samePackage || imp.exists()) {
+								AJLog.log("found reference"); //$NON-NLS-1$
+								AspectChange ac = new AspectChange();
+								ac.element = element;
+								ac.offsets = (List) map.get(id);
+								elementsToChange.add(ac);
+							}
 						}
 					}
 				}
 			}
 		}
 		return (AspectChange[]) elementsToChange.toArray(new AspectChange[] {});
+	}
+	
+	private String removeTypeName(String qualifiedName) {
+		int ind = qualifiedName.lastIndexOf('.');
+		if (ind == -1) {
+			return qualifiedName;
+		}
+		return qualifiedName.substring(0,ind);
 	}
 	
 	public String getName() {

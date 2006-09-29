@@ -42,10 +42,9 @@
    </extension>
 
    <!-- Refactoring participants -->
-   <!-- experimental: not yet enabled
    <extension point="org.eclipse.ltk.core.refactoring.renameParticipants">
       <renameParticipant
-            class="org.eclipse.ajdt.internal.core.refactoring.PointcutRenameParticipant"
+            class="org.eclipse.ajdt.internal.core.refactoring.AspectRenameParticipant"
             name="%pointcutRenameParticipant"
             id="org.eclipse.ajdt.core.refactoring.pointcut.typeRename">
          <enablement>
@@ -59,7 +58,6 @@
            </with>
          </enablement>
       </renameParticipant>
-   </extension>  
-   -->
+   </extension>
  
 </plugin>
