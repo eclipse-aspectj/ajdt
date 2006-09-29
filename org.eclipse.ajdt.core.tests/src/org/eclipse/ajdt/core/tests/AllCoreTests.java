@@ -33,7 +33,7 @@ import org.eclipse.ajdt.core.tests.model.AJProjectModelTest2;
 import org.eclipse.ajdt.core.tests.model.AJRelationshipManagerTest;
 import org.eclipse.ajdt.core.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.core.tests.model.ModelComparisonTest;
-import org.eclipse.ajdt.core.tests.refactoring.PointcutRenameParticipantTest;
+import org.eclipse.ajdt.core.tests.refactoring.AspectRenameParticipantTest;
 
 /**
  * Defines all the AJDT Core tests. This can be run with either a 1.4.2 or 1.5
@@ -86,7 +86,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));
 		
 		// refactoring tests
-		suite.addTest(new TestSuite(PointcutRenameParticipantTest.class));
+		suite.addTest(new TestSuite(AspectRenameParticipantTest.class));
 		
 		return suite;
 	}

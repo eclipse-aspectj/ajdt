@@ -229,7 +229,8 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
-			System.out.println("(CoreException): " + e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("(CoreException): " + e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+			e.printStackTrace();
 		} catch (IllegalArgumentException iae) {
 			// just print for info
 			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -237,7 +238,7 @@ public class AJDTCoreTestCase extends TestCase {
 		if (!force) {
 			return;
 		}
-		int retryCount = 60; // wait 1 minute at most
+		int retryCount = 10;
 		while (resource.isAccessible() && --retryCount >= 0) {
 			try {
 				Thread.sleep(1000);
@@ -248,7 +249,7 @@ public class AJDTCoreTestCase extends TestCase {
 			} catch (CoreException e) {
 				lastException = e;
 				// just print for info
-				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				System.out.println("(CoreException) Retry "+retryCount+": "+ e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			} catch (IllegalArgumentException iae) {
 				// just print for info
 				System.out.println("(IllegalArgumentException) Retry "+retryCount+": "+ iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
