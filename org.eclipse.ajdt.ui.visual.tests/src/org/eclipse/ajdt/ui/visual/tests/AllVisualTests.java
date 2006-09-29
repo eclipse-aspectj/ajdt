@@ -20,6 +20,8 @@ public class AllVisualTests {
 	public static Test suite() {
 		TestSuite suite = new TestSuite(AllVisualTests.class.getName());
 
+//		suite.addTest(new TestSuite(AspectpathAndInpathTest.class));
+		suite.addTest(new TestSuite(RefactoringParticipationTest.class));
 //		suite.addTest(new TestSuite(AJDocTest.class));
 //		suite.addTest(new TestSuite(AspectJBreakpointKeyboardActionTest.class));
 		suite.addTest(new TestSuite(ExampleProjectsTest.class));
@@ -36,10 +38,8 @@ public class AllVisualTests {
 		suite.addTest(new TestSuite(OrganiseImportsTest2.class));
 //		suite.addTest(new TestSuite(OpenDeclarationTest.class));
 //		suite.addTest(new TestSuite(OpenTypesTest.class));
-//		suite.addTest(new TestSuite(AspectpathAndInpathTest.class));
 //		suite.addTest(new TestSuite(UserAopFileTest.class));
 //		suite.addTest(new TestSuite(UserAopFileExculdeAspectTest.class));
-		suite.addTest(new TestSuite(RefactoringParticipationTest.class));
 		
 		// xref view tests
 		//suite.addTest(AllXRefVisualTests.suite());
