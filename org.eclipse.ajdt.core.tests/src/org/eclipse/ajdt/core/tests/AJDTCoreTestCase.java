@@ -224,12 +224,13 @@ public class AJDTCoreTestCase extends TestCase {
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
-			System.out.println("(CoreException): " + e.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+			System.out.println("(CoreException): " + e.getMessage() + " Resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
+			e.printStackTrace();
 		} catch (IllegalArgumentException iae) {
 			// just print for info
 			System.out.println("(IllegalArgumentException): " + iae.getMessage() + ", resource " + resource.getFullPath()); //$NON-NLS-1$ //$NON-NLS-2$
 		}
-		int retryCount = 60; // wait 1 minute at most
+		int retryCount = 10;
 		while (resource.isAccessible() && --retryCount >= 0) {
 			try {
 				Thread.sleep(1000);

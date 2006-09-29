@@ -14,13 +14,11 @@ package org.eclipse.ajdt.ui.visual.tests;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
-import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -64,6 +62,7 @@ public class RefactoringParticipationTest extends VisualTestCase {
 				}	
 			}.schedule(6000);			
 		}
+		waitForJobsToComplete();
 		waitForJobsToComplete();
 	}
 

@@ -41,8 +41,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 		String[] Aspectpath = AspectJCorePreferences
 				.getProjectAspectPath(project);
 		String[] seperatedAspectpath = Aspectpath[0].split(";"); //$NON-NLS-1$
-		assertTrue((seperatedAspectpath[0]
-				.equals("/jarCreatingProject/myJar.jar"))); //$NON-NLS-1$
+		assertEquals("/jarCreatingProject/myJar.jar",seperatedAspectpath[0]); //$NON-NLS-1$
 
 		selectInPackageExplorer(jar);
 		//		Remove from Aspect Path
@@ -59,7 +58,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		Aspectpath = AspectJCorePreferences.getProjectAspectPath(project);
 		seperatedAspectpath = Aspectpath[0].split(";"); //$NON-NLS-1$
-		assertTrue((seperatedAspectpath[0].equals(""))); //$NON-NLS-1$
+		assertEquals("",seperatedAspectpath[0]); //$NON-NLS-1$
 	}
 
 	public void testInpath() throws Exception {
@@ -84,7 +83,7 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		String[] Inpath = AspectJCorePreferences.getProjectInPath(project);
 		String[] seperatedInpath = Inpath[0].split(";"); //$NON-NLS-1$
-		assertTrue((seperatedInpath[0].equals("/jarCreatingProject/myJar.jar"))); //$NON-NLS-1$
+		assertEquals("/jarCreatingProject/myJar.jar",seperatedInpath[0]); //$NON-NLS-1$
 
 		selectInPackageExplorer(jar);
 		//		Remove from InPath
@@ -101,6 +100,6 @@ public class AspectpathAndInpathTest extends VisualTestCase {
 
 		Inpath = AspectJCorePreferences.getProjectAspectPath(project);
 		seperatedInpath = Inpath[0].split(";"); //$NON-NLS-1$
-		assertTrue((seperatedInpath[0].equals(""))); //$NON-NLS-1$
+		assertEquals("",seperatedInpath[0]); //$NON-NLS-1$
 	}
 }

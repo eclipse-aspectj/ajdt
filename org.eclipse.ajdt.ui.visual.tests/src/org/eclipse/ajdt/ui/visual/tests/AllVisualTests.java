@@ -39,7 +39,7 @@ public class AllVisualTests {
 //		suite.addTest(new TestSuite(AspectpathAndInpathTest.class));
 //		suite.addTest(new TestSuite(UserAopFileTest.class));
 //		suite.addTest(new TestSuite(UserAopFileExculdeAspectTest.class));
-//		suite.addTest(new TestSuite(RefactoringParticipationTest.class));
+		suite.addTest(new TestSuite(RefactoringParticipationTest.class));
 		
 		// xref view tests
 		//suite.addTest(AllXRefVisualTests.suite());
