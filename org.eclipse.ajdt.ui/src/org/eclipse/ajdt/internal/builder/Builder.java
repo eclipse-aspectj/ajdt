@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,9 +15,7 @@ import java.util.Map;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.internal.ui.AspectJProjectNature;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -25,9 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 
@@ -36,7 +32,7 @@ import org.eclipse.swt.widgets.Display;
  * projects which have the old builder id defined in their .project files. When
  * a build is requested, it first checks if the new builder id is also present.
  * If it is, no action is required. If not, the new builder is added, and the
- * old one optionally removed (depending on preference / user choice).
+ * old one removed
  */
 public class Builder extends IncrementalProjectBuilder {
 
@@ -54,38 +50,6 @@ public class Builder extends IncrementalProjectBuilder {
 			// don't need to do anything, the new builder will do the actual
 			// build
 			return null;
-		}
-
-		boolean removeOldBuilder = true;
-		if (AspectJPreferences.isAutoBuilderMigrationEnabled()) {
-			// use previous answer
-			removeOldBuilder = AspectJPreferences
-					.isAutoBuilderMigrationSetToRemoveOldBuilder();
-		} else {
-			// prompt user
-			final boolean[] settings = new boolean[2];
-			AspectJUIPlugin.getDefault().getDisplay().syncExec(new Runnable() {
-				public void run() {
-					MessageDialogWithToggle dialog = MessageDialogWithToggle
-							.openYesNoCancelQuestion(
-									null,
-									UIMessages.Builder_migration_title,
-									NLS.bind(UIMessages.Builder_migration_message, project.getName()),
-										UIMessages.Builder_migration_toggle, true, null, null);
-//					System.out.println("ret: "+dialog.getReturnCode());
-					settings[0] = (dialog.getReturnCode() == IDialogConstants.YES_ID);
-					settings[1] = dialog.getToggleState();
-				}
-			});
-
-			if (settings[1]) {
-				// perform the same for all other projects without prompting
-				AspectJPreferences
-						.setAutoBuilderMigrationRemoveOldBuilder(settings[0]);
-				AspectJPreferences.setAutoBuilderMigrationEnabled(true);
-			}
-
-			removeOldBuilder = settings[0];
 		}
 
 		// add new builder id
@@ -107,9 +71,7 @@ public class Builder extends IncrementalProjectBuilder {
 			return null;
 		}
 
-		if (removeOldBuilder) {
-			AspectJProjectNature.removeOldBuilder(project);
-		}
+		AspectJProjectNature.removeOldBuilder(project);
 
 		// request a full build, which will then call the new builder.
 		// we don't simply call the new builder directly, because the

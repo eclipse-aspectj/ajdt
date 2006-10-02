@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.tests.actions.AddAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
@@ -180,9 +179,6 @@ public class AllAJDTUITests {
 		if (setupDone) {
 			return;
 		}
-
-		AspectJPreferences.setAutoBuilderMigrationEnabled(true);
-		AspectJPreferences.setAutoBuilderMigrationRemoveOldBuilder(true);
 		
 		IWorkbenchWindow window = PlatformUI.getWorkbench()
 				.getActiveWorkbenchWindow();
