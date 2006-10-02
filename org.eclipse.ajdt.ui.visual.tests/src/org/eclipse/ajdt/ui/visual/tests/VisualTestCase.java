@@ -65,9 +65,10 @@ public abstract class VisualTestCase extends UITestCase {
 			event.type = SWT.KeyDown;
 			event.keyCode = SWT.ARROW_RIGHT;
 			display.post(event);
-
+			sleep(10);
 			event.type = SWT.KeyUp;
 			display.post(event);
+			sleep(10);
 		}
 	}
 
@@ -79,13 +80,8 @@ public abstract class VisualTestCase extends UITestCase {
 	 *            the character to post
 	 */
 	protected void postKey(char c) {
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.character = c;
-		display.post(event);
-
-		event.type = SWT.KeyUp;
-		display.post(event);
+		postKeyDown(c);
+		postKeyUp(c);
 	}
 
 	/**
@@ -99,6 +95,7 @@ public abstract class VisualTestCase extends UITestCase {
 		event.type = SWT.KeyDown;
 		event.character = c;
 		display.post(event);
+		sleep(10);
 	}
 
 	/**
@@ -112,6 +109,7 @@ public abstract class VisualTestCase extends UITestCase {
 		event.type = SWT.KeyUp;
 		event.character = c;
 		display.post(event);
+		sleep(10);
 	}
 
 	/**
@@ -122,13 +120,8 @@ public abstract class VisualTestCase extends UITestCase {
 	 *            one of the key codes defined int he SWT class
 	 */
 	protected void postKey(int keyCode) {
-		Event event = new Event();
-		event.type = SWT.KeyDown;
-		event.keyCode = keyCode;
-		display.post(event);
-
-		event.type = SWT.KeyUp;
-		display.post(event);
+		postKeyDown(keyCode);
+		postKeyUp(keyCode);
 	}
 
 	/**
@@ -142,6 +135,7 @@ public abstract class VisualTestCase extends UITestCase {
 		event.type = SWT.KeyDown;
 		event.keyCode = keyCode;
 		display.post(event);
+		sleep(10);
 	}
 
 	/**
@@ -155,6 +149,7 @@ public abstract class VisualTestCase extends UITestCase {
 		event.type = SWT.KeyUp;
 		event.keyCode = keyCode;
 		display.post(event);
+		sleep(10);
 	}
 
 	/**
@@ -182,6 +177,13 @@ public abstract class VisualTestCase extends UITestCase {
 	protected void sleep() {
 		try {
 			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	protected void sleep(int delay) {
+		try {
+			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 		}
 	}
