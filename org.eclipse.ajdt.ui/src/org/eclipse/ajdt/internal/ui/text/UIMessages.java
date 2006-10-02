@@ -27,9 +27,6 @@ public class UIMessages extends NLS {
 	public static String ajde_version;	
 	public static String buildPrereqsMessage;	
 	public static String Builder_migration_build;	
-	public static String Builder_migration_title;
-	public static String Builder_migration_message;
-	public static String Builder_migration_toggle;	
 	public static String Builder_migration_failed_title;
 	public static String Builder_migration_failed_message;	
 	public static String ajCompilation;	

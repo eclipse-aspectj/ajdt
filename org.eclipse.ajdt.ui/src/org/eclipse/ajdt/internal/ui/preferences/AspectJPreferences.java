@@ -360,33 +360,6 @@ public class AspectJPreferences {
 		return false; // Bug 46653
 	}
 
-	// preferences relating to migration of ajdt eclipse builder
-	
-	public static boolean isAutoBuilderMigrationEnabled() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(PERFORM_AUTO_BUILDER_MIGRATION);
-	}
-
-	public static void setAutoBuilderMigrationEnabled(boolean enabled) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		store.setValue(PERFORM_AUTO_BUILDER_MIGRATION, enabled);
-	}
-
-	public static boolean isAutoBuilderMigrationSetToRemoveOldBuilder() {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		return store.getBoolean(AUTO_BUILDER_MIGRATION_SETTING);
-	}
-
-	public static void setAutoBuilderMigrationRemoveOldBuilder(boolean remove) {
-		IPreferenceStore store = AspectJUIPlugin.getDefault()
-				.getPreferenceStore();
-		store.setValue(AUTO_BUILDER_MIGRATION_SETTING, remove);
-	}
-
-
 	/**
 	 * Helper set method
 	 * 
