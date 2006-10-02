@@ -34,16 +34,23 @@ import org.eclipse.ui.progress.UIJob;
 
 public class RefactoringParticipationTest extends VisualTestCase {
 
-	private void doRename(IResource file, final String newName,
-			final boolean doMain) {
-		selectInPackageExplorer(file);
-
-		// Rename type
+	private void doRename(final IResource file, final String newName,
+			final boolean doMain) {	
+		new UIJob("select file job") { //$NON-NLS-1$
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				selectInPackageExplorer(file);
+				sleep();
+				return Status.OK_STATUS;
+			}	
+		}.schedule(0);
+		waitForJobsToComplete();
+		
+		// Refactor > Rename type
 		postKeyDown(SWT.ALT);
-		postKeyDown(SWT.SHIFT);
-		postKey('r');
-		postKeyUp(SWT.SHIFT);
+		postKey('t');
+		sleep();
 		postKeyUp(SWT.ALT);
+		postKey('n');
 
 		new UIJob("post key job") { //$NON-NLS-1$
 			public IStatus runInUIThread(IProgressMonitor monitor) {
