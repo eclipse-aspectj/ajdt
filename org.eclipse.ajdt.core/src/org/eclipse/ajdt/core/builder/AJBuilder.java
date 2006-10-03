@@ -19,6 +19,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aspectj.ajde.Ajde;
 import org.aspectj.ajde.BuildManager;
@@ -38,6 +39,7 @@ import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -59,6 +61,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
+import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -162,8 +165,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		// if using incremental compiilation, then attempt the incremental model repairs.
 		AsmManager.attemptIncrementalModelRepairs = incremental;		
-
 		
+		// bug 159197: check inpath and aspectpath
+		if (!validateInpathAspectPath(project)) {
+			postCallListeners(true);
+			AJLog.log(AJLog.BUILDER,
+					"build: Abort due to missing inpath/aspectpath entries"); //$NON-NLS-1$
+			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
+			progressMonitor.done();
+			return requiredProjects;
+		}
 		
 		// workaround for bug 73435
 		IProject[] dependingProjects = getDependingProjects(project);
@@ -176,7 +187,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
 
-		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
+		ProjectPropertiesAdapter adapter = Ajde.getDefault()
+			.getProjectProperties();
 
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 
@@ -206,9 +218,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 						((CoreProjectProperties)adapter).flushClasspathCache();
 					}
 					postCallListeners(true);
-					// Adding this log call because we need to know that
-					// AJDT has definitely decided not to pass anything down
-					// to the compiler
 					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 					progressMonitor.done();
 					return requiredProjects;						
@@ -317,6 +326,57 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return false;
 	}
 
+	/**
+	 * Check the inpath and aspect path entries exist. Creates problem markers
+	 * for missing entries
+	 * 
+	 * @param project
+	 * @return false if there are missing entries
+	 */
+	private boolean validateInpathAspectPath(IProject project) {
+		ProjectPropertiesAdapter adapter = Ajde.getDefault()
+				.getProjectProperties();
+		boolean success = true;
+		Set inpath = adapter.getInpath();
+		if (inpath != null) {
+			for (Iterator iter = inpath.iterator(); iter.hasNext();) {
+				File f = (File) iter.next();
+				if (!f.exists()) {
+					String missingMessage = NLS.bind(
+							CoreMessages.BuilderMissingInpathEntry, project
+									.getName(), f.getName());
+					markProject(project, missingMessage);
+					success = false;
+				}
+			}
+		}
+		Set aspectpath = adapter.getAspectPath();
+		if (aspectpath != null) {
+			for (Iterator iter = aspectpath.iterator(); iter.hasNext();) {
+				File f = (File) iter.next();
+				if (!f.exists()) {
+					String missingMessage = NLS.bind(
+							CoreMessages.BuilderMissingAspectpathEntry, project
+									.getName(), f.getName());
+					markProject(project, missingMessage);
+					success = false;
+				}
+			}
+		}
+		return success;
+	}
+	
+	private void markProject(IProject project, String errorMessage) {
+		try {
+			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
+			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+		} catch (CoreException e) {
+			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
+							+ project.getName() + ": " + e.getStackTrace()); //$NON-NLS-1$
+		}
+	}
+	
 	/**
 	 * This is taken straight from the JavaBuilder - and is what is returned
 	 * from the build method

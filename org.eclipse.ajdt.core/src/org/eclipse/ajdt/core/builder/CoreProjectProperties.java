@@ -344,20 +344,9 @@ public class CoreProjectProperties implements IProjectProperties {
 					}
 				}// end if named project found
 				else {
-					// Inform user that the supplied path contains an
-					// entry that does not now exist.
-
-					// TODO : Open a message dialog warning user that the
-					// path entry does not exist. Tricky at the moment as
-					// an AJ project build calls getInPath() (and hence this
-					// method) more than once resulting in more than one
-					// pop-ups.
-					// AspectJPlugin.getDefault().getErrorHandler().handleWarning(
-					//		AspectJPlugin.getFormattedResourceString(
-					//				"Path.entryNotFound.warningMessage",
-					//				current));
 					AJLog.log(AJLog.BUILDER,"AspectJ path entry " + current //$NON-NLS-1$
-							+ " does not exist. Ignoring."); //$NON-NLS-1$
+							+ " does not exist."); //$NON-NLS-1$
+					resultBuffer.append(current);
 				}// end else entry not found in workspace
 			}// end if entry is relative to workspace
 			resultBuffer.append(File.pathSeparator);

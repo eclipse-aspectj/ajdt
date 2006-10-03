@@ -58,6 +58,9 @@ public class CoreMessages extends NLS {
 
 	public static String ajRuntimeContainerName;
 
+	public static String BuilderMissingInpathEntry;
+	public static String BuilderMissingAspectpathEntry;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, CoreMessages.class);
 	}
