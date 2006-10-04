@@ -98,16 +98,7 @@ public class ImageDecorator implements ILabelDecorator {
 		if (preventRecursion)
 			return null;
 
-		// 152922: make sure the ajdt.ui bundle is activated if
-		// there is an open AspectJ project present
-		if (element instanceof IJavaProject) {
-			IJavaProject jp = (IJavaProject)element;
-			if (Utils.isAJProject(jp.getProject())) {
-				// causes bundle activation
-				AspectJUIPlugin.getDefault();
-			}
-		}
-		// otherwise only run the decorator if the bundle is already active
+		// only run the decorator if the bundle is already active
 		if (!Utils.isBundleActive()) {
 			return null;
 		}
@@ -208,21 +199,36 @@ public class ImageDecorator implements ILabelDecorator {
 	 * @see ILabelDecorator#decorateText
 	 */
 	public String decorateText(String text, Object element)  {
-//		if (element instanceof AJCompilationUnit){
-//			return text.replaceFirst(".java", ".aj");  //$NON-NLS-1$  //$NON-NLS-2$
-//		} else {
-//			if (element instanceof IAspectJElement){
-//				try {
-//					if(((IAspectJElement)element).getJavaProject().getProject().exists()) {
-//						IProgramElement.Kind kind = ((IAspectJElement)element).getAJKind();
-//						if (!((kind == IProgramElement.Kind.ASPECT) || (kind == IProgramElement.Kind.ADVICE) || (kind == IProgramElement.Kind.POINTCUT) || (kind == IProgramElement.Kind.INTER_TYPE_METHOD) || (kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR))){
-//							return text.substring(0, text.length() - 2);
-//						}
-//					}
-//				} catch (JavaModelException e) {
-//				}
-//			}
-//		}
+		// 152922: make sure the ajdt.ui bundle is activated if
+		// there is an open AspectJ project present
+		if (element instanceof IJavaProject) {
+			IJavaProject jp = (IJavaProject)element;
+			if (Utils.isAJProject(jp.getProject())) {
+				// causes bundle activation
+				AspectJUIPlugin.getDefault();
+			}
+		}
+		// otherwise only run the decorator if the bundle is already active
+		if (!Utils.isBundleActive()) {
+			return null;
+		}
+
+		// bug 158937
+		if (element instanceof DeclareElement) {
+			if (text.endsWith("()")) { //$NON-NLS-1$
+				return text.substring(0,text.length()-2);
+			}
+		} else if (element instanceof IntertypeElement) {
+			IntertypeElement itd = (IntertypeElement)element;
+			try {
+				if (itd.getAJKind() == IProgramElement.Kind.INTER_TYPE_FIELD) {
+					if (text.endsWith("()")) { //$NON-NLS-1$
+						return text.substring(0,text.length()-2);
+					}					
+				}
+			} catch (JavaModelException e) {
+			}
+		}
 		return null;
 	}
 	
