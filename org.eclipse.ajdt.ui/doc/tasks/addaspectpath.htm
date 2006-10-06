@@ -14,18 +14,23 @@
     </h1>
     <p>
       The AspectJ aspectpath setting enables weaving aspects from the aspectpath
-      into in the project and outputting the results to the normal output location.  
+      into the project and writing the results to the normal output location.  
     </p>
     <p> To set the aspectpath: </p><p>
     <ol>
-    <li>Right click on the project, then select <strong>Properties</strong>.</li>
-    <li>Select <strong>AspectJ Aspectpath</strong> in the left hand column.</li>
-    <li>Select the <strong>Libraries and Folders</strong> tab.
-    <li>Use the buttons on the right hand side to add class folders and/or
+    	<li>Select the AspectJ project in the Package Explorer</li>  
+        <li>Right click and select <b>AspectJ Tools &gt; Configure AspectJ Build Path...</b></li>
+        <li>Select the <b>Aspect Path</b> tab</li>
+       <li>Use the buttons on the right hand side to add class folders and/or
     JAR files to the aspectpath.</li>
     <li>Click <strong>OK</strong> to finish.  If automatic building is switched on
     the project will rebuild.</li>    
     </ol>
+    </p>
+    
+    <p>
+      Shortcuts are available by right clicking on a local JAR file, to add or
+      remove that file from the project's aspectpath.
     </p>
     
     <p>Note: The aspectpath can be used in conjunction with other AspectJ compiler settings

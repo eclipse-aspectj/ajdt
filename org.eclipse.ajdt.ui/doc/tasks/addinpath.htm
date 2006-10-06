@@ -14,19 +14,24 @@
     </h1>
     <p>
       The AspectJ inpath setting enables weaving aspects in the project
-      into one or more folder(s) or JAR file(s) on the inpath and outputting the results
+      into one or more folder(s) or JAR file(s) on the inpath and writing the results
       to the normal output location.  
     </p>
     <p> To set the inpath: </p><p>
     <ol>
-    <li>Right click on the project, then select <strong>Properties</strong>.</li>
-    <li>Select <strong>AspectJ Inpath</strong> in the left hand column.</li>
-    <li>Select the <strong>Libraries and Folders</strong> tab.
-    <li>Use the buttons on the right hand side to add class folders and/or
+       	<li>Select the AspectJ project in the Package Explorer</li>  
+        <li>Right click and select <b>AspectJ Tools &gt; Configure AspectJ Build Path...</b></li>
+        <li>Select the <b>Inpath</b> tab</li>   
+     <li>Use the buttons on the right hand side to add class folders and/or
     JAR files to the inpath.</li>
     <li>Click <strong>OK</strong> to finish.  If automatic building is switched on
     the project will rebuild.</li>    
     </ol>
+    </p>
+   
+    <p>
+      Shortcuts are available by right clicking on a local JAR file, to add or
+      remove that file from the project's inpath.
     </p>
     
     <p>Note: The inpath can be used in conjunction with other AspectJ compiler settings
