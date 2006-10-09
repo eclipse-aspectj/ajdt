@@ -8,7 +8,7 @@ public aspect MyBar {
 		System.out.println("about to call a main method");
 	}
 
-	public void main() {
-		
-	}
+//	public void main() {
+//		
+//	}
 }

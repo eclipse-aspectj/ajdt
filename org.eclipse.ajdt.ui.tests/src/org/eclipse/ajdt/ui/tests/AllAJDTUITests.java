@@ -45,6 +45,7 @@ import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest;
 import org.eclipse.ajdt.ui.tests.launching.LTWUtilsTest2;
 import org.eclipse.ajdt.ui.tests.lazystart.ImageDecoratorTest;
+import org.eclipse.ajdt.ui.tests.model.BinaryWeavingSupportTest;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest;
 import org.eclipse.ajdt.ui.tests.newbuildconfig.BuildConfigurationTest2;
 import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageTest;
@@ -133,6 +134,9 @@ public class AllAJDTUITests {
 		// test classes in lazystart package
 		suite.addTest(new TestSuite(ImageDecoratorTest.class));
 
+		// ui model tests
+		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
+		
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
 		suite.addTest(new TestSuite(ContentAssistTest.class));
