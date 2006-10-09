@@ -21,14 +21,17 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.core.AJWorkingCopyOwner;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.IType;
@@ -39,6 +42,8 @@ public class BinaryWeavingSupport {
 
 	public static boolean isActive = true;
 	
+	private static final String adviceDidNotMatch = "Xlint:adviceDidNotMatch"; //$NON-NLS-1$
+
 	public static IJavaElement locateBinaryElementsInWorkspace(IProgramElement link) {
 		ISourceLocation isl = link.getSourceLocation();
 		String filename = isl.getSourceFileName();
@@ -55,7 +60,7 @@ public class BinaryWeavingSupport {
 			return null;
 		}
 		
-		String pack = "";
+		String pack = ""; //$NON-NLS-1$
 		int ind2 = cls.lastIndexOf('/');
 		if (ind2 != -1) { // not default package
 			pack = cls.substring(0,ind2).replace('/', '.');
@@ -105,7 +110,7 @@ public class BinaryWeavingSupport {
 	public static IJavaElement findElementAtLine(AJCompilationUnit ajcu, int targetLine) {
 		int line = 0;
 		ajcu.requestOriginalContentMode();
-		String src = "";
+		String src = ""; //$NON-NLS-1$
 		try {
 			src = ((ISourceReference) ajcu).getSource();
 		} catch (JavaModelException e1) {
@@ -126,5 +131,34 @@ public class BinaryWeavingSupport {
 		return null;
 	}
 
+	/**
+	 * We've added an advises relationships to some advice in another
+	 * project, but that advice may already have an "advice did not match"
+	 * marker against it (when the project was built on its own). Remove
+	 * such a marker if found.
+	 * (see bug 159873)
+	 * @param targetEl
+	 * @param line
+	 */
+	public static void removeAdviceDidNotMatchWarnings(IJavaElement targetEl,
+			int line) {
+		IResource res = targetEl.getResource();
+		try {
+			IMarker[] markers = res.findMarkers(
+					IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, false,
+					IResource.DEPTH_ZERO);
+			for (int i = 0; i < markers.length; i++) {
+				int mline = markers[i].getAttribute(IMarker.LINE_NUMBER, -1);
+				if (mline == line) {
+					String msg = markers[i].getAttribute(IMarker.MESSAGE, ""); //$NON-NLS-1$
+					if (msg.indexOf(adviceDidNotMatch) != -1) {
+						markers[i].delete();
+						return;
+					}
+				}
+			}
+		} catch (CoreException e) {
+		}
+	}
 	
 }

@@ -556,6 +556,9 @@ public class AJProjectModel {
 		l.add(sourceEl);
 		
 		lineNumbers.put(targetEl, new Integer(line));
+		if (oppRel == AJRelationshipManager.ADVISES) {
+			BinaryWeavingSupport.removeAdviceDidNotMatchWarnings(targetEl,line);
+		}
 	}
 			
 	private void createMapForFile(final IFile file) {
