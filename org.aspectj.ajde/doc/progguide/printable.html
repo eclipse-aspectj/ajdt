@@ -15,7 +15,7 @@
         understanding, you should read <a href="#language">The AspectJ Language</a> and
         look at the examples in the chapter. If you want a more formal
         definition of AspectJ, you should read <a href="#semantics">Semantics</a>.
-      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#preface">Preface</a></dt><dt>1. <a href="#starting">Getting Started with AspectJ</a></dt><dd><dl><dt><a href="#starting-intro">Introduction</a></dt><dt><a href="#starting-aspectj">Introduction to AspectJ</a></dt><dd><dl><dt><a href="#the-dynamic-join-point-model">The Dynamic Join Point Model</a></dt><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt><dt><a href="#inter-type-declarations">Inter-type declarations</a></dt><dt><a href="#aspects">Aspects</a></dt></dl></dd><dt><a href="#starting-development">Development Aspects</a></dt><dd><dl><dt><a href="#tracing">Tracing</a></dt><dt><a href="#profiling-and-logging">Profiling and Logging</a></dt><dt><a href="#pre-and-post-conditions">Pre- and Post-Conditions</a></dt><dt><a href="#contract-enforcement">Contract Enforcement</a></dt><dt><a href="#configuration-management">Configuration Management</a></dt></dl></dd><dt><a href="#starting-production">Production Aspects</a></dt><dd><dl><dt><a href="#change-monitoring">Change Monitoring</a></dt><dt><a href="#context-passing">Context Passing</a></dt><dt><a href="#starting-production-consistentBehavior">Providing Consistent Behavior</a></dt></dl></dd><dt><a href="#starting-conclusion">Conclusion</a></dt></dl></dd><dt>2. <a href="#language">The AspectJ Language</a></dt><dd><dl><dt><a href="#language-intro">Introduction</a></dt><dt><a href="#language-anatomy">The Anatomy of an Aspect</a></dt><dd><dl><dt><a href="#an-example-aspect">An Example Aspect</a></dt><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#language-joinPoints">Join Points and Pointcuts</a></dt><dd><dl><dt><a href="#some-example-pointcuts">Some Example Pointcuts</a></dt><dt><a href="#call-vs-execution">call vs. execution</a></dt><dt><a href="#pointcut-composition">Pointcut composition</a></dt><dt><a href="#pointcut-parameters">Pointcut Parameters</a></dt><dt><a href="#example">Example: <tt>HandleLiveness</tt></a></dt></dl></dd><dt><a href="#language-advice">Advice</a></dt><dt><a href="#language-interType">Inter-type declarations</a></dt><dd><dl><dt><a href="#inter-type-scope">Inter-type Scope</a></dt><dt><a href="#example-pointassertions">Example: <tt>PointAssertions</tt></a></dt></dl></dd><dt><a href="#language-thisJoinPoint">thisJoinPoint</a></dt></dl></dd><dt>3. <a href="#examples">Examples</a></dt><dd><dl><dt><a href="#examples-intro">Introduction</a></dt><dt><a href="#examples-howto">Obtaining, Compiling and Running the Examples</a></dt><dt><a href="#examples-basic">Basic Techniques</a></dt><dd><dl><dt><a href="#examples-joinPoints">Join Points and <tt>thisJoinPoint</tt></a></dt><dt><a href="#examples-roles">Roles and Views</a></dt></dl></dd><dt><a href="#examples-development">Development Aspects</a></dt><dd><dl><dt><a href="#tracing-using-aspects">Tracing using aspects</a></dt></dl></dd><dt><a href="#examples-production">Production Aspects</a></dt><dd><dl><dt><a href="#a-bean-aspect">A Bean Aspect</a></dt><dt><a href="#the-subject-observer-protocol">The Subject/Observer Protocol</a></dt><dt><a href="#a-simple-telecom-simulation">A Simple Telecom Simulation</a></dt></dl></dd><dt><a href="#examples-reusable">Reusable Aspects</a></dt><dd><dl><dt><a href="#tracing-using-aspects-revisited">Tracing using Aspects, Revisited</a></dt></dl></dd></dl></dd><dt>4. <a href="#idioms">Idioms</a></dt><dd><dl><dt><a href="#idioms-intro">Introduction</a></dt></dl></dd><dt>5. <a href="#pitfalls">Pitfalls</a></dt><dd><dl><dt><a href="#pitfalls-intro">Introduction</a></dt><dt><a href="#pitfalls-infiniteLoops">Infinite loops</a></dt></dl></dd><dt>A. <a href="#quick">AspectJ Quick Reference</a></dt><dd><dl><dt><a href="#quick-pointcuts">Pointcuts</a></dt><dt><a href="#quick-typePatterns">Type Patterns</a></dt><dt><a href="#quick-advice">Advice</a></dt><dt><a href="#quick-interType">Inter-type member declarations</a></dt><dt><a href="#quick-other">Other declarations</a></dt><dt><a href="#quick-aspectAssociations">Aspects</a></dt></dl></dd><dt>B. <a href="#semantics">Language Semantics</a></dt><dd><dl><dt><a href="#semantics-intro">Introduction</a></dt><dt><a href="#semantics-joinPoints">Join Points</a></dt><dt><a href="#semantics-pointcuts">Pointcuts</a></dt><dd><dl><dt><a href="#pointcut-definition">Pointcut definition</a></dt><dt><a href="#context-exposure">Context exposure</a></dt><dt><a href="#primitive-pointcuts">Primitive pointcuts</a></dt><dt><a href="#signatures">Signatures</a></dt><dt><a href="#matching">Matching</a></dt><dt><a href="#type-patterns">Type patterns</a></dt><dt><a href="#pattern-summary">Pattern Summary</a></dt></dl></dd><dt><a href="#semantics-advice">Advice</a></dt><dd><dl><dt><a href="#advice-modifiers">Advice modifiers</a></dt><dt><a href="#advice-and-checked-exceptions">Advice and checked exceptions</a></dt><dt><a href="#advice-precedence">Advice precedence</a></dt><dt><a href="#reflective-access-to-the-join-point">Reflective access to the join point</a></dt></dl></dd><dt><a href="#semantics-declare">Static crosscutting</a></dt><dd><dl><dt><a href="#inter-type-member-declarations">Inter-type member declarations</a></dt><dt><a href="#access-modifiers">Access modifiers</a></dt><dt><a href="#conflicts">Conflicts</a></dt><dt><a href="#extension-and-implementation">Extension and Implementation</a></dt><dt><a href="#interfaces-with-members">Interfaces with members</a></dt><dt><a href="#warnings-and-errors">Warnings and Errors</a></dt><dt><a href="#softened-exceptions">Softened exceptions</a></dt><dt><a href="#advice-precedence">Advice Precedence</a></dt><dt><a href="#statically-determinable-pointcuts">Statically determinable pointcuts</a></dt></dl></dd><dt><a href="#semantics-aspects">Aspects</a></dt><dd><dl><dt><a href="#aspect-declaration">Aspect Declaration</a></dt><dt><a href="#aspect-extension">Aspect Extension</a></dt><dt><a href="#aspect-instantiation">Aspect instantiation</a></dt><dt><a href="#aspect-privilege">Aspect privilege</a></dt></dl></dd></dl></dd><dt>C. <a href="#implementation">Implementation Notes</a></dt><dd><dl><dt><a href="#d0e7185">Compiler Notes</a></dt><dt><a href="#d0e7259">Bytecode Notes</a></dt><dd><dl><dt><a href="#the-class-expression-and-string">The .class expression and String +</a></dt><dt><a href="#the-handler-join-point">The Handler join point</a></dt><dt><a href="#initializers-and-inter-type-constructors">Initializers and Inter-type Constructors</a></dt></dl></dd><dt><a href="#d0e7365">Summary of implementation requirements</a></dt></dl></dd></dl></div><div id="preface" class="preface"><div class="titlepage"><div><h2 class="title"><a name="preface"></a>Preface</h2></div></div><p>
+      </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#preface">Preface</a></dt><dt>1. <a href="#starting">Getting Started with AspectJ</a></dt><dd><dl><dt><a href="#starting-intro">Introduction</a></dt><dt><a href="#starting-aspectj">Introduction to AspectJ</a></dt><dd><dl><dt><a href="#the-dynamic-join-point-model">The Dynamic Join Point Model</a></dt><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt><dt><a href="#inter-type-declarations">Inter-type declarations</a></dt><dt><a href="#aspects">Aspects</a></dt></dl></dd><dt><a href="#starting-development">Development Aspects</a></dt><dd><dl><dt><a href="#tracing">Tracing</a></dt><dt><a href="#profiling-and-logging">Profiling and Logging</a></dt><dt><a href="#pre-and-post-conditions">Pre- and Post-Conditions</a></dt><dt><a href="#contract-enforcement">Contract Enforcement</a></dt><dt><a href="#configuration-management">Configuration Management</a></dt></dl></dd><dt><a href="#starting-production">Production Aspects</a></dt><dd><dl><dt><a href="#change-monitoring">Change Monitoring</a></dt><dt><a href="#context-passing">Context Passing</a></dt><dt><a href="#starting-production-consistentBehavior">Providing Consistent Behavior</a></dt></dl></dd><dt><a href="#starting-conclusion">Conclusion</a></dt></dl></dd><dt>2. <a href="#language">The AspectJ Language</a></dt><dd><dl><dt><a href="#language-intro">Introduction</a></dt><dt><a href="#language-anatomy">The Anatomy of an Aspect</a></dt><dd><dl><dt><a href="#an-example-aspect">An Example Aspect</a></dt><dt><a href="#pointcuts">Pointcuts</a></dt><dt><a href="#advice">Advice</a></dt></dl></dd><dt><a href="#language-joinPoints">Join Points and Pointcuts</a></dt><dd><dl><dt><a href="#some-example-pointcuts">Some Example Pointcuts</a></dt><dt><a href="#call-vs-execution">call vs. execution</a></dt><dt><a href="#pointcut-composition">Pointcut composition</a></dt><dt><a href="#pointcut-parameters">Pointcut Parameters</a></dt><dt><a href="#example">Example: <tt>HandleLiveness</tt></a></dt></dl></dd><dt><a href="#language-advice">Advice</a></dt><dt><a href="#language-interType">Inter-type declarations</a></dt><dd><dl><dt><a href="#inter-type-scope">Inter-type Scope</a></dt><dt><a href="#example-pointassertions">Example: <tt>PointAssertions</tt></a></dt></dl></dd><dt><a href="#language-thisJoinPoint">thisJoinPoint</a></dt></dl></dd><dt>3. <a href="#examples">Examples</a></dt><dd><dl><dt><a href="#examples-intro">Introduction</a></dt><dt><a href="#examples-howto">Obtaining, Compiling and Running the Examples</a></dt><dt><a href="#examples-basic">Basic Techniques</a></dt><dd><dl><dt><a href="#examples-joinPoints">Join Points and <tt>thisJoinPoint</tt></a></dt><dt><a href="#examples-roles">Roles and Views</a></dt></dl></dd><dt><a href="#examples-development">Development Aspects</a></dt><dd><dl><dt><a href="#tracing-using-aspects">Tracing using aspects</a></dt></dl></dd><dt><a href="#examples-production">Production Aspects</a></dt><dd><dl><dt><a href="#a-bean-aspect">A Bean Aspect</a></dt><dt><a href="#the-subject-observer-protocol">The Subject/Observer Protocol</a></dt><dt><a href="#a-simple-telecom-simulation">A Simple Telecom Simulation</a></dt></dl></dd><dt><a href="#examples-reusable">Reusable Aspects</a></dt><dd><dl><dt><a href="#tracing-using-aspects-revisited">Tracing using Aspects, Revisited</a></dt></dl></dd></dl></dd><dt>4. <a href="#idioms">Idioms</a></dt><dd><dl><dt><a href="#idioms-intro">Introduction</a></dt></dl></dd><dt>5. <a href="#pitfalls">Pitfalls</a></dt><dd><dl><dt><a href="#pitfalls-intro">Introduction</a></dt><dt><a href="#pitfalls-infiniteLoops">Infinite loops</a></dt></dl></dd><dt>A. <a href="#quick">AspectJ Quick Reference</a></dt><dd><dl><dt><a href="#quick-pointcuts">Pointcuts</a></dt><dt><a href="#quick-typePatterns">Type Patterns</a></dt><dt><a href="#quick-advice">Advice</a></dt><dt><a href="#quick-interType">Inter-type member declarations</a></dt><dt><a href="#quick-other">Other declarations</a></dt><dt><a href="#quick-aspectAssociations">Aspects</a></dt></dl></dd><dt>B. <a href="#semantics">Language Semantics</a></dt><dd><dl><dt><a href="#semantics-intro">Introduction</a></dt><dt><a href="#semantics-joinPoints">Join Points</a></dt><dt><a href="#semantics-pointcuts">Pointcuts</a></dt><dd><dl><dt><a href="#pointcut-definition">Pointcut definition</a></dt><dt><a href="#context-exposure">Context exposure</a></dt><dt><a href="#primitive-pointcuts">Primitive pointcuts</a></dt><dt><a href="#signatures">Signatures</a></dt><dt><a href="#matching">Matching</a></dt><dt><a href="#type-patterns">Type patterns</a></dt><dt><a href="#pattern-summary">Pattern Summary</a></dt></dl></dd><dt><a href="#semantics-advice">Advice</a></dt><dd><dl><dt><a href="#advice-modifiers">Advice modifiers</a></dt><dt><a href="#advice-and-checked-exceptions">Advice and checked exceptions</a></dt><dt><a href="#advice-precedence">Advice precedence</a></dt><dt><a href="#reflective-access-to-the-join-point">Reflective access to the join point</a></dt></dl></dd><dt><a href="#semantics-declare">Static crosscutting</a></dt><dd><dl><dt><a href="#inter-type-member-declarations">Inter-type member declarations</a></dt><dt><a href="#access-modifiers">Access modifiers</a></dt><dt><a href="#conflicts">Conflicts</a></dt><dt><a href="#extension-and-implementation">Extension and Implementation</a></dt><dt><a href="#interfaces-with-members">Interfaces with members</a></dt><dt><a href="#warnings-and-errors">Warnings and Errors</a></dt><dt><a href="#softened-exceptions">Softened exceptions</a></dt><dt><a href="#advice-precedence">Advice Precedence</a></dt><dt><a href="#statically-determinable-pointcuts">Statically determinable pointcuts</a></dt></dl></dd><dt><a href="#semantics-aspects">Aspects</a></dt><dd><dl><dt><a href="#aspect-declaration">Aspect Declaration</a></dt><dt><a href="#aspect-extension">Aspect Extension</a></dt><dt><a href="#aspect-instantiation">Aspect instantiation</a></dt><dt><a href="#aspect-privilege">Aspect privilege</a></dt></dl></dd></dl></dd><dt>C. <a href="#implementation">Implementation Notes</a></dt><dd><dl><dt><a href="#d0e7254">Compiler Notes</a></dt><dt><a href="#d0e7328">Bytecode Notes</a></dt><dd><dl><dt><a href="#the-class-expression-and-string">The .class expression and String +</a></dt><dt><a href="#the-handler-join-point">The Handler join point</a></dt><dt><a href="#initializers-and-inter-type-constructors">Initializers and Inter-type Constructors</a></dt></dl></dd><dt><a href="#d0e7434">Annotation-style Notes</a></dt><dt><a href="#d0e7439">Summary of implementation requirements</a></dt></dl></dd></dl></div><div id="preface" class="preface"><div class="titlepage"><div><h2 class="title"><a name="preface"></a>Preface</h2></div></div><p>
     This programming guide does three things. It
 
     <div class="itemizedlist"><ul compact><li><p><a name="d0e32"></a>introduces the AspectJ language</p></li><li><p><a name="d0e35"></a>
@@ -5044,9 +5044,9 @@ ModifiersPattern =
       }
   }
 </pre><p>
-		Any occurence of <tt>proceed(..)</tt> within the body of
-		around advice is treated as the special proceed form (even if the
-		aspect defines a method named <tt>proceed</tt>) unless a 
+		Any occurence of <tt>proceed(..)</tt> within the body of around 
+        advice is treated as the special proceed form (even if the
+		aspect defines a method named <tt>proceed</tt>), unless a 
 		target other than the aspect instance is specified as the recipient of
 		the call.
 		For example, in the following program the first 
@@ -5081,6 +5081,61 @@ ModifiersPattern =
       Rather, it will double the local parameter.  Changing the values of
       parameters or return values of join points can be done by using around
       advice.
+    </p><p>
+        With <tt>proceed(..)</tt> it is possible to change the values
+        used by less-precedent advice and the underlying join point by supplying
+        different values for the variables.  For example, this aspect replaces
+        the string bound to <tt>s</tt> in the named pointcut 
+        <tt>privateData</tt>:
+    </p><pre class="programlisting">
+  aspect A {
+    Object around(String s): MyPointcuts.privateData(s) {
+      return proceed("private data");
+    }
+  }
+</pre><p>
+        If you replace an argument to <tt>proceed(..)</tt>, you can cause 
+        a <tt>ClassCastException</tt> at runtime when the argument
+        refers to a supertype of the actual type and you do not supply a 
+        reference of the actual type.  In the following aspect, the
+        around advice replaces the declared target <tt>List</tt> 
+        with an <tt>ArrayList</tt>.  This is valid code at
+        compile-time since the types match.  
+    </p><pre class="programlisting">
+  import java.util.*;
+
+  aspect A {
+    Object around(List list): call(* List+.*()) &amp;&amp; target(list) {
+      return proceed(new ArrayList());
+    }
+  }
+</pre><p>
+        But imagine a simple program where the actual target is
+        <tt>LinkedList</tt>.  In this case, the advice would cause a
+        <tt>ClassCastException</tt> at runtime, and 
+        <tt>peek()</tt> is not declared in <tt>ArrayList</tt>.
+    </p><pre class="programlisting">
+  public class Test {
+    public static void main(String[] args) {
+      new LinkedList().peek();
+    }
+  }
+</pre><p>
+        The <tt>ClassCastException</tt> can occur even in situations
+        where it appears to be unnecessary, e.g., if the program is changed to
+        call <tt>size()</tt>, declared in <tt>List</tt>:
+    </p><pre class="programlisting">
+  public class Test {
+    public static void main(String[] args) {
+      new LinkedList().size();
+    }
+  }
+</pre><p>
+        There will still be a <tt>ClassCastException</tt> because
+        it is impossible to prove that there won't be a runtime binary-compatible
+        change in the hierarchy of <tt>LinkedList</tt> or some
+        other advice on the join point that requires a 
+        <tt>LinkedList</tt>.
     </p><div class="sect2"><a name="advice-modifiers"></a><div class="titlepage"><div><h3 class="title"><a name="advice-modifiers"></a>Advice modifiers</h3></div></div><p>
         The <tt>strictfp</tt> modifier is the only modifier allowed
         on advice, and it has the effect of making all floating-point
@@ -5114,46 +5169,46 @@ ModifiersPattern =
         an undeclared checked exception, and the second because field get join
         points cannot throw <tt>FileNotFoundException</tt>s.
       </p><p> The exceptions that each kind of join point in AspectJ may throw are:
-      </p><div class="variablelist"><dl><dt><a name="d0e6208"></a><span class="term">method call and execution</span></dt><dd>
+      </p><div class="variablelist"><dl><dt><a name="d0e6277"></a><span class="term">method call and execution</span></dt><dd>
           the checked exceptions declared by the target method's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6216"></a><span class="term">constructor call and execution</span></dt><dd>
+        </dd><dt><a name="d0e6285"></a><span class="term">constructor call and execution</span></dt><dd>
           the checked exceptions declared by the target constructor's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6224"></a><span class="term">field get and set</span></dt><dd>
+        </dd><dt><a name="d0e6293"></a><span class="term">field get and set</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6229"></a><span class="term">exception handler execution</span></dt><dd>
+        </dd><dt><a name="d0e6298"></a><span class="term">exception handler execution</span></dt><dd>
           the exceptions that can be thrown by the target exception handler.
-        </dd><dt><a name="d0e6234"></a><span class="term">static initializer execution</span></dt><dd>
+        </dd><dt><a name="d0e6303"></a><span class="term">static initializer execution</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6239"></a><span class="term">pre-initialization and initialization</span></dt><dd>
+        </dd><dt><a name="d0e6308"></a><span class="term">pre-initialization and initialization</span></dt><dd>
           any exception that is in the throws clause of
           <span class="emphasis"><i>all</i></span> constructors of the initialized class. 
-        </dd><dt><a name="d0e6247"></a><span class="term">advice execution</span></dt><dd>
+        </dd><dt><a name="d0e6316"></a><span class="term">advice execution</span></dt><dd>
           any exception that is in the throws clause of the advice. 
         </dd></dl></div></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice precedence</h3></div></div><p>
         Multiple pieces of advice may apply to the same join point.  In such
         cases, the resolution order of the advice is based on advice
         precedence.
-      </p><div class="sect3"><a name="d0e6257"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6257"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
+      </p><div class="sect3"><a name="d0e6326"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6326"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
         piece of advice has precedence over another when they advise the same
         join point. </p><p>If the two pieces of advice are defined in different aspects,
-        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6265"></a>If aspect A is matched earlier than aspect B in some
+        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6334"></a>If aspect A is matched earlier than aspect B in some
           <tt>declare precedence</tt> form, then all advice in
           concrete aspect A has precedence over all advice in concrete aspect B
-          when they are on the same join point.  </li><li><a name="d0e6270"></a>
+          when they are on the same join point.  </li><li><a name="d0e6339"></a>
           Otherwise, if aspect A is a subaspect of aspect B, then all advice
           defined in A has precedence over all advice defined in
           B. So, unless otherwise specified with
           <tt>declare precedence</tt>, advice in a subaspect
           has precedence over advice in a superaspect.
-          </li><li><a name="d0e6275"></a>
+          </li><li><a name="d0e6344"></a>
           Otherwise, if two pieces of advice are defined in two different
           aspects, it is undefined which one has precedence.
           </li></ul></div><p>If the two pieces of advice are defined in the same aspect, then
-        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6280"></a>If either are <tt>after</tt> advice, then the one that
+        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6349"></a>If either are <tt>after</tt> advice, then the one that
           appears later in the aspect has precedence over the one that appears
-          earlier. </li><li><a name="d0e6285"></a>Otherwise, then the one that appears earlier in the aspect
+          earlier. </li><li><a name="d0e6354"></a>Otherwise, then the one that appears earlier in the aspect
           has precedence over the one that appears later.
           </li></ul></div><p>These rules can lead to circularity, such as</p><pre class="programlisting">
   aspect A {
@@ -5161,7 +5216,7 @@ ModifiersPattern =
       after():  execution(void main(String[] args)) {}
       before(): execution(void main(String[] args)) {}
   }
-</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6293"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6293"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
+</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6362"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6362"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
         advice of lower precedence will run by calling
         <tt>proceed</tt>.  The call to <tt>proceed</tt>
         will run the advice with next precedence, or the computation under the
@@ -5228,13 +5283,13 @@ ModifiersPattern =
           associated with other types.
         </p><p>
         An inter-type method declaration looks like
-      </p><div class="itemizedlist"><ul><li><a name="d0e6401"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6470"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i> <i><tt>OnType</tt></i>
         .
         <i><tt>Id</tt></i>(<i><tt>Formals</tt></i>)
         [ <i><tt>ThrowsClause</tt></i> ]
-        { <i><tt>Body</tt></i> }</tt></li><li><a name="d0e6425"></a><tt>abstract
+        { <i><tt>Body</tt></i> }</tt></li><li><a name="d0e6494"></a><tt>abstract
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i> <i><tt>OnType</tt></i>
         .  <i><tt>Id</tt></i>(<i><tt>Formals</tt></i>)
@@ -5259,7 +5314,7 @@ ModifiersPattern =
   }
 </pre><p>
         An inter-type constructor declaration looks like
-      </p><div class="itemizedlist"><ul><li><a name="d0e6459"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6528"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>OnType</tt></i> . new (
         <i><tt>Formals</tt></i> )
@@ -5283,11 +5338,11 @@ ModifiersPattern =
         constructor is defined.
       </p><p>
         An inter-type field declaration looks like one of
-      </p><div class="itemizedlist"><ul><li><a name="d0e6504"></a><tt>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6573"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i>
         <i><tt>OnType</tt></i> . <i><tt>Id</tt></i>
-        = <i><tt>Expression</tt></i>;</tt></li><li><a name="d0e6522"></a><tt>
+        = <i><tt>Expression</tt></i>;</tt></li><li><a name="d0e6591"></a><tt>
         [ <i><tt>Modifiers</tt></i> ]
         <i><tt>Type</tt></i>
         <i><tt>OnType</tt></i> . <i><tt>Id</tt></i>;</tt></li></ul></div><p>
@@ -5378,9 +5433,9 @@ ModifiersPattern =
       </p><p>
         Conflicts are resolved as much as possible as per Java's conflict
         resolution rules:
-      </p><div class="itemizedlist"><ul><li><a name="d0e6657"></a>A subclass can inherit multiple <span class="emphasis"><i>fields</i></span> from its superclasses,
+      </p><div class="itemizedlist"><ul><li><a name="d0e6726"></a>A subclass can inherit multiple <span class="emphasis"><i>fields</i></span> from its superclasses,
         all with the same name and type.  However, it is an error to have an ambiguous
-        <span class="emphasis"><i>reference</i></span> to a field.</li><li><a name="d0e6665"></a>A subclass can only inherit multiple
+        <span class="emphasis"><i>reference</i></span> to a field.</li><li><a name="d0e6734"></a>A subclass can only inherit multiple
         <span class="emphasis"><i>methods</i></span> with the same name and argument types from
         its superclasses if only zero or one of them is concrete (i.e., all but
         one is abstract, or all are abstract).
@@ -5395,7 +5450,7 @@ ModifiersPattern =
         An aspect may change the inheritance hierarchy of a system by changing
         the superclass of a type or adding a superinterface onto a type, with
         the <tt>declare parents</tt> form.
-      </p><div class="itemizedlist"><ul><li><a name="d0e6684"></a><tt>declare parents: <i><tt>TypePattern</tt></i> extends <i><tt>Type</tt></i>;</tt></li><li><a name="d0e6693"></a><tt>declare parents: <i><tt>TypePattern</tt></i> implements <i><tt>TypeList</tt></i>;</tt></li></ul></div><p>
+      </p><div class="itemizedlist"><ul><li><a name="d0e6753"></a><tt>declare parents: <i><tt>TypePattern</tt></i> extends <i><tt>Type</tt></i>;</tt></li><li><a name="d0e6762"></a><tt>declare parents: <i><tt>TypePattern</tt></i> implements <i><tt>TypeList</tt></i>;</tt></li></ul></div><p>
         For example, if an aspect wished to make a particular class runnable,
         it might define appropriate inter-type <tt>void
         run()</tt> method, but it should also declare that the class
@@ -5437,7 +5492,7 @@ ModifiersPattern =
       </p><pre class="programlisting">
     Object M C O N D Q P E
 </pre></div><div class="sect2"><a name="warnings-and-errors"></a><div class="titlepage"><div><h3 class="title"><a name="warnings-and-errors"></a>Warnings and Errors</h3></div></div><p>An aspect may specify that a particular join point should never be
-      reached.  </p><div class="itemizedlist"><ul><li><a name="d0e6768"></a><tt>declare error: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li><li><a name="d0e6777"></a><tt>declare warning: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li></ul></div><p>If the compiler determines that a join point in
+      reached.  </p><div class="itemizedlist"><ul><li><a name="d0e6837"></a><tt>declare error: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li><li><a name="d0e6846"></a><tt>declare warning: <i><tt>Pointcut</tt></i>: <i><tt>String</tt></i>;</tt></li></ul></div><p>If the compiler determines that a join point in
       <i><tt>Pointcut</tt></i> could possibly be reached, then it
       will signal either an error or warning, as declared, using the
       <i><tt>String</tt></i> for its message.   </p></div><div class="sect2"><a name="softened-exceptions"></a><div class="titlepage"><div><h3 class="title"><a name="softened-exceptions"></a>Softened exceptions</h3></div></div><p>An aspect may specify that a particular kind of exception, if
@@ -5445,7 +5500,7 @@ ModifiersPattern =
       checking system and instead be thrown as a
       <tt>org.aspectj.lang.SoftException</tt>, which is subtype of
       <tt>RuntimeException</tt> and thus does not need to be
-      declared.  </p><div class="itemizedlist"><ul><li><a name="d0e6806"></a><tt>declare soft: <i><tt>Type</tt></i>: <i><tt>Pointcut</tt></i>;</tt></li></ul></div><p>For example, the aspect</p><pre class="programlisting">
+      declared.  </p><div class="itemizedlist"><ul><li><a name="d0e6875"></a><tt>declare soft: <i><tt>Type</tt></i>: <i><tt>Pointcut</tt></i>;</tt></li></ul></div><p>For example, the aspect</p><pre class="programlisting">
   aspect A {
       declare soft: Exception: execution(void main(String[] args));
   }
@@ -5478,7 +5533,7 @@ ModifiersPattern =
 </pre></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice Precedence</h3></div></div><p>
         An aspect may declare a precedence relationship between concrete
         aspects with the <tt>declare precedence</tt> form:
-      </p><div class="itemizedlist"><ul><li><a name="d0e6846"></a><tt>declare precedence :
+      </p><div class="itemizedlist"><ul><li><a name="d0e6915"></a><tt>declare precedence :
         <i><tt>TypePatternList</tt></i> ; </tt></li></ul></div><p>This signifies that if any join point has advice from two
       concrete aspects matched by some pattern in
       <i><tt>TypePatternList</tt></i>, then the precedence of
@@ -5515,7 +5570,7 @@ ModifiersPattern =
 	  count++;
       }
   }
-</pre><div class="sect3"><a name="d0e6870"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6870"></a>Various cycles</h4></div></div><p>
+</pre><div class="sect3"><a name="d0e6939"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6939"></a>Various cycles</h4></div></div><p>
           It is an error for any aspect to be matched by more than one
           TypePattern in a single decare precedence, so:
         </p><pre class="programlisting">
@@ -5532,7 +5587,7 @@ ModifiersPattern =
           legal, so long as advice from A and B don't share a join
           point. So this is an idiom that can be used to enforce that A and
           B are strongly independent.
-        </p></div><div class="sect3"><a name="d0e6883"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6883"></a>Applies to concrete aspects</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e6952"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6952"></a>Applies to concrete aspects</h4></div></div><p>
           Consider the following library aspects:
         </p><pre class="programlisting">
   abstract aspect Logging {
@@ -5579,7 +5634,7 @@ ModifiersPattern =
       points, but they do so in a way that is statically determinable.  </p><p>Consequently, such pointcuts may not include, directly or
       indirectly (through user-defined pointcut declarations) pointcuts that
       discriminate based on dynamic (runtime) context.  Therefore, such
-      pointcuts may not be defined in terms of</p><div class="itemizedlist"><ul><li><a name="d0e6911"></a>cflow</li><li><a name="d0e6913"></a>cflowbelow</li><li><a name="d0e6915"></a>this</li><li><a name="d0e6917"></a>target</li><li><a name="d0e6919"></a>args</li><li><a name="d0e6921"></a>if</li></ul></div><p> all of which can discriminate on runtime information. </p></div></div><div class="sect1"><a name="semantics-aspects"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="semantics-aspects"></a>Aspects</h2></div></div><p>
+      pointcuts may not be defined in terms of</p><div class="itemizedlist"><ul><li><a name="d0e6980"></a>cflow</li><li><a name="d0e6982"></a>cflowbelow</li><li><a name="d0e6984"></a>this</li><li><a name="d0e6986"></a>target</li><li><a name="d0e6988"></a>args</li><li><a name="d0e6990"></a>if</li></ul></div><p> all of which can discriminate on runtime information. </p></div></div><div class="sect1"><a name="semantics-aspects"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="semantics-aspects"></a>Aspects</h2></div></div><p>
       An aspect is a crosscutting type defined by the <tt>aspect</tt>
       declaration. 
     </p><div class="sect2"><a name="aspect-declaration"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-declaration"></a>Aspect Declaration</h3></div></div><p>
@@ -5587,18 +5642,18 @@ ModifiersPattern =
 	<tt>class</tt> declaration in that it defines a type and an
 	implementation for that type. It differs in a number of
 	ways:
-      </p><div class="sect3"><a name="d0e6944"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6944"></a>Aspect implementation can cut across other types</h4></div></div><p> In addition to normal Java class declarations such as
+      </p><div class="sect3"><a name="d0e7013"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7013"></a>Aspect implementation can cut across other types</h4></div></div><p> In addition to normal Java class declarations such as
 	methods and fields, aspect declarations can include AspectJ
 	declarations such as advice, pointcuts, and inter-type
 	declarations.  Thus, aspects contain implementation
 	declarations that can can cut across other types (including those defined by
 	other aspect declarations).
-        </p></div><div class="sect3"><a name="d0e6949"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6949"></a>Aspects are not directly instantiated</h4></div></div><p> Aspects are not directly instantiated with a new
+        </p></div><div class="sect3"><a name="d0e7018"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7018"></a>Aspects are not directly instantiated</h4></div></div><p> Aspects are not directly instantiated with a new
 	expression, with cloning, or with serialization. Aspects may
 	have one constructor definition, but if so it must be of a
 	constructor taking no arguments and throwing no checked
 	exceptions.
-        </p></div><div class="sect3"><a name="d0e6954"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6954"></a>Nested aspects must be <tt>static</tt></h4></div></div><p> 
+        </p></div><div class="sect3"><a name="d0e7023"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7023"></a>Nested aspects must be <tt>static</tt></h4></div></div><p> 
 	  Aspects may be defined either at the package level, or as a static nested
           aspect -- that is, a static member of a class, interface, or aspect.  If it
           is not at the package level, the aspect <span class="emphasis"><i>must</i></span> be
@@ -5608,14 +5663,14 @@ ModifiersPattern =
         To support abstraction and composition of crosscutting concerns,
         aspects can be extended in much the same way that classes can. Aspect
         extension adds some new rules, though.
-      </p><div class="sect3"><a name="d0e6969"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6969"></a>Aspects may extend classes and implement interfaces</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e7038"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7038"></a>Aspects may extend classes and implement interfaces</h4></div></div><p>
           An aspect, abstract or concrete, may extend a class and may implement
           a set of interfaces. Extending a class does not provide the ability
           to instantiate the aspect with a new expression: The aspect may still
           only define a null constructor.
-        </p></div><div class="sect3"><a name="d0e6974"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6974"></a>Classes may not extend aspects</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e7043"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7043"></a>Classes may not extend aspects</h4></div></div><p>
           It is an error for a class to extend or implement an aspect.
-        </p></div><div class="sect3"><a name="d0e6979"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6979"></a>Aspects extending aspects
+        </p></div><div class="sect3"><a name="d0e7048"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7048"></a>Aspects extending aspects
         </h4></div></div><p>
           Aspects may extend other aspects, in which case not only are fields
           and methods inherited but so are pointcuts. However, aspects may only
@@ -5637,7 +5692,7 @@ ModifiersPattern =
         How an aspect is instantiated controls the form of the 
         <tt>aspectOf(..)</tt> method defined on the
         concrete aspect class.
-      </p><div class="sect3"><a name="d0e7002"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7002"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7006"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e7012"></a><tt>aspect <i><tt>Id</tt></i> issingleton() { ... }</tt></li></ul></div><p>
+      </p><div class="sect3"><a name="d0e7071"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7071"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7075"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e7081"></a><tt>aspect <i><tt>Id</tt></i> issingleton() { ... }</tt></li></ul></div><p>
           By default (or by using the modifier <tt>issingleton()</tt>)
           an aspect has exactly one instance that cuts across the entire
           program.  That instance is available at any time during program
@@ -5654,7 +5709,7 @@ ModifiersPattern =
           (In actuality, one instance of the aspect A is made for each version
           of the aspect A, so there will be one instantiation for each time A
           is loaded by a different classloader.)
-        </p></div><div class="sect3"><a name="d0e7033"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7033"></a>Per-object aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7037"></a><tt>aspect <i><tt>Id</tt></i> perthis(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7046"></a><tt>aspect <i><tt>Id</tt></i> pertarget(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
+        </p></div><div class="sect3"><a name="d0e7102"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7102"></a>Per-object aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7106"></a><tt>aspect <i><tt>Id</tt></i> perthis(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7115"></a><tt>aspect <i><tt>Id</tt></i> pertarget(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
           If an aspect A is defined
           <tt>perthis(<i><tt>Pointcut</tt></i>)</tt>, then
           one object of type A is created for every object that is the
@@ -5680,7 +5735,7 @@ ModifiersPattern =
           there is no associated aspect of type A.
         </p><p> Both <tt>perthis</tt> and <tt>pertarget</tt>
         aspects may be affected by code the AspectJ compiler controls, as
-        discussed in the <a href="#implementation">Implementation Notes</a> appendix.  </p></div><div class="sect3"><a name="d0e7095"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7095"></a>Per-control-flow aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7099"></a><tt>aspect <i><tt>Id</tt></i> percflow(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7108"></a><tt>aspect <i><tt>Id</tt></i> percflowbelow(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
+        discussed in the <a href="#implementation">Implementation Notes</a> appendix.  </p></div><div class="sect3"><a name="d0e7164"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7164"></a>Per-control-flow aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7168"></a><tt>aspect <i><tt>Id</tt></i> percflow(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7177"></a><tt>aspect <i><tt>Id</tt></i> percflowbelow(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
           If an aspect A is defined
           <tt>percflow(<i><tt>Pointcut</tt></i>)</tt> or
           <tt>percflowbelow(<i><tt>Pointcut</tt></i>)</tt>,
@@ -5693,7 +5748,7 @@ ModifiersPattern =
           of type
           A. An instance of the aspect is created upon entry into each such
           control flow.
-        </p></div><div class="sect3"><a name="d0e7137"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7137"></a>Aspect instantiation and advice</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e7206"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7206"></a>Aspect instantiation and advice</h4></div></div><p>
           All advice runs in the context of an aspect instance,
           but it is possible to write a piece of advice with a pointcut
           that picks out a join point that must occur before asopect
@@ -5724,7 +5779,7 @@ ModifiersPattern =
           compile time.  If advice runs before its aspect is instantiated,
           AspectJ will throw a <a href="../api/org/aspectj/lang/NoAspectBoundException.html" target="_top">
           <tt>org.aspectj.lang.NoAspectBoundException</tt></a>.
-        </p></div></div><div class="sect2"><a name="aspect-privilege"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-privilege"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7157"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
+        </p></div></div><div class="sect2"><a name="aspect-privilege"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-privilege"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7226"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
         Code written in aspects is subject to the same access control rules as
         Java code when referring to members of classes or aspects. So, for
         example, code written in an aspect may not refer to members with
@@ -5774,7 +5829,7 @@ ModifiersPattern =
         Note that a privileged aspect can access private inter-type
         declarations made by other aspects, since they are simply
         considered private members of that other aspect.
-      </p></div></div></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="implementation"></a>Appendix C. Implementation Notes</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#d0e7185">Compiler Notes</a></dt><dt><a href="#d0e7259">Bytecode Notes</a></dt><dd><dl><dt><a href="#the-class-expression-and-string">The .class expression and String +</a></dt><dt><a href="#the-handler-join-point">The Handler join point</a></dt><dt><a href="#initializers-and-inter-type-constructors">Initializers and Inter-type Constructors</a></dt></dl></dd><dt><a href="#d0e7365">Summary of implementation requirements</a></dt></dl></div><div class="sect1"><a name="d0e7185"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7185"></a>Compiler Notes</h2></div></div><p> 
+      </p></div></div></div><div class="appendix"><div class="titlepage"><div><h2 class="title"><a name="implementation"></a>Appendix C. Implementation Notes</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#d0e7254">Compiler Notes</a></dt><dt><a href="#d0e7328">Bytecode Notes</a></dt><dd><dl><dt><a href="#the-class-expression-and-string">The .class expression and String +</a></dt><dt><a href="#the-handler-join-point">The Handler join point</a></dt><dt><a href="#initializers-and-inter-type-constructors">Initializers and Inter-type Constructors</a></dt></dl></dd><dt><a href="#d0e7434">Annotation-style Notes</a></dt><dt><a href="#d0e7439">Summary of implementation requirements</a></dt></dl></div><div class="sect1"><a name="d0e7254"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7254"></a>Compiler Notes</h2></div></div><p> 
     The initial implementations of AspectJ have all been
     compiler-based implementations.  Certain elements of AspectJ's
     semantics are difficult to implement without making modifications
@@ -5889,7 +5944,7 @@ ModifiersPattern =
     implementation is used. During your development, you will have to
     be aware of the limitations of the ajc compiler you're using, but
     these limitations should not drive the design of your aspects.
-  </p></div><div class="sect1"><a name="d0e7259"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7259"></a>Bytecode Notes</h2></div></div><div class="sect2"><a name="the-class-expression-and-string"></a><div class="titlepage"><div><h3 class="title"><a name="the-class-expression-and-string"></a>The .class expression and String +</h3></div></div><p> The java language form <tt>Foo.class</tt> is
+  </p></div><div class="sect1"><a name="d0e7328"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7328"></a>Bytecode Notes</h2></div></div><div class="sect2"><a name="the-class-expression-and-string"></a><div class="titlepage"><div><h3 class="title"><a name="the-class-expression-and-string"></a>The .class expression and String +</h3></div></div><p> The java language form <tt>Foo.class</tt> is
     implemented in bytecode with a call to
     <tt>Class.forName</tt> guarded by an exception
     handler catching a <tt>ClassNotFoundException</tt>.
@@ -5916,8 +5971,8 @@ ModifiersPattern =
   bytecode.  Instead of removing the handler join point entirely, the
   current AspectJ compiler restricts what can be done with the handler
   join point:
-  </p><div class="itemizedlist"><ul><li><a name="d0e7299"></a>After and around advice cannot apply to handler
-    join points.</li><li><a name="d0e7301"></a>The control flow of a handler join point cannot be
+  </p><div class="itemizedlist"><ul><li><a name="d0e7368"></a>After and around advice cannot apply to handler
+    join points.</li><li><a name="d0e7370"></a>The control flow of a handler join point cannot be
     detected. </li></ul></div><p>
   The first of these is relatively straightforward.  If any piece of
   after advice (returning, throwing, or "finally") would normally
@@ -5978,11 +6033,20 @@ ModifiersPattern =
     It is the job of an inter-type constructor to do all the required
     initialization, or to delegate to a <tt>this</tt>
     constructor if necessary.
-  </p></div></div><div class="sect1"><a name="d0e7365"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7365"></a>Summary of implementation requirements</h2></div></div><p>
+  </p></div></div><div class="sect1"><a name="d0e7434"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7434"></a>Annotation-style Notes</h2></div></div><p>Writing aspects in annotation-style is subject to the same
+      bytecode limitations since the binary aspects take the same
+      form and are woven in the same way.  However, the implementation
+      differences (e.g., the mechanism for implementing around advice) 
+      may be apparent at runtime.  See the documentation on annotation-style 
+      for more information.
+  </p></div><div class="sect1"><a name="d0e7439"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="d0e7439"></a>Summary of implementation requirements</h2></div></div><p>
 	This summarizes the requirements of our implementation of AspectJ.
 	For more details, see the relevant sections of this guide.	  
-  </p><div class="itemizedlist"><ul compact><li><p><a name="d0e7371"></a>The invoking code must be under the control of ajc
-		for the following join points:</p><div class="itemizedlist"><ul compact><li><a name="d0e7375"></a>call join point</li><li><a name="d0e7377"></a>get join point</li><li><a name="d0e7379"></a>set join point</li></ul></div></li><li><p><a name="d0e7381"></a>The declaring/target code must be under the control of ajc
-		for the following join points and inter-type declarations:</p><div class="itemizedlist"><ul compact><li><a name="d0e7385"></a>execution join point</li><li><a name="d0e7387"></a>adviceexecution join point</li><li><a name="d0e7389"></a>handler join point</li><li><a name="d0e7391"></a>initialization join point</li><li><a name="d0e7393"></a>preinitialiaztion join point</li><li><a name="d0e7395"></a>staticinitialization join point</li><li><a name="d0e7397"></a>perthis aspect</li><li><a name="d0e7399"></a>pertarget aspect</li><li><a name="d0e7401"></a>declare parents</li><li><a name="d0e7403"></a>declare method or field (see interface caveats below)</li></ul></div></li><li><p><a name="d0e7405"></a>Implementation Caveats</p><div class="itemizedlist"><ul compact><li><p><a name="d0e7409"></a>The initialization and preinitialization join points 
-				  do not support around advice</p></li><li><p><a name="d0e7412"></a>The handler join point does not support...</p><div class="itemizedlist"><ul compact><li><a name="d0e7416"></a>after advice</li><li><a name="d0e7418"></a>around advice</li><li><a name="d0e7420"></a>cflow(handler(..))</li></ul></div></li><li><p><a name="d0e7422"></a>Declaring members on an interface in an aspect affects only 
-				the topmost implementing classes the implementation controls.</p></li><li><p><a name="d0e7425"></a>cflow and cflowbelow pointcuts work within a single thread.</p></li></ul></div></li></ul></div></div></div></div></body></html>
+  </p><div class="itemizedlist"><ul compact><li><p><a name="d0e7445"></a>The invoking code must be under the control of ajc
+		for the following join points:</p><div class="itemizedlist"><ul compact><li><a name="d0e7449"></a>call join point</li><li><a name="d0e7451"></a>get join point</li><li><a name="d0e7453"></a>set join point</li></ul></div></li><li><p><a name="d0e7455"></a>The declaring/target code must be under the control of ajc
+		for the following join points and inter-type declarations:</p><div class="itemizedlist"><ul compact><li><a name="d0e7459"></a>execution join point</li><li><a name="d0e7461"></a>adviceexecution join point</li><li><a name="d0e7463"></a>handler join point</li><li><a name="d0e7465"></a>initialization join point</li><li><a name="d0e7467"></a>preinitialiaztion join point</li><li><a name="d0e7469"></a>staticinitialization join point</li><li><a name="d0e7471"></a>perthis aspect</li><li><a name="d0e7473"></a>pertarget aspect</li><li><a name="d0e7475"></a>declare parents</li><li><a name="d0e7477"></a>declare method or field (see interface caveats below)</li></ul></div></li><li><p><a name="d0e7479"></a>Implementation Caveats</p><div class="itemizedlist"><ul compact><li><p><a name="d0e7483"></a>The initialization and preinitialization join points 
+				  do not support around advice</p></li><li><p><a name="d0e7486"></a>The handler join point does not support...</p><div class="itemizedlist"><ul compact><li><a name="d0e7490"></a>after advice</li><li><a name="d0e7492"></a>around advice</li><li><a name="d0e7494"></a>cflow(handler(..))</li></ul></div></li><li><p><a name="d0e7496"></a>Declaring members on an interface in an aspect affects only 
+				the topmost implementing classes the implementation controls.</p></li><li><p><a name="d0e7499"></a>cflow and cflowbelow pointcuts work within a single thread.</p></li><li><p><a name="d0e7502"></a>
+                  Runtime <tt>ClassCastException</tt> may result 
+                  from supplying a supertype of the actual type as an argument
+                  to proceed(..) in around advice.</p></li></ul></div></li></ul></div></div></div></div></body></html>
