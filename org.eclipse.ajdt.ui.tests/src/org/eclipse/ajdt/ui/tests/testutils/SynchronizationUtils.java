@@ -12,6 +12,7 @@
 package org.eclipse.ajdt.ui.tests.testutils;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
@@ -35,7 +36,17 @@ public class SynchronizationUtils {
 				interrupted= true;
 			}
 		}
-		
+		boolean wasInterrupted = false;
+		do {
+			try {
+				Platform.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				wasInterrupted = false;
+			} catch (OperationCanceledException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				wasInterrupted = true;
+			}
+		} while (wasInterrupted);	
 		// Join jobs
 		joinJobs(100, 0, 500);
 	}

@@ -129,6 +129,20 @@ public class AJDTCoreTestCase extends TestCase {
 		} while (wasInterrupted);
 	}
 	
+	public static void waitForManualBuild() {
+		boolean wasInterrupted = false;
+		do {
+			try {
+				Platform.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				wasInterrupted = false;
+			} catch (OperationCanceledException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				wasInterrupted = true;
+			}
+		} while (wasInterrupted);		
+	}
+	
 	/**
 	 * Copy the given source directory (and all its contents) to the given target directory.
 	 */
@@ -223,6 +237,8 @@ public class AJDTCoreTestCase extends TestCase {
 	 * Delete this resource.
 	 */
 	public void deleteResource(IResource resource, boolean force) throws CoreException {
+		waitForManualBuild();
+		waitForAutoBuild();
 		CoreException lastException = null;
 		try {
 			resource.delete(false, null);
@@ -240,6 +256,7 @@ public class AJDTCoreTestCase extends TestCase {
 		}
 		int retryCount = 10; // wait 1 minute at most
 		while (resource.isAccessible() && --retryCount >= 0) {
+			waitForAutoBuild();
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
