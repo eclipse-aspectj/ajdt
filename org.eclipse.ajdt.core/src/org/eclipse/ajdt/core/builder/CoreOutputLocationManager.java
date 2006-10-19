@@ -13,6 +13,7 @@ package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.aspectj.ajde.OutputLocationManager;
@@ -58,7 +59,11 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IPath output = cpe[i].getOutputLocation();
 					if (output != null) {
-						String srcFolder = cpe[i].getPath().lastSegment();
+						IPath path = cpe[i].getPath();
+						String srcFolder = path.removeFirstSegments(1).toPortableString();
+						if (path.segmentCount() == 1) { // output folder is project
+							srcFolder = path.toPortableString();
+						}
 						File out = workspacePathToFile(output);
 						srcFolderToOutput.put(srcFolder,out);
 						if (outputIsRoot) {
@@ -82,11 +87,11 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 		int ind = fileName.indexOf(projectName);
 		if (ind != -1) {
 			String rest = fileName.substring(ind + projectName.length() + 1);
-			int ind2 = rest.indexOf('/');
-			if (ind2 != -1) {
-				String srcFolder = rest.substring(0,ind2);
-				File out = (File)srcFolderToOutput.get(srcFolder);
-				if (out != null) {
+			for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter
+					.hasNext();) {
+				String src = (String) iter.next();
+				if (rest.startsWith(src)) {
+					File out = (File) srcFolderToOutput.get(src);
 					return out;
 				}
 			}
