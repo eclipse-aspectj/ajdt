@@ -64,4 +64,23 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 				+ " should end in bin. Got: " + out2, out2.toString() //$NON-NLS-1$
 				.endsWith("bin")); //$NON-NLS-1$
 	}
+	
+	public void testOutputLocationManagerBug160846() throws Exception {
+		IProject project = createPredefinedProject("bug160846"); //$NON-NLS-1$
+		IJavaProject jp = JavaCore.create(project);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(jp);
+		IFile class1 = (IFile) project.findMember("src/java/org/noco/aj/MainClass.java"); //$NON-NLS-1$
+		File file1 = class1.getLocation().toFile();
+		File out1 = om.getOutputLocationForClass(file1);
+		assertTrue("Output location for " + class1 //$NON-NLS-1$
+				+ " should end in classes. Got: " + out1, out1.toString() //$NON-NLS-1$
+				.endsWith("classes")); //$NON-NLS-1$
+
+		IFile class2 = (IFile) project.findMember("test/java/org/noco/aj/MainClassTest.java"); //$NON-NLS-1$
+		File file2 = class2.getLocation().toFile();
+		File out2 = om.getOutputLocationForResource(file2);
+		assertTrue("Output location for " + class2 //$NON-NLS-1$
+				+ " should end in test-classes. Got: " + out2, out2.toString() //$NON-NLS-1$
+				.endsWith("test-classes")); //$NON-NLS-1$
+	}
 }
