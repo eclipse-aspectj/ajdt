@@ -30,6 +30,17 @@
        Where <tt>P</tt> is the type of the <tt>pertypewithin</tt>
        aspect.
    </p><p>
+      In addition, <tt>pertypewithin</tt> aspects have a 
+      <tt>getWithinTypeName</tt> method that can be called
+      to return the package qualified name of the type for which the
+      aspect instance has been created.
+   </p><pre class="programlisting">
+    /**
+     * return the package qualified name (eg. com.foo.MyClass) of the type
+     * for which the aspect instance has been instantiated.
+     */
+     public String getWithinTypeName()
+    </pre><p>
        In common with the other per-clause instantiation models, the execution
        of any advice declared within a <tt>pertypewithin</tt> aspect
        is conditional upon an implicit pointcut condition. In this case, that
