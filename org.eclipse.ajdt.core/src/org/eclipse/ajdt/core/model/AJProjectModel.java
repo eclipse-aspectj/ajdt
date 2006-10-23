@@ -476,22 +476,28 @@ public class AJProjectModel {
 									addOppositeRelationship(ajRel, sourceEl,
 											targetEl, line);
 								} else {
-									if (link.getParent() == null) {
-										// if the problem element has no parent,
-										// then we have a binary/injar aspect, otherwise
-										// we don't know what it is, so we skip it
-										String name = NLS.bind(
+									// couldn't find source, so create "binary
+									// aspect" entry
+									String filename = link.getSourceLocation()
+											.getSourceFileName();
+									String name;
+									if ((filename != null)
+											&& (filename.length() > 0)) {
+										name = NLS
+												.bind(
+														CoreMessages.injarElementLabel2,
+														link.getName(),
+														filename);
+									} else {
+										name = NLS.bind(
 												CoreMessages.injarElementLabel,
 												link.getName());
-										targetEl = new AJInjarElement(name,
-												link.getExtraInfo());
-
-										// store this elements, so that it gets
-										// saved
-										jeLinkNames.put(targetEl, name);
-										lineNumbers.put(targetEl,
-												new Integer(0));
 									}
+									targetEl = new AJInjarElement(name, link
+											.getExtraInfo());
+									// store this element, so that it gets saved
+									jeLinkNames.put(targetEl, name);
+									lineNumbers.put(targetEl, new Integer(0));
 								}
 							}
 

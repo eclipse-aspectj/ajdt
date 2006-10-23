@@ -236,4 +236,49 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 		assertTrue("Didn't find advises around() relationship", found3); //$NON-NLS-1$
 	}
 
+	// test binary weaving when there is no source
+	public void testBug160236() throws Exception {
+		if (!BinaryWeavingSupport.isActive) {
+			return;
+		}
+		IProject project = createPredefinedProject("bug160236"); //$NON-NLS-1$
+		AJProjectModel model = AJModel.getInstance()
+				.getModelForProject(project);
+		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
+		List allRels = model.getAllRelationships(rels);
+		boolean found1 = false;
+		boolean found2 = false;
+		boolean found3 = false;
+		for (Iterator iter = allRels.iterator(); iter.hasNext();) {
+			AJRelationship rel = (AJRelationship) iter.next();
+			String sourceName = rel.getSource().getElementName();
+			String targetName = rel.getTarget().getElementName();
+			if (sourceName.equals("Sample")) { //$NON-NLS-1$
+				if ((targetName.indexOf("afterReturning") != -1) //$NON-NLS-1$
+						&& (targetName.indexOf("AbstractBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
+					found1 = true;
+				} else if ((targetName.indexOf("before") != -1) //$NON-NLS-1$
+						&& (targetName.indexOf("AbstractBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
+					found2 = true;
+				} else {
+					fail("Unexpected target found: " + targetName); //$NON-NLS-1$
+				}
+			} else if (sourceName.equals("main")) { //$NON-NLS-1$
+				if ((targetName.indexOf("before") != -1) //$NON-NLS-1$
+						&& (targetName
+								.indexOf("AnnotationBeanConfigurerAspect") != -1)) { //$NON-NLS-1$
+					found3 = true;
+				} else {
+					fail("Unexpected target found: " + targetName); //$NON-NLS-1$
+				}
+			}
+		}
+		assertTrue(
+				"Didn't find Sample advised by afterReturning() binary aspect relationship", found1); //$NON-NLS-1$
+		assertTrue(
+				"Didn't find Sample advised by before() binary aspect relationship", found2); //$NON-NLS-1$
+		assertTrue(
+				"Didn't find main advised by before() binary aspect relationship", found3); //$NON-NLS-1$
+
+	}
 }

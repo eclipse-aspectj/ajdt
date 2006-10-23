@@ -51,6 +51,7 @@ public class CoreMessages extends NLS {
 	public static String pointcut_used_by_menuName;
 
 	public static String injarElementLabel;
+	public static String injarElementLabel2;
 
 	public static String missingJarsWarning;
 
