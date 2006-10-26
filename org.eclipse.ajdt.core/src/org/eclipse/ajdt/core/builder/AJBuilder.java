@@ -59,6 +59,7 @@ import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
@@ -528,6 +529,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	private void copyResources(IJavaProject javaProject, IResourceDelta sourceDelta, IClasspathEntry srcEntry, int segmentCount) throws CoreException {
 		IResource resource = sourceDelta.getResource();
+		// bug 161739: skip excluded resources
+		char[][] inclusionPatterns = ((ClasspathEntry) srcEntry)
+				.fullInclusionPatternChars();
+		char[][] exclusionPatterns = ((ClasspathEntry) srcEntry)
+				.fullExclusionPatternChars();
+		if (Util.isExcluded(resource, inclusionPatterns, exclusionPatterns)) {
+			return;
+		}
+		
         IPath outputPath = srcEntry.getOutputLocation();
         if (outputPath == null) {
 			outputPath = javaProject.getOutputLocation();

@@ -27,17 +27,23 @@ import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
+import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.builder.BuildClasspathResolver;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
+import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 
 /**
@@ -190,10 +196,6 @@ public class CoreProjectProperties implements IProjectProperties {
 	}
 
 	public Set getInJars() {
-		return null;
-	}
-
-	public Map getSourcePathResources() {
 		return null;
 	}
 
@@ -447,5 +449,154 @@ public class CoreProjectProperties implements IProjectProperties {
 		}
 		return null;
 	}
+
+	/**
+	 * Get the set of non-Java resoure files for this compilation. Set members
+	 * should be of type java.io.File. An empty set or null is acceptable for
+	 * this option.
+	 */
+	public Map getSourcePathResources() {
+		IProject project = AspectJPlugin.getDefault().getCurrentProject();
+		IJavaProject jProject = JavaCore.create(project);
+		Map map = new HashMap();
+		try {
+			IClasspathEntry[] classpathEntries = jProject
+					.getResolvedClasspath(false);
+
+			// find the absolute output path
+			String realOutputLocation;
+			IPath workspaceRelativeOutputPath = jProject.getOutputLocation();
+			if (workspaceRelativeOutputPath.segmentCount() == 1) { // project
+				// root
+				realOutputLocation = jProject.getResource().getLocation()
+						.toOSString();
+			} else {
+				IFolder out = ResourcesPlugin.getWorkspace().getRoot()
+						.getFolder(workspaceRelativeOutputPath);
+				realOutputLocation = out.getLocation().toOSString();
+			}
+			for (int i = 0; i < classpathEntries.length; i++) {
+				if (classpathEntries[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IClasspathEntry sourceEntry = classpathEntries[i];
+					IPath sourcePath = sourceEntry.getPath();
+					List files = new ArrayList();
+					sourcePath = sourcePath.removeFirstSegments(1);
+					IResource[] srcContainer = new IResource[] { project
+							.findMember(sourcePath) };
+					if(srcContainer[0] != null) {
+						getProjectRelativePaths(srcContainer, files,
+								CoreUtils.RESOURCE_FILTER, srcContainer[0]
+										.getFullPath().segmentCount() - 1, sourceEntry);
+	
+						ArrayList linkedSrcFolders = getLinkedChildFolders(srcContainer[0]);
+	
+						for (Iterator it = files.iterator(); it.hasNext();) {
+							String relPath = (String) it.next();
+							String fullPath = getResourceFullPath(srcContainer[0],
+									relPath, linkedSrcFolders);
+	
+							// put file on list if not in output path
+							if (!fullPath.startsWith(realOutputLocation)
+									&& !relPath.endsWith(".classpath") //$NON-NLS-1$
+									&& !relPath.endsWith(".project") //$NON-NLS-1$
+									&& !relPath.endsWith(".ajsym") //$NON-NLS-1$
+									&& !relPath.endsWith(".lst")) { //$NON-NLS-1$
+								File file = new File(fullPath);
+								if (file.exists()) {
+									map.put(relPath, file);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException jmEx) {
+			// bug 90094 - removed creating an AspectJ dialog here so
+			// that we behave like the jdt. The error is coming out in the
+			// problems view anyway (which is how jdt behaves)
+		}
+
+		return map;
+	}
+	
+	private ArrayList getLinkedChildFolders(IResource resource) {
+		ArrayList resultList = new ArrayList();
+
+		if (resource instanceof IContainer) {
+			try {
+				IResource[] children = ((IContainer) resource).members();
+				for (int i = 0; i < children.length; i++) {
+					if ((children[i] instanceof IFolder)
+							&& children[i].isLinked()) {
+						resultList.add(children[i]);
+					}
+				}
+			} catch (CoreException e) {
+			}
+		}
+		return resultList;
+	}
+
+	private String getResourceFullPath(IResource srcContainer, String relPath,
+			ArrayList linkedFolders) {
+		String result = null;
+		if (relPath.lastIndexOf('/') != -1) {
+			// Check to see if the relPath under scrutiny is
+			// under a linked folder in this project.
+			Iterator it = linkedFolders.iterator();
+			while (it.hasNext()) {
+				IFolder folder = (IFolder) it.next();
+				String linkedFolderName = folder.getName();
+				if (relPath.indexOf(linkedFolderName + "/") == 0) { //$NON-NLS-1$
+					// Do the replacement ensuring that the result uses
+					// operating system separator characters.
+					result = folder.getLocation().toString()
+							+ relPath.substring(linkedFolderName.length());
+					result = result.replace('/', File.separatorChar);
+					break;
+				}
+			}
+		}
+		if (result == null) {
+			result = srcContainer.getLocation().toOSString() + File.separator
+					+ relPath;
+		}
+		return result;
+	}
+	
+	private void getProjectRelativePaths(IResource[] resource_list,
+			List allProjectFiles, CoreUtils.FilenameFilter filter,
+			int trimSegments, IClasspathEntry sourceEntry) {
+		try {
+			for (int i = 0; i < resource_list.length; i++) {
+				IResource ir = resource_list[i];
+				// bug 161739: skip excluded resources
+				char[][] inclusionPatterns = ((ClasspathEntry) sourceEntry)
+						.fullInclusionPatternChars();
+				char[][] exclusionPatterns = ((ClasspathEntry) sourceEntry)
+						.fullExclusionPatternChars();
+				if (!Util.isExcluded(ir, inclusionPatterns, exclusionPatterns)) {
+					if (ir instanceof IContainer) {
+						getProjectRelativePaths(((IContainer) ir).members(),
+								allProjectFiles, filter, trimSegments,
+								sourceEntry);
+					} else if (filter.accept(ir.getName())) {
+						String[] segments = ir.getProjectRelativePath()
+								.segments();
+						String path = ""; //$NON-NLS-1$
+						for (int j = trimSegments; j < segments.length; j++) {
+							path += segments[j];
+							if (j < segments.length - 1)
+								path += '/'; // matches Eclipse's separator
+						}
+						allProjectFiles.add(path);
+					}
+
+				}
+			}
+		} catch (Exception e) {
+		}
+	}
+
 
 }
