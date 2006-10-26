@@ -35,30 +35,30 @@ public class AJRelationshipManagerTest extends AJDTCoreTestCase {
 			}
 		}
 		assertTrue(
-				"Didn't found advised by relationship type in all relationship types",
+				"Didn't found advised by relationship type in all relationship types", //$NON-NLS-1$
 				foundAdvisedBy);
 		assertTrue(
-				"Didn't found declared onrelationship type in all relationship types",
+				"Didn't found declared onrelationship type in all relationship types", //$NON-NLS-1$
 				foundDeclaredOn);
 	}
 
 	public void testGetInversionRelationship() {
 		// test the inverse of a couple of well known relationships
-		assertEquals("Incorrect inverse relationship",
+		assertEquals("Incorrect inverse relationship", //$NON-NLS-1$
 				AJRelationshipManager.ADVISED_BY, AJRelationshipManager
 						.getInverseRelationship(AJRelationshipManager.ADVISES));
 		assertEquals(
-				"Incorrect inverse relationship",
+				"Incorrect inverse relationship", //$NON-NLS-1$
 				AJRelationshipManager.ADVISES,
 				AJRelationshipManager
 						.getInverseRelationship(AJRelationshipManager.ADVISED_BY));
 		assertEquals(
-				"Incorrect inverse relationship",
+				"Incorrect inverse relationship", //$NON-NLS-1$
 				AJRelationshipManager.DECLARED_ON,
 				AJRelationshipManager
 						.getInverseRelationship(AJRelationshipManager.ASPECT_DECLARATIONS));
 		assertEquals(
-				"Incorrect inverse relationship",
+				"Incorrect inverse relationship", //$NON-NLS-1$
 				AJRelationshipManager.ASPECT_DECLARATIONS,
 				AJRelationshipManager
 						.getInverseRelationship(AJRelationshipManager.DECLARED_ON));
@@ -74,7 +74,7 @@ public class AJRelationshipManagerTest extends AJDTCoreTestCase {
 			AJRelationshipType inv2 = AJRelationshipManager
 					.getInverseRelationship(inv);
 			assertEquals(
-					"Getting inverse of inverse should give original relationship type",
+					"Getting inverse of inverse should give original relationship type", //$NON-NLS-1$
 					allRels[i], inv2);
 		}
 	}

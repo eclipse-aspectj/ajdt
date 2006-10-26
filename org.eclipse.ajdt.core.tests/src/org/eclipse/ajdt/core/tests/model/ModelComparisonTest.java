@@ -63,7 +63,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		// load model from .ajmap file
 		AJProjectModel mapModel = new AJProjectModel(project);
 		boolean success = mapModel.loadModel(ajmap.getLocation());
-		assertTrue("Failed to load model from file: " + ajmap.getLocation(),
+		assertTrue("Failed to load model from file: " + ajmap.getLocation(), //$NON-NLS-1$
 				success);
 
 		assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
@@ -93,7 +93,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		}
 		assertTrue(
 				"Missing added relationship: Expected afterReturning advises fire()", found); //$NON-NLS-1$
-		assertEquals("expected 588 added relationships but found "
+		assertEquals("expected 588 added relationships but found " //$NON-NLS-1$
 				+ added.size(), 588, added.size());
 		List removed = results[1];
 		// "removed" are those relationships which ARE present in the
@@ -104,11 +104,11 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			for (Iterator iter = removed.iterator(); iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				System.err.println(rel);
-				System.err.println("source: "
+				System.err.println("source: " //$NON-NLS-1$
 						+ rel.getSource().getHandleIdentifier());
-				System.err.println("target: "
+				System.err.println("target: " //$NON-NLS-1$
 						+ rel.getTarget().getHandleIdentifier());
-				System.err.println("");
+				System.err.println(""); //$NON-NLS-1$
 			}
 			fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
 					+ removed.size() + " relationships"); //$NON-NLS-1$
@@ -159,7 +159,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		// load model from .ajmap file
 		AJProjectModel mapModel = new AJProjectModel(project);
 		boolean success = mapModel.loadModel(ajmap.getLocation());
-		assertTrue("Failed to load model from file: " + ajmap.getLocation(),
+		assertTrue("Failed to load model from file: " + ajmap.getLocation(), //$NON-NLS-1$
 				success);
 
 		assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
@@ -176,11 +176,11 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			for (Iterator iter = added.iterator(); iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				System.err.println(rel);
-				System.err.println("source: "
+				System.err.println("source: " //$NON-NLS-1$
 						+ rel.getSource().getHandleIdentifier());
-				System.err.println("target: "
+				System.err.println("target: " //$NON-NLS-1$
 						+ rel.getTarget().getHandleIdentifier());
-				System.err.println("");
+				System.err.println(""); //$NON-NLS-1$
 			}
 			fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
 					+ added.size() + " relationships"); //$NON-NLS-1$
@@ -194,11 +194,11 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 			for (Iterator iter = removed.iterator(); iter.hasNext();) {
 				AJRelationship rel = (AJRelationship) iter.next();
 				System.err.println(rel);
-				System.err.println("source: "
+				System.err.println("source: " //$NON-NLS-1$
 						+ rel.getSource().getHandleIdentifier());
-				System.err.println("target: "
+				System.err.println("target: " //$NON-NLS-1$
 						+ rel.getTarget().getHandleIdentifier());
-				System.err.println("");
+				System.err.println(""); //$NON-NLS-1$
 			}
 			fail("List of removed relationships should be empty or null. Found " //$NON-NLS-1$
 					+ removed.size() + " relationships"); //$NON-NLS-1$
@@ -218,7 +218,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		// load model from .ajmap file
 		AJProjectModel mapModel = new AJProjectModel(project);
 		boolean success = mapModel.loadModel(ajmap.getLocation());
-		assertTrue("Failed to load model from file: " + ajmap.getLocation(),
+		assertTrue("Failed to load model from file: " + ajmap.getLocation(), //$NON-NLS-1$
 				success);
 
 		assertNotNull("Loaded model should not be null", mapModel); //$NON-NLS-1$
@@ -255,7 +255,7 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 		assertEquals("Aspect should contain 2 advice elements", 2, //$NON-NLS-1$
 				advice.length);
 		IJavaElement before, after;
-		if (advice[0].getElementName().indexOf("before") != -1) { //$NON-NLS-1$
+		if (((IJavaElement)advice[0]).getElementName().indexOf("before") != -1) { //$NON-NLS-1$
 			before = advice[0];
 			after = advice[1];
 		} else {

@@ -197,7 +197,7 @@ public class AspectRenameParticipantTest extends AJDTCoreTestCase {
 		// ask for changes
 		Change allChanges = participant.createChange(new NullProgressMonitor());
 		assertNull(
-				"Refactoring participant should have returned null change as "
+				"Refactoring participant should have returned null change as " //$NON-NLS-1$
 						+ "aspect references p1.Test not p2.Test", //$NON-NLS-1$
 				allChanges);
 	}
