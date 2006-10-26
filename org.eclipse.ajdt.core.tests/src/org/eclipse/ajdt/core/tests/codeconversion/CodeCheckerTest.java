@@ -47,8 +47,7 @@ public class CodeCheckerTest extends AJDTCoreTestCase {
 		trueList.add("Display1"); // inner aspect in a class //$NON-NLS-1$
 		trueList.add("Display"); // inner aspect in a class //$NON-NLS-1$
 		trueList.add("Debug"); // aspect and class //$NON-NLS-1$
-		trueList.add("Coordinator"); // abstract aspect with inner classes
-										// //$NON-NLS-1$
+		trueList.add("Coordinator"); // abstract aspect with inner classes //$NON-NLS-1$
 
 		project.accept(new IResourceVisitor() {
 			public boolean visit(IResource resource) throws CoreException {

@@ -26,17 +26,17 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		assertNotNull("CoreUtils.getOutputFolders should not return null", //$NON-NLS-1$
 				out);
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 2 folders", 2,
+				"CoreUtils.getOutputFolders should have returned 2 folders", 2, //$NON-NLS-1$
 				out.length);
-		boolean bin2 = out[0].toString().endsWith("bin2");
+		boolean bin2 = out[0].toString().endsWith("bin2"); //$NON-NLS-1$
 		if (bin2) {
-			assertTrue("CoreUtils.getOutputFolders didn't return bin folder",
-					out[1].toString().endsWith("bin"));
+			assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+					out[1].toString().endsWith("bin")); //$NON-NLS-1$
 		} else {
-			assertTrue("CoreUtils.getOutputFolders didn't return bin folder",
-					out[0].toString().endsWith("bin"));
-			assertTrue("CoreUtils.getOutputFolders didn't return bin2 folder",
-					out[1].toString().endsWith("bin2"));
+			assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+					out[0].toString().endsWith("bin")); //$NON-NLS-1$
+			assertTrue("CoreUtils.getOutputFolders didn't return bin2 folder", //$NON-NLS-1$
+					out[1].toString().endsWith("bin2")); //$NON-NLS-1$
 		}
 	}
 
@@ -44,23 +44,23 @@ public class CoreUtilsTest extends AJDTCoreTestCase {
 		IProject project = createPredefinedProject("bug102652"); //$NON-NLS-1$
 		IJavaProject jp = JavaCore.create(project);
 		IPath[] out = CoreUtils.getOutputFolders(jp);
-		assertNotNull("CoreUtils.getOutputFolders should not return null", out);
+		assertNotNull("CoreUtils.getOutputFolders should not return null", out); //$NON-NLS-1$
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 1 folder", 1,
+				"CoreUtils.getOutputFolders should have returned 1 folder", 1, //$NON-NLS-1$
 				out.length);
-		assertTrue("CoreUtils.getOutputFolders didn't return project root",
-				out[0].toString().endsWith("bug102652"));
+		assertTrue("CoreUtils.getOutputFolders didn't return project root", //$NON-NLS-1$
+				out[0].toString().endsWith("bug102652")); //$NON-NLS-1$
 	}
 
 	public void testGetOutputFoldersDefault() throws Exception {
 		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		IJavaProject jp = JavaCore.create(project);
 		IPath[] out = CoreUtils.getOutputFolders(jp);
-		assertNotNull("CoreUtils.getOutputFolders should not return null", out);
+		assertNotNull("CoreUtils.getOutputFolders should not return null", out); //$NON-NLS-1$
 		assertEquals(
-				"CoreUtils.getOutputFolders should have returned 1 folder", 1,
+				"CoreUtils.getOutputFolders should have returned 1 folder", 1, //$NON-NLS-1$
 				out.length);
-		assertTrue("CoreUtils.getOutputFolders didn't return bin folder",
-				out[0].toString().endsWith("bin"));
+		assertTrue("CoreUtils.getOutputFolders didn't return bin folder", //$NON-NLS-1$
+				out[0].toString().endsWith("bin")); //$NON-NLS-1$
 	}
 }

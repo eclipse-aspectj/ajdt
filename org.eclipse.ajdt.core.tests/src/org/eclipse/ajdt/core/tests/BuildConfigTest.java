@@ -79,7 +79,7 @@ public class BuildConfigTest extends AJDTCoreTestCase {
 		IFile f1 = (IFile) files.get(0);
 		String s1 = f1.getProjectRelativePath().toPortableString();
 		assertEquals(
-				"BuildConfig.getIncludedSourceFiles should have returned s2/B.java", "s2/B.java", s1); //$NON-NLS-1$
+				"BuildConfig.getIncludedSourceFiles should have returned s2/B.java", "s2/B.java", s1); //$NON-NLS-1$ //$NON-NLS-2$
 
 		assertTrue(
 				"BuildConfig.getIncludedSourceFiles should have returned two or more items", files.size() >= 2); //$NON-NLS-1$
