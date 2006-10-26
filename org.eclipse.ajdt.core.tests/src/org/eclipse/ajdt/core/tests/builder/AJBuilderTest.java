@@ -506,7 +506,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		IProject pB = createPredefinedProject("bug99133b"); //$NON-NLS-1$
 		waitForAutoBuild();
 		waitForAutoBuild();
-		IProject pA = createPredefinedProject("bug99133a"); //$NON-NLS-1$
+		createPredefinedProject("bug99133a"); //$NON-NLS-1$
 		waitForAutoBuild();
 		waitForAutoBuild();
 		assertFalse("project should have no errors", testLog //$NON-NLS-1$
@@ -591,19 +591,112 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 	public void testBug107027() throws Exception {
 		TestLogger testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
-		IProject p = createPredefinedProject("bug99133a"); //$NON-NLS-1$
+		createPredefinedProject("bug99133a"); //$NON-NLS-1$
 		waitForAutoBuild();
-		IProject bean = createPredefinedProject("Bean Example");
+		createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		waitForAutoBuild();
 		ProjectPropertiesAdapter adapter = Ajde.getDefault()
 				.getProjectProperties();
 		// expect the classpath to mention the "Bean Example" if everything
 		// has been flushed correctly. Otherwise it will just contain
 		// the flushed version which is the classpath for project bug99133a.
-		assertTrue("classpath should have been flushed but wasn't", adapter
-				.getClasspath().indexOf("Bean") != -1);
+		assertTrue("classpath should have been flushed but wasn't", adapter //$NON-NLS-1$
+				.getClasspath().indexOf("Bean") != -1); //$NON-NLS-1$
 	}
 
+	// bug 161739 don't copy resources excluded by a pattern
+	public void testBug161739() throws Exception {
+		IProject project = createPredefinedProject("bug161739"); //$NON-NLS-1$
+		IFolder src = project.getFolder("src"); //$NON-NLS-1$
+		assertTrue("couldn't find src folder", src.exists()); //$NON-NLS-1$		
+		IFolder bin = project.getFolder("bin"); //$NON-NLS-1$
+		assertTrue("bin folder should have been created", bin.exists()); //$NON-NLS-1$
+		IFolder testBin = bin.getFolder("test"); //$NON-NLS-1$
+		assertTrue("bin/test folder should have been created", testBin.exists()); //$NON-NLS-1$
+		IFile hello = testBin.getFile("Hello.class"); //$NON-NLS-1$
+		assertTrue(
+				"bin/test/Hello.class should have been created", hello.exists()); //$NON-NLS-1$
+
+		// create folders which should be copied to bin
+		IFolder notExcluded = src.getFolder("ABCD"); //$NON-NLS-1$
+		assertFalse("folder should not exist yet: " + notExcluded, notExcluded //$NON-NLS-1$
+				.exists());
+		notExcluded.create(true, true, null);
+		assertTrue(
+				"folder should now exist: " + notExcluded, notExcluded.exists()); //$NON-NLS-1$ //$NON-NLS-1$
+
+		IFolder test = src.getFolder("test"); //$NON-NLS-1$
+		assertTrue("couldn't find src/test folder", test.exists()); //$NON-NLS-1$		
+		IFolder notExcluded2 = test.getFolder("ABCD"); //$NON-NLS-1$
+		assertFalse("folder should not exist yet: " + notExcluded2, notExcluded2 //$NON-NLS-1$
+				.exists());
+		notExcluded2.create(true, true, null);
+		assertTrue(
+				"folder should now exist: " + notExcluded2, notExcluded2.exists()); //$NON-NLS-1$
+
+		// create folders which should not be copied to bin (they are excluded)
+		IFolder excluded = src.getFolder("SCCS"); //$NON-NLS-1$
+		assertFalse(
+				"folder should not exist yet: " + excluded, excluded.exists()); //$NON-NLS-1$
+		excluded.create(true, true, null);
+		assertTrue("folder should now exist: " + excluded, excluded.exists()); //$NON-NLS-1$
+
+		IFolder excluded2 = test.getFolder("SCCS"); //$NON-NLS-1$
+		assertFalse(
+				"folder should not exist yet: " + excluded2, excluded2.exists()); //$NON-NLS-1$
+		excluded2.create(true, true, null);
+		assertTrue("folder should now exist: " + excluded2, excluded2.exists()); //$NON-NLS-1$
+		
+		waitForAutoBuild();
+
+		// check that the expected folders were copied to bin
+		IFolder notExcludedBin = bin.getFolder("ABCD"); //$NON-NLS-1$
+		assertTrue(
+				"folder should have been copied to bin: " + notExcludedBin, //$NON-NLS-1$
+				notExcludedBin.exists());
+		IFolder notExcludedBin2 = testBin.getFolder("ABCD"); //$NON-NLS-1$
+		assertTrue(
+				"folder should have been copied to bin: " + notExcludedBin2, //$NON-NLS-1$
+				notExcludedBin2.exists());
+
+		// check that the excluded folders were not copied to bin
+		IFolder excludedBin = bin.getFolder("SCCS"); //$NON-NLS-1$
+		assertFalse(
+				"excluded folder should NOT have been copied to bin: " + excludedBin, //$NON-NLS-1$
+				excludedBin.exists());
+		IFolder excludedBin2 = testBin.getFolder("SCCS"); //$NON-NLS-1$
+		assertFalse(
+				"excluded folder should NOT have been copied to bin: " + excludedBin2, //$NON-NLS-1$
+				excludedBin2.exists());
+
+		// now test files instead of folders
+		
+		// create a file that should be copied
+		IFile notExcludedFile = notExcluded2.getFile("hello.txt");  //$NON-NLS-1$
+		notExcludedFile.create(new ReaderInputStream(new StringReader("test")), true, null); //$NON-NLS-1$
+		
+		// create a file that should be not copied
+		IFile excludedFile = excluded2.getFile("hello.txt"); //$NON-NLS-1$
+		excludedFile.create(new ReaderInputStream(new StringReader("test")), true, null); //$NON-NLS-1$
+
+		project.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+		waitForAutoBuild();
+
+		// check that the expected file was copied to bin
+		IFile notExcludedFileBin = notExcludedBin2.getFile("hello.txt");//$NON-NLS-1$
+		assertTrue(
+				"file should have been copied to bin: " + notExcludedFileBin, //$NON-NLS-1$
+				notExcludedFileBin.exists());
+
+		// check that the excluded file was not copied to bin
+		// - only need to check for the directory - if that is not created (as
+		// expected) then the file couldn't have been created either
+		excludedBin = testBin.getFolder("SCCS"); //$NON-NLS-1$
+		assertFalse(
+				"excluded folder should NOT have been copied to bin: " + excludedBin, //$NON-NLS-1$
+				excludedBin.exists());
+	}
+	
 	private boolean wasIncrementalBuild(String msg) {
 		return msg.toLowerCase().indexOf("was: incremental") != -1; //$NON-NLS-1$
 	}
