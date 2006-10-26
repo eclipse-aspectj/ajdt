@@ -38,7 +38,7 @@ public class AJModelTest2 extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testAspectPathDirWeaving() throws Exception {
-		IProject libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+		createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
 		List allRels = AJModel.getInstance().getAllRelationships(
