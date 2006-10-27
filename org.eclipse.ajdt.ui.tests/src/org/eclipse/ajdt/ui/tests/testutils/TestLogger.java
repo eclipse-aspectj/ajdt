@@ -43,6 +43,9 @@ public class TestLogger implements IAJLogger {
     }
     
     public boolean containsMessage(String msg) {
+    	if (log == null) {
+    		return false;
+    	}
         for (Iterator iter = log.iterator(); iter.hasNext();) {
             String logEntry = (String) iter.next();
             if (logEntry.indexOf(msg) != -1) {
