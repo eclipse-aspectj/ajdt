@@ -32,6 +32,18 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 
 	private static final int MSG_LIMIT = 600;
 	
+	private static boolean showDialogs = true;
+	
+	/**
+	 * Rethrow runtime exceptions for errors instead of showing the error dialog
+	 * (useful for testing)
+	 * 
+	 * @param show
+	 */
+	public static void setShowErrorDialogs(boolean show) {
+		showDialogs = show;
+	}
+	
 	/**
 	 * Handle warnings reported by AspectJ
 	 */
@@ -72,6 +84,11 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 	 * Display an error dialog - only called by AspectJ
 	 */
 	public void handleError(final String message) {
+		if (!showDialogs) {
+			// rethrow exception instead of showing dialog
+			throw new RuntimeException(message);
+		}
+
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				try {
@@ -159,6 +176,11 @@ public class ErrorHandler implements org.aspectj.ajde.ErrorHandler {
 		// make sure we log the exception, as it may have come from AspectJ, and therefore
 		// it will not have been handled by our FFDC aspect
 		AspectJUIPlugin.getDefault().getLog().log(status);
+
+		if (!showDialogs) {
+			// rethrow exception instead of showing dialog
+			throw new RuntimeException(t);
+		}
 		
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {

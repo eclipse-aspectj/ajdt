@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.javaelements.AJInjarElement;
 import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.core.model.AJProjectModel;
 import org.eclipse.ajdt.core.model.AJRelationship;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
@@ -78,9 +79,13 @@ public class MarkerUpdating {
 	public static void addNewMarkers(final IProject project) {
 		AJLog.logStart(TimerLogEvent.ADD_MARKERS);
 		int numMarkers = 0;
-		AJModel ajModel = AJModel.getInstance();
+		AJProjectModel ajProjectModel = AJModel.getInstance().getModelForProject(project);
+		if (ajProjectModel == null) {
+			AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.ADD_MARKERS,"0 markers (null project model)"); //$NON-NLS-1$
+			return;
+		}
 		// Get all the relationships and sort by compilation unit..
-		List allRelationships = ajModel.getAllRelationships(project, new AJRelationshipType[] {
+		List allRelationships = ajProjectModel.getAllRelationships(new AJRelationshipType[] {
 				AJRelationshipManager.ADVISED_BY, 
 				AJRelationshipManager.ADVISES, 
 				AJRelationshipManager.ANNOTATED_BY, 
@@ -89,7 +94,7 @@ public class MarkerUpdating {
 				AJRelationshipManager.ASPECT_DECLARATIONS,
 				AJRelationshipManager.SOFTENS,
 				AJRelationshipManager.SOFTENED_BY});
-		List allOtherRels = ajModel.getModelForProject(project).getOtherProjectAllRelationships(new AJRelationshipType[] {
+		List allOtherRels = ajProjectModel.getOtherProjectAllRelationships(new AJRelationshipType[] {
 				AJRelationshipManager.ADVISED_BY, 
 				AJRelationshipManager.ADVISES, 
 				AJRelationshipManager.ANNOTATED_BY, 
@@ -128,7 +133,7 @@ public class MarkerUpdating {
 						.hasNext();) {
 					AJRelationship relationship = (AJRelationship) iterator.next();
 					IJavaElement source = relationship.getSource();
-					Integer lineNumber = new Integer(ajModel.getJavaElementLineNumber(source));
+					Integer lineNumber = new Integer(ajProjectModel.getJavaElementLineNumber(source));
 					if(lineNumberToRelationships.get(lineNumber) instanceof List) {
 						((List)lineNumberToRelationships.get(lineNumber)).add(relationship);
 					} else {

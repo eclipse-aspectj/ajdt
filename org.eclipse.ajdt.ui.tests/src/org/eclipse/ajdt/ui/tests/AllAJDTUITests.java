@@ -39,6 +39,7 @@ import org.eclipse.ajdt.ui.tests.editor.quickfix.AspectJQuickFixTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AJCompilationUnitManagerTest;
 import org.eclipse.ajdt.ui.tests.javamodel.AspectsConvertingParserTest;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug117327Test;
+import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest;
 import org.eclipse.ajdt.ui.tests.javamodel.elements.AJCompilationUnitTest2;
 import org.eclipse.ajdt.ui.tests.launching.AJMainMethodSearchEngineTest;
@@ -54,6 +55,7 @@ import org.eclipse.ajdt.ui.tests.preferences.AJCompilerPreferencePageWorkbenchTe
 import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
+import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
 import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
@@ -96,19 +98,18 @@ public class AllAJDTUITests {
 		// internal.core tests
 		suite.addTest(new TestSuite(AJDTUtilsTest.class));
 
-		// internal.ui tests
-		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
-		suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
-		suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
-		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
-
 		// internal.ui.actions tests
 		suite.addTest(new TestSuite(AddAJNatureActionTest.class));
 		suite.addTest(new TestSuite(RemoveAJNatureActionTest.class));
 		
 		// internal.ui.preferences tests
-		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
+		suite.addTest(new TestSuite(AJCompilerPreferencePageTest.class));
+		suite.addTest(new TestSuite(AJCompilerPreferencePageTest2.class));
+		suite.addTest(new TestSuite(AJCompilerPreferencePageWorkbenchTest.class));
 		suite.addTest(new TestSuite(AspectJFilterPreferencesTest.class));
+		suite.addTest(new TestSuite(AspectJPreferencesTest.class));
+		suite.addTest(new TestSuite(AspectJProjectPropertiesPageTest.class));
+		suite.addTest(new TestSuite(Bug162211Test.class));
 
 		// internal.ui.editor tests
 		suite.addTest(new TestSuite(AspectJEditorTest.class));
@@ -130,13 +131,13 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AJMainMethodSearchEngineTest.class));
 		suite.addTest(new TestSuite(LTWUtilsTest.class));
 		suite.addTest(new TestSuite(LTWUtilsTest2.class));
-
+		
 		// test classes in lazystart package
 		suite.addTest(new TestSuite(ImageDecoratorTest.class));
-
+		
 		// ui model tests
 		suite.addTest(new TestSuite(BinaryWeavingSupportTest.class));
-		
+
 		// ui tests
 		suite.addTest(new TestSuite(CodeTemplatesTest.class));
 		suite.addTest(new TestSuite(ContentAssistTest.class));
@@ -168,6 +169,7 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest.class));
 		suite.addTest(new TestSuite(AJCompilationUnitTest2.class));
+		suite.addTest(new TestSuite(Bug154339Test.class));
 		if(is50) {
 			suite.addTest(new TestSuite(Bug117327Test.class));
 		}

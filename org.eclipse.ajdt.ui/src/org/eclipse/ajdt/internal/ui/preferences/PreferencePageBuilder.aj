@@ -486,7 +486,6 @@ aspect PreferencePageBuilder {
 							monitor
 									.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
 							project.build(IncrementalProjectBuilder.FULL_BUILD,
-									AspectJPlugin.ID_BUILDER, null,
 									new SubProgressMonitor(monitor, 2));
 						} catch (CoreException e) {
 							ErrorHandler
@@ -524,7 +523,6 @@ aspect PreferencePageBuilder {
 										.setTaskName(UIMessages.OptionsConfigurationBlock_buildproject_taskname);
 								project.build(
 										IncrementalProjectBuilder.FULL_BUILD,
-										AspectJPlugin.ID_BUILDER, null,
 										new SubProgressMonitor(monitor, 2));
 							} catch (CoreException e) {
 								ErrorHandler
