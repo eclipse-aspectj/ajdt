@@ -121,6 +121,12 @@ public class AspectJPreferences {
 	public static final String OPTION_aspectExcludedByConfiguration ="org.aspectj.ajdt.core.complier.lint.aspectExcludedByConfiguration";  //$NON-NLS-1$
 	
 	public static final String OPTION_unorderedAdviceAtShadow ="org.aspectj.ajdt.core.compiler.lint.unorderedAdviceAtShadow"; //$NON-NLS-1$
+
+	public static final String OPTION_cantFindType = "org.aspectj.ajdt.core.compiler.lint.cantFindType"; //$NON-NLS-1$
+
+	public static final String OPTION_calculatingSerialVersionUID = "org.aspectj.ajdt.core.compiler.lint.calculatingSerialVersionUID"; //$NON-NLS-1$
+
+	public static final String OPTION_cantFindTypeAffectingJPMatch = "org.aspectj.ajdt.core.compiler.lint.cantFindTypeAffectingJPMatch"; //$NON-NLS-1$	
 	
 	// AspectJ 5 Lint Options
 	public static final String OPTION_noJoinpointsForBridgeMethods = "org.aspectj.ajdt.core.compiler.lint.noJoinpointsForBridgeMethods"; //$NON-NLS-1$
@@ -183,6 +189,9 @@ public class AspectJPreferences {
 			{ OPTION_noExplicitConstructorCall, "noExplicitConstructorCall" }, //$NON-NLS-1$
 			{ OPTION_aspectExcludedByConfiguration, "aspectExcludedByConfiguration" }, //$NON-NLS-1$
 			{ OPTION_unorderedAdviceAtShadow, "unorderedAdviceAtShadow" }, //$NON-NLS-1$
+			{ OPTION_cantFindType, "cantFindType" }, //$NON-NLS-1$
+			{ OPTION_calculatingSerialVersionUID, "calculatingSerialVersionUID" }, //$NON-NLS-1$
+			{ OPTION_cantFindTypeAffectingJPMatch, "cantFindTypeAffectingJPMatch" }, //$NON-NLS-1$
 			{ OPTION_noJoinpointsForBridgeMethods,
 					"noJoinpointsForBridgeMethods" }, //$NON-NLS-1$
 			{ OPTION_cantMatchArrayTypeOnVarargs, "cantMatchArrayTypeOnVarargs" }, //$NON-NLS-1$

@@ -104,6 +104,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private static final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint; //potential matching probs 5
 
+	private static final String PREF_AJ_CANT_FIND_TYPE = AspectJPreferences.OPTION_cantFindType;
+
+	private static final String PREF_AJ_CALCULATING_SERIAL_VERSION_UID = AspectJPreferences.OPTION_calculatingSerialVersionUID;
+
+	private static final String PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH = AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch;
+
 	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
 
 	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
@@ -120,6 +126,11 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private static final String PREF_ENABLE_WEAVE_MESSAGES = AspectJPreferences.OPTION_WeaveMessages;
 
+	/*
+	 * Why are these fields defined, some hiding a field from IMessageProvider, when 
+	 * the defaultValueMap then references the fields in AspectJPreferences, which have
+	 * the same values?! -spyoung
+	 */
 	private static final String ERROR = JavaCore.ERROR;
 
 	private static final String WARNING = JavaCore.WARNING;
@@ -246,6 +257,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.VALUE_IGNORE);
 		
 		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, "");
+
+		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, AspectJPreferences.VALUE_ERROR);
+		defaultValueMap.put(AspectJPreferences.OPTION_calculatingSerialVersionUID, AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, AspectJPreferences.VALUE_WARNING);
 	}
 
 	/**
@@ -286,7 +301,11 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			AspectJPreferences.OPTION_uncheckedArgument,
 			AspectJPreferences.OPTION_uncheckedAdviceConversion,
 			AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
-			AspectJPreferences.COMPILER_OPTIONS };
+			AspectJPreferences.COMPILER_OPTIONS, 
+			AspectJPreferences.OPTION_cantFindType,
+			AspectJPreferences.OPTION_calculatingSerialVersionUID,
+			AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch
+	};
 
 	public AJCompilerPreferencePage() {
 		super();
@@ -344,6 +363,10 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(PREF_AJ_INCOMPATIBLE_SERIAL_VERSION, IGNORE);
 		store.setDefault(PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, IGNORE);
 		store.setDefault(PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, WARNING);
+
+		store.setDefault(PREF_AJ_CANT_FIND_TYPE, ERROR);
+		store.setDefault(PREF_AJ_CALCULATING_SERIAL_VERSION_UID, IGNORE);
+		store.setDefault(PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH, WARNING);
 
 		store.setDefault(PREF_ENABLE_SERIALIZABLE_ASPECTS, false);
 		store.setDefault(PREF_ENABLE_NO_INLINE, false);
@@ -447,7 +470,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addComboBox(othersComposite, label,
 				PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
-//		 AJ5 options do not apply to Eclipse 3.0
+
+		label = UIMessages.CompilerConfigurationBlock_aj_cant_find_type;
+		addComboBox(othersComposite, label,
+				PREF_AJ_CANT_FIND_TYPE, errorWarningIgnore,
+				errorWarningIgnoreLabels, 0);
+
+		label = UIMessages.CompilerConfigurationBlock_aj_cant_find_type_affecting_jp_match;
+		addComboBox(othersComposite, label,
+				PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH, errorWarningIgnore,
+				errorWarningIgnoreLabels, 0);
+
+		//		 AJ5 options do not apply to Eclipse 3.0
 		if (!((EclipseVersion.MAJOR_VERSION == 3) && (EclipseVersion.MINOR_VERSION == 0))) {
 		label = UIMessages.CompilerConfigurationBlock_adviceDidNotMatch;
 		addComboBox(othersComposite, label,
@@ -598,6 +632,11 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		addComboBox(othersComposite, label, PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
+		label = UIMessages.CompilerConfigurationBlock_aj_calculating_serial_version_UID;
+		addComboBox(othersComposite, label,
+				PREF_AJ_CALCULATING_SERIAL_VERSION_UID, errorWarningIgnore,
+				errorWarningIgnoreLabels, 0);
+		
 		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
 		addCheckBox(othersComposite, label, PREF_ENABLE_WEAVE_MESSAGES,
 				enableDisableValues, 0);

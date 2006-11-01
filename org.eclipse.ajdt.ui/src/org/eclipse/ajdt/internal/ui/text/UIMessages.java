@@ -122,6 +122,9 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
 	public static String CompilerConfigurationBlock_aj_incompatible_serial_version_label;
 	public static String CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
+	public static String CompilerConfigurationBlock_aj_cant_find_type;
+	public static String CompilerConfigurationBlock_aj_calculating_serial_version_UID;
+	public static String CompilerConfigurationBlock_aj_cant_find_type_affecting_jp_match;
 	public static String CompilerConfigurationBlock_aj_no_weave_label;
 	public static String CompilerConfigurationBlock_aj_x_serializable_aspects_label;
 	public static String CompilerConfigurationBlock_aj_x_no_inline_label;
