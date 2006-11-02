@@ -14,7 +14,12 @@ import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -99,4 +104,101 @@ public class AJCompilerPreferencePageTest extends UITestCase {
 		assertEquals("there should be no settings",0,keys.length);		 //$NON-NLS-1$
 	}
 
+	// Checks relating to newly exposed xlint option, added in fix for bug
+	// 159704
+	public void testNewXlintOptions() throws Exception {
+		IPreferenceStore preferenceStore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		try {
+			// Use a logger to which we have access
+			TestLogger testLog = new TestLogger();
+			AspectJPlugin.getDefault().setAJLogger(testLog);
+
+			/*
+			 * These projects are only used for this test, so it seems
+			 * misleading and pointless to initialise them in setup.
+			 */
+			createPredefinedProject("ThirdPartyLibrary"); //$NON-NLS-1$
+			IProject userLibraryProject = createPredefinedProject("UserLibrary"); //$NON-NLS-1$
+			createPredefinedProject("UserLibraryAspects"); //$NON-NLS-1$
+
+			// 1. Check for expected error marker - default
+			checkProjectForExpectedMarker(userLibraryProject,
+					IMarker.SEVERITY_ERROR, "[Xlint:cantFindType]"); //$NON-NLS-1$
+
+			/*
+			 * 2. Change AspectJ Compiler Preferences Change them in the store
+			 * as this is what the code does - I guess we really want to change
+			 * the preferences via the GUI, but that's on the 'To Do' list...
+			 * -spyoung
+			 */
+			preferenceStore.setValue(AspectJPreferences.OPTION_cantFindType,
+					JavaCore.WARNING);
+			AJCompilerPreferencePage.initDefaults(preferenceStore);
+
+			// Re-build from clean
+			IWorkspace workspace = AspectJPlugin.getWorkspace();
+			workspace.build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+
+			waitForJobsToComplete();
+
+			// 3. Check for expected warning marker, post preferences change
+			checkProjectForExpectedMarker(userLibraryProject,
+					IMarker.SEVERITY_WARNING, "[Xlint:cantFindType]"); //$NON-NLS-1$
+
+		} finally {
+			// 4. Tidy up state
+			preferenceStore.setValue(AspectJPreferences.OPTION_cantFindType,
+					JavaCore.ERROR);
+			AJCompilerPreferencePage.initDefaults(preferenceStore);
+			AspectJPlugin.getDefault().setAJLogger(null);
+		}
+	}
+
+	private void checkProjectForExpectedMarker(IProject project, int expectedSeverity, String searchString) throws Exception {
+		
+		String severityString = "UNKNOWN"; //$NON-NLS-1$
+		if(expectedSeverity == IMarker.SEVERITY_ERROR) {
+			severityString = "ERROR"; //$NON-NLS-1$
+		} else if(expectedSeverity == IMarker.SEVERITY_WARNING) {
+			severityString = "WARNING"; //$NON-NLS-1$
+		}
+		
+		// State to be checked at end of method
+		boolean markerFound = false;
+		String markerMessage = ""; //$NON-NLS-1$
+
+		// Find all markers (errors, warnings etc) for the project
+		IMarker[] markers = project.findMarkers(null, true, IResource.DEPTH_INFINITE);
+		
+		for (int i = 0; i < markers.length; i++) {
+			IMarker marker = (IMarker)markers[i];
+
+			/*
+			 * This may seem a little odd, but the getAttribute method can return either
+			 * String, Integer, Boolean or null, depending on the arg passed in.
+			 * There is a method:
+			 * 
+			 *    public int getAttribute(String attributeName, int defaultValue);
+			 *    
+			 * but choice of default value affects return value, so I think the casted
+			 * Integer is cleaner.
+			 *     
+			 * - spyoung
+			 */
+			Integer severity = (Integer)marker.getAttribute(IMarker.SEVERITY);
+			
+			if(severity.intValue() == expectedSeverity) {
+				markerFound = true;
+				markerMessage = (String)marker.getAttribute(IMarker.MESSAGE);
+			}
+		}
+		
+		// Should show an error by default - need to build projects first?
+		assertTrue("The project did not have the expected marker of type " + severityString, markerFound); //$NON-NLS-1$
+		
+		boolean markerMessageContainsSearchString = markerMessage.indexOf(searchString) >= 0;
+		assertTrue("'" + searchString + "' not found in marker message : " + markerMessage, markerMessageContainsSearchString);  //$NON-NLS-1$//$NON-NLS-2$
+	}
+	
 }
