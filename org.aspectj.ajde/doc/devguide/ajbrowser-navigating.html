@@ -9,11 +9,11 @@
         link it will appear light-blue.
 		<span class="inlinemediaobject"><img src="ajbrowser-building.gif"></span>
     </p><div class="sect2"><a name="example"></a><div class="titlepage"><div><h3 class="title"><a name="example"></a>Example: Exploring the "Spacewar" sample code </h3></div></div><p>
-        <div class="itemizedlist"><ul><li><p><a name="d0e1172"></a>Launch <tt>ajbrowser</tt></p></li><li><p><a name="d0e1177"></a>Choose "File -&gt; Open" or click the "Open Build
+        <div class="itemizedlist"><ul><li><p><a name="d0e1183"></a>Launch <tt>ajbrowser</tt></p></li><li><p><a name="d0e1188"></a>Choose "File -&gt; Open" or click the "Open Build
           Configuration" button
            (<span class="inlinemediaobject"><img src="openConfig.gif"></span>) and select the configuration file for debugging
           the spacewar example, in
-          <tt>examples/spacewar/debug.lst</tt>.</p></li><li><p><a name="d0e1187"></a>Click the "Build" button (<span class="inlinemediaobject"><img src="build.gif"></span>) to
+          <tt>examples/spacewar/debug.lst</tt>.</p></li><li><p><a name="d0e1198"></a>Click the "Build" button (<span class="inlinemediaobject"><img src="build.gif"></span>) to
              compile.  The left pane should fill with a spacewar declaration
              tree.  If there is a compiler error, the clickable error message
              shows up as in label 4.
@@ -31,13 +31,13 @@
            <tt>lib/aspectjrt.jar</tt> that came with the browser.
               </p><p>
           <span class="inlinemediaobject"><img src="ajbrowser-options.gif"></span>&gt;
-              </p></li><li><p><a name="d0e1215"></a>Different structure views: The structure tree at the
+              </p></li><li><p><a name="d0e1226"></a>Different structure views: The structure tree at the
           left can display different orderings and granularity for structure:
 
-           <div class="itemizedlist"><ul><li><p><a name="d0e1219"></a>The package hierarchy view shows the traditional hierarchy
-               of package, class, and members.</p></li><li><p><a name="d0e1222"></a>The inheritance view shows the hierarchy from topmost
-               parent classes through subclasses to members.</p></li><li><p><a name="d0e1225"></a>The crosscutting view shows the aspect members
-               and the code they affect.</p></li><li><p><a name="d0e1228"></a>Additional buttons in the pane can be used to change the
+           <div class="itemizedlist"><ul><li><p><a name="d0e1230"></a>The package hierarchy view shows the traditional hierarchy
+               of package, class, and members.</p></li><li><p><a name="d0e1233"></a>The inheritance view shows the hierarchy from topmost
+               parent classes through subclasses to members.</p></li><li><p><a name="d0e1236"></a>The crosscutting view shows the aspect members
+               and the code they affect.</p></li><li><p><a name="d0e1239"></a>Additional buttons in the pane can be used to change the
                granularity and filter out items.</p></li></ul></div>
 
              </p><p>Whenever you select an item in the tree view, the
@@ -45,13 +45,13 @@
                    representing another program element, then the tree
                    selection will go to the corresponding node.  (See below for
                    how to use two panes to maintain your place.)
-             </p></li><li><p><a name="d0e1234"></a>When working with aspects, it helps to be able to navigate
+             </p></li><li><p><a name="d0e1245"></a>When working with aspects, it helps to be able to navigate
                between different program elements:
-             </p><div class="itemizedlist"><ul><li><p><a name="d0e1238"></a>When looking at a method, find the advice that
-              affects it.  </p></li><li><p><a name="d0e1241"></a>When looking at a pointcut, find the advice that
-              uses it.  </p></li><li><p><a name="d0e1244"></a>When looking at advice, find what it advises -
+             </p><div class="itemizedlist"><ul><li><p><a name="d0e1249"></a>When looking at a method, find the advice that
+              affects it.  </p></li><li><p><a name="d0e1252"></a>When looking at a pointcut, find the advice that
+              uses it.  </p></li><li><p><a name="d0e1255"></a>When looking at advice, find what it advises -
               e.g., method calls or executions, initializers, etc.
-              </p></li><li><p><a name="d0e1247"></a>When looking at a type, find any aspects that
+              </p></li><li><p><a name="d0e1258"></a>When looking at a type, find any aspects that
                               declare members or supertypes of the type, or
                               vice-versa.
               </p></li></ul></div><p>You can view the advice on a particular method using the
