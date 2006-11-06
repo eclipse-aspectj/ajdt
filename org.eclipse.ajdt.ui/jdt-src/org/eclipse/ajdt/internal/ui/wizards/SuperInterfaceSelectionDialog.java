@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * Copyright (c) 2000, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,9 +28,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.TypeNameMatch;
 
 import org.eclipse.jdt.internal.corext.util.Messages;
-import org.eclipse.jdt.internal.corext.util.TypeInfo;
 
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -96,11 +96,11 @@ public class SuperInterfaceSelectionDialog extends TypeSelectionDialog2 {
 	}
 		
 	private void addSelectedInterface() {
-		TypeInfo[] selection= getSelectedTypes();
+		TypeNameMatch[] selection= getSelectedTypes();
 		if (selection == null)
 			return;
 		for (int i= 0; i < selection.length; i++) {
-			TypeInfo type= selection[i];
+			TypeNameMatch type= selection[i];
 			String qualifiedName= type.getFullyQualifiedName();
 			String message;
 			if (fTypeWizardPage.addSuperInterface(qualifiedName)) {
@@ -116,12 +116,12 @@ public class SuperInterfaceSelectionDialog extends TypeSelectionDialog2 {
 		return SearchEngine.createJavaSearchScope(new IJavaProject[] { p });
 	}
 	
-	protected void handleDefaultSelected(TypeInfo[] selection) {
+	protected void handleDefaultSelected(TypeNameMatch[] selection) {
 		if (selection.length > 0)
 			buttonPressed(ADD_ID);
 	}
 	
-	protected void handleWidgetSelected(TypeInfo[] selection) {
+	protected void handleWidgetSelected(TypeNameMatch[] selection) {
 		super.handleWidgetSelected(selection);
 		getButton(ADD_ID).setEnabled(selection.length > 0);
 	}

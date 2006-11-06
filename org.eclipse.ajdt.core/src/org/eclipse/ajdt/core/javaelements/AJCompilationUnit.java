@@ -295,7 +295,8 @@ public class AJCompilationUnit extends CompilationUnit{
 					problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
 					problem.getSourceStart(),
 					problem.getSourceEnd(),
-					problem.getSourceLineNumber()));
+					problem.getSourceLineNumber(),
+					0)); // unknown column
 				}
 				}
 				perWorkingCopyInfo.endReporting();

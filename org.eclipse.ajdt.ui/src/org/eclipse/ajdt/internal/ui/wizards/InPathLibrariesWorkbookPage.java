@@ -104,7 +104,7 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         fLibrariesList.enableButton(IDX_REMOVE, false);
         fLibrariesList.enableButton(IDX_EDIT, false);
         
-        fLibrariesList.setViewerSorter(new CPListElementSorter());
+        fLibrariesList.setViewerComparator(new CPListElementSorter());
 
     }
         
@@ -141,7 +141,7 @@ public class InPathLibrariesWorkbookPage extends BuildPathBasePage {
         int buttonBarWidth= converter.convertWidthInCharsToPixels(24);
         fLibrariesList.setButtonsMinWidth(buttonBarWidth);
         
-        fLibrariesList.getTreeViewer().setSorter(new CPListElementSorter());
+        fLibrariesList.getTreeViewer().setComparator(new CPListElementSorter());
         
         fSWTControl= composite;
                 

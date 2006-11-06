@@ -23,7 +23,6 @@ import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
-import org.eclipse.ajdt.internal.ui.dialogs.AJCUTypeInfo;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -59,6 +58,7 @@ import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.core.search.TypeNameMatch;
 import org.eclipse.jdt.internal.corext.SourceRange;
 import org.eclipse.jdt.internal.corext.codemanipulation.CodeGenerationMessages;
 import org.eclipse.jdt.internal.corext.codemanipulation.ImportReferencesCollector;
@@ -68,8 +68,7 @@ import org.eclipse.jdt.internal.corext.dom.ScopeAnalyzer;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.corext.util.Strings;
-import org.eclipse.jdt.internal.corext.util.TypeInfo;
-import org.eclipse.jdt.internal.corext.util.TypeInfoRequestor;
+import org.eclipse.jdt.internal.corext.util.TypeNameMatchCollector;
 import org.eclipse.jdt.internal.ui.javaeditor.ASTProvider;
 import org.eclipse.jdt.internal.ui.text.correction.ASTResolving;
 import org.eclipse.jdt.internal.ui.text.correction.SimilarElementsRequestor;
@@ -89,7 +88,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 		 * @return Returns <code>null</code> to cancel the operation, or the
 		 *         selected imports.
 		 */
-		TypeInfo[] chooseImports(TypeInfo[][] openChoices, ISourceRange[] ranges);
+		TypeNameMatch[] chooseImports(TypeNameMatch[][] openChoices, ISourceRange[] ranges);
 	}
 	
 	
@@ -104,6 +103,16 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				this.ref= ref;
 				this.typeKinds= ASTResolving.getPossibleTypeKinds(ref, true);
 				this.foundInfos= new ArrayList(3);
+			}
+			
+			public void addInfo(TypeNameMatch info) {
+				for (int i= this.foundInfos.size() - 1; i >= 0; i--) {
+					TypeNameMatch curr= (TypeNameMatch) this.foundInfos.get(i);
+					if (curr.getTypeContainerName().equals(info.getTypeContainerName())) {
+						return; // not added. already contains type with same name
+					}
+				}
+				foundInfos.add(info);
 			}
 		}
 		
@@ -123,7 +132,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 		
 		private Map fUnresolvedTypes;
 		private Set fImportsAdded;
-		private TypeInfo[][] fOpenChoices;
+		private TypeNameMatch[][] fOpenChoices;
 		private SourceRange[] fSourceRanges;
 		
 		
@@ -240,39 +249,40 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				ArrayList typesFound= new ArrayList();
 				IJavaProject project= fCurrPackage.getJavaProject();
 				IJavaSearchScope scope= SearchEngine.createJavaSearchScope(new IJavaElement[] { project });
-				TypeInfoRequestor requestor= new TypeInfoRequestor(typesFound);
-				new SearchEngine().searchAllTypeNames(null, allTypes, scope, requestor, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, monitor);
+				TypeNameMatchCollector collector= new TypeNameMatchCollector(typesFound);
+				new SearchEngine().searchAllTypeNames(null, allTypes, scope, collector, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, monitor);
 
 				boolean is50OrHigher= 	JavaModelUtil.is50OrHigher(project);
 				
 				for (i= 0; i < typesFound.size(); i++) {
-					TypeInfo curr= (TypeInfo) typesFound.get(i);
-					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getTypeName());
+					TypeNameMatch curr= (TypeNameMatch) typesFound.get(i);
+					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getSimpleTypeName());
 					if (data != null && isVisible(curr) && isOfKind(curr, data.typeKinds, is50OrHigher)) {
 						if (fAllowDefaultPackageImports || curr.getPackageName().length() > 0) {
-							data.foundInfos.add(curr);
+							data.addInfo(curr);
 						}
 					}
 				}
 				// AspectJ Change Begin
-				IJavaSearchScope jscope = SearchEngine.createJavaSearchScope(new IJavaElement[] {fImpStructure.getCompilationUnit().getJavaProject()}, 
-						IJavaSearchScope.APPLICATION_LIBRARIES |
-						IJavaSearchScope.REFERENCED_PROJECTS |
-						IJavaSearchScope.SOURCES); 
-				List ajTypes = getAspectJTypes(jscope);
-				for (Iterator iter = ajTypes.iterator(); iter.hasNext();) {
-					AJCUTypeInfo curr = (AJCUTypeInfo) iter.next();
-					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getTypeName());
-					if (data != null && isVisible(curr)) {
-						data.foundInfos.add(curr);
-					}
-				}	
+				// TODO: 3.3M3
+//				IJavaSearchScope jscope = SearchEngine.createJavaSearchScope(new IJavaElement[] {fImpStructure.getCompilationUnit().getJavaProject()}, 
+//						IJavaSearchScope.APPLICATION_LIBRARIES |
+//						IJavaSearchScope.REFERENCED_PROJECTS |
+//						IJavaSearchScope.SOURCES); 
+//				List ajTypes = getAspectJTypes(jscope);
+//				for (Iterator iter = ajTypes.iterator(); iter.hasNext();) {
+//					AJCUTypeInfo curr = (AJCUTypeInfo) iter.next();
+//					UnresolvedTypeData data= (UnresolvedTypeData) fUnresolvedTypes.get(curr.getTypeName());
+//					if (data != null && isVisible(curr)) {
+//						data.foundInfos.add(curr);
+//					}
+//				}	
 				// AspectJ Change End				
 				ArrayList openChoices= new ArrayList(nUnresolved);
 				ArrayList sourceRanges= new ArrayList(nUnresolved);
 				for (Iterator iter= fUnresolvedTypes.values().iterator(); iter.hasNext();) {
 					UnresolvedTypeData data= (UnresolvedTypeData) iter.next();
-					TypeInfo[] openChoice= processTypeInfo(data.foundInfos);
+					TypeNameMatch[] openChoice= processTypeInfo(data.foundInfos);
 					if (openChoice != null) {
 						openChoices.add(openChoice);
 						sourceRanges.add(new SourceRange(data.ref.getStartPosition(), data.ref.getLength()));
@@ -281,7 +291,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				if (openChoices.isEmpty()) {
 					return false;
 				}
-				fOpenChoices= (TypeInfo[][]) openChoices.toArray(new TypeInfo[openChoices.size()][]);
+				fOpenChoices= (TypeNameMatch[][]) openChoices.toArray(new TypeNameMatch[openChoices.size()][]);
 				fSourceRanges= (SourceRange[]) sourceRanges.toArray(new SourceRange[sourceRanges.size()]);
 				return true;
 			} finally {
@@ -311,18 +321,19 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 											char[][] enclosingTypes = AJDTUtils.getEnclosingTypes(type);
 											int kind = type.getFlags(); // 103131 - pass in correct flags
 											if (type instanceof AspectElement) { // 3.2 - Classes in .aj files are found
-												AJCUTypeInfo info = new AJCUTypeInfo(
-														type.getPackageFragment().getElementName(),
-														type.getElementName(),
-														enclosingTypes,
-														kind,
-														type instanceof AspectElement,
-														jp.getElementName(),
-														unit.getPackageFragmentRoot().getElementName(),
-														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
-														"aj", //$NON-NLS-1$
-														unit);							
-												ajTypes.add(info);
+												//TODO: 3.3M3
+//												AJCUTypeInfo info = new AJCUTypeInfo(
+//														type.getPackageFragment().getElementName(),
+//														type.getElementName(),
+//														enclosingTypes,
+//														kind,
+//														type instanceof AspectElement,
+//														jp.getElementName(),
+//														unit.getPackageFragmentRoot().getElementName(),
+//														unit.getElementName().substring(0, unit.getElementName().lastIndexOf('.')),
+//														"aj", //$NON-NLS-1$
+//														unit);							
+//												ajTypes.add(info);
 											}
 											
 										}
@@ -339,13 +350,13 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 		}
 
 
-		private TypeInfo[] processTypeInfo(List typeRefsFound) {
+		private TypeNameMatch[] processTypeInfo(List typeRefsFound) {
 			int nFound= typeRefsFound.size();
 			if (nFound == 0) {
 				// nothing found
 				return null;
 			} else if (nFound == 1) {
-				TypeInfo typeRef= (TypeInfo) typeRefsFound.get(0);
+				TypeNameMatch typeRef= (TypeNameMatch) typeRefsFound.get(0);
 				fImpStructure.addImport(typeRef.getFullyQualifiedName());
 				return null;
 			} else {
@@ -354,7 +365,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 				
 				// multiple found, use old imports to find an entry
 				for (int i= 0; i < nFound; i++) {
-					TypeInfo typeRef= (TypeInfo) typeRefsFound.get(i);
+					TypeNameMatch typeRef= (TypeNameMatch) typeRefsFound.get(i);
 					String fullName= typeRef.getFullyQualifiedName();
 					String containerName= typeRef.getTypeContainerName();
 					if (fOldSingleImports.contains(fullName)) {
@@ -375,11 +386,11 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 					return null;
 				}
 				// return the open choices
-				return (TypeInfo[]) typeRefsFound.toArray(new TypeInfo[nFound]);
+				return (TypeNameMatch[]) typeRefsFound.toArray(new TypeNameMatch[nFound]);
 			}
 		}
 		
-		private boolean isOfKind(TypeInfo curr, int typeKinds, boolean is50OrHigher) {
+		private boolean isOfKind(TypeNameMatch curr, int typeKinds, boolean is50OrHigher) {
 			int flags= curr.getModifiers();
 			if (Flags.isAnnotation(flags)) {
 				return is50OrHigher && ((typeKinds & SimilarElementsRequestor.ANNOTATIONS) != 0);
@@ -393,7 +404,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			return (typeKinds & SimilarElementsRequestor.CLASSES) != 0;
 		}
 
-		private boolean isVisible(TypeInfo curr) {
+		private boolean isVisible(TypeNameMatch curr) {
 			int flags= curr.getModifiers();
 			if (Flags.isPrivate(flags)) {
 				return false;
@@ -404,7 +415,7 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			return curr.getPackageName().equals(fCurrPackage.getElementName());
 		}
 
-		public TypeInfo[][] getChoices() {
+		public TypeNameMatch[][] getChoices() {
 			return fOpenChoices;
 		}
 
@@ -488,15 +499,15 @@ public class AJOrganizeImportsOperation implements IWorkspaceRunnable {
 			addStaticImports(staticReferences, importsRewrite);
 			
 			if (hasOpenChoices && fChooseImportQuery != null) {
-				TypeInfo[][] choices= processor.getChoices();
+				TypeNameMatch[][] choices= processor.getChoices();
 				ISourceRange[] ranges= processor.getChoicesSourceRanges();
-				TypeInfo[] chosen= fChooseImportQuery.chooseImports(choices, ranges);
+				TypeNameMatch[] chosen= fChooseImportQuery.chooseImports(choices, ranges);
 				if (chosen == null) {
 					// cancel pressed by the user
 					throw new OperationCanceledException();
 				}
 				for (int i= 0; i < chosen.length; i++) {
-					TypeInfo typeInfo= chosen[i];
+					TypeNameMatch typeInfo= chosen[i];
 					importsRewrite.addImport(typeInfo.getFullyQualifiedName());
 				}				
 			}

@@ -241,7 +241,8 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 						problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
 						problem.getSourceStart(),
 						problem.getSourceEnd(),
-						problem.getSourceLineNumber()));
+						problem.getSourceLineNumber(),
+						0)); // unknown column
 					}
 				}
 			} catch (JavaModelException e) {

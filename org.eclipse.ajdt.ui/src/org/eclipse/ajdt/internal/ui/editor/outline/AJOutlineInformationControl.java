@@ -619,7 +619,7 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		fOutlineContentProvider= new OutlineContentProvider(false);
 		treeViewer.setContentProvider(fOutlineContentProvider);
 		fOutlineSorter= new OutlineSorter();
-		treeViewer.setSorter(fOutlineSorter);
+		treeViewer.setComparator(fOutlineSorter);
 		treeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 
 
