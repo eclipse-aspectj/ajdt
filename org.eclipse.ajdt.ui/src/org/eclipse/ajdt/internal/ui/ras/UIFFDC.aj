@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,11 +11,8 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.ras;
 
-import org.eclipse.ajdt.internal.ui.dialogs.AJTypeInfoFactory;
-import org.eclipse.ajdt.internal.ui.dialogs.AJTypeInfoHistory;
-import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
+import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog2;
 import org.eclipse.ajdt.internal.ui.editor.AspectJBreakpointRulerAction;
-//import org.eclipse.ajdt.pde.internal.ui.editor.context.FileDocumentProvider;
 import org.eclipse.ajdt.core.ras.PluginFFDC;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.runtime.IStatus;
@@ -31,9 +28,7 @@ public aspect UIFFDC extends PluginFFDC {
 		// Exclude lazy start package to avoid early plugin activation
 		&& !within(org.eclipse.ajdt.internal.ui.lazystart..*)
 		// Exclude programming by exception cases
-		&& !within(OpenTypeSelectionDialog)
-		//&& !within(FileDocumentProvider)
-		&& !within(AJTypeInfoHistory) && !within(AJTypeInfoFactory)
+		&& !within(OpenTypeSelectionDialog2)
 		&& !(within(AspectJBreakpointRulerAction) && handler(BadLocationException));
 		
     protected String getPluginId () {

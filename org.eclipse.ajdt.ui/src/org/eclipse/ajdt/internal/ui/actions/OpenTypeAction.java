@@ -1,6 +1,17 @@
+/*******************************************************************************
+ * Copyright (c) 2006 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Matt Chapman - initial version
+ *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
-import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
+import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog2;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
@@ -22,9 +33,9 @@ public class OpenTypeAction extends
 	
 	public void run() {
 		Shell parent= JavaPlugin.getActiveWorkbenchShell();
-		OpenTypeSelectionDialog dialog= new OpenTypeSelectionDialog(parent, false, 
-			PlatformUI.getWorkbench().getProgressService(),
-			null, IJavaSearchConstants.TYPE);
+		OpenTypeSelectionDialog2 dialog= new OpenTypeSelectionDialog2(parent, false, 
+				PlatformUI.getWorkbench().getProgressService(),
+				null, IJavaSearchConstants.TYPE);
 		dialog.setTitle(JavaUIMessages.OpenTypeAction_dialogTitle); 
 		dialog.setMessage(JavaUIMessages.OpenTypeAction_dialogMessage); 
 		
@@ -39,9 +50,7 @@ public class OpenTypeAction extends
 				IEditorPart part= EditorUtility.openInEditor(type, true);
 				EditorUtility.revealInEditor(part, type);
 			} catch (CoreException x) {
-				String title= JavaUIMessages.OpenTypeAction_errorTitle; 
-				String message= JavaUIMessages.OpenTypeAction_errorMessage; 
-				ExceptionHandler.handle(x, title, message);
+				ExceptionHandler.handle(x, JavaUIMessages.OpenTypeAction_errorTitle, JavaUIMessages.OpenTypeAction_errorMessage);
 			}
 		}
 	}

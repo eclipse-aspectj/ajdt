@@ -8,7 +8,7 @@
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
 
-import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog;
+import org.eclipse.ajdt.internal.ui.dialogs.OpenTypeSelectionDialog2;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -41,7 +41,7 @@ public class OpenTypeInHierarchyAction extends Action implements IWorkbenchWindo
 	public void run() {
 		Shell parent= JavaPlugin.getActiveWorkbenchShell();
 //		 AspectJ Change - use our OpenTypeSelectionDialog
-		OpenTypeSelectionDialog dialog= new OpenTypeSelectionDialog(parent, false, 
+		OpenTypeSelectionDialog2 dialog= new OpenTypeSelectionDialog2(parent, false, 
 			PlatformUI.getWorkbench().getProgressService(), 
 			SearchEngine.createWorkspaceScope(), IJavaSearchConstants.TYPE);
 		
