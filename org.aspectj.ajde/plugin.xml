@@ -3,7 +3,7 @@
 <plugin>
 
     
-<!-- AJDT Help -->
+<!-- Eclipse Help Contents Pages -->
   <extension point="org.eclipse.help.toc">
    <toc file="toc.xml" primary="true" />
    </extension>
@@ -11,5 +11,6 @@
        <toc file="toc_ajprogguide.xml" />
        <toc file="toc_ajdevguide.xml" />   
        <toc file="toc_adk15notebook.xml" />   
+       <toc file="toc_ajpdguide.xml" />   
    </extension> 
 </plugin>
