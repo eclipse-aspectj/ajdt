@@ -8,18 +8,18 @@
 	<tt>class</tt> declaration in that it defines a type and an
 	implementation for that type. It differs in a number of
 	ways:
-      </p><div class="sect3"><a name="d0e6944"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6944"></a>Aspect implementation can cut across other types</h4></div></div><p> In addition to normal Java class declarations such as
+      </p><div class="sect3"><a name="d0e7013"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7013"></a>Aspect implementation can cut across other types</h4></div></div><p> In addition to normal Java class declarations such as
 	methods and fields, aspect declarations can include AspectJ
 	declarations such as advice, pointcuts, and inter-type
 	declarations.  Thus, aspects contain implementation
 	declarations that can can cut across other types (including those defined by
 	other aspect declarations).
-        </p></div><div class="sect3"><a name="d0e6949"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6949"></a>Aspects are not directly instantiated</h4></div></div><p> Aspects are not directly instantiated with a new
+        </p></div><div class="sect3"><a name="d0e7018"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7018"></a>Aspects are not directly instantiated</h4></div></div><p> Aspects are not directly instantiated with a new
 	expression, with cloning, or with serialization. Aspects may
 	have one constructor definition, but if so it must be of a
 	constructor taking no arguments and throwing no checked
 	exceptions.
-        </p></div><div class="sect3"><a name="d0e6954"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6954"></a>Nested aspects must be <tt>static</tt></h4></div></div><p> 
+        </p></div><div class="sect3"><a name="d0e7023"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7023"></a>Nested aspects must be <tt>static</tt></h4></div></div><p> 
 	  Aspects may be defined either at the package level, or as a static nested
           aspect -- that is, a static member of a class, interface, or aspect.  If it
           is not at the package level, the aspect <span class="emphasis"><i>must</i></span> be
@@ -29,14 +29,14 @@
         To support abstraction and composition of crosscutting concerns,
         aspects can be extended in much the same way that classes can. Aspect
         extension adds some new rules, though.
-      </p><div class="sect3"><a name="d0e6969"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6969"></a>Aspects may extend classes and implement interfaces</h4></div></div><p>
+      </p><div class="sect3"><a name="d0e7038"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7038"></a>Aspects may extend classes and implement interfaces</h4></div></div><p>
           An aspect, abstract or concrete, may extend a class and may implement
           a set of interfaces. Extending a class does not provide the ability
           to instantiate the aspect with a new expression: The aspect may still
           only define a null constructor.
-        </p></div><div class="sect3"><a name="d0e6974"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6974"></a>Classes may not extend aspects</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e7043"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7043"></a>Classes may not extend aspects</h4></div></div><p>
           It is an error for a class to extend or implement an aspect.
-        </p></div><div class="sect3"><a name="d0e6979"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6979"></a>Aspects extending aspects
+        </p></div><div class="sect3"><a name="d0e7048"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7048"></a>Aspects extending aspects
         </h4></div></div><p>
           Aspects may extend other aspects, in which case not only are fields
           and methods inherited but so are pointcuts. However, aspects may only
@@ -58,7 +58,7 @@
         How an aspect is instantiated controls the form of the 
         <tt>aspectOf(..)</tt> method defined on the
         concrete aspect class.
-      </p><div class="sect3"><a name="d0e7002"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7002"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7006"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e7012"></a><tt>aspect <i><tt>Id</tt></i> issingleton() { ... }</tt></li></ul></div><p>
+      </p><div class="sect3"><a name="d0e7071"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7071"></a>Singleton Aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7075"></a><tt>aspect <i><tt>Id</tt></i> { ... }</tt></li><li><a name="d0e7081"></a><tt>aspect <i><tt>Id</tt></i> issingleton() { ... }</tt></li></ul></div><p>
           By default (or by using the modifier <tt>issingleton()</tt>)
           an aspect has exactly one instance that cuts across the entire
           program.  That instance is available at any time during program
@@ -75,7 +75,7 @@
           (In actuality, one instance of the aspect A is made for each version
           of the aspect A, so there will be one instantiation for each time A
           is loaded by a different classloader.)
-        </p></div><div class="sect3"><a name="d0e7033"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7033"></a>Per-object aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7037"></a><tt>aspect <i><tt>Id</tt></i> perthis(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7046"></a><tt>aspect <i><tt>Id</tt></i> pertarget(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
+        </p></div><div class="sect3"><a name="d0e7102"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7102"></a>Per-object aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7106"></a><tt>aspect <i><tt>Id</tt></i> perthis(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7115"></a><tt>aspect <i><tt>Id</tt></i> pertarget(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
           If an aspect A is defined
           <tt>perthis(<i><tt>Pointcut</tt></i>)</tt>, then
           one object of type A is created for every object that is the
@@ -101,7 +101,7 @@
           there is no associated aspect of type A.
         </p><p> Both <tt>perthis</tt> and <tt>pertarget</tt>
         aspects may be affected by code the AspectJ compiler controls, as
-        discussed in the <a href="implementation.html">Implementation Notes</a> appendix.  </p></div><div class="sect3"><a name="d0e7095"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7095"></a>Per-control-flow aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7099"></a><tt>aspect <i><tt>Id</tt></i> percflow(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7108"></a><tt>aspect <i><tt>Id</tt></i> percflowbelow(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
+        discussed in the <a href="implementation.html">Implementation Notes</a> appendix.  </p></div><div class="sect3"><a name="d0e7164"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7164"></a>Per-control-flow aspects</h4></div></div><div class="itemizedlist"><ul><li><a name="d0e7168"></a><tt>aspect <i><tt>Id</tt></i> percflow(<i><tt>Pointcut</tt></i>) { ... }</tt></li><li><a name="d0e7177"></a><tt>aspect <i><tt>Id</tt></i> percflowbelow(<i><tt>Pointcut</tt></i>) { ... }</tt></li></ul></div><p>
           If an aspect A is defined
           <tt>percflow(<i><tt>Pointcut</tt></i>)</tt> or
           <tt>percflowbelow(<i><tt>Pointcut</tt></i>)</tt>,
@@ -114,7 +114,7 @@
           of type
           A. An instance of the aspect is created upon entry into each such
           control flow.
-        </p></div><div class="sect3"><a name="d0e7137"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7137"></a>Aspect instantiation and advice</h4></div></div><p>
+        </p></div><div class="sect3"><a name="d0e7206"></a><div class="titlepage"><div><h4 class="title"><a name="d0e7206"></a>Aspect instantiation and advice</h4></div></div><p>
           All advice runs in the context of an aspect instance,
           but it is possible to write a piece of advice with a pointcut
           that picks out a join point that must occur before asopect
@@ -145,7 +145,7 @@
           compile time.  If advice runs before its aspect is instantiated,
           AspectJ will throw a <a href="../api/org/aspectj/lang/NoAspectBoundException.html" target="_top">
           <tt>org.aspectj.lang.NoAspectBoundException</tt></a>.
-        </p></div></div><div class="sect2"><a name="aspect-privilege"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-privilege"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7157"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
+        </p></div></div><div class="sect2"><a name="aspect-privilege"></a><div class="titlepage"><div><h3 class="title"><a name="aspect-privilege"></a>Aspect privilege</h3></div></div><div class="itemizedlist"><ul><li><a name="d0e7226"></a><tt>privileged aspect <i><tt>Id</tt></i> { ... }</tt></li></ul></div><p>
         Code written in aspects is subject to the same access control rules as
         Java code when referring to members of classes or aspects. So, for
         example, code written in an aspect may not refer to members with
