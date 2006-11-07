@@ -10,6 +10,9 @@
 	<topic label="The AspectJ 5 Developer's Notebook">
 		<link toc="toc_adk15notebook.xml" />		
 	</topic>
+	<topic label="The AspectJ Problem Diagnosis Guilde">
+		<link toc="toc_ajpdguide.xml" />		
+	</topic>
 	<topic label="API Documentation" href="doc/api/index.html"/>
 	<topic label="README for v1.5.2" href="doc/README-152.html"/>
 	<topic label="FAQ" href="doc/faq.html"/>
