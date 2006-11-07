@@ -128,9 +128,9 @@
       }
   }
 </pre><p>
-		Any occurence of <tt>proceed(..)</tt> within the body of
-		around advice is treated as the special proceed form (even if the
-		aspect defines a method named <tt>proceed</tt>) unless a 
+		Any occurence of <tt>proceed(..)</tt> within the body of around 
+        advice is treated as the special proceed form (even if the
+		aspect defines a method named <tt>proceed</tt>), unless a 
 		target other than the aspect instance is specified as the recipient of
 		the call.
 		For example, in the following program the first 
@@ -165,6 +165,61 @@
       Rather, it will double the local parameter.  Changing the values of
       parameters or return values of join points can be done by using around
       advice.
+    </p><p>
+        With <tt>proceed(..)</tt> it is possible to change the values
+        used by less-precedent advice and the underlying join point by supplying
+        different values for the variables.  For example, this aspect replaces
+        the string bound to <tt>s</tt> in the named pointcut 
+        <tt>privateData</tt>:
+    </p><pre class="programlisting">
+  aspect A {
+    Object around(String s): MyPointcuts.privateData(s) {
+      return proceed("private data");
+    }
+  }
+</pre><p>
+        If you replace an argument to <tt>proceed(..)</tt>, you can cause 
+        a <tt>ClassCastException</tt> at runtime when the argument
+        refers to a supertype of the actual type and you do not supply a 
+        reference of the actual type.  In the following aspect, the
+        around advice replaces the declared target <tt>List</tt> 
+        with an <tt>ArrayList</tt>.  This is valid code at
+        compile-time since the types match.  
+    </p><pre class="programlisting">
+  import java.util.*;
+
+  aspect A {
+    Object around(List list): call(* List+.*()) &amp;&amp; target(list) {
+      return proceed(new ArrayList());
+    }
+  }
+</pre><p>
+        But imagine a simple program where the actual target is
+        <tt>LinkedList</tt>.  In this case, the advice would cause a
+        <tt>ClassCastException</tt> at runtime, and 
+        <tt>peek()</tt> is not declared in <tt>ArrayList</tt>.
+    </p><pre class="programlisting">
+  public class Test {
+    public static void main(String[] args) {
+      new LinkedList().peek();
+    }
+  }
+</pre><p>
+        The <tt>ClassCastException</tt> can occur even in situations
+        where it appears to be unnecessary, e.g., if the program is changed to
+        call <tt>size()</tt>, declared in <tt>List</tt>:
+    </p><pre class="programlisting">
+  public class Test {
+    public static void main(String[] args) {
+      new LinkedList().size();
+    }
+  }
+</pre><p>
+        There will still be a <tt>ClassCastException</tt> because
+        it is impossible to prove that there won't be a runtime binary-compatible
+        change in the hierarchy of <tt>LinkedList</tt> or some
+        other advice on the join point that requires a 
+        <tt>LinkedList</tt>.
     </p><div class="sect2"><a name="advice-modifiers"></a><div class="titlepage"><div><h3 class="title"><a name="advice-modifiers"></a>Advice modifiers</h3></div></div><p>
         The <tt>strictfp</tt> modifier is the only modifier allowed
         on advice, and it has the effect of making all floating-point
@@ -198,46 +253,46 @@
         an undeclared checked exception, and the second because field get join
         points cannot throw <tt>FileNotFoundException</tt>s.
       </p><p> The exceptions that each kind of join point in AspectJ may throw are:
-      </p><div class="variablelist"><dl><dt><a name="d0e6208"></a><span class="term">method call and execution</span></dt><dd>
+      </p><div class="variablelist"><dl><dt><a name="d0e6277"></a><span class="term">method call and execution</span></dt><dd>
           the checked exceptions declared by the target method's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6216"></a><span class="term">constructor call and execution</span></dt><dd>
+        </dd><dt><a name="d0e6285"></a><span class="term">constructor call and execution</span></dt><dd>
           the checked exceptions declared by the target constructor's
           <tt>throws</tt> clause.
-        </dd><dt><a name="d0e6224"></a><span class="term">field get and set</span></dt><dd>
+        </dd><dt><a name="d0e6293"></a><span class="term">field get and set</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6229"></a><span class="term">exception handler execution</span></dt><dd>
+        </dd><dt><a name="d0e6298"></a><span class="term">exception handler execution</span></dt><dd>
           the exceptions that can be thrown by the target exception handler.
-        </dd><dt><a name="d0e6234"></a><span class="term">static initializer execution</span></dt><dd>
+        </dd><dt><a name="d0e6303"></a><span class="term">static initializer execution</span></dt><dd>
           no checked exceptions can be thrown from these join points. 
-        </dd><dt><a name="d0e6239"></a><span class="term">pre-initialization and initialization</span></dt><dd>
+        </dd><dt><a name="d0e6308"></a><span class="term">pre-initialization and initialization</span></dt><dd>
           any exception that is in the throws clause of
           <span class="emphasis"><i>all</i></span> constructors of the initialized class. 
-        </dd><dt><a name="d0e6247"></a><span class="term">advice execution</span></dt><dd>
+        </dd><dt><a name="d0e6316"></a><span class="term">advice execution</span></dt><dd>
           any exception that is in the throws clause of the advice. 
         </dd></dl></div></div><div class="sect2"><a name="advice-precedence"></a><div class="titlepage"><div><h3 class="title"><a name="advice-precedence"></a>Advice precedence</h3></div></div><p>
         Multiple pieces of advice may apply to the same join point.  In such
         cases, the resolution order of the advice is based on advice
         precedence.
-      </p><div class="sect3"><a name="d0e6257"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6257"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
+      </p><div class="sect3"><a name="d0e6326"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6326"></a>Determining precedence</h4></div></div><p>There are a number of rules that determine whether a particular
         piece of advice has precedence over another when they advise the same
         join point. </p><p>If the two pieces of advice are defined in different aspects,
-        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6265"></a>If aspect A is matched earlier than aspect B in some
+        then there are three cases: </p><div class="itemizedlist"><ul><li><a name="d0e6334"></a>If aspect A is matched earlier than aspect B in some
           <tt>declare precedence</tt> form, then all advice in
           concrete aspect A has precedence over all advice in concrete aspect B
-          when they are on the same join point.  </li><li><a name="d0e6270"></a>
+          when they are on the same join point.  </li><li><a name="d0e6339"></a>
           Otherwise, if aspect A is a subaspect of aspect B, then all advice
           defined in A has precedence over all advice defined in
           B. So, unless otherwise specified with
           <tt>declare precedence</tt>, advice in a subaspect
           has precedence over advice in a superaspect.
-          </li><li><a name="d0e6275"></a>
+          </li><li><a name="d0e6344"></a>
           Otherwise, if two pieces of advice are defined in two different
           aspects, it is undefined which one has precedence.
           </li></ul></div><p>If the two pieces of advice are defined in the same aspect, then
-        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6280"></a>If either are <tt>after</tt> advice, then the one that
+        there are two cases: </p><div class="itemizedlist"><ul><li><a name="d0e6349"></a>If either are <tt>after</tt> advice, then the one that
           appears later in the aspect has precedence over the one that appears
-          earlier. </li><li><a name="d0e6285"></a>Otherwise, then the one that appears earlier in the aspect
+          earlier. </li><li><a name="d0e6354"></a>Otherwise, then the one that appears earlier in the aspect
           has precedence over the one that appears later.
           </li></ul></div><p>These rules can lead to circularity, such as</p><pre class="programlisting">
   aspect A {
@@ -245,7 +300,7 @@
       after():  execution(void main(String[] args)) {}
       before(): execution(void main(String[] args)) {}
   }
-</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6293"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6293"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
+</pre><p>such circularities will result in errors signalled by the compiler. </p></div><div class="sect3"><a name="d0e6362"></a><div class="titlepage"><div><h4 class="title"><a name="d0e6362"></a>Effects of precedence</h4></div></div><p>At a particular join point, advice is ordered by precedence.</p><p>A piece of <tt>around</tt> advice controls whether
         advice of lower precedence will run by calling
         <tt>proceed</tt>.  The call to <tt>proceed</tt>
         will run the advice with next precedence, or the computation under the
