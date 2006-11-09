@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.internal.ui.editor.actions;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -86,6 +85,8 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorActionBarContributor;
 import org.eclipse.ui.progress.IProgressService;
+
+import com.ibm.icu.text.Collator;
 
 
 /**

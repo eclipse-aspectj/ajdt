@@ -12,7 +12,6 @@ package org.eclipse.ajdt.internal.launching;
 
 
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +54,7 @@ import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -465,15 +465,15 @@ public class AJClasspathTab extends JavaClasspathTab {
 			if (status.isOK()) {
 				IProject project= ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 				if (!project.exists()) {
-					setErrorMessage(MessageFormat.format(LauncherMessages.JavaMainTab_20, new String[] {projectName})); //$NON-NLS-1$
+					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_20, new String[] {projectName})); //$NON-NLS-1$
 					return false;
 				}
 				if (!project.isOpen()) {
-					setErrorMessage(MessageFormat.format(LauncherMessages.JavaMainTab_21, new String[] {projectName})); //$NON-NLS-1$
+					setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_21, new String[] {projectName})); //$NON-NLS-1$
 					return false;
 				}
 			} else {
-				setErrorMessage(MessageFormat.format(LauncherMessages.JavaMainTab_19, new String[]{status.getMessage()})); //$NON-NLS-1$
+				setErrorMessage(NLS.bind(LauncherMessages.JavaMainTab_19, new String[]{status.getMessage()})); //$NON-NLS-1$
 				return false;
 			}
 		}
@@ -484,7 +484,7 @@ public class AJClasspathTab extends JavaClasspathTab {
 			if (entries[i].getType() == IRuntimeClasspathEntry.ARCHIVE 
 					&& (!entries[i].getPath().isAbsolute()))
 			{
-				setErrorMessage(MessageFormat.format(LauncherMessages.JavaClasspathTab_Invalid_runtime_classpath_1, new String[]{entries[i].getPath().toString()}));
+				setErrorMessage(NLS.bind(LauncherMessages.JavaClasspathTab_Invalid_runtime_classpath_1, new String[]{entries[i].getPath().toString()}));
 				return false;
 			}
 		}

@@ -11,10 +11,11 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.tracing;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
@@ -110,8 +111,19 @@ public class EventTraceView extends ViewPart
 	}
 
 	public void ajdtEvent(String msg, final int category, Date time) {
-		final String txt = DateFormat.getTimeInstance().format(time)
-			+ " " + msg + "\n";
+		/*
+		 * This code no longer dependent on either java.util.DateFormat, nor its ICU4J 
+		 * version, while avoiding the deprecated methods in java.util.Date, hence the 
+		 * slightly convoluted manner of extracting the time from the given date.
+		 * 
+		 * -spyoung
+		 */
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTime(time);
+		
+		final String txt = calendar.get(Calendar.HOUR_OF_DAY) + ":" 
+			+ calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND) + " " + msg + "\n";
+
 		AspectJUIPlugin.getDefault().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				appendEventText(txt, category);

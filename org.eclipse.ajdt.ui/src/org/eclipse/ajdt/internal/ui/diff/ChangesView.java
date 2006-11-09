@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.diff;
 
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -67,6 +66,8 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.ViewPart;
+
+import com.ibm.icu.text.Collator;
 
 /**
  * Crosscutting changes view which shows the results of comparing two structure

@@ -10,9 +10,10 @@
  *******************************************************************************/
 package org.eclipse.ajdt.examples;
 
-import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+
+import org.eclipse.osgi.util.NLS;
 
 public class AspectJExampleMessages {
 
@@ -36,7 +37,7 @@ public class AspectJExampleMessages {
 	 * @param key	the string used to get the bundle value, must not be null
 	 */
 	public static String getFormattedString(String key, Object arg) {
-		return MessageFormat.format(getString(key), new Object[] { arg });
+		return NLS.bind(getString(key), new Object[] { arg });
 	}
 
 
@@ -44,8 +45,7 @@ public class AspectJExampleMessages {
 	 * Gets a string from the resource bundle and formats it with arguments
 	 */	
 	public static String getFormattedString(String key, Object[] args) {
-		return MessageFormat.format(getString(key), args);
+		return NLS.bind(getString(key), args);
 	}
-
 
 }
