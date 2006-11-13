@@ -40,18 +40,22 @@ public aspect ErrorsTest {
 			int numErrors = logs.length;
 			proceed();
 			logs = logView.getLogs();
+			String failureText = ""; //$NON-NLS-1$
 			if(logs.length > numErrors) { // Check for errors or warnings
 				int numAdded = logs.length - numErrors;
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
 					LogEntry entry = logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						TestCase.fail("The test added errors to the log: " + logs[0].getMessage() + ", ..."); //$NON-NLS-1$ //$NON-NLS-2$
+						failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					}
+				}
+				if (failureText.length() > 0) {
+					TestCase.fail(failureText);
 				}
 			}
 		} catch (PartInitException e) {
-			TestCase.fail("Exception occurred when accessing the log view"); //$NON-NLS-1$
 			e.printStackTrace();
+			TestCase.fail("Exception occurred when accessing the log view"); //$NON-NLS-1$
 		}
 	}
 	
