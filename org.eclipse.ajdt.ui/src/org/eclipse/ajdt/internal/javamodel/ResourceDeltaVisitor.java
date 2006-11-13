@@ -7,12 +7,9 @@
  * 
  * Contributors:
  *     Luzius Meisser - initial implementation
- *	   Matthew Ford - Bug 154339
  *******************************************************************************/
 package org.eclipse.ajdt.internal.javamodel;
 
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IFile;
@@ -22,8 +19,6 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 
 /**
  * Notifies the AJCompilationUnitManager if files got added or removed.
- * 
- * @author Luzius Meisser
  * 
  */
 public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
@@ -54,21 +49,6 @@ public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
 				AJCompilationUnitManager.INSTANCE
 						.getAJCompilationUnit((IFile) myRes);
 				AJDTUtils.refreshPackageExplorer();
-				break;
-			}
-		} else if (myRes.getType() == IResource.PROJECT) {
-			switch (delta.getKind()) {
-			case IResourceDelta.REMOVED:
-				IncrementalStateManager
-						.removeIncrementalStateInformationFor(AspectJPlugin
-								.getBuildConfigurationFile(myRes.getProject()));
-				break;
-			case IResourceDelta.CHANGED:
-				if (!myRes.getProject().isOpen()) {
-					IncrementalStateManager
-							.removeIncrementalStateInformationFor(AspectJPlugin
-									.getBuildConfigurationFile(myRes.getProject()));
-				}
 				break;
 			}
 		}

@@ -34,12 +34,6 @@ public class ResourceChangeListener implements IResourceChangeListener {
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE){
 			IResourceDelta delta = event.getDelta();
-//			if (delta != null){
-//				try {
-//					delta.accept(myDeltaVisitor);
-//				} catch (CoreException e) {
-//				}
-//			}
 			// avoid processing deltas for non-AspectJ projects,
 			if (delta != null) {
 				IResourceDelta[] cd = delta.getAffectedChildren();
