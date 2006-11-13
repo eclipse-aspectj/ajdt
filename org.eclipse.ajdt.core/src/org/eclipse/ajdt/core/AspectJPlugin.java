@@ -21,8 +21,10 @@ import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.core.builder.CoreTaskListManager;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.internal.core.ResourceChangeListener;
 import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -130,6 +132,9 @@ public class AspectJPlugin extends Plugin {
 		checkForCUprovider();
 		IncrementalStateManager.recordIncrementalStates=true;
 		IncrementalStateManager.debugIncrementalStates=true;
+		getWorkspace().addResourceChangeListener(
+				new ResourceChangeListener(),
+				IResourceChangeEvent.POST_CHANGE);
 		World.createInjarHierarchy = BinaryWeavingSupport.isActive;
 		Ajde.init(null, new CoreTaskListManager(), // task list manager
 				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
