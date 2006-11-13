@@ -26,10 +26,10 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
@@ -39,7 +39,6 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
@@ -132,33 +131,56 @@ public abstract class UITestCase extends TestCase {
 		return project;
 	}
 
-	protected void deleteProject(final IProject project) {
-		// make sure nothing is still using the project
-		waitForJobsToComplete();
-		final String projectName = project.getName();
-            	
-		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
-			protected void execute(IProgressMonitor monitor)
-					throws CoreException {
-				try {
-					// perform the delete
-					project.delete(true, false, null);
-					project.delete(true, true, null);
-				} catch (CoreException e) {
-					System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
-					e.printStackTrace();
-					fail("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
-				}
-			}
-		};
+	/**
+	 * Delete this resource.
+	 */
+	public void deleteResource(IResource resource) throws CoreException {
+		CoreException lastException = null;
 		try {
-			op.run(null);
-		} catch (InvocationTargetException ex) {
-		} catch (InterruptedException e) {
+			resource.delete(true, null);
+			return;
+		} catch (CoreException e) {
+			lastException = e;
+			// just print for info
+			System.out.println(e.getMessage() + " [" + resource.getFullPath() + "]");
+		} catch (IllegalArgumentException iae) {
+			// just print for info
+			System.out.println(iae.getMessage() + " [" + resource.getFullPath() + "]");
 		}
-
-		// make sure delete has finished
-		waitForJobsToComplete();
+		int retryCount = 0; // wait 1 minute at most
+		while (resource.isAccessible() && ++retryCount <= 60) {
+			System.out.println("Running GC and waiting 1s...");
+			try {
+				System.gc();
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+			try {
+				resource.delete(true, null);
+			} catch (CoreException e) {
+				lastException = e;
+				// just print for info
+				System.out.println("Retry "+retryCount+": "+ e.getMessage() + " [" + resource.getFullPath() + "]");
+			} catch (IllegalArgumentException iae) {
+				// just print for info
+				System.out.println("Retry "+retryCount+": "+ iae.getMessage() + " [" + resource.getFullPath() + "]");
+			}
+		}
+		if (!resource.isAccessible()) {
+			System.out.println("Succeed to delete resource [" + resource.getFullPath() + "]");
+			return;
+		}
+		System.err.println("Failed to delete resource [" + resource.getFullPath() + "]");
+		if (lastException != null) {
+			throw lastException;
+		}
+	}
+	
+	protected void deleteProject(IProject project) throws CoreException {
+		if (project.exists() && !project.isOpen()) { // force opening so that project can be deleted without logging (see bug 23629)
+			project.open(null);
+		}
+		deleteResource(project);
 	}
 
 	/**
