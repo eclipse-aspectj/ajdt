@@ -11,12 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core;
 
+import org.eclipse.ajdt.core.AJLog;
+
 /**
  * Check some coding standards and conventions
  */
 public aspect Enforcement {
 
-	declare warning : (get(* System.out) || get(* System.err)) : "There should be no printlns"; //$NON-NLS-1$
+	declare warning : (get(* System.out) || get(* System.err))
+		&& !withincode(void AJLog.log(..))
+		: "There should be no printlns"; //$NON-NLS-1$
 	
 	declare warning : call(* Exception.printStackTrace(..)) : 
 	    "There should be no calls to printStackTrace"; //$NON-NLS-1$
