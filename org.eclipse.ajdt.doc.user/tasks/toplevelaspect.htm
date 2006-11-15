@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Creating a top-level aspect
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Creating a top-level aspect
+    </h1>
+    <p>
+      You can create aspects that are not enclosed in other types.
+    </p>
+    <ol>
+      <li>
+        Open the New Aspect wizard.
+      </li>
+      <li>
+        Edit the&nbsp;<strong>Source Folder</strong> field as needed to indicate in which folder you want the new aspect to reside. You can either type a path or
+        click the&nbsp;<strong>Browse</strong> button to find the folder. If a folder is found for the current selection, that folder appears in
+        the&nbsp;<strong>Source Folder</strong> field as the container for the new aspect.
+      </li>
+      <li>
+        In the&nbsp;<strong>Package</strong> field, type or click&nbsp;<strong>Browse</strong> to select the package where you want the new aspect
+        to reside. Leave this field empty to indicate that you want the new aspect to be created in the default package.
+      </li>
+      <li>
+        Leave the&nbsp;<strong>Enclosing type</strong> box deselected.
+      </li>
+      <li>
+        In the&nbsp;<strong>Name</strong> field, type a name for the new aspect.
+      </li>
+      <li>
+        Select the <strong>public</strong> or <strong>default</strong> access modifier using the&nbsp;<strong>Modifiers</strong> radio buttons.<br>
+         <strong>Note:</strong> The private and protected options are available only when creating a aspect enclosed in a type.
+      </li>
+      <li>
+      	Optionally, select one of the instantiation options <strong>issingleton</strong>, <strong>perthis</strong>, 
+      	<strong>pertarget</strong>, <strong>percflow</strong>, <strong>percflowbelow</strong> or <strong>pertypewithin</strong>.
+      <li>
+        Optionally, select the <strong>abstract</strong> or <strong>final</strong> modifier for the new aspect using the appropriate check boxes:<br>
+         <strong>Note:</strong> The static option is available only when creating a aspect enclosed in a type.
+      </li>
+      <li>
+        In the&nbsp;<strong>Supertype</strong> field, type or click&nbsp;<strong>Browse</strong> to select a superclass/aspect for the new aspect.
+      </li>
+      <li>
+        Click the&nbsp;<strong>Add</strong> button to add interfaces for the new aspect to implement.
+      </li>
+      <li>
+        If you want to create a main method stub in the new aspect: 
+        <ul>
+          <li>
+            Select the&nbsp;<strong>public static void main(String[] args)</strong> box if you want the wizard to add the main method to the new aspect, thus
+            making it a starting point of an application.
+          </li>
+        </ul>
+      </li>
+      <li>
+      	Optionally, select the <strong>Inherited abstract pointcuts</strong> box if you have overridden an abstract aspect
+      	and want the wizard to generate stubs for the abstract pointcuts.
+      <li>
+        Optionally, select the <strong>Generate comments</strong> box if you want the wizard to generate comments, as configured in the properties
+        for the project.
+      </li>
+      <li>
+        Click&nbsp;<strong>Finish</strong> when you are done.
+      </li>
+    </ol>
+    <p>
+      <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159">
+	</p>
+	<p>
+       <a href="../concepts/projects.htm">AspectJ projects</a><br>
+       <a href="../concepts/aspects.htm">Aspects</a>
+    </p>
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
+	</p>
+	<p>
+       <a href="newaspect.htm">Creating a new aspect</a><br>
+       <a href="nestedaspect.htm">Creating a nested aspect</a>
+    </p>
+
+  </body>
+</html>
+

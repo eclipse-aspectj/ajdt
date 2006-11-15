@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+<!-- ========================== -->
+<!-- Define topics for the Tasks -->
+<!-- ========================== -->
+<toc label="Tasks">
+
+	<topic label="Creating AspectJ elements" href="tasks/ajelements.htm">
+		<topic label="Creating AspectJ projects" href="tasks/ajprojects.htm">
+			<topic label="Creating a new AspectJ project" href="tasks/newajproject.htm"></topic>
+			<topic label="Converting a Java project to an AspectJ project" href="tasks/convertjavaproject.htm"></topic>
+			<topic label="Converting a plug-in project to an AspectJ project" href="tasks/convertpluginproject.htm"></topic>
+		</topic>
+		<topic label="Creating a new aspect" href="tasks/newaspect.htm">
+			<topic label="Creating a top-level aspect" href="tasks/toplevelaspect.htm"></topic>
+			<topic label="Creating a nested aspect" href="tasks/nestedaspect.htm"></topic>
+		</topic>
+	</topic>
+	<anchor id="t_createaspectjelements" />
+
+	<topic label="Creating JAR Files" href="tasks/jarfiles.htm">
+		<topic label="Creating a new JAR file" href="tasks/newjarfile.htm"></topic>
+	</topic>
+	<anchor id="t_createjar" />
+
+	<topic label="Working with AspectJ plug-in projects" href="tasks/plugins.htm">
+		<topic label="Creating a new AspectJ plug-in project" href="tasks/newplugin.htm"></topic>
+		<topic label="Creating an Ant build file for an AspectJ plug-in" href="tasks/newpluginbuildfile.htm"></topic>		
+		<topic label="Deploying an AspectJ plug-in" href="tasks/deployplugin.htm"></topic>
+	</topic>
+	<anchor id="t_createplugin" />
+	
+	<topic label="Creating AJdoc documentation" href="tasks/ajdoc.htm">
+		<topic label="Using the Generate AJdoc wizard" href="tasks/generateajdoc.htm"></topic>
+	</topic>
+	<anchor id="t_createajdoc" />
+
+	<topic label="Changing project settings" href="tasks/projectsettings.htm">
+		<topic label="Adding an outjar" href="tasks/addoutjar.htm"></topic>
+		<topic label="Adding an inpath" href="tasks/addinpath.htm"></topic>
+		<topic label="Adding an aspectpath" href="tasks/addaspectpath.htm"></topic>
+		<topic label="Changing the compiler settings" href="tasks/compilersettings.htm"></topic>
+	</topic>
+	<anchor id="t_changingsettings" />
+	
+	<topic label="Navigating the AJDT workbench" href="tasks/navigating.htm" >
+		<topic label="Opening an editor on a type" href="tasks/opentype.htm"></topic>
+		<topic label="Opening a type in the type hierarchy view" href="tasks/openhierarchy.htm"></topic>
+		<topic label="Navigating with markers" href="tasks/markers.htm"></topic>
+	</topic>
+	<anchor id="t_navigatingajdt" />
+	
+	<topic label="Converting file extensions" href="tasks/convertingextensions.htm" >
+		<topic label="Converting the extensions for individual files" href="tasks/convertfileextension.htm"></topic>
+		<topic label="Converting the extensions for a project" href="tasks/convertprojectextensions.htm"></topic>
+	</topic>
+	<anchor id="t_convertingfileextensions" />
+
+	<topic label="Using Ant in AJDT" href="tasks/ant.htm">
+		<topic label="Creating a new Ant build file" href="tasks/newantfile.htm"></topic>
+	</topic>
+	<anchor id="t_usingant" />
+	
+	<topic label="Working with build configurations" href="tasks/buildconfigs.htm">
+		<topic label="Saving a build configuration" href="tasks/savebuildconfig.htm"></topic>
+		<topic label="Applying a saved build configuration" href="tasks/applybuildconfig.htm"></topic>
+	</topic>
+	<anchor id="t_workingwithbuildconfigs" />
+
+	<topic label="Running and debugging" href="tasks/runninganddebugging.htm">
+		<topic label="Launching a program with the main method in a class" href="tasks/launching.htm"></topic>
+		<topic label="Launching a program with the main method in an aspect" href="tasks/ajlaunching.htm"></topic>
+		<topic label="Launching a program with an aspectpath or an outjar" href="tasks/aspectpathlaunching.htm"></topic>
+		<topic label="Load-time weaving" href="tasks/loadtimeweaving.htm"></topic>
+		<topic label="Debugging a program" href="tasks/debugging.htm"></topic>
+	</topic>
+	<anchor id="t_runningdebuggingajdt" />
+	
+	<topic label="Using the Cross References view" href="tasks/xrefview.htm">
+		<topic label="Opening the Cross References view" href="tasks/xrefopen.htm"></topic>
+		<topic label="Linking the Cross References view with the editor" href="tasks/xreflinking.htm"></topic>
+		<topic label="Showing Cross References for an entire file" href="tasks/xrefwholefile.htm"></topic>
+		<topic label="Navigating with the Cross References view" href="tasks/xrefnavigating.htm"></topic>
+		<topic label="Using the inplace Cross References view" href="tasks/xrefinplace.htm"></topic>
+	</topic>
+	<anchor id="t_xrefview" />
+	
+	<topic label="Using the Visualiser" href="tasks/visualiser.htm">
+		<topic label="Opening the Aspect Visualization perspective" href="tasks/avperspective.htm"></topic>
+        <topic label="Visualizing the effects of aspects on a project" href="tasks/visualisingproject.htm"></topic>
+		<topic label="AspectJ declare error and declare warning statements in the Visualiser" href="tasks/declarestatementsinvisualiser.htm"></topic>
+		<topic label="Navigating with the Visualiser" href="tasks/navigatingwithvisualiser.htm"></topic>
+		<topic label="Using the Visualiser outside the Aspect Visualization perspective" href="tasks/visualiserviews.htm"></topic>
+	</topic>
+	<anchor id="t_visualiser" />
+
+	<topic label="Installing the AspectJ examples" href="tasks/examples.htm">
+		<topic label="Installing the examples" href="tasks/installexamples.htm"></topic>
+	</topic>
+	<anchor id="t_examples" />	
+	
+	<topic label="Using a multi-project setup" href="tasks/setups.htm">
+		<topic label="Using the inpath" href="tasks/inpath.htm"></topic>
+		<topic label="Using the aspectpath" href="tasks/aspectpath.htm"></topic>
+	</topic>
+	<anchor id="t_setups" />
+
+	<topic label="Comparing crosscutting" href="tasks/compare.htm">
+		<topic label="Saving crosscutting information" href="tasks/savemap.htm"></topic>
+		<topic label="Comparing two builds" href="tasks/comparetwo.htm"></topic>
+		<topic label="Comparing with the current build" href="tasks/compareone.htm"></topic>
+		<topic label="Comparing two elements" href="tasks/compareelements.htm"></topic>
+	</topic>
+	<anchor id="t_compare" />
+	
+	<topic label="Configuring advice markers" href="tasks/configure.htm">
+		<topic label="Changing the image for advice markers" href="tasks/changemarkerimage.htm"></topic>
+		<topic label="Hiding advice markers" href="tasks/hidemarkers.htm"></topic>
+	</topic>
+	<anchor id="t_compare" />
+	
+</toc>

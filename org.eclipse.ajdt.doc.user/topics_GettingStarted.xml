@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+<!-- ========================== -->
+<!-- Define topics for the GettingStarted help section -->
+<!-- ========================== -->
+<toc label="GettingStarted">
+
+   <topic label="Basic tutorial" href="gettingStarted/basictutorial.htm"> 
+	   <topic label="Creating your first AspectJ project" href="gettingStarted/firstproject.htm"/>
+	   <topic label="Creating an aspect" href="gettingStarted/firstaspect.htm"/>
+	   <topic label="Viewing crosscutting information" href="gettingStarted/crosscutting.htm"/>
+	   <topic label="Navigating with advice markers" href="gettingStarted/navigating.htm"/>
+	   <topic label="Running your programs" href="gettingStarted/launching.htm"/>
+	   <topic label="Using the Aspect Visualization perspective" href="gettingStarted/visualising.htm"/>
+   </topic>
+
+   <anchor id="aspectjgetstart" />
+   
+</toc>

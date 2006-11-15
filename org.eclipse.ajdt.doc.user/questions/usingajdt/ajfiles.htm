@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      What problems are there for types in .aj files?
+    </title>
+    <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      What problems are there for types in .aj files?
+    </h1>
+	<p>
+		There are several known issues for types contained in .aj files.
+		
+		<ul>
+		<li>They are not found when using code assist (Ctrl+Space).</li>
+		<li>They are not found when using add import (Ctrl+Shift+M).</li>
+		<li>They are not found when using organize imports (Ctrl+Shift+O).</li>
+		<li>There are no quick fixes available (Ctrl+1).</li>
+		<li>They are not included in Java searches.</li>
+		<li>They are not included in Call Hierarchy lists.</li>		
+		<li><b>Refactor &gt; Rename</b> will not work for .aj files. Use <b>Rename</b> from the context menu instead.</li>
+		</ul>
+    </p>
+    <p>
+    	AJDT intends to add support for these features in .aj files
+    	in future releases.
+    </p>
+    <p>
+    <img src="../../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159"> <br>
+    
+      <a href="../../concepts/editor.htm">AspectJ editor</a>
+    </p>
+    
+    <p><img border="0" width="159" height="27" src="../../images/ngrelt.gif" alt="Related tasks"><br>
+     <a href="../../tasks/newaspect.htm">Creating a new aspect</a><br>
+     <a href="../../tasks/convertingextensions.htm">Converting file extensions</a>
+    </p> 
+     
+  </body>
+</html>
+

@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Creating an AspectJ plug-in project
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Creating an AspectJ plug-in project
+    </h1>
+<p>In the workspace, a plug-in is represented by a single project that has a 
+plugin.xml (manifest) file at its root and that encapsulates all the code and 
+resources of the plug-in.  An AspectJ plug-in project will have AspectJ nature,
+will be build by the AspectJ builder and will normally depend on the AspectJ
+runtime plug-in</p>
+<p>To create a plug-in project, bring up the New Plug-in Project creation wizard 
+via <b>File &gt; New &gt; Plug-in Project</b>.</p>
+<p>A plug-in project can either be created as a Java project or a 
+simple project. When creating an AspectJ plug-in project you must initially
+create a Java plug-in project.</p>
+<p>Complete the new plug-in wizard with the required details.  Please see the PDE guide for more information
+on creating plug-in projects.</p>
+<p>When you have created your plug-in, right click on the project in the package explorer
+and select <strong>Convert to AspectJ project</strong>. You will be asked
+whether you want to add the AspectJ runtime plug-in, org.aspectj.runtime as a plug-in
+dependency.  Select <strong>Yes</strong>. You have now created an AspectJ plug-in project</p>
+
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
+    </p>
+    <p>
+      <a href="newpluginbuildfile.htm">Creating an Ant build file for an AspectJ plug-in</a><br>      
+      <a href="deployplugin.htm">Deploying an AspectJ plug-in</a><br>
+      <a href="convertpluginproject.htm">Converting a plug-in project to an AspectJ project</a><br>
+    </p>    
+
+  </body>
+</html>
+

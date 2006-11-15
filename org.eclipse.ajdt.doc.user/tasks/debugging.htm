@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Debugging a program
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Debugging a program
+    </h1>
+    <p>
+      To debug an AspectJ program follow the same steps as when debugging a Java program, 
+      choosing the <b>AspectJ/Java Application</b> launch configuration if your main method
+      is contained in an aspect.
+    </p>
+    
+    <p>
+      If you are debugging <b>around advice</b>, then you need to turn on the <b>No Inline</b>
+      AspectJ compiler preference. You can either set this for your whole workspace,
+      in which case
+      <ol>
+        <li>select <b>Window &gt; Preferences &gt; AspectJ &gt; Compiler</b></li>
+        <li>select the <b>Advanced</b> tab</li>
+        <li>check the <b>No Inline</b> checkbox,</li>
+      </ol>
+    </p>
+    <p>  
+      or, you can set this on a per-project basis
+      <ol>
+        <li>select the AspectJ project in the Package Explorer</li>
+        <li>right click and select <b>Properties</b></li>
+        <li>Select <b>AspectJ Compiler</b> in the list on the left
+            of the properties page</li>
+        <li>select <b>Use project settings</b></li>
+        <li>select the <b>Advanced</b> tab</li>
+        <li>check the <b>No Inline</b> checkbox</li>
+        <li>click <b>OK</b> to close the project properties dialog.</li>
+      </ol>      
+    </p>
+    
+    <p>
+    <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159"> <br>
+    
+      <a href="../concepts/debugging.htm">Debugging</a>
+    </p>
+    
+  
+    <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
+     <a href="launching.htm">Launching a program with the main method in a class</a><br>
+     <a href="ajlaunching.htm">Launching a program with the main method in an aspect</a><br>
+     <a href="aspectpathlaunching.htm">Launching a program with an aspectpath or an outjar</a>     
+     <a href="loadtimeweaving.htm">Load-time weaving</a><br>
+     </p>   
+   
+  </body>
+</html>
+

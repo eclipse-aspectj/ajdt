@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.contexts"?>
+<contexts>
+
+    <context id="aspectj_editor_context">
+        <description>The AspectJ editor provides you with AspectJ specific text editing support.</description>
+        <topic label="AspectJ editor concepts" href="concepts/editor.htm"/>
+        <topic label="Aspects" href="concepts/aspects.htm"/>
+        <topic label="Creating a new aspect" href="tasks/newaspect.htm"/>
+        <topic label="Converting file extensions" href="tasks/convertingextensions.htm"/>
+    </context>
+    
+	<context id="crosscutting_comparison_view_context">
+	    <description>The Crosscutting Comparison view enables you to compare two sets of crosscutting relationships.</description>
+        <topic label="AspectJ views" href="concepts/views.htm"/>
+        <topic label="Comparing crosscutting" href="tasks/compare.htm"/>
+    </context>
+
+	<context id="event_trace_view_context">
+	    <description>The AJDT Event Trace view displays information about AJDT events.</description>
+        <topic label="AspectJ views" href="concepts/views.htm"/>
+    </context>    
+
+</contexts>
+    

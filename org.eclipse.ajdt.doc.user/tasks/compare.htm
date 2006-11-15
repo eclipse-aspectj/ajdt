@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+	   Comparing crosscutting
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Comparing crosscutting
+    </h1>
+    <p>
+      If you change the pointcut associated with some advice, you may change the
+      locations the advice affects. Similiarly if you add a new method, it may
+      become advised by existing advice, or if you rename a method or change its
+      signature, advice that was previously affecting it may no longer match. You
+      may wish to use the Crosscutting Comparison view to compare the crosscutting
+      relationships in an AspectJ project before and after such a change.
+    </p>
+    
+    <p>
+      The list of crosscutting relationships in an AspectJ project can be saved
+      out into a file. The relationships
+      in this file can then be compared with a later version of the project, or with
+      a crosscutting file that was created at a different time. This crosscutting information 
+      includes details of those locations in a project that are being 
+      affected by advice or inter-type declarations.
+    </p>
+    
+    <p>
+      The crosscutting relationships of two individual elements in a project
+      can also be compared. This allows any differences in the places affected
+      by two different advice elements to be easily determined. Declare error
+      and warning elements can also be compared against other declare elements,
+      or against advice elements.
+    </p>
+    
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159"><br>
+      <a href="savemap.htm">Saving crosscutting information</a><br>
+      <a href="comparetwo.htm">Comparing two builds</a><br>
+      <a href="compareone.htm">Comparing with the current build</a><br>   
+      <a href="compareelements.htm">Comparing two elements</a>      
+    </p>
+
+  </body>
+</html>
+

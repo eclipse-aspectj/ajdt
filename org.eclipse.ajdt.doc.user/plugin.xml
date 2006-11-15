@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+
+   <!-- AJDT Help -->
+   <extension point="org.eclipse.help.toc">
+       <toc file="toc.xml" primary="true" />
+   </extension>
+   
+   <extension point="org.eclipse.help.toc">
+       <toc file="topics_GettingStarted.xml" />    
+       <toc file="topics_Tasks.xml" />    
+       <toc file="topics_Concepts.xml" />    
+   </extension> 
+  	
+  	<extension point="org.eclipse.help.contexts"> 
+		<contexts file="contexts_AJDT.xml" plugin="org.eclipse.ajdt.ui"/> 
+		<contexts file="contexts_XRef.xml" plugin="org.eclipse.contribution.xref.ui"/> 
+	</extension>
+
+</plugin>

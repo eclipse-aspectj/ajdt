@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Creating an aspect
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+	<body>
+		<h1> Creating an aspect </h1>
+		<p> In this section you will create a new aspect and add a pointcut and
+		  some advice. </p>
+		<ol>
+		  <li> In the Package Explorer view, select the helloworld package. From the package's 
+		    context menu, select&nbsp;<strong>New &gt; Aspect</strong>. </li>
+		  <li> Make sure that&nbsp;<em>Hello World</em> appears in the&nbsp;<strong>Source Folder</strong> 
+		    field and that&nbsp;<em>helloworld</em> appears in the&nbsp;<strong>Package</strong> 
+		    field. In the&nbsp;<strong>Name</strong> field, type&nbsp;<em>World</em>. 
+		    <p> <img src="../images/newaspect.png" alt="New aspect wizard"> 
+		    </p>
+		  </li>
+		  <li> Click&nbsp;<strong>Finish</strong> to create the new aspect. 
+		  </li>
+		  <li> The new file is opened in the editor. It contains the new aspect,
+		    the constructor and comments.
+		  <li> Change the body of the aspect to the following: 
+		  <p><code><br>
+			public aspect World { <br><br> 
+
+		    &nbsp;&nbsp;&nbsp;&nbsp;   pointcut greeting() : execution(* Hello.sayHello(..)); <br><br>
+
+			&nbsp;&nbsp;&nbsp;&nbsp;   after() returning() : greeting() { <br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   System.out.println(" World!"); <br>
+			&nbsp;&nbsp;&nbsp;&nbsp;  } <br><br>
+			
+			} <br>		  
+		  </code></p>
+		  </li>
+		  <li> Save the file. </li>		
+		</ol>
+		
+		<p>
+		<img src="../images/ngrelc.gif" width=159 height=27 alt="Related concepts" border="0"> 
+		</p>
+		<p> 
+		  <a href="../concepts/editor.htm">AspectJ editor</a> </p>
+		<p> <img src="../images/ngrelt.gif" width=159 height=27 alt="Related tasks" border="0"> 
+		</p>
+		<p> 
+		  <a href="../tasks/ajelements.htm">Creating AspectJ elements</a>
+		</p>
+
+  </body>
+</html>
+

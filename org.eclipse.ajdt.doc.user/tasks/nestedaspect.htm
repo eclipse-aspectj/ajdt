@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Creating a nested aspect
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Creating a nested aspect
+    </h1>
+    <p>
+      You can create aspects that are enclosed in other types (that is, nested aspects).
+    </p>
+    <ol>
+      <li>
+        Open the New Aspect wizard.
+      </li>
+      <li>
+        Edit the&nbsp;<strong>Source Folder</strong> field to indicate in which folder you want the new aspect to reside. You can either type a path or
+        click&nbsp;<strong>Browse</strong> to find the folder. If a folder is found for the current selection, that folder appears in
+        the&nbsp;<strong>Source Folder</strong> field as the container for the new aspect.
+      </li>
+      <li>
+        Select the&nbsp;<strong>Enclosing Type</strong> check box and type the name of the enclosing type in the <strong>Enclosing Type</strong> field. You can
+        also click&nbsp;<strong>Browse</strong> to select the enclosing type for the new aspect.
+      </li>
+      <li>
+        In the&nbsp;<strong>Name</strong> field, type a name for the new aspect.
+      </li>
+      <li>
+        Select the desired modifiers by using the&nbsp;<strong>Modifiers</strong> radio buttons and check boxes.
+        Note that <em>static</em> should not be de-selected because nested aspects must be static.  
+      </li>
+      <li>
+        In the&nbsp;<strong>Supertype</strong> field, type or click&nbsp;<strong>Browse</strong> to select a superclass/aspect for the new aspect.
+      </li>
+      <li>
+        Click the&nbsp;<strong>Add</strong> button to add interfaces for the new aspect to implement.
+      </li>
+      <li>
+        Select the&nbsp;<strong>public static void main(String[] args)</strong> check box if you want the wizard to add the main method to the new aspect, thus
+        making it a starting point of an application.
+      </li>
+      <li>
+      	Select the <strong>Inherited abstract pointcuts</strong> box if you have overridden an abstract aspect
+      	and want the wizard to generate stubs for the abstract pointcuts.
+      <li>
+        Select the <strong>Generate comments</strong> box if you want the wizard to generate comments, as configured in the properties
+        for the project.
+      </li>
+      <li>
+        Click&nbsp;<strong>Finish</strong> when you are done.
+      </li>
+      <li>
+        If the enclosing type is a class, you may wish to change the file extension in order to avoid 
+        errors in the editor and to have the AspectJ content correctly displayed in views such as the Outline view and the 
+        Package Explorer.  Right click on the file in the package explorer then select
+        <strong>Convert file extension to .aj</strong>.
+    </ol>
+    <p>
+      <strong>Note:</strong> The new aspect is created in the same compilation unit as its enclosing type.
+    </p>
+    <p>
+      <img src="../images/ngrelc.gif" alt="Related concepts" border="0" height="27" width="159">
+	</p>
+	<p>
+       <a href="../concepts/projects.htm">AspectJ projects</a><br>
+       <a href="../concepts/aspects.htm">Aspects</a>
+    </p>
+    <p>
+      <img src="../images/ngrelt.gif" alt="Related tasks" border="0" height="27" width="159">
+	</p>
+	<p>	  
+       <a href="newaspect.htm">Creating a new aspect</a><br>
+       <a href="toplevelaspect.htm">Creating a top-level aspect</a><br>
+       <a href="convertingextensions.htm">Converting file extensions</a>
+    </p>
+
+  </body>
+</html>
+

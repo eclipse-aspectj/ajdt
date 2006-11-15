@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Can I still use Clover to gather code coverage statistics when I'm using AspectJ?
+    </title>
+    <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Can I still use Clover to gather code coverage statistics when I'm using AspectJ?
+    </h1>
+    <p>
+	 Yes, you can still use Clover to gather code coverage
+	 statistics for your java code when you use AspectJ. You are, however, unable
+	 to collect coverage information for your aspects. 
+	 </p>
+	 <p>
+	 To enable an AspectJ project
+	 to be ready to collect coverage information you need to add the Clover
+	 builder to the list of builders for that project. At the time of writing you
+	 can either:
+	 <ul>
+	 <li>Remove the AspectJ Nature, compile the project with Clover
+	     from the Clover View, and then convert the project back to
+	     an AspectJ project, or </li>
+	 <li>Add the Clover builder directly to the list of builders in
+	     the .project file of your AspectJ project. 
+	 </li>    
+	 </ul>
+	 </p>
+	<p> 
+	 Your project setup affects whether or not your aspects are invoked,
+	 however, in all cases the coverage information for your java classes
+	 is collected.
+    </p>  
+    
+    <h4>Aspects are in the same project as the application</h4>
+    
+    <p>
+    In this case, the aspects are woven into the application and cross cutting
+    information is shown in the gutter markers and Cross References view.
+    Moreover, it is the application project which needs to be built with
+    the Clover builder. When the tests are run, coverage information appears
+    in the Clover view for the application project, however, the aspects are not 
+    invoked. 
+    </p>     
+
+    <h4>Aspects are in a separate project</h4>
+    
+    <p>
+    In this case, the application code is a java project which is compiled
+    with Clover. The aspects are in a separate AspectJ project which is
+    also compiled with Clover. The tests are in a separate project which 
+    depends on the AspectJ one. When the tests are run, coverage information
+    appears in the Clover view for the application project as well as the 
+    AspectJ project. In this case the aspects are invoked.
+    </p>     
+
+  </body>
+</html>
+

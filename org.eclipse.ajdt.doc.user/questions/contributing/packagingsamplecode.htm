@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      How can I package my sample code for contribution to the examples plugin?
+    </title>
+    <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      How can I package my sample code for contribution to the examples plugin?
+    </h1>
+    <p>
+    The org.eclipse.ajdt.examples plugin contains various sample projects which 
+    are made available under
+    the Examples category of the New wizard, from where they can be imported into 
+    your workspace as AspectJ projects.
+    It is easy to add new samples to this plugin, as follows:
+    <ul>
+    	<li>Create a jar file containing your source code, and at least one build c
+    	onfiguration file. Place this
+    		in the archive folder of the examples plugin.
+    	<li>Add an entry to the plugin.xml file for your sample project, by copying 
+    	one of the existing entries.
+    	<li>Change the src attribute of the import element to refer to your jar 
+    	file, and change the title,
+    		description, pagetitle, and pagedescription property names as appropriate, and add
+    		corresponding entries to the plugin.properties file.
+    	<li>Change the build attribute to refer to your default build configuration 
+    	file. Your project may contain
+    	    more configurations but the one specified here will be the one used to 
+    	    initially build the project.
+    	<li>Optionally, you can specify an open attribute to the projectsetup element, 
+    	which refers to a file,
+    	    such as a README file, which is opened after the project has been imported 
+    	    to the workspace.   
+    </ul>
+    </p>
+
+  </body>
+</html>
+

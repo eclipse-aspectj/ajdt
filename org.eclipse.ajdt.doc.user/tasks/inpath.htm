@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Using the inpath
+    </title>
+    <link rel="stylesheet" href="../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      Using the inpath
+    </h1>
+    <p>
+      If you wish to weave into binary files (either that are contained in a 
+      jar or in a bin directory), then you need to use the inpath capability.
+    </p>
+    <p>
+      To setup your AspectJ project to use the inpath:
+      <ol>
+          <li>Select the AspectJ project in the Package Explorer</li>
+          <li>Right click and select <b>AspectJ Tools &gt; Configure AspectJ Build Path...</b></li>
+          <li>Select the <b>Inpath</b> tab</li>
+          <li>Add the necessary jar file or class folder (e.g. another project's "bin" directory) using the
+              <b>Add XXX</b> buttons</li>
+          <li>Click <b>OK</b> to close the project properties dialog</li>
+       </ol>
+    </p>
+    <p>
+      When the AspectJ project is built, it will compile the aspects and
+      weave them against the class files specified via inpath and produce a
+     complete set of woven class files in the output directory of
+     the AspectJ project.
+    </p>
+    <p>
+     The disadvantage of using this approach is that AJDT will not show how 
+     the advice in the aspects applies to the input classe. The Cross References
+     view will show that the advice came from an injar aspect, but will
+     not provide any more detail.
+    </p>
+    
+    <p><img border="0" width="159" height="27" src="../images/ngrelt.gif" alt="Related tasks"><br>
+     <a href="aspectpath.htm">Using the aspectpath</a><br>  
+     <a href="addinpath.htm">Adding an inpath</a>   
+    </p>
+
+  </body>
+</html>
+

@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      How do I setup an AJDT development environment in Eclipse? 
+    </title>
+    <link rel="stylesheet" href="../../book.css" charset="ISO-8859-1" type="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+  </head>
+  <body>
+    <h1>
+      How do I setup an AJDT development environment in Eclipse? 
+    </h1>
+
+			    <p>There are several stages to this: building AJDT, running the
+			    correctness tests, and creating an
+			    Eclipse update site. The first two stages are probably sufficient
+			    for most purposes.</p>
+			
+			    <h4>Building AJDT</h4>
+			
+				<p>Many of the plugins which implement AJDT contain aspects, and so are
+				AspectJ projects themselves. This means that you first need to install
+				a recent build of AJDT into your development environment from the
+				update site or zip file.</p>
+							
+			    <p>Note also that in order to build AJDT from source you will probably
+			    need to increase the memory available to Eclipse. This is
+			    typically done by passing something like <code>"-vmargs -Xmx512m"</code> to
+			    the Eclipse launcher.</p>
+			    			
+			    <p>Start with a clean workspace under
+			    Eclipse 3.2. Now open the CVS Repository Exploring 
+			    perspective. Right-click on the CVS Repositories view, then click "New" > "Repository
+			    Location". Host = dev.eclipse.org, Repository path =
+			    /cvsroot/tools, Username = anonymous, password should be left
+			    blank. Connection type = pserver. Click "Finish".
+			    Use the CVS Repositories view to navigate to
+			    HEAD/org.eclipse.ajdt/AJDT_src. </p>
+			    
+			    <p>You now need to switch to the
+			    "ajdt1_4" branch in CVS. To discover the branch, you need to
+			    right-click on org.eclipse.ajdt and select "Configure Branches
+			    and Versions...", and in the dialog that opens navigate to
+			    AJDT_src/org.aspect.ajde/.project. Various tags should appear in
+			    the right hand side of the dialog. Press "Add Checked Tags", then
+			    "OK". Back in the CVS Repositories view you should now be able to
+			    navigate to Branches/ajdt1_4/org.eclipse.ajdt/AJDT_src.
+			    </p>
+			    
+			    <p>Select the following projects,
+			    right-click and select "Check out" from the context menu:</p>
+			 
+			    <ul>
+			      <li>org.aspectj.ajde,</li>
+			      <li>org.aspectj.runtime,</li>
+			      <li>org.aspectj.weaver,</li>
+			      <li>org.eclipse.ajdt.core,</li>
+			      <li>org.eclipse.ajdt.examples,</li>
+			      <li>org.eclipse.ajdt.ui,</li>
+			      <li>org.eclipse.contribution.visualiser,</li>
+			      <li>org.eclipse.contribution.xref.core,</li>
+			      <li>org.eclipse.contribution.xref.ui.</li>
+			    </ul>
+			
+			    <p>Eclipse will build the projects as you import them, after
+			    which should you be ready to run the plugins inside Eclipse:</p>
+			
+			   <ul>
+			     <li>Switch to the Java Perspective if you're not already in
+			     it...</li>
+			
+			     <li>From the run menu select "Run..."</li>
+			
+			     <li>Select "Eclipse Application" and click new</li>
+			
+			     <li>Give your launch configuration a name, and click "Run"</li>
+			
+			     <li>Subsequent runs can simpy use the launch configuration you
+			     just created</li>
+			   </ul>
+			
+			   <h4>Running the correctness tests</h4>
+			
+			   <p>The next step is to add the test projects. These can be used to
+			   verify that everything is okay with your environment and
+			   configuration, plus of course to verify the integrity of any
+			   changes you might make. Switch back to the CVS perspective and
+			   check-out the following projects:</p>
+			
+			   <ul>
+			     <li>org.eclipse.ajdt.core.tests</li>
+			     <li>org.eclipse.ajdt.ui.tests</li>
+			     <li>org.eclipse.contribution.visualiser.tests</li>
+			     <li>org.eclipse.contribution.xref.core.tests</li>
+			     <li>org.eclipse.contribution.xref.ui.tests</li>
+			   </ul>
+			
+			   <p>There are two steps to running all of the tests. The
+			   first is to run the AJDT core specific tests found in
+			   org.eclipse.ajdt.core.tests, and the second is to run
+			   the remaining tests.</p>
+			
+			   <p>To run the AJDT core specific tests expand the
+			   org.eclipse.ajdt.core.tests project, then the src folder, then the
+			   org.eclipse.ajdt.core.tests package. Now select the AllCoreTests.java file,
+			   right-click and select "Run As" &gt; "JUnit Plug-in Test". A new
+			   runtime workbench should then be launched and the tests run inside
+			   that. Progress and test results can be observed from the JUnit
+			   Eclipse view.</p>
+			   
+			   <p>You can then run all of the remaining tests by expanding the
+			   org.eclipse.ajdt.ui.tests project, then the src folder, then the
+			   org.eclipse.ajdt.ui.tests package. Now select the AllUITests.java file,
+			   right-click and select "Run As" &gt; "JUnit Plug-in Test". A new
+			   runtime workbench should then be launched and the tests run inside
+			   that. Progress and test results can be observed from the JUnit
+			   Eclipse view.</p>
+			
+			   <p>Now you're ready to start enhancing the plugins by adding to or
+			   extending the code in your projects - just use run (or debug) to
+			   try out your changes. When you have a patch to submit to the
+			   project, go to the "Team" item in the project context menu and
+			   select "Create Patch...". Naturally the correctness tests should
+			   also be run, and new tests written to accompany fixes or new
+			   features.</p>
+			
+			   <h4>Creating an update site</h4>
+			
+			   <p>Each of the AJDT plugin projects also contains an Ant build
+			   file, "build.xml." The default target builds a packaged version of
+			   the project in question. Check-out the "UpdateSite" project from
+			   CVS, and use the build.xml file in that project to invoke a master
+			   build that builds an entire update site structure in its "dist"
+			   directory. To run the build.xml file inside Eclipse, you need to do
+			   "Run As > Ant Build..." to bring up the run configuration dialog,
+			   then go to the "JRE" tab and choose to run in a separate JRE.</p>
+			
+			   <p>Those plugins that use aspects in their implementation need
+			   to be built using the AspectJ compiler. To do this the
+			   "iajc" Ant task is used in each of the relevant build.xml files.
+			   For this to run successfully, it needs to be able to locate
+			   the org.aspectj.ajde and org.aspectj.weaver plugins from the
+			   installed version of AJDT. Each build.xml file refers to the
+			   specific version on AJDT installed on the build machine, so unless
+			   you have exactly the same version installed, you need to uncomment
+			   and override the "aspectj.plugin.home" and "aspectj.weaver.home"
+			   properties in the build.xml file from the "UpdateSite" project.</p>
+
+  </body>
+</html>
+
