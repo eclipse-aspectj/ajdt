@@ -1435,21 +1435,6 @@ M4 = Platform-specific fourth key
              id="ajdtpalette">
          </palette>
    </extension>
-
-<!-- AJDT Help -->
-  <extension point="org.eclipse.help.toc">
-   <toc file="toc.xml" primary="true" />
-   </extension>
-   <extension point="org.eclipse.help.toc">
-       <toc file="topics_GettingStarted.xml" />    
-       <toc file="topics_Tasks.xml" />    
-       <toc file="topics_Concepts.xml" />    
-   </extension> 
-  	
-  	<extension point="org.eclipse.help.contexts"> 
-		<contexts file="contexts_AJDT.xml" plugin="org.eclipse.ajdt.ui"/> 
-		<contexts file="contexts_XRef.xml" plugin="org.eclipse.contribution.xref.ui"/> 
-	</extension>
 	 
 <extension 
 	point="org.eclipse.ui.perspectives">
@@ -1494,60 +1479,6 @@ M4 = Platform-specific fourth key
             </objectClass>
          </enablement>
       </decorator>
-   </extension>
-   <extension
-         point="org.eclipse.ui.cheatsheets.cheatSheetContent">
-      <category
-            name="%aspectj"
-            id="org.eclipse.ajdt.aspectjCheatSheetCategory"/>
-      <cheatsheet
-            category="org.eclipse.ajdt.aspectjCheatSheetCategory"
-            contentFile="cheatsheets/HelloWorld.xml"
-            name="Hello World AspectJ Application"
-            id="org.eclipse.ajdt.helloworld"/>
-   </extension>
-   <extension
-         point="org.eclipse.ui.intro.configExtension">
-      <configExtension
-            configId="org.eclipse.ui.intro.universalConfig"
-            content="intro/eclipse/ajdtOverviewExtensionContent.xml"/>
-
-      <configExtension
-            configId="org.eclipse.ui.intro.universalConfig"
-            content="intro/eclipse/ajdtTutorialsExtensionContent.xml"/>  
-      
-      <configExtension
-            configId="org.eclipse.ui.intro.universalConfig"
-            content="intro/eclipse/ajdtSamplesExtensionContent.xml"/>
-            
-      <configExtension
-            configId="org.eclipse.ui.intro.universalConfig"
-            content="intro/eclipse/ajdtNewsExtensionContent.xml"/>
-
-	  <!--
-	      Below are welcome page extensions for IBM Rational tooling.
-	  --> 
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtOverviewExtensionContent.xml"/>
-
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtTutorialsExtensionContent.xml"/>  
-      
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtSamplesExtensionContent.xml"/>
-            
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtNewsExtensionContent.xml"/>
-
-      <configExtension
-            configId="com.ibm.rational.welcome.core.introConfig"
-            content="intro/rad/radAjdtWebExtensionContent.xml"/>
-
-
    </extension>
    
    <extension
