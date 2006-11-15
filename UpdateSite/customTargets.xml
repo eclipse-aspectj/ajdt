@@ -112,6 +112,9 @@
 		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui">
 			<fileset dir="${builder}/../org.eclipse.ajdt.ui"/>
 		</copy>
+		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.doc.user">
+			<fileset dir="${builder}/../org.eclipse.ajdt.doc.user"/>
+		</copy>
 		<copy todir="${buildDirectory}/plugins/org.eclipse.ajdt.ui.tests">
 			<fileset dir="${builder}/../org.eclipse.ajdt.ui.tests"/>
 		</copy>
