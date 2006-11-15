@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<introContent>
+	<extensionContent 
+		alt-style="intro/rad/css/content-swt.properties" 
+		style="intro/rad/css/sample.css" 
+		path="samples/page-content/sample-links/rwdAnchor">
+		<!-- TUTORIAL CONTENT GOES HERE -->
+
+	<group label="Develop AspectJ applications" id="t-links">
+        	<link 
+				label="AspectJ Examples" 
+				url="http://org.eclipse.ui.intro/runAction?pluginId=org.eclipse.ui.workbench&amp;class=org.eclipse.ui.actions.NewWizardAction&amp;id=org.eclipse.sdk.samples.aspectj.examples" 
+				id="aspectj-examples" 
+				class-id="left">
+          		
+				<text>
+					By selecting AspectJ--&gt;AspectJ Examples in the New Wizard which appears you can select the example you wish to run.
+				</text>
+        	</link>  
+	</group>
+		
+	</extensionContent>
+</introContent>

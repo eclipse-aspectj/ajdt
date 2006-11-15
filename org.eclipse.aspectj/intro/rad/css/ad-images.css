@@ -1,0 +1,59 @@
+/* 
+ * Application Developer Images
+ */
+ 
+ /*
+ * define your link images here - link ids should be product specific and unique
+ */
+
+/*** Overview Link Images ***/
+
+a#develop-aj-apps-main-link img { background-image : url(graphics/icons/ajdt/aspectj_folder.gif); }
+a#develop-aj-apps-main-link:hover img { background-image : url(graphics/icons/ajdt/aspectj_folderhov.gif); }
+
+a#link-to-ajdoc img { background-image : url(graphics/icons/ajdt/ajdev_obj.gif); }
+a#link-to-ajdoc:hover img { background-image : url(graphics/icons/ajdt/ajdevhov_obj.gif); }
+
+
+/*** Tutorial Link Images ***/
+a#aspectj-hello-world img { background-image : url(graphics/icons/ajdt/aspectj_window2.gif); }
+a#aspectj-hello-world:hover img { background-image : url(graphics/icons/ajdt/aspectj_window2hov.gif); }
+
+a#ajdt-help-tutorial img { background-image : url(graphics/icons/ajdt/aj_tutorial.gif); }
+a#ajdt-help-tutorial:hover img { background-image : url(graphics/icons/ajdt/aj_tutorialhov.gif); }
+
+
+/*** Sample Link Images ***/
+a#aspectj-examples img { background-image : url(graphics/icons/ajdt/aspectj_page.gif); }
+a#aspectj-examples:hover img { background-image : url(graphics/icons/ajdt/aspectj_pagehov.gif); }
+
+/*** What's New Link Images ***/
+
+a#whats-new-main-link img { background-image : url(graphics/icons/ajdt/aspectj_folder.gif); }
+a#whats-new-main-link:hover img { background-image : url(graphics/icons/ajdt/aspectj_folderhov.gif); }
+
+a#ajdt-noteworthy img { background-image : url(graphics/icons/ajdt/aspectj_window.gif); }
+a#ajdt-noteworthy:hover img { background-image : url(graphics/icons/ajdt/aspectj_windowhov.gif); }
+
+a#aspectj-noteworthy img { background-image : url(graphics/icons/ajdt/aspectj_page.gif); }
+a#aspectj-noteworthy:hover img { background-image : url(graphics/icons/ajdt/aspectj_pagehov.gif); }
+
+/*** First Steps Link Images ***/
+
+/*** Web Link Images ***/
+
+a#aj-resources-main-link img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#aj-resources-main-link:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#developerWorks-aopAtWorkSeries img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#developerWorks-aopAtWorkSeries:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#developerWorks-visualiserTutorial img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#developerWorks-visualiserTutorial:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#ajdtHomepage img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#ajdtHomepage:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+
+a#aspectjHomepage img { background-image : url(graphics/icons/ajdt/aj_logo.gif); }
+a#aspectjHomepage:hover img { background-image : url(graphics/icons/ajdt/aj_logohov.gif); }
+

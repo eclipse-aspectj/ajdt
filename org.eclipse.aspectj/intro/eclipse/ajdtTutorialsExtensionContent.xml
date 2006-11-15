@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<introContent>
+  <!-- Extension to the SDK Tutorials Page. -->
+  <extensionContent id="org.eclipse.ajdt" name="AspectJ Development" alt-style="css/ajdt.properties" style="css/ajdtTutorials.css" path="tutorials/@">
+    <group label="AspectJ Development" id="aspectj" style-id="content-group">
+      <link url="http://org.eclipse.ui.intro/showStandby?partId=org.eclipse.platform.cheatsheet&amp;input=org.eclipse.ajdt.helloworld" label="Build a simple AspectJ application" id="aspectj-hello-world" style-id="content-link">
+        <text>Create a simple AspectJ program that will print "Hello World" to the console</text>
+      </link>
+
+    </group>
+  </extensionContent>
+</introContent>

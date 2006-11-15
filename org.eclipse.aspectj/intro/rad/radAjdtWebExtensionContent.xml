@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<introContent>
+-
+	<extensionContent 
+		alt-style="intro/rad/css/content-swt.properties" 
+		style="intro/rad/css/webresources.css" 
+		path="web/page-content/web-links/radAnchor">
+		<!-- WEB RESOURCES CONTENT GOES HERE -->
+-
+		<group id="t-links">
+-
+			<link 
+				label="AspectJ Development Tools" 
+				url="http://org.eclipse.ui.intro/showPage?id=aj-resources"
+				id="aj-resources-main-link">
+      
+				<text>
+					Technical resources and best practices for using AJDT and developing AspectJ applications. 
+				</text>
+    		</link>
+		</group>
+
+	</extensionContent>
+
+	<page
+		style="intro/rad/css/overview.css" 
+		alt-style="intro/rad/css/content-swt.properties" 
+		id="aj-resources" 
+		style-id="page">
+		<title style-id="intro-header">Rational Software Development Platform</title>
+		<group id="background-image" filteredFrom="swt"/>
+			<group id="navigation-links" filteredFrom="swt">
+				<include path="root/links-background/page-links"/>
+				<include path="root/action-links"/>
+			</group>
+			<!-- -->
+			<group id="page-content">
+	            <text style-id="page-title" id="page-title">TECHNICAL RESOURCES AND BEST PRACTICES FOR USING AJDT AND DEVELOPING ASPECTJ APPLICATIONS</text>
+	            <text style-id="page-description" id="page-description">Below are links to technical resources and best practices for using AJDT and developing AspectJ applications</text>
+	            <group id="t-links">
+	            
+				<link 
+					label="developerWorks : AOP@Work AJDT Article" 
+					url="http://org.eclipse.ui.intro/openBrowser?url=http://www-128.ibm.com/developerworks/java/library/j-aopwork9/index.html"  
+					id="developerWorks-aopAtWorkSeries">
+      
+					<text>
+						The AOP@Work series is intended for developers who have some background in 
+						aspect-oriented programming and want to expand or deepen what they know. As 
+						with most developerWorks articles, the series is highly practical: You can 
+						expect to come away from every article with new knowledge that you can put 
+						immediately to use.
+
+						Each of the authors contributing to the series has been selected for his 
+						leadership or expertise in aspect-oriented programming. Many of the authors 
+						are contributors to the projects or tools covered in the series. Each article 
+						is subjected to a peer review to ensure the fairness and accuracy of the views 
+						expressed.
+					</text>
+    			</link>
+			
+				<link 
+					label="developerWorks : The Visualiser Tutorial" 
+					url="http://org.eclipse.ui.intro/openBrowser?url=http://www-128.ibm.com/developerworks/edu/j-dw-java-visual-i.html"  
+					id="developerWorks-visualiserTutorial">
+      
+					<text>
+						The Visualiser plug-in from Eclipse.org is a universal tool for visualising 
+						any type of resource. This tutorial, written by the creators of the Visualiser, 
+						takes you step by step through the process of extending the tool to visualise 
+						a new type of resource -- the results returned by the Google Internet search 
+						engine. It then shows you some of the other ways in which the Visualiser has 
+						already been put to good use.
+					</text>
+    			</link>
+
+				<link 
+					label="AJDT homepage" 
+					url="http://org.eclipse.ui.intro/openBrowser?url=http://www.eclipse.org/ajdt/"  
+					id="ajdtHomepage">
+      
+					<text>
+						The AJDT homepage on eclipse.org
+					</text>
+    			</link>
+
+				<link 
+					label="AspectJ homepage" 
+					url="http://org.eclipse.ui.intro/openBrowser?url=http://www.eclipse.org/aspectj/"  
+					id="aspectjHomepage">
+      
+					<text>
+						The AspectJ homepage on eclipse.org
+					</text>
+    			</link>
+
+	        </group>
+		</group>
+	</page>
+
+</introContent>
