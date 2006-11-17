@@ -6,13 +6,13 @@ Bundle-Version: 1.5.0.qualifier
 Bundle-Activator: org.eclipse.contribution.xref.ui.XReferenceUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.help;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.inplace;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.providers;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.ras;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.text;x-internal:=true,
- org.eclipse.contribution.xref.internal.ui.utils;x-internal:=true,
+Export-Package: org.eclipse.contribution.xref.internal.ui.actions;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.help;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.inplace;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.providers;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.ras;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.text;x-friends:="org.eclipse.contribution.xref.ui.tests",
+ org.eclipse.contribution.xref.internal.ui.utils;x-friends:="org.eclipse.contribution.xref.ui.tests",
  org.eclipse.contribution.xref.ui,
  org.eclipse.contribution.xref.ui.filters,
  org.eclipse.contribution.xref.ui.views
