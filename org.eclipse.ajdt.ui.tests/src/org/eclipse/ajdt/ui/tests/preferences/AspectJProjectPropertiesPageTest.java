@@ -47,86 +47,86 @@ public class AspectJProjectPropertiesPageTest extends UITestCase {
 	
 	public void testPerformApply() throws Exception {
 		// check nothing in sfe
-		assertEquals("expected there not to be an outjar set by default but" +
-				" there was","",page.getOutjarValue());
+		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
+				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
 		// set the outjar value
-		page.setOutjarValue("output.jar");
-		assertEquals("expected the outjar to be output.jar but found "
-				+ page.getOutjarValue(),"output.jar",page.getOutjarValue());
+		page.setOutjarValue("output.jar"); //$NON-NLS-1$
+		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
+				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Apply - expect there to be a build
 		testLog.clearLog();			
 		page.performApply();
-		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertTrue("expected build to occur after performApply but did not",didBuild);		
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertTrue("expected build to occur after performApply but did not",didBuild);		 //$NON-NLS-1$
 	}
 
 	public void testPerformOk() throws Exception {
 		// check nothing in sfe
-		assertEquals("expected there not to be an outjar set by default but" +
-				" there was","",page.getOutjarValue());
+		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
+				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
 		// set the outjar value
-		page.setOutjarValue("output.jar");
-		assertEquals("expected the outjar to be output.jar but found "
-				+ page.getOutjarValue(),"output.jar",page.getOutjarValue());
+		page.setOutjarValue("output.jar"); //$NON-NLS-1$
+		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
+				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Ok - expect there to be a build
 		testLog.clearLog();			
 		page.performOk();
-		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertTrue("expected build to occur after performOky but did not",didBuild);		
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertTrue("expected build to occur after performOky but did not",didBuild);		 //$NON-NLS-1$
 	}
 	
 	public void testPerformCancel() throws Exception {
 		// check nothing in sfe
-		assertEquals("expected there not to be an outjar set by default but" +
-				" there was","",page.getOutjarValue());
+		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
+				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
 		// set the outjar value
-		page.setOutjarValue("output.jar");
-		assertEquals("expected the outjar to be output.jar but found "
-				+ page.getOutjarValue(),"output.jar",page.getOutjarValue());
+		page.setOutjarValue("output.jar"); //$NON-NLS-1$
+		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
+				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform cancel - dont expect there to be a build
 		testLog.clearLog();			
 		page.performCancel();
-		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("didn't expect build to occur after performCancel " +
-				"but a build happened",didBuild);		
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("didn't expect build to occur after performCancel " + //$NON-NLS-1$
+				"but a build happened",didBuild);		 //$NON-NLS-1$
 	}
 
 	public void testPerformDefaults() throws Exception {
 		// check nothing in sfe
-		assertEquals("expected there not to be an outjar set by default but" +
-				" there was","",page.getOutjarValue());
+		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
+				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
 		// set the outjar value
-		page.setOutjarValue("output.jar");
-		assertEquals("expected the outjar to be output.jar but found "
-				+ page.getOutjarValue(),"output.jar",page.getOutjarValue());
+		page.setOutjarValue("output.jar"); //$NON-NLS-1$
+		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
+				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform defaults - dont expect there to be a build because 
 		// nothing has changed
 		testLog.clearLog();			
 		page.performDefaults();
-		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("didn't expect build to occur after performDefaults " +
-				"but a build happened",didBuild);		
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("didn't expect build to occur after performDefaults " + //$NON-NLS-1$
+				"but a build happened",didBuild);		 //$NON-NLS-1$
 	}
 	
 	public void testPerformApplyThenOk() throws Exception {
 		// check nothing in sfe
-		assertEquals("expected there not to be an outjar set by default but" +
-				" there was","",page.getOutjarValue());
+		assertEquals("expected there not to be an outjar set by default but" + //$NON-NLS-1$
+				" there was","",page.getOutjarValue()); //$NON-NLS-1$ //$NON-NLS-2$
 		// set the outjar value
-		page.setOutjarValue("output.jar");
-		assertEquals("expected the outjar to be output.jar but found "
-				+ page.getOutjarValue(),"output.jar",page.getOutjarValue());
+		page.setOutjarValue("output.jar"); //$NON-NLS-1$
+		assertEquals("expected the outjar to be output.jar but found " //$NON-NLS-1$
+				+ page.getOutjarValue(),"output.jar",page.getOutjarValue()); //$NON-NLS-1$
 		// perform Apply - expect there to be a build
 		testLog.clearLog();			
 		page.performApply();
-		boolean didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertTrue("expected build to occur after performApply but did not",didBuild);		
+		boolean didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertTrue("expected build to occur after performApply but did not",didBuild);		 //$NON-NLS-1$
 		// clear the log and performOk which shouldn't result in a build
 		testLog.clearLog();
 		page.performOk();
-		didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("didn't expect build to occur after performOk because " +
-				"already done one but one happened",didBuild);		
+		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("didn't expect build to occur after performOk because " + //$NON-NLS-1$
+				"already done one but one happened",didBuild);		 //$NON-NLS-1$
 		
 	}
 }

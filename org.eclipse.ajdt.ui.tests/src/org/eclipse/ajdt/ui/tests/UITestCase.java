@@ -145,9 +145,9 @@ public abstract class UITestCase extends TestCase {
 					project.delete(true, false, null);
 					project.delete(true, true, null);
 				} catch (CoreException e) {
-					System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
+					System.out.println("***delete of project " + projectName + " failed***"); //$NON-NLS-1$ //$NON-NLS-2$
 					e.printStackTrace();
-					fail("***delete of project " + projectName + " failed***"); //$NON-NLS-1$
+					fail("***delete of project " + projectName + " failed***"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 		};

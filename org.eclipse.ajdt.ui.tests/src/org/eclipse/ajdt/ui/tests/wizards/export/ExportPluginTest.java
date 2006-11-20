@@ -215,7 +215,7 @@ public class ExportPluginTest extends UITestCase {
 		if (!hwFolder.exists()) {
 			fail("Export of plugin failed to create HelloWorld_1.0.0 sub-folder: " + hwFolder); //$NON-NLS-1$
 		}
-		File jar = new File(hwFolder, "HelloWorld.jar");
+		File jar = new File(hwFolder, "HelloWorld.jar"); //$NON-NLS-1$
 		if (!jar.exists()) {
 			fail("Export of plugin failed to create HelloWorld.jar: " + jar); //$NON-NLS-1$
 		}

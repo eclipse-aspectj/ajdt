@@ -49,9 +49,9 @@ public class ProblemMarkerTest extends UITestCase {
 	public void testBug111764() throws CoreException {
 		createPredefinedProject("InpathUsingAJProject"); //$NON-NLS-1$
 		IProject javaProject = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
-		IFile f = javaProject.getFile("src/internal/stuff/MyBuilder.java");
+		IFile f = javaProject.getFile("src/internal/stuff/MyBuilder.java"); //$NON-NLS-1$
 		IMarker[] markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-		assertEquals("Should be 1 ADJT problem marker again file MyBuilder.java",1,markers.length);
+		assertEquals("Should be 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
 
 		StringReader sr = new StringReader("/* blah blah blah */"); //$NON-NLS-1$
 		f.appendContents(new ReaderInputStream(sr), IResource.FORCE, null);
@@ -59,7 +59,7 @@ public class ProblemMarkerTest extends UITestCase {
 		waitForJobsToComplete();
 
 		markers = f.findMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-		assertEquals("Should still be only 1 ADJT problem marker again file MyBuilder.java",1,markers.length);
+		assertEquals("Should still be only 1 ADJT problem marker again file MyBuilder.java",1,markers.length); //$NON-NLS-1$
 	}
 	
 // TODO: Do this another way with new build configs	
