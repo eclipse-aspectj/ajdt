@@ -50,7 +50,7 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 		super.tearDown();
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
-		store.setValue(AspectJPreferences.COMPILER_OPTIONS, "");
+		store.setValue(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
 		page.dispose();
 		AspectJPlugin.getDefault().setAJLogger(null);
 	}
@@ -72,18 +72,18 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			testLog.clearLog();
 			page.performApply();
 			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertTrue(
-					"expected build to occur after performApply because asked "
-							+ "for one but build didn't happen", didBuild);
+					"expected build to occur after performApply because asked " //$NON-NLS-1$
+							+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 			// pressing "Ok" now should not result in a build
 			testLog.clearLog();
 			page.performOk();
 			didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after performOk because "
-							+ " already applied changes but build happened anyway",
+					"did not expect a build to occur after performOk because " //$NON-NLS-1$
+							+ " already applied changes but build happened anyway", //$NON-NLS-1$
 					didBuild);
 		} finally {
 			// restore preference settings!
@@ -109,20 +109,20 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			testLog.clearLog();
 			page.performApply();
 			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after pressing Apply"
-							+ " because said didn't want one but build happened anyway",
+					"did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+							+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 					didBuild);
 			// pressing "Ok" now should still not result in a build
 			// (because have set dont' want to build)
 			testLog.clearLog();
 			page.performOk();
 			didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after performOk because "
-							+ " said didn't want one but build happened anyway",
+					"did not expect a build to occur after performOk because " //$NON-NLS-1$
+							+ " said didn't want one but build happened anyway", //$NON-NLS-1$
 					didBuild);
 		} finally {
 			// restore preference settings!
@@ -139,24 +139,24 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 	public void testChangeNonStandardOptionsAndApply() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
-		page.setNonStandardOption("-showWeaveInfo");
+		page.setNonStandardOption("-showWeaveInfo"); //$NON-NLS-1$
 		// don't want to do a build when asked after pressing "apply"
 		page.setBuildNow(false);
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
 		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful");
-		assertFalse("did not expect a build to occur after pressing Apply"
-				+ " because said didn't want one but build happened anyway",
+				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+				+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 				didBuild);
 		// pressing "Ok" now should still not result in a build
 		// (because have set dont' want to build)
 		testLog.clearLog();
 		page.performOk();
-		didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("did not expect a build to occur after performOk because "
-				+ " said didn't want one but build happened anyway", didBuild);
+		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
+				+ " said didn't want one but build happened anyway", didBuild); //$NON-NLS-1$
 	}
 
 	/**
@@ -176,10 +176,10 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			testLog.clearLog();
 			page.performApply();
 			boolean didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
 			assertFalse(
-					"did not expect a build to occur after pressing Apply"
-							+ " because said didn't want one but build happened anyway",
+					"did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+							+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 					didBuild);
 			// want to build when press ok
 			page.setBuildNow(true);
@@ -188,9 +188,9 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 			testLog.clearLog();
 			page.performOk();
 			didBuild = testLog
-					.containsMessage("AspectJ reports build successful");
-			assertFalse("expected a build to occur after performOk but one"
-					+ " didn't happen", didBuild);
+					.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+			assertFalse("expected a build to occur after performOk but one" //$NON-NLS-1$
+					+ " didn't happen", didBuild); //$NON-NLS-1$
 		} finally {
 			// restore preference settings!
 			page.setButtonChanged();
@@ -206,25 +206,25 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 	public void testChangeNonStandardOptionsAndApply_3() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
-		page.setNonStandardOption("-showWeaveInfo");
+		page.setNonStandardOption("-showWeaveInfo"); //$NON-NLS-1$
 		// don't want to do a build when asked after pressing "apply"
 		page.setBuildNow(false);
 		// perform Apply - don't expect there to be a build
 		testLog.clearLog();
 		page.performApply();
 		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful");
-		assertFalse("did not expect a build to occur after pressing Apply"
-				+ " because said didn't want one but build happened anyway",
+				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("did not expect a build to occur after pressing Apply" //$NON-NLS-1$
+				+ " because said didn't want one but build happened anyway", //$NON-NLS-1$
 				didBuild);
 		// pressing "Ok" now should still not result in a build - this is
 		// mirroring the jdt compiler pages
 		page.setBuildNow(true);
 		testLog.clearLog();
 		page.performOk();
-		didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("did not expect a build to occur after pressing ok"
-				+ " but build happened anyway", didBuild);
+		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("did not expect a build to occur after pressing ok" //$NON-NLS-1$
+				+ " but build happened anyway", didBuild); //$NON-NLS-1$
 
 	}
 
@@ -236,23 +236,23 @@ public class AJCompilerPreferencePageWorkbenchTest extends UITestCase {
 	public void testChangeNonStandardOptionsAndApply_2() {
 		// make a change on the page which should result in asking
 		// whether the user wants to do a build
-		page.setNonStandardOption("-showWeaveInfo");
+		page.setNonStandardOption("-showWeaveInfo"); //$NON-NLS-1$
 		// want to do a build when asked
 		page.setBuildNow(true);
 		// perform Apply - expect there to be a build
 		testLog.clearLog();
 		page.performApply();
 		boolean didBuild = testLog
-				.containsMessage("AspectJ reports build successful");
-		assertTrue("expected build to occur after performApply because asked "
-				+ "for one but build didn't happen", didBuild);
+				.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertTrue("expected build to occur after performApply because asked " //$NON-NLS-1$
+				+ "for one but build didn't happen", didBuild); //$NON-NLS-1$
 		// pressing "Ok" now should not result in a build
 		page.setBuildNow(false);
 		testLog.clearLog();
 		page.performOk();
-		didBuild = testLog.containsMessage("AspectJ reports build successful");
-		assertFalse("did not expect a build to occur after performOk because "
-				+ " already applied changes but build happened anyway",
+		didBuild = testLog.containsMessage("AspectJ reports build successful"); //$NON-NLS-1$
+		assertFalse("did not expect a build to occur after performOk because " //$NON-NLS-1$
+				+ " already applied changes but build happened anyway", //$NON-NLS-1$
 				didBuild);
 	}
 

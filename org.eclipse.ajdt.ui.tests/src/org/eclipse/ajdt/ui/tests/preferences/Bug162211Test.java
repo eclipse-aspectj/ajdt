@@ -53,7 +53,7 @@ public class Bug162211Test extends UITestCase {
 		ErrorHandler.setShowErrorDialogs(true);
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
-		store.setValue(AspectJPreferences.COMPILER_OPTIONS, "");
+		store.setValue(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
 		page.dispose();
 		AspectJPlugin.getDefault().setAJLogger(null);
 	}

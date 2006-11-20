@@ -142,14 +142,14 @@ public abstract class UITestCase extends TestCase {
 		} catch (CoreException e) {
 			lastException = e;
 			// just print for info
-			System.out.println(e.getMessage() + " [" + resource.getFullPath() + "]");
+			System.out.println(e.getMessage() + " [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 		} catch (IllegalArgumentException iae) {
 			// just print for info
-			System.out.println(iae.getMessage() + " [" + resource.getFullPath() + "]");
+			System.out.println(iae.getMessage() + " [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		int retryCount = 0; // wait 1 minute at most
 		while (resource.isAccessible() && ++retryCount <= 60) {
-			System.out.println("Running GC and waiting 1s...");
+			System.out.println("Running GC and waiting 1s..."); //$NON-NLS-1$
 			try {
 				System.gc();
 				Thread.sleep(1000);
@@ -160,17 +160,17 @@ public abstract class UITestCase extends TestCase {
 			} catch (CoreException e) {
 				lastException = e;
 				// just print for info
-				System.out.println("Retry "+retryCount+": "+ e.getMessage() + " [" + resource.getFullPath() + "]");
+				System.out.println("Retry "+retryCount+": "+ e.getMessage() + " [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			} catch (IllegalArgumentException iae) {
 				// just print for info
-				System.out.println("Retry "+retryCount+": "+ iae.getMessage() + " [" + resource.getFullPath() + "]");
+				System.out.println("Retry "+retryCount+": "+ iae.getMessage() + " [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			}
 		}
 		if (!resource.isAccessible()) {
-			System.out.println("Succeed to delete resource [" + resource.getFullPath() + "]");
+			System.out.println("Succeed to delete resource [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 			return;
 		}
-		System.err.println("Failed to delete resource [" + resource.getFullPath() + "]");
+		System.err.println("Failed to delete resource [" + resource.getFullPath() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (lastException != null) {
 			throw lastException;
 		}
