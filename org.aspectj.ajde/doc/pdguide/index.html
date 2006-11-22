@@ -4,20 +4,20 @@
          2006 Contributors.  
          All rights reserved.
         </p></div></div><div><div class="abstract"><p><a name="d0e15"></a><b>Abstract</b></p><p>
-          This describes how to configure the AspectJ compiler/weaver to provide
-          information for diagnosing problems in the input programs or in the 
-          compiler/weaver itself.
+          This guide describes how to configure the AspectJ compiler/weaver to provide
+          information for diagnosing problems in the input programs, the 
+          compiler/weaver or its configuration.
       </p><p>
           The AspectJ compiler and weaver can provide lots of information for diagnosing
           problems in building AspectJ programs.  For problems in the input program,
-          there are a number of default warning and error messages and many 
+          there are a number of default warning and error messages, as well as many 
           configurable "lint" messages, all of which can be emitted normally, 
           logged using standard facilities, or intercepted programmatically. 
           These are discussed in <a href="messages.html">Messages</a>.  Since most errors
           relate to writing pointcuts incorrectly, there is a section on 
           <a href="pointcuts.html">Debugging Pointcuts</a>.
       </p><p>
-          For problems with the compiler/weaver itself, there are three facilities
+          For problems with the compiler/weaver itself there are three facilities
           that enable the AspectJ developers to resolve bugs even when it is
           too hard to deliver a reproducible test case: 
         <div class="orderedlist"><ol type="1"><li><p><a name="d0e27"></a><a href="trace.html">Tracing</a> can be enabled to track progress up to the time of a failure;</p></li><li><p><a name="d0e31"></a><a href="ajcore.html">AspectJ Core Files</a> can give a relatively complete picture of the state of 

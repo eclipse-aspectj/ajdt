@@ -14,7 +14,7 @@
 		<link toc="toc_ajpdguide.xml" />		
 	</topic>
 	<topic label="API Documentation" href="doc/api/index.html"/>
-	<topic label="README for v1.5.2" href="doc/README-152.html"/>
+	<topic label="README for v1.5.3" href="doc/README-153.html"/>
 	<topic label="FAQ" href="doc/faq.html"/>
 	<topic label="Porting Notes" href="doc/porting.html"/>
 	<topic label="Changes in AspectJ" href="doc/changes.html"/>
