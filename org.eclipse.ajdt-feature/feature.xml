@@ -19,7 +19,7 @@
    </license>
 
    <url>
-      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/32/dev/update"/>
+      <update label="%updateLabel" url="http://download.eclipse.org/tools/ajdt/32/update"/>
    </url>
 
    <includes
