@@ -16,19 +16,19 @@ pointcut independently.
 Bottom up (to build each part), consider each primitive pointcut
 designator (PCD), then the composition, and then any implicit
 constraints:
-    <div class="orderedlist"><ol type="1"><li><p><a name="d0e312"></a>
+    <div class="orderedlist"><ol type="1"><li><p><a name="d0e358"></a>
 What kinds of join points should it match? (constructor-call?
 field-get?)?  This translates to using the kinded pointcuts
 (`call(..)`, `get(..)`, etc.).
-    </p></li><li><p><a name="d0e315"></a>
+    </p></li><li><p><a name="d0e361"></a>
 Are these restricted to being lexically within something?  This
 translates to using `within{code}(..)`.  If this is true, it should
 always be used, to speed up weaving.
-    </p></li><li><p><a name="d0e318"></a>
+    </p></li><li><p><a name="d0e364"></a>
 What runtime constraints and context should be true and available at
 each join point?  This translates to `this()`, `target()`, `args()`,
 `cflow{below}()` and `if(..)`.
-    </p></li><li><p><a name="d0e321"></a>
+    </p></li><li><p><a name="d0e367"></a>
 Are there any advice or implementation limitations at issue?  This
 involves knowing the few constraints on AspectJ imposed by Java bytecode 
 as listed in the AspectJ Programming Guide section on 
@@ -46,39 +46,39 @@ as listed in the AspectJ Programming Guide section on
         pointcut, and limit the scope using <tt>within(..)</tt>.
     </p><p>
         Some mistakes in primitive pointcuts:
-        <div class="itemizedlist"><ul><li><p><a name="d0e336"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e382"></a>
 `this(Foo) &amp;&amp; execution(static * *(..))`: There is no `this` in a static
 context, so `this()` or `target()` should not be used in a static
 context or when targetting a static context (respectively).  This
 happens most often when you want to say things like "all calls to Foo from Bar"
 and you only pick out calls to instance methods of Foo
 or you try to pick out calls from static methods of Bar.
-</p></li><li><p><a name="d0e339"></a>
+</p></li><li><p><a name="d0e385"></a>
 `target(Foo) &amp;&amp;  call(new(..)`: This will never match.  In
 constructor-call join points, there is no target because the object
 has not been created yet. 
-</p></li><li><p><a name="d0e342"></a>
+</p></li><li><p><a name="d0e388"></a>
 `call(* Foo.*(..))`: `Foo` refers to the compile-time type of the
 invoking reference, not the implementing class.  In Java before 1.4,
 the compile-time type was rendered as the defining type, not the
 reference type; this was corrected in 1.4 (as shown when using ajc
 with the -1.4 flag)  Most people should use `target(Foo) &amp;&amp;  call(...)`.
-</p></li><li><p><a name="d0e345"></a>
+</p></li><li><p><a name="d0e391"></a>
 `execution(* Foo.bar(..))`: An execution join point for Foo is
 always within Foo, so this won't pick out any overrides of bar(..).
 Use `target(Foo) &amp;&amp;  execution(* bar(..))` for instance methods.
-</p></li><li><p><a name="d0e348"></a>
+</p></li><li><p><a name="d0e394"></a>
 `within(Foo)`: anonymous types are not known at weave-time to be
 within the lexically-enclosing type (a limitation of Java bytecode).
 </p></li></ul></div>
     </p><p>
         Some mistakes in composition:
-        <div class="itemizedlist"><ul><li><p><a name="d0e355"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e401"></a>
 `call(* foo(Bar, Foo)) &amp;&amp; args(Foo)`: This will never match.
 The parameters in `args(..)` are position-dependent, so `args(Foo)` only picks
  out join points where there is only one argument possible, of type Foo.
 Use the indeterminate-arguments operator '..' as needed, e.g., `args(Foo, ..)`.
-</p></li><li><p><a name="d0e358"></a>
+</p></li><li><p><a name="d0e404"></a>
 `call(* foo()) &amp;&amp; execution(* foo())`: This will never match.  Each
 pointcut must be true at each join point matched.  For a union of different
 kinds of join points (here, call or execution), use '||'.
@@ -87,7 +87,7 @@ E.g., to match both method-call and field-get join points, use
 </p></li></ul></div>
     </p><p>
         Some mistakes in implicit advice constraints:
-        <div class="itemizedlist"><ul><li><p><a name="d0e365"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e411"></a>
 `after () returning (Foo foo) : ...`: after advice can bind the
 returned object or exception thrown.  That effectively acts like
 `target()`, `this()`, or `args()` in restricting when the advice
@@ -96,7 +96,7 @@ not explicitly part of the pointcut.
 </p></li></ul></div>
     </p><p>
         Some mistakes in implementation requirements:
-        <div class="itemizedlist"><ul><li><p><a name="d0e372"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e418"></a>
 `ajc` has to control the code for a join point in order to implement
 the join point.  This translates to an implicit `within({code under
 the control of the compiler})` for all join points, with additional
@@ -107,7 +107,7 @@ ends, so `ajc` can't implement after advice on handler join points.
 for each corresponding primitive pointcut designator.)  Unlike the
 mistakes with the primitive PCDs above, the compiler will emit an
 error for these caveats.
-</p></li><li><p><a name="d0e375"></a>
+</p></li><li><p><a name="d0e421"></a>
 `call(@SuperAnnotation Subclass.meth()`: Annotations are not inherited
 by default, so e.g., if the pointcut specifies an annotation, then 
 subclass implementations of that method will not be matched.
