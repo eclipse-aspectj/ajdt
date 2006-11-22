@@ -12,11 +12,13 @@
             <tt>abort</tt> message is
             issued. However it is possible to disable this feature or enable files to
             be produced under different circumstances. The table below lists the System 
-            properties that can be used to configure <tt>ajcore</tt> files. </p><div class="informaltable" id="d0e404"><a name="d0e404"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.weaver.Dump.exception</tt></td><td><tt>true</tt></td><td>
+            properties that can be used to configure <tt>ajcore</tt> files. </p><div class="informaltable" id="d0e450"><a name="d0e450"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.weaver.Dump.exception</tt></td><td><tt>true</tt></td><td>
                             	Generate an <tt>ajcore</tt> files when an exception thrown.
                             </td></tr><tr><td><tt>org.aspectj.weaver.Dump.condition</tt></td><td><tt>abort</tt></td><td>
                             	Message kind for which to generate <tt>ajcore</tt>
                             	e.g. <tt>error</tt>. 
+                            </td></tr><tr><td><tt>org.aspectj.dump.directory</tt></td><td><tt>none</tt></td><td>
+                            	The directory used for ajcore files. 
                             </td></tr></tbody></table></div></div><div class="sect2"><a name="ajcore-examples"></a><div class="titlepage"><div><h3 class="title"><a name="ajcore-examples"></a>AJCore File Examples</h3></div></div><p> Below is an extract from an <tt>ajcore</tt> file. You will see
             details of the dump configuration as well as the exception (with stack trace) that
             is the source of the problem and any messages issued by the compiler. Most importantly
