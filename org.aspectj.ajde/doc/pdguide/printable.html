@@ -4,20 +4,20 @@
          2006 Contributors.  
          All rights reserved.
         </p></div></div><div><div class="abstract"><p><a name="d0e15"></a><b>Abstract</b></p><p>
-          This describes how to configure the AspectJ compiler/weaver to provide
-          information for diagnosing problems in the input programs or in the 
-          compiler/weaver itself.
+          This guide describes how to configure the AspectJ compiler/weaver to provide
+          information for diagnosing problems in the input programs, the 
+          compiler/weaver or its configuration.
       </p><p>
           The AspectJ compiler and weaver can provide lots of information for diagnosing
           problems in building AspectJ programs.  For problems in the input program,
-          there are a number of default warning and error messages and many 
+          there are a number of default warning and error messages, as well as many 
           configurable "lint" messages, all of which can be emitted normally, 
           logged using standard facilities, or intercepted programmatically. 
           These are discussed in <a href="#messages">Messages</a>.  Since most errors
           relate to writing pointcuts incorrectly, there is a section on 
           <a href="#pointcuts">Debugging Pointcuts</a>.
       </p><p>
-          For problems with the compiler/weaver itself, there are three facilities
+          For problems with the compiler/weaver itself there are three facilities
           that enable the AspectJ developers to resolve bugs even when it is
           too hard to deliver a reproducible test case: 
         <div class="orderedlist"><ol type="1"><li><p><a name="d0e27"></a><a href="#trace">Tracing</a> can be enabled to track progress up to the time of a failure;</p></li><li><p><a name="d0e31"></a><a href="#ajcore">AspectJ Core Files</a> can give a relatively complete picture of the state of 
@@ -34,10 +34,10 @@
       </p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt>1. <a href="#messages">Messages</a></dt><dd><dl><dt><a href="#messages-introduction">Introduction</a></dt><dd><dl><dt><a href="#messages-introduction-config">Configuring Messages</a></dt></dl></dd><dt><a href="#messages-scenarios">Message scenarios</a></dt><dd><dl><dt><a href="#messages-scenarios-ct">Compile-time weaving scenarios</a></dt><dt><a href="#messages-scenarios-ltw">Load-time weaving scenarios</a></dt></dl></dd><dt><a href="#messages-xlint">Lint messages</a></dt></dl></dd><dt>2. <a href="#pointcuts">Debugging Pointcuts</a></dt><dd><dl><dt><a href="#pointcuts-introduction">Introduction</a></dt><dt><a href="#pointcuts-debugging">Debugging pointcuts</a></dt></dl></dd><dt>3. <a href="#ajcore">AspectJ Core Files</a></dt><dd><dl><dt><a href="#ajcore-introduction">Introduction</a></dt><dd><dl><dt><a href="#configuration">Configuring dump files</a></dt><dt><a href="#ajcore-examples">AJCore File Examples</a></dt></dl></dd></dl></dd><dt>4. <a href="#trace">Tracing</a></dt><dd><dl><dt><a href="#trace-introduction">Introduction</a></dt><dd><dl><dt><a href="#trace-configuration">Configuring Tracing</a></dt><dt><a href="#trace-examples">Examples</a></dt></dl></dd></dl></dd><dt>5. <a href="#ltwdump">Dumping classes during load-time weaving</a></dt><dd><dl><dt><a href="#ltwdump-introduction">Introduction</a></dt><dd><dl><dt><a href="#ltw-examples">Configuring bytecode dumping in load-time weaving</a></dt><dt><a href="#ltwdump-examples">LTW Dump Examples</a></dt></dl></dd></dl></dd></dl></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="messages"></a>Chapter 1. Messages</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#messages-introduction">Introduction</a></dt><dd><dl><dt><a href="#messages-introduction-config">Configuring Messages</a></dt></dl></dd><dt><a href="#messages-scenarios">Message scenarios</a></dt><dd><dl><dt><a href="#messages-scenarios-ct">Compile-time weaving scenarios</a></dt><dt><a href="#messages-scenarios-ltw">Load-time weaving scenarios</a></dt></dl></dd><dt><a href="#messages-xlint">Lint messages</a></dt></dl></div><div class="sect1"><a name="messages-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="messages-introduction"></a>Introduction</h2></div></div><p>
             Messages point out potential problems in the input program; some
             are clearly problems (errors), but many more may depend on what
-            the programmer intends.  To keep the noise down, the latter are treated
-            as warnings that can be ignored by the programmer or information
-            hidden from the programmer.  However, when investigating
-            unexpected behavior, it's helpful to show them.  This describes how
+            the programmer intends.  To keep the noise down the latter are treated
+            as warnings which can be ignored by the programmer or information
+            which are hidden. However, when investigating
+            unexpected behavior it's helpful to show them.  This section describes how
             to configure messages, presents some problem scenarios when
             compiling or doing load-time weaving, and summarizes some of the 
             more relevant messages.
@@ -65,13 +65,15 @@
                 are compiled but not woven, then only compiler messages will be
                 emitted.  However, the usual case for the compiler/weaver working
                 at build time is to emit both compiler and weaver messages.
-            </p><p> The table below lists some options used to control AspectJ messages. The method
-            of configuration depends on your environment so refer to the relevant 
+            </p><p> The tables below list some options, System Properties (for LTW only) and Java 5 annotations 
+            used to control AspectJ messages. The method
+            of configuration depends on your environment so please refer to the relevant 
             documentation for 
             <a href="../devguide/ajc-ref.html" target="_top">ajc</a>, 
-            <a href="../devguide/.html#antTasks-iajc-options" target="_top">Ant</a> or 
+            <a href="../devguide/antTasks.html" target="_top">Ant</a> or 
             <a href="../devguide/ltw-configuration.html#weaver-options" target="_top">LTW</a>. 
-            </p><div class="informaltable" id="d0e93"><a name="d0e93"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Description</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>
+            </p><p>
+            <div class="informaltable" id="d0e95"><a name="d0e95"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Option</th><th>Description</th></tr></thead><tbody><tr><td><tt>-verbose</tt></td><td>
                             	Show informational messages including AspectJ version
                             	and build date.
                             </td></tr><tr><td><tt>-debug</tt></td><td>
@@ -83,22 +85,32 @@
                             	Show weaving messages.
                             </td></tr><tr><td><tt>-Xlint</tt></td><td>
                             	Control level of lint messages.
-                            </td></tr><tr><td><tt>messageHolderClass</tt></td><td>
-                            	In Ant tasks, specify the class to receive all messages.
+                            </td></tr><tr><td><tt>messageHolderClass</tt>/
+                                <tt>-XmessageHolderClass:</tt></td><td>
+                            	In Ant tasks and LTW respectively specify the class to receive all messages.
                                 See 
                                 <a href="../devguide/antTasks-iajc.html#antTasks-iajc-options" target="_top">
-                                iajc task options</a>.
-                            </td></tr><tr><td><tt>rg.aspectj.tools.Main.setMessageHolder(..)</tt></td><td>
-                            	Programmatic access for setting the message holder
-                                outside of Ant.
+                                iajc task options</a> or
+                                <a href="../devguide/ltw-configuration.html#weaver-options" target="_top">
+                                Weaver Options</a>.
+                            </td></tr></tbody></table></div>
+			</p><p>
+            <div class="informaltable" id="d0e147"><a name="d0e147"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>System Property</th><th>Description</th></tr></thead><tbody><tr><td><tt>aj.weaving.verbose</tt></td><td>
+                            	 Show informational messages including AspectJ version and build date 
+                            	 (same as <tt>-verbose</tt> option).
+                            </td></tr><tr><td><tt>org.aspectj.weaver.showWeaveInfo</tt></td><td>
+                            	Show weaving messages
+                            	(same as <tt>-showWeaveInfo</tt> option).
                             </td></tr><tr><td><tt>org.aspectj.weaving.messages</tt></td><td>
-                            	Set this system property to redirect compiler/weaver
-                                messages to logging facilities, as described in
-                                <a href="#trace-configuration">Configuring Tracing</a>.
-                            </td></tr><tr><td><tt>@SuppressAjWarnings</tt></td><td>
+                            	Set this system property to enable tracing of all compiler 
+                            	messages. See <a href="#trace-configuration">Configuring Tracing</a>.
+                            </td></tr></tbody></table></div>
+            </p><p>
+            <div class="informaltable" id="d0e185"><a name="d0e185"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Annotation</th><th>Description</th></tr></thead><tbody><tr><td><tt>@SuppressAjWarnings</tt></td><td>
                             	Include this is Java 5 code to suppress AspectJ
                                 warnings associated with the next line of code.
-                            </td></tr></tbody></table></div></div></div><div class="sect1"><a name="messages-scenarios"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="messages-scenarios"></a>Message scenarios</h2></div></div><div class="sect2"><a name="messages-scenarios-ct"></a><div class="titlepage"><div><h3 class="title"><a name="messages-scenarios-ct"></a>Compile-time weaving scenarios</h3></div></div><div class="sect3"><a name="messages-scenarios-ct-adviceNotWoven"></a><div class="titlepage"><div><h4 class="title"><a name="messages-scenarios-ct-adviceNotWoven"></a>Advice not woven</h4></div></div><p>This means that the pointcut for the advice did not match,
+                            </td></tr></tbody></table></div>
+            </p></div></div><div class="sect1"><a name="messages-scenarios"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="messages-scenarios"></a>Message scenarios</h2></div></div><div class="sect2"><a name="messages-scenarios-ct"></a><div class="titlepage"><div><h3 class="title"><a name="messages-scenarios-ct"></a>Compile-time weaving scenarios</h3></div></div><div class="sect3"><a name="messages-scenarios-ct-adviceNotWoven"></a><div class="titlepage"><div><h4 class="title"><a name="messages-scenarios-ct-adviceNotWoven"></a>Advice not woven</h4></div></div><p>This means that the pointcut for the advice did not match,
                 and it should be debugged as described in 
                     <a href="#pointcuts">Debugging Pointcuts</a>.</p></div></div><div class="sect2"><a name="messages-scenarios-ltw"></a><div class="titlepage"><div><h3 class="title"><a name="messages-scenarios-ltw"></a>Load-time weaving scenarios</h3></div></div><p> You can use <tt>META-INF/aop.xml</tt> to control which
             messages are produced during LTW. The following example will produce
@@ -132,9 +144,9 @@
 		whether your pointcuts match you can use the <tt>-showWeaveInfo</tt>
 		option which will cause a message to be issued each time a join point is woven: </p><pre class="programlisting">
 	weaveinfo Join point 'method-execution(void HelloWorld.main(java.lang.String[]))' ...
-		</pre><p>If advice should be woven at this join point, you should get a 
+		</pre><p>If advice is woven at this join point you should get the 
             corresponding message.</p></div></div></div><div class="sect1"><a name="messages-xlint"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="messages-xlint"></a>Lint messages</h2></div></div><p> 
-                The table below lists some useful <tt>-Xlint</tt> messages. </p><div class="informaltable" id="d0e219"><a name="d0e219"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Message</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>aspectExcludedByConfiguration</tt></td><td><tt>ignore</tt></td><td>
+                The table below lists some useful <tt>-Xlint</tt> messages. </p><div class="informaltable" id="d0e265"><a name="d0e265"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Message</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>aspectExcludedByConfiguration</tt></td><td><tt>ignore</tt></td><td>
                             	If an aspect is not being woven, despite being
                             	registered, it could be that it has been excluded
                             	by either an <tt>include</tt> or <tt>exclude</tt> 
@@ -196,19 +208,19 @@ pointcut independently.
 Bottom up (to build each part), consider each primitive pointcut
 designator (PCD), then the composition, and then any implicit
 constraints:
-    <div class="orderedlist"><ol type="1"><li><p><a name="d0e312"></a>
+    <div class="orderedlist"><ol type="1"><li><p><a name="d0e358"></a>
 What kinds of join points should it match? (constructor-call?
 field-get?)?  This translates to using the kinded pointcuts
 (`call(..)`, `get(..)`, etc.).
-    </p></li><li><p><a name="d0e315"></a>
+    </p></li><li><p><a name="d0e361"></a>
 Are these restricted to being lexically within something?  This
 translates to using `within{code}(..)`.  If this is true, it should
 always be used, to speed up weaving.
-    </p></li><li><p><a name="d0e318"></a>
+    </p></li><li><p><a name="d0e364"></a>
 What runtime constraints and context should be true and available at
 each join point?  This translates to `this()`, `target()`, `args()`,
 `cflow{below}()` and `if(..)`.
-    </p></li><li><p><a name="d0e321"></a>
+    </p></li><li><p><a name="d0e367"></a>
 Are there any advice or implementation limitations at issue?  This
 involves knowing the few constraints on AspectJ imposed by Java bytecode 
 as listed in the AspectJ Programming Guide section on 
@@ -226,39 +238,39 @@ as listed in the AspectJ Programming Guide section on
         pointcut, and limit the scope using <tt>within(..)</tt>.
     </p><p>
         Some mistakes in primitive pointcuts:
-        <div class="itemizedlist"><ul><li><p><a name="d0e336"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e382"></a>
 `this(Foo) &amp;&amp; execution(static * *(..))`: There is no `this` in a static
 context, so `this()` or `target()` should not be used in a static
 context or when targetting a static context (respectively).  This
 happens most often when you want to say things like "all calls to Foo from Bar"
 and you only pick out calls to instance methods of Foo
 or you try to pick out calls from static methods of Bar.
-</p></li><li><p><a name="d0e339"></a>
+</p></li><li><p><a name="d0e385"></a>
 `target(Foo) &amp;&amp;  call(new(..)`: This will never match.  In
 constructor-call join points, there is no target because the object
 has not been created yet. 
-</p></li><li><p><a name="d0e342"></a>
+</p></li><li><p><a name="d0e388"></a>
 `call(* Foo.*(..))`: `Foo` refers to the compile-time type of the
 invoking reference, not the implementing class.  In Java before 1.4,
 the compile-time type was rendered as the defining type, not the
 reference type; this was corrected in 1.4 (as shown when using ajc
 with the -1.4 flag)  Most people should use `target(Foo) &amp;&amp;  call(...)`.
-</p></li><li><p><a name="d0e345"></a>
+</p></li><li><p><a name="d0e391"></a>
 `execution(* Foo.bar(..))`: An execution join point for Foo is
 always within Foo, so this won't pick out any overrides of bar(..).
 Use `target(Foo) &amp;&amp;  execution(* bar(..))` for instance methods.
-</p></li><li><p><a name="d0e348"></a>
+</p></li><li><p><a name="d0e394"></a>
 `within(Foo)`: anonymous types are not known at weave-time to be
 within the lexically-enclosing type (a limitation of Java bytecode).
 </p></li></ul></div>
     </p><p>
         Some mistakes in composition:
-        <div class="itemizedlist"><ul><li><p><a name="d0e355"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e401"></a>
 `call(* foo(Bar, Foo)) &amp;&amp; args(Foo)`: This will never match.
 The parameters in `args(..)` are position-dependent, so `args(Foo)` only picks
  out join points where there is only one argument possible, of type Foo.
 Use the indeterminate-arguments operator '..' as needed, e.g., `args(Foo, ..)`.
-</p></li><li><p><a name="d0e358"></a>
+</p></li><li><p><a name="d0e404"></a>
 `call(* foo()) &amp;&amp; execution(* foo())`: This will never match.  Each
 pointcut must be true at each join point matched.  For a union of different
 kinds of join points (here, call or execution), use '||'.
@@ -267,7 +279,7 @@ E.g., to match both method-call and field-get join points, use
 </p></li></ul></div>
     </p><p>
         Some mistakes in implicit advice constraints:
-        <div class="itemizedlist"><ul><li><p><a name="d0e365"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e411"></a>
 `after () returning (Foo foo) : ...`: after advice can bind the
 returned object or exception thrown.  That effectively acts like
 `target()`, `this()`, or `args()` in restricting when the advice
@@ -276,7 +288,7 @@ not explicitly part of the pointcut.
 </p></li></ul></div>
     </p><p>
         Some mistakes in implementation requirements:
-        <div class="itemizedlist"><ul><li><p><a name="d0e372"></a>
+        <div class="itemizedlist"><ul><li><p><a name="d0e418"></a>
 `ajc` has to control the code for a join point in order to implement
 the join point.  This translates to an implicit `within({code under
 the control of the compiler})` for all join points, with additional
@@ -287,7 +299,7 @@ ends, so `ajc` can't implement after advice on handler join points.
 for each corresponding primitive pointcut designator.)  Unlike the
 mistakes with the primitive PCDs above, the compiler will emit an
 error for these caveats.
-</p></li><li><p><a name="d0e375"></a>
+</p></li><li><p><a name="d0e421"></a>
 `call(@SuperAnnotation Subclass.meth()`: Annotations are not inherited
 by default, so e.g., if the pointcut specifies an annotation, then 
 subclass implementations of that method will not be matched.
@@ -304,11 +316,13 @@ subclass implementations of that method will not be matched.
             <tt>abort</tt> message is
             issued. However it is possible to disable this feature or enable files to
             be produced under different circumstances. The table below lists the System 
-            properties that can be used to configure <tt>ajcore</tt> files. </p><div class="informaltable" id="d0e404"><a name="d0e404"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.weaver.Dump.exception</tt></td><td><tt>true</tt></td><td>
+            properties that can be used to configure <tt>ajcore</tt> files. </p><div class="informaltable" id="d0e450"><a name="d0e450"></a><table border="1"><colgroup><col><col><col></colgroup><thead><tr><th>Property</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.weaver.Dump.exception</tt></td><td><tt>true</tt></td><td>
                             	Generate an <tt>ajcore</tt> files when an exception thrown.
                             </td></tr><tr><td><tt>org.aspectj.weaver.Dump.condition</tt></td><td><tt>abort</tt></td><td>
                             	Message kind for which to generate <tt>ajcore</tt>
                             	e.g. <tt>error</tt>. 
+                            </td></tr><tr><td><tt>org.aspectj.dump.directory</tt></td><td><tt>none</tt></td><td>
+                            	The directory used for ajcore files. 
                             </td></tr></tbody></table></div></div><div class="sect2"><a name="ajcore-examples"></a><div class="titlepage"><div><h3 class="title"><a name="ajcore-examples"></a>AJCore File Examples</h3></div></div><p> Below is an extract from an <tt>ajcore</tt> file. You will see
             details of the dump configuration as well as the exception (with stack trace) that
             is the source of the problem and any messages issued by the compiler. Most importantly
@@ -450,7 +464,7 @@ java.lang.NoClassDefFoundError: org/apache/commons/logging/LogFactory
             infrastructure that logs to stderr. This is enabled by setting the 
             <tt>org.aspectj.weaving.tracing.enabled</tt> System property. You may also override
             the default behaviour or provide your own trace implementation using the
-            <tt>org.aspectj.weaving.tracing.factory</tt> System property. </p><p> The table below lists the System properties that can be used to configure tracing. </p><div class="informaltable" id="d0e486"><a name="d0e486"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Property</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.tracing.debug</tt></td><td>
+            <tt>org.aspectj.weaving.tracing.factory</tt> System property. </p><p> The table below lists the System properties that can be used to configure tracing. </p><div class="informaltable" id="d0e541"><a name="d0e541"></a><table border="1"><colgroup><col><col></colgroup><thead><tr><th>Property</th><th>Description</th></tr></thead><tbody><tr><td><tt>org.aspectj.tracing.debug</tt></td><td>
                             	Enable simple debugging of the trace infrastructure itself.
                             	<p> Default: <tt>false</tt>. </p></td></tr><tr><td><tt>org.aspectj.tracing.enabled</tt></td><td>
                             	Enable the built-in AspectJ trace infrastructure.
@@ -539,16 +553,18 @@ org.aspectj.weaver.loadtime.level = FINER
             </p><pre class="programlisting">
 	TraceFactory.instance=org.aspectj.weaver.tools.Jdk14TraceFactory@12dacd1	        
 			</pre></div></div></div><div class="chapter"><div class="titlepage"><div><h2 class="title"><a name="ltwdump"></a>Chapter 5. Dumping classes during load-time weaving</h2></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><a href="#ltwdump-introduction">Introduction</a></dt><dd><dl><dt><a href="#ltw-examples">Configuring bytecode dumping in load-time weaving</a></dt><dt><a href="#ltwdump-examples">LTW Dump Examples</a></dt></dl></dd></dl></div><div class="sect1"><a name="ltwdump-introduction"></a><div class="titlepage"><div><h2 class="title" style="clear: both"><a name="ltwdump-introduction"></a>Introduction</h2></div></div><p> 
-            Very rarely, problems present not at build-time but at run-time,
-            with <tt>java.lang.VerifyError</tt> or incorrect behavior.
-            In these situations, it's most helpful to include the offending class 
-            in the bug report.  But with load-time weaving, the woven classes are 
-            in memory only; to save classes woven at load-time, configure
+        	Very rarely problems may be encountered with classes that have been 
+        	load-time woven.
+        	Symptoms will include incorrect program function or a Java exception such as 
+        	<tt>java.lang.VerifyError</tt>.
+            In these situations it's most helpful to include the offending class 
+            in the bug report. When using load-time weaving the woven classes are 
+            in memory only so to save them to disk configure
             <tt>META-INF/aop.xml</tt> to dump the classes (by default 
             to an <tt>_ajdump</tt> subdirectory of the current working 
-            directory).  Also, if the input class file is not available (e.g., if
-            the AspectJ weaver is after another bytecode weaver), you can
-            also configure the weaver to dump the input classes.
+            directory).  Also if the input class file is not available 
+            (e.g. it is a generated proxy or has already been instrumented by another agent)
+            you can configure the weaver to dump the input classes as well.
         </p><div class="sect2"><a name="ltw-examples"></a><div class="titlepage"><div><h3 class="title"><a name="ltw-examples"></a>Configuring bytecode dumping in load-time weaving</h3></div></div><p>
   			For details of how to configure byte-code dumping, see the             
             AspectJ Development Environment Guide section on 
