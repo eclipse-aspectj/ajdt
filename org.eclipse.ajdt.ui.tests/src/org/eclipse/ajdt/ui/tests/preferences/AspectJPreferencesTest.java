@@ -158,77 +158,7 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertFalse("have chosen not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 	}
-
-	public void testGetIncrementalOptionViaWorkbenchPreferences() throws Exception {
-		assertTrue("default setting is use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
-		// know that when "show weave messages" is selected in the preference
-		// page, then set this store value to true because use the
-		// getSelection() call on the button to see whether it
-		// is selected (weave messages on) or not (weave messages off)
-		prefStore.setValue(AspectJPreferences.OPTION_Incremental,false);
-		assertFalse("have chosen not to use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
 		
-		prefStore.setValue(AspectJPreferences.OPTION_Incremental,true);
-		assertTrue("have chosen to use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
-	}
-	
-	public void testGetIncrementalOptionViaProjectPreferences() throws Exception {
-		AspectJPreferences.setUsingProjectSettings(project,true,true);
-
-		assertTrue("default setting is use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
-		// know that when "show weave messages" is selected in the preference
-		// page, then set this project node value to true because use the
-		// following :
-		// 		String stringValue = curr.getSelection() ? "true" : "false";
-		// to see whether it is selected (weave messages on) or not (weave messages off)
-		projectNode.put(AspectJPreferences.OPTION_Incremental,"false"); //$NON-NLS-1$
-		assertFalse("have chosen not to use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
-		
-		projectNode.put(AspectJPreferences.OPTION_Incremental,"true"); //$NON-NLS-1$
-		assertTrue("have chosen to use incremental compilation", //$NON-NLS-1$
-				AspectJPreferences.getIncrementalOption(project));
-	}
-	
-	public void testGetBuildASMOptionViaWorkbenchPreferences() throws Exception {
-		assertTrue("default setting is to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-		// know that when "show weave messages" is selected in the preference
-		// page, then set this store value to true because use the
-		// getSelection() call on the button to see whether it
-		// is selected (weave messages on) or not (weave messages off)
-		prefStore.setValue(AspectJPreferences.OPTION_BuildASM,false);
-		assertFalse("have chosen not to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-		
-		prefStore.setValue(AspectJPreferences.OPTION_BuildASM,true);
-		assertTrue("have chosen to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-	}
-	
-	public void testGetBuildASMOptionViaProjectPreferences() throws Exception {
-		AspectJPreferences.setUsingProjectSettings(project,true,true);
-
-		assertTrue("default setting is to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-		// know that when "show weave messages" is selected in the preference
-		// page, then set this project node value to true because use the
-		// following :
-		// 		String stringValue = curr.getSelection() ? "true" : "false";
-		// to see whether it is selected (weave messages on) or not (weave messages off)
-		projectNode.put(AspectJPreferences.OPTION_BuildASM,"false"); //$NON-NLS-1$
-		assertFalse("have chosen not to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-		
-		projectNode.put(AspectJPreferences.OPTION_BuildASM,"true"); //$NON-NLS-1$
-		assertTrue("have chosen to build ASM", //$NON-NLS-1$
-				AspectJPreferences.getBuildASMOption(project));
-	}
-	
 	public void testGetAdvancedOptionViaWorkbenchPreferences() throws Exception {
 		assertFalse("should not be using project settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
