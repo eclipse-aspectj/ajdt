@@ -132,8 +132,6 @@ public class UIMessages extends NLS {
 	public static String CompilerConfigurationBlock_aj_x_has_member_label;
 	public static String CompilerConfigurationBlock_aj_out_xml;
 	public static String CompilerConfigurationBlock_aj_other_tabtitle;
-	public static String CompilerConfigurationBlock_aj_enable_incremental_label;
-	public static String CompilerConfigurationBlock_aj_enable_build_asm_label;
 	public static String CompilerConfigurationBlock_aj_enable_weave_messages_label;
 	public static String CompilerConfigurationBlock_noJoinpointsForBridgeMethods;
 	public static String CompilerConfigurationBlock_cantMatchArrayTypeOnVarargs;

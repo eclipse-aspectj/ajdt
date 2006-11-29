@@ -120,10 +120,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 
 	private static final String PREF_ENABLE_OUTXML = AspectJPreferences.OPTION_Outxml;
 
-	private static final String PREF_ENABLE_INCREMENTAL = AspectJPreferences.OPTION_Incremental;
-
-	private static final String PREF_ENABLE_BUILD_ASM = AspectJPreferences.OPTION_BuildASM;
-
 	private static final String PREF_ENABLE_WEAVE_MESSAGES = AspectJPreferences.OPTION_WeaveMessages;
 
 	/*
@@ -220,8 +216,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember, VALUE_FALSE);
 
-		defaultValueMap.put(AspectJPreferences.OPTION_Incremental, VALUE_TRUE);
-		defaultValueMap.put(AspectJPreferences.OPTION_BuildASM, VALUE_TRUE);
 		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages,
 				VALUE_FALSE);
 
@@ -281,8 +275,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			AspectJPreferences.OPTION_XNoInline,
 			AspectJPreferences.OPTION_XNotReweavable,
 			AspectJPreferences.OPTION_XHasMember,
-			AspectJPreferences.OPTION_BuildASM,
-			AspectJPreferences.OPTION_Incremental,
 			AspectJPreferences.OPTION_WeaveMessages,
 			AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
 			AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
@@ -374,8 +366,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		store.setDefault(PREF_ENABLE_HAS_MEMBER, false);
 		store.setDefault(PREF_ENABLE_OUTXML, false);
 
-		store.setDefault(PREF_ENABLE_INCREMENTAL, true);
-		store.setDefault(PREF_ENABLE_BUILD_ASM, true);
 		store.setDefault(PREF_ENABLE_WEAVE_MESSAGES, false);
 
 		store
@@ -663,14 +653,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		label = UIMessages.CompilerConfigurationBlock_aj_out_xml;
 		addCheckBox(othersComposite, label, PREF_ENABLE_OUTXML,
 				enableDisableValues, 0);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_enable_incremental_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_INCREMENTAL,
-				enableDisableValues, 0, false);
-
-		label = UIMessages.CompilerConfigurationBlock_aj_enable_build_asm_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_BUILD_ASM,
-				enableDisableValues, 0, false);
 
 		Composite row3Comp = createRowComposite(othersComposite,2);
 
