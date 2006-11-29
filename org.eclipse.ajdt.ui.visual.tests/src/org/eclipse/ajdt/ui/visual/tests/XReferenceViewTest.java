@@ -31,6 +31,8 @@ import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -395,6 +397,66 @@ public class XReferenceViewTest extends VisualTestCase {
 		return checkedList;
 	}
 	
+	// ------ tests for Copy / Select All actions (enhancement 160244) --------
+	public void testCopyAndSelectAll() throws CoreException {
+		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		IViewPart view = AspectJUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+			.getActivePage().findView(XReferenceView.ID);
+		if (view == null || !(view instanceof XReferenceView)) {
+			fail("xrefView should be showing"); //$NON-NLS-1$
+		}
+		final XReferenceView xrefView = (XReferenceView)view;
+		
+		Clipboard clipboard = new Clipboard(display);
+		
+		IResource res = project.findMember("src/tjp/GetInfo.aj"); //$NON-NLS-1$
+		if (res == null || !(res instanceof IFile)) {
+			fail("src/tjp/GetInfo.aj file not found."); //$NON-NLS-1$
+		} 
+		IFile ajFile = (IFile)res;
+
+		// open GetInfo.aj and select the around advice
+		ITextEditor editorPart = (ITextEditor)openFileInAspectJEditor(ajFile, false);
+		editorPart.setFocus();
+		gotoLine(27);
+		waitForJobsToComplete();
+
+		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		
+		// The cross reference view should contain something
+		assertTrue("reference source for XRef view should exist",xrefSourceExists(xrefView)); //$NON-NLS-1$
+
+		xrefView.setFocus();
+		
+		// select all
+		postKeyDown(SWT.CTRL);
+		postKey('a');
+		postKeyUp(SWT.CTRL);
+
+		// copy
+		postKeyDown(SWT.CTRL);
+		postKey('c');
+		postKeyUp(SWT.CTRL);
+		
+		waitForJobsToComplete();
+		
+		// check clipboard contents
+		TextTransfer transfer = TextTransfer.getInstance();
+		String data = (String)clipboard.getContents(transfer);
+		assertNotNull("Expected XRef contents as text on clipboard",data); //$NON-NLS-1$
+		assertTrue("Expected XRef contents as text on clipboard",data.length() > 0); //$NON-NLS-1$		
+		String[] expected = {
+				"around()", //$NON-NLS-1$
+				"advises", //$NON-NLS-1$
+				"Demo.main(String[])", //$NON-NLS-1$
+				"Demo.foo(int,Object)", //$NON-NLS-1$
+				"Demo.bar(Integer)" //$NON-NLS-1$
+		};
+		for (int i = 0; i < expected.length; i++) {			
+			assertTrue("Didn't find \""+expected[i]+"\" in clipboard contents: " + data, data //$NON-NLS-1$  //$NON-NLS-2$
+				.indexOf(expected[i]) != -1);
+		}
+	}
 	
 	// -------------------- tests for the filter ---------------------
 	
