@@ -17,7 +17,9 @@ import java.util.List;
 import org.eclipse.contribution.xref.core.IXReferenceAdapter;
 import org.eclipse.contribution.xref.core.XReferenceProviderManager;
 import org.eclipse.contribution.xref.internal.ui.actions.CollapseAllAction;
+import org.eclipse.contribution.xref.internal.ui.actions.CopyAction;
 import org.eclipse.contribution.xref.internal.ui.actions.DoubleClickAction;
+import org.eclipse.contribution.xref.internal.ui.actions.SelectAllAction;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleLinkingAction;
 import org.eclipse.contribution.xref.internal.ui.actions.ToggleShowXRefsForFileAction;
 import org.eclipse.contribution.xref.internal.ui.actions.XReferenceCustomFilterAction;
@@ -33,6 +35,7 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
@@ -41,7 +44,9 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -50,6 +55,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.views.contentoutline.ContentOutline;
@@ -69,6 +75,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	private Action toggleLinkingAction;
 	private Action toggleShowXRefsForFileAction;
 	private Action xRefCustomFilterAction;
+	private Action copyAction;
+	private Action selectAllAction;
 
 	private boolean linkingEnabled = true; // following selection?
 	private boolean showXRefsForFileEnabled = false;
@@ -84,6 +92,7 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	private TreeViewer viewer;
 	private XReferenceContentProvider contentProvider;
 
+	private Clipboard fClipboard;
 
 	public XReferenceView() {
 		XReferenceUIPlugin.xrefView = this;
@@ -101,6 +110,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		viewer.setLabelProvider(new XReferenceLabelProvider());
 		viewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 
+		fClipboard = new Clipboard(viewer.getTree().getDisplay());
+
 		restorePersistedSettings();
 		makeActions();
 		hookDoubleClickAction();
@@ -112,6 +123,14 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 			window.getSelectionService().addPostSelectionListener(this);
 		}
 		getSite().setSelectionProvider(viewer);
+		
+		// context menu
+		MenuManager mgr = new MenuManager();
+		mgr.add(copyAction);
+		mgr.add(selectAllAction);
+		Menu menu = mgr.createContextMenu(viewer.getControl());
+		viewer.getControl().setMenu(menu);
+		getSite().registerContextMenu(mgr, viewer);
 	}
 
 	/**
@@ -260,6 +279,10 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 	 */
 	public void dispose() {
 		super.dispose();
+		if (fClipboard != null) {
+			fClipboard.dispose();
+			fClipboard = null;
+		}
 		IWorkbenchWindow window = XRefUIUtils.getActiveWorkbenchWindow();
 
 		if (window != null) {
@@ -392,6 +415,11 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		IActionBars bars = getViewSite().getActionBars();
 		fillLocalPullDown(bars.getMenuManager());
 		fillLocalToolBar(bars.getToolBarManager());
+		
+		// Add global action handlers.
+		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
+		bars.setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(),
+				selectAllAction);
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
@@ -425,6 +453,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		toggleShowXRefsForFileAction = new ToggleShowXRefsForFileAction(this);
 		xRefCustomFilterAction = new XReferenceCustomFilterAction(getSite()
 				.getShell());
+		copyAction = new CopyAction(viewer, fClipboard);
+		selectAllAction = new SelectAllAction(viewer);
 	}
 
 
