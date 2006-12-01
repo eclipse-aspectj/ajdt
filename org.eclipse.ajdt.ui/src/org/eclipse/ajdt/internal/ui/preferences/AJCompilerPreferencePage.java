@@ -26,7 +26,7 @@ import java.util.Map;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -938,7 +938,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 								IncrementalProjectBuilder.FULL_BUILD,
 								new SubProgressMonitor(monitor, 2));
 					} catch (CoreException e) {
-						ErrorHandler
+						AJDTErrorHandler
 								.handleAJDTError(
 										UIMessages.OptionsConfigurationBlock_builderror_message,
 										e);

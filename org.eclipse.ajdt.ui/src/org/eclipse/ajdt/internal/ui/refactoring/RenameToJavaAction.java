@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJProperties;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
@@ -70,7 +70,7 @@ public class RenameToJavaAction implements IActionDelegate {
 								try {
 									change.perform(monitor);
 								} catch (CoreException e) {
-									ErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
+									AJDTErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
 								}
 								if (project != null) {
 									updateBuildConfigs(monitor, project, name);

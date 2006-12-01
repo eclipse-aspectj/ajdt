@@ -25,7 +25,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -187,7 +187,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                 }
             }
         } catch (CoreException ce) {
-        	ErrorHandler.handleAJDTError(
+        	AJDTErrorHandler.handleAJDTError(
                             UIMessages.AdviceActionDelegate_exception_adding_advice_to_context_menu,
                             ce);
         }
@@ -414,7 +414,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							linenumber).intValue());
 
 				} catch (CoreException ce) {
-					ErrorHandler
+					AJDTErrorHandler
 							.handleAJDTError(
 									UIMessages.AdviceActionDelegate_unable_to_create_marker,
 									ce);
@@ -425,7 +425,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							.getActiveWorkbenchWindow().getActivePage(),
 							jumpMarker, true);
 				} catch (CoreException e) {
-					ErrorHandler.handleAJDTError(
+					AJDTErrorHandler.handleAJDTError(
 							UIMessages.AdviceActionDelegate_exception_jumping,
 							e);
 

@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
@@ -119,7 +119,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		try {
 			initalInpath = getInitialInpathValue(thisProject);
 		} catch (CoreException ce) {
-			ErrorHandler.handleAJDTError(
+			AJDTErrorHandler.handleAJDTError(
 					UIMessages.InPathProp_exceptionInitializingInpath_title,
 					UIMessages.InPathProp_exceptionInitializingInpath_message,
 					ce);
@@ -136,7 +136,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		try {
 			initialAspectpath = getInitialAspectpathValue(thisProject);
 		} catch (CoreException ce) {
-			ErrorHandler
+			AJDTErrorHandler
 					.handleAJDTError(
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message,
@@ -401,7 +401,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					try {
 						fAspectPathBlock.configureJavaProject(monitor);
 					} catch (CoreException e) {
-						ErrorHandler
+						AJDTErrorHandler
 								.handleAJDTError(
 										PreferencesMessages.BuildPathsPropertyPage_error_message,
 										e);

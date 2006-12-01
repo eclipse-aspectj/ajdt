@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.ajdt.core.AJProperties;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -51,7 +51,7 @@ public class RenamingUtils {
 			change.perform(monitor);
 			oldToNewNames.put(oldName, nameWithoutExtension + newExtension);
 		} catch (CoreException e) {
-			ErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
+			AJDTErrorHandler.handleAJDTError(UIMessages.Refactoring_ErrorRenamingResource, e);
 		}
 	}
 
