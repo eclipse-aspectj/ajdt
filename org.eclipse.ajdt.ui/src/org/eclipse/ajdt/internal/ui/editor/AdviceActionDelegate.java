@@ -28,6 +28,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -389,11 +390,9 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			// System.err.println("FilePath=" + filepath);
 			// System.err.println("linenum=" + linenumber);
 
-			IResource r = AspectJUIPlugin.getDefault()
-					.getAjdtProjectProperties().findResource(filepath);
+			IResource r = AJDTUtils.findResource(filepath);
 			if (r == null) {
-				r = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-						.findResource(filepath,
+				r = AJDTUtils.findResource(filepath,
 								AspectJPlugin.getDefault().getCurrentProject());
 			}
 			final IResource ir = r;

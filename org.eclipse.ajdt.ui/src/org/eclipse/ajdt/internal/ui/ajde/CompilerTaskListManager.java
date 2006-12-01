@@ -30,6 +30,7 @@ import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IContainer;
@@ -457,13 +458,11 @@ public class CompilerTaskListManager implements TaskListManager {
         String loc = isl.getSourceFile().getPath();
 
         // try this project
-        ir = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-                .findResource(loc, project);
+        ir = AJDTUtils.findResource(loc, project);
 
         if (ir == null) {
             // try any project
-            ir = AspectJUIPlugin.getDefault().getAjdtProjectProperties()
-                    .findResource(loc);
+            ir = AJDTUtils.findResource(loc);
             if (ir == null) {
                 // fix for declare
                 // warning/error bug which

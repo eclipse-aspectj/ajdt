@@ -23,7 +23,6 @@ import org.aspectj.bridge.ISourceLocation;
 import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -168,8 +167,7 @@ implements IStructureViewNode, IAdaptable {
 		if ( targetNode != null ) {		
 			ISourceLocation sLoc = targetNode.getSourceLocation();
 			if (sLoc != null && sLoc.getSourceFile().getAbsolutePath() != null) {
-				IResource ir =
-					AspectJUIPlugin.getDefault().getAjdtProjectProperties().findResource( sLoc.getSourceFile().getAbsolutePath(), currentProject);
+				IResource ir = AJDTUtils.findResource( sLoc.getSourceFile().getAbsolutePath(), currentProject);
 				if (ir != null) {
 					try {
 						marker = ir.createMarker(IMarker.MARKER);
