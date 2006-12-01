@@ -11,7 +11,7 @@
 package org.eclipse.ajdt.ui.tests.preferences;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -38,7 +38,7 @@ public class Bug162211Test extends UITestCase {
 	 */
 	protected void setUp() throws Exception {
 		super.setUp();
-		ErrorHandler.setShowErrorDialogs(false);
+		AJDTErrorHandler.setShowErrorDialogs(false);
 		testLog = new TestLogger();
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		project = createPredefinedProject("project.java.Y"); //$NON-NLS-1$
@@ -50,7 +50,7 @@ public class Bug162211Test extends UITestCase {
 
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		ErrorHandler.setShowErrorDialogs(true);
+		AJDTErrorHandler.setShowErrorDialogs(true);
 		IPreferenceStore store = AspectJUIPlugin.getDefault()
 				.getPreferenceStore();
 		store.setValue(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
