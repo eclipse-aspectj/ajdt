@@ -13,6 +13,7 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -36,12 +37,15 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -53,6 +57,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
@@ -551,9 +556,8 @@ public class AJDTUtils {
 		AJCompilationUnitUtils.removeCUsfromJavaModelAndCloseEditors(project);
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
-		AspectJUIPlugin ajPlugin = AspectJUIPlugin.getDefault();
 		AspectJPlugin.getDefault().setCurrentProject(project);
-		ajPlugin.getAjdtProjectProperties().clearMarkers(true);
+		AJDTUtils.clearMarkers(true);
 
 		// bug 129553: exclude .aj files so that the java builder doesnt try to
 		// compile them
@@ -1060,6 +1064,140 @@ public class AJDTUtils {
 			}
 		}
 		return counter==0 ? defaultFileName : defaultFileName+counter;
+	}
+	
+	/**
+	 * Called from builder before doing a build in order to clear all problem
+	 * markers. If recurse is false then only the markers on the top level
+	 * resource (the project) are removed.
+	 */
+	public static void clearMarkers(boolean recurse) {
+		IProject currProject = AspectJPlugin.getDefault().getCurrentProject();
+		try {
+			currProject
+					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+							false, (recurse ? IResource.DEPTH_INFINITE
+									: IResource.DEPTH_ZERO));
+			currProject
+					.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
+							(recurse ? IResource.DEPTH_INFINITE
+									: IResource.DEPTH_ZERO));
+			currProject
+					.deleteMarkers(IMarker.TASK, true,
+							(recurse ? IResource.DEPTH_INFINITE
+									: IResource.DEPTH_ZERO));
+		} catch (Exception ex) {
+		}
+	}
+
+	/**
+	 * Return the IResource within the workspace that maps to the given File
+	 */
+	public static IResource findResource(String fullPath) {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IPath path = new Path(fullPath);
+		return root.getFileForLocation(path);
+	}
+
+	/*
+	 * Lightweight form of canonical path conversion - only converts
+	 * windows-style drive letters to uppercase.
+	 */
+	private static String toCanonical(String path) {
+		if ((path.charAt(1) == ':')
+				&& (((path.charAt(0) >= 'a') && (path.charAt(0) <= 'z')) || ((path
+						.charAt(0) >= 'A') && (path.charAt(0) <= 'Z')))) {
+			return Character.toUpperCase(path.charAt(0)) + path.substring(1);
+		} else {
+			return path;
+		}
+	}
+	
+	/**
+	 * On windows, returns whether or not we have a match regardless of
+	 * case - bug 82341
+	 */
+	private static boolean caseInsensitiveMatch(String toMatch, IResource resource) {
+		if((toMatch.charAt(1) == ':')) {
+			return toMatch.toLowerCase().startsWith(resource.getLocation()
+					.toString().toLowerCase());
+		}
+		return false;
+	}
+
+	/**
+	 * Return the IResource within the project that maps to the given File
+	 */
+	public static IResource findResource(String fullPath, IProject p) {
+
+		// full path contains absolute file system paths, we need to undo the
+		// effects of any "symbolic linking" in the workspace to ensure that we
+		// return the correct IResource.
+		String toMatch = toCanonical(fullPath.replace('\\', '/'));
+		try {
+			IJavaProject jp = JavaCore.create(p);
+			IClasspathEntry[] cpes = jp.getRawClasspath();
+			for (int i = 0; i < cpes.length; i++) {
+				IClasspathEntry e = cpes[i];
+				if (e.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+					IPath pe = e.getPath();
+					if (pe.segment(0).equals(p.getName())) {
+						IResource ires = p
+								.findMember(pe.removeFirstSegments(1));
+						if (ires instanceof IFolder) {
+							IFolder f = (IFolder) ires;
+							// bug 82341 - adding extra check for a match
+							// regardless of case on windows
+							if (toMatch.startsWith(toCanonical(f.getLocation().toString()))
+									|| caseInsensitiveMatch(toMatch,f)) {
+								// this is what it was all about!
+								// we have a possible symbolic link within our
+								// project to the file
+								String postfix = toMatch.substring(f
+										.getLocation().toString().length());
+								IPath postfixPath = new Path(postfix);
+								if (f.exists(postfixPath)) {
+									return f.findMember(postfixPath);
+								}
+							} 
+						} else if (ires instanceof IProject) {
+							// I think this is when the project has no src/bin
+							// dirs
+							IProject iproj = ((IProject) ires);
+     						// bug 82341 - adding extra check for a match
+							// regardless of case on windows
+							if (toMatch.startsWith(toCanonical(iproj.getLocation()
+									.toString()))
+									|| caseInsensitiveMatch(toMatch,iproj)) {
+								// this is what it was all about!
+								// we have a possible symbolic link within our
+								// project to the file
+								String postfix = toMatch.substring(iproj
+										.getLocation().toString().length());
+								IPath postfixPath = new Path(postfix);
+								if (iproj.exists(postfixPath)) {
+									return iproj.findMember(postfixPath);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException ex) {
+		}
+		
+		String projectPathStr = p.getLocation().toString();
+		try {
+			projectPathStr = p.getLocation().toFile().getCanonicalPath();
+		} catch (IOException e) {
+		}
+		IPath projectPath = new Path(projectPathStr);
+		IPath filePath = new Path(fullPath);
+		if (projectPath.isPrefixOf(filePath)) {
+			filePath = filePath.removeFirstSegments(projectPath.segmentCount());
+		}
+		IResource ret = p.findMember(filePath);
+		return ret;
 	}
 
 }

@@ -15,18 +15,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajde.BuildManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.visualiser.AJDTContentProvider;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
@@ -65,7 +63,6 @@ public class UIBuildListener implements IAJBuildListener {
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
 	 */
 	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
-		ProjectProperties props = AspectJUIPlugin.getDefault().getAjdtProjectProperties();
 		//ensureBuildConfigFileIsValid(props, project);
 		
 		// checking to see if the current project has been marked as needing
@@ -77,10 +74,10 @@ public class UIBuildListener implements IAJBuildListener {
 
 			if (projectAlreadyMarked(project, referencedMessage)) {
 				if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-					props.clearMarkers(true);
+					AJDTUtils.clearMarkers(true);
 					CompilerTaskListManager.clearOtherProjectMarkers(project);
 				} else {
-					props.clearMarkers(false);
+					AJDTUtils.clearMarkers(false);
 				}
 				markProject(project, referencedMessage);
 				haveClearedMarkers = true;
@@ -88,9 +85,9 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		if (!(haveClearedMarkers)) {
 			if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-				props.clearMarkers(true);
+				AJDTUtils.clearMarkers(true);
 			} else {
-				props.clearMarkers(false);
+				AJDTUtils.clearMarkers(false);
 			}
 			CompilerTaskListManager.clearOtherProjectMarkers(project);
 		}
