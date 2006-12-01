@@ -29,7 +29,10 @@ public aspect ErrorsTest {
 	
 	
 	pointcut uiTestRun() : execution(public void UITestCase+.test*())
-	 && !this(PluginFFDCTest);
+		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.ErrorHandlerTest.testHandleErrorWithMessageAndThrowable())
+		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessage())
+		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessageAndTitle())
+	 	&& !this(PluginFFDCTest);
 	
 	void around(): uiTestRun() {
 		IViewPart view;
