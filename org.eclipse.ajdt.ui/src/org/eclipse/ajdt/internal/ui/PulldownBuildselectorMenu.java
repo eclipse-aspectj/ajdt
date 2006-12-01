@@ -14,8 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -92,7 +92,7 @@ public class PulldownBuildselectorMenu implements
 				try {
 					doLocalBuild(IncrementalProjectBuilder.FULL_BUILD, pm);
 				} catch (CoreException cEx) {
-					ErrorHandler.handleAJDTError(
+					AJDTErrorHandler.handleAJDTError(
 							UIMessages.PulldownBuildselectorMenu_build_error, cEx);
 				} catch (NullPointerException npe) {
 					AJLog.log("Unexpected NullPointerException during build processing (eclipse bug?): Your task view will be temporarily out of step with compilation:" //$NON-NLS-1$

@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.xref;
 
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -52,7 +52,7 @@ public class XRefUtils {
 								.getActivePage().showView(XReferenceView.ID);
 						return Status.OK_STATUS;
 					} catch (PartInitException e) {
-						ErrorHandler
+						AJDTErrorHandler
 								.handleAJDTError(
 										UIMessages.BuildConfigurator_ErrorOpeningXRefView,
 										e);

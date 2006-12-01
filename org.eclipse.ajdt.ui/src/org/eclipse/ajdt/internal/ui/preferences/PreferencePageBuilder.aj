@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
+import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
@@ -488,7 +488,7 @@ aspect PreferencePageBuilder {
 							project.build(IncrementalProjectBuilder.FULL_BUILD,
 									new SubProgressMonitor(monitor, 2));
 						} catch (CoreException e) {
-							ErrorHandler
+							AJDTErrorHandler
 									.handleAJDTError(
 											UIMessages.OptionsConfigurationBlock_builderror_message,
 											e);
@@ -525,7 +525,7 @@ aspect PreferencePageBuilder {
 										IncrementalProjectBuilder.FULL_BUILD,
 										new SubProgressMonitor(monitor, 2));
 							} catch (CoreException e) {
-								ErrorHandler
+								AJDTErrorHandler
 										.handleAJDTError(
 												UIMessages.OptionsConfigurationBlock_builderror_message,
 												e);
