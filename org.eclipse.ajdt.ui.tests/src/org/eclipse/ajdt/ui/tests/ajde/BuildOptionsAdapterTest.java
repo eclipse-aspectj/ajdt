@@ -215,45 +215,6 @@ public class BuildOptionsAdapterTest extends UITestCase {
 
 	}
 
-	public void testGetIncrementalModeViaWorkbenchPreferences()
-			throws Exception {
-		assertTrue("default setting is use incremental", AspectJUIPlugin //$NON-NLS-1$
-				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
-		// know that when "use incremental" is selected in the preference
-		// page, then set this store value to true because use the
-		// getSelection() call on the button to see whether it
-		// is selected (weave messages on) or not (weave messages off)
-		prefStore.setValue(AspectJPreferences.OPTION_Incremental, false);
-		assertFalse("have chosen not to use incremental building", //$NON-NLS-1$
-				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-						.getIncrementalMode());
-
-		prefStore.setValue(AspectJPreferences.OPTION_Incremental, true);
-		assertTrue("have chosen to use incremental building", AspectJUIPlugin //$NON-NLS-1$
-				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
-	}
-
-	public void testGetIncrementalModeViaProjectPreferences() {
-		AspectJPreferences.setUsingProjectSettings(project, true);
-
-		assertTrue("default setting is use incremental", AspectJUIPlugin //$NON-NLS-1$
-				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
-		// know that when "use incremental" is selected in the preference
-		// page, then set this store value to true because use the
-		// following :
-		// String stringValue = curr.getSelection() ? "true" : "false";
-		// to see whether it is selected (weave messages on) or not (weave
-		// messages off)
-		projectNode.put(AspectJPreferences.OPTION_Incremental, "false"); //$NON-NLS-1$
-		assertFalse("have chosen not to use incremental buildino", //$NON-NLS-1$
-				AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-						.getIncrementalMode());
-
-		projectNode.put(AspectJPreferences.OPTION_Incremental, "true"); //$NON-NLS-1$
-		assertTrue("have chosen to use incremental building", AspectJUIPlugin //$NON-NLS-1$
-				.getDefault().getAjdtBuildOptionsAdapter().getIncrementalMode());
-	}
-
 	/**
 	 * There are two ways that this can be set: one via Window > Preferences and
 	 * one via right click > preferences. In both these cases we need to know
