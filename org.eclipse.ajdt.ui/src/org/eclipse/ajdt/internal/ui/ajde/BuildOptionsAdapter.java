@@ -32,19 +32,6 @@ public class BuildOptionsAdapter extends CoreBuildOptions {
 		}
 		return nonStandardOptions;
 	}
-
-	/**
-	 * @see BuildOptionsAdapter#getUseJavacMode()
-	 */
-	public boolean getIncrementalMode() {
-		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();			
-		return AspectJPreferences.getIncrementalOption(currentProject);
-	}
-	
-	public boolean getBuildAsm() {
-		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();		
-		return AspectJPreferences.getBuildASMOption(currentProject);
-	}
 	
 	public boolean getShowWeaveMessages() {
 		IProject currentProject = AspectJPlugin.getDefault().getCurrentProject();	

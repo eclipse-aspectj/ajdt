@@ -95,17 +95,6 @@ public class UIBuildListener implements IAJBuildListener {
 			CompilerTaskListManager.clearOtherProjectMarkers(project);
 		}
 
-		
-		BuildManager buildManager = Ajde.getDefault().getBuildManager();
-		if (!AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
-				.getBuildAsm()) {
-			AJLog.log(AJLog.BUILDER,"build: No structure model to be built for project: " //$NON-NLS-1$
-							+ project.getName());
-			buildManager.setBuildModelMode(false);
-		} else {
-			buildManager.setBuildModelMode(true);
-		}
-
 		MarkerUpdating.deleteAllMarkers(project);
 	}
 

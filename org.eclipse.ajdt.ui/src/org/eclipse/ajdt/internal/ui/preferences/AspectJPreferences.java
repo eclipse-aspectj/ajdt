@@ -163,10 +163,6 @@ public class AspectJPreferences {
 	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
 	
 	// Other compiler options
-	public static final String OPTION_Incremental = "org.aspectj.ajdt.core.compiler.BuildOptions.incrementalMode"; //$NON-NLS-1$
-
-	public static final String OPTION_BuildASM = "org.aspectj.ajdt.core.compiler.BuildOptions.buildAsm"; //$NON-NLS-1$
-
 	public static final String OPTION_WeaveMessages = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages"; //$NON-NLS-1$
 
 	// map preference keys to corresponding options for the properties file
@@ -257,14 +253,6 @@ public class AspectJPreferences {
 
 	public static boolean getShowWeaveMessagesOption(IProject thisProject) {
 		return getBooleanPrefValue(thisProject, OPTION_WeaveMessages);
-	}
-
-	public static boolean getBuildASMOption(IProject thisProject) {
-		return getBooleanPrefValue(thisProject, OPTION_BuildASM);
-	}
-
-	public static boolean getIncrementalOption(IProject thisProject) {
-		return getBooleanPrefValue(thisProject, OPTION_Incremental);
 	}
 
 	public static boolean isUsingProjectSettings(IProject project) {
