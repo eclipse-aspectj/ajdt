@@ -556,8 +556,7 @@ public class AJDTUtils {
 		AJCompilationUnitUtils.removeCUsfromJavaModelAndCloseEditors(project);
 
 		/* Clear any warnings and errors from the Tasks window BUG-FIX#40344 */
-		AspectJPlugin.getDefault().setCurrentProject(project);
-		AJDTUtils.clearMarkers(true);
+		AJDTUtils.clearProjectMarkers(project, true);
 
 		// bug 129553: exclude .aj files so that the java builder doesnt try to
 		// compile them
@@ -1067,23 +1066,18 @@ public class AJDTUtils {
 	}
 	
 	/**
-	 * Called from builder before doing a build in order to clear all problem
-	 * markers. If recurse is false then only the markers on the top level
-	 * resource (the project) are removed.
+	 * Clear all problem markers for the given project. If recurse is false 
+	 * then only the markers on the top level resource (the project) are removed.
 	 */
-	public static void clearMarkers(boolean recurse) {
-		IProject currProject = AspectJPlugin.getDefault().getCurrentProject();
+	public static void clearProjectMarkers(IProject project, boolean recurse) {
 		try {
-			currProject
-					.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
+			project.deleteMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER,
 							false, (recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
-			currProject
-					.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
+			project.deleteMarkers(IAJModelMarker.AJDT_PROBLEM_MARKER, true,
 							(recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
-			currProject
-					.deleteMarkers(IMarker.TASK, true,
+			project.deleteMarkers(IMarker.TASK, true,
 							(recurse ? IResource.DEPTH_INFINITE
 									: IResource.DEPTH_ZERO));
 		} catch (Exception ex) {
