@@ -38,7 +38,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.preferences.PropertyAndPreferencePage;
 import org.eclipse.jdt.internal.ui.preferences.ScrolledPageContent;
@@ -78,64 +77,6 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	public static final String PREF_ID = "org.eclipse.ajdt.ui.preferences.AJCompilerPreferencePage"; //$NON-NLS-1$
 
 	public static final String PROP_ID = "org.eclipse.ajdt.ui.propertyPages.AJCompilerPreferencePage"; //$NON-NLS-1$
-
-	// bug 90174 - leave these as strings to keep the code simple
-	private static final String VALUE_TRUE = "true"; //$NON-NLS-1$
-
-	private static final String VALUE_FALSE = "false"; //$NON-NLS-1$
-
-	private static final String PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName; //potential matching probs 1
-
-	private static final String PREF_AJ_SHADOW_NOT_IN_STRUCTURE = AspectJPreferences.OPTION_ReportShadowNotInStructure;
-
-	private static final String PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP = AspectJPreferences.OPTION_ReportCannotImplementLazyTJP;
-
-	private static final String PREF_AJ_INVALID_WILDCARD_TYPE_NAME = AspectJPreferences.OPTION_ReportInvalidWildcardTypeName; //potential matching probs 2
-
-	private static final String PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER = AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver; //potential matching probs 3
-
-	private static final String PREF_AJ_UNRESOLVABLE_MEMBER = AspectJPreferences.OPTION_ReportUnresolvableMember;
-
-	private static final String PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL = AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall; //potential matching probs 4
-
-	private static final String PREF_AJ_INCOMPATIBLE_SERIAL_VERSION = AspectJPreferences.OPTION_ReportIncompatibleSerialVersion;
-
-	private static final String PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD = AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField;
-
-	private static final String PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT = AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint; //potential matching probs 5
-
-	private static final String PREF_AJ_CANT_FIND_TYPE = AspectJPreferences.OPTION_cantFindType;
-
-	private static final String PREF_AJ_CALCULATING_SERIAL_VERSION_UID = AspectJPreferences.OPTION_calculatingSerialVersionUID;
-
-	private static final String PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH = AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch;
-
-	private static final String PREF_ENABLE_SERIALIZABLE_ASPECTS = AspectJPreferences.OPTION_XSerializableAspects;
-
-	private static final String PREF_ENABLE_NO_INLINE = AspectJPreferences.OPTION_XNoInline;
-
-	private static final String PREF_ENABLE_NOT_REWEAVABLE = AspectJPreferences.OPTION_XNotReweavable;
-
-	private static final String PREF_ENABLE_HAS_MEMBER = AspectJPreferences.OPTION_XHasMember;
-
-	private static final String PREF_ENABLE_OUTXML = AspectJPreferences.OPTION_Outxml;
-
-	private static final String PREF_ENABLE_WEAVE_MESSAGES = AspectJPreferences.OPTION_WeaveMessages;
-
-	/*
-	 * Why are these fields defined, some hiding a field from IMessageProvider, when 
-	 * the defaultValueMap then references the fields in AspectJPreferences, which have
-	 * the same values?! -spyoung
-	 */
-	private static final String ERROR = JavaCore.ERROR;
-
-	private static final String WARNING = JavaCore.WARNING;
-
-	private static final String IGNORE = JavaCore.IGNORE;
-
-	private static final String ENABLED = JavaCore.ENABLED;
-
-	private static final String DISABLED = JavaCore.DISABLED;
 
 	protected List fComboBoxes;
 
@@ -210,14 +151,16 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		// works in true/false
 		// (mimic behaviour of AJCompilerPreferencePage) - bug 87128
 		defaultValueMap.put(AspectJPreferences.OPTION_XSerializableAspects,
-				VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, VALUE_FALSE);
+				AspectJPreferences.VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XNoInline, 
+				AspectJPreferences.VALUE_FALSE);
 		defaultValueMap.put(AspectJPreferences.OPTION_XNotReweavable,
-				VALUE_FALSE);
-		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember, VALUE_FALSE);
+				AspectJPreferences.VALUE_FALSE);
+		defaultValueMap.put(AspectJPreferences.OPTION_XHasMember, 
+				AspectJPreferences.VALUE_FALSE);
 
 		defaultValueMap.put(AspectJPreferences.OPTION_WeaveMessages,
-				VALUE_FALSE);
+				AspectJPreferences.VALUE_FALSE);
 
 		defaultValueMap.put(
 				AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
@@ -252,9 +195,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, "");
 
-		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, AspectJPreferences.VALUE_ERROR);
-		defaultValueMap.put(AspectJPreferences.OPTION_calculatingSerialVersionUID, AspectJPreferences.VALUE_IGNORE);
-		defaultValueMap.put(AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, AspectJPreferences.VALUE_WARNING);
+		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, 
+				AspectJPreferences.VALUE_ERROR);
+		defaultValueMap.put(AspectJPreferences.OPTION_calculatingSerialVersionUID, 
+				AspectJPreferences.VALUE_IGNORE);
+		defaultValueMap.put(AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, 
+				AspectJPreferences.VALUE_WARNING);
 	}
 
 	/**
@@ -345,82 +291,94 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	 * "restore defaults" is clicked.
 	 */
 	public static void initDefaults(IPreferenceStore store) {
-		store.setDefault(PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME, WARNING);
-		store.setDefault(PREF_AJ_SHADOW_NOT_IN_STRUCTURE, IGNORE);
-		store.setDefault(PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP, IGNORE);
-		store.setDefault(PREF_AJ_INVALID_WILDCARD_TYPE_NAME, IGNORE);
-		store.setDefault(PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER, WARNING);
-		store.setDefault(PREF_AJ_UNRESOLVABLE_MEMBER, WARNING);
-		store.setDefault(PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL, WARNING);
-		store.setDefault(PREF_AJ_INCOMPATIBLE_SERIAL_VERSION, IGNORE);
-		store.setDefault(PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, IGNORE);
-		store.setDefault(PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName, 
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_ReportShadowNotInStructure, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_ReportCannotImplementLazyTJP, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_ReportInvalidWildcardTypeName, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver, 
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_ReportUnresolvableMember, 
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall, 
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_ReportIncompatibleSerialVersion, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, 
+				AspectJPreferences.VALUE_WARNING);
 
-		store.setDefault(PREF_AJ_CANT_FIND_TYPE, ERROR);
-		store.setDefault(PREF_AJ_CALCULATING_SERIAL_VERSION_UID, IGNORE);
-		store.setDefault(PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH, WARNING);
+		store.setDefault(AspectJPreferences.OPTION_cantFindType, 
+				AspectJPreferences.VALUE_ERROR);
+		store.setDefault(AspectJPreferences.OPTION_calculatingSerialVersionUID, 
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, 
+				AspectJPreferences.VALUE_WARNING);
 
-		store.setDefault(PREF_ENABLE_SERIALIZABLE_ASPECTS, false);
-		store.setDefault(PREF_ENABLE_NO_INLINE, false);
-		store.setDefault(PREF_ENABLE_NOT_REWEAVABLE, false);
-		store.setDefault(PREF_ENABLE_HAS_MEMBER, false);
-		store.setDefault(PREF_ENABLE_OUTXML, false);
+		store.setDefault(AspectJPreferences.OPTION_XSerializableAspects, false);
+		store.setDefault(AspectJPreferences.OPTION_XNoInline, false);
+		store.setDefault(AspectJPreferences.OPTION_XNotReweavable, false);
+		store.setDefault(AspectJPreferences.OPTION_XHasMember, false);
+		store.setDefault(AspectJPreferences.OPTION_Outxml, false);
 
-		store.setDefault(PREF_ENABLE_WEAVE_MESSAGES, false);
+		store.setDefault(AspectJPreferences.OPTION_WeaveMessages, false);
 
-		store
-				.setDefault(
-						AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
-						WARNING);
+		store.setDefault(AspectJPreferences.OPTION_noJoinpointsForBridgeMethods,
+				AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_cantMatchArrayTypeOnVarargs,
-				IGNORE);
+				AspectJPreferences.VALUE_IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_enumAsTargetForDecpIgnored,
-				WARNING);
-		store.setDefault(
-				AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
-				WARNING);
-		store
-				.setDefault(
-						AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP,
-						IGNORE);
-		store.setDefault(AspectJPreferences.OPTION_noGuardForLazyTjp, IGNORE);
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_annotationAsTargetForDecpIgnored,
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_multipleAdviceStoppingLazyTJP,
+				AspectJPreferences.VALUE_IGNORE);
+		store.setDefault(AspectJPreferences.OPTION_noGuardForLazyTjp, 
+				AspectJPreferences.VALUE_IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_noExplicitConstructorCall,
-				WARNING);
-		store
-				.setDefault(
-						AspectJPreferences.OPTION_aspectExcludedByConfiguration,
-						IGNORE);
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_aspectExcludedByConfiguration,
+				AspectJPreferences.VALUE_IGNORE);
 		store.setDefault(AspectJPreferences.OPTION_unorderedAdviceAtShadow,
-				IGNORE);
+				AspectJPreferences.VALUE_IGNORE);
 
 		store.setDefault(AspectJPreferences.OPTION_invalidTargetForAnnotation,
-				WARNING);
+				AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_elementAlreadyAnnotated,
-				WARNING);
+				AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_runtimeExceptionNotSoftened,
-				WARNING);
-		store.setDefault(AspectJPreferences.OPTION_adviceDidNotMatch, WARNING);
-		store
-				.setDefault(AspectJPreferences.OPTION_unmatchedTargetKind,
-						WARNING);
-		store.setDefault(AspectJPreferences.OPTION_uncheckedArgument, WARNING);
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_adviceDidNotMatch, 
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_unmatchedTargetKind,
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_uncheckedArgument,
+				AspectJPreferences.VALUE_WARNING);
 		store.setDefault(AspectJPreferences.OPTION_uncheckedAdviceConversion,
-				WARNING);
-		store.setDefault(
-				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
-				IGNORE);
+				AspectJPreferences.VALUE_WARNING);
+		store.setDefault(AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
+				AspectJPreferences.VALUE_IGNORE);
 	}
 
 	private Composite createCompilerPreferencesContent(Composite parent) {
 
-		String[] errorWarningIgnore = new String[] { ERROR, WARNING, IGNORE };
+		String[] errorWarningIgnore = new String[] { 
+				AspectJPreferences.VALUE_ERROR, 
+				AspectJPreferences.VALUE_WARNING, 
+				AspectJPreferences.VALUE_IGNORE };
 
 		String[] errorWarningIgnoreLabels = new String[] {
 				UIMessages.CompilerConfigurationBlock_error,
 				UIMessages.CompilerConfigurationBlock_warning,
 				UIMessages.CompilerConfigurationBlock_ignore };
 		
-		String[] enableDisableValues = new String[] { ENABLED, DISABLED };
+		String[] enableDisableValues = new String[] { 
+				AspectJPreferences.VALUE_ENABLED, 
+				AspectJPreferences.VALUE_DISABLED };
 
 		int nColumns = 3;
 		final ScrolledPageContent pageContent = new ScrolledPageContent(parent);
@@ -440,35 +398,36 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		othersComposite.setLayout(new GridLayout(nColumns, false));
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_absolute_type_name_label;
-		addComboBox(othersComposite, label, PREF_AJ_INVALID_ABSOLUTE_TYPE_NAME,
+		addComboBox(othersComposite, label, 
+				AspectJPreferences.OPTION_ReportInvalidAbsoluteTypeName,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_invalid_wildcard_type_name_label;
-		addComboBox(othersComposite, label, PREF_AJ_INVALID_WILDCARD_TYPE_NAME,
+		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportInvalidWildcardTypeName,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_type_not_exposed_to_weaver_label;
-		addComboBox(othersComposite, label, PREF_AJ_TYPE_NOT_EXPOSED_TO_WEAVER,
+		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportTypeNotExposedToWeaver,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_unmatched_super_type_in_call_label;
 		addComboBox(othersComposite, label,
-				PREF_AJ_UNMATCHED_SUPER_TYPE_IN_CALL, errorWarningIgnore,
+				AspectJPreferences.OPTION_ReportUnmatchedSuperTypeInCall, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_no_interface_ctor_joinpoint_label;
 		addComboBox(othersComposite, label,
-				PREF_AJ_NO_INTERFACE_CTOR_JOINPOINT, errorWarningIgnore,
+				AspectJPreferences.OPTION_ReportNoInterfaceCtorJoinpoint, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_cant_find_type;
 		addComboBox(othersComposite, label,
-				PREF_AJ_CANT_FIND_TYPE, errorWarningIgnore,
+				AspectJPreferences.OPTION_cantFindType, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_cant_find_type_affecting_jp_match;
 		addComboBox(othersComposite, label,
-				PREF_AJ_CANT_FIND_TYPE_AFFECTING_JP_MATCH, errorWarningIgnore,
+				AspectJPreferences.OPTION_cantFindTypeAffectingJPMatch, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 
 		//		 AJ5 options do not apply to Eclipse 3.0
@@ -491,7 +450,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		othersComposite.setLayout(new GridLayout(nColumns, false));
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_cannot_implement_lazy_tjp_label;
-		addComboBox(othersComposite, label, PREF_AJ_CANNOT_IMPLEMENT_LAZY_TJP,
+		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportCannotImplementLazyTJP,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_multiple_advice_stopping_lazy_tjp;
@@ -505,7 +464,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_NO_INLINE,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XNoInline,
 				enableDisableValues, 0);
 
 		//		 AJ5 options do not apply to Eclipse 3.0
@@ -579,12 +538,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_need_serial_version_uid_field_label;
 		addComboBox(othersComposite, label,
-				PREF_AJ_NEED_SERIAL_VERSION_UID_FIELD, errorWarningIgnore,
+				AspectJPreferences.OPTION_ReportNeedSerialVersionUIDField, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_incompatible_serial_version_label;
 		addComboBox(othersComposite, label,
-				PREF_AJ_INCOMPATIBLE_SERIAL_VERSION, errorWarningIgnore,
+				AspectJPreferences.OPTION_ReportIncompatibleSerialVersion, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_no_explicit_constructor_call;
@@ -615,20 +574,20 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		othersComposite.setLayout(new GridLayout(nColumns, false));
 
 		label = UIMessages.CompilerConfigurationBlock_aj_unresolvable_member_label;
-		addComboBox(othersComposite, label, PREF_AJ_UNRESOLVABLE_MEMBER,
+		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportUnresolvableMember,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_shadow_not_in_structure_label;
-		addComboBox(othersComposite, label, PREF_AJ_SHADOW_NOT_IN_STRUCTURE,
+		addComboBox(othersComposite, label, AspectJPreferences.OPTION_ReportShadowNotInStructure,
 				errorWarningIgnore, errorWarningIgnoreLabels, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_calculating_serial_version_UID;
 		addComboBox(othersComposite, label,
-				PREF_AJ_CALCULATING_SERIAL_VERSION_UID, errorWarningIgnore,
+				AspectJPreferences.OPTION_calculatingSerialVersionUID, errorWarningIgnore,
 				errorWarningIgnoreLabels, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_enable_weave_messages_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_WEAVE_MESSAGES,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_WeaveMessages,
 				enableDisableValues, 0);
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_other_tabtitle;
@@ -639,19 +598,19 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		othersComposite.setLayout(new GridLayout(nColumns, false));
 		
 		label = UIMessages.CompilerConfigurationBlock_aj_x_serializable_aspects_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_SERIALIZABLE_ASPECTS,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XSerializableAspects,
 				enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_not_reweavable_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_NOT_REWEAVABLE,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XNotReweavable,
 				enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_x_has_member_label;
-		addCheckBox(othersComposite, label, PREF_ENABLE_HAS_MEMBER,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_XHasMember,
 				enableDisableValues, 0);
 
 		label = UIMessages.CompilerConfigurationBlock_aj_out_xml;
-		addCheckBox(othersComposite, label, PREF_ENABLE_OUTXML,
+		addCheckBox(othersComposite, label, AspectJPreferences.OPTION_Outxml,
 				enableDisableValues, 0);
 
 		Composite row3Comp = createRowComposite(othersComposite,2);
@@ -814,8 +773,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			if (value != getBooleanForString(AspectJPreferences
 					.getStringPrefValue(getProject(), data.getKey()))) {
 				settingsChanged = true;
-				setPrefValue(getProject(), data.getKey(), value ? VALUE_TRUE
-						: VALUE_FALSE);
+				setPrefValue(getProject(), data.getKey(), value 
+						? AspectJPreferences.VALUE_TRUE
+						: AspectJPreferences.VALUE_FALSE);
 			}
 		}
 		
@@ -851,7 +811,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	}
 
 	private boolean getBooleanForString(String stringPrefValue) {
-		return stringPrefValue.equals(VALUE_TRUE);
+		return stringPrefValue.equals(AspectJPreferences.VALUE_TRUE);
 	}
 
 	/**
