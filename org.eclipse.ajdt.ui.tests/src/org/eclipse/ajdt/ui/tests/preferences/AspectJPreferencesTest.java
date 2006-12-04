@@ -102,15 +102,15 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertFalse("by default, should not be using project compiler settings", //$NON-NLS-1$
 				AspectJPreferences.isUsingProjectSettings(project));
 		
-		projectNode.putBoolean(AspectJPreferences.OPTION_WeaveMessages,true);
+		projectNode.putBoolean(AspectJPreferences.OPTION_XHasMember,true);
 		
 		AspectJPreferences.setUsingProjectSettings(project,true,false);
-		boolean b1 = projectNode.getBoolean(AspectJPreferences.OPTION_WeaveMessages,false);
-		assertTrue("should not have reset OPTION_WeaveMessages to default",b1); //$NON-NLS-1$
+		boolean b1 = projectNode.getBoolean(AspectJPreferences.OPTION_XHasMember,false);
+		assertTrue("should not have reset OPTION_XHasMember to default",b1); //$NON-NLS-1$
 		
 		AspectJPreferences.setUsingProjectSettings(project,true);
-		b1 = projectNode.getBoolean(AspectJPreferences.OPTION_WeaveMessages,false);
-		assertFalse("should have reset OPTION_WeaveMessages to default",b1); //$NON-NLS-1$
+		b1 = projectNode.getBoolean(AspectJPreferences.OPTION_XHasMember,false);
+		assertFalse("should have reset OPTION_XHasMember to default",b1); //$NON-NLS-1$
 		
 		AspectJPreferences.setUsingProjectSettings(project,false);
 		boolean threwExpectedException = false;
@@ -131,11 +131,11 @@ public class AspectJPreferencesTest extends UITestCase {
 		// page, then set this store value to true because use the
 		// getSelection() call on the button to see whether it
 		// is selected (weave messages on) or not (weave messages off)
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages,true);
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 		
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages,false);
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 	}
@@ -150,11 +150,11 @@ public class AspectJPreferencesTest extends UITestCase {
 		// following :
 		// 		String stringValue = curr.getSelection() ? "true" : "false";
 		// to see whether it is selected (weave messages on) or not (weave messages off)
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"true"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 		
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"false"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", //$NON-NLS-1$
 				AspectJPreferences.getShowWeaveMessagesOption(project));
 	}

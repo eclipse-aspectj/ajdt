@@ -73,14 +73,14 @@ public class AJCompilerPreferencePageTest extends UITestCase {
 			String key = keys[i];
 			String compilerDefault = projectNode.get(key,""); //$NON-NLS-1$
 			String storeDefault = prefStore.getDefaultString(key);
-			assertEquals("default settings should be the same",storeDefault,compilerDefault); //$NON-NLS-1$
+			assertEquals("default settings should be the same for key " + key,storeDefault,compilerDefault); //$NON-NLS-1$
 		}
 	}
 
 	public void testSetDefaultsIfValueNotAlreadySet() throws Exception {
 		IPreferenceStore prefStore = AspectJUIPlugin.getDefault().getPreferenceStore();		
 		AJCompilerPreferencePage.initDefaults(prefStore);
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages,"true"); //$NON-NLS-1$
+		projectNode.put(AspectJPreferences.OPTION_XHasMember,"true"); //$NON-NLS-1$
 		AJCompilerPreferencePage.setProjectDefaultsIfValueNotAlreadySet(projectNode);
 
 		String[] keys = projectNode.keys(); 
@@ -88,15 +88,15 @@ public class AJCompilerPreferencePageTest extends UITestCase {
 			String key = keys[i];
 			String compilerSetting = projectNode.get(key,""); //$NON-NLS-1$
 			String storeDefault = prefStore.getDefaultString(key);
-			if (key.equals(AspectJPreferences.OPTION_WeaveMessages)) {
+			if (key.equals(AspectJPreferences.OPTION_XHasMember)) {
 				boolean eq = storeDefault.equals(compilerSetting);
 				assertFalse("should not have overwritten showWeaveMessages option",eq); //$NON-NLS-1$
 			} else {
-				assertEquals("default settings should be the same",storeDefault,compilerSetting);				 //$NON-NLS-1$
+				assertEquals("default settings should be the same for key " + key,storeDefault,compilerSetting);				 //$NON-NLS-1$
 			}
 		}
 	}
-
+	
 	public void testRemoveValues() throws Exception {
 		AJCompilerPreferencePage.setProjectDefaults(projectNode);
 		AJCompilerPreferencePage.removeProjectValues(projectNode);

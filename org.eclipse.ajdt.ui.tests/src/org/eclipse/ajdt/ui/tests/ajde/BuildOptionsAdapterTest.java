@@ -122,14 +122,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, true);
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, false);
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
@@ -197,14 +197,14 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		assertEquals("should only have -Xlintfile option set", 2, //$NON-NLS-1$
 				nonStandardOptions.length);
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
 		assertEquals("should have set -showWeaveInfo", "-showWeaveInfo", //$NON-NLS-1$ //$NON-NLS-2$
 				nonStandardOptions[2]);
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		nonStandard = AspectJUIPlugin.getDefault().getAjdtBuildOptionsAdapter()
 				.getNonStandardOptions();
 		nonStandardOptions = disectOptions(nonStandard);
@@ -231,12 +231,12 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		// page, then set this store value to true because use the
 		// getSelection() call on the button to see whether it
 		// is selected (weave messages on) or not (weave messages off)
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, true);
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 
-		prefStore.setValue(AspectJPreferences.OPTION_WeaveMessages, false);
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
@@ -262,12 +262,12 @@ public class BuildOptionsAdapterTest extends UITestCase {
 		// String stringValue = curr.getSelection() ? "true" : "false";
 		// to see whether it is selected (weave messages on) or not (weave
 		// messages off)
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "true"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,true);
 		assertTrue("have chosen to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
 
-		projectNode.put(AspectJPreferences.OPTION_WeaveMessages, "false"); //$NON-NLS-1$
+		AspectJPreferences.setShowWeaveMessagesOption(project,false);
 		assertFalse("have chosen not to show weave info", AspectJUIPlugin //$NON-NLS-1$
 				.getDefault().getAjdtBuildOptionsAdapter()
 				.getShowWeaveMessages());
