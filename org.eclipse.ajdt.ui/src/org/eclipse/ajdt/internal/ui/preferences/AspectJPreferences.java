@@ -84,6 +84,11 @@ public class AspectJPreferences {
 	public static final String VALUE_ENABLED = JavaCore.ENABLED;
 
 	public static final String VALUE_DISABLED = JavaCore.DISABLED;
+	
+	// bug 90174 - leave these as strings to keep the code simple
+	public static final String VALUE_TRUE = "true"; //$NON-NLS-1$
+	
+	public static final String VALUE_FALSE = "false"; //$NON-NLS-1$
 
 	// project-scope preference to indicate if project-specific settings are in
 	// force
@@ -163,7 +168,9 @@ public class AspectJPreferences {
 	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
 	
 	// Other compiler options
-	public static final String OPTION_WeaveMessages = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages"; //$NON-NLS-1$
+	// Whether or not to showWeaveInfo messages should only be done through the setter method
+	// not by accessing this field directly.
+	static final String OPTION_WeaveMessages = "org.aspectj.ajdt.core.compiler.BuildOptions.showweavemessages"; //$NON-NLS-1$
 
 	// map preference keys to corresponding options for the properties file
 	private static String[][] lintKeysName = {
@@ -255,6 +262,23 @@ public class AspectJPreferences {
 		return getBooleanPrefValue(thisProject, OPTION_WeaveMessages);
 	}
 
+	public static void setShowWeaveMessagesOption(IProject project, boolean showWeaveMessages) {
+		String value = "";
+		if (showWeaveMessages) {
+			value = VALUE_TRUE;
+		} else {
+			value = VALUE_FALSE;
+		}
+		if(isUsingProjectSettings(project)) {
+			IScopeContext projectScope = new ProjectScope(project);
+			IEclipsePreferences projectNode = projectScope.getNode(AspectJPlugin.PLUGIN_ID);
+			projectNode.put(OPTION_WeaveMessages,value);
+		} else {
+			IPreferenceStore store = AspectJUIPlugin.getDefault().getPreferenceStore();
+			store.setValue(OPTION_WeaveMessages,value);
+		}
+	}
+	
 	public static boolean isUsingProjectSettings(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
