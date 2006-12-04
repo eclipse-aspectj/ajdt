@@ -74,10 +74,10 @@ public class UIBuildListener implements IAJBuildListener {
 
 			if (projectAlreadyMarked(project, referencedMessage)) {
 				if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-					AJDTUtils.clearMarkers(true);
+					AJDTUtils.clearProjectMarkers(project, true);
 					CompilerTaskListManager.clearOtherProjectMarkers(project);
 				} else {
-					AJDTUtils.clearMarkers(false);
+					AJDTUtils.clearProjectMarkers(project, false);
 				}
 				markProject(project, referencedMessage);
 				haveClearedMarkers = true;
@@ -85,9 +85,9 @@ public class UIBuildListener implements IAJBuildListener {
 		}
 		if (!(haveClearedMarkers)) {
 			if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-				AJDTUtils.clearMarkers(true);
+				AJDTUtils.clearProjectMarkers(project, true);
 			} else {
-				AJDTUtils.clearMarkers(false);
+				AJDTUtils.clearProjectMarkers(project, false);
 			}
 			CompilerTaskListManager.clearOtherProjectMarkers(project);
 		}
