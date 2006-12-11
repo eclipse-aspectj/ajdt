@@ -84,16 +84,32 @@ public class AspectVisualizerPerspectiveFactory implements IPerspectiveFactory {
 	}
 
 	private void createHorizontalLayout(IPageLayout layout) {
-		layout.addView(JavaUI.ID_PROJECTS_VIEW, IPageLayout.TOP, (float) 0.75,
-				IPageLayout.ID_EDITOR_AREA);
-		layout.addView(JavaUI.ID_PACKAGES_VIEW, IPageLayout.RIGHT,
-				(float) 0.15, JavaUI.ID_PROJECTS_VIEW);
-		layout.addView("org.eclipse.contribution.visualiser.views.Visualiser", //$NON-NLS-1$
-				IPageLayout.RIGHT, (float) 0.15, JavaUI.ID_PACKAGES_VIEW);
-		layout.addView("org.eclipse.contribution.visualiser.views.Menu", //$NON-NLS-1$
-				IPageLayout.RIGHT, (float) 0.80,
-				"org.eclipse.contribution.visualiser.views.Visualiser"); //$NON-NLS-1$
+		/*
+		 * 158988 - change the views used by this perspective
+		 *  
+		 * NB The order in which you add the views makes a lot of difference to how easy it 
+		 * is to arrange them as you want! 
+		 */
+		final String VISUALISER_VIEW_ID = "org.eclipse.contribution.visualiser.views.Visualiser";  //$NON-NLS-1$
+		final String VISUALISER_MENU_VIEW_ID = "org.eclipse.contribution.visualiser.views.Menu";  //$NON-NLS-1$
 
+		// Add the Visualiser Menu above the Java editor view
+		layout.addView(VISUALISER_MENU_VIEW_ID, //$NON-NLS-1$
+				IPageLayout.TOP, (float) 0.75, IPageLayout.ID_EDITOR_AREA);		
+
+		// Add the package explorer to the left
+		layout.addView(JavaUI.ID_PACKAGES, 
+				IPageLayout.LEFT, (float) 0.20, VISUALISER_MENU_VIEW_ID);
+
+		// Add the main visualiser view to the left of the v.menu
+		layout.addView(VISUALISER_VIEW_ID, //$NON-NLS-1$
+				IPageLayout.LEFT, (float) 0.75, VISUALISER_MENU_VIEW_ID);		
+
+
+		/*
+		 * Define slots to position common views if they are opened in this
+		 * perspective.
+		 */
 		IPlaceholderFolderLayout placeHolderLeft = layout
 				.createPlaceholderFolder(
 						"left", IPageLayout.LEFT, (float) 0.25, IPageLayout.ID_EDITOR_AREA); //$NON-NLS-1$
