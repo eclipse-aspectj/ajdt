@@ -202,10 +202,10 @@ public class AJCompilationUnitStructureRequestor extends
 	
 	/* default */ static String[] convertTypeNamesToSigsCopy(char[][] typeNames) {
 		if (typeNames == null)
-			return NO_STRINGS;
+			return CharOperation.NO_STRINGS;
 		int n = typeNames.length;
 		if (n == 0)
-			return NO_STRINGS;
+			return CharOperation.NO_STRINGS;
 		String[] typeSigs = new String[n];
 		for (int i = 0; i < n; ++i) {
 			typeSigs[i] = Signature.createTypeSignature(typeNames[i], false);
