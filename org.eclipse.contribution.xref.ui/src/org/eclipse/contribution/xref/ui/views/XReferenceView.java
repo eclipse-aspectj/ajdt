@@ -52,6 +52,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -128,6 +129,8 @@ public class XReferenceView extends ViewPart implements ISelectionListener,
 		MenuManager mgr = new MenuManager();
 		mgr.add(copyAction);
 		mgr.add(selectAllAction);
+		// add the standard extension group
+		mgr.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 		Menu menu = mgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(mgr, viewer);
