@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.Viewer;
@@ -146,7 +146,7 @@ public class CompilationUnitFilter extends ViewerFilter {
 	private static boolean isRelevant(IPreferenceStore javaStore) {
 		//XXX: likely to be different in post 3.0 releases of eclipse!!
 		return javaStore.contains("CustomFiltersActionGroup." + //$NON-NLS-1$
-				PackageExplorerPart.VIEW_ID + ".TAG_DUMMY_TO_TEST_EXISTENCE"); //$NON-NLS-1$
+				JavaUI.ID_PACKAGES + ".TAG_DUMMY_TO_TEST_EXISTENCE"); //$NON-NLS-1$
 	}
 
 }
