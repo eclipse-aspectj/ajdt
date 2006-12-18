@@ -151,7 +151,7 @@ public class AJdocWizard extends Wizard implements IExportWizard {
 		}
 
 		// Wizard should not run with dirty editors
-		if (!new RefactoringSaveHelper(false).saveEditors(getShell())) {
+		if (!new RefactoringSaveHelper(RefactoringSaveHelper.SAVE_ALL_ALWAYS_ASK).saveEditors(getShell())) {
 			return false;
 		}
 

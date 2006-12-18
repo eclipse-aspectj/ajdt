@@ -123,7 +123,7 @@ public class AJOpenAction extends SelectionDispatchAction {
 	 * (non-Javadoc) Method declared on SelectionDispatchAction.
 	 */
 	public void run(ITextSelection selection) {
-		if (!ActionUtil.isProcessable(getShell(), fEditor))
+		if (!ActionUtil.isProcessable(fEditor))
 			return;
 		try {
 			IJavaElement[] elements= SelectionConverter.codeResolveForked(fEditor, false);

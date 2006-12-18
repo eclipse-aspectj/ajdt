@@ -934,7 +934,7 @@ public class AJJarFileExportOperation extends WorkspaceModifyOperation implement
 			final boolean[] res= { false };
 			fParentShell.getDisplay().syncExec(new Runnable() {
 				public void run() {
-					RefactoringSaveHelper refactoringSaveHelper= new RefactoringSaveHelper(false);
+					RefactoringSaveHelper refactoringSaveHelper= new RefactoringSaveHelper(RefactoringSaveHelper.SAVE_ALL_ALWAYS_ASK);
 					res[0]= refactoringSaveHelper.saveEditors(fParentShell);
 					fFilesSaved= refactoringSaveHelper.hasFilesSaved();
 				}
