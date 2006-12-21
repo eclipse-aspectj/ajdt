@@ -16,10 +16,17 @@ import java.util.StringTokenizer;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jdt.core.IAccessRule;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -27,6 +34,17 @@ import org.osgi.service.prefs.BackingStoreException;
  * names have been kept for compatibility.
  */
 public class AspectJCorePreferences {
+			
+	private static final String ASPECTPATH_ATTRIBUTE_NAME = "org.eclipse.ajdt.aspectpath";
+	
+	private static final String INPATH_ATTRIBUTE_NAME = "org.eclipse.ajdt.inpath";
+
+	public static final IClasspathAttribute ASPECTPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
+			ASPECTPATH_ATTRIBUTE_NAME, "true"); //$NON-NLS-1$
+
+	public static final IClasspathAttribute INPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
+			INPATH_ATTRIBUTE_NAME, "true"); //$NON-NLS-1$
+
 	public static final String OUT_JAR = "org.eclipse.ajdt.ui.outJar"; //$NON-NLS-1$
 
 	public static final String ASPECTPATH = "org.eclipse.ajdt.ui.aspectPath"; //$NON-NLS-1$
@@ -62,20 +80,130 @@ public class AspectJCorePreferences {
 		}
 	}
 
+	public static void setProjectAspectPath(IProject project, String path,
+			String cKinds, String eKinds) {
+		IJavaProject javaProject = JavaCore.create(project);		
+		removeAttribute(javaProject, ASPECTPATH_ATTRIBUTE);
+		
+		StringTokenizer pathTok = new StringTokenizer(path, File.pathSeparator);
+		int index = 1;
+		while (pathTok.hasMoreTokens()) {
+			String entry = pathTok.nextToken();
+			addToAspectPath(project,entry);
+			index++;
+		}
+	}
+
 	public static String[] getProjectAspectPath(IProject project) {
+		String[] old = getOldProjectAspectPath(project);
+		if (old != null) {
+			AJLog.log("Migrating aspect path settings for project "+project.getName()); //$NON-NLS-1$
+			setProjectAspectPath(project,old[0],old[1],old[2]);
+			removeOldAspectPathSetting(project);
+		}
+		String pathString = ""; //$NON-NLS-1$
+		String contentString = ""; //$NON-NLS-1$
+		String entryString = ""; //$NON-NLS-1$
+	
+		IJavaProject javaProject = JavaCore.create(project);
+		try {
+			IClasspathEntry[] cp = javaProject.getResolvedClasspath(true);
+			for (int i = 0; i < cp.length; i++) {
+				IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+				for (int j = 0; j < attributes.length; j++) {
+					if (attributes[j].equals(ASPECTPATH_ATTRIBUTE)) { //$NON-NLS-1$
+						pathString += cp[i].getPath().toPortableString()
+								+ File.pathSeparator;
+						contentString += cp[i].getContentKind()
+								+ File.pathSeparator;
+						entryString += cp[i].getEntryKind()
+								+ File.pathSeparator;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return new String[] { pathString, contentString, entryString };
+	}
+
+	/**
+	 * Firstly, add library to the Java build path if it's not there already,
+	 * then mark the entry as being on the aspect path
+	 * @param project
+	 * @param path
+	 */
+	public static void addToAspectPath(IProject project, String jarPath) {
+		IJavaProject jp = JavaCore.create(project);
+		if (isOnBuildPath(jp, jarPath)) { // already on classpath
+			// add attribute to classpath entry
+			try {
+				IClasspathEntry[] cp = jp.getRawClasspath();
+				for (int i = 0; i < cp.length; i++) {
+					if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+						String entry = JavaCore
+								.getResolvedClasspathEntry(cp[i]).getPath()
+								.toPortableString();
+						if (entry.equals(jarPath)) {
+							IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+							IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length + 1];
+							System.arraycopy(attributes, 0, newattrib, 0, attributes.length);
+							newattrib[attributes.length] = AspectJCorePreferences.ASPECTPATH_ATTRIBUTE;
+							cp[i] = JavaCore.newLibraryEntry(cp[i].getPath(),
+									cp[i].getSourceAttachmentPath(), cp[i]
+											.getSourceAttachmentRootPath(),
+									cp[i].getAccessRules(), newattrib, cp[i]
+											.isExported());
+						}
+					}
+				}
+				jp.setRawClasspath(cp, null);
+			} catch (JavaModelException e) {
+			}
+		} else {
+			addEntryToJavaBuildPath(jp, ASPECTPATH_ATTRIBUTE, jarPath, "1"); //$NON-NLS-1$
+		}
+	}
+
+	public static boolean isOnAspectpath(IProject project, String jarPath) {
+		IJavaProject jp = JavaCore.create(project);
+		try {
+			IClasspathEntry[] cp = jp.getRawClasspath();
+			for (int i = 0; i < cp.length; i++) {
+				if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
+							.getPath().toPortableString();
+					if (entry.equals(jarPath)) {
+						IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+						for (int j = 0; j < attributes.length; j++) {
+							if (attributes[j].equals(AspectJCorePreferences.ASPECTPATH_ATTRIBUTE)) {
+								return true;								
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return false;
+	}
+
+	private static String[] getOldProjectAspectPath(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJPlugin.UI_PLUGIN_ID);
 		String pathString = ""; //$NON-NLS-1$
 		int index = 1;
 		String value = projectNode.get(ASPECTPATH + index, ""); //$NON-NLS-1$
+		if (value.length() == 0) {
+			return null;
+		}
 		while (value.length() > 0) {
 			pathString += value;
 			pathString += File.pathSeparator;
 			index++;
 			value = projectNode.get(ASPECTPATH + index, ""); //$NON-NLS-1$
 		}
-
+	
 		String contentString = ""; //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(ASPECTPATH_CON_KINDS + index, ""); //$NON-NLS-1$
@@ -85,7 +213,7 @@ public class AspectJCorePreferences {
 			index++;
 			value = projectNode.get(ASPECTPATH_CON_KINDS + index, ""); //$NON-NLS-1$
 		}
-
+	
 		String entryString = ""; //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(ASPECTPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
@@ -98,47 +226,26 @@ public class AspectJCorePreferences {
 		return new String[] { pathString, contentString, entryString };
 	}
 
-	public static void setProjectAspectPath(IProject project, String path,
-			String cKinds, String eKinds) {
+	private static void removeOldAspectPathSetting(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-
-		StringTokenizer tok = new StringTokenizer(path, File.pathSeparator);
 		int index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(ASPECTPATH + index, tok.nextToken());
-			index++;
-		}
 		while (projectNode.get(ASPECTPATH + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(ASPECTPATH + index);
 			index++;
 		}
-
-		tok = new StringTokenizer(cKinds, File.pathSeparator);
 		index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(ASPECTPATH_CON_KINDS + index, fromContentKind(tok
-					.nextToken()));
-			index++;
-		}
 		while (projectNode.get(ASPECTPATH_CON_KINDS + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(ASPECTPATH_CON_KINDS + index);
 			index++;
 		}
-
-		tok = new StringTokenizer(eKinds, File.pathSeparator);
 		index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(ASPECTPATH_ENT_KINDS + index, fromEntryKind(tok
-					.nextToken()));
-			index++;
-		}
 		while (projectNode.get(ASPECTPATH_ENT_KINDS + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(ASPECTPATH_ENT_KINDS + index);
 			index++;
 		}
-
+	
 		try {
 			projectNode.flush();
 		} catch (BackingStoreException e) {
@@ -146,19 +253,126 @@ public class AspectJCorePreferences {
 	}
 
 	public static String[] getProjectInPath(IProject project) {
+		String[] old = getOldProjectInPath(project);
+		if (old != null) {
+			AJLog.log("Migrating inpath settings for project "+project.getName()); //$NON-NLS-1$
+			setProjectInPath(project,old[0],old[1],old[2]);
+			removeOldInPathSetting(project);
+		}
+		String pathString = ""; //$NON-NLS-1$
+		String contentString = ""; //$NON-NLS-1$
+		String entryString = ""; //$NON-NLS-1$
+	
+		IJavaProject javaProject = JavaCore.create(project);
+		try {
+			IClasspathEntry[] cp = javaProject.getResolvedClasspath(true);
+			for (int i = 0; i < cp.length; i++) {
+				IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+				for (int j = 0; j < attributes.length; j++) {
+					if (attributes[j].equals(INPATH_ATTRIBUTE)) {
+						pathString += cp[i].getPath().toPortableString() + File.pathSeparator;
+						contentString += cp[i].getContentKind() + File.pathSeparator;
+						entryString += cp[i].getEntryKind() + File.pathSeparator;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return new String[] { pathString, contentString, entryString };
+	}
+
+	public static void setProjectInPath(IProject project, String path,
+			String cKinds, String eKinds) {
+		IJavaProject javaProject = JavaCore.create(project);
+		removeAttribute(javaProject, INPATH_ATTRIBUTE);
+	
+		StringTokenizer pathTok = new StringTokenizer(path, File.pathSeparator);
+		int index = 1;
+		while (pathTok.hasMoreTokens()) {
+			String entry = pathTok.nextToken();
+			addToInPath(project,entry);
+			index++;
+		}
+	}
+
+	/**
+	 * Firstly, add library to the Java build path if it's not there already,
+	 * then mark the entry as being on the aspect path
+	 * @param project
+	 * @param path
+	 */
+	public static void addToInPath(IProject project, String jarPath) {
+		IJavaProject jp = JavaCore.create(project);
+		if (isOnBuildPath(jp, jarPath)) { // already on classpath
+			// add attribute to classpath entry
+			try {
+				IClasspathEntry[] cp = jp.getRawClasspath();
+				for (int i = 0; i < cp.length; i++) {
+					if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+						String entry = JavaCore
+								.getResolvedClasspathEntry(cp[i]).getPath()
+								.toPortableString();
+						if (entry.equals(jarPath)) {
+							IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+							IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length + 1];
+							System.arraycopy(attributes, 0, newattrib, 0, attributes.length);
+							newattrib[attributes.length] = AspectJCorePreferences.INPATH_ATTRIBUTE;
+							cp[i] = JavaCore.newLibraryEntry(cp[i].getPath(),
+									cp[i].getSourceAttachmentPath(), cp[i]
+											.getSourceAttachmentRootPath(),
+									cp[i].getAccessRules(), newattrib, cp[i]
+											.isExported());
+						}
+					}
+				}
+				jp.setRawClasspath(cp, null);
+			} catch (JavaModelException e) {
+			}
+		} else {
+			addEntryToJavaBuildPath(jp, INPATH_ATTRIBUTE, jarPath, "1"); //$NON-NLS-1$
+		}
+	}
+
+	public static boolean isOnInpath(IProject project, String jarPath) {
+		IJavaProject jp = JavaCore.create(project);
+		try {
+			IClasspathEntry[] cp = jp.getRawClasspath();
+			for (int i = 0; i < cp.length; i++) {
+				if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					String entry = JavaCore.getResolvedClasspathEntry(cp[i])
+							.getPath().toPortableString();
+					if (entry.equals(jarPath)) {
+						IClasspathAttribute[] attributes = cp[i].getExtraAttributes();
+						for (int j = 0; j < attributes.length; j++) {
+							if (attributes[j].equals(AspectJCorePreferences.INPATH_ATTRIBUTE)) {
+								return true;								
+							}
+						}
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+		}
+		return false;
+	}
+
+	private static String[] getOldProjectInPath(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJPlugin.UI_PLUGIN_ID);
 		String pathString = ""; //$NON-NLS-1$
 		int index = 1;
 		String value = projectNode.get(INPATH + index, ""); //$NON-NLS-1$
+		if (value.length() == 0) {
+			return null;
+		}
 		while (value.length() > 0) {
 			pathString += value;
 			pathString += File.pathSeparator;
 			index++;
 			value = projectNode.get(INPATH + index, ""); //$NON-NLS-1$
 		}
-
+	
 		String contentString = ""; //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(INPATH_CON_KINDS + index, ""); //$NON-NLS-1$
@@ -168,7 +382,7 @@ public class AspectJCorePreferences {
 			index++;
 			value = projectNode.get(INPATH_CON_KINDS + index, ""); //$NON-NLS-1$
 		}
-
+	
 		String entryString = ""; //$NON-NLS-1$
 		index = 1;
 		value = projectNode.get(INPATH_ENT_KINDS + index, ""); //$NON-NLS-1$
@@ -181,42 +395,21 @@ public class AspectJCorePreferences {
 		return new String[] { pathString, contentString, entryString };
 	}
 
-	public static void setProjectInPath(IProject project, String path,
-			String cKinds, String eKinds) {
+	private static void removeOldInPathSetting(IProject project) {
 		IScopeContext projectScope = new ProjectScope(project);
 		IEclipsePreferences projectNode = projectScope
 				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-
-		StringTokenizer tok = new StringTokenizer(path, File.pathSeparator);
 		int index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(INPATH + index, tok.nextToken());
-			index++;
-		}
 		while (projectNode.get(INPATH + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(INPATH + index);
 			index++;
 		}
-
-		tok = new StringTokenizer(cKinds, File.pathSeparator);
 		index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(INPATH_CON_KINDS + index, fromContentKind(tok
-					.nextToken()));
-			index++;
-		}
 		while (projectNode.get(INPATH_CON_KINDS + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(INPATH_CON_KINDS + index);
 			index++;
 		}
-
-		tok = new StringTokenizer(eKinds, File.pathSeparator);
 		index = 1;
-		while (tok.hasMoreTokens()) {
-			projectNode.put(INPATH_ENT_KINDS + index, fromEntryKind(tok
-					.nextToken()));
-			index++;
-		}
 		while (projectNode.get(INPATH_ENT_KINDS + index, "").length() > 0) { //$NON-NLS-1$
 			projectNode.remove(INPATH_ENT_KINDS + index);
 			index++;
@@ -228,38 +421,91 @@ public class AspectJCorePreferences {
 		}
 	}
 
-	private static String fromContentKind(String cKinds) {
-		String contentStr = "unknown"; //$NON-NLS-1$
+	/**
+	 * Remove all occurrences of an attribute
+	 * @param javaProject
+	 * @param attribute
+	 */
+	private static void removeAttribute(IJavaProject javaProject,
+			IClasspathAttribute attribute) {
 		try {
-			int content = Integer.parseInt(cKinds);
-			if (content == IPackageFragmentRoot.K_SOURCE) {
-				contentStr = "SOURCE"; //$NON-NLS-1$
-			} else if (content == IPackageFragmentRoot.K_BINARY) {
-				contentStr = "BINARY"; //$NON-NLS-1$
+			IClasspathEntry[] cp = javaProject.getRawClasspath();
+			boolean changed = false;
+			for (int i = 0; i < cp.length; i++) {
+				if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					IClasspathAttribute[] attributes = cp[i]
+							.getExtraAttributes();
+					boolean found = false;
+					for (int j = 0; !found && (j < attributes.length); j++) {
+						if (attributes[j].equals(attribute)) {
+							found = true;
+						}
+					}
+					if (found) {
+						IClasspathAttribute[] newattrib = new IClasspathAttribute[attributes.length - 1];
+						int count = 0;
+						for (int j = 0; j < attributes.length; j++) {
+							if (!attributes[j]
+									.equals(attribute)) {
+								newattrib[count++] = attributes[j];
+							}
+						}
+						cp[i] = JavaCore.newLibraryEntry(cp[i].getPath(), cp[i]
+								.getSourceAttachmentPath(), cp[i]
+								.getSourceAttachmentRootPath(), cp[i]
+								.getAccessRules(), newattrib, cp[i]
+								.isExported());
+						changed = true;
+					}
+				}
 			}
-		} catch (NumberFormatException e) {
+			if (changed) {
+				javaProject.setRawClasspath(cp, null);
+			}
+		} catch (JavaModelException e) {
 		}
-		return contentStr;
 	}
-
-	private static String fromEntryKind(String eKinds) {
-		String entryStr = "unknown"; //$NON-NLS-1$
+	
+	private static boolean isOnBuildPath(IJavaProject jp, String jarPath) {
 		try {
-			int entry = Integer.parseInt(eKinds);
-			if (entry == IClasspathEntry.CPE_SOURCE) {
-				entryStr = "SOURCE"; //$NON-NLS-1$
-			} else if (entry == IClasspathEntry.CPE_LIBRARY) {
-				entryStr = "LIBRARY"; //$NON-NLS-1$
-			} else if (entry == IClasspathEntry.CPE_PROJECT) {
-				entryStr = "PROJECT"; //$NON-NLS-1$
-			} else if (entry == IClasspathEntry.CPE_VARIABLE) {
-				entryStr = "VARIABLE"; //$NON-NLS-1$
-			} else if (entry == IClasspathEntry.CPE_CONTAINER) {
-				entryStr = "CONTAINER"; //$NON-NLS-1$
+			IClasspathEntry[] cp = jp.getRawClasspath();
+			for (int i = 0; i < cp.length; i++) {
+				if (cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+					String entry = JavaCore
+							.getResolvedClasspathEntry(cp[i]).getPath()
+							.toPortableString();
+					if (entry.equals(jarPath)) {
+						return true;
+					}
+				}
 			}
+		} catch (JavaModelException e) {
+		}
+		return false;
+	}
+	
+	private static void addEntryToJavaBuildPath(IJavaProject jp,
+			IClasspathAttribute attribute, String path, String eKind) {
+		IClasspathAttribute[] attributes = new IClasspathAttribute[] { attribute };
+		try {
+			int entry = Integer.parseInt(eKind);
+			IClasspathEntry[] originalCP = jp.getRawClasspath();
+			IClasspathEntry[] newCP = new IClasspathEntry[originalCP.length + 1];
+			IClasspathEntry cp = null;
+			if (entry == IClasspathEntry.CPE_LIBRARY) {
+				cp = JavaCore.newLibraryEntry(
+						new Path(path), null, null, new IAccessRule[0], attributes, false);
+			}
+			
+			// Update the raw classpath with the new entry.
+			if (cp != null) {
+				System.arraycopy(originalCP, 0, newCP, 0, originalCP.length);
+				newCP[originalCP.length] = cp;
+				jp.setRawClasspath(newCP, new NullProgressMonitor());
+			}
+		} catch (JavaModelException e) {
 		} catch (NumberFormatException e) {
 		}
-		return entryStr;
 	}
 
 	private static String toContentKind(String contentStr) {
