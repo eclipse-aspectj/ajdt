@@ -13,8 +13,8 @@
       Using the inpath
     </h1>
     <p>
-      If you wish to weave into binary files (either that are contained in a 
-      jar or in a bin directory), then you need to use the inpath capability.
+      The inpath capability can be used to weave into binary class files contained
+      in either a JAR or in an output folder.
     </p>
     <p>
       To setup your AspectJ project to use the inpath:
@@ -33,6 +33,11 @@
      complete set of woven class files in the output directory of
      the AspectJ project.
     </p>
+    
+    <p>
+      Entries added to the aspectpath are also added to the project's Java build path.
+    </p>
+    
     <p>
      The disadvantage of using this approach is that AJDT will not show how 
      the advice in the aspects applies to the input classe. The Cross References
