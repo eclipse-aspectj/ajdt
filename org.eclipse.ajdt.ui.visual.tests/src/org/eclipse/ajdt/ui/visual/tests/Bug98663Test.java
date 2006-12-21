@@ -73,8 +73,8 @@ public class Bug98663Test extends VisualTestCase {
 			IProject project = workspace.getRoot().getProject("Project1"); //$NON-NLS-1$
 			assertTrue("Should have created a project", project.exists()); //$NON-NLS-1$
 		
-			IFolder src = project.getFolder("src"); //$NON-NLS-1$
-			assertFalse("Should not have found a folder called src", src.exists()); //$NON-NLS-1$
+			IFolder src = project.getFolder("src2"); //$NON-NLS-1$
+			assertFalse("Should not have found a folder called src2", src.exists()); //$NON-NLS-1$
 			
 			// Add a source folder		
 			postKeyDown(SWT.ALT);
@@ -95,14 +95,14 @@ public class Bug98663Test extends VisualTestCase {
 			r = new Runnable() {					
 				public void run() {
 					sleep();
-					postString("src"); //$NON-NLS-1$
+					postString("src2"); //$NON-NLS-1$
 					postKey(SWT.CR);
 				}
 			};
 			new Thread(r).start();	
 			waitForJobsToComplete();
-			src = project.getFolder("src"); //$NON-NLS-1$
-			assertTrue("Should have found a folder called src", src.exists()); //$NON-NLS-1$
+			src = project.getFolder("src2"); //$NON-NLS-1$
+			assertTrue("Should have found a folder called src2", src.exists()); //$NON-NLS-1$
 			
 			// Add a package		
 			postKeyDown(SWT.ALT);
