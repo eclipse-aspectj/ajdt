@@ -1775,13 +1775,12 @@ M4 = Platform-specific fourth key
          </action>
       </objectContribution>
      </extension>
-    <!--	ADD TO INPATH/ASPECT PATH (JAR)-->
-      <extension
+
+      <!--	ADD TO INPATH/ASPECT PATH (existing build path entry)-->
+     <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
-            objectClass="org.eclipse.core.resources.IResource"
-            adaptable="true"
-            nameFilter="*.jar"
+            objectClass="org.eclipse.jdt.internal.core.JarPackageFragmentRoot"
             id="org.eclipse.ajdt.dialogs.addtoajbuild">
          <menu
                label="%org.eclipse.ajdt.ui.tools"
@@ -1793,26 +1792,20 @@ M4 = Platform-specific fourth key
                name="group1">
             </separator>
             <separator
-            	name="group2">
+               name="group2">
             </separator>
          </menu> 
     	 <action
-		     label="%RemoveFromInpath"
-		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
-    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromInpathAction"
-    		 id="org.eclipse.ajdt.removefrominpath">
-    	 </action>
-         <action
 		     label="%AddtoInpath"
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
     		 class="org.eclipse.ajdt.internal.buildpath.AddToInpathAction"
     		 id="org.eclipse.ajdt.addtoinpath">
     	 </action>
     	 <action
-		     label="%RemoveFromAspectpath"
-		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromAspectpathAction"
-    		 id="org.eclipse.ajdt.removefromAspectpath">
+		     label="%RemoveFromInpath"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromInpathAction"
+    		 id="org.eclipse.ajdt.removefrominpath">
     	 </action>
        	 <action
 		     label="%AddtoAspectpath"
@@ -1821,8 +1814,58 @@ M4 = Platform-specific fourth key
     		 id="org.eclipse.ajdt.addtoaspectpath">
     	 </action>
     	 <action
+		     label="%RemoveFromAspectpath"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
+    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromAspectpathAction"
+    		 id="org.eclipse.ajdt.removefromAspectpath">
+    	 </action>
+    	 <action
     	 	label="%ConfigureBuildPath"   
     	 	menubarPath="org.eclipse.ajdt.ui.feature.tools/group2"
+    		class="org.eclipse.ajdt.internal.buildpath.ConfigureAJBuildPathAction"
+    		id="configbuildpath">
+    	 </action>
+    	 </objectContribution>
+     </extension>
+
+    <!--	ADD TO INPATH/ASPECT PATH (JAR)-->
+      <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IResource"
+            adaptable="false"
+            nameFilter="*.jar"
+            id="org.eclipse.ajdt.dialogs.addtoajbuild">
+          <visibility>
+             <not>
+               	<objectClass name="org.eclipse.jdt.internal.core.JarPackageFragmentRoot"/>
+            </not>	
+       	  </visibility>
+         <menu
+               label="%org.eclipse.ajdt.ui.tools"
+               id="org.eclipse.ajdt.ui.feature.tools">
+            <separator
+               name="group0">
+            </separator>
+            <separator
+               name="group1">
+            </separator>
+         </menu> 
+         <action
+		     label="%AddtoInpath"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+    		 class="org.eclipse.ajdt.internal.buildpath.AddToInpathAction"
+    		 id="org.eclipse.ajdt.addtoinpath">
+    	 </action>
+       	 <action
+		     label="%AddtoAspectpath"
+		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
+    		 class="org.eclipse.ajdt.internal.buildpath.AddToAspectpathAction"
+    		 id="org.eclipse.ajdt.addtoaspectpath">
+    	 </action>
+   	 <action
+    	 	label="%ConfigureBuildPath"   
+    	 	menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
     		class="org.eclipse.ajdt.internal.buildpath.ConfigureAJBuildPathAction"
     		id="configbuildpath">
     	 </action> 
@@ -1833,9 +1876,14 @@ M4 = Platform-specific fourth key
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             objectClass="org.eclipse.core.resources.IResource"
-            adaptable="true"
+            adaptable="false"
             nameFilter="*.zip"
             id="org.eclipse.ajdt.dialogs.addtoajbuild">
+         <visibility>
+            <not>
+               <objectClass name="org.eclipse.jdt.internal.core.JarPackageFragmentRoot"/>
+            </not>	
+       	 </visibility>
          <menu
                label="%org.eclipse.ajdt.ui.tools"
                id="org.eclipse.ajdt.ui.feature.tools">
@@ -1846,23 +1894,11 @@ M4 = Platform-specific fourth key
                name="group1">
             </separator>
          </menu> 
-    	 <action
-		     label="%RemoveFromInpath"
-		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
-    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromInpathAction"
-    		 id="org.eclipse.ajdt.removefrominpath1">
-    	 </action>
          <action
 		     label="%AddtoInpath"
 		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group0"
     		 class="org.eclipse.ajdt.internal.buildpath.AddToInpathAction"
     		 id="org.eclipse.ajdt.addtoinpath1">
-    	 </action>
-    	 <action
-		     label="%RemoveFromAspectpath"
-		     menubarPath="org.eclipse.ajdt.ui.feature.tools/group1"
-    		 class="org.eclipse.ajdt.internal.buildpath.RemoveFromAspectpathAction"
-    		 id="org.eclipse.ajdt.removefromAspectpath1">
     	 </action>
        	 <action
 		     label="%AddtoAspectpath"

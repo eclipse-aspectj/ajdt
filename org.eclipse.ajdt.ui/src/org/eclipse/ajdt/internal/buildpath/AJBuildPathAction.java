@@ -61,21 +61,6 @@ public abstract class AJBuildPathAction {
 		}
 		return null;
 	}
-
-	protected boolean checkIfOnAspectpath(IProject project) {
-		String[] oldAspectpath = AspectJCorePreferences
-				.getProjectAspectPath(project);
-		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
-
-		String inpath = jarFile.getFullPath().toPortableString();
-
-		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
-			if ((seperatedOldAspectpath[j].equals(inpath))) {
-				return true;
-			}
-		}
-		return false;
-	}
 	
 	protected boolean checkIfAddingOutjar(IProject project) {
 
@@ -87,19 +72,5 @@ public abstract class AJBuildPathAction {
 		
 		return false;
 	}
-	
 
-	protected boolean checkIfOnInpath(IProject project) {
-		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
-		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
-
-		String inpath = jarFile.getFullPath().toPortableString();
-
-		for (int j = 0; j < seperatedOldInpath.length; j++) {
-			if ((seperatedOldInpath[j].equals(inpath))) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

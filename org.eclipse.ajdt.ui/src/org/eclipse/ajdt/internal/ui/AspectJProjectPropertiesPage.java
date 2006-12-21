@@ -24,6 +24,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
+import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -276,34 +277,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		return composite;
 	}
 	
-	private boolean checkIfOnInpath(IProject project, String string) {
-		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
-		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
-
-		String outJar = ('/'+thisProject.getName()+'/'+string);
-		for (int j = 0; j < seperatedOldInpath.length; j++) {
-			if ((seperatedOldInpath[j].equals(outJar))&& 
-					!(seperatedOldInpath[j].equals(""))) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	private boolean checkIfOnAspectpath(IProject project, String string) {
-		String[] oldAspectpath = AspectJCorePreferences
-				.getProjectAspectPath(project);
-		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
-		
-		String outJar = ('/'+thisProject.getName()+'/'+string);
-		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
-			if ((seperatedOldAspectpath[j].equals(outJar)) && 
-					!(seperatedOldAspectpath[j].equals(""))) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * overriding performApply() for PreferencePageBuilder.aj
@@ -357,8 +330,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					new IClasspathAttribute[0] // extra attributes?
 			);
 		}
-		if (checkIfOnInpath(thisProject, outJar)||
-				checkIfOnAspectpath(thisProject, outJar)){
+		if (AspectJCorePreferences.isOnInpath(thisProject, outJar)||
+				AspectJCorePreferences.isOnAspectpath(thisProject, outJar)){
 			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, UIMessages.buildConfig_invalidOutjar);
 			outputJarEditor.setStringValue(oldOutJar);
 		}else{
@@ -419,6 +392,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 				return false;
 			}
 		}
+		AJDTUtils.refreshPackageExplorer();
 		return true;
 	}
 

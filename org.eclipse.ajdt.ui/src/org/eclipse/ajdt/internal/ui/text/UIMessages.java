@@ -155,6 +155,8 @@ public class UIMessages extends NLS {
 	public static String InPathBlock_order_up_button;
 	public static String InPathBlock_order_down_button;
 	public static String AspectPathBlock_tab_libraries;
+	public static String AspectPathBlock_note;
+	public static String InPathBlock_note;
 	public static String InPathLibrariesWorkbookPage_NewClassFolderDialog_new_title;
 	public static String InPathLibrariesWorkbookPage_NewClassFolderDialog_edit_title;
 	public static String InPathLibrariesWorkbookPage_NewClassFolderDialog_description;

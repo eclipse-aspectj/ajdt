@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJProperties;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.javaelements.AJCodeElement;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
@@ -27,6 +28,8 @@ import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -35,6 +38,7 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JarPackageFragmentRoot;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
@@ -124,8 +128,22 @@ public class ImageDecorator implements ILabelDecorator {
 			}
 		} else if (element instanceof IFile) { 
 			IFile file= (IFile) element;
-			if (file.getFileExtension() != null && file.getFileExtension().equals(AJProperties.EXTENSION)) {
-				img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
+			if (file.getFileExtension() != null) {
+				if (file.getFileExtension().equals(AJProperties.EXTENSION)) {
+					img = getImageLabel(((AJDTIcon)AspectJImages.BC_FILE).getImageDescriptor());
+				} else if (file.getFileExtension().equals("jar") || file.getFileExtension().equals("zip")) { //$NON-NLS-1$ //$NON-NLS-2$
+					// TODO: decorate out-jars?
+				}
+			} 
+		} else if (element instanceof JarPackageFragmentRoot) {
+			IResource res = ((JarPackageFragmentRoot)element).getResource();
+			if ((res != null) && (res.getType() == IResource.FILE)) {
+				String jarPath = res.getFullPath().toPortableString();
+				if (AspectJCorePreferences.isOnAspectpath(res.getProject(),jarPath)) {
+					img = getImageLabel(AspectJImages.JAR_ON_ASPECTPATH.getImageDescriptor());				
+				} else if (AspectJCorePreferences.isOnInpath(res.getProject(),jarPath)) {
+					img = getImageLabel(AspectJImages.JAR_ON_INPATH.getImageDescriptor());				
+				}
 			}
 		} else if (element instanceof AJCodeElement) {
 			img = getImageLabel(AspectJImages.AJ_CODE.getImageDescriptor());

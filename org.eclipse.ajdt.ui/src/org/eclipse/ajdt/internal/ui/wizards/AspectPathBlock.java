@@ -70,6 +70,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -839,6 +840,11 @@ public class AspectPathBlock {
 		item.setData(ordpage);
 		item.setControl(ordpage.getControl(folder));
 
+		Control control = item.getControl();
+		if (control instanceof Composite) {
+			Label label = new Label((Composite)control,SWT.LEFT | SWT.WRAP);
+			label.setText(UIMessages.AspectPathBlock_note);
+		}
 		return item;
 	}
 
