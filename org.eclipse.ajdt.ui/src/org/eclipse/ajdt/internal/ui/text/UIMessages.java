@@ -388,6 +388,9 @@ public class UIMessages extends NLS {
 	public static String ManageBreakpointRulerAction_error_adding_message1;
 	public static String ManageBreakpointRulerAction_Breakpoints_can_only_be_created_within_the_type_associated_with_the_editor___0___1;
 	
+	public static String OpenAspect_showCrossReferencesView_question;
+	public static String OpenAspect_showCrossReferencesView_explanation;
+	
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}

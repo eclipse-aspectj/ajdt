@@ -24,7 +24,7 @@ import org.eclipse.ui.INewWizard;
 
 public class NewAspectCreationWizard extends NewElementWizard implements
 		INewWizard {
-	private NewAspectWizardPage fPage;
+	private NewAspectWizardPage fPage = null;
 
 	public NewAspectCreationWizard() {
 		super();
@@ -35,28 +35,39 @@ public class NewAspectCreationWizard extends NewElementWizard implements
 	}
 
 	/**
-	 * Adds the NewAspectWizardCreationPage
+	 * Adds the NewAspectWizardCreationPage. If the page has already been added,
+	 * this method does nothing (extra pages can be added by calling
+	 * <code> addPage()
+	 * </code>
 	 */
 	public void addPages() {
 		setNeedsProgressMonitor(true);
-		fPage = new NewAspectWizardPage();
-		addPage(fPage);
-		fPage.init(getSelection());
+
+		// Only initialse if the member is currently null - necessary for
+		// testing - spyoung
+		if (fPage == null) {
+			fPage = new NewAspectWizardPage();
+			addPage(fPage);
+			fPage.init(getSelection());
+		}
 	}
 
 	/**
-	 * Complete generation of the new file.
+	 * Complete generation of the new file, open it in the associated editor,
+	 * and open the Cross References view, if desired.
 	 */
 	public boolean performFinish() {
-		boolean res = super.performFinish();
-		if (res) {
+		boolean result = super.performFinish();
+		if (result) {
+
 			IResource resource = fPage.getModifiedResource();
 			if (resource != null) {
 				selectAndReveal(resource);
 				openResource((IFile) resource);
 			}
 		}
-		return res;
+
+		return result;
 	}
 
 	protected void finishPage(IProgressMonitor monitor)

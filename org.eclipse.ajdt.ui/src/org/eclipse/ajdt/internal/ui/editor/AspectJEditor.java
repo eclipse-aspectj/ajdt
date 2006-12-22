@@ -33,6 +33,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -45,7 +46,6 @@ import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
 import org.eclipse.jdt.ui.IPackagesViewPart;
 import org.eclipse.jdt.ui.IWorkingCopyManager;
 import org.eclipse.jdt.ui.IWorkingCopyManagerExtension;
@@ -409,14 +409,33 @@ public class AspectJEditor extends CompilationUnitEditor {
 			
 //			 Part of the fix for 89793 - editor icon is not always correct
 			resetTitleImage();
-			XRefUtils.openXRefViewIfFirstTime();
+			
+			/*
+			 * This is where the hook for the prompt dialog should go (asking
+			 * the user if they want to open the Cross References view). If the
+			 * user has already been prompted then this call will just hendle
+			 * the opening (or not) of the Cross Reference view.
+			 * 
+			 * NB It is very important that this task be scheduled for running
+			 * in the UI Thread, as otherwise it will fail in the case of the
+			 * AspectJEditor being restored when the workbench is started.
+			 * 
+			 * -spyoung
+			 */
+			Job job = new UIJob("AutoOpenXRefView") { //$NON-NLS-1$
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					XRefUtils.autoOpenXRefView();
+					return Status.OK_STATUS;
+				}
+			};
+			job.schedule();
 		}
 		
 	}
 
 	
 	/**
-	 * Update active config in AJDE.  Added as part of the fix for bug 70658.
+	 * Update active config in AJDE. Added as part of the fix for bug 70658.
 	 */
 	private void updateActiveConfig(IFileEditorInput fInput ) {
 		IProject project = fInput.getFile().getProject();

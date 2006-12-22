@@ -226,8 +226,13 @@ public class AspectJPreferences {
 	public static final String XREF_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.xref.checked.filters"; //$NON-NLS-1$
 	public static final String XREF_CHECKED_FILTERS_INPLACE = "org.eclipse.ajdt.internal.ui.xref.checked.filters.inplace"; //$NON-NLS-1$
 	
-	public static final String DONE_AUTO_OPEN_XREF_VIEW = "doneAutoOpenXRefView"; //$NON-NLS-1$
-
+	// Should the 'Cross Reference' view be opened automatically upon opening an aspect
+	public static final String AUTO_OPEN_CROSS_REF_VIEW = "autoOpenCrossReferenceView"; //$NON-NLS-1$
+	
+	// Should the user be prompted every time they open an aspect, re: auto-opening
+	// the 'xref view'?
+	public static final String PROMPT_FOR_AUTO_OPEN_CROSS_REF_VIEW = "promptForAutoOpenCrossReference"; //$NON-NLS-1$
+	
 	//Event Trace View
 	public static final String EVENT_CHECKED_FILTERS = "org.eclipse.ajdt.internal.ui.tracing.checked.filters"; //$NON-NLS-1$
 	
@@ -249,6 +254,10 @@ public class AspectJPreferences {
 				false);
 		store.setDefault(AspectJPreferences.ASK_PDE_AUTO_REMOVE_IMPORT, true);
 		store.setDefault(AspectJPreferences.DO_PDE_AUTO_REMOVE_IMPORT, false);
+
+		// 151731
+		store.setDefault(AspectJPreferences.AUTO_OPEN_CROSS_REF_VIEW, true);
+		store.setDefault(AspectJPreferences.PROMPT_FOR_AUTO_OPEN_CROSS_REF_VIEW, true);
 	}
 		
 	public static String getLintOptions(IProject thisProject) {
