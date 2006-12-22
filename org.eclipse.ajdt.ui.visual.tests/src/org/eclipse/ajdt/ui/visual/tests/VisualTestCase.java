@@ -32,6 +32,14 @@ import org.eclipse.ui.progress.UIJob;
  */
 public abstract class VisualTestCase extends UITestCase {
 
+	public VisualTestCase(String testName){
+		super(testName);
+	}
+
+	public VisualTestCase(){
+		super();
+	}
+		
 	protected void setUp() throws Exception {
 		super.setUp();
 		AllUITests.setupAJDTPlugin();

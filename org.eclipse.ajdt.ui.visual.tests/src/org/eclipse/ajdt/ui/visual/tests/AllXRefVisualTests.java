@@ -24,6 +24,7 @@ public class AllXRefVisualTests {
 		suite.addTest(new TestSuite(XReferenceViewNavigationTest.class));
 		suite.addTest(new TestSuite(XReferenceInplaceDialogTest.class));
 		suite.addTest(new TestSuite(XReferenceViewBuildingTest.class));
+		suite.addTest(new TestSuite(XReferenceViewAutoOpenTest.class));
 		
 		return suite;
 	}
