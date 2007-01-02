@@ -163,7 +163,8 @@ public class CustomFilterDialog {
 			fCheckBoxList = CheckboxTableViewer
 					.newCheckList(parent, SWT.BORDER);
 			GridData data = new GridData(GridData.FILL_BOTH);
-			data.heightHint = fCheckBoxList.getTable().getItemHeight() * 10;
+			int rowsToShow = Math.max(Math.min(populatingList.size(),12),6);
+			data.heightHint = fCheckBoxList.getTable().getItemHeight() * rowsToShow;
 			fCheckBoxList.getTable().setLayoutData(data);
 
 			fCheckBoxList.setLabelProvider(createLabelPrivder());
