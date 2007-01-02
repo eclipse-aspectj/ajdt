@@ -38,6 +38,11 @@ In the editor comment out the before advice, and save. A build
 should occur, and the corresponding entries should disappear from
 the view.  (CCDIFF_8)
 
+Press the Filters... button, then press "Restore defaults", then tick
+"all Added relationships" and press OK. Check that no entries are shown in the
+view, and that the description says "Showing 0 of 4 items" (CCDIFF_9)
+
+
 Comparing two elements
 ----------------------
 
@@ -48,26 +53,26 @@ Check out the "Comparisons" project from org.eclipse.ajdt.core.tests/workspace.
 Open foo/MyAspect.aj in the editor, then select the before and after advice
 in the outline view, right-click and select "Compare Crosscutting With >
 Each Other". The Crosscutting Comparison view should then show one added
-entries. (CCDIFF_9)
+entries. (CCDIFF_10)
 
 Now select the declare warning and the after advice in the outline view and
 select the same comparison option. The view should show four entries, two
-added and two removed. (CCDIFF_10)
+added and two removed. (CCDIFF_11)
 
 Press the "Propagate Up" button on the view, and the view should become
-empty. (CCDIFF_11)
+empty. (CCDIFF_12)
 
-Pressing the button again should return the view to showing 4 entries. (CCDIFF_12)
+Pressing the button again should return the view to showing 4 entries. (CCDIFF_13)
 
 Right-click the project and select AspectJ Tools > Save Crosscutting Map.
 Accept the default, then right-click the generated .ajmap file and select
 AspectJ Tools > Compare Crosscutting With Current Build. Then comment out
 the declare warning statement in MyAspect.aj and save. The view should
-update to show two removed entries, with method-call targets. (CCDIFF_13)
+update to show two removed entries, with method-call targets. (CCDIFF_14)
 
 Press the "Propagate Up" button on the view. Two entries should still be
 present in the view and the two method-call targets should now appear as
-methods Orange.setX() and Apple.setY().  (CCDIFF_14)
+methods Orange.setX() and Apple.setY().  (CCDIFF_15)
 
-Pressing the button again should return the targets to method-calls. (CCDIFF_15)
+Pressing the button again should return the targets to method-calls. (CCDIFF_16)
 
