@@ -422,8 +422,15 @@ public class ChangesView extends ViewPart {
 		}
 		
 		List[] ret = new ModelComparison(propagateUp).compareProjects(fromModel, toModel);
-		List addedList = filterRelationshipList(ret[0]);
-		List removedList = filterRelationshipList(ret[1]);
+		
+		boolean filterAdded = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_added_rels);
+		boolean filterRemoved = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_removed_rels);
+		List addedList = filterAdded ? new ArrayList()
+				: filterRelationshipList(ret[0]);
+		List removedList = filterRemoved ? new ArrayList()
+				: filterRelationshipList(ret[1]);
 
 		int totalNoRelationships = ret[0].size() + ret[1].size();
 		updateDescription(fromName, toName, (addedList.size() + removedList
@@ -554,6 +561,8 @@ public class ChangesView extends ViewPart {
 		for (int i = 0; i < relationshipTypes.length; i++) {
 			populatingList.add(relationshipTypes[i].getDisplayName());
 		}
+		populatingList.add(UIMessages.changesView_filter_added_rels);
+		populatingList.add(UIMessages.changesView_filter_removed_rels);
 
 		// list of relationships to filter out by default
 		List defaultFilterList = new ArrayList();
