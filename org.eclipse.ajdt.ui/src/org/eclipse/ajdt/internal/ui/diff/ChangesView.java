@@ -24,6 +24,7 @@ import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.core.model.ModelComparison;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -37,6 +38,7 @@ import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -45,6 +47,8 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -110,10 +114,10 @@ public class ChangesView extends ViewPart {
 	private static Image outgoingImage = null;
 
 	private boolean propagateUp = false;
-	
-	private static int EMPTY = 0;
-	private static int COMPARING_FILES = 1;
-	private static int COMPARING_ELEMENTS = 2;
+
+	private static final int EMPTY = 0;
+	private static final int COMPARING_FILES = 1;
+	private static final int COMPARING_ELEMENTS = 2;
 	
 	private int compareMode = EMPTY;
 	
@@ -267,6 +271,8 @@ public class ChangesView extends ViewPart {
 				}
 			}
 		});
+		
+		restorePersistedSettings();
 		makeActions();
 		contributeToActionBars();
 
@@ -291,6 +297,13 @@ public class ChangesView extends ViewPart {
 				}
 				cursor.setVisible(false);
 				table.setSelection(-1);
+			}
+		});
+		
+		// resize columns when view is resized
+		table.addControlListener(new ControlAdapter() {
+			public void controlResized(ControlEvent e) {
+				resizeColumns();
 			}
 		});
 		
@@ -322,6 +335,9 @@ public class ChangesView extends ViewPart {
 	}
 
 	public void dispose() {
+		super.dispose();
+		persistSettings();
+		
 		sourceElements = null;
 		targetElements = null;
 		currFromProject = null;
@@ -336,6 +352,25 @@ public class ChangesView extends ViewPart {
 		if (outgoingImage != null) {
 			outgoingImage.dispose();
 			outgoingImage = null;
+		}
+	}
+
+	private void persistSettings() {
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		if (!pstore.contains(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP)) {
+			pstore.setDefault(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP, false);
+		}
+		pstore.setValue(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP, propagateUp);
+
+		AspectJUIPlugin.getDefault().savePluginPreferences();
+	}
+
+	private void restorePersistedSettings() {
+		IPreferenceStore pstore = AspectJUIPlugin.getDefault()
+				.getPreferenceStore();
+		if (pstore.contains(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP)) {
+			propagateUp = pstore.getBoolean(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP);
 		}
 	}
 
@@ -454,8 +489,14 @@ public class ChangesView extends ViewPart {
 
 		List[] ret = new ModelComparison(propagateUp).compareElements(fromModel, toModel,
 				fromEl, toEl);
-		List addedList = filterRelationshipList(ret[0]);
-		List removedList = filterRelationshipList(ret[1]);
+		boolean filterAdded = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_added_rels);
+		boolean filterRemoved = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_removed_rels);
+		List addedList = filterAdded ? new ArrayList()
+				: filterRelationshipList(ret[0]);
+		List removedList = filterRemoved ? new ArrayList()
+				: filterRelationshipList(ret[1]);
 
 		int totalNoRelationships = ret[0].size() + ret[1].size();
 		updateDescription(fromEl.getElementName(), toEl.getElementName(),
@@ -521,6 +562,17 @@ public class ChangesView extends ViewPart {
 		for (int i = 0; i < table.getColumnCount(); i++) {
 			table.getColumn(i).pack();
 		}
+		resizeColumns();
+	}
+
+	private void resizeColumns() {
+		if (table == null) {
+			return;
+		}
+		if (table.getColumnCount() < 4) {
+			return;
+		}
+
 		// split available space between columns 1 and 3 (source and target
 		// elements)
 		int w = table.getClientArea().width - table.getColumn(0).getWidth()
@@ -554,7 +606,8 @@ public class ChangesView extends ViewPart {
 		propagateToggleAction
 				.setToolTipText(UIMessages.changesView_propagate_tooltip);
 		propagateToggleAction.setImageDescriptor(AspectJImages.PROPAGATE_UP.getImageDescriptor());
-
+		propagateToggleAction.setChecked(propagateUp);
+		
 		AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelationshipTypes();
 
 		List populatingList = new ArrayList();

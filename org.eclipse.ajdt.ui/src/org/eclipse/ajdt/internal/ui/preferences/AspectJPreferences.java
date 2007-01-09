@@ -167,6 +167,9 @@ public class AspectJPreferences {
 
 	public static final String OPTION_Outxml = "org.aspectj.ajdt.core.compiler.weaver.outxml"; //$NON-NLS-1$
 	
+	// Preferences for Changes View
+	public static final String CHANGES_VIEW_PROPAGATE_UP = "org.eclipse.ajdt.ui.preferences.propagateup"; //$NON-NLS-1$
+	
 	// Other compiler options
 	// Whether or not to showWeaveInfo messages should only be done through the setter method
 	// not by accessing this field directly.
