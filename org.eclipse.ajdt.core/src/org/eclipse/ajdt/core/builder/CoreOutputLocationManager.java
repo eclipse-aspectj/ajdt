@@ -12,8 +12,10 @@
 package org.eclipse.ajdt.core.builder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.aspectj.ajde.OutputLocationManager;
@@ -33,6 +35,7 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 	private File defaultOutput;
 	
 	private Map /*File*/ srcFolderToOutput = new HashMap();
+	private List /*File*/ allOutputLocs = new ArrayList();
 	
 	private boolean outputIsRoot;
 	
@@ -53,6 +56,7 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 		projectName = jp.getProject().getName();
 		try {
 			defaultOutput = workspacePathToFile(jp.getOutputLocation());
+			allOutputLocs.add(defaultOutput);
 			// store separate output folders in map
 			IClasspathEntry[] cpe = jp.getRawClasspath();
 			for (int i = 0; i < cpe.length; i++) {
@@ -66,6 +70,7 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 						}
 						File out = workspacePathToFile(output);
 						srcFolderToOutput.put(srcFolder,out);
+						if (!allOutputLocs.contains(out)) allOutputLocs.add(out);
 						if (outputIsRoot) {
 							// bug 153682: if the project is the source folder
 							//  then this output folder will always apply
@@ -96,6 +101,14 @@ public class CoreOutputLocationManager implements OutputLocationManager {
 				}
 			}
 		}
+		return defaultOutput;
+	}
+
+	public List getAllOutputLocations() {
+		return allOutputLocs;
+	}
+
+	public File getDefaultOutputLocation() {
 		return defaultOutput;
 	}
 
