@@ -21,6 +21,7 @@ import org.eclipse.ajdt.internal.buildconfig.IBuildConfigurationChangedListener;
 import org.eclipse.ajdt.internal.buildconfig.ProjectBuildConfigurator;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -130,7 +131,8 @@ public abstract class BuildConfigurationChangeAction implements
 				}
 			};
 			job.setPriority(Job.SHORT);
-			job.setRule(pbc.getJavaProject().getProject());
+			//job.setRule(pbc.getJavaProject().getProject());			
+			job.setRule(ResourcesPlugin.getWorkspace().getRoot());			
 			job.schedule();
 		} else {
 			myAction.setEnabled(false);
