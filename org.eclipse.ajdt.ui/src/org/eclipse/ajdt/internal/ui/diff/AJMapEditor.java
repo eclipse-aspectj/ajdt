@@ -11,15 +11,26 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.diff;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.ajdt.core.model.AJProjectModel;
+import org.eclipse.ajdt.core.model.AJRelationshipManager;
+import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlEvent;
@@ -41,6 +52,9 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.FileEditorInput;
+
+import com.ibm.icu.text.DateFormat;
 
 /**
  * Editor for .ajmap files, which contain the serialized form of a
@@ -155,23 +169,93 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 
 		createHeadingLabel(composite, UIMessages.ajmapEditor_heading);
 
-		Composite separator= createCompositeSeparator(composite);
-		GridData data= new GridData(GridData.FILL_HORIZONTAL);
-		data.heightHint= 2;
-		separator.setLayoutData(data);
+		createSeparator(composite);
 		
 		createText(composite, UIMessages.ajmapEditor_description);
 		
-		separator= createCompositeSeparator(composite);
-		data= new GridData(GridData.FILL_HORIZONTAL);
-		data.heightHint= 2;
-		separator.setLayoutData(data);
+		createSeparator(composite);
+		
+		createLabel(composite, null);
+		createLabel(composite, null);
+
+		createHeadingLabel(composite, UIMessages.ajmapEditor_info_heading);
+		
+		createSeparator(composite);
+
+		String info = getMapInfo();
+		if (info != null) {
+			createText(composite, info);
+			createSeparator(composite);
+		}
 		
 		fScrolledComposite.setContent(composite);
 		fScrolledComposite.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 	}
 
+	private void createSeparator(Composite parent) {
+		Composite separator= createCompositeSeparator(parent);
+		GridData data= new GridData(GridData.FILL_HORIZONTAL);
+		data.heightHint= 2;
+		separator.setLayoutData(data);
+	}
+	
+	private String getMapInfo() {
+		IEditorInput input = getEditorInput();
+		if ((input != null) && (input instanceof FileEditorInput)) {
+			IFile file = ((FileEditorInput)input).getFile();
+			return getInfoForModelFile(file.getProject(), file.getLocation());
+		}
+		return null;
+	}
+	
+	private String getInfoForModelFile(IProject project, IPath path) {
+		AJProjectModel model = new AJProjectModel(project);
+		boolean worked = model.loadModel(path);
+		if (!worked) {
+			return null;
+		}
+		if (!path.toFile().exists()) {
+			return null;
+		}
+		StringBuffer info = new StringBuffer();
+		long lastMod = path.toFile().lastModified();
+		if (lastMod > 0) {
+			String lastModStr = DateFormat.getDateTimeInstance().format(
+					new Date(lastMod));
+			info.append(NLS.bind(UIMessages.ajmapEditor_last_mod_date,
+					lastModStr));
+			info.append("\n"); //$NON-NLS-1$
+		}
+		try {
+			FileInputStream fis = new FileInputStream(path.toFile());
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			int version = ois.readInt();
+			ois.close();
+			fis.close();
+			info.append(NLS.bind(UIMessages.ajmapEditor_file_version, ""
+					+ version));
+			info.append("\n"); //$NON-NLS-1$
+		} catch (IOException e) {
+		}
+		info.append("\n"); //$NON-NLS-1$
+		info.append(UIMessages.ajmapEditor_rel_heading);
+		info.append("\n"); //$NON-NLS-1$
+		AJRelationshipType[] relTypes = AJRelationshipManager
+				.getAllRelationshipTypes();
+		int total = 0;
+		for (int i = 0; i < relTypes.length; i++) {
+			int n = model.getAllRelationships(
+					new AJRelationshipType[] { relTypes[i] }).size();
+			if (n > 0) {
+				info.append(n + " " + relTypes[i].getDisplayName() + "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+				total += n;
+			}
+		}
+		info.append(NLS.bind(UIMessages.ajmapEditor_rel_total, "" + total)); //$NON-NLS-1$
+		return info.toString();
+	}
+	
 	private Composite createComposite(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setBackground(fBackgroundColor);

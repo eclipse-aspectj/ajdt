@@ -291,6 +291,11 @@ public class UIMessages extends NLS {
 	public static String ajmapEditor_title;
 	public static String ajmapEditor_heading;
 	public static String ajmapEditor_description;
+	public static String ajmapEditor_info_heading;
+	public static String ajmapEditor_last_mod_date;
+	public static String ajmapEditor_file_version;
+	public static String ajmapEditor_rel_heading;
+	public static String ajmapEditor_rel_total;
 	public static String changesView_filter_dialog_title;
 	public static String changesView_filter_dialog_message;
 	public static String changesView_filter_dialog_showingXofY;
