@@ -582,21 +582,7 @@
          </action>
       </actionSet>
       
-      <actionSet
-            label="%ajBuildAction"
-            visible="false"
-            id="ajbuildaction">            
-         <action
-               label="%buildConfig"
-               icon="icons/actions/ajdt-build.gif"
-               disabledIcon="icons/actions/disabled_build.gif"
-               tooltip="Build AspectJ Project"
-               class="org.eclipse.ajdt.internal.ui.PulldownBuildselectorMenu"
-               toolbarPath="org.eclipse.ui.workbench.file/build.ext"
-               id="SelectBuildConfiguration">
-         </action>
-       </actionSet>
-         
+        
        <actionSet
             label="%ajelementCreation"
             visible="true"
