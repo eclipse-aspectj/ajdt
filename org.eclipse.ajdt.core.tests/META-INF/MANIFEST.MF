@@ -8,9 +8,13 @@ Bundle-Activator: org.eclipse.ajdt.core.tests.AspectJCoreTestPlugin
 Bundle-Vendor: Eclipse.org
 Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.core.tests,
+ org.eclipse.ajdt.core.tests.ajde,
  org.eclipse.ajdt.core.tests.builder,
  org.eclipse.ajdt.core.tests.codeconversion,
+ org.eclipse.ajdt.core.tests.dom.rewrite,
+ org.eclipse.ajdt.core.tests.javaelements,
  org.eclipse.ajdt.core.tests.model,
+ org.eclipse.ajdt.core.tests.refactoring,
  org.eclipse.ajdt.core.tests.testutils
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ajdt.core,

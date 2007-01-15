@@ -5,7 +5,8 @@
  * available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors: IBM Corporation - initial API and implementation 
- * 				 Helen Hawkins   - iniital version
+ * 				 Helen Hawkins   - initial version
+ *               Helen Hawkins   - updated for new ajde interface (bug 148190)
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
 
@@ -17,13 +18,12 @@ import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
 import org.eclipse.ajdt.core.tests.testutils.Utils;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -593,10 +593,10 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 		AspectJPlugin.getDefault().setAJLogger(testLog);
 		createPredefinedProject("bug99133a"); //$NON-NLS-1$
 		waitForAutoBuild();
-		createPredefinedProject("Bean Example"); //$NON-NLS-1$
+		IProject bean = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		waitForAutoBuild();
-		ProjectPropertiesAdapter adapter = Ajde.getDefault()
-				.getProjectProperties();
+		CoreCompilerConfiguration adapter = (CoreCompilerConfiguration) AspectJPlugin.
+			getDefault().getCompilerFactory().getCompilerForProject(bean).getCompilerConfiguration();
 		// expect the classpath to mention the "Bean Example" if everything
 		// has been flushed correctly. Otherwise it will just contain
 		// the flushed version which is the classpath for project bug99133a.

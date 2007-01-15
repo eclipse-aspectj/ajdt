@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.tests.testutils;
 
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.core.tests.model.AJModelPersistenceTest;
+import org.eclipse.ajdt.core.tests.ajde.CoreCompilerFactoryTests;
 
 import junit.framework.TestCase;
 
@@ -22,7 +23,9 @@ public aspect Enforcement {
 	declare error: execution(* TestCase+.*(..)) && !execution(* AJDTCoreTestCase+.*(..)):
 		"All test classes should extend AJDTCoreTestCase"; //$NON-NLS-1$
 
-	declare error: call(* AJDTCoreTestCase.deleteProject(..)) && !within(AJDTCoreTestCase)
-		&& !within(AJModelPersistenceTest): // this test needs to call delete
+	declare error: call(* AJDTCoreTestCase.deleteProject(..)) 
+	    && !within(AJDTCoreTestCase)
+		&& !within(AJModelPersistenceTest) // this test needs to call delete
+		&& !within(CoreCompilerFactoryTests) : // this test needs to call delete
 		"Projects are automatically deleted for you at the end of each test."; //$NON-NLS-1$
 }
