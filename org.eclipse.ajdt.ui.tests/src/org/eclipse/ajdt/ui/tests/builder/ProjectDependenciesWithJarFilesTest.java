@@ -7,7 +7,8 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initial version
+ *     Helen Hawkins   - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
@@ -492,7 +493,7 @@ public class ProjectDependenciesWithJarFilesTest extends UITestCase {
 				ProjectDependenciesUtils.projectHasOutJarOnClasspath(projectX,projectY, outJar));
 		// don't want to add outjar to aspect path
 		assertNull("project X should have NOT have outjar on aspect path!", //$NON-NLS-1$
-				AspectJUIPlugin.getDefault().getAjdtProjectProperties().getAspectPath());
+				AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(projectX).getCompilerConfiguration().getAspectPath());
 		assertTrue("project X should have a project dependency on project Y", //$NON-NLS-1$
 				ProjectDependenciesUtils.projectHasProjectDependency(projectX, projectY));		
 		assertFalse("project X should not have a class folder dependency on project Y", //$NON-NLS-1$

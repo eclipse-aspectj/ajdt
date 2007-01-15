@@ -9,6 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Sian January  - initial version
  *	   Matthew Ford - Bug154339
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 
 package org.eclipse.ajdt.ui.tests.testutils;
@@ -16,6 +17,7 @@ package org.eclipse.ajdt.ui.tests.testutils;
 import junit.framework.TestCase;
 
 import org.eclipse.ajdt.ui.tests.UITestCase;
+import org.eclipse.ajdt.ui.tests.ajde.UICompilerFactoryTests;
 import org.eclipse.ajdt.ui.tests.javamodel.Bug154339Test;
 
 public aspect Enforcement {
@@ -24,6 +26,6 @@ public aspect Enforcement {
 		"All test classes should extend UITestCase"; //$NON-NLS-1$
 	
 	declare error: call(* UITestCase.deleteProject(..)) && !within(UITestCase)
-		&& !within(Bug154339Test):
+		&& !within(Bug154339Test) && !within(UICompilerFactoryTests):
 		"Projects are automatically deleted for you at the end of each test."; //$NON-NLS-1$
 }

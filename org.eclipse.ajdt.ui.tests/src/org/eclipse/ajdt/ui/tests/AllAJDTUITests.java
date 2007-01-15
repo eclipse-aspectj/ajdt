@@ -18,8 +18,8 @@ import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.ui.tests.ajde.ClasspathOrderTest;
-import org.eclipse.ajdt.ui.tests.ajde.ErrorHandlerTest;
 import org.eclipse.ajdt.ui.tests.ajde.ProjectPropertiesTest;
+import org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
@@ -126,7 +126,7 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(ClasspathOrderTest.class));
 		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
 		suite.addTest(new TestSuite(AJDTErrorHandlerTest.class));
-		suite.addTest(new TestSuite(ErrorHandlerTest.class));
+		suite.addTest(new TestSuite(UIMessageHandlerTest.class));
 
 		// internal.ui.editor.quickfix tests
 		suite.addTest(new TestSuite(AspectJQuickFixTest.class));

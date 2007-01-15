@@ -7,13 +7,14 @@
  * 
  * Contributors:
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.ajde;
 
 import java.io.File;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajde.ErrorHandler;
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -40,54 +41,12 @@ public class ProjectPropertiesTest extends UITestCase {
 		boolean deleted = file.delete();
 		assertTrue("Delete failed for file: " + file, deleted); //$NON-NLS-1$
 
-		ErrorHandler eh = Ajde.getDefault().getErrorHandler();
-		TestErrorHandler teh = new TestErrorHandler();
-		Ajde.getDefault().setErrorHandler(teh);
 		project.build(IncrementalProjectBuilder.FULL_BUILD,
 				new NullProgressMonitor());
-		assertFalse(
-				"Regression of bug 148055. The compiler threw an error with message: " //$NON-NLS-1$
-						+ teh.getLastMessage(), teh.errorOccurred());
-		Ajde.getDefault().setErrorHandler(eh);
-	}
-
-	private class TestErrorHandler implements ErrorHandler {
-
-		private boolean gotError = false;
-
-		private String lastMessage;
-
-		public void handleError(String message) {
-			lastMessage = message;
-			gotError = true;
-		}
-
-		public void handleError(String message, Throwable t) {
-			String newline = System.getProperty("line.separator"); //$NON-NLS-1$
-			StringBuffer sb = new StringBuffer();
-			if (t != null) {
-				StackTraceElement[] ste = t.getStackTrace();
-				sb.append(t.getClass().getName());
-				sb.append(newline);
-				for (int i = 0; i < ste.length; i++) {
-					sb.append("at "); //$NON-NLS-1$
-					sb.append(ste[i].toString());
-					sb.append(newline);
-				}
-			}
-			lastMessage = message + newline + sb.toString();	
-			gotError = true;
-		}
-
-		public void handleWarning(String message) {
-		}
-
-		public boolean errorOccurred() {
-			return gotError;
-		}
-
-		public String getLastMessage() {
-			return lastMessage;
-		}
+		assertTrue("Regression of bug 148055: Should be no errors, but got " //$NON-NLS-1$
+				+((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+        				.getCompilerForProject(project).getMessageHandler()).getErrors(),
+        				((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+                				.getCompilerForProject(project).getMessageHandler()).getErrors().size()==0);	
 	}
 }
