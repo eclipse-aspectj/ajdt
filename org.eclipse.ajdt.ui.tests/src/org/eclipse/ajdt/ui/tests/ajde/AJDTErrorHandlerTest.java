@@ -7,11 +7,10 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initial version 
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests.ajde;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -27,7 +26,6 @@ public class AJDTErrorHandlerTest extends UITestCase {
 
 	public void testHandleAJDTErrorWithMessage() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		AspectJPlugin.getDefault().setCurrentProject(project);
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {
@@ -43,7 +41,6 @@ public class AJDTErrorHandlerTest extends UITestCase {
 	
 	public void testHandleAJDTErrorWithMessageAndTitle() throws Exception {
 		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-		AspectJPlugin.getDefault().setCurrentProject(project);
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {

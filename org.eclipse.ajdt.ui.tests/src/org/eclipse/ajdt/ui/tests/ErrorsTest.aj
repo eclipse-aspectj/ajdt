@@ -29,7 +29,8 @@ public aspect ErrorsTest {
 	
 	
 	pointcut uiTestRun() : execution(public void UITestCase+.test*())
-		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.ErrorHandlerTest.testHandleErrorWithMessageAndThrowable())
+		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest.testHandleAbortWithMessageAndThrowable())
+		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest.testHandleErrorWithMessageAndThrowable())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessage())
 		&& !execution(void org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest.testHandleAJDTErrorWithMessageAndTitle())
 	 	&& !this(PluginFFDCTest);

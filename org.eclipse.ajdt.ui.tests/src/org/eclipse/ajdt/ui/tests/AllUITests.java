@@ -18,8 +18,8 @@ import org.eclipse.ajdt.ui.tests.actions.RemoveAJNatureActionTest;
 import org.eclipse.ajdt.ui.tests.ajde.AJDTErrorHandlerTest;
 import org.eclipse.ajdt.ui.tests.ajde.BuildOptionsAdapterTest;
 import org.eclipse.ajdt.ui.tests.ajde.ClasspathOrderTest;
-import org.eclipse.ajdt.ui.tests.ajde.ErrorHandlerTest;
 import org.eclipse.ajdt.ui.tests.ajde.ProjectPropertiesTest;
+import org.eclipse.ajdt.ui.tests.ajde.UIMessageHandlerTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
@@ -128,7 +128,7 @@ public class AllUITests {
 		suite.addTest(new TestSuite(ClasspathOrderTest.class));
 		suite.addTest(new TestSuite(ProjectPropertiesTest.class));
 		suite.addTest(new TestSuite(AJDTErrorHandlerTest.class));
-		suite.addTest(new TestSuite(ErrorHandlerTest.class));
+		suite.addTest(new TestSuite(UIMessageHandlerTest.class));
 
 		// internal.ui.editor.quickfix tests
 		suite.addTest(new TestSuite(AspectJQuickFixTest.class));
@@ -184,12 +184,12 @@ public class AllUITests {
 		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 
 		// xref tests
-		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());
-		suite.addTest(org.eclipse.contribution.xref.ui.tests.AllTests.suite());
+//		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());
+//		suite.addTest(org.eclipse.contribution.xref.ui.tests.AllTests.suite());
 		suite.addTest(new TestSuite(XReferenceViewContentsTest.class));
 
 		// visualiser tests
-		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
+//		suite.addTest(org.eclipse.contribution.visualiser.tests.AllTests.suite());
 
 		// AJDT visualiser content provider tests
 		suite.addTest(new TestSuite(AJDTContentProviderTest.class));
