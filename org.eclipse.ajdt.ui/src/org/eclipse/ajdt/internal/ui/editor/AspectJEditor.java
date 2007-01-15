@@ -6,6 +6,8 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ Helen Hawkins - updated for new ajde interface (bug 148190) - no longer
+ required to set the current project
  ...
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
@@ -13,9 +15,7 @@ package org.eclipse.ajdt.internal.ui.editor;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
@@ -28,7 +28,6 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.xref.XRefUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.xref.internal.ui.utils.XRefUIUtils;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -396,7 +395,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 			AJLog.log("Editor opened on " + fInput.getFile().getName()); //$NON-NLS-1$
 			// Ensure any advice markers are created since they are not
 			// persisted.
-			updateActiveConfig(fInput);
 			synchronized(activeEditorList) {
 				activeEditorList.add(this);
 			}
@@ -413,20 +411,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		}
 		
 	}
-
-	
-	/**
-	 * Update active config in AJDE.  Added as part of the fix for bug 70658.
-	 */
-	private void updateActiveConfig(IFileEditorInput fInput ) {
-		IProject project = fInput.getFile().getProject();
-		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
-		if ( !configFile.equals( Ajde.getDefault().getConfigurationManager().getActiveConfigFile()) ) {
-			AJLog.log("Configuration file " + configFile + " selected for " + project.getName()); //$NON-NLS-1$ //$NON-NLS-2$
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile( configFile );
-		}				
-	}
-
 
 	public void dispose() {
 		AJLog.log("Disposing editor for:" + getTitle()); //$NON-NLS-1$
@@ -470,16 +454,6 @@ public class AspectJEditor extends CompilationUnitEditor {
 		// triggers a TextSelection event. TextSelection event does not give AJP
 		// enouhg info to determine project, so have to do from here instead.
 		IEditorInput input = getEditorInput();
-		if (input instanceof IFileEditorInput) {
-			IFileEditorInput fInput = (IFileEditorInput) input;
-			AspectJPlugin.getDefault().setCurrentProject(
-					fInput.getFile().getProject());
-			// Ensure any advice markers are created since they are not
-			// persisted - but
-			// in this case (unlike when opening a new editor) they are likely
-			// to
-			// be correct already.
-		}
 		super.setFocus();
 		
 		// Sian: Added the code below to fix bug 77479 - link with editor does not work for .aj files 

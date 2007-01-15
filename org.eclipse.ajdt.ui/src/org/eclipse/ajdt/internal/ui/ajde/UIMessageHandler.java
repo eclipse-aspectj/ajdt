@@ -1,14 +1,13 @@
-/*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Matt Chapman - initial version
- *******************************************************************************/
+/********************************************************************
+ * Copyright (c) 2007 Contributors. All rights reserved. 
+ * This program and the accompanying materials are made available 
+ * under the terms of the Eclipse Public License v1.0 
+ * which accompanies this distribution and is available at 
+ * http://eclipse.org/legal/epl-v10.html 
+ *  
+ * Contributors: IBM Corporation - initial API and implementation 
+ * 				 Helen Hawkins   - initial version (bug 148190)
+ *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
 import java.util.ArrayList;
@@ -21,13 +20,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.aspectj.ajde.TaskListManager;
+import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.aspectj.bridge.IMessage;
 import org.aspectj.bridge.ISourceLocation;
+import org.aspectj.bridge.IMessage.Kind;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
+import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.DebugTracing;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -49,34 +50,85 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 /**
- * 
+ * IBuildMessageHandler implementation which records warnings in the Problems
+ * View. All Errors with stack traces and ABORT's are displayed in an error
+ * dialog. By default it ignores INFO messages and checks whether the user
+ * has selected to ignore WEAVEINFO messages.
  */
-public class CompilerTaskListManager implements TaskListManager {
+public class UIMessageHandler implements IBuildMessageHandler {
 
-	private static CompilerTaskListManager instance;
-	
-	// singleton
-	private CompilerTaskListManager() {
-		
-	}
-	
-	public static CompilerTaskListManager getInstance() {
-		if (instance==null) {
-			instance = new CompilerTaskListManager();
+	private List ignoring;
+	private List problems = new ArrayList();
+
+	public UIMessageHandler(IProject project) {
+        ignoring = new ArrayList();
+        ignore(IMessage.INFO);
+        if (!AspectJPreferences.getShowWeaveMessagesOption(project)) {
+        	ignore(IMessage.WEAVEINFO);
 		}
-		return instance;
+	}	
+
+	public boolean handleMessage(IMessage message) {
+        IMessage.Kind kind = message.getKind(); 
+        if (kind == IMessage.ABORT || message.getThrown() != null) {
+        	// an exception has been thrown by AspectJ, therefore
+        	// want to create an error dialog containing the information
+        	// and display it to the user
+        	AJDTErrorHandler.handleInternalError(UIMessages.ajErrorDialogTitle,
+    				message.getMessage(), message.getThrown());
+        	return true;
+        }
+        if (isIgnoring(kind)) {
+            return true;
+        }
+		if (message.getSourceLocation() == null) {
+			AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask message="+message.getMessage()); //$NON-NLS-1$
+			problems.add(new ProblemTracker(message.getMessage(),
+					null,message.getKind()));
+		} else {
+			if (DebugTracing.DEBUG_COMPILER_MESSAGES) {
+				// avoid constructing log string if trace is not active
+				AJLog.log(AJLog.COMPILER_MESSAGES, "addSourcelineTask message=" //$NON-NLS-1$
+						+ message.getMessage() + " file=" //$NON-NLS-1$
+						+ message.getSourceLocation().getSourceFile().getPath()
+						+ " line=" + message.getSourceLocation().getLine()); //$NON-NLS-1$
+			}
+			problems.add(new ProblemTracker(message.getMessage(), 
+					message.getSourceLocation(), 
+					message.getKind(), 
+					message.getDeclared(), 
+					message.getExtraSourceLocations(), 
+					message.getID(), 
+					message.getSourceStart(), 
+					message.getSourceEnd(),
+					message.getThrown()));
+		}
+		return true;
+	}
+
+	public void dontIgnore(Kind kind) {
+	    if (null != kind) {
+	        ignoring.remove(kind);
+	    }
+	}
+
+	public boolean isIgnoring(Kind kind) {
+		return ((null != kind) && (ignoring.contains(kind)));
 	}
 	
-    /**
-     * problems for task list
-     */
-    private static List problems = new ArrayList();
-
+	public void ignore(Kind kind) {
+	    if ((null != kind) && (!ignoring.contains(kind))) {
+	        ignoring.add(kind);
+	    }	
+	}
+	
+	// --------------- impl on top of IMessageHandler ----------
+	
     /**
      * resources that were affected by the compilation.
      */
     private static Set affectedResources = new HashSet();
-
+    
     /**
      * Markers created in projects other than the one under compilation, which
      * should be cleared next time the compiled project is rebuilt
@@ -87,99 +139,58 @@ public class CompilerTaskListManager implements TaskListManager {
      * Indicates whether the most recent build was full or incremental
      */
     private static boolean lastBuildWasFull;
-
-    /**
-     * Add a problem to the tasks list for the given file and line number
-     */
-    public void addSourcelineTask(final String message,
-            final ISourceLocation location, final IMessage.Kind kind) {
-    	AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask called without extra info. Message="+message); //$NON-NLS-1$
-        // No one should be calling this method as it doesn't have all the
-        // information.
-        // It is missing extra source locations and info about whether the
-        // message
-        // has resulted from a declare statement.
-
-        problems.add(new ProblemTracker(message, location, kind));
-         
-        // When will showMessages() get called if we are not 'finishing off a
-        // compilation' - the reason this
-        // is important is that when AJDE is asked to build a model of a lst
-        // file, it calls this routine
-        // with any errors it finds whilst parsing the file... if no one calls
-        // showMessages then the
-        // messages will be stuck in the problems List and not pushed out until
-        // later!
-    }
-
-    /**
-     * Add a problem to the tasks list associated with the current project
-     */
-    public void addProjectTask(String message, IMessage.Kind kind) {
-        problems.add(new ProblemTracker(message, null, kind));
-    }
-
+    
     protected void addAffectedResource(IResource res) {
     	affectedResources.add(res);
     }
-    
-    public static void clearOtherProjectMarkers(IProject p) {
-		List l = (List) otherProjectMarkers.get(p.getName());
-		if (l != null) {
-			ListIterator li = l.listIterator();
-			while (li.hasNext()) {
-				IMarker m = (IMarker) li.next();
-				try {
-					m.delete();
-				} catch (CoreException ce) {
-					// can be ignored
-				} // not the end of the world.
-			}
-			l.clear();
-		}
-	}
-
+	
     /**
-	 * Called from Ajde to clear all tasks in problem list
-	 */
-    public void clearTasks() {
-        affectedResources.clear();
-        problems.clear();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.aspectj.ajde.TaskListManager#addSourcelineTask(org.aspectj.bridge.IMessage)
+     * Inner class used to track problems found during compilation Values of -1
+     * are used to indicate no line or column number available.
      */
-    public void addSourcelineTask(IMessage msg) {
-		if (msg.getSourceLocation() == null) {
-			AJLog.log(AJLog.COMPILER_MESSAGES,"addSourcelineTask message="+msg.getMessage()); //$NON-NLS-1$
-			this.addProjectTask(msg.getMessage(), msg.getKind());
-		} else {
-			if (DebugTracing.DEBUG_COMPILER_MESSAGES) {
-				// avoid constructing log string if trace is not active
-				AJLog.log(AJLog.COMPILER_MESSAGES, "addSourcelineTask message=" //$NON-NLS-1$
-						+ msg.getMessage() + " file=" //$NON-NLS-1$
-						+ msg.getSourceLocation().getSourceFile().getPath()
-						+ " line=" + msg.getSourceLocation().getLine()); //$NON-NLS-1$
+    class ProblemTracker {
+
+        public ISourceLocation location;
+        public String message;
+        public IMessage.Kind kind;
+        public boolean declaredErrorOrWarning = false;
+        public List/* ISourceLocation */extraLocs;
+        public Throwable thrown;
+
+        public int id;
+        public int start;
+        public int end;
+        
+        public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k) {
+            this(m, l, k, false, null, -1, -1, -1,null);
+        }
+
+        public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k,
+                boolean deow, List/* ISourceLocation */extraLocs, int id,
+				int start, int end, Throwable thrown) {
+            location = l;
+            message = m;
+            kind = k;
+            declaredErrorOrWarning = deow;
+            this.extraLocs = extraLocs;
+            this.id = id;
+            this.start = start;
+            this.end = end;
+            this.thrown = thrown;
+        }
+    }
+    
+    public List /*ProblemTracker*/ getErrors() {
+    	List errors = new ArrayList();
+    	for (Iterator iter = problems.iterator(); iter.hasNext();) {
+			ProblemTracker prob = (ProblemTracker) iter.next();
+			if (prob.kind.equals(IMessage.ERROR)) {
+				errors.add(prob);
 			}
-			problems.add(new ProblemTracker(msg.getMessage(), msg
-					.getSourceLocation(), msg.getKind(), msg.getDeclared(), msg
-					.getExtraSourceLocations(), msg.getID(), msg
-					.getSourceStart(), msg.getSourceEnd()));
 		}
-	}
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.aspectj.ajde.TaskListManager#hasWarning()
-     */
-    public boolean hasWarning() {
-        return false;
+    	return errors;
     }
-
+    
     /**
      * Callable from anywhere in the plugin, will put any unreported problems
      * onto the task bar. This is currently used by the model builder for build
@@ -188,12 +199,12 @@ public class CompilerTaskListManager implements TaskListManager {
      * report them. We need to move this error reporting stuff out of here if it
      * is going to be used by more than just the compiler.
      */
-    public static void showOutstandingProblems() {
+    public void showOutstandingProblems() {
         if (problems.size() > 0 || affectedResources.size() > 0) {
-            getInstance().showMessages();
+            showMessages();
         }
     }
-
+    
     private void showMessages() {
 
         // THIS MUST STAY IN A SEPARATE THREAD - This is because we need
@@ -313,7 +324,7 @@ public class CompilerTaskListManager implements TaskListManager {
                             throw re;
                         }
                     }
-                    clearTasks();
+                    clearMessages();
                 } catch (CoreException e) {
                 	AJDTErrorHandler.handleAJDTError(
                             UIMessages.CompilerTaskListManager_Error_creating_marker, e);
@@ -335,7 +346,105 @@ public class CompilerTaskListManager implements TaskListManager {
 	        }
 	    }
     }
+    
+    private void clearMessages() {
+        affectedResources.clear();
+        problems.clear();
+    }
+    
+    /**
+     * Try to map a source location in a project to an IResource
+     * 
+     * @param isl
+     *            the source location
+     * @param project
+     *            the project to look in first
+     * @return the IResource if a match was found, null otherwise
+     */
+    private IResource locationToResource(ISourceLocation isl, IProject project) {
+        IResource ir = null;
 
+        String loc = isl.getSourceFile().getPath();
+
+        // try this project
+        ir = AJDTUtils.findResource(loc, project);
+
+        if (ir == null) {
+            // try any project
+            ir = AJDTUtils.findResource(loc);
+            if (ir == null) {
+                // fix for declare
+                // warning/error bug which
+                // returns only file name
+                // (unqualified)
+                ir = tryToFindResource(loc,project);
+            }
+            // At least warn that you are going to
+            // blow up with an event trace ...
+            if (ir == null)
+            	AJLog.log(AJLog.COMPILER,"Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
+                                + loc);
+        }
+
+        return ir;
+    }
+    
+    private IResource tryToFindResource(String fileName, IProject project) {
+        IResource ret = null;
+        String toFind = fileName.replace('\\', '/');
+        IJavaProject jProject = JavaCore.create(project);
+        try {
+            IClasspathEntry[] classpathEntries = jProject
+                    .getResolvedClasspath(false);
+            for (int i = 0; i < classpathEntries.length; i++) {
+                IClasspathEntry cpEntry = classpathEntries[i];
+                if (cpEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                    IPath sourcePath = cpEntry.getPath();
+                    // remove the first segment because the findMember call
+                    // following always adds it back in under the covers (doh!) 
+                    // and we end up with two first segments otherwise!
+                    sourcePath = sourcePath.removeFirstSegments(1);
+                    IResource[] srcContainer = new IResource[] { project
+                            .findMember(sourcePath) };
+                    ret = findFile(srcContainer, toFind);
+                    if (ret != null)
+                        break;
+                } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+                    IPath projPath = cpEntry.getPath();
+                    IResource projResource = AspectJPlugin.getWorkspace()
+                            .getRoot().findMember(projPath);
+                    ret = findFile(new IResource[] { projResource }, toFind);
+                }
+            }
+        } catch (JavaModelException jmEx) {
+        	AJDTErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
+        }
+
+        if (ret == null)
+            ret = project;
+        return ret;
+    }
+
+    private IResource findFile(IResource[] srcContainer, String name) {
+        IResource ret = null;
+        try {
+            for (int i = 0; i < srcContainer.length; i++) {
+                IResource ir = srcContainer[i];
+                if (ir.getFullPath().toString().endsWith(name)) {
+                    ret = ir;
+                    break;
+                }
+                if (ir instanceof IContainer) {
+                    ret = findFile(((IContainer) ir).members(), name);
+                    if (ret != null)
+                        break;
+                }
+            }
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+    
     /**
      * returns -1 if problem is not a task and the tasks priority otherwise
      * takes case sensitivity into account though this does not seem to
@@ -380,7 +489,7 @@ public class CompilerTaskListManager implements TaskListManager {
         }
         return -1;
     }
-
+    
     private int getPrioritiyFlag(String prio) {
         if (prio.equals("NORMAL")) //$NON-NLS-1$
             return IMarker.PRIORITY_NORMAL;
@@ -388,7 +497,40 @@ public class CompilerTaskListManager implements TaskListManager {
             return IMarker.PRIORITY_HIGH;
         return IMarker.PRIORITY_LOW;
     }
+    
+    private void addOtherProjectMarker(IProject p, IMarker m) {
+        if (!otherProjectMarkers.containsKey(p.getName())) {
+            otherProjectMarkers.put(p.getName(), new ArrayList());
+        }
+        List l = (List) otherProjectMarkers.get(p.getName());
+        l.add(m);
+    }
 
+    /**
+     * Sets the given marker to have hte appropriate severity, according to the
+     * kind.
+     * 
+     * @param marker
+     *            the marker to set the message for
+     * @param kind
+     *            used to determine the appropriate severity
+     * @throws CoreException
+     */
+    private void setSeverity(IMarker marker, IMessage.Kind kind)
+            throws CoreException {
+        if (kind == IMessage.ERROR) {
+            marker.setAttribute(IMarker.SEVERITY, new Integer(
+                    IMarker.SEVERITY_ERROR));
+        } else if (kind == IMessage.WARNING) {
+            marker.setAttribute(IMarker.SEVERITY, new Integer(
+                    IMarker.SEVERITY_WARNING));
+        } else {
+            marker.setAttribute(IMarker.SEVERITY, new Integer(
+                    IMarker.SEVERITY_INFO));
+        }
+
+    }
+    
     /**
      * Sets the given marker to have the appropriate message.
      * 
@@ -417,177 +559,27 @@ public class CompilerTaskListManager implements TaskListManager {
         }
         marker.setAttribute(IMarker.MESSAGE, message);
     }
+    
+    // -------------- other AJDT things -------------------
 
-    /**
-     * Sets the given marker to have hte appropriate severity, according to the
-     * kind.
-     * 
-     * @param marker
-     *            the marker to set the message for
-     * @param kind
-     *            used to determine the appropriate severity
-     * @throws CoreException
-     */
-    private void setSeverity(IMarker marker, IMessage.Kind kind)
-            throws CoreException {
-        if (kind == IMessage.ERROR) {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_ERROR));
-        } else if (kind == IMessage.WARNING) {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_WARNING));
-        } else {
-            marker.setAttribute(IMarker.SEVERITY, new Integer(
-                    IMarker.SEVERITY_INFO));
-        }
 
-    }
-
-    /**
-     * Try to map a source location in a project to an IResource
-     * 
-     * @param isl
-     *            the source location
-     * @param project
-     *            the project to look in first
-     * @return the IResource if a match was found, null otherwise
-     */
-    private IResource locationToResource(ISourceLocation isl, IProject project) {
-        IResource ir = null;
-
-        String loc = isl.getSourceFile().getPath();
-
-        // try this project
-        ir = AJDTUtils.findResource(loc, project);
-
-        if (ir == null) {
-            // try any project
-            ir = AJDTUtils.findResource(loc);
-            if (ir == null) {
-                // fix for declare
-                // warning/error bug which
-                // returns only file name
-                // (unqualified)
-                ir = tryToFindResource(loc);
-            }
-            // At least warn that you are going to
-            // blow up
-            // with an event trace ...
-            if (ir == null)
-            	AJLog.log(AJLog.COMPILER,"Whilst adding post compilation markers to resources, cannot locate valid eclipse resource for file " //$NON-NLS-1$
-                                + loc);
-        }
-
-        return ir;
-    }
-
-    private IResource tryToFindResource(String fileName) {
-        IResource ret = null;
-        String toFind = fileName.replace('\\', '/');
-        IProject project = AspectJPlugin.getDefault().getCurrentProject();
-        IJavaProject jProject = JavaCore.create(project);
-        try {
-            IClasspathEntry[] classpathEntries = jProject
-                    .getResolvedClasspath(false);
-            for (int i = 0; i < classpathEntries.length; i++) {
-                IClasspathEntry cpEntry = classpathEntries[i];
-                if (cpEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                    IPath sourcePath = cpEntry.getPath();
-                    // remove the first segment because the findMember call
-                    // following
-                    // always adds it back in under the covers (doh!) and we end
-                    // up
-                    // with two first segments otherwise!
-                    sourcePath = sourcePath.removeFirstSegments(1);
-                    IResource[] srcContainer = new IResource[] { project
-                            .findMember(sourcePath) };
-                    ret = findFile(srcContainer, toFind);
-                    if (ret != null)
-                        break;
-                } else if (cpEntry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-                    IPath projPath = cpEntry.getPath();
-                    IResource projResource = AspectJPlugin.getWorkspace()
-                            .getRoot().findMember(projPath);
-                    ret = findFile(new IResource[] { projResource }, toFind);
-                }
-            }
-        } catch (JavaModelException jmEx) {
-        	AJDTErrorHandler.handleAJDTError(UIMessages.jmCoreException, jmEx);
-        }
-
-        if (ret == null)
-            ret = project;
-        return ret;
-    }
-
-    private IResource findFile(IResource[] srcContainer, String name) {
-        IResource ret = null;
-        try {
-            for (int i = 0; i < srcContainer.length; i++) {
-                IResource ir = srcContainer[i];
-                if (ir.getFullPath().toString().endsWith(name)) {
-                    ret = ir;
-                    break;
-                }
-                if (ir instanceof IContainer) {
-                    ret = findFile(((IContainer) ir).members(), name);
-                    if (ret != null)
-                        break;
-                }
-            }
-        } catch (Exception e) {
-        }
-        return ret;
-    }
-
-    private void addOtherProjectMarker(IProject p, IMarker m) {
-        if (!otherProjectMarkers.containsKey(p.getName())) {
-            otherProjectMarkers.put(p.getName(), new ArrayList());
-        }
-        List l = (List) otherProjectMarkers.get(p.getName());
-        l.add(m);
-    }
-
-    void setLastBuildType(boolean wasFullBuild) {
+    protected void setLastBuildType(boolean wasFullBuild) {
     	lastBuildWasFull = wasFullBuild;
     }
     
-    /**
-     * Inner class used to track problems found during compilation Values of -1
-     * are used to indicate no line or column number available.
-     */
-    class ProblemTracker {
-
-        public ISourceLocation location;
-
-        public String message;
-
-        public IMessage.Kind kind;
-
-        public boolean declaredErrorOrWarning = false;
-
-        public List/* ISourceLocation */extraLocs;
-
-        public int id;
-        public int start;
-        public int end;
-        
-        public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k) {
-            this(m, l, k, false, null, -1, -1, -1);
-        }
-
-        public ProblemTracker(String m, ISourceLocation l, IMessage.Kind k,
-                boolean deow, List/* ISourceLocation */extraLocs, int id,
-				int start, int end) {
-            location = l;
-            message = m;
-            kind = k;
-            declaredErrorOrWarning = deow;
-            this.extraLocs = extraLocs;
-            this.id = id;
-            this.start = start;
-            this.end = end;
-        }
-    }
-
+    public static void clearOtherProjectMarkers(IProject p) {
+		List l = (List) otherProjectMarkers.get(p.getName());
+		if (l != null) {
+			ListIterator li = l.listIterator();
+			while (li.hasNext()) {
+				IMarker m = (IMarker) li.next();
+				try {
+					m.delete();
+				} catch (CoreException ce) {
+					// can be ignored
+				} // not the end of the world.
+			}
+			l.clear();
+		}
+	}
 }

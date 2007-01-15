@@ -8,10 +8,10 @@
  * Contributors:
  *     Luzius Meisser - initial implementation
  *	   Matthew Ford - Bug 154339
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.javamodel;
 
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -59,15 +59,17 @@ public class ResourceDeltaVisitor implements IResourceDeltaVisitor {
 		} else if (myRes.getType() == IResource.PROJECT) {
 			switch (delta.getKind()) {
 			case IResourceDelta.REMOVED:
-				IncrementalStateManager
-						.removeIncrementalStateInformationFor(AspectJPlugin
-								.getBuildConfigurationFile(myRes.getProject()));
+				// remove the compiler associated with this project from the factory
+				AspectJPlugin.getDefault().getCompilerFactory()
+						.removeCompilerForProject(myRes.getProject());
 				break;
 			case IResourceDelta.CHANGED:
 				if (!myRes.getProject().isOpen()) {
-					IncrementalStateManager
-							.removeIncrementalStateInformationFor(AspectJPlugin
-									.getBuildConfigurationFile(myRes.getProject()));
+					// remove the compiler associated with this project from the 
+					// factory - project could remain closed indefinitely, therefore, 
+					// don't want to hang on to the compiler instance
+					AspectJPlugin.getDefault().getCompilerFactory()
+							.removeCompilerForProject(myRes.getProject());
 				}
 				break;
 			}

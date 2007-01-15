@@ -5,6 +5,7 @@
  * available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors: Sian January - initial version
+ *               Helen Hawkins - updated for new ajde interface (bug 148190)
  * ... 
  ******************************************************************************/
 package org.eclipse.ajdt.internal.ui.actions;
@@ -15,11 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajde.ProjectPropertiesAdapter;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-import org.eclipse.ajdt.core.builder.CoreProjectProperties;
 import org.eclipse.ajdt.core.exports.AJBuildScriptGenerator;
+import org.eclipse.ajdt.internal.ui.ajde.UIComplierConfiguration;
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -70,18 +70,16 @@ public class BuildPluginAction extends BaseBuildAction {
 		String[] v = AspectJCorePreferences.getProjectAspectPath(project);
 
 		// need to expand any variables on the path
-		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
-		if (adapter instanceof CoreProjectProperties) {
-			String aspectPath = ((CoreProjectProperties)adapter).expandVariables(v[0], v[2]);
+		UIComplierConfiguration adapter = (UIComplierConfiguration) AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
+		String aspectPath = adapter.expandVariables(v[0], v[2]);
 
-			// Ensure that every entry in the list is a fully qualified one.
-			aspectPath = ((CoreProjectProperties)adapter).fullyQualifyPathEntries(aspectPath);
+		// Ensure that every entry in the list is a fully qualified one.
+		aspectPath = adapter.fullyQualifyPathEntries(aspectPath);
 	
-			if(aspectPath.length() > 0) {
-				String[] entries = aspectPath.split(File.pathSeparator);
-				List entryList = new ArrayList(Arrays.asList(entries));
-				return entryList;
-			}
+		if(aspectPath.length() > 0) {
+			String[] entries = aspectPath.split(File.pathSeparator);
+			List entryList = new ArrayList(Arrays.asList(entries));
+			return entryList;
 		}
 		return null;		
 	}
@@ -90,18 +88,16 @@ public class BuildPluginAction extends BaseBuildAction {
 		String[] v = AspectJCorePreferences.getProjectInPath(project);
 
 		// need to expand any variables on the path
-		ProjectPropertiesAdapter adapter = Ajde.getDefault().getProjectProperties();
-		if (adapter instanceof CoreProjectProperties) {
-			String inPath = ((CoreProjectProperties)adapter).expandVariables(v[0], v[2]);
+		UIComplierConfiguration adapter = (UIComplierConfiguration) AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration();
+		String inPath = adapter.expandVariables(v[0], v[2]);
 
-			// Ensure that every entry in the list is a fully qualified one.
-			inPath = ((CoreProjectProperties)adapter).fullyQualifyPathEntries(inPath);
+		// Ensure that every entry in the list is a fully qualified one.
+		inPath = adapter.fullyQualifyPathEntries(inPath);
 	
-			if(inPath.length() > 0) {
-				String[] entries = inPath.split(File.pathSeparator);
-				List entryList = new ArrayList(Arrays.asList(entries));
-				return entryList;
-			}
+		if(inPath.length() > 0) {
+			String[] entries = inPath.split(File.pathSeparator);
+			List entryList = new ArrayList(Arrays.asList(entries));
+			return entryList;
 		}
 		return null;	
 	}

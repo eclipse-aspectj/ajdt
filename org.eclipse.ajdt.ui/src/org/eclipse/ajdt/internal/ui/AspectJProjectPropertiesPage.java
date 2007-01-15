@@ -6,6 +6,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Adrian Colyer, Andy Clement - initial version
+ Helen Hawkins - updated for new ajde interface (bug 148190)
 
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
@@ -136,8 +137,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		try {
 			initialAspectpath = getInitialAspectpathValue(thisProject);
 		} catch (CoreException ce) {
-			AJDTErrorHandler
-					.handleAJDTError(
+			AJDTErrorHandler.handleAJDTError(
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message,
 							ce);

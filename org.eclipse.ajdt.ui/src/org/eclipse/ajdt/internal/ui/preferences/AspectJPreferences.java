@@ -11,6 +11,7 @@
  Ian McGrath - added support for the properties page
  Sian January - moved in other options and added 1.5 options
  Matt Chapman - added project scoped preferences (40446)
+ Helen Hawkins - updated for new ajde interface (bug 148190)
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui.preferences;
 
@@ -22,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.aspectj.ajde.core.IBuildMessageHandler;
+import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IProject;
@@ -264,10 +267,13 @@ public class AspectJPreferences {
 
 	public static void setShowWeaveMessagesOption(IProject project, boolean showWeaveMessages) {
 		String value = "";
+		IBuildMessageHandler handler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		if (showWeaveMessages) {
 			value = VALUE_TRUE;
+			handler.dontIgnore(IMessage.WEAVEINFO);
 		} else {
 			value = VALUE_FALSE;
+			handler.ignore(IMessage.WEAVEINFO);			
 		}
 		if(isUsingProjectSettings(project)) {
 			IScopeContext projectScope = new ProjectScope(project);

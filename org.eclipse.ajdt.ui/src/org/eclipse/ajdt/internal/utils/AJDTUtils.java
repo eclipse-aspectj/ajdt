@@ -9,6 +9,7 @@
  Julie Waterhouse - added code to popup AJDTPrefConfigWizard - August 3, 2003
  Julie Waterhouse - removed method calls for new aspect and AspectJ project.  
  This functionality has moved to the plugin.xml. - August 13, 2003.
+ Helen Hawkins - updated for new ajde interface (bug 148190)
  ...
  **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
@@ -20,7 +21,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
 import org.eclipse.ajdt.core.AJLog;
@@ -604,9 +604,7 @@ public class AJDTUtils {
 			AspectJUIPlugin.removeAjrtFromBuildPath(project);
 		}
 		
-		IncrementalStateManager
-		.removeIncrementalStateInformationFor(AspectJPlugin
-				.getBuildConfigurationFile(project));
+		AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
 
 		removeMarkerOnReferencingProjects(project);
 
