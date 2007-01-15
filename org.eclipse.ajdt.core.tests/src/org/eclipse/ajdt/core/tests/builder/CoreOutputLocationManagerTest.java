@@ -6,13 +6,14 @@
  * 
  * Contributors: IBM Corporation - initial API and implementation 
  * 				 Matt Chapman   - initial version
+ *               Helen Hawkins - updated for new ajde interface (bug 148190)
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
 
 import java.io.File;
 
-import org.eclipse.ajdt.core.builder.CoreOutputLocationManager;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
+import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
@@ -22,8 +23,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 
 	public void testOutputLocationManager() throws Exception {
 		IProject project = createPredefinedProject("MultipleOutputFolders"); //$NON-NLS-1$
-		IJavaProject jp = JavaCore.create(project);
-		CoreOutputLocationManager om = new CoreOutputLocationManager(jp);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
 		IFile class1 = (IFile) project.findMember("src/p1/Class1.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
@@ -48,8 +48,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 
 	public void testOutputLocationManagerBug153682() throws Exception {
 		IProject project = createPredefinedProject("bug153682"); //$NON-NLS-1$
-		IJavaProject jp = JavaCore.create(project);
-		CoreOutputLocationManager om = new CoreOutputLocationManager(jp);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
 		IFile class1 = (IFile) project.findMember("foo/Test.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
@@ -67,8 +66,7 @@ public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 	
 	public void testOutputLocationManagerBug160846() throws Exception {
 		IProject project = createPredefinedProject("bug160846"); //$NON-NLS-1$
-		IJavaProject jp = JavaCore.create(project);
-		CoreOutputLocationManager om = new CoreOutputLocationManager(jp);
+		CoreOutputLocationManager om = new CoreOutputLocationManager(project);
 		IFile class1 = (IFile) project.findMember("src/java/org/noco/aj/MainClass.java"); //$NON-NLS-1$
 		File file1 = class1.getLocation().toFile();
 		File out1 = om.getOutputLocationForClass(file1);
