@@ -8,23 +8,31 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
-import java.util.List;
-
-import org.aspectj.ajde.BuildProgressMonitor;
-import org.eclipse.core.resources.IProject;
+import org.aspectj.ajde.core.IBuildProgressMonitor;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Define additional operations required by AJDT
  */
-public interface IAJCompilerMonitor extends BuildProgressMonitor {
+public interface IAJCompilerMonitor extends IBuildProgressMonitor {
 
-	public void prepare(IProject project, List buildList,
-			IProgressMonitor eclipseMonitor);
-
-	public boolean finished();
+	/**
+	 * Prepare the compiler monitor with the given 
+	 * org.eclipse.core.runtime.IProgressMonitor
+	 * 
+	 * @param eclipseMonitor
+	 */
+	public void prepare(IProgressMonitor eclipseMonitor);
+	
+	/**
+	 * Return whether the previously run build was cancelled
+	 * 
+	 * @return true if the last build was cancelled and false otherwise
+	 */
+	public boolean buildWasCancelled();
 
 }

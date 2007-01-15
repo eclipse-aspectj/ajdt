@@ -8,14 +8,15 @@
  * Contributors:
  *     	IBM Corporation - initial API and implementation
  * 		Matthew Webster - initial version
+ *      Helen Hawkins   - updated for new ajde interface (bug 148190) 
  *******************************************************************************/
 package org.eclipse.ajdt.internal.core.ras;
 
-import org.eclipse.ajdt.core.ras.PluginFFDC;
-import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.builder.CoreErrorHandler;
+import org.eclipse.ajdt.core.codeconversion.AspectsConvertingParser;
+import org.eclipse.ajdt.internal.core.ajde.CoreBuildMessageHandler;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.ajdt.core.ras.*;
 
 /**
  * FFDC policy for org.eclipse.ajdt.core plug-in
@@ -37,6 +38,6 @@ public aspect CoreFFDC extends PluginFFDC {
 	
     /* XXX Move to FFDC/PluginFFDC when 78615 fixed */
     declare warning : call(void Throwable.printStackTrace(..)) 
-    	&& !within(CoreErrorHandler):
+    	&& !within(CoreBuildMessageHandler):
     	"Don't dump stack trace"; //$NON-NLS-1$
 }

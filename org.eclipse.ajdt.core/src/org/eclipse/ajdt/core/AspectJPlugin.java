@@ -8,21 +8,14 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.core;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
-import org.aspectj.weaver.World;
-import org.eclipse.ajdt.core.builder.CompilerMonitor;
-import org.eclipse.ajdt.core.builder.CoreBuildOptions;
-import org.eclipse.ajdt.core.builder.CoreErrorHandler;
-import org.eclipse.ajdt.core.builder.CoreProjectProperties;
-import org.eclipse.ajdt.core.builder.CoreTaskListManager;
-import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.internal.core.ResourceChangeListener;
-import org.eclipse.ajdt.internal.core.model.BinaryWeavingSupport;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
+import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IWorkspace;
@@ -106,15 +99,14 @@ public class AspectJPlugin extends Plugin {
 	public static boolean usingCUprovider = false;
 	
 	/**
-	 * Compiler monitor listens to AspectJ compilation events (build progress
-	 * and compilations errors/warnings)
-	 */
-	private IAJCompilerMonitor ajdtCompilerMonitor;
-
-	/**
 	 * The currently selected project
 	 */
 	private IProject currentProject;
+	
+	/**
+	 * The compiler factory
+	 */
+	private ICompilerFactory compilerFactory;
 
 	/**
 	 * The constructor.
@@ -130,16 +122,10 @@ public class AspectJPlugin extends Plugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		checkForCUprovider();
-		IncrementalStateManager.recordIncrementalStates=true;
-		IncrementalStateManager.debugIncrementalStates=true;
 		getWorkspace().addResourceChangeListener(
 				new ResourceChangeListener(),
 				IResourceChangeEvent.POST_CHANGE);
-		World.createInjarHierarchy = BinaryWeavingSupport.isActive;
-		Ajde.init(null, new CoreTaskListManager(), // task list manager
-				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
-				new CoreProjectProperties(), new CoreBuildOptions(),
-				null, null, new CoreErrorHandler());
+		setCompilerFactory(new CoreCompilerFactory());
 	}
 
 	/**
@@ -175,35 +161,6 @@ public class AspectJPlugin extends Plugin {
 	}
 
 	/**
-	 * get the current project, if nobody has set a project yet, use the first
-	 * open project in the workspace
-	 */
-	public IProject getCurrentProject() {
-		IProject current = null;
-		if (currentProject != null) {
-			current = currentProject;
-		} else {
-			IProject[] projects = AspectJPlugin.getWorkspace().getRoot()
-					.getProjects();
-			for (int i = 0; i < projects.length; i++) {
-				if (projects[i].isOpen()) {
-					current = projects[i];
-					break;
-				}
-			}
-		}
-		return current;
-	}
-
-	/**
-	 * set the current project - called by the builder when we're about to do a
-	 * build.
-	 */
-	public void setCurrentProject(IProject project) {
-		currentProject = project;
-	}
-	
-	/**
 	 * Returns the workspace instance.
 	 */
 	public static IWorkspace getWorkspace() {
@@ -229,33 +186,16 @@ public class AspectJPlugin extends Plugin {
 		}
 		return false;
 	}
-	
-	/**
-	 * return the compiler monitor used for build progress monitoring and
-	 * compilation errors/warnings
-	 */
-	public IAJCompilerMonitor getCompilerMonitor() {
-		if (ajdtCompilerMonitor==null) {
-			ajdtCompilerMonitor = new CompilerMonitor();
-		}
-		return ajdtCompilerMonitor;
-	}
-
-	public void setCompilerMonitor(IAJCompilerMonitor monitor) {
-		ajdtCompilerMonitor = monitor;
-	}
-		
+			
 	public void setAJLogger(IAJLogger logger) {
 		AJLog.setLogger(logger);
 	}
 	
-	/**
-	 * Get the build configuration file to be used for building this project.
-	 * Use ".generated.lst" in the metadata directory, one per project
-	 */
-	public static String getBuildConfigurationFile(IProject project) {
-		return getDefault().getStateLocation()
-				.append(project.getName()+DEFAULT_CONFIG_FILE).toOSString();
+	public ICompilerFactory getCompilerFactory() {
+		return compilerFactory;
 	}
 
+	public void setCompilerFactory(ICompilerFactory compilerFactory) {
+		this.compilerFactory = compilerFactory;
+	}
 }
