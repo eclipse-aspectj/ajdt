@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
@@ -23,18 +24,19 @@ public interface IAJBuildListener {
 	/**
 	 * The given project is about to be built
 	 * 
+	 * @param kind
 	 * @param project
+	 * @param requiredProjects
 	 */
-	public void preAJBuild(int kind, IProject project,
-			IProject[] requiredProjects);
+	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects);
 
 	/**
 	 * The given project has just been built
 	 * 
 	 * @param project
+	 * @param noSourceChanges
 	 */
-	public void postAJBuild(IProject project, boolean buildCancelled,
-			boolean noSourceChanges);
+	public void postAJBuild(IProject project, boolean noSourceChanges);
 
 	/**
 	 * Add a listener to be notified when there is a change in the set of

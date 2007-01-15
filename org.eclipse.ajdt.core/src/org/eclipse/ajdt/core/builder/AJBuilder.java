@@ -9,6 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Adrian Colyer, Andy Clement, Tracy Gardner - initial version
  *     Matt Chapman - moved and refactored from ui plugin to core
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.core.builder;
 
@@ -21,13 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aspectj.ajde.Ajde;
-import org.aspectj.ajde.BuildManager;
-import org.aspectj.ajde.ProjectPropertiesAdapter;
+import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
-import org.aspectj.asm.AsmManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
@@ -37,6 +34,7 @@ import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -75,16 +73,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private static List buildListeners = new ArrayList();
 	
 	/**
-	 * The build manager used for this build
-	 */
-	private BuildManager buildManager = null;
-
-	/**
-	 * Indicates whether the build has been cancelled by the user
-	 */
-	private boolean buildCancelled = false;
-
-	/**
 	 * The progress monitor used for this build
 	 */
 	private IProgressMonitor progressMonitor;
@@ -115,6 +103,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#build(int, java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
+		IProject project = getProject();
+		AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
 		this.progressMonitor = progressMonitor;
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
@@ -130,19 +120,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			kindS = "CLEANBUILD";  //$NON-NLS-1$
 		AJLog.log(AJLog.BUILDER,"==========================================================================================="); //$NON-NLS-1$
 		AJLog.log(AJLog.BUILDER,"Build kind = " + kindS); //$NON-NLS-1$
-		
-		IProject project = getProject();
-		AspectJPlugin.getDefault().setCurrentProject(project);
-		buildCancelled = false;
-		
+				
 		IProject[] requiredProjects = getRequiredProjects(project,true);
-		
-		if (IncrementalStateManager.retrieveStateFor(AspectJPlugin
-			.getBuildConfigurationFile(project)) == null ) {
-		    // bug 101481 - if there is no incremental state then
-		    // next build should be a full one.
-		    kind = IncrementalProjectBuilder.FULL_BUILD;
-		}
 
 		// must call this after checking whether a full build has been requested,
 		// otherwise the listeners are called with a different build kind than
@@ -150,22 +129,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// the markers may not be cleared properly.
 		preCallListeners(kind, project, requiredProjects);		
 		progressMonitor.worked(1);
-		
-		buildManager = Ajde.getDefault().getBuildManager();
-		buildManager.setBuildModelMode(true);
 
 		String mode = "";  //$NON-NLS-1$
-		boolean incremental = buildManager.getBuildOptions().getIncrementalMode();
-		if (incremental && kind!=IncrementalProjectBuilder.FULL_BUILD) {
+		if (kind!=IncrementalProjectBuilder.FULL_BUILD) {
 			mode = "Incremental AspectJ compilation"; //$NON-NLS-1$
 		} else {
 			mode = "Full AspectJ compilation"; //$NON-NLS-1$
 		}
 		AJLog.log(AJLog.BUILDER,"Project=" //$NON-NLS-1$
 				+ project.getName() + ", kind of build requested=" + mode); //$NON-NLS-1$
-
-		// if using incremental compiilation, then attempt the incremental model repairs.
-		AsmManager.attemptIncrementalModelRepairs = incremental;		
 		
 		// bug 159197: check inpath and aspectpath
 		if (!validateInpathAspectPath(project)) {
@@ -188,8 +160,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		// Flush the list of included source files stored for this project
 		BuildConfig.flushIncludedSourceFileCache(project);
 
-		ProjectPropertiesAdapter adapter = Ajde.getDefault()
-			.getProjectProperties();
+		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration)
+				compiler.getCompilerConfiguration();
 
 		// Check the delta - we only want to proceed if something relevant
 		// in this project has changed (a .java file, a .aj file or a 
@@ -215,9 +187,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				}
 				if (!continueToBuild) {
 					// bug 107027
-					if (adapter instanceof CoreProjectProperties) {
-						((CoreProjectProperties)adapter).flushClasspathCache();
-					}
+					compilerConfig.flushClasspathCache();
 					postCallListeners(true);
 					AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 					progressMonitor.done();
@@ -228,7 +198,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		migrateToRTContainerIfNecessary(javaProject);
 
-		IAJCompilerMonitor compilerMonitor = AspectJPlugin.getDefault().getCompilerMonitor();
+		IAJCompilerMonitor compilerMonitor = (IAJCompilerMonitor) compiler.getBuildProgressMonitor();
 		if (kind == FULL_BUILD) {
 			IJavaProject ijp = JavaCore.create(project);
 			if (ijp != null)
@@ -236,20 +206,18 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			else
 				AJLog.log(AJLog.BUILDER,"Unable to empty output folder on build all - why cant we find the IJavaProject?"); //$NON-NLS-1$
 		}
-		compilerMonitor.prepare(project, null/*projectFiles*/, new SubProgressMonitor(progressMonitor,100));
+		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
 		lastBuiltProject = project;
 		
-		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+adapter.getClasspath());
+		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath());
 		
-		String configFile = AspectJPlugin.getBuildConfigurationFile(project);
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
 		if (kind == FULL_BUILD) {
-			buildManager.buildFresh(configFile);
+			compiler.buildFresh();
 		} else {
-			buildManager.build(configFile);
+			compiler.build();
 		}
-		waitForBuildCompletion(compilerMonitor);
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_AJDE);
 		
 		// We previously refreshed the project to infinite depth to pickup
@@ -289,42 +257,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		
 		AJModel.getInstance().createMap(project);
 		// bug 107027
-		if (adapter instanceof CoreProjectProperties) {
-			((CoreProjectProperties)adapter).flushClasspathCache();
-		}
+		compilerConfig.flushClasspathCache();
 		postCallListeners(false);
 		progressMonitor.worked(1);
 		progressMonitor.done();
 		
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
-	}
-
-	/**
-	 * Wait until compiler monitor indicates completion
-	 */
-	private void waitForBuildCompletion(IAJCompilerMonitor monitor) {
-		while (!monitor.finished()) {
-			try {
-				if (checkAndHandleCancelation()) {
-					return;
-				}
-				Thread.sleep(100);
-			} catch (Exception e) { }
-		}
-	}
-
-	/**
-	 * Check whether the user has pressed "cancel" and act accordingly
-	 */
-	private boolean checkAndHandleCancelation() {
-		if (progressMonitor != null && buildManager != null && progressMonitor.isCanceled()) {
-			buildManager.abortBuild();
-			buildCancelled = true;
-			AJLog.log(AJLog.BUILDER,"build: Build cancelled as requested"); //$NON-NLS-1$
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -335,10 +274,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * @return false if there are missing entries
 	 */
 	private boolean validateInpathAspectPath(IProject project) {
-		ProjectPropertiesAdapter adapter = Ajde.getDefault()
-				.getProjectProperties();
+		CoreCompilerConfiguration compilerConfig = (CoreCompilerConfiguration) 
+			AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).
+			getCompilerConfiguration();
 		boolean success = true;
-		Set inpath = adapter.getInpath();
+		Set inpath = compilerConfig.getInpath();
 		if (inpath != null) {
 			for (Iterator iter = inpath.iterator(); iter.hasNext();) {
 				File f = (File) iter.next();
@@ -351,7 +291,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 				}
 			}
 		}
-		Set aspectpath = adapter.getAspectPath();
+		Set aspectpath = compilerConfig.getAspectPath();
 		if (aspectpath != null) {
 			for (Iterator iter = aspectpath.iterator(); iter.hasNext();) {
 				File f = (File) iter.next();
@@ -910,7 +850,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void postCallListeners(boolean noSourceChanges) {
 		for (Iterator iter = buildListeners.iterator(); iter.hasNext();) {
 			IAJBuildListener listener = (IAJBuildListener) iter.next();
-			listener.postAJBuild(getProject(), buildCancelled, noSourceChanges);
+			listener.postAJBuild(getProject(),noSourceChanges);
 		}
 	}
 	
@@ -920,11 +860,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	protected void clean(IProgressMonitor monitor) throws CoreException {
 	    // implemented as part of bug 101481
 		IProject project = getProject();
-		IncrementalStateManager
-				.removeIncrementalStateInformationFor(AspectJPlugin
-						.getBuildConfigurationFile(project));
+		// Remove the compiler instance associated with this project
+		// from the factory
+		AspectJPlugin.getDefault().getCompilerFactory().removeCompilerForProject(project);
 	    
-	    removeProblemsAndTasksFor(project);
+		removeProblemsAndTasksFor(project);
 	    // clean the output folders and do a refresh if not
 	    // automatically building (so that output dir reflects the
 	    // changes)

@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.core.model;
 
@@ -17,7 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.aspectj.ajde.Ajde;
 import org.aspectj.asm.IProgramElement;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -281,16 +281,5 @@ public class AJModel {
 	
 	
 	// should be able to make this private, when all of AJDT uses the new model
-	/**
-	 * This method sets the current project and initialises AJDE
-	 */
-	public static void initialiseAJDE(IProject withProject) {
-		String configFile = AspectJPlugin.getBuildConfigurationFile(withProject);
-		if (!configFile.equals(lastLoadedConfigFile)) {
-			Ajde.getDefault().getConfigurationManager().setActiveConfigFile(
-				configFile);
-			lastLoadedConfigFile = configFile;
-		}
-	}
 
 }
