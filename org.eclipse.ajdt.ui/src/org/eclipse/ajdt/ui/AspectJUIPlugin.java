@@ -6,6 +6,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Adrian Colyer, Andy Clement, Tracy Gardner - initial version
+ Helen Hawkins - updated for new ajde interface (bug 148190)
  ...
  **********************************************************************/
 package org.eclipse.ajdt.ui;
@@ -16,21 +17,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import org.aspectj.ajde.Ajde;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.builder.UIBuildListener;
+import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
 import org.eclipse.ajdt.internal.javamodel.ResourceChangeListener;
-import org.eclipse.ajdt.internal.ui.ajde.BuildOptionsAdapter;
-import org.eclipse.ajdt.internal.ui.ajde.CompilerMonitor;
-import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
-import org.eclipse.ajdt.internal.ui.ajde.EditorAdapter;
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
-import org.eclipse.ajdt.internal.ui.ajde.IdeUIAdapter;
-import org.eclipse.ajdt.internal.ui.ajde.ProjectProperties;
+import org.eclipse.ajdt.internal.ui.ajde.UICompilerFactory;
 import org.eclipse.ajdt.internal.ui.editor.AspectJTextTools;
 import org.eclipse.ajdt.internal.ui.lazystart.Utils;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
@@ -38,10 +33,8 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger;
-import org.eclipse.ajdt.internal.utils.AJDTStructureViewNodeFactory;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -50,7 +43,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.PluginVersionIdentifier;
 import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -62,12 +54,8 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
 import org.eclipse.jface.text.templates.persistence.TemplateReaderWriter;
 import org.eclipse.jface.text.templates.persistence.TemplateStore;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -93,8 +81,7 @@ import org.osgi.framework.Constants;
  * information via some static getter methods :- getCurrentProject() and
  * getCurrentResource()
  */
-public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
-		implements ISelectionListener {
+public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 
 	// the id of this plugin
 	public static final String PLUGIN_ID = Utils.PLUGIN_ID; //$NON-NLS-1$
@@ -125,40 +112,9 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	private static AspectJUIPlugin plugin;
 
 	/**
-	 * ProjectPropertiesAdapter is required by the AJDT tools to initialise the
-	 * AJDE environment.
-	 */
-	private ProjectProperties ajdtProjectProperties;
-
-	/**
-	 * Editor adapter used by AJDE tools to control editor when needed
-	 */
-	private EditorAdapter ajdtEditorAdapter;
-
-	/**
-	 * Build options passed to AJDE
-	 */
-	private BuildOptionsAdapter ajdtBuildOptions;
-
-	/**
 	 * AbstractIconRegistry used to manage all icons for AJDT.
 	 */
 	private AspectJImages ajdtImages;
-
-	/**
-	 * StructureViewManager used by AJDE to build tree structure
-	 */
-	private AJDTStructureViewNodeFactory ajdtStructureFactory;
-
-	/**
-	 * IDEAdapter used by AJDE to display status messages
-	 */
-	private IdeUIAdapter ajdtUIAdapter;
-
-	/**
-	 * Error handler used to display error messages issued from AJDE tools.
-	 */
-	private ErrorHandler ajdtErrorHandler;
 
 	/**
 	 * The text tools to use for AspectJ aware editing
@@ -310,29 +266,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			}
 		}
 	}
-
-	/**
-	 * return the error handler used to popup error dialogs and store errors in
-	 * the log.
-	 */
-	public ErrorHandler getErrorHandler() {
-		return ajdtErrorHandler;
-	}
-
-	/**
-	 * Access the ProjectPropertiesAdapter required by the AJDE tools
-	 */
-	public ProjectProperties getAjdtProjectProperties() {
-		return ajdtProjectProperties;
-	}
-
-	/**
-	 * Access the build options adapter
-	 */
-	public BuildOptionsAdapter getAjdtBuildOptionsAdapter() {
-		return ajdtBuildOptions;
-	}
-
+	
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 
@@ -359,22 +293,10 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		// set the UI version of core operations
 		AspectJPlugin.getDefault().setAJLogger(new EventTraceLogger());
 		
-		ajdtProjectProperties = new ProjectProperties();
-		
-		// replace the core compiler monitor with the UI one
-		AspectJPlugin.getDefault().setCompilerMonitor(new CompilerMonitor());
-		
-		ajdtEditorAdapter = new EditorAdapter();
-		ajdtErrorHandler = new ErrorHandler();
-		ajdtBuildOptions = new BuildOptionsAdapter();
 		ajdtImages = AspectJImages.instance();
-		ajdtUIAdapter = new IdeUIAdapter();
-		ajdtStructureFactory = new AJDTStructureViewNodeFactory(ajdtImages);
-
-		Ajde.init(ajdtEditorAdapter, CompilerTaskListManager.getInstance(), // task list manager
-				AspectJPlugin.getDefault().getCompilerMonitor(), // build progress monitor
-				ajdtProjectProperties, ajdtBuildOptions,
-				ajdtStructureFactory, ajdtUIAdapter, ajdtErrorHandler);
+		
+		// set the compiler factory to be the ui one
+		setCompilerFactory(new UICompilerFactory());
 
 		checkEclipseVersion();
 
@@ -386,11 +308,6 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 		if ((Platform.getBundle(XREF_CORE_ID)==null)
 				|| (Platform.getBundle(XREF_UI_ID)==null)) {
 			usingXref = false;
-		}
-
-		IWorkbenchWindow window = getActiveWorkbenchWindow();
-		if (window != null) {
-			window.getSelectionService().addPostSelectionListener(this);
 		}
 		
 		checkAspectJVersion();
@@ -464,45 +381,7 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 	}
 
 	// Implementation of ISelectionListener follows
-
-	/**
-	 * Keeps the currentResource and currentProject information up to date in
-	 * this class, as this method is called whenever a user changes their
-	 * selection in the workspace.
-	 */
-	public void selectionChanged(IWorkbenchPart iwp, ISelection is) {
-			// If we want to check only for selection changes in the Packages
-			// view, then we could check the WorkbenchPart:
-			// if (iwp.getTitle().equals("Packages")) {
-			// But there are so many places where the resources are exposed
-			// navigator view, etc - that if we can be more generic and cope
-			// with selection of the resources occurring anywhere, then we
-			// should always
-			// have the current project correct.
-
-			// AMC note: GM1 build is firing an ITextSelection event only
-			// clicking on the tab for an open file in the editor (to change
-			// the current file being viewed). This does *not* give us the
-			// information we need to update the current project :-(
-
-			if (is instanceof IStructuredSelection) {
-				IStructuredSelection structuredSelection = (IStructuredSelection) is;
-				Object o = structuredSelection.getFirstElement();
-
-				if (o != null) {
-					if (o instanceof IResource) {
-						AspectJPlugin.getDefault().setCurrentProject(((IResource)o).getProject());
-
-					} else if (o instanceof IJavaElement) {
-						IJavaElement je = (IJavaElement) o;
-						if (je.getJavaProject() != null) {
-							AspectJPlugin.getDefault().setCurrentProject(je.getJavaProject().getProject());
-						}
-					}
-				}
-			}
-	}
-
+	
 	/**
 	 * Attempt to update the project's build classpath with the AspectJ runtime
 	 * library.
@@ -566,6 +445,14 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin
 			}// end if at least one classpath element removed
 		} catch (JavaModelException e) {
 		}
+	}
+	
+	public ICompilerFactory getCompilerFactory() {
+		return AspectJPlugin.getDefault().getCompilerFactory();
+	}
+
+	public void setCompilerFactory(ICompilerFactory compilerFactory) {
+		AspectJPlugin.getDefault().setCompilerFactory(compilerFactory);
 	}
 
 }

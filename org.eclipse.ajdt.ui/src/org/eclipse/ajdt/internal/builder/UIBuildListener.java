@@ -8,6 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
@@ -16,10 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
+import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
-import org.eclipse.ajdt.internal.ui.ajde.CompilerTaskListManager;
+import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -63,8 +66,6 @@ public class UIBuildListener implements IAJBuildListener {
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#preAJBuild(org.eclipse.core.resources.IProject)
 	 */
 	public void preAJBuild(int kind, IProject project, IProject[] requiredProjects) {		
-		//ensureBuildConfigFileIsValid(props, project);
-		
 		// checking to see if the current project has been marked as needing
 		// a required project to be rebuilt.
 		boolean haveClearedMarkers = false;
@@ -75,7 +76,7 @@ public class UIBuildListener implements IAJBuildListener {
 			if (projectAlreadyMarked(project, referencedMessage)) {
 				if (kind == IncrementalProjectBuilder.FULL_BUILD) {
 					AJDTUtils.clearProjectMarkers(project, true);
-					CompilerTaskListManager.clearOtherProjectMarkers(project);
+					UIMessageHandler.clearOtherProjectMarkers(project);
 				} else {
 					AJDTUtils.clearProjectMarkers(project, false);
 				}
@@ -89,7 +90,7 @@ public class UIBuildListener implements IAJBuildListener {
 			} else {
 				AJDTUtils.clearProjectMarkers(project, false);
 			}
-			CompilerTaskListManager.clearOtherProjectMarkers(project);
+			UIMessageHandler.clearOtherProjectMarkers(project);
 		}
 
 		MarkerUpdating.deleteAllMarkers(project);
@@ -138,7 +139,7 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(IProject project, boolean buildCancelled, boolean noSourceChanges) {
+	public void postAJBuild(IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);
 			return;
@@ -147,6 +148,9 @@ public class UIBuildListener implements IAJBuildListener {
 		// The message to feature in the problems view of depending projects
 		String buildPrereqsMessage = NLS.bind(UIMessages.buildPrereqsMessage,
 				project.getName());
+		boolean buildCancelled = ((IAJCompilerMonitor)AspectJPlugin.getDefault().
+				getCompilerFactory().getCompilerForProject(project).getBuildProgressMonitor()).
+				buildWasCancelled();
 		if (buildCancelled) {
 			markReferencingProjects(project, buildPrereqsMessage);
 		} else {
@@ -155,7 +159,8 @@ public class UIBuildListener implements IAJBuildListener {
 
 		// Bug22258: Get the compiler monitor to display any issues with
 		// that compile.
-		CompilerTaskListManager.showOutstandingProblems();
+		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
+				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems();
 
 		// before returning, check to see if the project sent its output
 		// to an outjar and if so, then update any depending projects
@@ -270,7 +275,7 @@ public class UIBuildListener implements IAJBuildListener {
 	 * from the classpath of depending projects. 
 	 */
 	private void checkOutJarEntry(IProject project) {
-		String outJar = AspectJUIPlugin.getDefault().getAjdtProjectProperties().getOutJar();
+		String outJar = AspectJUIPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getCompilerConfiguration().getOutJar();
 		if (outJar != null && !(outJar.equals(""))) {  //$NON-NLS-1$
 			if (outjars == null) {
 				outjars = new HashMap();

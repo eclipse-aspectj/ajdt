@@ -8,6 +8,8 @@
  * 		Adrian Colyer, Andy Clement, Tracy Gardner - initial version
  * 		Ian McGrath - added ability to use existing project structures
  * 		Sian January - updated to look like 3.0 new Java Project wizard
+ *      Helen Hawkins - updated for new ajde interface (bug 148190) (no
+ *                      longer need to set the current project)
  * 		...
 **********************************************************************/
 
@@ -17,7 +19,6 @@ package org.eclipse.ajdt.internal.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
@@ -159,7 +160,6 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 		}
 		
 		project = thisProject;
-		AspectJPlugin.getDefault().setCurrentProject( project );
 		selectAndReveal(project);
 		AJLog.log("New project created: " + project.getName()); //$NON-NLS-1$
 		return true;

@@ -6,6 +6,8 @@ which accompanies this distribution, and is available at
 http://www.eclipse.org/legal/epl-v10.html
 Contributors:
 Adrian Colyer - initial version
+Helen Hawkins - updated for new ajde interface (bug 148190) (removed
+               redundant extension of Ajde's AbstractIcon)
 ...
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.resources;
@@ -13,11 +15,10 @@ package org.eclipse.ajdt.internal.ui.resources;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.aspectj.ajde.ui.AbstractIcon;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-public class AJDTIcon extends AbstractIcon {
+public class AJDTIcon  {
 
 	public static final AJDTIcon MISSING_ICON = 
 		new AJDTIcon( ImageDescriptor.getMissingImageDescriptor() );
@@ -30,7 +31,6 @@ public class AJDTIcon extends AbstractIcon {
 	 * @param iconResource
 	 */
 	public AJDTIcon( URL iconResourcePath ) {
-		super( iconResourcePath );
 		this.descriptor = ImageDescriptor.createFromURL( iconResourcePath );		
 	}
 
@@ -38,7 +38,6 @@ public class AJDTIcon extends AbstractIcon {
 	 * Build icon from an eclipse image descriptor
 	 */
 	public AJDTIcon(ImageDescriptor imgDescriptor) {
-		super( imgDescriptor );
 		this.descriptor = imgDescriptor;
 	}
 	
@@ -46,7 +45,6 @@ public class AJDTIcon extends AbstractIcon {
 	 * Build icon from a resource in this plugin's install directory
 	 */
 	public AJDTIcon(String localPath) {
-		super( localPath );
 		if ( pluginInstallURL == null ) {
 			pluginInstallURL = AspectJUIPlugin.getDefault().getBundle().getEntry("/"); //$NON-NLS-1$
 		} 

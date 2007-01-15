@@ -7,7 +7,8 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initial version
+ *     Helen Hawkins   - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
@@ -41,21 +42,21 @@ public class AJDTErrorHandler {
 	/**
 	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
 	 */
-	public static void handleAJDTError(String message, CoreException t) {
+	public static void handleAJDTError(String message, Throwable t) {
 		handleInternalError(UIMessages.ajdtErrorDialogTitle, message, t);
 	}
 	
 	/**
 	 * Display an error dialog with exception - only called by AJDT (not AspectJ)
 	 */
-	public static void handleAJDTError(String title, String message, CoreException t) {
+	public static void handleAJDTError(String title, String message, Throwable t) {
 		AJDTErrorHandler.handleInternalError(title, message, t);
 	}
 
 	/**
 	 * Display an error dialog with exception
 	 */
-	static void handleInternalError(final String title, final String message, Throwable t) {
+	public static void handleInternalError(final String title, final String message, Throwable t) {
 		final IStatus status;
 		final String shortMessage;
 		final String longMessage;

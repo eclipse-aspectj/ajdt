@@ -12,6 +12,8 @@ Contributors:
                  - add support for Advises entries
     Sian January - support for "aspect declarations", "annotates", 
     				"declared by" and "annotated by" menus
+    Helen Hawkins - updated for new ajde interface (bug 148190)
+
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.editor;
 
@@ -20,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
@@ -157,6 +158,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 .getAttribute(AspectJUIPlugin.RELATED_LOCATIONS_ATTRIBUTE_PREFIX
                                         + (relCount++));
                         if (loc != null) {
+                        	IProject project = ifile.getProject();
                             // Build a new action for our menu for each extra
                             // source location
                             while (loc != null) {
@@ -167,7 +169,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
                                 String textLabel = NLS.bind(UIMessages.EditorRulerContextMenu_relatedLocation_message,
                                                 new String[] { resName, s[1] });
                                 RelatedLocationMenuAction ama = new RelatedLocationMenuAction(
-                                        textLabel, loc);
+                                        textLabel, loc, project);
                                 // Initialize the submenu if we haven't done it
                                 // already.
                                 if (!problemSubmenuInitialized) {
@@ -371,8 +373,12 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	 * and jump to it.
 	 */
 	abstract class BaseAJDTMenuAction extends Action {
-        BaseAJDTMenuAction(String s) {
+		
+		private IProject project;
+		
+        BaseAJDTMenuAction(String s, IProject project) {
             super(s);
+            this.project = project;
         }
 
         abstract String getJumpLocation();
@@ -392,8 +398,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 
 			IResource r = AJDTUtils.findResource(filepath);
 			if (r == null) {
-				r = AJDTUtils.findResource(filepath,
-								AspectJPlugin.getDefault().getCurrentProject());
+				r = AJDTUtils.findResource(filepath,project);
 			}
 			final IResource ir = r;
 
@@ -413,8 +418,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 							linenumber).intValue());
 
 				} catch (CoreException ce) {
-					AJDTErrorHandler
-							.handleAJDTError(
+					AJDTErrorHandler.handleAJDTError(
 									UIMessages.AdviceActionDelegate_unable_to_create_marker,
 									ce);
 				}
@@ -438,8 +442,8 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 	class RelatedLocationMenuAction extends BaseAJDTMenuAction {
 	    private String jumpLocation;
 	    
-	    RelatedLocationMenuAction(String s, String jumpLocation) {
-	        super(s);
+	    RelatedLocationMenuAction(String s, String jumpLocation, IProject project) {
+	        super(s,project);
 	        this.jumpLocation = jumpLocation;
 	        setImageDescriptor(JavaUI.getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_CUNIT));
 	    }

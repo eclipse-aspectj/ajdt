@@ -6,6 +6,7 @@
  http://www.eclipse.org/legal/epl-v10.html
  Contributors:
  Adrian Colyer, Andy Clement - initial version
+ Helen Hawkins - updated for new ajde interface (bug 148190)
 
  **********************************************************************/
 package org.eclipse.ajdt.internal.ui;
@@ -137,8 +138,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		try {
 			initialAspectpath = getInitialAspectpathValue(thisProject);
 		} catch (CoreException ce) {
-			AJDTErrorHandler
-					.handleAJDTError(
+			AJDTErrorHandler.handleAJDTError(
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
 							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message,
 							ce);
@@ -277,6 +277,34 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		return composite;
 	}
 	
+	private boolean checkIfOnInpath(IProject project, String string) {
+		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
+		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
+
+		String outJar = ('/'+thisProject.getName()+'/'+string);
+		for (int j = 0; j < seperatedOldInpath.length; j++) {
+			if ((seperatedOldInpath[j].equals(outJar))&& 
+					!(seperatedOldInpath[j].equals(""))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean checkIfOnAspectpath(IProject project, String string) {
+		String[] oldAspectpath = AspectJCorePreferences
+				.getProjectAspectPath(project);
+		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
+		
+		String outJar = ('/'+thisProject.getName()+'/'+string);
+		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
+			if ((seperatedOldAspectpath[j].equals(outJar)) && 
+					!(seperatedOldAspectpath[j].equals(""))) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * overriding performApply() for PreferencePageBuilder.aj
@@ -330,8 +358,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					new IClasspathAttribute[0] // extra attributes?
 			);
 		}
-		if (AspectJCorePreferences.isOnInpath(thisProject, outJar)||
-				AspectJCorePreferences.isOnAspectpath(thisProject, outJar)){
+		if (checkIfOnInpath(thisProject, outJar)||
+				checkIfOnAspectpath(thisProject, outJar)){
 			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, UIMessages.buildConfig_invalidOutjar);
 			outputJarEditor.setStringValue(oldOutJar);
 		}else{
@@ -374,8 +402,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					try {
 						fAspectPathBlock.configureJavaProject(monitor);
 					} catch (CoreException e) {
-						AJDTErrorHandler
-								.handleAJDTError(
+						AJDTErrorHandler.handleAJDTError(
 										PreferencesMessages.BuildPathsPropertyPage_error_message,
 										e);
 					}

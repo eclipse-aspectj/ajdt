@@ -7,6 +7,8 @@ http://www.eclipse.org/legal/epl-v10.html
 Contributors:
 Adrian Colyer - initial version
 Sian Whiting - added new images for 1.1.11 release
+Helen Hawkins - updated for new ajde interface (bug 148190) (removed
+               redundant extension of Ajde's AbstractIconRegistry)
 ...
 **********************************************************************/
 package org.eclipse.ajdt.internal.ui.resources;
@@ -14,9 +16,6 @@ package org.eclipse.ajdt.internal.ui.resources;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.aspectj.ajde.ui.AbstractIcon;
-import org.aspectj.ajde.ui.AbstractIconRegistry;
-import org.aspectj.ajde.ui.BuildConfigNode;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.asm.IRelationship;
 import org.aspectj.asm.IProgramElement.Kind;
@@ -29,7 +28,7 @@ import org.eclipse.jdt.ui.JavaUI;
  * Utility class providing access to all the images used by this
  * plugin.
  */
-public class AspectJImages extends AbstractIconRegistry {
+public class AspectJImages  {
 
 	private static AspectJImages instance;
 
@@ -42,39 +41,39 @@ public class AspectJImages extends AbstractIconRegistry {
 
 	// The following icons are private and should be accessed through the 
 	// getStructureIcon operation:
-	private final AbstractIcon JDT_PACKAGE = new AJDTIcon(
+	private final AJDTIcon JDT_PACKAGE = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_PACKAGE ) );
-	private final AbstractIcon JDT_FILE = new AJDTIcon(
+	private final AJDTIcon JDT_FILE = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_CUNIT ) );
-	private final AbstractIcon JDT_CLASS = new AJDTIcon(
+	private final AJDTIcon JDT_CLASS = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_CLASS ) );
 	
 	//following 4 icons cannot be accessed using JavaUI.getSharedImages()
-	private final AbstractIcon JDT_INNER_CLASS_PRIVATE = new AJDTIcon(
+	private final AJDTIcon JDT_INNER_CLASS_PRIVATE = new AJDTIcon(
 			JavaPluginImages.DESC_OBJS_INNER_CLASS_PRIVATE );
-	private final AbstractIcon JDT_INNER_CLASS_PROTECTED = new AJDTIcon(
+	private final AJDTIcon JDT_INNER_CLASS_PROTECTED = new AJDTIcon(
 			JavaPluginImages.DESC_OBJS_INNER_CLASS_PROTECTED );
-	private final AbstractIcon JDT_INNER_CLASS_PUBLIC = new AJDTIcon(
+	private final AJDTIcon JDT_INNER_CLASS_PUBLIC = new AJDTIcon(
 			JavaPluginImages.DESC_OBJS_INNER_CLASS_PUBLIC );
-	private final AbstractIcon JDT_INNER_CLASS_DEFAULT = new AJDTIcon(
+	private final AJDTIcon JDT_INNER_CLASS_DEFAULT = new AJDTIcon(
 			JavaPluginImages.DESC_OBJS_INNER_CLASS_DEFAULT);
 
-	private final AbstractIcon JDT_INTERFACE = new AJDTIcon(
+	private final AJDTIcon JDT_INTERFACE = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_INTERFACE ) );
-	private final AbstractIcon JDT_PRIVATE_METHOD = new AJDTIcon(
+	private final AJDTIcon JDT_PRIVATE_METHOD = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_PRIVATE ) );
-	private final AbstractIcon JDT_PROTECTED_METHOD = new AJDTIcon(
+	private final AJDTIcon JDT_PROTECTED_METHOD = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_PROTECTED ) );
-	private final AbstractIcon JDT_PUBLIC_METHOD = new AJDTIcon(
+	private final AJDTIcon JDT_PUBLIC_METHOD = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_PUBLIC ) );
-	private final AbstractIcon JDT_DEFAULT_METHOD = new AJDTIcon(
+	private final AJDTIcon JDT_DEFAULT_METHOD = new AJDTIcon(
 		JavaUI.getSharedImages().getImageDescriptor( ISharedImages.IMG_OBJS_DEFAULT ) );
 
 
-	private final AbstractIcon WKBENCH_FILE = new AJDTIcon(
+	private final AJDTIcon WKBENCH_FILE = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FILE ) );
 
-	private final AbstractIcon WKBENCH_FOLDER = new AJDTIcon(
+	private final AJDTIcon WKBENCH_FOLDER = new AJDTIcon(
 		workbenchImages.getImageDescriptor( org.eclipse.ui.ISharedImages.IMG_OBJ_FOLDER ) );
 	private static final AJDTIcon AJDT_ASPECT = new AJDTIcon(
 		"icons/structure/aspect.gif" ); //$NON-NLS-1$
@@ -217,13 +216,13 @@ public class AspectJImages extends AbstractIconRegistry {
 	public static final AJDTIcon HIDE_WARNINGS = new AJDTIcon("icons/actions/hide_warnings.gif"); //$NON-NLS-1$
 			
 	// TEMPORARY:
-	private final AbstractIcon JDT_PRIVATE_FIELD = new AJDTIcon(
+	private final AJDTIcon JDT_PRIVATE_FIELD = new AJDTIcon(
 				"icons/jdt/field_private_obj.gif"); //$NON-NLS-1$
-	private final AbstractIcon JDT_PROTECTED_FIELD = new AJDTIcon(
+	private final AJDTIcon JDT_PROTECTED_FIELD = new AJDTIcon(
 				"icons/jdt/field_protected_obj.gif"); //$NON-NLS-1$
-	private final AbstractIcon JDT_PUBLIC_FIELD = new AJDTIcon(
+	private final AJDTIcon JDT_PUBLIC_FIELD = new AJDTIcon(
 				"icons/jdt/field_public_obj.gif"); //$NON-NLS-1$
-	private final AbstractIcon JDT_DEFAULT_FIELD = new AJDTIcon(
+	private final AJDTIcon JDT_DEFAULT_FIELD = new AJDTIcon(
 				"icons/jdt/field_default_obj.gif"); //$NON-NLS-1$
 
 	private ImageDescriptorRegistry registry;
@@ -288,12 +287,8 @@ public class AspectJImages extends AbstractIconRegistry {
 
 	private AspectJImages(){}
 	
-	// Methods inherited from AbstractIconRegistry
 
-	/**
-	 * @see AbstractIconRegistry#createIcon(String)
-	 */
-	protected AbstractIcon createIcon(String path) {
+	protected AJDTIcon createIcon(String path) {
 		if ( path.startsWith( AJDE_ICON_PATH_PREFIX ) ) {
 			path = path.substring( AJDE_ICON_PATH_PREFIX.length( ) );
 		}
@@ -307,11 +302,9 @@ public class AspectJImages extends AbstractIconRegistry {
 	}
 
 	/**
-	 * We override this method to provide the eclipse-specific icons
-	 * for certain "Kinds" of resource.
-	 * @see AbstractIconRegistry#getStructureIcon(Kind)
+	 * provide the eclipse-specific icons for certain "Kinds" of resource.
 	 */
-	public AbstractIcon getIcon(Kind kind ) {
+	public AJDTIcon getIcon(Kind kind ) {
 		if ( kind == IProgramElement.Kind.CONSTRUCTOR ||
 			 kind == IProgramElement.Kind.METHOD ||
 			 kind == IProgramElement.Kind.FIELD ) {
@@ -356,16 +349,13 @@ public class AspectJImages extends AbstractIconRegistry {
 		} else if(kind == IProgramElement.Kind.INTER_TYPE_CONSTRUCTOR) {
 			return ITD_CONSTRUCTOR_DEF;
 		}
-
-		AbstractIcon icon = super.getIcon( kind );
-		if ( icon != null ) { return icon; }
-		else { return AJDTIcon.MISSING_ICON; }
+		return AJDTIcon.MISSING_ICON;
 	}
 	
 	/**
 	 * (copied from AJDTStructureViewNodeFactory.changeIconIfAdviceNode and adjustet) (Luzius)
 	 */
-	public AbstractIcon getAdviceIcon(IProgramElement.ExtraInformation extraInfo, boolean hasDynamicTests) {
+	public AJDTIcon getAdviceIcon(IProgramElement.ExtraInformation extraInfo, boolean hasDynamicTests) {
 		if (extraInfo.getExtraAdviceInformation()!=null) {				
 				if(extraInfo.getExtraAdviceInformation().equals("before")) { //$NON-NLS-1$
 					if(hasDynamicTests) {
@@ -391,31 +381,11 @@ public class AspectJImages extends AbstractIconRegistry {
 		return AspectJImages.AFTER_ADVICE;
 	}
 
-
-	/**
-	 * This method added by AMC for use by BuildConfigEditor
-	 */
-	public AbstractIcon getIcon( BuildConfigNode.Kind kind ) {
-		if ( kind == BuildConfigNode.Kind.FILE_ASPECTJ ) {
-			return AJDT_ASPECT;
-		} else if ( kind == BuildConfigNode.Kind.FILE_JAVA ) {
-			return JDT_FILE;
-	    } else if ( kind == BuildConfigNode.Kind.DIRECTORY ) {
-			return WKBENCH_FOLDER;
-		} else if ( kind == BuildConfigNode.Kind.FILE_LST ) {
-			return FILE_LST;
-		} else if ( kind == BuildConfigNode.Kind.ERROR ) {
-			return WKBENCH_FILE;
-		} else {
-			return AJDTIcon.MISSING_ICON;
-		}				
-	}
-
 	/**
 	 * Added this method for constructor, method, field to differentiate
 	 * icon based on Accessbility
 	 */
-	public AbstractIcon getStructureIcon( Kind kind, IProgramElement.Accessibility access) {
+	public AJDTIcon getStructureIcon( Kind kind, IProgramElement.Accessibility access) {
 		// eclipse uses the same icons regardless of kind...
 		// no, it doesn't!
 		if ( kind == IProgramElement.Kind.CONSTRUCTOR ||
@@ -511,13 +481,13 @@ public class AspectJImages extends AbstractIconRegistry {
 		}
 	}	
 
-	public AbstractIcon getIcon(IRelationship.Kind relationship) {
+	public AJDTIcon getIcon(IRelationship.Kind relationship) {
 		if (relationship == IRelationship.Kind.ADVICE 
 				|| relationship == IRelationship.Kind.DECLARE
 					|| relationship == IRelationship.Kind.DECLARE_INTER_TYPE){
 			return ADVISES;
 		} else {
-			return super.getIcon(relationship);
+			return AJDTIcon.MISSING_ICON;
 		}
 	}
 	

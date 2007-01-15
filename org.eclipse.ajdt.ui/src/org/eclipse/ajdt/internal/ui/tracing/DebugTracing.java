@@ -13,7 +13,7 @@ package org.eclipse.ajdt.internal.ui.tracing;
 
 import java.util.List;
 
-import org.aspectj.ajde.Ajde;
+import org.aspectj.bridge.Version;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
 import org.eclipse.ajdt.core.builder.AJBuilder;
@@ -77,7 +77,7 @@ public class DebugTracing {
 		eventData.append( EclipseVersion.MAJOR_VERSION + "." + EclipseVersion.MINOR_VERSION); //$NON-NLS-1$
 		
 		eventData.append( "\n   AspectJ Compiler version: " ); //$NON-NLS-1$
-		eventData.append( Ajde.getDefault().getVersion() );
+		eventData.append( Version.text );
 		eventData.append( "\n   usingVisualiser="+AspectJUIPlugin.usingVisualiser ); //$NON-NLS-1$
 		eventData.append( "\n   usingXref="+AspectJUIPlugin.usingXref ); //$NON-NLS-1$
 		eventData.append( "\n   usingCUprovider="+AspectJPlugin.usingCUprovider ); //$NON-NLS-1$

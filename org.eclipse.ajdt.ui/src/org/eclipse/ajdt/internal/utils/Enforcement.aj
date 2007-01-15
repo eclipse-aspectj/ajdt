@@ -7,11 +7,10 @@
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *     Helen Hawkins   - iniital version
+ *     Helen Hawkins   - initial version
+ *     Helen Hawkins   - updated for new ajde interface (bug 148190)
  *******************************************************************************/
 package org.eclipse.internal.ajdt.utils;
-
-import org.eclipse.ajdt.internal.ui.ajde.ErrorHandler;
 
 /**
  * Check some coding standards and conventions
@@ -29,8 +28,4 @@ public aspect Enforcement {
 		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceView)
 		&& !within(org.eclipse.ajdt.internal.ui.tracing.EventTraceLogger) :
 		"There should be no calls to AJDTEventTrace methods, use AJLog.log instead"; //$NON-NLS-1$
-
-	declare error : call(void ErrorHandler.handleError(..)) :
-		"Calls to handleError should not come from within AJDT, use ErrorHandler.handleAJDTError instead"; //$NON-NLS-1$
-
 }
