@@ -198,7 +198,10 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 		AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().activate(xrefView);
 		waitForJobsToComplete();
 
-		// press "down" twice and then return
+		// press "down" four times and then return (navigates to something
+		// which advises something in Demo.java
+		postKey(SWT.ARROW_DOWN);
+		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.ARROW_DOWN);
 		postKey(SWT.CR);
@@ -208,17 +211,23 @@ public class XReferenceViewNavigationTest extends VisualTestCase {
 
 			protected boolean condition() {
 				IEditorPart activeEditor = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-				boolean ret = (activeEditor != null && !activeEditor.equals(editorPart));
+				boolean ret = (activeEditor != null && !activeEditor.equals(editorPart) && 
+						(activeEditor.getEditorInput().getName().indexOf("Demo.java") != -1));
 				return ret;
 			}
 		
 		}.waitForCondition(Display.getCurrent(), 5000);
 		
+		Object o = xrefView.getTreeViewer().getInput();
+		waitForJobsToComplete();
 		final IEditorPart newEditor = AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-		assertTrue("Demo.java should have been opened in the editor",!(newEditor.equals(editorPart)));  //$NON-NLS-1$
+		assertTrue("Demo.java should have been opened in the editor but found "
+				+ newEditor.getEditorInput().getName(),
+				(newEditor.getEditorInput().getName().indexOf("Demo.java") != -1));  //$NON-NLS-1$
 
 		// wait for the xref view to contain something
-		XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		//XRefVisualTestUtils.waitForXRefViewToContainSomething();
+		XRefVisualTestUtils.waitForXRefViewToContainSomethingNew(o);
 		
 		// get the cross references and check that the view 
 		// is showing the xrefs for the entire file
