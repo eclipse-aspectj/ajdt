@@ -16,8 +16,6 @@ import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
 import org.eclipse.ajdt.internal.core.ajde.CoreOutputLocationManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 
 public class CoreOutputLocationManagerTest extends AJDTCoreTestCase {
 
