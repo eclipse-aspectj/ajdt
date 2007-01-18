@@ -10,6 +10,7 @@
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -248,52 +249,54 @@ public class UIMessageHandler implements IBuildMessageHandler {
                         try {
                         	if (p.location != null) {
                                 ir = locationToResource(p.location, project);
-                                if (lastBuildWasFull || affectedResources.contains(ir) || ir.getProject() != project) { // 128803 - only add problems to affected resources
-	                                int prio = getTaskPriority(p);
-	                                if (prio != -1) {
-	                                    marker = ir.createMarker(IMarker.TASK);
-	                                    marker.setAttribute(IMarker.PRIORITY, prio);
-	                                } else {
-	                                    if (p.declaredErrorOrWarning) {
-	                                        marker = ir
-	                                                .createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
-	                                    } else {
-	                                    	// create Java marker with problem id so
-											// that quick fix is available
-											marker = ir
-													.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-											marker.setAttribute(
-													IJavaModelMarker.ID, p.id);
-											if ((p.start >= 0) && (p.end >= 0)) {
-												marker.setAttribute(
-														IMarker.CHAR_START,
-														new Integer(p.start));
-												marker.setAttribute(
-														IMarker.CHAR_END,
-														new Integer(p.end + 1));
+								if ((ir != null) && ir.exists()) {
+									// 128803 - only add problems to affected resources
+									if (lastBuildWasFull
+											|| affectedResources.contains(ir)
+											|| ir.getProject() != project) {
+										int prio = getTaskPriority(p);
+										if (prio != -1) {
+											marker = ir.createMarker(IMarker.TASK);
+											marker.setAttribute(IMarker.PRIORITY, prio);
+										} else {
+											if (p.declaredErrorOrWarning) {
+												marker = ir.createMarker(IAJModelMarker.AJDT_PROBLEM_MARKER);
+											} else {
+												// create Java marker with problem id so
+												// that quick fix is available
+												marker = ir.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+												marker.setAttribute(IJavaModelMarker.ID,p.id);
+												if ((p.start >= 0)
+														&& (p.end >= 0)) {
+													marker.setAttribute(IMarker.CHAR_START,new Integer(p.start));
+													marker.setAttribute(IMarker.CHAR_END,new Integer(p.end + 1));
+												}
 											}
-	                                    }
-	                                }                           	
-	                                if (!ir.getProject().equals(project)) {
-	                                    addOtherProjectMarker(project, marker);
-	                                }
-	                                if (p.location.getLine() > 0) {
-	                                    marker.setAttribute(IMarker.LINE_NUMBER,
-	                                            new Integer(p.location.getLine()));
-	                                }
-                                } else {
-                                	AJLog.log(AJLog.COMPILER_MESSAGES,"Not adding marker for problem because it's " //$NON-NLS-1$
-                                			+"against a resource which is not in the list of affected resources" //$NON-NLS-1$
-                                			+" provided by the compiler. Resource="+ir+" Problem message=" //$NON-NLS-1$ //$NON-NLS-2$
-                                			+p.message+" line="+p.location.getLine()); //$NON-NLS-1$
-                                }
+										}
+										if (!ir.getProject().equals(project)) {
+											addOtherProjectMarker(project,marker);
+										}
+										if (p.location.getLine() > 0) {
+											marker.setAttribute(IMarker.LINE_NUMBER,
+													new Integer(p.location.getLine()));
+										}
+									} else {
+										AJLog.log(AJLog.COMPILER_MESSAGES,
+														"Not adding marker for problem because it's " //$NON-NLS-1$
+																+ "against a resource which is not in the list of affected resources" //$NON-NLS-1$
+																+ " provided by the compiler. Resource=" + ir + " Problem message=" //$NON-NLS-1$ //$NON-NLS-2$
+																+ p.message + " line=" + p.location.getLine()); //$NON-NLS-1$
+									}
+								}
                             } else {
                                 marker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
                             }
                             if(marker != null) {
 	                            setSeverity(marker, p.kind);
 	                            
-	                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple part message
+	                            if ((p.extraLocs != null) && (p.extraLocs.size() > 0)) { // multiple
+																							// part
+																							// message
 	                                int relCount=0;
 	                                for (Iterator iter = p.extraLocs.iterator(); iter
 	                                		.hasNext();) {
@@ -363,9 +366,13 @@ public class UIMessageHandler implements IBuildMessageHandler {
      */
     private IResource locationToResource(ISourceLocation isl, IProject project) {
         IResource ir = null;
-
-        String loc = isl.getSourceFile().getPath();
-
+		File file = isl.getSourceFile();
+		String loc = file.getPath();
+		if (!file.exists()) {
+			// 167121: might be a binary file in a directory, which uses ! as a separator
+			//  - see org.aspectj.weaver.ShadowMunger.getBinaryFile()
+			loc = loc.replace('!', File.separatorChar);
+		}
         // try this project
         ir = AJDTUtils.findResource(loc, project);
 
