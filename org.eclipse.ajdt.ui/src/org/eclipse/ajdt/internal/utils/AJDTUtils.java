@@ -191,8 +191,8 @@ public class AJDTUtils {
 		// Bugzilla 93532 - just add plugin dependency if there is a plugin.xml file
 		// Bugzilla 137922 - also consider bundles without a plugin.xml
 		if (project.hasNature(PDE.PLUGIN_NATURE) 
-		        && (WorkspaceModelManager.hasPluginManifest(project)
-		        		|| WorkspaceModelManager.hasBundleManifest(project))) {
+		        && (hasPluginManifest(project)
+		        		|| hasBundleManifest(project))) {
 			// Dealing with a plugin project. In that case the
 			// aspectjrt.jar should be added to the classpath container
 			// that lists jars imported from dependent plugins. In order
@@ -225,6 +225,14 @@ public class AJDTUtils {
 		refreshPackageExplorer();
 	}
 	
+	private static boolean hasBundleManifest(IProject project) {
+		return project.exists(new Path("META-INF/MANIFEST.MF")); //$NON-NLS-1$
+	}
+	
+	private static boolean hasPluginManifest(IProject project) {
+		return project.exists(new Path("plugin.xml")); //$NON-NLS-1$
+	}
+
 	/**
 	 * Bug 98911: Delete any .aj files from the output folder, if the output
 	 * folder and the source folder are not the same.
@@ -590,8 +598,8 @@ public class AJDTUtils {
 		// Bugzilla 93532 - just remove plugin dependency if there is a plugin.xml file
 		// Bugzilla 137922 - also consider bundles without a plugin.xml
 		if (project.hasNature(PDE.PLUGIN_NATURE) 
-		        && (WorkspaceModelManager.hasPluginManifest(project)
-		        		|| WorkspaceModelManager.hasBundleManifest(project))) {
+		        && (hasPluginManifest(project)
+		        		|| hasBundleManifest(project))) {
 //			// Bugzilla 72007
 //			// Checks if it was ajdt that added the ajde dependancy and removes
 //			// it if it was
