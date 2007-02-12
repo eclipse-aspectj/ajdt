@@ -11,16 +11,16 @@ package org.eclipse.ajdt.pde.internal.core;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.internal.core.WorkspaceModelManager;
+import org.eclipse.pde.internal.core.WorkspacePluginModelManager;
 
 /**
  * Class to enable us to call getWorkspacePluginModel(IProject) since
  * visibility of this method has changed in 3.1 M7 
  */
-public class AJDTWorkspaceModelManager extends WorkspaceModelManager {
+public class AJDTWorkspaceModelManager extends WorkspacePluginModelManager {
 
 	public IPluginModelBase getWorkspacePluginModel(IProject project) {
-		return super.getWorkspacePluginModel(project);
+		return super.getPluginModel(project);
 	}
 	
 }

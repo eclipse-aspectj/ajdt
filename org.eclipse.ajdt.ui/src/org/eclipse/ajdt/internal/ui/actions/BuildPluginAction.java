@@ -27,7 +27,7 @@ import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.core.ClasspathHelper;
 import org.eclipse.pde.internal.core.PDECore;
-import org.eclipse.pde.internal.core.TargetPlatform;
+import org.eclipse.pde.internal.core.TargetPlatformHelper;
 import org.eclipse.pde.internal.ui.build.BaseBuildAction;
 
 /**
@@ -57,9 +57,9 @@ public class BuildPluginAction extends BaseBuildAction {
 				.getLocation().addTrailingSeparator().toString()
 				+ "dev.properties", false); //$NON-NLS-1$
 		generator.setDevEntries(url);
-		generator.setPDEState(TargetPlatform.getState());
-		generator.setNextId(TargetPlatform.getPDEState().getNextId());
-		generator.setStateExtraData(TargetPlatform.getBundleClasspaths(TargetPlatform.getPDEState()), TargetPlatform.getPatchMap(TargetPlatform.getPDEState()));
+		generator.setPDEState(TargetPlatformHelper.getState());
+		generator.setNextId(TargetPlatformHelper.getPDEState().getNextId());
+		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		generator.setBuildingOSGi(true);
 		IPluginModelBase model = PDECore.getDefault().getModelManager().findModel(project);
 		generator.setElements(new String[] { "plugin@" +model.getPluginBase().getId() }); //$NON-NLS-1$

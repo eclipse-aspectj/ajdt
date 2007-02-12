@@ -19,11 +19,10 @@ import java.util.Properties;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.IModel;
+import org.eclipse.pde.core.plugin.TargetPlatform;
 import org.eclipse.pde.internal.core.PDECore;
-import org.eclipse.pde.internal.core.TargetPlatform;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
-
 public abstract class FeatureBasedExportOperation extends FeatureExportOperation {
 
 	protected String fFeatureLocation;
@@ -51,7 +50,7 @@ public abstract class FeatureBasedExportOperation extends FeatureExportOperation
 			throwCoreException(e);
 		} finally {
 			for (int i = 0; i < fInfo.items.length; i++) {
-				if (fInfo.items[i] instanceof IPluginModelBase)
+				if (fInfo.items[i] instanceof IModel)
 					deleteBuildFiles(fInfo.items[i]);
 			}
 			cleanup(null, new SubProgressMonitor(monitor, 3));

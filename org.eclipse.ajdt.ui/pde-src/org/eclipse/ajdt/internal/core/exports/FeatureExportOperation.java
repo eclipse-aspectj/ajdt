@@ -56,15 +56,16 @@ import org.eclipse.pde.core.build.IBuild;
 import org.eclipse.pde.core.build.IBuildEntry;
 import org.eclipse.pde.core.build.IBuildModel;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.plugin.PluginRegistry;
+import org.eclipse.pde.core.plugin.TargetPlatform;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
 import org.eclipse.pde.internal.build.IXMLConstants;
+import org.eclipse.pde.internal.build.site.QualifierReplacer;
 import org.eclipse.pde.internal.core.ClasspathHelper;
-import org.eclipse.pde.internal.core.ModelEntry;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.PDECoreMessages;
-import org.eclipse.pde.internal.core.PluginModelManager;
-import org.eclipse.pde.internal.core.TargetPlatform;
+import org.eclipse.pde.internal.core.TargetPlatformHelper;
 import org.eclipse.pde.internal.core.XMLPrintHandler;
 import org.eclipse.pde.internal.core.build.WorkspaceBuildModel;
 import org.eclipse.pde.internal.core.exports.BuildUtilities;
@@ -80,6 +81,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import com.ibm.icu.util.Calendar;
 
 public class FeatureExportOperation implements IWorkspaceRunnable {
 	
@@ -97,10 +100,31 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	protected static String FEATURE_POST_PROCESSING = "features.postProcessingSteps.properties"; //$NON-NLS-1$
 	protected static String PLUGIN_POST_PROCESSING = "plugins.postProcessingSteps.properties"; //$NON-NLS-1$
 	
+	public static String getDate() {
+		final String empty = ""; //$NON-NLS-1$
+		int monthNbr = Calendar.getInstance().get(Calendar.MONTH) + 1;
+		String month = (monthNbr < 10 ? "0" : empty) + monthNbr; //$NON-NLS-1$
+
+		int dayNbr = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+		String day = (dayNbr < 10 ? "0" : empty) + dayNbr; //$NON-NLS-1$
+
+		int hourNbr = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+		String hour = (hourNbr < 10 ? "0" : empty) + hourNbr; //$NON-NLS-1$
+
+		int minuteNbr = Calendar.getInstance().get(Calendar.MINUTE);
+		String minute = (minuteNbr < 10 ? "0" : empty) + minuteNbr; //$NON-NLS-1$
+
+		return empty + Calendar.getInstance().get(Calendar.YEAR) + month + day + hour + minute;
+	}
+
 	protected FeatureExportInfo fInfo;
 	
 	public FeatureExportOperation(FeatureExportInfo info) {
 		fInfo = info;
+		String qualifier = info.qualifier;
+		if (qualifier == null)
+			qualifier = getDate();
+		QualifierReplacer.setGlobalQualifier(qualifier);
 		fBuildTempLocation = PDECore.getDefault().getStateLocation().append("temp").toString(); //$NON-NLS-1$
 	}
 
@@ -134,7 +158,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 		if (message != null && message.length() > 0) {	
 			throw new CoreException(new Status(
 					IStatus.ERROR,
-					PDECore.getPluginId(),
+					PDECore.PLUGIN_ID,
 					IStatus.ERROR,
 					message,
 					null));
@@ -207,7 +231,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	public void deleteBuildFiles(Object object) throws CoreException {
 		IModel model = null;
 		if (object instanceof BundleDescription) {
-			model = PDECore.getDefault().getModelManager().findModel((BundleDescription)object);
+			model = PluginRegistry.findModel((BundleDescription)object);
 		} else if (object instanceof IModel){
 			model = (IModel)object;
 		}
@@ -249,11 +273,10 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			}
 
 			IFeaturePlugin[] plugins = feature.getPlugins();
-			PluginModelManager manager = PDECore.getDefault().getModelManager();
 			for (int i = 0; i < plugins.length; i++) {
-				ModelEntry entry = manager.findEntry(plugins[i].getId());
-				if (entry != null) {
-					deleteBuildFiles(entry.getActiveModel());
+				IPluginModelBase plugin = PluginRegistry.findModel(plugins[i].getId());
+				if (plugin != null) {
+					deleteBuildFiles(plugin);
 				}
 			}
 		}
@@ -445,14 +468,14 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 			format = config + '-' + IXMLConstants.FORMAT_ANTZIP;
 		generator.setArchivesFormat(format);
 		generator.setPDEState(getState(os, ws, arch));
-		generator.setNextId(TargetPlatform.getPDEState().getNextId());
-		generator.setStateExtraData(TargetPlatform.getBundleClasspaths(TargetPlatform.getPDEState()), TargetPlatform.getPatchMap(TargetPlatform.getPDEState()));
+		generator.setNextId(TargetPlatformHelper.getPDEState().getNextId());
+		generator.setStateExtraData(TargetPlatformHelper.getBundleClasspaths(TargetPlatformHelper.getPDEState()), TargetPlatformHelper.getPatchMap(TargetPlatformHelper.getPDEState()));
 		AbstractScriptGenerator.setForceUpdateJar(false);
 		AbstractScriptGenerator.setEmbeddedSource(fInfo.exportSource);		
 	}
 	
 	protected State getState(String os, String ws, String arch) {
-		State main = TargetPlatform.getState();
+		State main = TargetPlatformHelper.getState();
 		if (os.equals(TargetPlatform.getOS()) 
 				&& ws.equals(TargetPlatform.getWS())
 				&& arch.equals(TargetPlatform.getOSArch())) {
@@ -507,7 +530,7 @@ public class FeatureExportOperation implements IWorkspaceRunnable {
 	}
 
 	protected String[] getPaths() {
-		return TargetPlatform.getFeaturePaths();
+		return TargetPlatformHelper.getFeaturePaths();
 	}
 	
 	protected void cleanup(String[] config, IProgressMonitor monitor) {

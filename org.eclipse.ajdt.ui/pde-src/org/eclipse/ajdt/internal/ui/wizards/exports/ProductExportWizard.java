@@ -14,7 +14,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
-import org.eclipse.ajdt.internal.ui.build.ProductExportJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -22,7 +21,7 @@ import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.core.FeatureModelManager;
 import org.eclipse.pde.internal.core.PDECore;
-import org.eclipse.pde.internal.core.TargetPlatform;
+import org.eclipse.pde.internal.core.TargetPlatformHelper;
 import org.eclipse.pde.internal.core.exports.FeatureExportInfo;
 import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
 import org.eclipse.pde.internal.core.iproduct.IProductFeature;
@@ -30,6 +29,7 @@ import org.eclipse.pde.internal.core.iproduct.IProductPlugin;
 import org.eclipse.pde.internal.core.product.WorkspaceProductModel;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.pde.internal.ui.PDEUIMessages;
+import org.eclipse.ajdt.internal.ui.build.ProductExportJob;
 import org.eclipse.pde.internal.ui.wizards.exports.CrossPlatformExportPage;
 import org.eclipse.pde.internal.ui.wizards.product.SynchronizationOperation;
 import org.eclipse.ui.progress.IProgressConstants;
@@ -100,7 +100,7 @@ public class ProductExportWizard extends BaseExportWizard {
 
 	private BundleDescription[] getPluginModels() {
 		ArrayList list = new ArrayList();
-		State state = TargetPlatform.getState();
+		State state = TargetPlatformHelper.getState();
 		IProductPlugin[] plugins = fProductModel.getProduct().getPlugins();
 		for (int i = 0; i < plugins.length; i++) {
 			BundleDescription bundle = state.getBundle(plugins[i].getId(), null);
