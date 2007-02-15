@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
+import org.eclipse.ajdt.examples.util.ZipFileWrapper;
 import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
@@ -173,7 +174,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	}
 
 	/**
-	 * Check if the given biuld command list contains a given command
+	 * Check if the given build command list contains a given command
 	 */
 	private boolean contains(ICommand[] commands, String builderId) {
 		boolean found = false;
@@ -224,6 +225,7 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 			}
 
 			ZipFile zipFile = getZipFileFromPluginDir(importPath);
+			
 			importFilesFromZip(zipFile, destPath, new SubProgressMonitor(
 					monitor, 1));
 		} catch (CoreException e) {
@@ -236,7 +238,9 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 		try {
 			URL starterURL = new URL(AspectJExamplePlugin.getDefault()
 					.getBundle().getEntry("/"), pluginRelativePath); //$NON-NLS-1$
-			return new ZipFile(FileLocator.toFileURL(starterURL).getFile());
+			//return new ZipFile(FileLocator.toFileURL(starterURL).getFile());
+			// Use zip file wrapper class to filter out META-INF/eclipse.inf file
+			return new ZipFileWrapper(FileLocator.toFileURL(starterURL).getFile());
 		} catch (IOException e) {
 			String message = pluginRelativePath + ": " + e.getMessage(); //$NON-NLS-1$
 			Status status = new Status(IStatus.ERROR, AspectJExamplePlugin
@@ -248,10 +252,12 @@ public class AspectJExampleCreationOperation implements IRunnableWithProgress {
 	private void importFilesFromZip(ZipFile srcZipFile, IPath destPath,
 			IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
+		
 		ZipFileStructureProvider structureProvider = new ZipFileStructureProvider(
 				srcZipFile);
-		ImportOperation op = new ImportOperation(destPath, structureProvider
+		ImportOperation operator = new ImportOperation(destPath, structureProvider
 				.getRoot(), structureProvider, fOverwriteQuery);
-		op.run(monitor);
+
+		operator.run(monitor);
 	}
 }
