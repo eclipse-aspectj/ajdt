@@ -621,24 +621,28 @@ public class AJDTUtils {
 				IClasspathEntry entry = cpEntry[i];
 				if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IPath[] exc = entry.getExclusionPatterns();
-					List removeList = new ArrayList();
-					for (int j = 0; j < exc.length; j++) {
-						if (exc[j].getFileExtension().equals("aj")) { //$NON-NLS-1$
-							removeList.add(exc[j]);
-						}
-					}
-					if (removeList.size() > 0) {
-						IPath[] exc2 = new IPath[exc.length - removeList.size()];
-						int ind = 0;
+					if (exc != null) {
+						List removeList = new ArrayList();
 						for (int j = 0; j < exc.length; j++) {
-							if (!removeList.contains(exc[j])) {
-								exc2[ind++] = exc[j];
+							String ext = exc[j].getFileExtension();
+							if ((ext != null) && ext.equals("aj")) { //$NON-NLS-1$
+								removeList.add(exc[j]);
 							}
 						}
-						IClasspathEntry classpathEntry = JavaCore
-							.newSourceEntry(entry.getPath(), exc2);
-						cpEntry[i] = classpathEntry;
-						changed = true;
+						if (removeList.size() > 0) {
+							IPath[] exc2 = new IPath[exc.length
+									- removeList.size()];
+							int ind = 0;
+							for (int j = 0; j < exc.length; j++) {
+								if (!removeList.contains(exc[j])) {
+									exc2[ind++] = exc[j];
+								}
+							}
+							IClasspathEntry classpathEntry = JavaCore
+									.newSourceEntry(entry.getPath(), exc2);
+							cpEntry[i] = classpathEntry;
+							changed = true;
+						}
 					}
 				}
 			}
