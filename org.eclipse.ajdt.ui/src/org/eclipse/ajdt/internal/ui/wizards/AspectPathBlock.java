@@ -713,8 +713,7 @@ public class AspectPathBlock {
 
 		for (int i = 0; i < nEntries; i++) {
 			CPListElement entry = ((CPListElement) aspectPathEntries.get(i));
-			aspectpath[i] = JavaCore.getResolvedClasspathEntry(entry
-					.getClasspathEntry());
+			aspectpath[i] = entry.getClasspathEntry();
 		}
 
 		monitor.worked(2);

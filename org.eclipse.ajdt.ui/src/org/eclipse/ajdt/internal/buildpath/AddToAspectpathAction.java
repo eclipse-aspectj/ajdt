@@ -12,8 +12,7 @@ package org.eclipse.ajdt.internal.buildpath;
 
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.action.IAction;
@@ -24,9 +23,15 @@ import org.eclipse.ui.IObjectActionDelegate;
 public class AddToAspectpathAction extends AJBuildPathAction implements IObjectActionDelegate {
 
 	public void run(IAction action) {
-		IProject project = jarFile.getProject();
-		String jarPath = jarFile.getFullPath().toPortableString();
-		AspectJCorePreferences.addToAspectPath(project,jarPath);
+		if (project == null) {
+			return;
+		}
+		if (cpEntry != null) {
+			AspectJCorePreferences.addToAspectPath(project,cpEntry);
+		} else {
+			String jarPath = jarFile.getFullPath().toPortableString();
+			AspectJCorePreferences.addToAspectPath(project,jarPath,IClasspathEntry.CPE_LIBRARY);
+		}
 		AJDTUtils.refreshPackageExplorer();
 	}
 	
@@ -37,14 +42,20 @@ public class AddToAspectpathAction extends AJBuildPathAction implements IObjectA
 			Object element = selection.getFirstElement();
 			try {
 				if (element instanceof IPackageFragmentRoot) {
-					jarFile = (IFile)((IPackageFragmentRoot)element).getUnderlyingResource();
+					IPackageFragmentRoot root = (IPackageFragmentRoot)element;
+					project = root.getJavaProject().getProject();
+					cpEntry = root.getRawClasspathEntry();
+					jarFile = null;
+					enable = !AspectJCorePreferences.isOnAspectpath(cpEntry);
 				} else {
 					jarFile = getJARFile(selection);
-				}
-				if (jarFile != null) {
-					IProject project = jarFile.getProject();
-					enable = (!AspectJCorePreferences.isOnAspectpath(project,jarFile.getFullPath().toPortableString())&&
-							!checkIfAddingOutjar(project));
+					if (jarFile != null) {
+						cpEntry = null;
+						project = jarFile.getProject();
+						enable = (!AspectJCorePreferences.isOnAspectpath(
+								project, jarFile.getFullPath()
+										.toPortableString()) && !checkIfAddingOutjar(project));
+					}
 				}
 			} catch (JavaModelException e) {
 			}

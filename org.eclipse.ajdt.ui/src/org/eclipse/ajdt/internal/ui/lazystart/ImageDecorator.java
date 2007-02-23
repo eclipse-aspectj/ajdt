@@ -28,9 +28,8 @@ import org.eclipse.ajdt.internal.ui.resources.AJDTIcon;
 import org.eclipse.ajdt.internal.ui.resources.AspectJImages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -136,14 +135,16 @@ public class ImageDecorator implements ILabelDecorator {
 				}
 			} 
 		} else if (element instanceof JarPackageFragmentRoot) {
-			IResource res = ((JarPackageFragmentRoot)element).getResource();
-			if ((res != null) && (res.getType() == IResource.FILE)) {
-				String jarPath = res.getFullPath().toPortableString();
-				if (AspectJCorePreferences.isOnAspectpath(res.getProject(),jarPath)) {
-					img = getImageLabel(AspectJImages.JAR_ON_ASPECTPATH.getImageDescriptor());				
-				} else if (AspectJCorePreferences.isOnInpath(res.getProject(),jarPath)) {
-					img = getImageLabel(AspectJImages.JAR_ON_INPATH.getImageDescriptor());				
+			try {
+				IClasspathEntry entry = ((JarPackageFragmentRoot)element).getRawClasspathEntry();
+				if (entry != null) {
+					if (AspectJCorePreferences.isOnAspectpath(entry)) {
+						img = getImageLabel(AspectJImages.JAR_ON_ASPECTPATH.getImageDescriptor());
+					} else if (AspectJCorePreferences.isOnInpath(entry)) {
+						img = getImageLabel(AspectJImages.JAR_ON_INPATH.getImageDescriptor());
+					}
 				}
+			} catch (JavaModelException e1) {
 			}
 		} else if (element instanceof AJCodeElement) {
 			img = getImageLabel(AspectJImages.AJ_CODE.getImageDescriptor());
