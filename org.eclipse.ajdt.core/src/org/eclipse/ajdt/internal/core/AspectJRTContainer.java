@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006 IBM Corporation and others.
+ * Copyright (c) 2006, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,16 +34,23 @@ public class AspectJRTContainer implements IClasspathContainer {
 
 	private static String[] aspectjrtPath = null;
 
+	private static String[] aspectjrtSourcePath = null;
+
 	public AspectJRTContainer() {
 	}
 
 	public IClasspathEntry[] getClasspathEntries() {
 		if (fClasspathEntries == null) {
 			String[] path = getAspectjrtClasspath();
+			String[] sourcePath = getAspectjrtSourcePath();
 			fClasspathEntries = new IClasspathEntry[path.length];
 			for (int i = 0; i < path.length; i++) {
 				IPath p = new Path(path[i]);
-				fClasspathEntries[i] = JavaCore.newLibraryEntry(p, null, null,
+				IPath sp = null;
+				if ((sourcePath != null) && (i < sourcePath.length)) {
+					sp = new Path(sourcePath[i]);
+				}
+				fClasspathEntries[i] = JavaCore.newLibraryEntry(p, sp, null,
 						false);
 			}
 		}
@@ -72,17 +79,18 @@ public class AspectJRTContainer implements IClasspathContainer {
 			Bundle runtime = Platform
 					.getBundle(AspectJPlugin.RUNTIME_PLUGIN_ID);
 			if (runtime != null) {
-				Enumeration enu = runtime.findEntries("/","*.jar",false); //$NON-NLS-1$  //$NON-NLS-2$
+				Enumeration enu = runtime.findEntries("/", "*.jar", false); //$NON-NLS-1$  //$NON-NLS-2$
 				if (enu != null) {
 					while (enu.hasMoreElements()) {
-						URL installLoc = (URL)enu.nextElement();
+						URL installLoc = (URL) enu.nextElement();
 						try {
-							pathList.add(FileLocator.resolve(installLoc).getFile());
+							pathList.add(FileLocator.resolve(installLoc)
+									.getFile());
 						} catch (IOException e) {
 						}
 					}
 				}
-				if (pathList.size()==0) {
+				if (pathList.size() == 0) {
 					// maybe it's a JARed bundle
 					IPath path = new Path(runtime.getLocation().split("@")[1]); //$NON-NLS-1$
 					IPath full = new Path(Platform.getInstallLocation()
@@ -94,5 +102,29 @@ public class AspectJRTContainer implements IClasspathContainer {
 			pathList.toArray(aspectjrtPath);
 		}
 		return aspectjrtPath;
+	}
+
+	private static String[] getAspectjrtSourcePath() {
+		if (aspectjrtSourcePath == null) {
+			List pathList = new LinkedList();
+			Bundle source = Platform.getBundle("org.eclipse.ajdt.source"); //$NON-NLS-1$
+			if (source != null) {
+				Enumeration enu = source.findEntries(
+						"/", "aspectjrtsrc.zip", true); //$NON-NLS-1$  //$NON-NLS-2$
+				if (enu != null) {
+					while (enu.hasMoreElements()) {
+						URL installLoc = (URL) enu.nextElement();
+						try {
+							pathList.add(FileLocator.resolve(installLoc)
+									.getFile());
+						} catch (IOException e) {
+						}
+					}
+				}
+			}
+			aspectjrtSourcePath = new String[pathList.size()];
+			pathList.toArray(aspectjrtSourcePath);
+		}
+		return aspectjrtSourcePath;
 	}
 }
