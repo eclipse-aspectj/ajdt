@@ -79,6 +79,10 @@
 		<copy todir="${buildDirectory}/features/org.eclipse.aspectj.feature_tests">
 			<fileset dir="${builder}/../org.eclipse.aspectj.feature_tests"/>
 		</copy>
+		<copy todir="${buildDirectory}/features/org.eclipse.contribution.xref">
+			<fileset dir="${builder}/../org.eclipse.contribution.xref-feature"/>
+		</copy>
+
 		<copy todir="${buildDirectory}/plugins/org.eclipse.aspectj">
 			<fileset dir="${builder}/../org.eclipse.aspectj"/>
 		</copy>
