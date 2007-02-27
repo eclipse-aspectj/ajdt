@@ -247,10 +247,12 @@ public class CustomFilterDialog {
 		}
 
 		protected void okPressed() {
-			Object[] newlyChecked = fCheckBoxList.getCheckedElements();
 			checkedList.clear();
-			for (int i = 0; i < newlyChecked.length; i++) {
-				checkedList.add(newlyChecked[i]);
+			if (fCheckBoxList != null) {
+				Object[] newlyChecked = fCheckBoxList.getCheckedElements();
+				for (int i = 0; i < newlyChecked.length; i++) {
+					checkedList.add(newlyChecked[i]);
+				}
 			}
 			super.okPressed();
 		}
