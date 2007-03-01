@@ -104,7 +104,8 @@ public class AJCompilationUnitDeclarationWrapper extends
 							ajprob.isWarning()? ProblemSeverities.Error : ProblemSeverities.Warning,
 							ajprob.getSourceStart(),
 							ajprob.getSourceEnd(),
-							ajprob.getSourceLineNumber());
+							ajprob.getSourceLineNumber(),
+							0); // unknown column
 				} 
 			}
 		} else { 
