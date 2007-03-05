@@ -41,7 +41,7 @@ public class UIMessageHandlerTest extends UITestCase {
 		IMessage msg = new Message("fake warning", IMessage.WARNING, null, null); //$NON-NLS-1$
 		handler.handleMessage(msg);
 		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems();
+				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
 
 		waitForJobsToComplete();
 		IMarker[] markers = project.findMarkers(
@@ -70,7 +70,7 @@ public class UIMessageHandlerTest extends UITestCase {
 		IMessage msg = new Message("fake error", IMessage.ERROR, null, null); //$NON-NLS-1$
 		handler.handleMessage(msg);
 		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems();
+				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
 
 		waitForJobsToComplete();
 		IMarker[] markers = project.findMarkers(
