@@ -160,7 +160,7 @@ public class UIBuildListener implements IAJBuildListener {
 		// Bug22258: Get the compiler monitor to display any issues with
 		// that compile.
 		((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
-				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems();
+				.getCompilerForProject(project).getMessageHandler()).showOutstandingProblems(project);
 
 		// before returning, check to see if the project sent its output
 		// to an outjar and if so, then update any depending projects

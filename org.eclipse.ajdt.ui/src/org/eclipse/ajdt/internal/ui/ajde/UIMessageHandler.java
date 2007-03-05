@@ -27,7 +27,6 @@ import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.bridge.IMessage.Kind;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
-import org.eclipse.ajdt.core.builder.AJBuilder;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -200,13 +199,13 @@ public class UIMessageHandler implements IBuildMessageHandler {
      * report them. We need to move this error reporting stuff out of here if it
      * is going to be used by more than just the compiler.
      */
-    public void showOutstandingProblems() {
+    public void showOutstandingProblems(IProject project) {
         if (problems.size() > 0 || affectedResources.size() > 0) {
-            showMessages();
+            showMessages(project);
         }
     }
     
-    private void showMessages() {
+    private void showMessages(final IProject project) {
 
         // THIS MUST STAY IN A SEPARATE THREAD - This is because we need
         // to create and setup the marker in an atomic operation. See
@@ -218,7 +217,6 @@ public class UIMessageHandler implements IBuildMessageHandler {
                 	
                     Iterator affectedResourceIterator = affectedResources
                             .iterator();
-                    //boolean wipedProjectLevelMarkers = false;
                     AJLog.log(AJLog.COMPILER,"Types affected during build = "+affectedResources.size()); //$NON-NLS-1$
                     IResource ir = null;
                     while (affectedResourceIterator.hasNext()) {
@@ -239,7 +237,6 @@ public class UIMessageHandler implements IBuildMessageHandler {
                         }
                     }
 
-                    IProject  project = AJBuilder.getLastBuildTarget();
                     Iterator problemIterator = problems.iterator();
                     ProblemTracker p = null;
                     while (problemIterator.hasNext()) {
