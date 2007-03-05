@@ -329,6 +329,66 @@ public class ModelComparisonTest extends AJDTCoreTestCase {
 				"Wrong name for added target element", "setup", rel.getTarget().getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
+	public void testCompareWithPriorFullBuild() throws Exception {
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+		IResource debug = project.findMember("src/spacewar/Debug.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Debug.aj file", debug); //$NON-NLS-1$
+
+		// now delete Debug.aj file (should just exclude it from the build
+		// config, but that currently requires the UI plugin)
+		debug.delete(true, null);
+		waitForAutoBuild();
+		project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		AJProjectModel currentModel = AJModel.getInstance().getModelForProject(project);
+		assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
+
+		AJProjectModel priorModel = AJModel.getInstance().getPreviousFullBuildModel(project);
+		assertNotNull("Project model should not be null", priorModel); //$NON-NLS-1$
+
+		// compare the two models: there should be removed relationships only
+		List[] results = new ModelComparison(false).compareProjects(priorModel,
+				currentModel);
+		List added = results[0];
+		if ((added != null) && (added.size() > 0)) {
+			fail("List of added relationships should be empty or null. Found " //$NON-NLS-1$
+					+ added.size() + " relationships"); //$NON-NLS-1$
+		}
+		List removed = results[1];
+		if ((removed == null) || (removed.size() == 0)) {
+			fail("List of removed relationships should be not empty or null."); //$NON-NLS-1$
+		}
+	}
+	
+	public void testCompareWithPriorBuild() throws Exception {
+		IProject project = createPredefinedProject("Spacewar Example"); //$NON-NLS-1$
+		IResource debug = project.findMember("src/spacewar/Debug.aj"); //$NON-NLS-1$
+		assertNotNull("Couldn't find Debug.aj file", debug); //$NON-NLS-1$
+
+		// now delete Debug.aj file (should just exclude it from the build
+		// config, but that currently requires the UI plugin)
+		debug.delete(true, null);
+		waitForAutoBuild();
+		//project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+		AJProjectModel currentModel = AJModel.getInstance().getModelForProject(project);
+		assertNotNull("Project model should not be null", currentModel); //$NON-NLS-1$
+
+		AJProjectModel priorModel = AJModel.getInstance().getPreviousModel(project);
+		assertNotNull("Project model should not be null", priorModel); //$NON-NLS-1$
+
+		// compare the two models: there should be removed relationships only
+		List[] results = new ModelComparison(false).compareProjects(priorModel,
+				currentModel);
+		List added = results[0];
+		if ((added != null) && (added.size() > 0)) {
+			fail("List of added relationships should be empty or null. Found " //$NON-NLS-1$
+					+ added.size() + " relationships"); //$NON-NLS-1$
+		}
+		List removed = results[1];
+		if ((removed == null) || (removed.size() == 0)) {
+			fail("List of removed relationships should be not empty or null."); //$NON-NLS-1$
+		}
+	}
+	
 	private List filterAdvisesMatchedByRels(List relationshipList) {
 		List filteredList = new ArrayList();
 		for (Iterator iter = relationshipList.iterator(); iter.hasNext();) {

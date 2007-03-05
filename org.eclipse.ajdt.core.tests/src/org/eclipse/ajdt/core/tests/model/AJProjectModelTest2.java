@@ -54,7 +54,7 @@ public class AJProjectModelTest2 extends AJDTCoreTestCase {
 
 		project = createPredefinedProject("AJProject83082Second"); //$NON-NLS-1$
 		projectModel = new AJProjectModel(project);
-		projectModel.createProjectMap();
+		projectModel.createProjectMap(false);
 
 		AJModel model = AJModel.getInstance();
 		model.createMap(project);
