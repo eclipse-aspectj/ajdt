@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004 IBM Corporation and others.
+ * Copyright (c) 2004, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,16 +34,19 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 
 /**
- * 
- * @author mchapman
+ * Crosscutting information for AspectJ projects
  */
 public class AJModel {
 	private static AJModel instance;
 	
 	private Map projectModelMap = new HashMap();
 	
-	private static String lastLoadedConfigFile;
+	// store previous maps, for later comparison purposes
+	private Map priorModelMap = new HashMap();
 
+	private Map priorFullBuildModelMap = new HashMap();
+	
+	
 	private AJModel() {
 
 	}
@@ -83,7 +86,15 @@ public class AJModel {
 		projectModel.loadModel();
 		return projectModel;
 	}
-		
+
+	public AJProjectModel getPreviousModel(IProject project) {
+		return (AJProjectModel)priorModelMap.get(project);
+	}
+
+	public AJProjectModel getPreviousFullBuildModel(IProject project) {
+		return (AJProjectModel)priorFullBuildModelMap.get(project);
+	}
+	
 	/**
 	 * Query the AJ model for elements that have a certain relationship to the
 	 * given element
@@ -160,13 +171,28 @@ public class AJModel {
 		return pm.getExtraChildren(je);
 	}
 	
-	public void createMap(final IProject project) {
+	public void createMap(IProject project) {
+		createMap(project,false,false);
+	}
+	
+	public void createMap(final IProject project, boolean updatePrior, final boolean wasIncremental) {
+		// store previous map if there is one, for comparison purposes
+		if (updatePrior) {
+			AJProjectModel prev = (AJProjectModel) projectModelMap.get(project);
+			if (prev != null) {
+				priorModelMap.put(project, prev);
+				if (!prev.wasIncremental()) {
+					priorFullBuildModelMap.put(project, prev);
+				}
+			}
+		}
+		
 		final AJProjectModel projectModel = new AJProjectModel(project);
 		projectModelMap.put(project,projectModel);
 		try {
 			AspectJPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) {
-					projectModel.createProjectMap();
+					projectModel.createProjectMap(wasIncremental);
 				}
 			}, null);
 		} catch (CoreException coreEx) {

@@ -71,11 +71,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private static IStateListener isl = null;
 	
 	private static List buildListeners = new ArrayList();
-	
-	/**
-	 * The progress monitor used for this build
-	 */
-	private IProgressMonitor progressMonitor;
 
 	/**
 	 * keeps track of the last workbench preference 
@@ -83,29 +78,15 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 */
 	private String lastWorkbenchPreference = JavaCore.ABORT;
 
-	/**
-	 * The last project we did a build for, needed by content outline view to
-	 * decide which updates to accept.
-	 */
-	private static IProject lastBuiltProject = null;
-
 	public AJBuilder() {
 	}
 	
-	/**
-	 * What did we last build?
-	 */
-	public static IProject getLastBuildTarget() {
-		return lastBuiltProject;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#build(int, java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected IProject[] build(int kind, Map args, IProgressMonitor progressMonitor) throws CoreException {
 		IProject project = getProject();
 		AjCompiler compiler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project);
-		this.progressMonitor = progressMonitor;
 		// 100 ticks for the compiler, 1 for the pre-build actions, 1 for the post-build actions
 		progressMonitor.beginTask(CoreMessages.builder_taskname, 102);
 		AJLog.logStart(TimerLogEvent.TIME_IN_BUILD);
@@ -208,8 +189,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
-		lastBuiltProject = project;
-		
 		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath());
 		
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
@@ -255,7 +234,8 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		} catch (CoreException e) {
 		}
 		
-		AJModel.getInstance().createMap(project);
+		boolean inc = (kind == IncrementalProjectBuilder.INCREMENTAL_BUILD) || (kind == IncrementalProjectBuilder.AUTO_BUILD);
+		AJModel.getInstance().createMap(project,true,inc);
 		// bug 107027
 		compilerConfig.flushClasspathCache();
 		postCallListeners(false);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2006 IBM Corporation and others.
+ * Copyright (c) 2004, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -78,7 +78,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * @author mchapman
+ * Crosscutting information for an AspectJ project
  */
 public class AJProjectModel {
 
@@ -121,6 +121,9 @@ public class AJProjectModel {
 	private Map aspectsInJavaFiles = new HashMap();
 	
 	private List projectsToAsk = new ArrayList();
+	
+	// did the current relationships result from an incremental or full build
+	private boolean fIncremental;
 	
 	public AJProjectModel(IProject project) {
 		this.project = project;
@@ -396,7 +399,7 @@ public class AJProjectModel {
 		return aspects != null ? aspects : Collections.EMPTY_SET;
 	}
 
-	public void createProjectMap() {
+	public void createProjectMap(boolean wasIncremental) {
 		AJLog.logStart(TimerLogEvent.CREATE_MODEL);
 		try {
 			project.accept(new IResourceVisitor() {
@@ -417,12 +420,17 @@ public class AJProjectModel {
 		} catch (CoreException coreEx) {
 		}
 		processRelationships();
+		fIncremental = wasIncremental;
 		AJLog.logEnd(AJLog.BUILDER,TimerLogEvent.CREATE_MODEL,relsCount + " rels in project: "+project.getName()); //$NON-NLS-1$
 
 		//dumpModel();
 		//dumpAJDEStructureModel();
 	}
 
+	protected boolean wasIncremental() {
+		return fIncremental;
+	}
+	
 	private void processRelationships() {
 		relsCount = 0;
 		IRelationshipMap asmRelMap = AsmManager.getDefault()
