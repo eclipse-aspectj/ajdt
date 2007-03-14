@@ -42,5 +42,5 @@ public interface IAJModelMarker {
 	public static final String SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.sourceandtargetmarker"; //$NON-NLS-1$ 
 	public static final String DYNAMIC_SOURCE_AND_TARGET_MARKER = "org.eclipse.ajdt.ui.dynamicsourceandtargetmarker"; //$NON-NLS-1$ 
 	public static final String CUSTOM_MARKER = "org.eclipse.ajdt.ui.customadvicemarker"; //$NON-NLS-1$
-	
+	public static final String CHANGED_ADVICE_MARKER = "org.eclipse.ajdt.ui.changedadvicemarker"; //$NON-NLS-1$	
 }

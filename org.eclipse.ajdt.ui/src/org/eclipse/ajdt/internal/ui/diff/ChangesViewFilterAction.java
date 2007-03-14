@@ -82,7 +82,7 @@ public class ChangesViewFilterAction extends Action {
 					populatingList, checkedList, defaultCheckedList,
 					dialogTitle, dialogMessage);
 			
-			ChangesView.refresh(true);
+			ChangesView.refresh(true,null);
 		}
 	}
 }

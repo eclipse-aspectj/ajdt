@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -139,7 +139,7 @@ public class UIBuildListener implements IAJBuildListener {
 	/* (non-Javadoc)
 	 * @see org.eclipse.ajdt.core.builder.AJBuildListener#postAJBuild(org.eclipse.core.resources.IProject)
 	 */
-	public void postAJBuild(IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
+	public void postAJBuild(final IProject project, /*boolean buildCancelled,*/ boolean noSourceChanges) {
 		if (noSourceChanges) {
 			MarkerUpdating.addNewMarkers(project);
 			return;
@@ -187,7 +187,7 @@ public class UIBuildListener implements IAJBuildListener {
 					}
 
 					// refresh Crosscutting Changes
-					ChangesView.refresh(false);
+					ChangesView.refresh(false,project);
 
 					// refresh Visualiser
 					if (AspectJUIPlugin.usingVisualiser) {

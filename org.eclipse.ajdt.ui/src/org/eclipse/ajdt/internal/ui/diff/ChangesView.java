@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,11 @@
 package org.eclipse.ajdt.internal.ui.diff;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJProjectModel;
@@ -34,6 +36,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -83,6 +86,10 @@ public class ChangesView extends ViewPart {
 
 	private Action propagateToggleAction;
 	
+	private Action linkWithBuildToggleAction;
+
+	private Action comparisonReferenceAction;
+
 	public static final String CROSSCUTTING_VIEW_ID = "org.eclipse.ajdt.ui.diff.ChangesView"; //$NON-NLS-1$
 
 	public static final String MAP_FILE_EXT = "ajmap"; //$NON-NLS-1$
@@ -115,6 +122,15 @@ public class ChangesView extends ViewPart {
 
 	private boolean propagateUp = false;
 
+	private boolean comparePrev = true;
+	
+	public static final String REF_LAST_INC = "last build"; //$NON-NLS-1$
+	
+	public static final String REF_LAST_FULL = "last full build"; //$NON-NLS-1$
+
+	/* maps a project to a string defining the comparison reference point */
+	private static Map fReferencePointMap = new HashMap();
+	
 	private static final int EMPTY = 0;
 	private static final int COMPARING_FILES = 1;
 	private static final int COMPARING_ELEMENTS = 2;
@@ -129,7 +145,7 @@ public class ChangesView extends ViewPart {
 						.getWorkbench().getDecoratorManager().getLabelDecorator());
 	}
 
-	public static void refresh(boolean force) {
+	public static void refresh(boolean force, IProject project) {
 		IWorkbenchWindow w = AspectJUIPlugin.getDefault().getWorkbench()
 			.getActiveWorkbenchWindow();
 		if (w == null) {
@@ -139,10 +155,14 @@ public class ChangesView extends ViewPart {
 						ChangesView.CROSSCUTTING_VIEW_ID);
 		if (view instanceof ChangesView) {
 			ChangesView changesView = (ChangesView) view;
-			if (changesView.compareMode == COMPARING_FILES) {
-				changesView.refreshIfCurrentBuild(force);
-			} else if (changesView.compareMode == COMPARING_ELEMENTS) {
-				changesView.refresh();
+			if (changesView.comparePrev) {
+				changesView.compareWithEarlierBuild(project);
+			} else {
+				if (changesView.compareMode == COMPARING_FILES) {
+					changesView.refreshIfCurrentBuild(force);
+				} else if (changesView.compareMode == COMPARING_ELEMENTS) {
+					changesView.refresh();
+				}
 			}
 		}
 	}
@@ -363,6 +383,10 @@ public class ChangesView extends ViewPart {
 		}
 		pstore.setValue(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP, propagateUp);
 
+		if (!pstore.contains(AspectJPreferences.CHANGES_VIEW_COMPARE_PREV)) {
+			pstore.setDefault(AspectJPreferences.CHANGES_VIEW_COMPARE_PREV, true);
+		}
+		pstore.setValue(AspectJPreferences.CHANGES_VIEW_COMPARE_PREV, comparePrev);
 		AspectJUIPlugin.getDefault().savePluginPreferences();
 	}
 
@@ -371,6 +395,10 @@ public class ChangesView extends ViewPart {
 				.getPreferenceStore();
 		if (pstore.contains(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP)) {
 			propagateUp = pstore.getBoolean(AspectJPreferences.CHANGES_VIEW_PROPAGATE_UP);
+		}
+		
+		if (pstore.contains(AspectJPreferences.CHANGES_VIEW_COMPARE_PREV)) {
+			comparePrev = pstore.getBoolean(AspectJPreferences.CHANGES_VIEW_COMPARE_PREV);
 		}
 	}
 
@@ -505,6 +533,50 @@ public class ChangesView extends ViewPart {
 		updateTable(addedList, removedList, fromModel, toModel);
 	}
 	
+	public void compareWithEarlierBuild(IProject project) {
+		String ref = getReferencePoint(project);
+		if (ref.endsWith(DOT_MAP_FILE_EXT)) { // map file
+			compareProjects(project,ref,project,CURRENT_BUILD);
+			return;
+		}
+				
+		currFromProject = project;
+		AJProjectModel fromModel;
+		if (ref.equals(REF_LAST_FULL)) {
+			currFromName = UIMessages.changesView_ComparisonReference_last_full;
+			fromModel = AJModel.getInstance().getPreviousFullBuildModel(project);
+		} else {
+			currFromName = UIMessages.changesView_ComparisonReference_last_inc;
+			fromModel = AJModel.getInstance().getPreviousModel(project);
+		}
+		
+		currToProject = project;
+		currToName = UIMessages.changesView_currentBuild;		
+		
+		AJProjectModel toModel = AJModel.getInstance().getModelForProject(
+				project);
+		if ((fromModel == null) || (toModel == null)) {
+			return;
+		}
+		
+		List[] ret = new ModelComparison(propagateUp).compareProjects(fromModel, toModel);
+		
+		boolean filterAdded = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_added_rels);
+		boolean filterRemoved = filterAction.getCheckedList().contains(
+				UIMessages.changesView_filter_removed_rels);
+		List addedList = filterAdded ? new ArrayList()
+				: filterRelationshipList(ret[0]);
+		List removedList = filterRemoved ? new ArrayList()
+				: filterRelationshipList(ret[1]);
+
+		int totalNoRelationships = ret[0].size() + ret[1].size();
+		updateDescription(currFromName, currToName, (addedList.size() + removedList
+				.size()), totalNoRelationships);
+
+		updateTable(addedList, removedList, fromModel, toModel);
+	}
+	
 	private void updateTable(List addedList, List removedList,
 			AJProjectModel fromModel, AJProjectModel toModel) {
 		int numEntries = addedList.size() + removedList.size();
@@ -589,6 +661,8 @@ public class ChangesView extends ViewPart {
 	private void fillLocalToolBar(IToolBarManager manager) {
 		filterAction.fillActionBars(getViewSite().getActionBars());
 		manager.add(propagateToggleAction);
+		manager.add(linkWithBuildToggleAction);
+		manager.add(comparisonReferenceAction);
 	}
 
 	private void makeActions() {
@@ -599,7 +673,7 @@ public class ChangesView extends ViewPart {
 
 			public void run() {
 				propagateUp = !propagateUp;
-				refresh(true);
+				refresh(true,currFromProject);
 			}
 		};
 		propagateToggleAction.setText(UIMessages.changesView_propagate_message);
@@ -607,6 +681,24 @@ public class ChangesView extends ViewPart {
 				.setToolTipText(UIMessages.changesView_propagate_tooltip);
 		propagateToggleAction.setImageDescriptor(AspectJImages.PROPAGATE_UP.getImageDescriptor());
 		propagateToggleAction.setChecked(propagateUp);
+		
+		comparisonReferenceAction = new ComparisonReferenceDropDownAction();
+		linkWithBuildToggleAction = new Action() {
+			public int getStyle() {
+				return IAction.AS_CHECK_BOX;
+			}
+
+			public void run() {
+				comparePrev = !comparePrev;
+				comparisonReferenceAction.setEnabled(comparePrev);
+			}
+		};
+		linkWithBuildToggleAction.setText(UIMessages.changesView_compare_message);
+		linkWithBuildToggleAction
+				.setToolTipText(UIMessages.changesView_compare_tooltip);
+		linkWithBuildToggleAction.setImageDescriptor(AspectJImages.PROPAGATE_UP.getImageDescriptor());
+		JavaPluginImages.setLocalImageDescriptors(linkWithBuildToggleAction, "synced.gif"); //$NON-NLS-1$
+		linkWithBuildToggleAction.setChecked(comparePrev);
 		
 		AJRelationshipType[] relationshipTypes = AJRelationshipManager.getAllRelationshipTypes();
 
@@ -646,4 +738,15 @@ public class ChangesView extends ViewPart {
 		return super.getAdapter(key);
 	}
 
+	public static String getReferencePoint(IProject project) {
+		String ref = (String)fReferencePointMap.get(project);
+		if (ref != null) {
+			return ref;
+		}
+		return REF_LAST_INC; // default
+	}
+
+	public static void setReferencePoint(IProject project, String label) {
+		fReferencePointMap.put(project,label);
+	}
 }

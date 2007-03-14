@@ -242,6 +242,8 @@ public class AspectJImages  {
 				"icons/diff/removed.gif"); //$NON-NLS-1$
 	public static final AJDTIcon PROPAGATE_UP = new AJDTIcon(
 				"icons/diff/propagateup.gif"); //$NON-NLS-1$
+	public static final AJDTIcon COMPARISON = new AJDTIcon(
+				"icons/diff/compare_view.gif"); //$NON-NLS-1$
 	
 	// sample icons for advice markers
 	public static final AJDTIcon ARROW_SAMPLE = new AJDTIcon(

@@ -954,6 +954,21 @@ M4 = Platform-specific fourth key
       </attribute>
    </extension>
 
+   <extension
+         id="changedadvicemarker"
+         name="%changedAdvice"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <persistent
+            value="false">
+      </persistent>
+      <attribute
+            name="%changedAdvice">
+      </attribute>
+   </extension>
+
 <!-- AJDT Problem markers -->
    <extension
          id="problemmarker"
@@ -1259,6 +1274,10 @@ M4 = Platform-specific fourth key
         	name="org.eclipse.ajdt.customAdvice"
 			markerType="org.eclipse.ajdt.ui.customadvicemarker">
       </type>
+      <type
+        	name="org.eclipse.ajdt.changedAdvice"
+			markerType="org.eclipse.ajdt.ui.changedadvicemarker">
+      </type>
 	</extension>
 
 
@@ -1395,6 +1414,21 @@ M4 = Platform-specific fourth key
             	colorPreferenceValue="222,109,33"
             	presentationLayer="4">
  	     </specification>
+ 	     
+ 	    <specification
+			annotationType="org.eclipse.ajdt.changedAdvice"
+			label="%changedAdvice"
+			icon="icons/markers/changedadvice.gif"
+        	textPreferenceKey="changedAdviceIndication"
+        	textPreferenceValue="false"
+        	overviewRulerPreferenceKey="changedAdviceIndicationInOverviewRuler"
+        	overviewRulerPreferenceValue="false"
+        	verticalRulerPreferenceKey="changedAdviceIndicationInVerticalRuler"
+        	verticalRulerPreferenceValue="false"
+        	colorPreferenceKey="changedAdviceIndicationColor"
+        	colorPreferenceValue="255,255,0"
+        	presentationLayer="3">
+        </specification>
 	</extension>
   
 <!-- AJDT Visualiser Provider Definition -->

@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2000, 2005 IBM Corp. and others.
+Copyright (c) 2000, 2007 IBM Corp. and others.
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License v1.0
 which accompanies this distribution, and is available at
@@ -27,10 +27,13 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.model.AJRelationshipManager;
 import org.eclipse.ajdt.core.model.AJRelationshipType;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
+import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.markers.AJMarkersDialog;
+import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -61,6 +64,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractRulerActionDelegate;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -142,7 +147,7 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
 			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENS);
 			addedMenu = createMenuForRelationshipType(javaElementsForLine, manager, addedMenu, AJRelationshipManager.SOFTENED_BY);
 			if(addedMenu) {
-				createAJToolsMenu(manager);
+				createAJToolsMenu(manager,haschangedAdviceMarker(ifile,clickedLine));
 			}
 			
 			// Go through the problem markers 
@@ -196,12 +201,53 @@ public class AdviceActionDelegate extends AbstractRulerActionDelegate {
         }
     }	
 	
+	private boolean haschangedAdviceMarker(IFile file, Integer line) {
+		if (!MarkerUpdating.isChangedAdviceAnnotationActive()) {
+			return false;
+		}
+		try {
+			IMarker changedAdviceMarkers[] = file.findMarkers(
+					IAJModelMarker.CHANGED_ADVICE_MARKER, true, 2);
+			if (changedAdviceMarkers != null
+					&& (changedAdviceMarkers.length > 0)) {
+				for (int i = 0; i < changedAdviceMarkers.length; i++) {
+					if (changedAdviceMarkers[i].getAttribute(
+							IMarker.LINE_NUMBER).equals(line)) {
+						return true;
+					}
+				}
+			}
+		} catch (CoreException e) {
+		}
+		return false;
+	}
 	
-	private void createAJToolsMenu(IMenuManager manager) {
+	private void createAJToolsMenu(IMenuManager manager, boolean showComparison) {
 		MenuManager menu = new MenuManager(UIMessages.AdviceActionDelegate_ajtools);
-		manager.add(menu);			
-		menu.add(new Action(){
-			
+		manager.add(menu);
+		if (showComparison) {
+			menu.add(new Action() {
+				public String getText() {
+					return UIMessages.AdviceActionDelegate_show_comparison;
+				}
+
+				public void run() {
+					try {
+						IViewPart view = AspectJUIPlugin.getDefault()
+								.getWorkbench().getActiveWorkbenchWindow()
+								.getActivePage().showView(
+										ChangesView.CROSSCUTTING_VIEW_ID);
+						if (view instanceof ChangesView) {
+							ChangesView changesView = (ChangesView) view;
+							IResource resource = (IResource) ((IFileEditorInput)editor.getEditorInput()).getFile();			
+							changesView.compareWithEarlierBuild(resource.getProject());
+						}
+					} catch (PartInitException e) {
+					}
+				}
+			});
+		}
+		menu.add(new Action(){		
 			public String getText() {
 				return UIMessages.AdviceActionDelegate_configure_markers;
 			}

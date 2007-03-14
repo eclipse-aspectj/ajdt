@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+ * Copyright (c) 2005, 2007 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -288,6 +288,10 @@ public class UIMessages extends NLS {
 	public static String changesView_table_removed;
 	public static String changesView_description;
 	public static String changesView_currentBuild;
+	public static String changesView_ComparisonReference;
+	public static String changesView_ComparisonReference_no_project;
+	public static String changesView_ComparisonReference_last_inc;
+	public static String changesView_ComparisonReference_last_full;
 	public static String ajmapEditor_title;
 	public static String ajmapEditor_heading;
 	public static String ajmapEditor_description;
@@ -304,6 +308,8 @@ public class UIMessages extends NLS {
 	public static String changesView_propagate_tooltip;
 	public static String changesView_filter_added_rels;
 	public static String changesView_filter_removed_rels;
+	public static String changesView_compare_message;
+	public static String changesView_compare_tooltip;
 	public static String quickFix_ConvertProjectToAspectJ;
 	public static String quickFix_OpenInAspectJEditor;
 	public static String AJFiles_title;
@@ -329,6 +335,7 @@ public class UIMessages extends NLS {
 	public static String AdviceActionDelegate_exception_jumping;
 	public static String AdviceActionDelegate_problem_finding_jump_location;
 	public static String AdviceActionDelegate_resource_not_found;
+	public static String AdviceActionDelegate_show_comparison;
 	public static String PointcutNavigatorView_rebuild_to_view_structure;
 	public static String PointcutNavigatorView_advises;
 	public static String PointcutNavigatorView_pin_structure_model;
@@ -380,6 +387,7 @@ public class UIMessages extends NLS {
 	public static String AJMarkersDialog_aspect;
 	public static String AJMarkersDialog_icon;
 	public static String AJMarkersDialog_defaultPackage;
+	public static String CrosscuttingChangedMarkerText;
 	public static String AdviceActionDelegate_ajtools;
 	public static String AdviceActionDelegate_configure_markers;
 	public static String eventTrace_filter_dialog_title;

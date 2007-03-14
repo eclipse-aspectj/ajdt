@@ -174,6 +174,8 @@ public class AspectJPreferences {
 	// Preferences for Changes View
 	public static final String CHANGES_VIEW_PROPAGATE_UP = "org.eclipse.ajdt.ui.preferences.propagateup"; //$NON-NLS-1$
 	
+	public static final String CHANGES_VIEW_COMPARE_PREV = "org.eclipse.ajdt.ui.preferences.compareprev"; //$NON-NLS-1$
+
 	// Other compiler options
 	// Whether or not to showWeaveInfo messages should only be done through the setter method
 	// not by accessing this field directly.
