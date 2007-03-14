@@ -9,7 +9,7 @@ Bundle-Localization: plugin
 Export-Package: org.eclipse.ajdt.internal.builder;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.buildpath;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.core.exports;x-friends:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.internal.corext.util,
+ org.eclipse.ajdt.internal.corext.util;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.debug.ui.actions;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.javamodel;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.launching;x-friends:="org.eclipse.ajdt.ui.tests",
