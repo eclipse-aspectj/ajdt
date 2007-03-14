@@ -250,13 +250,11 @@ public class MarkerUpdating {
 		boolean runtimeTest = false;
 		// Work out whether we need a runtime test marker or not
 		boolean newlyadded = false;
-		if (addedEls.size() > 0) {
-			for (Iterator iter = relationships.iterator(); iter.hasNext();) {
-				AJRelationship relationship = (AJRelationship) iter.next();
-				runtimeTest = runtimeTest || relationship.hasRuntimeTest();
-				newlyadded = newlyadded
-						|| addedEls.contains(relationship.getSource());
-			}
+		for (Iterator iter = relationships.iterator(); iter.hasNext();) {
+			AJRelationship relationship = (AJRelationship) iter.next();
+			runtimeTest = runtimeTest || relationship.hasRuntimeTest();
+			newlyadded = newlyadded
+					|| addedEls.contains(relationship.getSource());
 		}
 		// Work out what marker type to use (all need to be the same due to
 		// overlapping problems unless some are custom markers)
