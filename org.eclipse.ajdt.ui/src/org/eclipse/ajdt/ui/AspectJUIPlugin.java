@@ -312,10 +312,11 @@ public class AspectJUIPlugin extends org.eclipse.ui.plugin.AbstractUIPlugin {
 		
 		checkAspectJVersion();
 
-		AJCompilationUnitManager.INSTANCE.initCompilationUnits(AspectJPlugin
-				.getWorkspace());
-		
-		AJDTUtils.refreshPackageExplorer();
+		if (!AspectJPlugin.usingCUprovider) {
+			AJCompilationUnitManager.INSTANCE
+					.initCompilationUnits(AspectJPlugin.getWorkspace());
+			AJDTUtils.refreshPackageExplorer();
+		}
 	}
 	
 	private void checkEclipseVersion() {
