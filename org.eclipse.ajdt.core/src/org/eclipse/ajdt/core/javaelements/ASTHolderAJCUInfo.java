@@ -16,6 +16,7 @@ public class ASTHolderAJCUInfo extends AJCompilationUnitInfo {
 
 	int astLevel;
 	boolean resolveBindings;
+	int reconcileFlags;
 	HashMap problems = null;
 	CompilationUnit ast;
 

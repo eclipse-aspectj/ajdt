@@ -59,6 +59,7 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
+import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -304,9 +305,9 @@ public class AJCompilationUnit extends CompilationUnit{
 			}
 				
 				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
-					
-					int astLevel = ((ASTHolderAJCUInfo) info).astLevel;
-					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), pm);
+					ASTHolderAJCUInfo astHolder = (ASTHolderAJCUInfo) info;
+					int astLevel = astHolder.astLevel;
+					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), astHolder.reconcileFlags, pm);
 					((ASTHolderAJCUInfo) info).ast = cu;
 				} 
 			} finally {
@@ -331,7 +332,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	}
 
 	
-	public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(int astLevel, boolean resolveBindings, HashMap problems, IProgressMonitor monitor) throws JavaModelException {
+	public org.eclipse.jdt.core.dom.CompilationUnit makeConsistent(int astLevel, boolean resolveBindings, int reconcileFlags, HashMap problems, IProgressMonitor monitor) throws JavaModelException {
 		if (isConsistent()) return null;
 		
 		// create a new info and make it the current info
@@ -340,6 +341,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			ASTHolderAJCUInfo info = new ASTHolderAJCUInfo();
 			info.astLevel = astLevel;
 			info.resolveBindings = resolveBindings;
+			info.reconcileFlags = reconcileFlags;
 			info.problems = problems;
 			openWhenClosed(info, monitor);
 			org.eclipse.jdt.core.dom.CompilationUnit result = info.ast;
@@ -392,11 +394,12 @@ public class AJCompilationUnit extends CompilationUnit{
 	}	
 	
 	// copied from super, but changed to use an AJReconcileWorkingCopyOperation
-	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(int astLevel,
-			boolean forceProblemDetection,
-			boolean enableStatementsRecovery,
+	public org.eclipse.jdt.core.dom.CompilationUnit reconcile(
+			int astLevel,
+			int reconcileFlags,
 			WorkingCopyOwner workingCopyOwner,
-			IProgressMonitor monitor) throws JavaModelException {
+			IProgressMonitor monitor)
+			throws JavaModelException {
 		if (!isWorkingCopy()) return null; // Reconciling is not supported on non working copies
 		if (workingCopyOwner == null) workingCopyOwner = AJWorkingCopyOwner.INSTANCE;
 		
@@ -412,7 +415,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			// either way, request denied
 			createAST = false;
 		}
-		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, forceProblemDetection, workingCopyOwner);
+		AJReconcileWorkingCopyOperation op = new AJReconcileWorkingCopyOperation(this, createAST, astLevel, true, workingCopyOwner);
 		op.runOperation(monitor);
 		return op.ast;
 	}
