@@ -30,6 +30,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.information.IInformationProviderExtension2;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.editors.text.EditorsUI;
 
 /**
  * Hover to show the definition of pointcuts. Loosely based on
@@ -90,7 +91,7 @@ public class PointcutSourceHover extends AbstractJavaEditorTextHover implements
 			public IInformationControl createInformationControl(Shell parent) {
 				// need to use our own version to get AJ keyword highlighting
 				return new AJSourceViewerInformationControl(parent,
-						getTooltipAffordanceString());
+						EditorsUI.getTooltipAffordanceString());
 			}
 		};
 	}

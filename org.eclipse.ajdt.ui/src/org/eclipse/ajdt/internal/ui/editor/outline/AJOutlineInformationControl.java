@@ -387,12 +387,8 @@ public class AJOutlineInformationControl extends AbstractInformationControl {
 		 * if is does not have one
 		 */
 		private IType getMainType(IClassFile classFile) {
-			try {
-				IType type= classFile.getType();
-				return type != null && type.exists() ? type : null;
-			} catch (JavaModelException e) {
-				return null;
-			}
+			IType type= classFile.getType();
+			return type != null && type.exists() ? type : null;
 		}
 	}
 
