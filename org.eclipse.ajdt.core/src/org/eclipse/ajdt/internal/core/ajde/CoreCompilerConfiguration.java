@@ -302,9 +302,16 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 					String projectPath = proj.getLocation().toString();
 
 					if (slashPos != -1) {
-						resultBuffer.append(projectPath
-								+ AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR
-								+ current.substring(slashPos + 1));
+						String rest = current.substring(slashPos + 1);
+						IResource res = proj.findMember(rest);
+						if (res != null) {
+							resultBuffer.append(res.getRawLocation()
+									.toOSString());
+						} else {
+							resultBuffer.append(projectPath
+									+ AspectJPlugin.NON_OS_SPECIFIC_SEPARATOR
+									+ rest);
+						}
 					} else {
 						resultBuffer.append(projectPath);
 					}
