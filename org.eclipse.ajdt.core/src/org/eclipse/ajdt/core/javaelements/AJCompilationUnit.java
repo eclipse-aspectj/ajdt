@@ -268,40 +268,58 @@ public class AJCompilationUnit extends CompilationUnit{
 			// compute other problems if needed
 			org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration compilationUnitDeclaration = null;
 			try {
-			if (computeProblems){
-				perWorkingCopyInfo.beginReporting();
-				
-				AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(unit, this);
-				AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(this, (AJCompilationUnitInfo)getElementInfo(), null);
-				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true); 
+			if (computeProblems) {
+					perWorkingCopyInfo.beginReporting();
 
-				AjLookupEnvironment le =
-					new AjLookupEnvironment(null, new CompilerOptions(options), null, null);		
-				unit.scope = new CompilationUnitScope(unit, le);
-				compilationUnitDeclaration = AJCompilationUnitProblemFinder.process(ajcudw, this, contents, parser2, null, perWorkingCopyInfo, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), false/*don't cleanup cu*/, null);
-				
-//				provisional -- only reports syntax errors				
-				IProblem[] problems = unit.compilationResult.problems;
-				if (problems != null){
-				for (int i = 0; i < problems.length; i++) {
-					IProblem problem = problems[i];
-					if (problem == null)
-						continue;
-					perWorkingCopyInfo.acceptProblem(new DefaultProblem(
-					problem.getOriginatingFileName(),
-					problem.getMessage(),
-					problem.getID(),
-					problem.getArguments(),
-					problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
-					problem.getSourceStart(),
-					problem.getSourceEnd(),
-					problem.getSourceLineNumber(),
-					0)); // unknown column
+					AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(
+							unit, this);
+					AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(
+							this, (AJCompilationUnitInfo) getElementInfo(),
+							null);
+					AJSourceElementParser2 parser2 = new AJSourceElementParser2(
+							ajcusr,
+							new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(),
+							new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(
+									options), true);
+
+					AjLookupEnvironment le = new AjLookupEnvironment(null,
+							new CompilerOptions(options), null, null);
+					unit.scope = new CompilationUnitScope(unit, le);
+					compilationUnitDeclaration = AJCompilationUnitProblemFinder
+							.process(
+									ajcudw,
+									this,
+									contents,
+									parser2,
+									null,
+									perWorkingCopyInfo,
+									new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(),
+									false/* don't cleanup cu */, null);
+
+					// provisional -- only reports syntax errors
+					IProblem[] problems = unit.compilationResult.problems;
+					if (problems != null) {
+						for (int i = 0; i < problems.length; i++) {
+							IProblem problem = problems[i];
+							if (problem == null)
+								continue;
+							DefaultProblem dp = createDefaultProblem(problem
+									.getOriginatingFileName(), problem
+									.getMessage(), problem.getID(), problem
+									.getArguments(),
+									problem.isError() ? ProblemSeverities.Error
+											: ProblemSeverities.Warning,
+									problem.getSourceStart(), problem
+											.getSourceEnd(), problem
+											.getSourceLineNumber());
+							if (dp != null) {
+								perWorkingCopyInfo.acceptProblem(dp); // unknown column
+							}
+						}
+					}
+					perWorkingCopyInfo.endReporting();
+
 				}
-				}
-				perWorkingCopyInfo.endReporting();
-				
-			}
 				
 				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
 					
@@ -322,6 +340,52 @@ public class AJCompilationUnit extends CompilationUnit{
 
 	}
 
+	/* Create a DefaultProblem instance by reflection the same code can be used
+	 * across Eclipse 3.2.1 and 3.2.2.
+	 */
+	public static DefaultProblem createDefaultProblem(char[] originatingFileName,
+			String message,
+			int id,
+			String[] stringArguments,
+			int severity,
+			int startPosition,
+			int endPosition,
+			int line) {
+		
+		try {
+			Class clazz = Class.forName("org.eclipse.jdt.internal.compiler.problem.DefaultProblem");
+			Constructor[] cons = clazz.getConstructors();
+			if (cons.length == 1) {
+				int params = cons[0].getParameterTypes().length;
+				Object[] args = null;
+				if (params == 8) { // <= Eclipse 3.2.1
+					args = new Object[] {
+							originatingFileName, message, new Integer(id),
+							stringArguments, new Integer(severity),
+							new Integer(startPosition), new Integer(endPosition),
+							new Integer(line)
+					};
+				} else if (params == 9) { // >= Eclipse 3.2.2
+					args = new Object[] {
+							originatingFileName, message, new Integer(id),
+							stringArguments, new Integer(severity),
+							new Integer(startPosition), new Integer(endPosition),
+							new Integer(line), new Integer(0)
+					};	
+				}
+				if (args != null) {
+					return (DefaultProblem)cons[0].newInstance(args);
+				}
+			}
+		} catch (ClassNotFoundException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (InstantiationException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		return null;
+	}
+	
 	public boolean isPrimary() {
 		return this.owner == AJWorkingCopyOwner.INSTANCE;
 	}

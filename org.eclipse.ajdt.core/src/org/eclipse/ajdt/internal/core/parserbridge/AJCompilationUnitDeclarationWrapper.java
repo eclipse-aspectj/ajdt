@@ -96,7 +96,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 			for (int i = 0; i < delegate.compilationResult.problems.length; i++) {
 				org.aspectj.org.eclipse.jdt.core.compiler.IProblem ajprob = delegate.compilationResult.problems[i];
 				if(ajprob != null) {
-					cr.problems[i] = new DefaultProblem(
+					cr.problems[i] = AJCompilationUnit.createDefaultProblem(
 							ajprob.getOriginatingFileName(),
 							ajprob.getMessage(),
 							ajprob.getID(),
@@ -104,8 +104,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 							ajprob.isWarning()? ProblemSeverities.Error : ProblemSeverities.Warning,
 							ajprob.getSourceStart(),
 							ajprob.getSourceEnd(),
-							ajprob.getSourceLineNumber(),
-							0); // unknown column
+							ajprob.getSourceLineNumber());
 				} 
 			}
 		} else { 
