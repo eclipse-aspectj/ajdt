@@ -16,6 +16,7 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.core.parserbridge.AJCompilationUnitStructureRequestor;
 import org.eclipse.ajdt.core.parserbridge.AJSourceElementParser;
@@ -233,16 +234,20 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 						org.aspectj.org.eclipse.jdt.core.compiler.IProblem problem = problems[i];
 						if (problem == null)
 							continue;
-						((IProblemRequestor)delegate).acceptProblem(new DefaultProblem(
-						problem.getOriginatingFileName(),
-						problem.getMessage(),
-						problem.getID(),
-						problem.getArguments(),
-						problem.isError()?ProblemSeverities.Error:ProblemSeverities.Warning,
-						problem.getSourceStart(),
-						problem.getSourceEnd(),
-						problem.getSourceLineNumber(),
-						0)); // unknown column
+						DefaultProblem dp = AJCompilationUnit
+								.createDefaultProblem(
+										problem.getOriginatingFileName(),
+										problem.getMessage(),
+										problem.getID(),
+										problem.getArguments(),
+										problem.isError() ? ProblemSeverities.Error
+												: ProblemSeverities.Warning,
+										problem.getSourceStart(), problem
+												.getSourceEnd(), problem
+												.getSourceLineNumber());
+						if (dp != null) {
+							((IProblemRequestor) delegate).acceptProblem(dp);
+						}
 					}
 				}
 			} catch (JavaModelException e) {
