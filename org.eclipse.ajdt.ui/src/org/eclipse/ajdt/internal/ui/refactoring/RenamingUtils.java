@@ -41,6 +41,9 @@ public class RenamingUtils {
 	 */
 	public static void renameFile(boolean newExtensionIsAJ, IResource file,
 			IProgressMonitor monitor, Map oldToNewNames) {
+		if (!file.exists()) { // nothing to do
+			return;
+		}
 		String oldName = file.getName();
 		String nameWithoutExtension = oldName
 				.substring(0, oldName.indexOf('.')); //$NON-NLS-1$
