@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.eclipse.ajdt.internal.core.ClasspathModifier;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -93,11 +92,7 @@ public class BuildConfig {
 	 */
 	public static boolean isIncluded(IResource file) {
 		IJavaProject jp = JavaCore.create(file.getProject());
-		try {
-			return !(ClasspathModifier.isExcluded(file, jp) || ClasspathModifier.parentExcluded(file, jp));
-		} catch (JavaModelException e) {
-		}
-		return true;
+		return jp.isOnClasspath(file);
 	}
 	
 	//return a list of all IFiles in the given folder, including all

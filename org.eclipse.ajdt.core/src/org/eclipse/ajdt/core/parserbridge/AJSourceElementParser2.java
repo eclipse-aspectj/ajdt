@@ -1057,7 +1057,7 @@ public void notifySourceElementRequestor(
 			importReference.declarationSourceStart, 
 			importReference.declarationSourceEnd, 
 			CharOperation.concatWith(importReference.getImportName(), '.'), 
-			importReference.onDemand,
+			(importReference.bits & ASTNode.OnDemand) != 0,
 			importReference.modifiers); 
 	}
 }
