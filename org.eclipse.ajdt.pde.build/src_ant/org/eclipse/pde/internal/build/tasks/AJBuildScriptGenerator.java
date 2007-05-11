@@ -72,6 +72,8 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	//Map configuration with the expected output format: key: Config, value: string
 	private HashMap archivesFormat;
 
+    private String archivesFormatAsString;
+
 	/**
 	 * flag indicating if the assemble script should be generated
 	 */
@@ -341,7 +343,12 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 			return result;
 		}
 	}
-	public void setArchivesFormat(String archivesFormatAsString) throws CoreException {
+	
+    public void setArchivesFormat(String archivesFormatAsString) {
+        this.archivesFormatAsString = archivesFormatAsString;
+    }
+    
+    public void realSetArchivesFormat(String archivesFormatAsString) throws CoreException {
 		if (Utils.getPropertyFormat(PROPERTY_ARCHIVESFORMAT).equalsIgnoreCase(archivesFormatAsString)) {
 			archivesFormat = new ArchiveTable(0);
 			return;
@@ -368,7 +375,7 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		if (archivesFormat == null) {
 			try {
 				//If not set, pass in the empty property to trigger the default value to be loaded
-				setArchivesFormat(Utils.getPropertyFormat(PROPERTY_ARCHIVESFORMAT));
+				realSetArchivesFormat(Utils.getPropertyFormat(PROPERTY_ARCHIVESFORMAT));
 			} catch (CoreException e) {
 				//ignore
 			}
