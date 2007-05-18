@@ -40,7 +40,7 @@
 	            
 				<link 
 					label="AspectJ Development" 
-					url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/gettingStarted/basictutorial.htm" 
+					url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.doc.user/gettingStarted/basictutorial.htm" 
 					id="link-to-ajdoc">
       
 					<text>

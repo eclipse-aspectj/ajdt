@@ -3,7 +3,7 @@
   <!-- Extension to the SDK Overview Page. -->
   <extensionContent id="org.eclipse.ajdt" name="AspectJ development" alt-style="css/swt.properties" style="css/ajdtOverview.css" path="overview/@">
      <group id="content-group" style-id="content-group">
-    	<link style-id="content-link" label="AspectJ development" url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.ui/doc/gettingStarted/basictutorial.htm" id="java">
+    	<link style-id="content-link" label="AspectJ development" url="http://org.eclipse.ui.intro/showHelpTopic?id=/org.eclipse.ajdt.doc.user/gettingStarted/basictutorial.htm" id="java">
       		<text>Learn more about the AspectJ development tools</text>
     	</link>
      </group>
