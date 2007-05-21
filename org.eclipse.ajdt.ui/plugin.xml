@@ -459,6 +459,7 @@
             icon="icons/structure/newajprj_wiz.gif"
             category="org.eclipse.ajdt.wizards"
             class="org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard"
+            preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective,org.eclipse.jdt.ui.JavaBrowsingPerspective,org.eclipse.jdt.ui.JavaHierarchyPerspective"
             project="true"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             id="ajprojectwizard">
@@ -466,12 +467,6 @@
             %ajProjectWizard.description
          </description>
       </wizard>
-      <!--
-       Declare the AspectJ project creation wizard to be primary. This
-       ensures it shows up in the New->Project... list in the same
-       way that Java project does.
-       -->
-      <primaryWizard id="ajprojectwizard"/>      
       
       <!-- Define the AspectJ Aspect creation wizard -->
       <wizard
@@ -554,7 +549,7 @@
          point="org.eclipse.ui.actionSets">
       <actionSet
             label="%ajnavigation"
-            visible="true"
+            visible="false"
             id="ajnavigation">    
 		<action
                label="%OpenTypeInHierarchyAction.label"
@@ -585,7 +580,7 @@
         
        <actionSet
             label="%ajelementCreation"
-            visible="true"
+            visible="false"
             id="ajelementCreation">
          <action
                label="%OpenAJProjectWizardAction.label"
@@ -676,14 +671,18 @@ M4 = Platform-specific fourth key
    		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaPerspective">
 					<actionSet id="ajelementCreation"/>
-					<newWizardShortcut id="ajaspectwizard"/>
+					<actionSet id="ajnavigation"/>
+					<newWizardShortcut id="ajaspectwizard"/>					
+					<newWizardShortcut id="ajprojectwizard"/>
 					<perspectiveShortcut
                         id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
     	</perspectiveExtension>
     	<perspectiveExtension 
 			targetID="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective">
 					<actionSet id="ajelementCreation"/>
+					<actionSet id="ajnavigation"/>
 					<newWizardShortcut id="ajaspectwizard"/>
+					<newWizardShortcut id="ajprojectwizard"/>					
 					<perspectiveShortcut
                         id="org.eclipse.jdt.ui.JavaPerspective"/>				
 					<!--
@@ -697,14 +696,29 @@ M4 = Platform-specific fourth key
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
 					<actionSet id="ajelementCreation"/>
+					<actionSet id="ajnavigation"/>
+					<newWizardShortcut id="ajaspectwizard"/>
+					<newWizardShortcut id="ajprojectwizard"/>					
+					<perspectiveShortcut
+                        id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.jdt.ui.JavaHierarchyPerspective">
 					<actionSet id="ajelementCreation"/>
+					<actionSet id="ajnavigation"/>				
+					<newWizardShortcut id="ajaspectwizard"/>
+					<newWizardShortcut id="ajprojectwizard"/>					
+					<perspectiveShortcut
+                        id="org.eclipse.ajdt.ui.visualiser.AspectVisualizationPerspective"/>					
+		</perspectiveExtension>
+		<perspectiveExtension 
+			targetID="org.eclipse.debug.ui.DebugPerspective">
+					<actionSet id="ajnavigation"/>				
 		</perspectiveExtension>
 		<perspectiveExtension 
 			targetID="org.eclipse.pde.ui.PDEPerspective">
 					<actionSet id="ajelementCreation"/>
+					<actionSet id="ajnavigation"/>
 		</perspectiveExtension>
 		
 		<!--
