@@ -1,23 +1,38 @@
-/**********************************************************************
- * Copyright (c) 2004, 2005 IBM Corporation and others.
+/*******************************************************************************
+ * Copyright (c) 2000, 2006 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * Contributors: Sian January - initial version
- * ...
- **********************************************************************/
+ * 
+ * Contributors:
+ *     IBM - Initial API and implementation
+ *     Ben Pryor - Bug 148288
+ *******************************************************************************/
 package org.eclipse.ajdt.core.exports;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.pde.internal.build.AbstractScriptGenerator;
 import org.eclipse.pde.internal.build.AssembleScriptGenerator;
 import org.eclipse.pde.internal.build.AssemblyInformation;
 import org.eclipse.pde.internal.build.BuildScriptGenerator;
@@ -31,49 +46,52 @@ import org.eclipse.pde.internal.build.builder.DevClassPathHelper;
 import org.eclipse.pde.internal.build.builder.FeatureBuildScriptGenerator;
 import org.eclipse.pde.internal.build.packager.PackageScriptGenerator;
 import org.eclipse.pde.internal.build.site.BuildTimeSiteFactory;
+import org.eclipse.update.core.IFeature;
+import org.eclipse.update.core.VersionedIdentifier;
+import org.osgi.framework.Version;
 
-/**
- * Mostly copied from BuildScriptGenerator.
+/*
+ * Copied from BuildScriptGenerator.
  * Enables AspectJ plugins to be correctly exported. Changes marked with // AspectJ Change
  */
-public class AJBuildScriptGenerator extends BuildScriptGenerator {
-
-	// AspectJ Change Begin - aspectpath and inpath support
-	protected List aspectpath;
-	protected List inpath;
-	// AspectJ Change end
-	
+public class AJBuildScriptGenerator extends BuildScriptGenerator { // AspectJ Change
 	/**
 	 * Indicates whether the assemble script should contain the archive
 	 * generation statement.
 	 */
-	protected boolean generateArchive = true;
+	//protected boolean generateArchive = true; // AspectJ Change
 	/**
 	 * Indicates whether scripts for a feature's children should be generated.
 	 */
-	protected boolean children = true;
+	//protected boolean children = true; // AspectJ Change
+
+	/**
+	 * Indicates whether the resulting archive will contain a group of all the configurations
+	 */
+	//protected boolean groupConfigs = false; // AspectJ Change
 
 	/**
 	 * Source elements for script generation.
 	 */
-	protected String[] elements;
+	//protected String[] elements; // AspectJ Change
 
 	/**
 	 * Additional dev entries for the compile classpath.
 	 */
-	protected DevClassPathHelper devEntries;
+	//protected DevClassPathHelper devEntries; // AspectJ Change
 
-	protected boolean recursiveGeneration = true;
-	protected boolean generateBuildScript = true;
-	protected boolean includePlatformIndependent = true;
-	protected boolean signJars = false;
-	protected boolean generateJnlp = false;
+//	protected boolean recursiveGeneration = true; // AspectJ Change
+//	protected boolean generateBuildScript = true; // AspectJ Change
+//	protected boolean includePlatformIndependent = true; // AspectJ Change
+//	protected boolean signJars = false; // AspectJ Change
+//	protected boolean generateJnlp = false; // AspectJ Change
+//	protected boolean generateFeatureVersionSuffix = false; // AspectJ Change
 	private String product;
 	//Map configuration with the expected output format: key: Config, value: string
 	private HashMap archivesFormat;
 
     private String archivesFormatAsString;
-
+    
 	/**
 	 * flag indicating if the assemble script should be generated
 	 */
@@ -82,28 +100,58 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	/** flag indicating if missing properties file should be logged */
 	private boolean ignoreMissingPropertiesFile = true;
 
+	/** flag indicating if we should generate the plugin & feature versions lists */
+	private boolean generateVersionsList = false;
+
+	private Properties antProperties = null;
+	private BundleDescription[] bundlesToBuild;
+	
 	private static final String PROPERTY_ARCHIVESFORMAT = "archivesFormat"; //$NON-NLS-1$
+
+	// AspectJ Change Begin - aspectpath and inpath support
+	protected List aspectpath;
+	protected List inpath;
+	// AspectJ Change end
 
 	/**
 	 * 
 	 * @throws CoreException
 	 */
 	public void generate() throws CoreException {
+        
+        if (archivesFormatAsString != null) {
+            realSetArchivesFormat(archivesFormatAsString);
+            archivesFormatAsString = null;
+        }
+        
 		List plugins = new ArrayList(5);
 		List features = new ArrayList(5);
-		sortElements(features, plugins);
-
-		// It is not required to filter in the two first generateModels, since
-		// it is only for the building of a single plugin
-		generateModels(plugins);
-		generateFeatures(features);
-		flushState();
+		try {
+			AbstractScriptGenerator.setStaticAntProperties(antProperties);
+			
+			sortElements(features, plugins);
+			pluginsForFilterRoots = plugins;
+			featuresForFilterRoots = features;
+			getSite(true); //This forces the creation of the siteFactory which contains all the parameters necessary to initialize.
+			//TODO To avoid this. What would be necessary is use the BuildTimeSiteFactory to store the values that are stored in the AbstractScriptGenerator and to pass the parameters to a new BuildTimeSiteFacotry when created.
+			//More over this would allow us to remove some of the setters when creating a new featurebuildscriptgenerator.
+	
+			// It is not required to filter in the two first generateModels, since
+			// it is only for the building of a single plugin
+			generateModels(plugins);
+			generateFeatures(features);
+			flushState();
+		} finally {
+			AbstractScriptGenerator.setStaticAntProperties(null);
+		}
 	}
 
 	/**
 	 * Separate elements by kind.
 	 */
 	protected void sortElements(List features, List plugins) {
+		if (elements == null)
+			return;
 		for (int i = 0; i < elements.length; i++) {
 			int index = elements[i].indexOf('@');
 			String type = elements[i].substring(0, index);
@@ -121,23 +169,44 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 * @throws CoreException
 	 */
 	protected void generateModels(List models) throws CoreException {
-		AJModelBuildScriptGenerator generator = null;
+		AJModelBuildScriptGenerator generator = null; // AspectJ Change
 		try {
 			for (Iterator iterator = models.iterator(); iterator.hasNext();) {
-				// AspectJ Change begin
-				generator = new AJModelBuildScriptGenerator();
-				generator.setAspectpath(aspectpath);
-				generator.setInpath(inpath);
-				// AspectJ Change end
+				generator = new AJModelBuildScriptGenerator(); // AspectJ Change
+				generator.setAspectpath(aspectpath); // AspectJ Change
+				generator.setInpath(inpath); // AspectJ Change
 				generator.setReportResolutionErrors(reportResolutionErrors);
 				generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
-				//Filtering is not required here, since we are only generating the
-				// build for a plugin or a fragment
-				String model = (String) iterator.next();
-				generator.setModelId(model);
+				//Filtering is not required here, since we are only generating the build for a plugin or a fragment
+				String[] modelInfo = getNameAndVersion((String) iterator.next());
+				generator.setBuildSiteFactory(siteFactory);
+				generator.setModelId(modelInfo[0], modelInfo[1]);
+
+				generator.setPluginPath(pluginPath);
+				generator.setDevEntries(devEntries);
+				generator.setCompiledElements(generator.getCompiledElements());
+				generator.setBuildingOSGi(isBuildingOSGi());
 				generator.setSignJars(signJars);
 				generator.generate();
 			}
+			if (bundlesToBuild != null)
+				for (int i = 0; i < bundlesToBuild.length; i++) {
+					generator = new AJModelBuildScriptGenerator(); // AspectJ Change
+					generator.setAspectpath(aspectpath); // AspectJ Change
+					generator.setInpath(inpath); // AspectJ Change
+					generator.setReportResolutionErrors(reportResolutionErrors);
+					generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
+					//Filtering is not required here, since we are only generating the build for a plugin or a fragment
+					generator.setBuildSiteFactory(siteFactory);
+					generator.setModel(bundlesToBuild[i]);
+
+					generator.setPluginPath(pluginPath);
+					generator.setDevEntries(devEntries);
+					generator.setCompiledElements(generator.getCompiledElements());
+					generator.setBuildingOSGi(isBuildingOSGi());
+					generator.setSignJars(signJars);
+					generator.generate();
+				}
 		} finally {
 			if (generator != null)
 				generator.getSite(false).getRegistry().cleanupOriginalState();
@@ -163,15 +232,14 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		try {
 			for (Iterator i = features.iterator(); i.hasNext();) {
 				String[] featureInfo = getNameAndVersion((String) i.next());
-//				 AspectJ Change
-				generator = new AJFeatureBuildScriptGenerator(featureInfo[0], featureInfo[1], assemblageInformation);
+				generator = new AJFeatureBuildScriptGenerator(featureInfo[0], featureInfo[1], assemblageInformation); // AspectJ Change
 				generator.setGenerateIncludedFeatures(this.recursiveGeneration);
 				generator.setAnalyseChildren(this.children);
 				generator.setSourceFeatureGeneration(false);
 				generator.setBinaryFeatureGeneration(true);
 				generator.setScriptGeneration(generateBuildScript);
 				generator.setPluginPath(pluginPath);
-				generator.setBuildSiteFactory(null);
+				generator.setBuildSiteFactory(siteFactory);
 				generator.setDevEntries(devEntries);
 				generator.setSourceToGather(new SourceFeatureInformation());//
 				generator.setCompiledElements(generator.getCompiledElements());
@@ -181,6 +249,8 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 				generator.setIgnoreMissingPropertiesFile(ignoreMissingPropertiesFile);
 				generator.setSignJars(signJars);
 				generator.setGenerateJnlp(generateJnlp);
+				generator.setGenerateVersionSuffix(generateFeatureVersionSuffix);
+				generator.setProduct(product);
 				generator.generate();
 			}
 
@@ -191,20 +261,129 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 				else
 					featureInfo = new String[] {"all"}; //$NON-NLS-1$
 
-//				 AspectJ Change
-				generateAssembleScripts(assemblageInformation, featureInfo,  ((AJFeatureBuildScriptGenerator)generator).getSiteFactory());
+				generateAssembleScripts(assemblageInformation, featureInfo, ((AJFeatureBuildScriptGenerator)generator).getSiteFactory()); // AspectJ Change
 
 				if (features.size() == 1)
 					featureInfo = getNameAndVersion((String) features.get(0));
 				else
 					featureInfo = new String[] {""}; //$NON-NLS-1$
 
-//				 AspectJ Change
-				generatePackageScripts(assemblageInformation, featureInfo,  ((AJFeatureBuildScriptGenerator)generator).getSiteFactory());
+				generatePackageScripts(assemblageInformation, featureInfo, ((AJFeatureBuildScriptGenerator)generator).getSiteFactory()); // AspectJ Change
 			}
+			if (generateVersionsList)
+				generateVersionsLists(assemblageInformation);
 		} finally {
 			if (generator != null)
 				generator.getSite(false).getRegistry().cleanupOriginalState();
+		}
+	}
+
+	protected void generateVersionsLists(AssemblyInformation assemblageInformation) throws CoreException {
+		if (assemblageInformation == null)
+			return;
+		List configs = getConfigInfos();
+		Set features = new HashSet();
+		Set plugins = new HashSet();
+		Properties versions = new Properties();
+
+		//For each configuration, save the version of all the features in a file 
+		//and save the version of all the plug-ins in another file
+		for (Iterator iter = configs.iterator(); iter.hasNext();) {
+			Config config = (Config) iter.next();
+			String configString = config.toStringReplacingAny("_", ANY_STRING); //$NON-NLS-1$
+
+			//Features
+			Collection list = assemblageInformation.getFeatures(config);
+			versions.clear();
+			features.addAll(list);
+			String featureFile = DEFAULT_FEATURE_VERSION_FILENAME_PREFIX + '.' + configString + PROPERTIES_FILE_SUFFIX;
+			readVersions(versions, featureFile);
+			for (Iterator i = list.iterator(); i.hasNext();) {
+				IFeature feature = (IFeature) i.next();
+				VersionedIdentifier id = feature.getVersionedIdentifier();
+				recordVersion(id.getIdentifier(), new Version(id.getVersion().toString()), versions);
+			}
+			saveVersions(versions, featureFile);
+
+			//Plugins
+			list = assemblageInformation.getPlugins(config);
+			versions.clear();
+			plugins.addAll(list);
+			String pluginFile = DEFAULT_PLUGIN_VERSION_FILENAME_PREFIX + '.' + configString + PROPERTIES_FILE_SUFFIX;
+			readVersions(versions, pluginFile);
+			for (Iterator i = list.iterator(); i.hasNext();) {
+				BundleDescription bundle = (BundleDescription) i.next();
+				recordVersion(bundle.getSymbolicName(), bundle.getVersion(), versions);
+			}
+			saveVersions(versions, pluginFile);
+		}
+
+		//Create a file containing all the feature versions  
+		versions.clear();
+		String featureFile = DEFAULT_FEATURE_VERSION_FILENAME_PREFIX + PROPERTIES_FILE_SUFFIX;
+		readVersions(versions, featureFile);
+		for (Iterator i = features.iterator(); i.hasNext();) {
+			IFeature feature = (IFeature) i.next();
+			VersionedIdentifier id = feature.getVersionedIdentifier();
+			recordVersion(id.getIdentifier(), new Version(id.getVersion().toString()), versions);
+		}
+		saveVersions(versions, featureFile);
+
+		//Create a file containing all the plugin versions
+		versions.clear();
+		String pluginVersion = DEFAULT_PLUGIN_VERSION_FILENAME_PREFIX + PROPERTIES_FILE_SUFFIX;
+		readVersions(versions, pluginVersion);
+		for (Iterator i = plugins.iterator(); i.hasNext();) {
+			BundleDescription bundle = (BundleDescription) i.next();
+			recordVersion(bundle.getSymbolicName(), bundle.getVersion(), versions);
+		}
+		saveVersions(versions, pluginVersion);
+	}
+
+	protected void recordVersion(String name, Version version, Properties properties) {
+		String versionString = version.toString();
+		if (properties.containsKey(name)) {
+			Version existing = new Version((String) properties.get(name));
+			if (version.compareTo(existing) >= 0) {
+				properties.put(name, versionString);
+			}
+		} else {
+			properties.put(name, versionString);
+		}
+		String suffix = '_' + String.valueOf(version.getMajor()) + '.' + String.valueOf(version.getMinor()) + '.' + String.valueOf(version.getMicro());
+		properties.put(name + suffix, versionString);
+	}
+
+	private String getFilePath(String fileName) {
+		return workingDirectory + '/' + fileName;
+	}
+
+	protected void readVersions(Properties properties, String fileName) {
+		String location = getFilePath(fileName);
+		try {
+			InputStream is = new BufferedInputStream(new FileInputStream(location));
+			try {
+				properties.load(is);
+			} finally {
+				is.close();
+			}
+		} catch (IOException e) {
+			//Ignore
+		}
+	}
+
+	protected void saveVersions(Properties properties, String fileName) throws CoreException {
+		String location = getFilePath(fileName);
+		try {
+			OutputStream os = new BufferedOutputStream(new FileOutputStream(location));
+			try {
+				properties.store(os, null);
+			} finally {
+				os.close();
+			}
+		} catch (IOException e) {
+			String message = NLS.bind(Messages.exception_writingFile, location);
+			throw new CoreException(new Status(IStatus.ERROR, PI_PDEBUILD, EXCEPTION_WRITING_FILE, message, null));
 		}
 	}
 
@@ -216,6 +395,7 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		assembler.setArchivesFormat(getArchivesFormat());
 		assembler.setProduct(product);
 		assembler.setBuildSiteFactory(factory);
+		assembler.setGroupConfigs(groupConfigs);
 		assembler.generate();
 	}
 
@@ -226,13 +406,12 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 		assembler.setArchivesFormat(getArchivesFormat());
 		assembler.setProduct(product);
 		assembler.setBuildSiteFactory(factory);
+		assembler.setGroupConfigs(groupConfigs);
 		assembler.generate();
 	}
 
 	public void setGenerateArchive(boolean generateArchive) {
 		this.generateArchive = generateArchive;
-//		 AspectJ Change
-		super.setGenerateArchive(generateArchive);
 	}
 
 	/**
@@ -241,8 +420,6 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setChildren(boolean children) {
 		this.children = children;
-//		 AspectJ Change
-		super.setChildren(children);
 	}
 
 	/**
@@ -252,8 +429,6 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	public void setDevEntries(String devEntries) {
 		if (devEntries != null)
 			this.devEntries = new DevClassPathHelper(devEntries);
-//		 AspectJ Change
-		super.setDevEntries(devEntries);
 	}
 
 	/**
@@ -262,14 +437,6 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setElements(String[] elements) {
 		this.elements = elements;
-//		 AspectJ Change
-		super.setElements(elements);
-	}
-
-	public void setPluginPath(String[] pluginPath) {
-		this.pluginPath = pluginPath;
-//		 AspectJ Change
-		super.setPluginPath(pluginPath);
 	}
 
 	/**
@@ -280,8 +447,6 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setRecursiveGeneration(boolean recursiveGeneration) {
 		this.recursiveGeneration = recursiveGeneration;
-		// AspectJ Change
-		super.setRecursiveGeneration(recursiveGeneration);
 	}
 
 	/**
@@ -290,8 +455,14 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setGenerateAssembleScript(boolean generateAssembleScript) {
 		this.generateAssembleScript = generateAssembleScript;
-//		 AspectJ Change
-		super.setGenerateAssembleScript(generateAssembleScript);
+	}
+
+	/**
+	 * Whether or not to generate plugin & feature versions lists
+	 * @param generateVersionsList
+	 */
+	public void setGenerateVersionsList(boolean generateVersionsList) {
+		this.generateVersionsList = generateVersionsList;
 	}
 
 	/**
@@ -299,8 +470,6 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setReportResolutionErrors(boolean value) {
 		this.reportResolutionErrors = value;
-//		 AspectJ Change
-		super.setReportResolutionErrors(value);
 	}
 
 	/**
@@ -308,34 +477,32 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 	 */
 	public void setIgnoreMissingPropertiesFile(boolean value) {
 		ignoreMissingPropertiesFile = value;
-//		 AspectJ Change
-		super.setIgnoreMissingPropertiesFile(value);
 	}
 
 	public void setProduct(String value) {
 		product = value;
-//		 AspectJ Change
-		super.setProduct(value);
 	}
 
 	public void setSignJars(boolean value) {
 		signJars = value;
-//		 AspectJ Change
-		super.setSignJars(value);
 	}
 
 	public void setGenerateJnlp(boolean value) {
 		generateJnlp = value;
-//		 AspectJ Change
-		super.setGenerateJnlp(value);
+	}
+
+	public void setGenerateFeatureVersionSuffix(boolean value) {
+		generateFeatureVersionSuffix = value;
 	}
 
 	private class ArchiveTable extends HashMap {
 		private static final long serialVersionUID = -3063402400461435816L;
+
 		public ArchiveTable(int size) {
 			super(size);
 		}
-		public  Object get(Object arg0) {
+
+		public Object get(Object arg0) {
 			Object result = super.get(arg0);
 			if (result == null)
 				result = IXMLConstants.FORMAT_ANTZIP;
@@ -362,6 +529,11 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 				throw new CoreException(error);
 			}
 			String[] archAndFormat = Utils.getArrayFromStringWithBlank(configElements[2], "-"); //$NON-NLS-1$
+			if (archAndFormat.length != 2) {
+				String message = NLS.bind(Messages.invalid_archivesFormat, archivesFormatAsString);
+				IStatus status = new Status(IStatus.ERROR,IPDEBuildConstants.PI_PDEBUILD , message);
+				throw new CoreException(status);
+			}
 
 			Config aConfig = new Config(configElements[0], configElements[1], archAndFormat[0]);
 			if (getConfigInfos().contains(aConfig)) {
@@ -384,6 +556,18 @@ public class AJBuildScriptGenerator extends BuildScriptGenerator {
 
 	public void includePlatformIndependent(boolean b) {
 		includePlatformIndependent = b;
+	}
+
+	public void setGroupConfigs(boolean value) {
+		groupConfigs = value;
+	}
+
+	public void setImmutableAntProperties(Properties properties) {
+		antProperties = properties;
+	}
+	
+	public void setBundles(BundleDescription[] bundles) {
+		bundlesToBuild = bundles;
 	}
 	
 	// AspectJ Change Begin - aspectpath and inpath support
