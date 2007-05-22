@@ -667,7 +667,7 @@ public class JavaProjectWizardFirstPageExtension extends JavaProjectWizardFirstP
 			// check whether the location has the workspace as prefix
 			IPath projectPath= Path.fromOSString(location);
 			if (!fLocationGroup.isInWorkspace() && Platform.getLocation().isPrefixOf(projectPath)) {
-				setErrorMessage(NewWizardMessages.JavaProjectWizardFirstPage_Message_cannotCreateInWorkspace); 
+				setErrorMessage(NewWizardMessages.JavaProjectWizardFirstPage_Message_cannotCreateAtExternalLocation); 
 				setPageComplete(false);
 				return;
 			}
