@@ -5,8 +5,8 @@
 	    <topic label="org.eclipse.contribution.visualiser.core.resources" href="doc/javadoc/org/eclipse/contribution/visualiser/core/resources/package-summary.html" /> 
 	    <topic label="org.eclipse.contribution.visualiser.interfaces" href="doc/javadoc/org/eclipse/contribution/visualiser/interfaces/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.internal.preference" href="doc/javadoc/org/eclipse/contribution/visualiser/internal/preference/package-summary.html" /> 
-		<topic label="org.eclipse.contribution.visualiser.jdtImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/jdtimpl/package-summary.html" /> 
-		<topic label="org.eclipse.contribution.visualiser.markerImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/markerimpl/package-summary.html" /> 
+		<topic label="org.eclipse.contribution.visualiser.jdtImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/jdtImpl/package-summary.html" /> 
+		<topic label="org.eclipse.contribution.visualiser.markerImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/markerImpl/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.palettes" href="doc/javadoc/org/eclipse/contribution/visualiser/palettes/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.renderers" href="doc/javadoc/org/eclipse/contribution/visualiser/renderers/package-summary.html" /> 
 		<topic label="org.eclipse.contribution.visualiser.simpleImpl" href="doc/javadoc/org/eclipse/contribution/visualiser/simpleImpl/package-summary.html" /> 
