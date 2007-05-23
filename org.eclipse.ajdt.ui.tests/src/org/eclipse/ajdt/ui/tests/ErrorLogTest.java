@@ -48,15 +48,36 @@ public class ErrorLogTest extends UITestCase {
 			}
 			if (errorsAndWarnings.size() > 0) {
 				StringBuffer errors = new StringBuffer();
+				boolean ignore = false;
 				for (Iterator iter = errorsAndWarnings.iterator(); iter
 						.hasNext();) {
 					LogEntry element = (LogEntry) iter.next();
 					errors.append(element.getMessage());
-					errors.append(" plugin:"); //$NON-NLS-1$
-					errors.append(element.getPluginId());
-					errors.append("\n"); //$NON-NLS-1$
+					errors.append(" (" + element.getPluginId() + ")\n"); //$NON-NLS-1$ //$NON-NLS-2$
+					if (element.hasChildren()) {
+						Object[] sub = element.getChildren(null);
+						for (int i = 0; i < sub.length; i++) {
+							if (sub[i] instanceof LogEntry) {
+								LogEntry s = (LogEntry) sub[i];
+								String msg = s.getMessage();
+								errors.append("    " + msg); //$NON-NLS-1$
+								errors.append(" (" + s.getPluginId() + ")\n"); //$NON-NLS-1$ //$NON-NLS-2$
+								// ignore if all child warnings are related to
+								// unresolved jdt plugins (probably caused by
+								// missing java6 constraints)
+								if ((element.getSeverity() == IStatus.WARNING)
+										&& (msg.indexOf("org.eclipse.jdt") != -1) && (msg.indexOf("was not resolved") != -1)) { //$NON-NLS-1$//$NON-NLS-2$
+									ignore = true;
+								} else {
+									ignore = false;
+								}
+							}
+						}
+					}
 				}
-				fail("There should be no unexpected entries in the error log. Found:\n" + errors.toString()); //$NON-NLS-1$
+				if (!ignore) {
+					fail("There should be no unexpected entries in the error log. Found:\n" + errors.toString()); //$NON-NLS-1$
+				}
 			}
 		} else {
 			fail("Could not find the Error log."); //$NON-NLS-1$
