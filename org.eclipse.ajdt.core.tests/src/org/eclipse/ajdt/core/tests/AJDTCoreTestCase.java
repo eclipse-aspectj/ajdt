@@ -81,10 +81,34 @@ public class AJDTCoreTestCase extends TestCase {
 		return getWorkspace().getRoot();
 	}
 	
-	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
+	protected IProject createPredefinedProject14(final String projectName) throws CoreException,IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
+		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");
+		jp.setOption("org.eclipse.jdt.core.compiler.source", "1.4");
+		jp.setOption("org.eclipse.jdt.core.compiler.target", "1.4");
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
+	}
+	
+	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
+		IJavaProject jp = setUpJavaProject(projectName);
+		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");
+		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+		return jp.getProject();
+	}
+	
+	/**
+	 * Create a named project, optionally turn of some irritating options that can clog up the output and then build it
+	 */
+	protected IProject createPredefinedProject(final String projectName,boolean turnOffIrritatingOptions) throws CoreException, IOException {
+		IJavaProject jp = setUpJavaProject(projectName);
+		if (turnOffIrritatingOptions) {
+			jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");//$NON-NLS-1$ // $NON-NLS-2$
+			jp.setOption("org.eclipse.jdt.core.compiler.problem.rawTypeReference","ignore");//$NON-NLS-1$ // $NON-NLS-2$
+			jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ // $NON-NLS-2$
+		}
+		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
+		return jp.getProject();		
 	}
 	
 	

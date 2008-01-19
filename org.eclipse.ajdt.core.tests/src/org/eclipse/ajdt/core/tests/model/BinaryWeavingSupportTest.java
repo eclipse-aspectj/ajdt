@@ -36,7 +36,7 @@ import org.eclipse.jdt.core.IPackageDeclaration;
 public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 
 	public void testFindProjectForPath() throws Exception {
-		IProject project = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		IPath base = project.getLocation();
 		IPath loc = base.append("aspects.jar"); //$NON-NLS-1$
 
@@ -54,7 +54,7 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 	}
 
 	public void testFindSourceFolderResource() throws Exception {
-		IProject project = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		IResource res = BinaryWeavingSupport.findSourceFolderResource(project,
 				"bar", "MyBar.aj"); //$NON-NLS-1$ //$NON-NLS-2$
 		assertNotNull("Didn't find source folder resource", res); //$NON-NLS-1$
@@ -112,7 +112,7 @@ public class BinaryWeavingSupportTest extends AJDTCoreTestCase {
 	}
 
 	public void testFindElementAtLine() throws Exception {
-		IProject project = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+		IProject project = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		IResource aj = project.findMember("src/bar/MyBar.aj"); //$NON-NLS-1$
 		assertNotNull("Couldn't find MyBar.aj file", aj); //$NON-NLS-1$
 		AJCompilationUnit ajcu = AJCompilationUnitManager.INSTANCE

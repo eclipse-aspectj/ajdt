@@ -94,7 +94,7 @@ public class AJModelPersistenceTest extends AJDTCoreTestCase {
 		IProject libProject = (IProject) getWorkspaceRoot().findMember(
 				"MyAspectLibrary"); //$NON-NLS-1$
 		if (libProject == null) {
-			libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+			libProject = createPredefinedProject14("MyAspectLibrary"); //$NON-NLS-1$
 		}
 		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] { AJRelationshipManager.ADVISED_BY };
