@@ -21,6 +21,7 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeFieldDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.InterTypeMethodDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
+import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
@@ -493,7 +494,7 @@ public class AJCompilationUnitStructureRequestor extends
 		}
 
 
-	public void acceptProblem(IProblem problem) {
+	public void acceptProblem(CategorizedProblem problem) {
 		if ((problem.getID() & IProblem.Syntax) != 0){
 			this.hasSyntaxErrors = true;
 		}		

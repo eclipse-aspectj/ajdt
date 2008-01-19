@@ -11,6 +11,7 @@
 package org.eclipse.ajdt.core.dom.rewrite;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.text.edits.MultiTextEdit;
@@ -18,18 +19,23 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.TextUtilities;
 
+import org.aspectj.org.eclipse.jdt.core.ITypeRoot;
 import org.aspectj.org.eclipse.jdt.core.JavaCore;
+import org.aspectj.org.eclipse.jdt.core.JavaModelException;
 
 import org.aspectj.org.eclipse.jdt.core.dom.AST;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.core.dom.Block;
 import org.aspectj.org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
+import org.aspectj.org.eclipse.jdt.core.dom.CompilationUnit;
 import org.aspectj.org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.ITrackedNodePosition;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
 
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.LineInformation;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeRewriteEvent;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
@@ -37,7 +43,7 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.TrackedNodePosition
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore.CopySourceInfo;
 
 /**
- * Infrastucture for modifying code by describing changes to AST nodes.
+ * Infrastructure for modifying code by describing changes to AST nodes.
  * The AST rewriter collects descriptions of modifications to nodes and
  * translates these descriptions into text edits that can then be applied to
  * the original source. The key thing is that this is all done without actually
@@ -58,12 +64,11 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore.C
  * CompilationUnit cu = (CompilationUnit) parser.createAST(null);
  * AST ast = cu.getAST();
  * ImportDeclaration id = ast.newImportDeclaration();
- * id.setName(ast.newName(new String[] {"java", "util", "Set"});
+ * id.setName(ast.newName(new String[] {"java", "util", "Set"}));
  * ASTRewrite rewriter = ASTRewrite.create(ast);
  * TypeDeclaration td = (TypeDeclaration) cu.types().get(0);
  * ITrackedNodePosition tdLocation = rewriter.track(td);
- * ListRewriter lrw = rewriter.getListRewrite(cu,
- *                       CompilationUnit.IMPORTS_PROPERTY);
+ * ListRewrite lrw = rewriter.getListRewrite(cu, CompilationUnit.IMPORTS_PROPERTY);
  * lrw.insertLast(id, null);
  * TextEdit edits = rewriter.rewriteAST(document, null);
  * UndoEdit undo = edits.apply(document);
@@ -71,14 +76,14 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore.C
  *   .equals(doc.get().toCharArray());
  * // tdLocation.getStartPosition() and tdLocation.getLength()
  * // are new source range for "class X {}" in doc.get()
- * </pre>
+ * </pre> 
  * <p>
  * This class is not intended to be subclassed.
  * </p>
  * @since 3.0
  * 
  * Taken from org.aspectj.org.eclipse.jdt.core.dom.rewrite.ASTRewrite 
- * Changes Marked "// AspectJ Change" (changes marked with "// AspectJ Extenstion"
+ * Changes Marked "// AspectJ Change" (changes marked with "// AspectJ Extension"
  * are changes between org.eclipse.jdt.internal.core.dom.rewrite.ASTRewrite
  * and the org.aspectj.... version).
  * 
@@ -179,29 +184,123 @@ public class AjASTRewrite {
 	 * @throws IllegalArgumentException An <code>IllegalArgumentException</code>
 	 * is thrown if the document passed does not correspond to the AST that is rewritten. 
 	 */
+//	public TextEdit rewriteAST(IDocument document, Map options) throws IllegalArgumentException {
+//		if (document == null) {
+//			throw new IllegalArgumentException();
+//		}
+//		TextEdit result= new MultiTextEdit();
+//		
+//		ASTNode rootNode= getRootNode();
+//		if (rootNode != null) {
+//			//validateASTNotModified(rootNode);
+//			
+//			TargetSourceRangeComputer sourceRangeComputer= getExtendedSourceRangeComputer();
+//			
+//			this.eventStore.prepareMovedNodes(sourceRangeComputer);
+//
+//			// AspectJ Change - this is what's changed in the org.aspectj.org.jdt... version
+//			// it needs to be here even if it's removed from the org.aspectj... version
+//			// AspectJ extension - ask the factory in ASTRewriteAnalyzer for a visitor rather than building it directly.
+//			ASTVisitor visitor= AjASTRewriteAnalyzer.getAnalyzerVisitor(document, result, this.eventStore, this.nodeStore, options, sourceRangeComputer);
+//			// original line: ASTRewriteAnalyzer visitor= new ASTRewriteAnalyzer(document, result, this.eventStore, this.nodeStore, options, sourceRangeComputer);
+//			rootNode.accept(visitor); // throws IllegalArgumentException
+//			
+//			this.eventStore.revertMovedNodes();
+//		}
+//		return result;
+//	}
 	public TextEdit rewriteAST(IDocument document, Map options) throws IllegalArgumentException {
 		if (document == null) {
 			throw new IllegalArgumentException();
 		}
-		TextEdit result= new MultiTextEdit();
 		
 		ASTNode rootNode= getRootNode();
-		if (rootNode != null) {
-			//validateASTNotModified(rootNode);
-			
-			TargetSourceRangeComputer sourceRangeComputer= getExtendedSourceRangeComputer();
-			
-			this.eventStore.prepareMovedNodes(sourceRangeComputer);
-
-			// AspectJ Change - this is what's changed in the org.aspectj.org.jdt... version
-			// it needs to be here even if it's removed from the org.aspectj... version
-			// AspectJ extension - ask the factory in ASTRewriteAnalyzer for a visitor rather than building it directly.
-			ASTVisitor visitor= AjASTRewriteAnalyzer.getAnalyzerVisitor(document, result, this.eventStore, this.nodeStore, options, sourceRangeComputer);
-			// original line: ASTRewriteAnalyzer visitor= new ASTRewriteAnalyzer(document, result, this.eventStore, this.nodeStore, options, sourceRangeComputer);
-			rootNode.accept(visitor); // throws IllegalArgumentException
-			
-			this.eventStore.revertMovedNodes();
+		if (rootNode == null) {
+			return new MultiTextEdit(); // no changes
 		}
+			
+		char[] content= document.get().toCharArray();
+		LineInformation lineInfo= LineInformation.create(document);
+		String lineDelim= TextUtilities.getDefaultLineDelimiter(document);
+		
+		ASTNode astRoot= rootNode.getRoot();
+		List commentNodes= astRoot instanceof CompilationUnit ? ((CompilationUnit) astRoot).getCommentList() : null;
+		return internalRewriteAST(content, lineInfo, lineDelim, commentNodes, options, rootNode);
+	}
+	
+	/**
+	 * Converts all modifications recorded by this rewriter into an object representing the the corresponding text
+	 * edits to the source of a {@link ITypeRoot} from which the AST was created from.
+	 * The type root's source itself is not modified by this method call.
+	 * <p>
+	 * Important: This API can only be used if the modified AST has been created from a
+	 * {@link ITypeRoot} with source. That means {@link ASTParser#setSource(ICompilationUnit)},
+	 * {@link ASTParser#setSource(IClassFile)} or {@link ASTParser#setSource(ITypeRoot)}
+	 * has been used when initializing the {@link ASTParser}. A {@link IllegalArgumentException} is thrown
+	 * otherwise. An {@link IllegalArgumentException} is also thrown when the type roots buffer does not correspond
+	 * anymore to the AST. Use {@link #rewriteAST(IDocument, Map)} for all ASTs created from other content.
+	 * </p>
+	 * <p>
+	 * For nodes in the original that are being replaced or deleted,
+	 * this rewriter computes the adjusted source ranges
+	 * by calling <code>getTargetSourceRangeComputer().computeSourceRange(node)</code>.
+	 * </p>
+	 * <p>
+	 * Calling this methods does not discard the modifications
+	 * on record. Subsequence modifications are added to the ones
+	 * already on record. If this method is called again later,
+	 * the resulting text edit object will accurately reflect
+	 * the net cumulative affect of all those changes.
+	 * </p>
+	 * 
+	 * @return text edit object describing the changes to the
+	 * document corresponding to the changes recorded by this rewriter
+	 * @throws JavaModelException A {@link JavaModelException} is thrown when
+	 * the underlying compilation units buffer could not be accessed.
+	 * @throws IllegalArgumentException An {@link IllegalArgumentException}
+	 * is thrown if the document passed does not correspond to the AST that is rewritten.
+	 * 
+	 * @since 3.2
+	 */
+	public TextEdit rewriteAST() throws JavaModelException, IllegalArgumentException {
+		ASTNode rootNode= getRootNode();
+		if (rootNode == null) {
+			return new MultiTextEdit(); // no changes
+		}
+		
+		ASTNode root= rootNode.getRoot();
+		if (!(root instanceof CompilationUnit)) {
+			throw new IllegalArgumentException("This API can only be used if the AST is created from a compilation unit or class file"); //$NON-NLS-1$
+		}
+		CompilationUnit astRoot= (CompilationUnit) root;
+		ITypeRoot typeRoot = astRoot.getTypeRoot();
+		if (typeRoot == null || typeRoot.getBuffer() == null) {
+			throw new IllegalArgumentException("This API can only be used if the AST is created from a compilation unit or class file"); //$NON-NLS-1$
+		}
+		
+		char[] content= typeRoot.getBuffer().getCharacters();
+		LineInformation lineInfo= LineInformation.create(astRoot);
+		String lineDelim= typeRoot.findRecommendedLineSeparator();
+		Map options= typeRoot.getJavaProject().getOptions(true);
+		
+		return internalRewriteAST(content, lineInfo, lineDelim, astRoot.getCommentList(), options, rootNode);
+	}
+	
+	private TextEdit internalRewriteAST(char[] content, LineInformation lineInfo, String lineDelim, List commentNodes, Map options, ASTNode rootNode) {
+		TextEdit result= new MultiTextEdit();
+		//validateASTNotModified(rootNode);
+		
+		TargetSourceRangeComputer sourceRangeComputer= getExtendedSourceRangeComputer();
+		this.eventStore.prepareMovedNodes(sourceRangeComputer);
+		
+		// AspectJ extension - ask the factory in ASTRewriteAnalyzer for a visitor rather than building it directly.
+		// ASTRewriteAnalyzer visitor= new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, commentNodes, options, sourceRangeComputer);
+		ASTVisitor visitor = AjASTRewriteAnalyzer.getAnalyzerVisitor(content, lineInfo, lineDelim, result, this.eventStore, this.nodeStore, commentNodes, options, sourceRangeComputer);
+		// End AspectJ Extension
+		
+		rootNode.accept(visitor); // throws IllegalArgumentException
+		
+		this.eventStore.revertMovedNodes();
 		return result;
 	}
 	
@@ -316,9 +415,9 @@ public class AjASTRewrite {
      * (not part of the original AST) or a placeholder node (for example, one
      * created by {@link #createCopyTarget(ASTNode)}
 	 * or {@link #createStringPlaceholder(String, int)}); or it must be
-	 * </code>null</code>, indicating that the child should be deleted.
+	 * <code>null</code>, indicating that the child should be deleted.
 	 * If the given property is a simple property, the value must be the new
-	 * value (primitive types must be boxed) or </code>null</code>.
+	 * value (primitive types must be boxed) or <code>null</code>.
      * The AST itself is not actually modified in any way; rather, the rewriter
      * just records a note that this node has been changed in the specified way.
 	 * 
@@ -335,7 +434,7 @@ public class AjASTRewrite {
 		if (node == null || property == null) {
 			throw new IllegalArgumentException();
 		}
-		validateIsInsideAST(node);
+		validateIsCorrectAST(node);
 		validatePropertyType(property, value);
 
 		NodeRewriteEvent nodeEvent= this.eventStore.getNodeEvent(node, property, true);
@@ -343,6 +442,30 @@ public class AjASTRewrite {
 		if (editGroup != null) {
 			this.eventStore.setEventEditGroup(nodeEvent, editGroup);
 		}
+	}
+	
+	/**
+	 * Returns the value of the given property as managed by this rewriter. If the property
+	 * has been removed, <code>null</code> is returned. If it has been replaced, the replacing value
+	 * is returned. If the property has not been changed yet, the original value is returned.
+	 * <p>
+	 * For child list properties use {@link ListRewrite#getRewrittenList()} to get access to the
+	 * rewritten nodes in a list. </p>
+	 * 
+	 * @param node the node
+	 * @param property the node's property
+	 * @return the value of the given property as managed by this rewriter
+	 * 
+	 * @since 3.2
+	 */
+	public Object get(ASTNode node, StructuralPropertyDescriptor property) {
+		if (node == null || property == null) {
+			throw new IllegalArgumentException();
+		}
+		if (property.isChildListProperty()) {
+			throw new IllegalArgumentException("Use the list rewriter to access nodes in a list"); //$NON-NLS-1$
+		}
+		return this.eventStore.getNewValue(node, property);
 	}
 
 	/**
@@ -393,11 +516,13 @@ public class AjASTRewrite {
 		return new TrackedNodePosition(group, node);
 	}	
 			
-	private void validateIsInsideAST(ASTNode node) {
+	private void validateIsExistingNode(ASTNode node) {
 		if (node.getStartPosition() == -1) {
 			throw new IllegalArgumentException("Node is not an existing node"); //$NON-NLS-1$
 		}
+	}
 	
+	private void validateIsCorrectAST(ASTNode node) {
 		if (node.getAST() != getAST()) {
 			throw new IllegalArgumentException("Node is not inside the AST"); //$NON-NLS-1$
 		}
@@ -417,12 +542,12 @@ public class AjASTRewrite {
 		}
 //		if (node == null) {
 //			if (prop.isSimpleProperty() || (prop.isChildProperty() && ((ChildPropertyDescriptor) prop).isMandatory())) {
-//				String message= "Can not remove property " + prop.getId(); //$NON-NLS-1$
+//				String message= "Can not remove property " + prop.getId();
 //				throw new IllegalArgumentException(message);
 //			}
 //		} else {
 //			if (!prop.getNodeClass().isInstance(node)) {
-//				String message= node.getClass().getName() +  " is not a valid type for property " + prop.getId(); //$NON-NLS-1$
+//				String message= node.getClass().getName() +  " is not a valid type for property " + prop.getId();
 //				throw new IllegalArgumentException(message);
 //			}
 //		}
@@ -475,7 +600,7 @@ public class AjASTRewrite {
 			throw new IllegalArgumentException();
 		}
 		Block res= getNodeStore().createCollapsePlaceholder();
-		AjListRewrite listRewrite= getListRewrite(res, Block.STATEMENTS_PROPERTY);
+		AjListRewrite listRewrite= getListRewrite(res, Block.STATEMENTS_PROPERTY);// AspectJ Change - use Aj variant
 		for (int i= 0; i < targetNodes.length; i++) {
 			listRewrite.insertLast(targetNodes[i], null);
 		}
@@ -487,7 +612,8 @@ public class AjASTRewrite {
 		if (node == null) {
 			throw new IllegalArgumentException();
 		}
-		validateIsInsideAST(node);
+		validateIsExistingNode(node);
+		validateIsCorrectAST(node);
 		CopySourceInfo info= getRewriteEventStore().markAsCopySource(node.getParent(), node.getLocationInParent(), node, isMove);
 	
 		ASTNode placeholder= getNodeStore().newPlaceholderNode(node.getNodeType());
@@ -534,7 +660,7 @@ public class AjASTRewrite {
 
 	/**
 	 * Returns the extended source range computer for this AST rewriter.
-	 * The default value is a <code>new ExtendedSourceRangeComputer()</code>.
+	 * The default value is a <code>new TargetSourceRangeComputer()</code>.
 	 * 
 	 * @return an extended source range computer
 	 * @since 3.1
@@ -549,7 +675,7 @@ public class AjASTRewrite {
 	
 	/**
 	 * Sets a custom target source range computer for this AST rewriter. This is advanced feature to modify how
-	 * comments are assotiated with nodes, which should be done only in special cases.
+	 * comments are associated with nodes, which should be done only in special cases.
 	 * 
 	 * @param computer a target source range computer,
 	 * or <code>null</code> to restore the default value of

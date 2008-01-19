@@ -9,6 +9,7 @@
 package org.eclipse.ajdt.internal.core.parserbridge;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
+import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
@@ -47,7 +48,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 	/*
 	 *	We cause the compilation task to abort to a given extent.
 	 */
-	public void abort(int abortLevel, IProblem problem) {
+	public void abort(int abortLevel, CategorizedProblem problem) {
 		delegate.abort(abortLevel, new org.aspectj.org.eclipse.jdt.internal.compiler.problem.DefaultProblem(
 				problem.getOriginatingFileName(),
 				problem.getMessage(),
@@ -56,7 +57,7 @@ public class AJCompilationUnitDeclarationWrapper extends
 				problem.isWarning()? ProblemSeverities.Error : ProblemSeverities.Warning,
 				problem.getSourceStart(),
 				problem.getSourceEnd(),
-				problem.getSourceLineNumber()));
+				problem.getSourceLineNumber(),0/*FudgedIt: need correct column*/));
 	}
 
 	/*

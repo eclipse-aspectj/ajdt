@@ -12,6 +12,7 @@ package org.eclipse.ajdt.core.dom.rewrite;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +24,12 @@ import org.aspectj.org.eclipse.jdt.core.compiler.ITerminalSymbols;
 import org.aspectj.org.eclipse.jdt.core.dom.*;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer.SourceRange;
+import org.aspectj.org.eclipse.jdt.core.formatter.IndentManipulation;
+import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFlattener;
-import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.Indents;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.LineCommentEndOffsets;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.LineInformation;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
@@ -65,7 +69,7 @@ import org.eclipse.text.edits.TextEditGroup;
  * (text manipulation API) that describe the required code changes. 
  * 
  * Taken from org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer 
- * Changes Marked "// AspectJ Change" (changes marked with "// AspectJ Extenstion"
+ * Changes Marked "// AspectJ Change" (changes marked with "// AspectJ Extension"
  * are changes between org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer
  * and the org.aspectj.... version.
  */
@@ -94,23 +98,28 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 
 	public interface IASTRewriteAnalyzerFactory {
-		public ASTVisitor getASTRewriteAnalyzer(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, 
-				NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer);
+		public ASTVisitor getASTRewriteAnalyzer(char[] content2,
+				LineInformation lineInfo2, String lineDelim, TextEdit result,
+				RewriteEventStore eventStore2, NodeInfoStore nodeStore,
+				List comments, Map options, TargetSourceRangeComputer xsrComputer);
 	}
 	
-	public static ASTVisitor getAnalyzerVisitor(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, 
-			NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {
+	public static ASTVisitor getAnalyzerVisitor(char[] content2,
+			LineInformation lineInfo2, String lineDelim, TextEdit result,
+			RewriteEventStore eventStore2, NodeInfoStore nodeStore,
+			List comments, Map options, TargetSourceRangeComputer xsrComputer) {
 		if (astRewriteAnalyzerFactory == null) {
-		  return new ASTRewriteAnalyzer(document,rootEdit,eventStore,nodeInfos,options,extendedSourceRangeComputer);
+		  return new ASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer);
 		}
-		return astRewriteAnalyzerFactory.getASTRewriteAnalyzer(document,rootEdit,eventStore,nodeInfos,options,extendedSourceRangeComputer);
+		return astRewriteAnalyzerFactory.getASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer);
 	}
+
     // AspectJ Extension End
 	// AspectJ Change end
 	
 	/**
-	 * Internal synonynm for deprecated constant AST.JLS2
-	 * to alleviate deprecation warnings.
+	 * Internal synonym for deprecated constant AST.JLS2
+	 * to alleviate deprecated warnings.
 	 * @deprecated
 	 */
 	/*package*/ static final int JLS2_INTERNAL = AST.JLS2;
@@ -123,45 +132,58 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	private final Map sourceCopyInfoToEdit;
 	private final Stack sourceCopyEndNodes;
 	
-	private final IDocument document;
+	private final char[] content;
+	private final LineInformation lineInfo;
 	// AspectJ Change Begin
 	//private final ASTRewriteFormatter formatter;
 	private final AjASTRewriteFormatter formatter;
 	// AspectJ Change End
 	private final NodeInfoStore nodeInfos;
 	private final TargetSourceRangeComputer extendedSourceRangeComputer;
+	private final LineCommentEndOffsets lineCommentEndOffsets;
 	
-	/*
+	/**
 	 * Constructor for ASTRewriteAnalyzer.
+	 * @param content the content of the compilation unit to rewrite.
+	 * @param lineInfo line information for the content of the compilation unit to rewrite.
+	 * @param rootEdit the edit to add all generated edits to
+	 * @param eventStore the event store containing the description of changes
+	 * @param nodeInfos annotations to nodes, such as if a node is a string placeholder or a copy target
+	 * @param comments list of comments of the compilation unit to rewrite (elements of type <code>Comment</code>) or <code>null</code>.
+	 * 	@param options the current jdt.core options (formatting/compliance) or <code>null</code>.
+	 * 	@param extendedSourceRangeComputer the source range computer to use
 	 */
-	public AjASTRewriteAnalyzer(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {
+	public AjASTRewriteAnalyzer(char[] content, LineInformation lineInfo, String lineDelim, TextEdit rootEdit, RewriteEventStore eventStore, NodeInfoStore nodeInfos, List comments, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {
 		this.eventStore= eventStore;
-		this.document= document;
+		this.content= content;
+		this.lineInfo= lineInfo;
 		this.nodeInfos= nodeInfos;
 		this.tokenScanner= null;
 		this.currentEdit= rootEdit;
-		this.sourceCopyInfoToEdit= new HashMap(); /// fixme xxx was IdentityHashMap but that doesnt exist on 1.3 !!!!!!!!
+		this.sourceCopyInfoToEdit= new IdentityHashMap();
 		this.sourceCopyEndNodes= new Stack();
-
-        // AspectJ Change Begin
-		//this.formatter= new ASTRewriteFormatter(nodeInfos, eventStore, options, TextUtilities.getDefaultLineDelimiter(document));
-		this.formatter= new AjASTRewriteFormatter(nodeInfos, eventStore, options, TextUtilities.getDefaultLineDelimiter(document));
-		// AspectJ Change End
+		
+		this.formatter= new AjASTRewriteFormatter(nodeInfos, eventStore, options, lineDelim);
 		
 		this.extendedSourceRangeComputer = extendedSourceRangeComputer;
+		this.lineCommentEndOffsets= new LineCommentEndOffsets(comments);
 	}
 		
 	final TokenScanner getScanner() {
 		if (this.tokenScanner == null) {
 			IScanner scanner= ToolFactory.createScanner(true, false, false, false);
-			scanner.setSource(getDocument().get().toCharArray());
-			this.tokenScanner= new TokenScanner(scanner, getDocument());
+			scanner.setSource(this.content);
+			this.tokenScanner= new TokenScanner(scanner);
 		}
 		return this.tokenScanner;
 	}
 	
-	final IDocument getDocument() {
-		return this.document;
+	final char[] getContent() {
+		return this.content;
+	}
+	
+	final LineInformation getLineInformation() {
+		return this.lineInfo;
 	}
 	
 	/**
@@ -263,25 +285,45 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 	
 	final String getLineDelimiter() {
-		return this.formatter.lineDelimiter;
+		return this.formatter.getLineDelimiter();
 	}
 	
 	final String createIndentString(int indent) {
 	    return this.formatter.createIndentString(indent);
 	}
 	
-	final String getIndentAtOffset(int pos) {
-		try {
-			IRegion line= getDocument().getLineInformationOfOffset(pos);
-			String str= getDocument().get(line.getOffset(), line.getLength());
-			return this.formatter.getIndentString(str);
-		} catch (BadLocationException e) {
-			return ""; //$NON-NLS-1$
+	final private String getIndentOfLine(int pos) {
+		int line= getLineInformation().getLineOfOffset(pos);
+		if (line >= 0) {
+			char[] cont= getContent();
+			int lineStart= getLineInformation().getLineOffset(line);
+		    int i= lineStart;
+			while (i < cont.length && IndentManipulation.isIndentChar(content[i])) {
+			    i++;
+			}
+			return new String(cont, lineStart, i - lineStart);
 		}
+		return new String();
+	}
+	
+		
+	final String getIndentAtOffset(int pos) {
+		return this.formatter.getIndentString(getIndentOfLine(pos));
 	}
 	
 	final void doTextInsert(int offset, String insertString, TextEditGroup editGroup) {
 		if (insertString.length() > 0) {
+			// bug fix for 95839: problem with inserting at the end of a line comment
+			if (this.lineCommentEndOffsets.isEndOfLineComment(offset, this.content)) {
+				if (!insertString.startsWith(getLineDelimiter())) {
+					TextEdit edit= new InsertEdit(offset, getLineDelimiter());  // add a line delimiter
+					addEdit(edit);
+					if (editGroup != null) {
+						addEditGroup(editGroup, edit);
+					}
+				}
+				this.lineCommentEndOffsets.remove(offset); // only one line delimiter per line comment required
+			}
 			TextEdit edit= new InsertEdit(offset, insertString);
 			addEdit(edit);
 			if (editGroup != null) {
@@ -381,7 +423,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		
 	private final TextEdit doTextCopy(TextEdit sourceEdit, int destOffset, int sourceIndentLevel, String destIndentString, TextEditGroup editGroup) {
 		TextEdit targetEdit;
-		SourceModifier modifier= new SourceModifier(sourceIndentLevel, destIndentString, this.formatter.tabWidth, this.formatter.indentWidth);
+		SourceModifier modifier= new SourceModifier(sourceIndentLevel, destIndentString, this.formatter.getTabWidth(), this.formatter.getIndentWidth());
 		
 		if (sourceEdit instanceof MoveSourceEdit) {
 			MoveSourceEdit moveEdit= (MoveSourceEdit) sourceEdit;
@@ -410,7 +452,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 	
 	
-	private class ListRewriter {
+	class ListRewriter {
 		protected String contantSeparator;
 		protected int startPos;
 		
@@ -791,7 +833,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return pos;
 	}	
 	
-	private class ParagraphListRewriter extends ListRewriter {
+	class ParagraphListRewriter extends ListRewriter {
 		
 		public final static int DEFAULT_SPACING= 1;
 		
@@ -858,30 +900,28 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 
 		private int countEmptyLines(ASTNode last) {
-			IDocument doc= getDocument();
-			try {
-				int lastLine= doc.getLineOfOffset(last.getStartPosition() + last.getLength());
-				int scanLine= lastLine + 1;
-				int numLines= doc.getNumberOfLines();
-				while(scanLine < numLines && containsOnlyWhitespaces(doc, scanLine)) {
-					scanLine++;
+			LineInformation lineInformation= getLineInformation();
+			int lastLine= lineInformation.getLineOfOffset(getExtendedEnd(last));
+			if (lastLine >= 0) {
+				int startLine= lastLine + 1;
+				int start= lineInformation.getLineOffset(startLine);
+				if (start < 0) {
+					return 0;
 				}
-				return scanLine - lastLine - 1;
-			} catch (BadLocationException e) {
-				handleException(e);
-				return 0;
-			}	
-		}
-		
-		private boolean containsOnlyWhitespaces(IDocument doc, int line) throws BadLocationException {
-			int offset= doc.getLineOffset(line);
-			int end= offset + doc.getLineLength(line);
-			while (offset < end && Character.isWhitespace(doc.getChar(offset))) {
-				offset++;
+				char[] cont= getContent();
+				int i= start;
+				while (i < cont.length && ScannerHelper.isWhitespace(cont[i])) {
+					i++;
+				}
+				if (i > start) {
+					lastLine= lineInformation.getLineOfOffset(i);
+					if (lastLine > startLine) {
+						return lastLine - startLine;
+					}
+				}
 			}
-			return offset == end;
-		}
-		
+			return 0;
+		}		
 	}
 		
 	private int rewriteParagraphList(ASTNode parent, StructuralPropertyDescriptor property, int insertPos, int insertIndent, int separator, int lead) {
@@ -920,7 +960,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 					}
 					pos= posBeforeOpenBracket;
 				}
-				pos= new ListRewriter().rewriteList(parent, property, pos, String.valueOf('<'), ", "); //$NON-NLS-1$ //$NON-NLS-2$
+				pos= new ListRewriter().rewriteList(parent, property, pos, String.valueOf('<'), ", "); //$NON-NLS-1$
 				if (isAllRemoved) { // all removed: remove right and space up to next element
 					int endPos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameGREATER, pos); // set pos to '>'
 					endPos= getScanner().getNextStartOffset(endPos, false);
@@ -964,6 +1004,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return doVisit(parent, property, pos);
 	}
 	
+	// AspectJ Change
 	private void rewriteAdviceBody(AdviceDeclaration parent, int startPos) { 
 		//ajh02: method added, forked from rewriteMethodBody
 		RewriteEvent event= getEvent(parent, AdviceDeclaration.BODY_PROPERTY);
@@ -999,6 +1040,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 		voidVisit(parent, AdviceDeclaration.BODY_PROPERTY);
 	}
+	// AspectJ Change End
 	
 	private void rewriteMethodBody(MethodDeclaration parent, int startPos) { 
 		RewriteEvent event= getEvent(parent, MethodDeclaration.BODY_PROPERTY);
@@ -1084,14 +1126,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return pos;
 	}
 	
-	final int getIndent(int pos) {
-		try {
-			IRegion line= getDocument().getLineInformationOfOffset(pos);
-			String str= getDocument().get(line.getOffset(), line.getLength());
-			return this.formatter.computeIndentUnits(str);
-		} catch (BadLocationException e) {
-			return 0;
-		}
+	final int getIndent(int offset) {
+		return this.formatter.computeIndentUnits(getIndentOfLine(offset));
 	}
 
 	final void doTextInsert(int insertOffset, ASTNode node, int initialIndentLevel, boolean removeLeadingIndent, TextEditGroup editGroup) {		
@@ -1101,7 +1137,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		
 		int currPos= 0;
 		if (removeLeadingIndent) {
-			while (currPos < formatted.length() && Character.isWhitespace(formatted.charAt(currPos))) {
+			while (currPos < formatted.length() && ScannerHelper.isWhitespace(formatted.charAt(currPos))) {
 				currPos++;
 			}
 		}
@@ -1139,6 +1175,9 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 					TextEdit sourceEdit= getCopySourceEdit(copySource);
 					doTextCopy(sourceEdit, insertOffset, srcIndentLevel, destIndentString, editGroup);
 					currPos= offset + curr.length; // continue to insert after the replaced string
+					if (needsNewLineForLineComment(copySource.getNode(), formatted, currPos)) {
+						doTextInsert(insertOffset, getLineDelimiter(), editGroup);
+					}
 				} else if (data instanceof StringPlaceholderData) { // replace with a placeholder
 					String code= ((StringPlaceholderData) data).code;
 					String str= this.formatter.changeIndent(code, 0, destIndentString); 
@@ -1154,10 +1193,18 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 	
+	private boolean needsNewLineForLineComment(ASTNode node, String formatted, int offset) {
+		if (!this.lineCommentEndOffsets.isEndOfLineComment(getExtendedEnd(node), this.content)) {
+			return false;
+		}
+		// copied code ends with a line comment, but doesn't contain the new line
+		return offset < formatted.length() && !IndentManipulation.isLineDelimiterChar(formatted.charAt(offset));
+	}
+	
 	private String getCurrentLine(String str, int pos) {
 		for (int i= pos - 1; i>= 0; i--) {
 			char ch= str.charAt(i);
-			if (Indents.isLineDelimiterChar(ch)) {
+			if (IndentManipulation.isLineDelimiterChar(ch)) {
 				return str.substring(i + 1, pos);
 			}
 		}
@@ -1227,7 +1274,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 	}
 	
-	private class ModifierRewriter extends ListRewriter {
+	class ModifierRewriter extends ListRewriter {
 		
 		private final Prefix annotationSeparation;
 
@@ -1266,17 +1313,27 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		}
 		
 		int endPos= new ModifierRewriter(this.formatter.ANNOTATION_SEPARATION).rewriteList(node, property, pos, "", " "); //$NON-NLS-1$ //$NON-NLS-2$
-
-		if (isAllInsert) {
-			doTextInsert(endPos, " ", getEditGroup(children[children.length - 1])); //$NON-NLS-1$
-		} else if (isAllRemove) {
-			try {
-				int nextPos= getScanner().getNextStartOffset(endPos, false); // to the next token
+		
+		try {
+			int nextPos= getScanner().getNextStartOffset(endPos, false);
+			
+			boolean lastUnchanged= children[children.length - 1].getChangeKind() != RewriteEvent.UNCHANGED;
+			
+			if (isAllRemove) {
 				doTextRemove(endPos, nextPos - endPos, getEditGroup(children[children.length - 1]));
 				return nextPos;
-			} catch (CoreException e) {
-				handleException(e);
+			} else if (isAllInsert || (nextPos == endPos && lastUnchanged)) { // see bug 165654
+				RewriteEvent lastChild= children[children.length - 1];
+				String separator;
+				if (lastChild.getNewValue() instanceof Annotation) {
+					separator= this.formatter.ANNOTATION_SEPARATION.getPrefix(getIndent(pos));
+				} else {
+					separator= String.valueOf(' ');
+				}
+				doTextInsert(endPos, separator, getEditGroup(lastChild));
 			}
+		} catch (CoreException e) {
+			handleException(e);
 		}
 		return endPos;
 	}
@@ -1380,123 +1437,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	}
 
 
-	public boolean visit(AspectDeclaration node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int apiLevel= node.getAST().apiLevel();
-		
-		int pos= rewriteJavadoc(node, AspectDeclaration.JAVADOC_PROPERTY);
-		
-		if (apiLevel == JLS2_INTERNAL) {
-			rewriteModifiers(node, AspectDeclaration.MODIFIERS_PROPERTY, pos);
-		} else {
-			rewriteModifiers2(node, AspectDeclaration.MODIFIERS2_PROPERTY, pos);
-		}
-		
-		boolean isInterface= ((Boolean) getOriginalValue(node, AspectDeclaration.INTERFACE_PROPERTY)).booleanValue();
-		// modifiers & class/interface
-		boolean invertType= isChanged(node, AspectDeclaration.INTERFACE_PROPERTY);
-		if (invertType) {
-			try {
-				int typeToken= isInterface ? ITerminalSymbols.TokenNameinterface : ITerminalSymbols.TokenNameclass;
-				getScanner().readToToken(typeToken, node.getStartPosition());
-				
-				String str= isInterface ? "class" : "interface"; //$NON-NLS-1$ //$NON-NLS-2$
-				int start= getScanner().getCurrentStartOffset();
-				int end= getScanner().getCurrentEndOffset();
-				
-				doTextReplace(start, end - start, str, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
-			} catch (CoreException e) {
-				// ignore
-			}			
-		}
-		
-		// name
-		pos= rewriteRequiredNode(node, AspectDeclaration.NAME_PROPERTY);
-		pos = rewriteRequiredNode(node, AspectDeclaration.PERCLAUSE_PROPERTY);
-		
-		if (apiLevel >= AST.JLS3) {
-			pos= rewriteOptionalTypeParameters(node, AspectDeclaration.TYPE_PARAMETERS_PROPERTY, pos, "", false, true); //$NON-NLS-1$
-		}
-		
-		// superclass
-		if (!isInterface || invertType) {
-			ChildPropertyDescriptor superClassProperty= (apiLevel == JLS2_INTERNAL) ? AspectDeclaration.SUPERCLASS_PROPERTY : AspectDeclaration.SUPERCLASS_TYPE_PROPERTY;
-
-			RewriteEvent superClassEvent= getEvent(node, superClassProperty);
-			
-			int changeKind= superClassEvent != null ? superClassEvent.getChangeKind() : RewriteEvent.UNCHANGED;
-			switch (changeKind) {
-				case RewriteEvent.INSERTED: {
-					doTextInsert(pos, " extends ", getEditGroup(superClassEvent)); //$NON-NLS-1$
-					doTextInsert(pos, (ASTNode) superClassEvent.getNewValue(), 0, false, getEditGroup(superClassEvent));
-					break;
-				}
-				case RewriteEvent.REMOVED: {
-					ASTNode superClass= (ASTNode) superClassEvent.getOriginalValue();
-					int endPos= getExtendedEnd(superClass);
-					doTextRemoveAndVisit(pos, endPos - pos, superClass, getEditGroup(superClassEvent));
-					pos= endPos;
-					break;
-				}
-				case RewriteEvent.REPLACED: {
-					ASTNode superClass= (ASTNode) superClassEvent.getOriginalValue();
-					SourceRange range= getExtendedRange(superClass);
-					int offset= range.getStartPosition();
-					int length= range.getLength();
-					doTextRemoveAndVisit(offset, length, superClass, getEditGroup(superClassEvent));
-					doTextInsert(offset, (ASTNode) superClassEvent.getNewValue(), 0, false, getEditGroup(superClassEvent));
-					pos= offset + length;
-					break;
-				}
-				case RewriteEvent.UNCHANGED: {
-					pos= doVisit(node, superClassProperty, pos);
-				}
-			}
-		}
-		// extended interfaces
-		ChildListPropertyDescriptor superInterfaceProperty= (apiLevel == JLS2_INTERNAL) ? AspectDeclaration.SUPER_INTERFACES_PROPERTY : AspectDeclaration.SUPER_INTERFACE_TYPES_PROPERTY;
-
-		RewriteEvent interfaceEvent= getEvent(node, superInterfaceProperty);
-		if (interfaceEvent == null || interfaceEvent.getChangeKind() == RewriteEvent.UNCHANGED) {
-			if (invertType) {
-				List originalNodes= (List) getOriginalValue(node, superInterfaceProperty);
-				if (!originalNodes.isEmpty()) {
-					String keyword= isInterface ? " implements " : " extends "; //$NON-NLS-1$ //$NON-NLS-2$
-					ASTNode firstNode= (ASTNode) originalNodes.get(0);
-					doTextReplace(pos, firstNode.getStartPosition() - pos, keyword, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
-				}
-			}
-			pos= doVisit(node, superInterfaceProperty, pos);
-		} else {
-			String keyword= (isInterface == invertType) ? " implements " : " extends "; //$NON-NLS-1$ //$NON-NLS-2$
-			if (invertType) {
-				List newNodes= (List) interfaceEvent.getNewValue();
-				if (!newNodes.isEmpty()) {
-					List origNodes= (List) interfaceEvent.getOriginalValue();
-					int firstStart= pos;
-					if (!origNodes.isEmpty()) {
-						firstStart= ((ASTNode) origNodes.get(0)).getStartPosition();
-					}
-					doTextReplace(pos, firstStart - pos, keyword, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
-					keyword= ""; //$NON-NLS-1$
-					pos= firstStart;
-				}
-			}
-			pos= rewriteNodeList(node, superInterfaceProperty, pos, keyword, ", "); //$NON-NLS-1$
-		}
-		
-		// type members
-		// startPos : find position after left brace of type, be aware that bracket might be missing
-		int startIndent= getIndent(node.getStartPosition()) + 1;
-		int startPos= getPosAfterLeftBrace(pos);
-		rewriteParagraphList(node, AspectDeclaration.BODY_DECLARATIONS_PROPERTY, startPos, startIndent, -1, 2);
-		return false;
-	}
-	
-	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(TypeDeclaration)
 	 */
@@ -1617,7 +1557,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 	private void rewriteReturnType(AroundAdviceDeclaration node) {
 		// ajh02: method added
 		ChildPropertyDescriptor property= (node.getAST().apiLevel() == JLS2_INTERNAL) ? AroundAdviceDeclaration.aroundRETURN_TYPE_PROPERTY : AroundAdviceDeclaration.aroundRETURN_TYPE2_PROPERTY;
-
 		// weakness in the AST: return type can exist, even if missing in source
 		ASTNode originalReturnType= (ASTNode) getOriginalValue(node, property);
 		boolean returnTypeExists=  originalReturnType != null && originalReturnType.getStartPosition() != -1;
@@ -1654,97 +1593,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				doTextRemoveAndVisit(offset, nextStart - offset, originalReturnType, editGroup);
 			}
 		}
-	}
-	
-	public boolean visit(PointcutDeclaration node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteJavadoc(node, PointcutDeclaration.JAVADOC_PROPERTY);
-		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			rewriteModifiers(node, PointcutDeclaration.MODIFIERS_PROPERTY, pos);
-		} else {
-			pos= rewriteModifiers2(node, PointcutDeclaration.MODIFIERS2_PROPERTY, pos);
-		}
-		// pointcut name
-		pos= rewriteRequiredNode(node, PointcutDeclaration.NAME_PROPERTY);
-		return false;
-	}
-	public boolean visit(ReferencePointcut node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// pointcut name
-		rewriteRequiredNode(node, ReferencePointcut.NAME_PROPERTY);
-		return false;
-	}
-	public boolean visit(NotPointcut node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// body
-		rewriteRequiredNode(node, NotPointcut.BODY_PROPERTY);
-		return false;
-	}
-	public boolean visit(PerObject node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// body
-		rewriteRequiredNode(node, PerObject.BODY_PROPERTY);
-		return false;
-	}
-	public boolean visit(PerCflow node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// body
-		rewriteRequiredNode(node, PerCflow.BODY_PROPERTY);
-		return false;
-	}
-	public boolean visit(PerTypeWithin node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// ajh02: should visit the typepattern too..
-		return false;
-	}
-	public boolean visit(CflowPointcut node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// body
-		rewriteRequiredNode(node, CflowPointcut.BODY_PROPERTY);
-		return false;
-	}
-	public boolean visit(AndPointcut node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// left
-		rewriteRequiredNode(node, AndPointcut.LEFT_PROPERTY);
-		// right
-		rewriteRequiredNode(node, AndPointcut.RIGHT_PROPERTY);
-		return false;
-	}
-	public boolean visit(OrPointcut node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		// left
-		rewriteRequiredNode(node, OrPointcut.LEFT_PROPERTY);
-		// right
-		rewriteRequiredNode(node, OrPointcut.RIGHT_PROPERTY);
-		return false;
 	}
 	
 	
@@ -1804,135 +1652,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return false;
 	}
 	
-	public boolean commonVisitStuff(AdviceDeclaration node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteJavadoc(node, AdviceDeclaration.JAVADOC_PROPERTY);
-		// pointcut
-		pos= rewriteRequiredNode(node, AdviceDeclaration.POINTCUT_PROPERTY);
-		// parameters
-		try {
-			if (isChanged(node, AdviceDeclaration.PARAMETERS_PROPERTY)) {
-				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
-				pos= rewriteNodeList(node, AdviceDeclaration.PARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				pos= doVisit(node, AdviceDeclaration.PARAMETERS_PROPERTY, pos);
-			}
-			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			boolean hasExceptionChanges= isChanged(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AdviceDeclaration.BODY_PROPERTY);
-			pos= rewriteNodeList(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			rewriteAdviceBody(node, pos);
-		} catch (CoreException e) {
-			// ignore
-		}
-		return false;
-	}
-	public boolean visit(BeforeAdviceDeclaration node) {
-		// ajh02: method added
-		return commonVisitStuff(node);
-	}
-	public boolean visit(AfterAdviceDeclaration node) {
-		// ajh02: method added
-		return commonVisitStuff(node);
-	}
-	public boolean visit(AfterReturningAdviceDeclaration node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteJavadoc(node, AfterReturningAdviceDeclaration.returningJAVADOC_PROPERTY);
-		// pointcut
-		pos= rewriteRequiredNode(node, AfterReturningAdviceDeclaration.returningPOINTCUT_PROPERTY);
-		// parameters
-		try {
-			if (isChanged(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY)) {
-				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
-				pos= rewriteNodeList(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				pos= doVisit(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY, pos);
-			}
-			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			if (node.getReturning() != null){
-				pos= rewriteRequiredNode(node, AfterReturningAdviceDeclaration.returningRETURNING_PROPERTY);
-			}
-			
-			boolean hasExceptionChanges= isChanged(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AfterReturningAdviceDeclaration.returningBODY_PROPERTY);
-			pos= rewriteNodeList(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			rewriteAdviceBody(node, pos);
-		} catch (CoreException e) {
-			// ignore
-		}
-		return false;
-	}
-	public boolean visit(AfterThrowingAdviceDeclaration node) {
-//		 ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteJavadoc(node, AfterThrowingAdviceDeclaration.throwingJAVADOC_PROPERTY);
-		// pointcut
-		pos= rewriteRequiredNode(node, AfterThrowingAdviceDeclaration.throwingPOINTCUT_PROPERTY);
-		// parameters
-		try {
-			if (isChanged(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY)) {
-				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
-				pos= rewriteNodeList(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				pos= doVisit(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY, pos);
-			}
-			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			if (node.getThrowing() != null){
-				pos= rewriteRequiredNode(node, AfterThrowingAdviceDeclaration.throwingTHROWING_PROPERTY);
-			}
-			
-			boolean hasExceptionChanges= isChanged(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AfterThrowingAdviceDeclaration.throwingBODY_PROPERTY);
-			pos= rewriteNodeList(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			rewriteAdviceBody(node, pos);
-		} catch (CoreException e) {
-			// ignore
-		}
-		return false;
-	}
-	public boolean visit(AroundAdviceDeclaration node) {
-		// ajh02: method added
-		if (!hasChildrenChanges(node)) {
-			return doVisitUnchangedChildren(node);
-		}
-		int pos= rewriteJavadoc(node, AroundAdviceDeclaration.aroundJAVADOC_PROPERTY);
-		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
-			pos= rewriteOptionalTypeParameters(node, AroundAdviceDeclaration.aroundTYPE_PARAMETERS_PROPERTY, pos, " ", true, pos != node.getStartPosition()); //$NON-NLS-1$
-		}
-		
-		rewriteReturnType(node);
-		
-		// parameters
-		try {
-			if (isChanged(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY)) {
-				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
-				pos= rewriteNodeList(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				pos= doVisit(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY, pos);
-			}
-			
-			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			
-			boolean hasExceptionChanges= isChanged(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY);
-			
-			int bodyChangeKind= getChangeKind(node, AroundAdviceDeclaration.aroundBODY_PROPERTY);
-			
-			pos= rewriteNodeList(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-			rewriteAdviceBody(node, pos);
-		} catch (CoreException e) {
-			// ignore
-		}
-		return false;
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Block)
 	 */
@@ -1962,9 +1681,10 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		
 		try {
 			int offset= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNamereturn, node.getStartPosition());
+			ensureSpaceBeforeReplace(node, ReturnStatement.EXPRESSION_PROPERTY, offset, 0);
 			// AspectJ Change begin
-			//rewriteNode(node, ReturnStatement.EXPRESSION_PROPERTY, offset, ASTRewriteFormatter.SPACE); //$NON-NLS-1$
-			rewriteNode(node, ReturnStatement.EXPRESSION_PROPERTY, offset, AjASTRewriteFormatter.SPACE); //$NON-NLS-1$
+			//rewriteNode(node, ReturnStatement.EXPRESSION_PROPERTY, offset, ASTRewriteFormatter.SPACE);
+			rewriteNode(node, ReturnStatement.EXPRESSION_PROPERTY, offset, AjASTRewriteFormatter.SPACE); 
 			// AspectJ Change end
 		} catch (CoreException e) {
 			handleException(e);
@@ -2088,8 +1808,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				offset= node.getStartPosition() + node.getLength(); // insert pos
 			}
 			// AspectJ Change begin
-			//rewriteNode(node, ArrayCreation.INITIALIZER_PROPERTY, offset, ASTRewriteFormatter.SPACE); //$NON-NLS-1$
-			rewriteNode(node, ArrayCreation.INITIALIZER_PROPERTY, offset, AjASTRewriteFormatter.SPACE); //$NON-NLS-1$
+			//rewriteNode(node, ArrayCreation.INITIALIZER_PROPERTY, offset, ASTRewriteFormatter.SPACE); 
+			rewriteNode(node, ArrayCreation.INITIALIZER_PROPERTY, offset, AjASTRewriteFormatter.SPACE);
 			// AspectJ Change End
 		} catch (CoreException e) {
 			handleException(e);
@@ -2150,6 +1870,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		
+		ensureSpaceBeforeReplace(node, AssertStatement.EXPRESSION_PROPERTY, node.getStartPosition(), 1);
 		int offset= rewriteRequiredNode(node, AssertStatement.EXPRESSION_PROPERTY);
 		// AspectJ Change Begin
 		//rewriteNode(node, AssertStatement.MESSAGE_PROPERTY, offset, ASTRewriteFormatter.ASSERT_COMMENT);
@@ -2293,8 +2014,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			pos= node.getStartPosition() + node.getLength(); // insert pos
 		}
 		// AspectJ Change Begin
-		//rewriteNode(node, ClassInstanceCreation.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, ASTRewriteFormatter.SPACE); //$NON-NLS-1$
-		rewriteNode(node, ClassInstanceCreation.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, AjASTRewriteFormatter.SPACE); //$NON-NLS-1$
+		//rewriteNode(node, ClassInstanceCreation.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, ASTRewriteFormatter.SPACE);
+		rewriteNode(node, ClassInstanceCreation.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, AjASTRewriteFormatter.SPACE);
 		// AspectJ Change End
 		return false;
 	}
@@ -2548,17 +2269,17 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		if (node.getAST().apiLevel() >= AST.JLS3) {
 			RewriteEvent event= getEvent(node, ImportDeclaration.STATIC_PROPERTY);
 			if (event != null && event.getChangeKind() != RewriteEvent.UNCHANGED) {
-				boolean wasStatic= ((Boolean) event.getOriginalValue()).booleanValue();
-				int pos= node.getStartPosition();
-				if (wasStatic) {
-					try {
-						int endPos= getScanner().getTokenStartOffset(ITerminalSymbols.TokenNameimport, pos);
+				try {
+					int pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameimport, node.getStartPosition());
+					boolean wasStatic= ((Boolean) event.getOriginalValue()).booleanValue();
+					if (wasStatic) {
+						int endPos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNamestatic, pos);
 						doTextRemove(pos, endPos - pos, getEditGroup(event));
-					} catch (CoreException e) {
-						handleException(e);
+					} else {
+						doTextInsert(pos, " static", getEditGroup(event)); //$NON-NLS-1$
 					}
-				} else {
-					doTextInsert(pos, "static ", getEditGroup(event)); //$NON-NLS-1$
+				} catch (CoreException e) {
+					handleException(e);
 				}
 			}
 		}
@@ -2659,11 +2380,46 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		if (!hasChildrenChanges(node)) {
 			return doVisitUnchangedChildren(node);
 		}
-		
+				
 		rewriteRequiredNode(node, InstanceofExpression.LEFT_OPERAND_PROPERTY);
+		ensureSpaceAfterReplace(node, InstanceofExpression.LEFT_OPERAND_PROPERTY);
 		rewriteRequiredNode(node, InstanceofExpression.RIGHT_OPERAND_PROPERTY);
 		return false;
 	}
+	
+	public void ensureSpaceAfterReplace(ASTNode node, ChildPropertyDescriptor desc) {
+		if (getChangeKind(node, desc) == RewriteEvent.REPLACED) {
+			int leftOperandEnd= getExtendedEnd((ASTNode) getOriginalValue(node, desc));
+			try {
+				int offset= getScanner().getNextStartOffset(leftOperandEnd, true); // instanceof
+				
+				if (offset == leftOperandEnd) {
+					doTextInsert(offset, String.valueOf(' '), getEditGroup(node, desc));
+				}
+			} catch (CoreException e) {
+				handleException(e);
+			}
+		}
+	}
+	
+	public void ensureSpaceBeforeReplace(ASTNode node, ChildPropertyDescriptor desc, int offset, int numTokenBefore) {
+		// bug 103970
+		if (getChangeKind(node, desc) == RewriteEvent.REPLACED) {
+			try {
+				while (numTokenBefore > 0) {
+					offset= getScanner().getNextEndOffset(offset, true);
+					numTokenBefore--;
+				}
+    			if (offset == getExtendedOffset((ASTNode) getOriginalValue(node, desc))) {
+					doTextInsert(offset, String.valueOf(' '), getEditGroup(node, desc));
+				}
+			} catch (CoreException e) {
+				handleException(e);
+			}
+		}
+	}
+	
+	
 
 	/* (non-Javadoc)
 	 * @see org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor#visit(Javadoc)
@@ -2872,7 +2628,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				} else {
 					try {
 						int ellipsisEnd= getScanner().getNextEndOffset(pos, true);
-						doTextRemove(pos, ellipsisEnd - pos, getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY)); //$NON-NLS-1$
+						doTextRemove(pos, ellipsisEnd - pos, getEditGroup(node, SingleVariableDeclaration.VARARGS_PROPERTY));
 					} catch (CoreException e) {
 						handleException(e);
 					}
@@ -3005,7 +2761,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return false;
 	}
 
-	private class SwitchListRewriter extends ParagraphListRewriter {
+	class SwitchListRewriter extends ParagraphListRewriter {
 
 		public SwitchListRewriter(int initialIndent) {
 			super(initialIndent, 0);
@@ -3241,8 +2997,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		// AspectJ Change Begin
-		//rewriteNode(node, MemberRef.QUALIFIER_PROPERTY, node.getStartPosition(), ASTRewriteFormatter.NONE); //$NON-NLS-1$
-		rewriteNode(node, MemberRef.QUALIFIER_PROPERTY, node.getStartPosition(), AjASTRewriteFormatter.NONE); //$NON-NLS-1$
+		//rewriteNode(node, MemberRef.QUALIFIER_PROPERTY, node.getStartPosition(), ASTRewriteFormatter.NONE);
+		rewriteNode(node, MemberRef.QUALIFIER_PROPERTY, node.getStartPosition(), AjASTRewriteFormatter.NONE);
 		// AspectJ Change End
 		
 		rewriteRequiredNode(node, MemberRef.NAME_PROPERTY);
@@ -3257,8 +3013,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			return doVisitUnchangedChildren(node);
 		}
 		// AspectJ Change Begin
-		//rewriteNode(node, MethodRef.QUALIFIER_PROPERTY, node.getStartPosition(), ASTRewriteFormatter.NONE); //$NON-NLS-1$
-		rewriteNode(node, MethodRef.QUALIFIER_PROPERTY, node.getStartPosition(), AjASTRewriteFormatter.NONE); //$NON-NLS-1$
+		//rewriteNode(node, MethodRef.QUALIFIER_PROPERTY, node.getStartPosition(), ASTRewriteFormatter.NONE);
+		rewriteNode(node, MethodRef.QUALIFIER_PROPERTY, node.getStartPosition(), AjASTRewriteFormatter.NONE);
 		// AspectJ Change End
 		
 		int pos= rewriteRequiredNode(node, MethodRef.NAME_PROPERTY);
@@ -3292,7 +3048,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				} else {
 					try {
 						int ellipsisEnd= getScanner().getNextEndOffset(pos, true);
-						doTextRemove(pos, ellipsisEnd - pos, getEditGroup(node, MethodRefParameter.VARARGS_PROPERTY)); //$NON-NLS-1$
+						doTextRemove(pos, ellipsisEnd - pos, getEditGroup(node, MethodRefParameter.VARARGS_PROPERTY));
 					} catch (CoreException e) {
 						handleException(e);
 					}
@@ -3300,8 +3056,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			}
 		}
 		// AspectJ Change Begin
-		//rewriteNode(node, MethodRefParameter.NAME_PROPERTY, pos, ASTRewriteFormatter.SPACE); //$NON-NLS-1$
-		rewriteNode(node, MethodRefParameter.NAME_PROPERTY, pos, AjASTRewriteFormatter.SPACE); //$NON-NLS-1$
+		//rewriteNode(node, MethodRefParameter.NAME_PROPERTY, pos, ASTRewriteFormatter.SPACE);
+		rewriteNode(node, MethodRefParameter.NAME_PROPERTY, pos, AjASTRewriteFormatter.SPACE);
 		// AspectJ Change End
 		return false;
 	}
@@ -3344,17 +3100,13 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		
 	private int findTagNameEnd(TagElement tagNode) {
 		if (tagNode.getTagName() != null) {
-		    try {
-		        IDocument doc = getDocument();
-		        int len= doc.getLength();
-		        int i= tagNode.getStartPosition();
-		        while (i < len && !Indents.isIndentChar(doc.getChar(i))) {
-		            i++;
-		        }
-		        return i;
-		    } catch (BadLocationException e) {
-		        handleException(e);
-		    }
+			char[] cont= getContent();
+		    int len= cont.length;
+			int i= tagNode.getStartPosition();
+			while (i < len && !IndentManipulation.isIndentChar(cont[i])) {
+			    i++;
+			}
+			return i;
 		}
 	    return tagNode.getStartPosition();
 	}
@@ -3463,7 +3215,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				} else if (!isAllRemoved) {
 					pos= getScanner().getCurrentEndOffset();
 				}
-				pos= rewriteNodeList(node, EnumConstantDeclaration.ARGUMENTS_PROPERTY, pos, prefix, ", "); //$NON-NLS-1$ //$NON-NLS-2$
+				pos= rewriteNodeList(node, EnumConstantDeclaration.ARGUMENTS_PROPERTY, pos, prefix, ", "); //$NON-NLS-1$
 				
 				if (!hasParents) {
 					doTextInsert(pos, ")", getEditGroup(children[children.length - 1])); //$NON-NLS-1$
@@ -3476,7 +3228,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				handleException(e);
 			}
 		} else {
-			pos= doVisit(node, EnumConstantDeclaration.ARGUMENTS_PROPERTY, 0);
+			pos= doVisit(node, EnumConstantDeclaration.ARGUMENTS_PROPERTY, pos);
 		}
 		
 		if (isChanged(node, EnumConstantDeclaration.ANONYMOUS_CLASS_DECLARATION_PROPERTY)) {
@@ -3492,8 +3244,8 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				pos= node.getStartPosition() + node.getLength(); // insert pos
 			}
 			// AspectJ Change Begin
-			//rewriteNode(node, EnumConstantDeclaration.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, ASTRewriteFormatter.SPACE); //$NON-NLS-1$
-			rewriteNode(node, EnumConstantDeclaration.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, AjASTRewriteFormatter.SPACE); //$NON-NLS-1$
+			//rewriteNode(node, EnumConstantDeclaration.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, ASTRewriteFormatter.SPACE);
+			rewriteNode(node, EnumConstantDeclaration.ANONYMOUS_CLASS_DECLARATION_PROPERTY, pos, AjASTRewriteFormatter.SPACE);
 			// AspectJ Change End
 		}
 		return false;
@@ -3521,7 +3273,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				leadString= this.formatter.FIRST_ENUM_CONST.getPrefix(getIndent(node.getStartPosition()));
 			}
 		}
-		pos= rewriteNodeList(node, EnumDeclaration.ENUM_CONSTANTS_PROPERTY, pos, leadString, ", "); //$NON-NLS-1$ //$NON-NLS-2$
+		pos= rewriteNodeList(node, EnumDeclaration.ENUM_CONSTANTS_PROPERTY, pos, leadString, ", "); //$NON-NLS-1$
 
 		RewriteEvent bodyEvent= getEvent(node, EnumDeclaration.BODY_DECLARATIONS_PROPERTY);
 		int indent= 0;
@@ -3540,13 +3292,13 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				if (!hasSemicolon && isAllOfKind(children, RewriteEvent.INSERTED)) {
 					if (!hasConstants) {
 						String str= this.formatter.FIRST_ENUM_CONST.getPrefix(indent - 1);
-						doTextInsert(pos, str, getEditGroup(children[0])); //$NON-NLS-1$
+						doTextInsert(pos, str, getEditGroup(children[0]));
 					}
 					doTextInsert(pos, ";", getEditGroup(children[0])); //$NON-NLS-1$
 				} else if (hasSemicolon) {
 					int endPos= getScanner().getCurrentEndOffset();
 					if (isAllOfKind(children, RewriteEvent.REMOVED)) {
-						doTextRemove(pos, endPos - pos, getEditGroup(children[0])); //$NON-NLS-1$
+						doTextRemove(pos, endPos - pos, getEditGroup(children[0]));
 					}
 					pos= endPos;
 				}
@@ -3703,9 +3455,350 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		return false;
 	}
 	
+	// AspectJ Change Begin
+	// Visitors for AspectJ nodes
+	public boolean visit(PointcutDeclaration node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, PointcutDeclaration.JAVADOC_PROPERTY);
+		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
+			rewriteModifiers(node, PointcutDeclaration.MODIFIERS_PROPERTY, pos);
+		} else {
+			pos= rewriteModifiers2(node, PointcutDeclaration.MODIFIERS2_PROPERTY, pos);
+		}
+		// pointcut name
+		pos= rewriteRequiredNode(node, PointcutDeclaration.NAME_PROPERTY);
+		return false;
+	}
+	public boolean visit(ReferencePointcut node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// pointcut name
+		rewriteRequiredNode(node, ReferencePointcut.NAME_PROPERTY);
+		return false;
+	}
+	public boolean visit(NotPointcut node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// body
+		rewriteRequiredNode(node, NotPointcut.BODY_PROPERTY);
+		return false;
+	}
+	public boolean visit(PerObject node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// body
+		rewriteRequiredNode(node, PerObject.BODY_PROPERTY);
+		return false;
+	}
+	public boolean visit(PerCflow node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// body
+		rewriteRequiredNode(node, PerCflow.BODY_PROPERTY);
+		return false;
+	}
+	public boolean visit(PerTypeWithin node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// ajh02: should visit the typepattern too..
+		return false;
+	}
+	public boolean visit(CflowPointcut node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// body
+		rewriteRequiredNode(node, CflowPointcut.BODY_PROPERTY);
+		return false;
+	}
+	public boolean visit(AndPointcut node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// left
+		rewriteRequiredNode(node, AndPointcut.LEFT_PROPERTY);
+		// right
+		rewriteRequiredNode(node, AndPointcut.RIGHT_PROPERTY);
+		return false;
+	}
+	public boolean visit(OrPointcut node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		// left
+		rewriteRequiredNode(node, OrPointcut.LEFT_PROPERTY);
+		// right
+		rewriteRequiredNode(node, OrPointcut.RIGHT_PROPERTY);
+		return false;
+	}
+	
+			// AspectJ Change
+	public boolean visit(AspectDeclaration node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int apiLevel= node.getAST().apiLevel();
+		
+		int pos= rewriteJavadoc(node, AspectDeclaration.JAVADOC_PROPERTY);
+		
+		if (apiLevel == JLS2_INTERNAL) {
+			rewriteModifiers(node, AspectDeclaration.MODIFIERS_PROPERTY, pos);
+		} else {
+			rewriteModifiers2(node, AspectDeclaration.MODIFIERS2_PROPERTY, pos);
+		}
+		
+		boolean isInterface= ((Boolean) getOriginalValue(node, AspectDeclaration.INTERFACE_PROPERTY)).booleanValue();
+		// modifiers & class/interface
+		boolean invertType= isChanged(node, AspectDeclaration.INTERFACE_PROPERTY);
+		if (invertType) {
+			try {
+				int typeToken= isInterface ? ITerminalSymbols.TokenNameinterface : ITerminalSymbols.TokenNameclass;
+				getScanner().readToToken(typeToken, node.getStartPosition());
+				
+				String str= isInterface ? "class" : "interface"; //$NON-NLS-1$ //$NON-NLS-2$
+				int start= getScanner().getCurrentStartOffset();
+				int end= getScanner().getCurrentEndOffset();
+				
+				doTextReplace(start, end - start, str, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
+			} catch (CoreException e) {
+				// ignore
+			}			
+		}
+		
+		// name
+		pos= rewriteRequiredNode(node, AspectDeclaration.NAME_PROPERTY);
+		pos = rewriteRequiredNode(node, AspectDeclaration.PERCLAUSE_PROPERTY);
+		
+		if (apiLevel >= AST.JLS3) {
+			pos= rewriteOptionalTypeParameters(node, AspectDeclaration.TYPE_PARAMETERS_PROPERTY, pos, "", false, true); //$NON-NLS-1$
+		}
+		
+		// superclass
+		if (!isInterface || invertType) {
+			ChildPropertyDescriptor superClassProperty= (apiLevel == JLS2_INTERNAL) ? AspectDeclaration.SUPERCLASS_PROPERTY : AspectDeclaration.SUPERCLASS_TYPE_PROPERTY;
+
+			RewriteEvent superClassEvent= getEvent(node, superClassProperty);
+			
+			int changeKind= superClassEvent != null ? superClassEvent.getChangeKind() : RewriteEvent.UNCHANGED;
+			switch (changeKind) {
+				case RewriteEvent.INSERTED: {
+					doTextInsert(pos, " extends ", getEditGroup(superClassEvent)); //$NON-NLS-1$
+					doTextInsert(pos, (ASTNode) superClassEvent.getNewValue(), 0, false, getEditGroup(superClassEvent));
+					break;
+				}
+				case RewriteEvent.REMOVED: {
+					ASTNode superClass= (ASTNode) superClassEvent.getOriginalValue();
+					int endPos= getExtendedEnd(superClass);
+					doTextRemoveAndVisit(pos, endPos - pos, superClass, getEditGroup(superClassEvent));
+					pos= endPos;
+					break;
+				}
+				case RewriteEvent.REPLACED: {
+					ASTNode superClass= (ASTNode) superClassEvent.getOriginalValue();
+					SourceRange range= getExtendedRange(superClass);
+					int offset= range.getStartPosition();
+					int length= range.getLength();
+					doTextRemoveAndVisit(offset, length, superClass, getEditGroup(superClassEvent));
+					doTextInsert(offset, (ASTNode) superClassEvent.getNewValue(), 0, false, getEditGroup(superClassEvent));
+					pos= offset + length;
+					break;
+				}
+				case RewriteEvent.UNCHANGED: {
+					pos= doVisit(node, superClassProperty, pos);
+				}
+			}
+		}
+		// extended interfaces
+		ChildListPropertyDescriptor superInterfaceProperty= (apiLevel == JLS2_INTERNAL) ? AspectDeclaration.SUPER_INTERFACES_PROPERTY : AspectDeclaration.SUPER_INTERFACE_TYPES_PROPERTY;
+
+		RewriteEvent interfaceEvent= getEvent(node, superInterfaceProperty);
+		if (interfaceEvent == null || interfaceEvent.getChangeKind() == RewriteEvent.UNCHANGED) {
+			if (invertType) {
+				List originalNodes= (List) getOriginalValue(node, superInterfaceProperty);
+				if (!originalNodes.isEmpty()) {
+					String keyword= isInterface ? " implements " : " extends "; //$NON-NLS-1$ //$NON-NLS-2$
+					ASTNode firstNode= (ASTNode) originalNodes.get(0);
+					doTextReplace(pos, firstNode.getStartPosition() - pos, keyword, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
+				}
+			}
+			pos= doVisit(node, superInterfaceProperty, pos);
+		} else {
+			String keyword= (isInterface == invertType) ? " implements " : " extends "; //$NON-NLS-1$ //$NON-NLS-2$
+			if (invertType) {
+				List newNodes= (List) interfaceEvent.getNewValue();
+				if (!newNodes.isEmpty()) {
+					List origNodes= (List) interfaceEvent.getOriginalValue();
+					int firstStart= pos;
+					if (!origNodes.isEmpty()) {
+						firstStart= ((ASTNode) origNodes.get(0)).getStartPosition();
+					}
+					doTextReplace(pos, firstStart - pos, keyword, getEditGroup(node, AspectDeclaration.INTERFACE_PROPERTY));
+					keyword= ""; //$NON-NLS-1$
+					pos= firstStart;
+				}
+			}
+			pos= rewriteNodeList(node, superInterfaceProperty, pos, keyword, ", "); //$NON-NLS-1$
+		}
+		
+		// type members
+		// startPos : find position after left brace of type, be aware that bracket might be missing
+		int startIndent= getIndent(node.getStartPosition()) + 1;
+		int startPos= getPosAfterLeftBrace(pos);
+		rewriteParagraphList(node, AspectDeclaration.BODY_DECLARATIONS_PROPERTY, startPos, startIndent, -1, 2);
+		return false;
+	}
+	// AspectJ Change End
+	
+	public boolean commonVisitStuff(AdviceDeclaration node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, AdviceDeclaration.JAVADOC_PROPERTY);
+		// pointcut
+		pos= rewriteRequiredNode(node, AdviceDeclaration.POINTCUT_PROPERTY);
+		// parameters
+		try {
+			if (isChanged(node, AdviceDeclaration.PARAMETERS_PROPERTY)) {
+				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
+				pos= rewriteNodeList(node, AdviceDeclaration.PARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				pos= doVisit(node, AdviceDeclaration.PARAMETERS_PROPERTY, pos);
+			}
+			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
+			boolean hasExceptionChanges= isChanged(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY);
+			int bodyChangeKind= getChangeKind(node, AdviceDeclaration.BODY_PROPERTY);
+			pos= rewriteNodeList(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			rewriteAdviceBody(node, pos);
+		} catch (CoreException e) {
+			// ignore
+		}
+		return false;
+	}
+	public boolean visit(BeforeAdviceDeclaration node) {
+		// ajh02: method added
+		return commonVisitStuff(node);
+	}
+	public boolean visit(AfterAdviceDeclaration node) {
+		// ajh02: method added
+		return commonVisitStuff(node);
+	}
+	public boolean visit(AfterReturningAdviceDeclaration node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, AfterReturningAdviceDeclaration.returningJAVADOC_PROPERTY);
+		// pointcut
+		pos= rewriteRequiredNode(node, AfterReturningAdviceDeclaration.returningPOINTCUT_PROPERTY);
+		// parameters
+		try {
+			if (isChanged(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY)) {
+				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
+				pos= rewriteNodeList(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				pos= doVisit(node, AfterReturningAdviceDeclaration.returningPARAMETERS_PROPERTY, pos);
+			}
+			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
+			if (node.getReturning() != null){
+				pos= rewriteRequiredNode(node, AfterReturningAdviceDeclaration.returningRETURNING_PROPERTY);
+			}
+			
+			boolean hasExceptionChanges= isChanged(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY);
+			int bodyChangeKind= getChangeKind(node, AfterReturningAdviceDeclaration.returningBODY_PROPERTY);
+			pos= rewriteNodeList(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			rewriteAdviceBody(node, pos);
+		} catch (CoreException e) {
+			// ignore
+		}
+		return false;
+	}
+	public boolean visit(AfterThrowingAdviceDeclaration node) {
+//		 ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, AfterThrowingAdviceDeclaration.throwingJAVADOC_PROPERTY);
+		// pointcut
+		pos= rewriteRequiredNode(node, AfterThrowingAdviceDeclaration.throwingPOINTCUT_PROPERTY);
+		// parameters
+		try {
+			if (isChanged(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY)) {
+				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
+				pos= rewriteNodeList(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				pos= doVisit(node, AfterThrowingAdviceDeclaration.throwingPARAMETERS_PROPERTY, pos);
+			}
+			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
+			if (node.getThrowing() != null){
+				pos= rewriteRequiredNode(node, AfterThrowingAdviceDeclaration.throwingTHROWING_PROPERTY);
+			}
+			
+			boolean hasExceptionChanges= isChanged(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY);
+			int bodyChangeKind= getChangeKind(node, AfterThrowingAdviceDeclaration.throwingBODY_PROPERTY);
+			pos= rewriteNodeList(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			rewriteAdviceBody(node, pos);
+		} catch (CoreException e) {
+			// ignore
+		}
+		return false;
+	}
+	public boolean visit(AroundAdviceDeclaration node) {
+		// ajh02: method added
+		if (!hasChildrenChanges(node)) {
+			return doVisitUnchangedChildren(node);
+		}
+		int pos= rewriteJavadoc(node, AroundAdviceDeclaration.aroundJAVADOC_PROPERTY);
+		if (node.getAST().apiLevel() == JLS2_INTERNAL) {
+			pos= rewriteOptionalTypeParameters(node, AroundAdviceDeclaration.aroundTYPE_PARAMETERS_PROPERTY, pos, " ", true, pos != node.getStartPosition()); //$NON-NLS-1$
+		}
+		
+		rewriteReturnType(node);
+		
+		// parameters
+		try {
+			if (isChanged(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY)) {
+				pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameLPAREN, pos);
+				pos= rewriteNodeList(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY, pos, "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				pos= doVisit(node, AroundAdviceDeclaration.aroundPARAMETERS_PROPERTY, pos);
+			}
+			
+			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
+			
+			boolean hasExceptionChanges= isChanged(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY);
+			
+			int bodyChangeKind= getChangeKind(node, AroundAdviceDeclaration.aroundBODY_PROPERTY);
+			
+			pos= rewriteNodeList(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
+			rewriteAdviceBody(node, pos);
+		} catch (CoreException e) {
+			// ignore
+		}
+		return false;
+	}
+	// AspectJ Change End
+	
 	final void handleException(Throwable e) {
 		IllegalArgumentException runtimeException= new IllegalArgumentException("Document does not match the AST"); //$NON-NLS-1$
-	//	runtimeException.initCause(e);
+		runtimeException.initCause(e);
 		throw runtimeException;
 	}
 }

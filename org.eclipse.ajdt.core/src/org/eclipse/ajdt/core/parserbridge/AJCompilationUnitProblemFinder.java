@@ -77,7 +77,8 @@ public class AJCompilationUnitProblemFinder extends
 		 CompilerOptions compilerOptions = new CompilerOptions(options);
          try {
         	 if(ajcu.getElementInfo() instanceof AJCompilationUnitInfo) {
-        		 this.parser = new AJSourceElementParser2(new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants);
+        		 this.parser = new AJSourceElementParser2(
+        				 new AJCompilationUnitStructureRequestor(ajcu, (AJCompilationUnitInfo)ajcu.getElementInfo(), null), new DefaultProblemFactory(), compilerOptions, this.options.parseLiteralExpressionsAsConstants,false);
         	 }	 
 		} catch (JavaModelException e) {
 		}

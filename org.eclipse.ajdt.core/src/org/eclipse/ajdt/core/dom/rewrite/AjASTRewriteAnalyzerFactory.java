@@ -10,14 +10,15 @@
  *******************************************************************************/
 package org.eclipse.ajdt.core.dom.rewrite;
 
+import java.util.List;
 import java.util.Map;
 
 import org.aspectj.org.eclipse.jdt.core.dom.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
+import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.LineInformation;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore;
 import org.eclipse.ajdt.core.dom.rewrite.AjASTRewriteAnalyzer.IASTRewriteAnalyzerFactory;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.TextEdit;
 
 /**
@@ -26,8 +27,15 @@ import org.eclipse.text.edits.TextEdit;
  * @author AndyClement
  */
 public class AjASTRewriteAnalyzerFactory implements IASTRewriteAnalyzerFactory {
-	public ASTVisitor getASTRewriteAnalyzer(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, 
-			NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {
-		return new AjASTRewriteAnalyzer(document,rootEdit,eventStore,nodeInfos,options,extendedSourceRangeComputer);
+//	public ASTVisitor getASTRewriteAnalyzer(IDocument document, TextEdit rootEdit, RewriteEventStore eventStore, 
+//			NodeInfoStore nodeInfos, Map options, TargetSourceRangeComputer extendedSourceRangeComputer) {
+//		return new AjASTRewriteAnalyzer(document,rootEdit,eventStore,nodeInfos,options,extendedSourceRangeComputer);
+//	}
+
+	public ASTVisitor getASTRewriteAnalyzer(char[] content2,
+			LineInformation lineInfo2, String lineDelim, TextEdit result,
+			RewriteEventStore eventStore2, NodeInfoStore nodeStore,
+			List comments, Map options, TargetSourceRangeComputer xsrComputer) {
+		return new AjASTRewriteAnalyzer(content2,lineInfo2,lineDelim,result,eventStore2,nodeStore,comments,options,xsrComputer);
 	}
 }

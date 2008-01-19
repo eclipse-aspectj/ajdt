@@ -59,7 +59,7 @@ public class CommentRecorderParser extends Parser {
 	 */
 	protected void consumeEmptyClassMemberDeclaration() {
 		pushOnCommentsStack(0, this.scanner.commentPtr);
-		super.consumeEmptyClassMemberDeclaration();
+		super.consumeEmptyTypeDeclaration();//EmptyClassMemberDeclaration();
 	}
 	/* (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.compiler.parser.Parser#consumeEmptyTypeDeclaration()

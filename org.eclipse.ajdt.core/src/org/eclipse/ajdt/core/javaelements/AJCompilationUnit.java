@@ -236,7 +236,7 @@ public class AJCompilationUnit extends CompilationUnit{
 				requestor, 
 				problemFactory, 
 				new CompilerOptions(options),
-				true/*report local declarations*/);
+				true/*report local declarations*/,false);
 			parser.reportOnlyOneSyntaxError = !computeProblems;
 			
 			//we need to set the source already here so the requestor can init
@@ -274,7 +274,7 @@ public class AJCompilationUnit extends CompilationUnit{
 				
 				AJCompilationUnitDeclarationWrapper ajcudw = new AJCompilationUnitDeclarationWrapper(unit, this);
 				AJCompilationUnitStructureRequestor ajcusr = new AJCompilationUnitStructureRequestor(this, (AJCompilationUnitInfo)getElementInfo(), null);
-				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true); 
+				AJSourceElementParser2 parser2 = new AJSourceElementParser2(ajcusr, new org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory(), new org.eclipse.jdt.internal.compiler.impl.CompilerOptions(options), true,false); 
 
 				AjLookupEnvironment le =
 					new AjLookupEnvironment(null, new CompilerOptions(options), null, null);		
