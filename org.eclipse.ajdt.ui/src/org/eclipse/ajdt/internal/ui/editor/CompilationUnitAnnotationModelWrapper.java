@@ -207,7 +207,7 @@ public class CompilationUnitAnnotationModelWrapper implements IAnnotationModel, 
 						requestor, 
 						problemFactory, 
 						new CompilerOptions(options),
-						true/*report local declarations*/);
+						true/*report local declarations*/,false);
 				parser.reportOnlyOneSyntaxError = !computeProblems;
 				
 				parser.scanner.source = contents;
