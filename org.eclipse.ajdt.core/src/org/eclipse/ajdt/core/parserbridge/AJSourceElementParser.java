@@ -242,7 +242,6 @@ public void addUnknownRef(NameReference nameRef) {
 	// However since the indexer doesn't make the distinction between name reference and type reference, there is no need
 	// to report a type reference in the SourceElementParser.
 	// This gained 3.7% in the indexing performance test.
-	System.out.println("AddUnknownRef for "+nameRef.toString());
 	if (nameRef instanceof SingleNameReference) {
 		requestor.acceptUnknownReference(((SingleNameReference) nameRef).token, nameRef.sourceStart);
 	} else {
