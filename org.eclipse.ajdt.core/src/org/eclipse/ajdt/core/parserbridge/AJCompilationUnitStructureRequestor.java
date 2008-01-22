@@ -53,7 +53,7 @@ import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
 
 /**
- * @author Luzius Meisser
+ * @author Luzius Meisser 
  */
 public class AJCompilationUnitStructureRequestor extends
 		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
