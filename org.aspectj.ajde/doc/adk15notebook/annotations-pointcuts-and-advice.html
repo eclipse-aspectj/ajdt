@@ -334,10 +334,49 @@
         to match against annotations that have at least class-file retention, and
         if used in the binding form the annotation must have runtime retention. 
     </p></div><div class="sect2"><a name="package-and-parameter-annotations"></a><div class="titlepage"><div><h3 class="title"><a name="package-and-parameter-annotations"></a>Package and Parameter Annotations</h3></div></div><p>
-          <span class="emphasis"><i>Matching on package and parameter annotations is not supported
-          in AspectJ 1.5.0. Support for this capability may be considered in a future
-          release.</i></span>
-      </p></div><div class="sect2"><a name="annotation-inheritance-and-pointcut-matching"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance-and-pointcut-matching"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
+         <span class="emphasis"><i>Matching on package annotations is not supported in AspectJ.  Support for
+         this capability may be considered in a future release.</i></span>
+         
+       </p><p>
+         Parameter annotation matching is being added in AspectJ1.6.
+         Initially only matching is supported but binding will be
+         implemented at some point.  Whether the annotation specified in a pointcut should be
+         considered to be an annotation on the parameter type or an annotation on the parameter
+         itself is determined through the use of parentheses around the parameter type.
+         
+         Consider the following:
+       </p><pre class="programlisting">
+    @SomeAnnotation
+    class AnnotatedType {}
+
+    class C {
+      public void foo(AnnotatedType a) {}
+      public void goo(@SomeAnnotation String s) {}
+    }
+    
+	</pre><p>
+	The method foo has a parameter of an annotated type, and can be matched by this pointcut:
+	</p><pre class="programlisting">
+    pointcut p(): execution(* *(@SomeAnnotation *));
+	</pre><p>
+    When there is a single annotation specified like this, it is considered to be part of the type
+    pattern in the match against the parameter: 'a parameter of any type that has the annotation @SomeAnnotation'.
+    </p><p>
+    To match the parameter annotation case, the method goo, this is the pointcut:
+    </p><pre class="programlisting">
+    pointcut p(): execution(* *(@SomeAnnotation (*)));
+	</pre><p>
+	The use of parentheses around the wildcard is effectively indicating that the annotation should be considered
+	separately to the type pattern for the parameter type: 'a parameter of any type that has a parameter annotation of
+	@SomeAnnotation'.
+	</p><p>
+    To match when there is a parameter annotation and an annotation on the type as well:
+    </p><pre class="programlisting">
+      pointcut p(): execution(* *(@SomeAnnotation (@SomeOtherAnnotation *)));
+	</pre><p>
+	The parentheses are grouping @SomeOtherAnnotation with the * to form the type pattern for the parameter, then
+	the type @SomeAnnotation will be treated as a parameter annotation pattern.
+    </p></div><div class="sect2"><a name="annotation-inheritance-and-pointcut-matching"></a><div class="titlepage"><div><h3 class="title"><a name="annotation-inheritance-and-pointcut-matching"></a>Annotation Inheritance and pointcut matching</h3></div></div><p>
   	    According to the Java 5 specification, non-type annotations are not
   	    inherited, and annotations on types are only inherited if they have the 
   	    <tt>@Inherited</tt> meta-annotation.
