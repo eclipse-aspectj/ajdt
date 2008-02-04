@@ -7,7 +7,7 @@
  * Contributors: Sian January - initial version
  * ...
  **********************************************************************/
-package org.eclipse.pde.internal.build.tasks;
+package org.eclipse.pde.internal.build.ant;
 
 import java.io.IOException;
 import java.net.URL;
@@ -52,9 +52,7 @@ public class AJCTask extends JavacTask {
 		this.toolsLocation = toolsLocation;
 	}
 	
-	public void print(AntScript script) {
-		if(script instanceof AJAntScript) {
-			AJAntScript ajScript = (AJAntScript)script;
+	public void print(AntScript ajScript) {
 			Bundle toolsBundle = Platform.getBundle(TOOLS_PLUGIN_ID);
 			Bundle weaverBundle = Platform.getBundle(WEAVER_PLUGIN_ID);
 			Bundle runtimeBundle = Platform.getBundle(RUNTIME_PLUGIN_ID);
@@ -207,7 +205,6 @@ public class AJCTask extends JavacTask {
 			}
 			ajScript.indent--;
 			ajScript.printEndTag("iajc"); //$NON-NLS-1$
-		}
 	}
 
 	public void setAspectpath(List aspectpath) {
