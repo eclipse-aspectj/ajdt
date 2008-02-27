@@ -33,10 +33,10 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
-import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardFirstPage;
-import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizardSecondPage;
 import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
+import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
+import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
@@ -47,8 +47,8 @@ import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
  */
 public class AspectJProjectWizard extends NewElementWizard implements IExecutableExtension {
     
-    protected JavaProjectWizardFirstPage fFirstPage;
-    protected JavaProjectWizardSecondPage fSecondPage;
+    protected NewJavaProjectWizardPageOne fFirstPage;
+    protected NewJavaProjectWizardPageTwo fSecondPage;
     
     private IConfigurationElement fConfigElement;
     
@@ -63,11 +63,11 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
      */	
     public void addPages() {
         super.addPages();
-        fFirstPage= new JavaProjectWizardFirstPage();
+        fFirstPage= new NewJavaProjectWizardPageOne();
         addPage(fFirstPage);
         fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
 		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
-		fSecondPage= new JavaProjectWizardSecondPage(fFirstPage);
+		fSecondPage= new NewJavaProjectWizardPageTwo(fFirstPage);
         fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
         fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
         addPage(fSecondPage);
@@ -90,7 +90,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
 	        BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
 	 		IProject project = fSecondPage.getJavaProject().getProject();
 	 		selectAndReveal(project);
-			boolean completed = finalizeNewProject(project, fFirstPage.getDetect());
+			boolean completed = finalizeNewProject(project, false);//fFirstPage.getDetect());
 			res = completed;
 		}
 		return res;
@@ -191,7 +191,7 @@ public class AspectJProjectWizard extends NewElementWizard implements IExecutabl
     }
 
 	public IJavaElement getCreatedElement() {
-		return JavaCore.create(fFirstPage.getProjectHandle());
+		return fSecondPage.getJavaProject();
 	}
 
 }

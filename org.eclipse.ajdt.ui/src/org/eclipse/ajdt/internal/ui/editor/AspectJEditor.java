@@ -21,7 +21,7 @@ import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOpenAction;
 import org.eclipse.ajdt.internal.ui.editor.actions.AJOrganizeImportsAction;
-import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
+//import org.eclipse.ajdt.internal.ui.editor.quickfix.JavaCorrectionAssistant;
 import org.eclipse.ajdt.internal.ui.help.AspectJUIHelp;
 import org.eclipse.ajdt.internal.ui.help.IAJHelpContextIds;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
@@ -37,6 +37,7 @@ import org.eclipse.help.IContextProvider;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IProblemRequestor;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -122,7 +123,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 	private class AJTextOperationTarget implements ITextOperationTarget {
 		private ITextOperationTarget parent;
 
-		private JavaCorrectionAssistant fCorrectionAssistant;
+//		private JavaCorrectionAssistant fCorrectionAssistant;
 
 		private IInformationPresenter fOutlinePresenter;
 		
@@ -147,13 +148,13 @@ public class AspectJEditor extends CompilationUnitEditor {
 		public void doOperation(int operation) {
 			if (operation == ISourceViewer.QUICK_ASSIST) {
 				// use our own correction assistant
-				if (fCorrectionAssistant == null) {
-					fCorrectionAssistant = new JavaCorrectionAssistant(
-							AspectJEditor.this);
-					fCorrectionAssistant.install(getSourceViewer());
-				}
-				String msg = fCorrectionAssistant.showPossibleQuickAssists();
-				setStatusLineErrorMessage(msg);
+//				if (fCorrectionAssistant == null) {
+//					fCorrectionAssistant = new JavaCorrectionAssistant(
+//							AspectJEditor.this);
+//					fCorrectionAssistant.install(getSourceViewer());
+//				}
+//				String msg = fCorrectionAssistant.showPossibleQuickAssists();
+//				setStatusLineErrorMessage(msg);
 			} else if (operation == JavaSourceViewer.SHOW_OUTLINE) {
 				// use our own outline presenter
 				// not needed if/when eclipse bug 79489 is fixed
@@ -528,7 +529,7 @@ public class AspectJEditor extends CompilationUnitEditor {
 
 	}
 	
-	protected IJavaElement getInputJavaElement() {
+	protected ITypeRoot getInputJavaElement() {
 		return JavaUI.getWorkingCopyManager().getWorkingCopy(getEditorInput()); 	
 	}
 	

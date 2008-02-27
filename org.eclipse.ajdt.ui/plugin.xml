@@ -70,6 +70,7 @@
                id="removeajnatureaction">
          </action>
       </objectContribution>   
+      <!--
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
             nameFilter="plugin.xml"
@@ -96,6 +97,7 @@
                id="org.eclipse.pde.ui.BuildPluginAction2">
          </action>
       </objectContribution>   
+      -->
  
 	<!--
 	Restrict selection to be a project with an AspectJ nature.
@@ -103,6 +105,7 @@
 	this contribution would become unavailable for web and EJB
 	projects in IBM Rational 6.x tools.
 	--> 
+	<!--
      <objectContribution
             objectClass="org.eclipse.core.resources.IProject"
             adaptable="true"
@@ -132,7 +135,8 @@
                enablesFor="1">
          </action>
       </objectContribution>
-
+         -->
+<!--
       <objectContribution
             objectClass="org.eclipse.jdt.core.ICompilationUnit"
             adaptable="true"
@@ -163,6 +167,7 @@
                id="renametoajaction">
          </action>
       </objectContribution>
+
       <objectContribution
             objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
             adaptable="true"
@@ -187,7 +192,7 @@
                id="renametojavaaction">
          </action>
       </objectContribution>
-      
+-->      
       <!--
       <objectContribution 
       		objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
@@ -203,6 +208,7 @@
 	-->
 	
 	<!-- Adding our own rename action for .aj files -->
+	<!--
 	  <objectContribution
            objectClass="org.eclipse.ajdt.core.javaelements.AJCompilationUnit"
            adaptable="true"
@@ -214,7 +220,7 @@
              id="renameAJFile">
          </action>
       </objectContribution>
-      
+-->      
       <!-- Build configuration actions -->
       <objectContribution
             objectClass="org.eclipse.core.resources.IFile"
@@ -487,7 +493,7 @@
       </wizard>
 
    </extension>
-
+<!--
    <extension
          point="org.eclipse.ui.exportWizards">
       <wizard
@@ -542,6 +548,7 @@
          </selection>
       </wizard>
    </extension>
+   -->
 
 
 <!-- Actions contributed by AspectJ to the Java perspective -->
@@ -1545,6 +1552,7 @@ M4 = Platform-specific fourth key
    </actionSetPartAssociation>
   </extension>
   
+  <!--
    <extension
          point="org.eclipse.jdt.ui.quickFixProcessors">
       <quickFixProcessor
@@ -1558,8 +1566,10 @@ M4 = Platform-specific fourth key
             id="org.eclipse.ajdt.ui.editor.quickfix.AJQuickFixProcessor">
       </quickFixProcessor>
     </extension>
+    -->
   
   <!-- Launching extensions -->  
+  <!--
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
@@ -1596,7 +1606,7 @@ M4 = Platform-specific fourth key
          </launchMode>
       </launchConfigurationTabGroup>
    </extension>
-   
+   -->   
 <!-- Load-Time Weaving launch configuration -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
@@ -1636,6 +1646,7 @@ M4 = Platform-specific fourth key
    </extension>
    
 	<!-- Extensions for launch shortcuts -->
+<!--
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
       <shortcut
@@ -1676,6 +1687,7 @@ M4 = Platform-specific fourth key
          </perspective>
       </shortcut>
    </extension>
+   -->
     
    <extension
          point="org.eclipse.contribution.xref.core.providers">

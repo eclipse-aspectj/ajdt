@@ -13,6 +13,7 @@ package org.eclipse.ajdt.internal.launching;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -178,26 +179,27 @@ public class LaunchConfigurationManagementUtils {
 	 * @param projectName
 	 */
 	private static List getLaunchConfigsForProject(String projectName) {
-		ILaunchConfigurationType configType = AspectJApplicationLaunchShortcut
-				.getAJConfigurationType();
-		List candidateConfigs = new ArrayList();
-		try {
-			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
-					.getLaunchManager().getLaunchConfigurations(configType);
-			candidateConfigs = new ArrayList(configs.length);
-			for (int i = 0; i < configs.length; i++) {
-				ILaunchConfiguration config = configs[i];
-				if (config
-						.getAttribute(
-								IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
-								"").equals(projectName)) { //$NON-NLS-1$
-					candidateConfigs.add(config);
-				}
-			}
-		} catch (CoreException cEx) {
-			AJLog.log(cEx.getMessage());
-		}
-		return candidateConfigs;
+		return Collections.EMPTY_LIST;
+//		ILaunchConfigurationType configType = AspectJApplicationLaunchShortcut
+//				.getAJConfigurationType();
+//		List candidateConfigs = new ArrayList();
+//		try {
+//			ILaunchConfiguration[] configs = DebugPlugin.getDefault()
+//					.getLaunchManager().getLaunchConfigurations(configType);
+//			candidateConfigs = new ArrayList(configs.length);
+//			for (int i = 0; i < configs.length; i++) {
+//				ILaunchConfiguration config = configs[i];
+//				if (config
+//						.getAttribute(
+//								IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME,
+//								"").equals(projectName)) { //$NON-NLS-1$
+//					candidateConfigs.add(config);
+//				}
+//			}
+//		} catch (CoreException cEx) {
+//			AJLog.log(cEx.getMessage());
+//		}
+//		return candidateConfigs;
 	}
 
 }

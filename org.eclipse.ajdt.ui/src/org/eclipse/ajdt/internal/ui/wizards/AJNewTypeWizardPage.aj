@@ -407,7 +407,9 @@ privileged aspect AJNewTypeWizardPage {
 				repl = originalContent.substring(0,ind) + "class" //$NON-NLS-1$
 					+ originalContent.substring(ind+"aspect".length()); //$NON-NLS-1$
 			}
-			String formattedContent= CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, null, lineDelimiter, pack.getJavaProject());
+			String formattedContent= CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, originalContent, indent, lineDelimiter, pack.getJavaProject());
+
+//			String formattedContent= CodeFormatterUtil.format(CodeFormatter.K_CLASS_BODY_DECLARATIONS, repl, indent, null, lineDelimiter, pack.getJavaProject());
 			formattedContent= Strings.trimLeadingTabsAndSpaces(formattedContent);
 			ind = formattedContent.indexOf("class"); //$NON-NLS-1$
 			if (ind != -1) {
