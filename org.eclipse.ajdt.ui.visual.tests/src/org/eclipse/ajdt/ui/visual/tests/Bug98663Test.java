@@ -18,8 +18,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
@@ -34,9 +35,9 @@ public class Bug98663Test extends VisualTestCase {
 	public void testBug98663() throws Exception {
 		// Get the number of entries in the error log
 		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-		if(view instanceof LogView) {
+		if(view instanceof org.eclipse.ui.internal.views.log.LogView) {
 			LogView logView = (LogView)view;
-			LogEntry[] logs = logView.getLogs();
+			AbstractEntry[] logs = logView.getElements();
 			int originalNumberOfLogEntries = logs.length;
 		
 			// Add a new AspectJ project
@@ -129,7 +130,7 @@ public class Bug98663Test extends VisualTestCase {
 			assertTrue("Should have created a package called p1", p1.exists()); //$NON-NLS-1$
 			
 			// Check that no more errors have appeared in the error log
-			logs = logView.getLogs();
+			logs = logView.getElements();
 			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length); //$NON-NLS-1$
 				
 		} else {
