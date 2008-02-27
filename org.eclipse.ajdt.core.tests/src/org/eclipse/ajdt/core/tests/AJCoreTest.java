@@ -132,7 +132,7 @@ public class AJCoreTest extends AJDTCoreTestCase {
 	 * @throws Exception
 	 */
 	public void testHandleCreateRoundtrip() throws Exception {
-		IProject project = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		IProject project = createPredefinedProject14("TJP Example"); //$NON-NLS-1$
 		AJRelationshipType[] rels = new AJRelationshipType[] {
 				AJRelationshipManager.ADVISED_BY, AJRelationshipManager.ADVISES };
 		compareElementsFromRelationships(rels, project);
