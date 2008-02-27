@@ -1423,10 +1423,11 @@ public void notifySourceElementRequestor(
 	ImportReference importReference, 
 	boolean isPackage) {
 	if (isPackage) {
-		requestor.acceptPackage(
-			importReference.declarationSourceStart, 
-			importReference.declarationSourceEnd, 
-			CharOperation.concatWith(importReference.getImportName(), '.')); 
+		requestor.acceptPackage(importReference);
+//		requestor.acceptPackage(
+//			importReference.declarationSourceStart, 
+//			importReference.declarationSourceEnd, 
+//			CharOperation.concatWith(importReference.getImportName(), '.')); 
 	} else {
 		requestor.acceptImport(
 			importReference.declarationSourceStart, 

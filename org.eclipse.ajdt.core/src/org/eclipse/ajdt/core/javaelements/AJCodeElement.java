@@ -35,7 +35,7 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	 * @param parameterTypes
 	 */
 	public AJCodeElement(JavaElement parent, int line, String name) {
-		super(parent,name,line,0,0,0,"I"); //$NON-NLS-1$
+		super(parent,name,line,0,0,0,"I", null); //$NON-NLS-1$
 		this.name=name;
 		this.line=line;
 	}

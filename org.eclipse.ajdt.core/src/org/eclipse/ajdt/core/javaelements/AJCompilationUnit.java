@@ -315,6 +315,9 @@ public class AJCompilationUnit extends CompilationUnit{
 			        compilationUnitDeclaration.cleanUp();
 			    }
 			}
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			throw e;
 		} finally {
 		    this.discardOriginalContentMode();
 		}

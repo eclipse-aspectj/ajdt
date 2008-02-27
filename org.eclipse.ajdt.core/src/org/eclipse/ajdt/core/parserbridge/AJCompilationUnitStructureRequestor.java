@@ -23,8 +23,11 @@ import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
+import org.aspectj.org.eclipse.jdt.core.dom.ASTNode;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.aspectj.org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
+import org.aspectj.org.eclipse.jdt.internal.core.SourceMethodElementInfo;
 import org.aspectj.weaver.patterns.DeclareAnnotation;
 import org.aspectj.weaver.patterns.DeclareErrorOrWarning;
 import org.aspectj.weaver.patterns.DeclareParents;
@@ -45,6 +48,8 @@ import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.parser.Scanner;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
@@ -56,7 +61,7 @@ import org.eclipse.jdt.internal.core.SourceTypeElementInfo;
  * @author Luzius Meisser 
  */
 public class AJCompilationUnitStructureRequestor extends
-		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor {
+		CompilationUnitStructureRequestor implements IAspectSourceElementRequestor { 
 
 
 	public AJCompilationUnitStructureRequestor(ICompilationUnit unit, AJCompilationUnitInfo unitInfo, Map newElements) {
@@ -353,7 +358,8 @@ public class AJCompilationUnitStructureRequestor extends
 		
 				nameSourceStart += 8;
 				nameSourceEnd = nameSourceStart;
-				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo) this.infoStack.peek();
+				Object stacktop = this.infoStack.peek();
+				SourceTypeElementInfo parentInfo = (SourceTypeElementInfo)stacktop;
 				JavaElement parentHandle= (JavaElement) this.handleStack.peek();
 				DeclareElement handle = null;
 
@@ -554,6 +560,55 @@ public class AJCompilationUnitStructureRequestor extends
 
 	public void acceptImport(int declarationStart, int declarationEnd, char[] name, boolean onDemand, int modifiers) {
 		super.acceptImport(declarationStart, declarationEnd, CharOperation.splitOn('.', name), onDemand, modifiers);
+	}
+
+	public void acceptPackage(int declarationStart, int declarationEnd,
+			char[] name) {
+		throw new RuntimeException();
+	//	super.acceptPackage(importReference);		
+	}
+
+	public void exitMethod(int declarationEnd, int defaultValueStart,
+			int defaultValueEnd) {
+		super.exitMethod(declarationEnd,null);
+//		Object o = this.infoStack.peek();
+//		if (!(o instanceof SourceMethodElementInfo)) {
+//			int stop =1 ;
+//		}
+//		org.eclipse.jdt.internal.core.SourceMethodElementInfo info = (org.eclipse.jdt.internal.core.SourceMethodElementInfo) this.infoStack.pop();
+//		info.setSourceRangeEnd(declarationEnd);
+//		setChildren(info);
+//		// remember default value of annotation method
+//		if (info.isAnnotationMethod()) {
+//			SourceAnnotationMethodInfo annotationMethodInfo = (SourceAnnotationMethodInfo) info;
+//			annotationMethodInfo.defaultValueStart = defaultValueStart;
+//			annotationMethodInfo.defaultValueEnd = defaultValueEnd;
+//		}
+//		this.handleStack.pop();
+		
+	}
+	public void exitMethod(int declarationEnd, Expression defaultValue) {
+		super.exitMethod(declarationEnd,defaultValue);
+	}
+//	public void acceptPackage(int declarationStart, int declarationEnd,
+//			char[] name) {
+//		super.acceptPackage(declarationStart,declarationEnd,name);	
+//	}
+//
+//	public void exitMethod(int declarationEnd, int defaultValueStart,
+//			int defaultValueEnd) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+
+	public void acceptPackage(
+			org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference ir) {
+		ImportReference dup = new ImportReference(ir.tokens,ir.sourcePositions,(ir.bits & org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode.OnDemand)!=0,ir.modifiers);
+		dup.declarationSourceStart = ir.declarationSourceStart;
+		dup.declarationSourceEnd = ir.declarationSourceEnd;
+		super.acceptPackage(dup);
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

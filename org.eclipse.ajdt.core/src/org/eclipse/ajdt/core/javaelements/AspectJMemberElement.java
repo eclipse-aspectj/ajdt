@@ -17,6 +17,7 @@ import org.aspectj.asm.IProgramElement.ExtraInformation;
 import org.aspectj.asm.IProgramElement.Kind;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeParameter;
@@ -25,6 +26,8 @@ import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.internal.core.NamedMember;
+import org.eclipse.jdt.internal.core.SourceAnnotationMethodInfo;
+import org.eclipse.jdt.internal.core.SourceMethodInfo;
 import org.eclipse.jdt.internal.core.util.Util;
 
 /**
@@ -301,6 +304,14 @@ public ITypeParameter getTypeParameter(String name) {
 
 public String[] getRawParameterNames() throws JavaModelException {
 	return getParameterNames();
+}
+
+public IMemberValuePair getDefaultValue() throws JavaModelException {
+	SourceMethodInfo sourceMethodInfo = (SourceMethodInfo) getElementInfo();
+	if (sourceMethodInfo.isAnnotationMethod()) {
+		return ((SourceAnnotationMethodInfo) sourceMethodInfo).defaultValue;
+	}
+	return null;
 }
 
 }

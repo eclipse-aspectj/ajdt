@@ -1239,7 +1239,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 			methodInfo.parameterNames = argumentNames;
 			methodInfo.exceptionTypes = thrownExceptionTypes;
 			methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-			methodInfo.annotationPositions = collectAnnotationPositions(methodDeclaration.annotations);
+			methodInfo.annotations = (methodDeclaration.annotations);
 			methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
 			requestor.enterConstructor(methodInfo);
 		}
@@ -1304,7 +1304,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		methodInfo.parameterNames = argumentNames;
 		methodInfo.exceptionTypes = thrownExceptionTypes;
 		methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
-		methodInfo.annotationPositions = collectAnnotationPositions(methodDeclaration.annotations);
+		methodInfo.annotations = methodDeclaration.annotations;
 		methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
 		requestor.enterMethod(methodInfo, ajmDec);
 	}		
@@ -1373,7 +1373,7 @@ public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, Type
 				fieldInfo.type = typeName;
 				fieldInfo.nameSourceStart = fieldDeclaration.sourceStart;
 				fieldInfo.nameSourceEnd = fieldDeclaration.sourceEnd;
-				fieldInfo.annotationPositions = collectAnnotationPositions(fieldDeclaration.annotations);
+				fieldInfo.annotations = (fieldDeclaration.annotations);
 				fieldInfo.categories = (char[][]) this.nodesToCategories.get(fieldDeclaration);
 				requestor.enterField(fieldInfo);
 			}
@@ -1413,10 +1413,10 @@ public void notifySourceElementRequestor(
 	ImportReference importReference, 
 	boolean isPackage) {
 	if (isPackage) {
-		requestor.acceptPackage(
-			importReference.declarationSourceStart, 
-			importReference.declarationSourceEnd, 
-			CharOperation.concatWith(importReference.getImportName(), '.')); 
+		requestor.acceptPackage(importReference);
+//			importReference.declarationSourceStart, 
+//			importReference.declarationSourceEnd, 
+//			CharOperation.concatWith(importReference.getImportName(), '.')); 
 	} else {
 		requestor.acceptImport(
 			importReference.declarationSourceStart, 
@@ -1499,7 +1499,7 @@ public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolea
 			typeInfo.superclass = superclassName;
 			typeInfo.superinterfaces = interfaceNames;
 			typeInfo.typeParameters = getTypeParameterInfos(typeDeclaration.typeParameters);
-			typeInfo.annotationPositions = collectAnnotationPositions(typeDeclaration.annotations);
+			typeInfo.annotations = (typeDeclaration.annotations);
 			typeInfo.categories = (char[][]) this.nodesToCategories.get(typeDeclaration);
 			typeInfo.secondary = typeDeclaration.isSecondary();
 			typeInfo.anonymousMember = typeDeclaration.allocation != null && typeDeclaration.allocation.enclosingInstance != null;
