@@ -37,13 +37,16 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.browser.IBrowserViewerContainer;
+import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -321,4 +324,11 @@ public abstract class UITestCase extends TestCase {
 		return contents.toString();
 	}
 
+	public static LogView openLogView() throws PartInitException {
+			IViewPart viewpart =
+			Workbench.getInstance().getActiveWorkbenchWindow()
+			.getActivePage().getActivePart().getSite().getPage().showView(
+				"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+			if (viewpart instanceof LogView) return (LogView)viewpart; else return null;
+	}
 }

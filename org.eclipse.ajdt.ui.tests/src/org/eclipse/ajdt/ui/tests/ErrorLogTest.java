@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.internal.Workbench;
 
@@ -30,18 +31,17 @@ public class ErrorLogTest extends UITestCase {
 	private static final String KNOWN_MSG = "org.eclipse.contribution.xref.core.tests.unknownprovider"; //$NON-NLS-1$
 
 	public void testNoWarningsOnStartup() throws Exception {
-		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow()
-				.getActivePage().getActivePart().getSite().getPage().showView(
-						"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
+		IViewPart view = openLogView();
 		if (view instanceof LogView) {
 			LogView logView = (LogView) view;
-			LogEntry[] logs = logView.getLogs();
+			AbstractEntry[] logs = logView.getElements();
 			// Ignore information entries in the log
 			List errorsAndWarnings = new ArrayList();
 			for (int i = 0; i < logs.length; i++) {
-				if (logs[i].getSeverity() == IStatus.ERROR
-						|| logs[i].getSeverity() == IStatus.WARNING) {
-					if (logs[i].getMessage().toLowerCase().indexOf(KNOWN_MSG) == -1) {
+				LogEntry le = (LogEntry)logs[i];
+				if (le.getSeverity() == IStatus.ERROR
+						|| le.getSeverity() == IStatus.WARNING) {
+					if (le.getMessage().toLowerCase().indexOf(KNOWN_MSG) == -1) {
 						errorsAndWarnings.add(logs[i]);
 					}
 				}

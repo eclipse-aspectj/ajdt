@@ -12,29 +12,28 @@
 package org.eclipse.ajdt.ui.tests;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
 import org.eclipse.ui.internal.Workbench;
 
 public class Bug106813Test extends UITestCase {
 
 	
 	public void testBug106813() throws Exception {
-		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-		if(view instanceof LogView) {
-			LogView logView = (LogView)view;
-			LogEntry[] logs = logView.getLogs();
-			int originalNumberOfLogEntries = logs.length;
-			IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
-			assertTrue("The Bean Example project should have been created", project != null); //$NON-NLS-1$
-			project.close(null);
-			waitForJobsToComplete();
-			assertFalse("The Bean Example project should be closed", project.isOpen()); //$NON-NLS-1$
-			// Check that no more errors have appeared in the error log
-			logs = logView.getLogs();
-			assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length); //$NON-NLS-1$
-		}	
+		LogView logView = openLogView();
+		assertNotNull("Couldn't open log view ",logView);
+		AbstractEntry[] logs = logView.getElements();
+		int originalNumberOfLogEntries = logs.length;
+		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
+		assertTrue("The Bean Example project should have been created", project != null); //$NON-NLS-1$
+		project.close(null);
+		waitForJobsToComplete();
+		assertFalse("The Bean Example project should be closed", project.isOpen()); //$NON-NLS-1$
+		// Check that no more errors have appeared in the error log
+		logs = logView.getElements();
+		assertEquals("The error log should not have had any errors added to it.", originalNumberOfLogEntries, logs.length); //$NON-NLS-1$
 	}
 	
 }

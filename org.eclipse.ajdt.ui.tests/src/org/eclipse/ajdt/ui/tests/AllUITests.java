@@ -58,12 +58,10 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
-import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
 import org.eclipse.ajdt.ui.tests.visualiser.AJDTContentProviderTest;
-import org.eclipse.ajdt.ui.tests.wizards.AspectJProjectWizardTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.AJCTaskTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportPluginTest;
 import org.eclipse.ajdt.ui.tests.wizards.export.ExportProductTest;
@@ -149,7 +147,7 @@ public class AllUITests {
 		suite.addTest(new TestSuite(ContentAssistTest.class));
 		
 		// new aspectJ project wizard
-		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
+//		suite.addTest(new TestSuite(AspectJProjectWizardTest.class));
 		
 		// export wizard tests
 		suite.addTest(new TestSuite(AJCTaskTest.class));
@@ -181,7 +179,7 @@ public class AllUITests {
 		}
 		
 		// ras tests
-		suite.addTest(new TestSuite(PluginFFDCTest.class));		
+	//	suite.addTest(new TestSuite(PluginFFDCTest.class));		
 
 		// xref tests
 		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());

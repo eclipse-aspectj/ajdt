@@ -14,10 +14,10 @@ package org.eclipse.ajdt.ui.tests;
 
 import junit.framework.TestCase;
 
-import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
+import org.eclipse.ui.internal.views.log.AbstractEntry;
+import org.eclipse.ui.internal.views.log.LogEntry;
+import org.eclipse.ui.internal.views.log.LogView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.internal.Workbench;
@@ -36,21 +36,19 @@ public aspect ErrorsTest {
 	 	&& !this(PluginFFDCTest);
 	
 	void around(): uiTestRun() {
-		IViewPart view;
 		try {
-			view = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().showView("org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-			LogView logView = (LogView)view;
-			LogEntry[] logs = logView.getLogs();
+			LogView logView = UITestCase.openLogView();
+			AbstractEntry[] logs = logView.getElements();
 			int numErrors = logs.length;
 			proceed();
-			logs = logView.getLogs();
+			logs = logView.getElements();
 			String failureText = ""; //$NON-NLS-1$
 			if(logs.length > numErrors) { // Check for errors or warnings
 				int numAdded = logs.length - numErrors;
 				for (int i = 0; i < numAdded; i++) { // New entries are always added at the start
-					LogEntry entry = logs[i];
+					LogEntry entry = (LogEntry)logs[i];
 					if(entry.getSeverity() == IStatus.ERROR || entry.getSeverity() == IStatus.WARNING) {
-						failureText += "The test added errors to the log: " + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						failureText += "The test added errors to the log: \n" + entry.getMessage() + "\n" + entry.getStack() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					}
 				}
 				if (failureText.length() > 0) {
