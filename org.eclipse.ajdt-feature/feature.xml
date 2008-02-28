@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.ajdt"
       label="%featureName"
-      version="1.5.2.qualifier"
+      version="1.6.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
@@ -27,20 +27,46 @@
          version="0.0.0"/>
 
    <requires>
-      <import plugin="org.eclipse.core.runtime" version="3.2.0" match="compatible"/>
       <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.core.runtime" version="3.2.0" match="compatible"/>
+      <import plugin="org.eclipse.jdt.core"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.jdt.ui"/>
-      <import plugin="org.eclipse.debug.core"/>
-      <import plugin="org.eclipse.jdt.core"/>
-      <import plugin="org.eclipse.jdt.launching"/>
       <import plugin="org.eclipse.search"/>
+      <import plugin="org.eclipse.debug.core"/>
       <import plugin="org.eclipse.pde.core"/>
       <import plugin="org.eclipse.pde.runtime"/>
       <import plugin="org.eclipse.pde"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.jdt.debug.ui"/>
       <import plugin="org.eclipse.swt"/>
+      <import plugin="org.eclipse.jdt.launching"/>
+      <import plugin="org.apache.ant"/>
+      <import plugin="org.eclipse.core.runtime.compatibility"/>
+      <import plugin="org.eclipse.text"/>
+      <import plugin="org.aspectj.weaver" version="92.2.29" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.pde.build"/>
+      <import plugin="org.eclipse.update.core"/>
+      <import plugin="org.eclipse.ltk.core.refactoring"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.help"/>
+      <import plugin="org.eclipse.core.commands"/>
+      <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.core.expressions"/>
+      <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="org.eclipse.pde.ui"/>
+      <import plugin="org.eclipse.ui.cheatsheets"/>
+      <import plugin="org.eclipse.jdt.debug"/>
+      <import plugin="org.eclipse.ui.intro"/>
+      <import plugin="org.eclipse.ant.core"/>
+      <import plugin="org.eclipse.core.filesystem"/>
+      <import plugin="com.ibm.icu"/>
    </requires>
 
    <plugin
@@ -108,12 +134,6 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-
-   <plugin
-         id="org.eclipse.ajdt.pde.build"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
 
    <plugin
          id="org.eclipse.ajdt.doc.user"
