@@ -13,7 +13,7 @@ package org.eclipse.ajdt.core;
 
 import java.util.HashMap;
 import java.util.Map;
-
+ 
 /**
  * Minimal logging - if a logger hasn't been set, dump to sdout
  */  
