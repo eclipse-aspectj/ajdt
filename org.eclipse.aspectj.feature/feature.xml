@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.aspectj.feature"
       label="%featureName"
-      version="1.5.2.qualifier"
+      version="1.6.0.qualifier"
       provider-name="%providerName"
       plugin="org.eclipse.aspectj">
 
@@ -105,10 +105,10 @@
          version="0.0.0"
          unpack="false"/>
 
-   <plugin
+   <!--plugin
          id="org.eclipse.ajdt.pde.build"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"/-->
 
 </feature>
