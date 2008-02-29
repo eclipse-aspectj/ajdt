@@ -44,7 +44,7 @@
       <import plugin="org.apache.ant"/>
       <import plugin="org.eclipse.core.runtime.compatibility"/>
       <import plugin="org.eclipse.text"/>
-      <import plugin="org.aspectj.weaver" version="92.2.29" match="greaterOrEqual"/>
+      <import plugin="org.aspectj.weaver"/>
       <import plugin="org.eclipse.pde.build"/>
       <import plugin="org.eclipse.update.core"/>
       <import plugin="org.eclipse.ltk.core.refactoring"/>
