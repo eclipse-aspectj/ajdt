@@ -491,14 +491,23 @@ public class AspectJEditor extends CompilationUnitEditor {
 			}
 		}
 	}
-	
-	protected void initializeEditor() {
-		super.initializeEditor();
-		IPreferenceStore store = this.getPreferenceStore();
+
+	protected void setPreferenceStore(IPreferenceStore store) {
+		super.setPreferenceStore(store);
 		AspectJTextTools textTools = new AspectJTextTools(store);
 		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
 				textTools, this);
 		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
+		
+	}
+	
+	protected void initializeEditor() {
+		super.initializeEditor();
+//		IPreferenceStore store = this.getPreferenceStore();
+//		AspectJTextTools textTools = new AspectJTextTools(store);
+//		fAJSourceViewerConfiguration = new AJSourceViewerConfiguration(
+//				textTools, this);
+//		setSourceViewerConfiguration(fAJSourceViewerConfiguration);
 	}
 
 

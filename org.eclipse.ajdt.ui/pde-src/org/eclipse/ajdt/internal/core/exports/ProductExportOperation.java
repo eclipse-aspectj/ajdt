@@ -160,7 +160,7 @@ public class ProductExportOperation extends FeatureExportOperation {
 		}
 		
 		IJREInfo jreInfo = fProduct.getJREInfo();
-		String vm = jreInfo != null ? jreInfo.getJVMLocation(config[0]) : null;
+		String vm = jreInfo != null ? jreInfo.getJVMLocation(config[0]).toString() : null;
 		if(vm != null) {
 			properties.put("root."+config[0]+ //$NON-NLS-1$
 					"."+config[1]+ //$NON-NLS-1$
