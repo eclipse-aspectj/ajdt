@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT Visual Tests Plug-in
-Bundle-SymbolicName: org.eclipse.ajdt.ui.visual.tests
+Bundle-SymbolicName: org.eclipse.ajdt.ui.visual.tests;singleton:=true
 Bundle-Version: 1.6.0.qualifier
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.core.runtime,
