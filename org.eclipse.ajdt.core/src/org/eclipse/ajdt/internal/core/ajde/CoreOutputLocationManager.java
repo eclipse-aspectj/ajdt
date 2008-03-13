@@ -111,6 +111,9 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 		if (!isUsingSeparateOutputFolders(jProject)) {
 			return commonOutputDir;
 		}
+		if (resource==null || resource.toString()==null) {
+			return defaultOutput;
+		}
 		String fileName = resource.toString().replace('\\', '/');
 		if (projectName==null) {
 			projectName= jProject.getProject().getName();
