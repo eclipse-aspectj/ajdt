@@ -79,7 +79,6 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private String lastWorkbenchPreference = JavaCore.ABORT;
 
 	public AJBuilder() {
-		AjState.IGNORE_NON_REFERENCED_TYPES=true;
 	}
 	
 	/* (non-Javadoc)
