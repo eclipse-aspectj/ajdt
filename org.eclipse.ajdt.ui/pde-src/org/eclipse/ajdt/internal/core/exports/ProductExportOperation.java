@@ -116,8 +116,8 @@ public class ProductExportOperation extends FeatureExportOperation {
 
 	private File getCustomIniFile() {
 		IConfigurationFileInfo info = fProduct.getConfigurationFileInfo();
-		if (info != null  && info.getUse().equals("custom")) { //$NON-NLS-1$
-			String path = getExpandedPath(info.getPath());
+		if (info != null  && info.getUse(null).equals("custom")) { //$NON-NLS-1$
+			String path = getExpandedPath(info.getPath(null));
 			if (path != null) {
 				File file = new File(path);
 				if (file.exists() && file.isFile())
@@ -285,7 +285,7 @@ public class ProductExportOperation extends FeatureExportOperation {
 
 		File custom = getCustomIniFile();       
 		if (custom != null) {
-			String path = getExpandedPath(fProduct.getConfigurationFileInfo().getPath());
+			String path = getExpandedPath(fProduct.getConfigurationFileInfo().getPath(null));
 			BufferedReader in = null;
 			try {
 				in = new BufferedReader(new FileReader(path));

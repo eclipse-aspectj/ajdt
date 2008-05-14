@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaElementHyperlink;
+import org.eclipse.jdt.ui.actions.SelectionDispatchAction;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -64,8 +65,9 @@ public class PointcutElementHyperlinkDetector implements IHyperlinkDetector {
 			if (source != null) {
 				IRegion reg = selectWord(source, offset);
 				if (reg != null) {
-					return new IHyperlink[] { new JavaElementHyperlink(
-							reg, openAction) };
+					return new IHyperlink[] { 
+					new JavaElementHyperlink(reg, (SelectionDispatchAction) openAction, input, false)
+					};
 				}
 			}
 		}

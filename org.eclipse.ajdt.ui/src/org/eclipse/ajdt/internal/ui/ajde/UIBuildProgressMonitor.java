@@ -10,7 +10,6 @@
  *******************************************************************/
 package org.eclipse.ajdt.internal.ui.ajde;
 
-import org.aspectj.weaver.WeaverMetrics;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.TimerLogEvent;
@@ -59,7 +58,6 @@ public class UIBuildProgressMonitor implements IAJCompilerMonitor {
         compilationInProgress = false;
         ((UIMessageHandler)AspectJPlugin.getDefault().getCompilerFactory()
 				.getCompilerForProject(project).getMessageHandler()).setLastBuildType(wasFullBuild);
-        WeaverMetrics.reset();
 
         if (AspectJUIPlugin.getDefault().getDisplay().isDisposed())
         	AJLog.log("Not finishing with bpm, display is disposed!"); //$NON-NLS-1$

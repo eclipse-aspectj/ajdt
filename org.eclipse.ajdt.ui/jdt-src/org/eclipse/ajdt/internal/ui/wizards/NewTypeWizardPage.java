@@ -940,7 +940,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 		} else if (field == fEnclosingTypeDialogField) {
 			IType type= chooseEnclosingType();
 			if (type != null) {
-				fEnclosingTypeDialogField.setText(JavaModelUtil.getFullyQualifiedName(type));
+				fEnclosingTypeDialogField.setText(type.getFullyQualifiedName());
 			}
 		} else if (field == fSuperClassDialogField) {
 			IType type= chooseSuperClass();
@@ -1110,7 +1110,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 	public void setEnclosingType(IType type, boolean canBeModified) {
 		fCurrEnclosingType= type;
 		fCanModifyEnclosingType= canBeModified;
-		String str= (type == null) ? "" : JavaModelUtil.getFullyQualifiedName(type); //$NON-NLS-1$
+		String str= (type == null) ? "" : type.getFullyQualifiedName(); //$NON-NLS-1$
 		fEnclosingTypeDialogField.setText(str);
 		updateEnableState();
 	}
@@ -2395,7 +2395,7 @@ public abstract class NewTypeWizardPage extends NewContainerWizardPage {
 			try {
 				StringBuffer typeName= new StringBuffer();
 				if (isEnclosingTypeSelected()) {
-					typeName.append(JavaModelUtil.getTypeQualifiedName(getEnclosingType())).append('.');
+					typeName.append(getEnclosingType().getTypeQualifiedName()).append('.');
 				}
 				typeName.append(getTypeNameWithoutParameters());
 				String[] typeParamNames= new String[0];

@@ -39,7 +39,7 @@ public abstract class AJBuildPathAction {
 	private static IFile getCandidate(IAdaptable element) throws JavaModelException {
 		IResource resource = (IResource) element.getAdapter(IResource.class);
 		if (!(resource instanceof IFile)
-				|| !ArchiveFileFilter.isArchivePath(resource.getFullPath()))
+				|| !ArchiveFileFilter.isArchivePath(resource.getFullPath(),true))
 			return null;
 	
 		IJavaProject project = JavaCore.create(resource.getProject());
