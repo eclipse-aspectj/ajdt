@@ -36,7 +36,7 @@ import org.eclipse.jdt.core.JavaModelException;
  * The tests in this testcase are different scenarios around this.
  */
 public class Bug99133Test extends AJDTCoreTestCase {
-	
+	 
 	IProject pA,pB;
 	TestLogger testLog;
 	int numberOfBuilds;
