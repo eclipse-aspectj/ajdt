@@ -457,7 +457,7 @@ public class AJCompilationUnit extends CompilationUnit{
 	 *  (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
 	 */
-	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner) throws JavaModelException {
+	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner, org.eclipse.jdt.core.ITypeRoot root) throws JavaModelException {
 		ConversionOptions myConversionOptions; int pos;
 		
 		if(javaCompBuffer == null) {
@@ -475,7 +475,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			pos = javaCompBuffer.translatePositionToFake(position);
 			// we call codeComplete twice in this case to combine the context specific completions with the
 			// completions for things like local variables.
-			super.codeComplete(cu, unitToSkip, pos, requestor, owner);				
+			super.codeComplete(cu, unitToSkip, pos, requestor, owner, root);				
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
@@ -486,7 +486,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		
 		javaCompBuffer.setConversionOptions(myConversionOptions);
 		pos = javaCompBuffer.translatePositionToFake(position);
-		super.codeComplete(cu, unitToSkip, pos, requestor, owner);
+		super.codeComplete(cu, unitToSkip, pos, requestor, owner, root);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
 	}

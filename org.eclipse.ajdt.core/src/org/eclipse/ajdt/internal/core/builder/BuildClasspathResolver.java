@@ -104,7 +104,7 @@ public class BuildClasspathResolver {
 		nextEntry : for (int i = 0, l = classpathEntries.length; i < l; i++) {
 			ClasspathEntry entry = (ClasspathEntry) classpathEntries[i];
 			IPath path = entry.getPath();
-			Object target = JavaModel.getTarget(root, path, true);
+			Object target = JavaModel.getTarget(path, true);
 			if (target == null) continue nextEntry;
 
 			switch(entry.getEntryKind()) {
@@ -139,7 +139,7 @@ public class BuildClasspathResolver {
 					nextPrereqEntry: for (int j = 0, m = prereqClasspathEntries.length; j < m; j++) {
 						IClasspathEntry prereqEntry = prereqClasspathEntries[j];
 						if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-							Object prereqTarget = JavaModel.getTarget(root, prereqEntry.getPath(), true);
+							Object prereqTarget = JavaModel.getTarget( prereqEntry.getPath(), true);
 							if (!(prereqTarget instanceof IContainer)) continue nextPrereqEntry;
 							IPath prereqOutputPath = prereqEntry.getOutputLocation() != null 
 								? prereqEntry.getOutputLocation() 
@@ -176,7 +176,7 @@ public class BuildClasspathResolver {
 						IResource resource = (IResource) target;
 						ClasspathLocation bLocation = null;
 						if (resource instanceof IFile) {
-							if (!(org.eclipse.jdt.internal.compiler.util.Util.isArchiveFileName(path.lastSegment())))
+							if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
 								continue nextEntry;
                             AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 																				? null
@@ -202,7 +202,7 @@ public class BuildClasspathResolver {
 							binaryLocationsPerProject.put(p, existingLocations);
 						}
 					} else if (target instanceof File) {
-						if (!(org.eclipse.jdt.internal.compiler.util.Util.isArchiveFileName(path.lastSegment())))
+						if (!(org.eclipse.jdt.internal.compiler.util.Util.isPotentialZipArchive(path.lastSegment())))
 							continue nextEntry;
                         AccessRuleSet accessRuleSet = JavaCore.IGNORE.equals(javaProject.getOption(JavaCore.COMPILER_PB_FORBIDDEN_REFERENCE, true))
 																			? null
