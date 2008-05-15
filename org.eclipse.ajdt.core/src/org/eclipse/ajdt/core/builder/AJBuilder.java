@@ -62,6 +62,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 
 /**
  * 
@@ -152,6 +153,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(dta != null) {
 			copyResources(javaProject,dta);
 		}
+
 		if (kind != FULL_BUILD) {
 		    // need to add check here for whether the classpath has changed
 		    if (!sourceFilesChanged(dta, project)){
@@ -180,7 +182,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		migrateToRTContainerIfNecessary(javaProject);
 
 		IAJCompilerMonitor compilerMonitor = (IAJCompilerMonitor) compiler.getBuildProgressMonitor();
-		if (kind == FULL_BUILD) {
+		
+		// Bug 43711 must do a clean and rebuild if we can't 
+		// find a buildConfig file from a previous compilation
+		if (kind == FULL_BUILD ||
+		    !hasValidPreviousBuildConfig(compiler.getId())) {
+		    
 			IJavaProject ijp = JavaCore.create(project);
 			if (ijp != null)
 				cleanOutputFolders(ijp,false);
@@ -245,6 +252,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.logEnd(AJLog.BUILDER, TimerLogEvent.TIME_IN_BUILD);
 		return requiredProjects;
 	}
+
+    private boolean hasValidPreviousBuildConfig(String configId) {
+        AjState state = IncrementalStateManager.retrieveStateFor(configId);
+        return  state != null && state.getBuildConfig() != null;
+    }
 
 	/**
 	 * Check the inpath and aspect path entries exist. Creates problem markers
