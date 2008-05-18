@@ -70,7 +70,7 @@ import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 public class AJBuilder extends IncrementalProjectBuilder {
 
 	private static IStateListener isl = null;
-	
+	 
 	private static List buildListeners = new ArrayList();
 
 	/**
