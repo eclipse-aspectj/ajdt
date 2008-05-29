@@ -1246,4 +1246,11 @@ public class AJDTUtils {
 		return ret;
 	}
 
+    // Bug 119853
+    // paths are different on Mac
+    public static boolean isMacOS() {
+        String os = System.getProperty("os.name"); //$NON-NLS-1$
+        return os.startsWith("Mac"); //$NON-NLS-1$
+    }
+
 }
