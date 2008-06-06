@@ -25,6 +25,7 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest4;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest5;
+import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest6;
 import org.eclipse.ajdt.ui.tests.builder.Bug128803Test;
 import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
@@ -165,6 +166,7 @@ public class AllUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest6.class));
 		suite.addTest(new TestSuite(Bug128803Test.class));
 		suite.addTest(new TestSuite(Bug151818Test.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
