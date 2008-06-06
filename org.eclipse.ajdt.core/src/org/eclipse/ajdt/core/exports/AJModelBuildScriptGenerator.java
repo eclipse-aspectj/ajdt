@@ -25,11 +25,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
@@ -989,8 +992,15 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 		String[] ajdeClasspath = null;
 		try {
 			added = new ArrayList();
-			ajdeClasspath = bundleToCP(getModel("org.aspectj.ajde")); //$NON-NLS-1$
+			BundleDescription ajdeBundle = getModel("org.aspectj.ajde"); //$NON-NLS-1$
+			// Bug 215518 AJDE plugin not available
+			// show warning and exit
+			if (ajdeBundle == null) {
+			    throw new NullPointerException(CoreMessages.noAJDEFound);
+			}
+			ajdeClasspath = bundleToCP(ajdeBundle); 
 		} catch (CoreException e) {
+		    
 		}		
 		AJCTask javac = new AJCTask(buildConfig, ajdeClasspath);
 		javac.setAspectpath(aspectpath);
