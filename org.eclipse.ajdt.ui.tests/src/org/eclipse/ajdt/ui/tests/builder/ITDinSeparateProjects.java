@@ -45,7 +45,7 @@ public class ITDinSeparateProjects extends UITestCase {
             for (int i = 0; i < markers.length; i++) {
                 IMarker marker = markers[i];
                 String message = (String) marker.getAttribute(IMarker.MESSAGE);
-                if (message != null && message.contains("serialVersionUID")) { //$NON-NLS-1$
+                if (message != null && message.indexOf("serialVersionUID")!=-1) { //$NON-NLS-1$
                     found = true;
                     break;
                 }
