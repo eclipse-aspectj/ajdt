@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.eclipse.ajdt.ui; singleton:=true
 Bundle-Version: 1.5.3.qualifier
 Bundle-Activator: org.eclipse.ajdt.ui.AspectJUIPlugin
 Bundle-Vendor: %providerName
-Bundle-Localization: plugin
+Bundle-Localization: plugin 
 Export-Package: org.eclipse.ajdt.internal.builder;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.buildpath;x-friends:="org.eclipse.ajdt.ui.tests",
  org.eclipse.ajdt.internal.core.exports;x-friends:="org.eclipse.ajdt.ui.tests",
