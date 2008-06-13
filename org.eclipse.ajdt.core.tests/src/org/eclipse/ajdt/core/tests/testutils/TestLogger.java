@@ -79,6 +79,9 @@ public class TestLogger implements IAJLogger {
      * Returns whether or not the log contains the given string 
      */
     public boolean containsMessage(String msg) {
+        if (log == null) {
+             return false; 
+        }
         for (Iterator iter = log.iterator(); iter.hasNext();) {
             String logEntry = (String) iter.next();
             if (logEntry.indexOf(msg) != -1) {
