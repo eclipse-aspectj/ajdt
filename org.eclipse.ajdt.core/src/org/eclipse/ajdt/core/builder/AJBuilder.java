@@ -26,6 +26,7 @@ import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -104,6 +105,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.log(AJLog.BUILDER,"Build kind = " + kindS); //$NON-NLS-1$
 				
 		IProject[] requiredProjects = getRequiredProjects(project,true);
+
+		if (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD) {
+		    if (AspectJCorePreferences.isAutobuildSuppressed()) {
+		        AJLog.log(AJLog.BUILDER,"Autobuild suppressed by user"); //$NON-NLS-1$
+		        return requiredProjects;
+		    }
+		}
 
 		// must call this after checking whether a full build has been requested,
 		// otherwise the listeners are called with a different build kind than
