@@ -108,7 +108,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 
 		if (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD) {
 		    if (AspectJCorePreferences.isAutobuildSuppressed()) {
-		        AJLog.log(AJLog.BUILDER,"Autobuild suppressed by user"); //$NON-NLS-1$
+		        AJLog.log(AJLog.BUILDER,"Autobuild suppressed by user for project " + project.getName()); //$NON-NLS-1$
 		        return requiredProjects;
 		    }
 		}
