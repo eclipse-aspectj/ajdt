@@ -410,6 +410,9 @@ public class UIMessages extends NLS {
 	public static String OpenAspect_showCrossReferencesView_question;
 	public static String OpenAspect_showCrossReferencesView_explanation;
 	
+	public static String CompilerConfigurationBlock_aj_builder_settings;
+	public static String CompilerConfigurationBlock_aj_suppressAutoBuild;
+
 	static {
 		NLS.initializeMessages(BUNDLE_NAME, UIMessages.class);
 	}
