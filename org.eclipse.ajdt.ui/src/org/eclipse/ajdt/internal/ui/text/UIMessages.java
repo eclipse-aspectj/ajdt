@@ -24,7 +24,9 @@ public class UIMessages extends NLS {
 		// Do not instantiate
 	}
 	
-	public static String ajde_version;	
+	public static String ajde_version;
+    public static String BuildPathsBlock_ChooseOutputFolderDialog_description;
+    public static String BuildPathsBlock_ChooseOutputFolderDialog_title;	
 	public static String buildPrereqsMessage;	
 	public static String Builder_migration_build;	
 	public static String Builder_migration_failed_title;
@@ -35,6 +37,12 @@ public class UIMessages extends NLS {
 	public static String ajErrorDialogTitle;	
 	public static String ajErrorText;
 	public static String ajdtErrorDialogTitle;
+    public static String InPathBlock_6;
+    public static String InPathBlock_Browse;
+    public static String InPathBlock_outFolder_1;
+    public static String InPathBlock_outFolder_2;
+    public static String InPathBlock_outFolder_3;
+    public static String InPathBlock_outFolder_4;
 	public static String jmCoreException;
 	public static String buildpathwarning_title;
 	public static String addtoinpathwarning;
@@ -277,6 +285,7 @@ public class UIMessages extends NLS {
 	public static String Refactoring_UpdateBuildConfigs;
 	public static String Refactoring_ConvertFileExtensions;
 	public static String Refactoring_ConvertingFileExtensions;
+    public static String UIBuildListener_InvalidInpathOutFolderText;
 	public static String utils_refresh_explorer_job;
 	public static String utils_refresh_outline_job;
 	public static String editor_title_refresh_job;
