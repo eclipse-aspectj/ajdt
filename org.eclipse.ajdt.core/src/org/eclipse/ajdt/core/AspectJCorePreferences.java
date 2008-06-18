@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.ClasspathEntry;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -49,7 +50,9 @@ public class AspectJCorePreferences {
 	public static final IClasspathAttribute INPATH_ATTRIBUTE = JavaCore.newClasspathAttribute(
 			INPATH_ATTRIBUTE_NAME, "true"); //$NON-NLS-1$
 
-	public static final String OUT_JAR = "org.eclipse.ajdt.ui.outJar"; //$NON-NLS-1$
+    public static final String OUT_JAR = "org.eclipse.ajdt.ui.outJar"; //$NON-NLS-1$
+
+    public static final String INPATH_OUT_FOLDER = "org.eclipse.ajdt.ui.inpathOutFolder"; //$NON-NLS-1$
 
 	public static final String ASPECTPATH = "org.eclipse.ajdt.ui.aspectPath"; //$NON-NLS-1$
 
@@ -63,26 +66,48 @@ public class AspectJCorePreferences {
 
 	public static final String INPATH_ENT_KINDS = "org.eclipse.ajdt.ui.inPath.entryKind"; //$NON-NLS-1$
 
-	public static String getProjectOutJar(IProject project) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-		return projectNode.get(OUT_JAR, ""); //$NON-NLS-1$
-	}
+    public static String getProjectOutJar(IProject project) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        return projectNode.get(OUT_JAR, ""); //$NON-NLS-1$
+    }
 
-	public static void setProjectOutJar(IProject project, String value) {
-		IScopeContext projectScope = new ProjectScope(project);
-		IEclipsePreferences projectNode = projectScope
-				.getNode(AspectJPlugin.UI_PLUGIN_ID);
-		projectNode.put(OUT_JAR, value);
-		if (value.length() == 0) {
-			projectNode.remove(OUT_JAR);
-		}
-		try {
-			projectNode.flush();
-		} catch (BackingStoreException e) {
-		}
-	}
+    public static String getProjectInpathOutFolder(IProject project) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        return projectNode.get(INPATH_OUT_FOLDER, null);
+    }
+
+    public static void setProjectOutJar(IProject project, String value) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        projectNode.put(OUT_JAR, value);
+        if (value.length() == 0) {
+            projectNode.remove(OUT_JAR);
+        }
+        try {
+            projectNode.flush();
+        } catch (BackingStoreException e) {
+        }
+    }
+
+    public static void setProjectInpathOutFolder(IProject project, String value) {
+        IScopeContext projectScope = new ProjectScope(project);
+        IEclipsePreferences projectNode = projectScope
+                .getNode(AspectJPlugin.UI_PLUGIN_ID);
+        if (value == null || value.length() == 0) {
+            projectNode.remove(INPATH_OUT_FOLDER);
+        } else {
+            projectNode.put(INPATH_OUT_FOLDER, value);
+        }
+        try {
+            projectNode.flush();
+        } catch (BackingStoreException e) {
+        }
+    }
 
 	public static void setProjectAspectPath(IProject project, String path,
 			String cKinds, String eKinds) {
@@ -551,6 +576,10 @@ public class AspectJCorePreferences {
 		}
 	}
 
+	public static void setInpathOutputFolder() {
+	    
+	}
+	
 	/**
 	 * Remove all occurrences of an attribute
 	 * @param javaProject

@@ -658,6 +658,14 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			for (int i = 0; i < paths.length; i++) {
 				numberDeleted += cleanFolder(project, paths[i], refresh);
 			}
+			
+			// clean inpath out folder
+			String inpathOut = AspectJCorePreferences.getProjectInpathOutFolder(project.getProject());
+			if (inpathOut != null && !inpathOut.equals("")) {
+			    IPath inpathOutfolder = new Path(inpathOut);
+			    numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
+			}
+			
 			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), deleted " //$NON-NLS-1$
 							+ numberDeleted + " .class files"); //$NON-NLS-1$
 		}
@@ -674,6 +682,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		} else {
 			outputResource = ResourcesPlugin.getWorkspace().getRoot()
 					.getFolder(outputFolder);
+			if (!outputResource.exists()) {
+			    return 0;
+			}
 			realOutputLocation = outputResource.getLocation().toOSString();
 		}
 
