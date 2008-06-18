@@ -31,6 +31,7 @@ import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.CustomMarkersTest;
 import org.eclipse.ajdt.ui.tests.builder.ITDinSeparateProjects;
+import org.eclipse.ajdt.ui.tests.builder.InpathOutFolderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesWithJarFilesTest;
@@ -168,7 +169,8 @@ public class AllAJDTUITests {
 		suite.addTest(new TestSuite(Bug128803Test.class));
 		suite.addTest(new TestSuite(Bug151818Test.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
-		suite.addTest(new TestSuite(CustomMarkersTest.class));
+        suite.addTest(new TestSuite(CustomMarkersTest.class));
+        suite.addTest(new TestSuite(InpathOutFolderTest.class));
 		suite.addTest(new TestSuite(ITDinSeparateProjects.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));
 		
