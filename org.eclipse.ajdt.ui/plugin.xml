@@ -994,6 +994,9 @@ M4 = Platform-specific fourth key
       <persistent
             value="true">
       </persistent>
+      <super
+            type="org.eclipse.jdt.core.problem">
+      </super>
    </extension>
 
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -746,9 +747,12 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				        store.getBoolean(data.getKey());
 				if (currValue != storedValue) {
 				    // check to see if we should ignore the change in the checkbox
-				    if (! curr.getData(NO_BUILD_ON_CHANGE).equals(NO_BUILD_ON_CHANGE)) {
+				    // change should be ignored if the NO_BUILD_ON_CHANGE flad exists
+				    if (curr.getData(NO_BUILD_ON_CHANGE) == null) {
 				        advancedOrOtherChanges = true;
 				    }
+				    
+				    // determine where this preference is stored
                     if (usesAspectJCorePreferences(curr)) {
                         ajCorePreferences.setValue(data.getKey(), currValue);
                     } else {
@@ -1351,9 +1355,18 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	}
 	// changes one of the button values to simulate user input
 	public void setButtonChanged() {
-		Button curr = (Button) fCheckBoxes.get(0);
-		boolean value = curr.getSelection();
-		curr.setSelection(!value);
+	    Button b = null;
+	    Iterator iter = fCheckBoxes.iterator();
+	    while(iter.hasNext()) {
+	        b = (Button) iter.next();
+	        if (UIMessages.CompilerConfigurationBlock_aj_x_no_inline_label.startsWith(b.getText())) {
+	            break;
+	        }
+	    }
+	    if (b != null) {
+	        boolean value = b.getSelection();
+	        b.setSelection(!value);
+	    }
 	}
 	
 	// override so we can use this in testing
