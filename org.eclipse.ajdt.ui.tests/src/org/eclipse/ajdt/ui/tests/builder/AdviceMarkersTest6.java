@@ -1,5 +1,8 @@
 package org.eclipse.ajdt.ui.tests.builder;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.ajdt.ui.IAJModelMarker;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
@@ -30,18 +33,20 @@ public class AdviceMarkersTest6 extends UITestCase {
         waitForJobsToComplete();
 
         IMarker[] markers = getMarkers(aspectFile, editorPart);
-        assertTrue("Didn't find advice markers", markers.length == 3); //$NON-NLS-1$
-        System.out.println(markers[0].getAttribute(IMarker.LINE_NUMBER, -1));
-        System.out.println(markers[1].getAttribute(IMarker.LINE_NUMBER, -1));
-        System.out.println(markers[2].getAttribute(IMarker.LINE_NUMBER, -1));
+        assertTrue("Didn't find any advice markers, but should have found 3", markers.length == 3); //$NON-NLS-1$
 
-        assertEquals("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                24, markers[0].getAttribute(IMarker.LINE_NUMBER, -1));
-        assertEquals("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                23, markers[1].getAttribute(IMarker.LINE_NUMBER, -1));
-        assertEquals("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
-                22, markers[2].getAttribute(IMarker.LINE_NUMBER, -1));
+        Set lineNumbers = new HashSet();
+        lineNumbers.add(new Integer(markers[0].getAttribute(IMarker.LINE_NUMBER, -1)));
+        lineNumbers.add(new Integer(markers[1].getAttribute(IMarker.LINE_NUMBER, -1)));
+        lineNumbers.add(new Integer(markers[2].getAttribute(IMarker.LINE_NUMBER, -1)));
         
+        assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
+                lineNumbers.contains(new Integer(22)));
+        assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
+                lineNumbers.contains(new Integer(22)));
+        assertTrue("Advice marker is on wrong line number.  Should be at the call site, not execution site", //$NON-NLS-1$
+                lineNumbers.contains(new Integer(22)));
+          
     }
     
     protected IMarker[] getMarkers(IResource resource, ITextEditor editor)

@@ -84,10 +84,8 @@ public class ExportPluginTest extends UITestCase {
 		}
 		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
 		ZipFile zf = new ZipFile(zip);
-		for (Enumeration e = zf.entries(); e.hasMoreElements(); ) {
-		    System.out.println(e.nextElement());
-		}
-        String jarEntry = "plugins/HelloWorld_1.0.0/HelloWorld.jar"; //$NON-NLS-1$
+
+		String jarEntry = "plugins/HelloWorld_1.0.0/HelloWorld.jar"; //$NON-NLS-1$
         ZipEntry entry = zf.getEntry(jarEntry);
         // Macs seem to be generating zip files slightly differently
         if (entry == null) {

@@ -57,18 +57,18 @@ public class InpathOutFolderTest extends UITestCase {
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
 	}
 	
-//	public void testChangeInpathOutLocation() throws CoreException {
-//	    // test that when the out location changes, the new one is used instead
-//	    jarOnInpath.getProject().getFolder("newOutFolder").create(true, true, null); //$NON-NLS-1$
-//	    AspectJCorePreferences.setProjectInpathOutFolder(jarOnInpath.getProject(), "JarOnInpath/newOutFolder"); //$NON-NLS-1$
-//	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
-//        jarOnInpath.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-//        jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
-//        waitForJobsToComplete();
-//           
-//        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
-//                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
-//	}
+	public void testChangeInpathOutLocation() throws CoreException {
+	    // test that when the out location changes, the new one is used instead
+	    jarOnInpath.getProject().getFolder("newOutFolder").create(true, true, null); //$NON-NLS-1$
+	    AspectJCorePreferences.setProjectInpathOutFolder(jarOnInpath.getProject(), "JarOnInpath/newOutFolder"); //$NON-NLS-1$
+	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(jarOnInpath.getProject());
+        jarOnInpath.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+        jarOnInpath.getProject().build(IncrementalProjectBuilder.FULL_BUILD, null);
+        waitForJobsToComplete();
+           
+        assertTrue("File on inpath out folder does not exist: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
+                jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+	}
 	    
 	public static void setAutobuilding(boolean autobuild) throws CoreException {
 	    IWorkspaceDescription workspaceDesc = AspectJPlugin.getWorkspace().getDescription();
