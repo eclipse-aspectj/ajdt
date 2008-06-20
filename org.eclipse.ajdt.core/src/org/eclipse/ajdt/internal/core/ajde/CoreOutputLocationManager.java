@@ -96,7 +96,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
                             File f = workspacePathToFile(path);
                             if (f != null && f.exists()) {
                                 // use full path
-                                String srcFolder = f.getPath();
+                                String srcFolder = new Path(f.getPath()).toPortableString();
                                 File out = workspacePathToFile(new Path(inpathOutFolder));
                                 srcFolderToOutput.put(srcFolder,out);
                             } else {
