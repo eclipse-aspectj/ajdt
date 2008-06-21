@@ -1,25 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2004 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
- * the Common Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/cpl-v10.html
+ * the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors: Sian January - initial version ...
  ******************************************************************************/
 
 package org.eclipse.ajdt.internal.launching;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.jdt.internal.launching.JavaLocalApplicationLaunchConfigurationDelegate;
+import org.eclipse.jdt.core.IJavaModelMarker;
+import org.eclipse.jdt.launching.JavaLaunchDelegate;
 
 /**
  * Launches a local VM, ensuring that the classpath is set correctly.
  */
 public class AJApplicationLaunchConfigurationDelegate extends
-		JavaLocalApplicationLaunchConfigurationDelegate {
+		JavaLaunchDelegate {
 
 	/**
 	 * Override super to ensure that the aspectpath is on the runtime classpath
@@ -30,8 +32,18 @@ public class AJApplicationLaunchConfigurationDelegate extends
 	 */
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {		
-		LaunchConfigurationClasspathUtils.addAspectPathToClasspath(configuration);
+		LaunchConfigurationClasspathUtils.addAspectPathAndOutJarToClasspath(configuration);
 		super.launch(configuration, mode, launch, monitor);
+	}
+	
+	/**
+	 * There is a launch problem if there exists an aspectj marker that is a kind of problem
+	 * This inludes things like declare errrors
+	 */
+	protected boolean isLaunchProblem(IMarker problemMarker)
+	        throws CoreException {
+        return super.isLaunchProblem(problemMarker) ||
+            problemMarker.isSubtypeOf(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 	}
 
 }
