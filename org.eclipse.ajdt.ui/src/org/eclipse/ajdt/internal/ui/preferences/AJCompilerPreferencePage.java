@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
@@ -770,6 +771,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 			}
 			
 			AspectJUIPlugin.getDefault().savePluginPreferences();
+			AspectJPlugin.getDefault().savePluginPreferences();
 
 			if (lintChanges || advancedOrOtherChanges || compilerChanges) {
 				String[] strings = getFullBuildDialogStrings();
