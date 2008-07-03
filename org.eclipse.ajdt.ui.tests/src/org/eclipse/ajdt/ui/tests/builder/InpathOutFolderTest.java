@@ -55,6 +55,7 @@ public class InpathOutFolderTest extends UITestCase {
         waitForJobsToComplete();
         assertFalse("File on inpath out folder still exists even after a build clean: " + outFolder + "/SomeClass.class",  //$NON-NLS-1$ //$NON-NLS-2$
                 jarOnInpath.getProject().getWorkspace().getRoot().getFile(new Path(outFolder + "/SomeClass.class")).exists()); //$NON-NLS-1$
+        setAutobuilding(true);
 	}
 	
 	public void testChangeInpathOutLocation() throws CoreException {
