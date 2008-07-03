@@ -112,12 +112,12 @@ public class UIBuildListener implements IAJBuildListener {
 	 */
 	private void checkInpathOutFolder(IProject project) {
 	    String outFolder = AspectJCorePreferences.getProjectInpathOutFolder(project);
-        if (outFolder == null || outFolder.equals("")) {
+        if (outFolder == null || outFolder.equals("")) { //$NON-NLS-1$
             // using default outfolder
             return;
         }
 
-	    if (!pathExists(outFolder)) { //$NON-NLS-1$
+	    if (!pathExists(outFolder)) { 
 	        try {
 	            IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
 	            errorMarker.setAttribute(IMarker.MESSAGE, UIMessages.UIBuildListener_InvalidInpathOutFolderText + outFolder);
@@ -161,7 +161,7 @@ public class UIBuildListener implements IAJBuildListener {
 	private void markProject(IProject project, String errorMessage) {
 		try {
 			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
+			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage);
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$

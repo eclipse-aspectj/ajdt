@@ -37,13 +37,15 @@ public class AJApplicationLaunchConfigurationDelegate extends
 	}
 	
 	/**
-	 * There is a launch problem if there exists an aspectj marker that is a kind of problem
-	 * This inludes things like declare errrors
+	 * There is a launch problem if there exists an aspectj marker that is a kind of java problem
+	 * The marker's severity must be an error.
+	 * This includes things like declare errors
 	 */
 	protected boolean isLaunchProblem(IMarker problemMarker)
 	        throws CoreException {
         return super.isLaunchProblem(problemMarker) ||
-            problemMarker.isSubtypeOf(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
+            (problemMarker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO) >= IMarker.SEVERITY_ERROR && 
+             problemMarker.isSubtypeOf(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER));
 	}
 
 }

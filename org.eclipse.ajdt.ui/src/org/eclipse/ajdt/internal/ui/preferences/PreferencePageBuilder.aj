@@ -23,6 +23,7 @@ import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
+import org.eclipse.ajdt.internal.ui.wizards.PathBlock;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
@@ -78,9 +79,7 @@ aspect PreferencePageBuilder {
 	interface AJDTPathBlockPage {
 	}
 
-	declare parents: AspectPathBlock implements AJDTPathBlockPage;
-
-	declare parents: InPathBlock implements AJDTPathBlockPage;
+	declare parents: PathBlock implements AJDTPathBlockPage;
 
 	pointcut interestingPage(): 
 	    within(AspectJProjectPropertiesPage) ||
@@ -121,7 +120,7 @@ aspect PreferencePageBuilder {
 		remainingActivePages.remove(page);
 	}
 
-	pointcut interestingPathBlockPages() : within(AspectPathBlock) || within(InPathBlock);
+	pointcut interestingPathBlockPages() : within(PathBlock) || within(AspectPathBlock) || within(InPathBlock);
 
 	pointcut setSelection(Button button, boolean val,
 			IWorkbenchPropertyPage page):
@@ -223,10 +222,7 @@ aspect PreferencePageBuilder {
 		for (Iterator iter = activePages.iterator(); iter.hasNext();) {
 			IWorkbenchPropertyPage ajdtPage = (IWorkbenchPropertyPage) iter
 					.next();
-			if ((basePage instanceof AspectPathBlock)
-					&& (ajdtPage instanceof AspectJProjectPropertiesPage)) {
-				page = ajdtPage;
-			} else if ((basePage instanceof InPathBlock)
+			if ((basePage instanceof PathBlock)
 					&& (ajdtPage instanceof AspectJProjectPropertiesPage)) {
 				page = ajdtPage;
 			}
@@ -396,7 +392,7 @@ aspect PreferencePageBuilder {
 	}
 
 	pointcut pageCompleting(IWorkbenchPropertyPage page) : 
-        execution(boolean performOk()) && interestingPage() && this(page);
+        (execution(boolean performOk()) || execution(void performApply())) && interestingPage() && this(page);
 
 	// performOk not running because of performApply
 	after(IWorkbenchPropertyPage page) returning: pageCompleting(page) && !cflow(execution(* performApply())) {

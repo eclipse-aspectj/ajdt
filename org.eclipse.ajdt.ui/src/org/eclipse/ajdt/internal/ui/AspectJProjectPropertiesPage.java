@@ -27,7 +27,11 @@ import org.eclipse.ajdt.internal.ui.wizards.InPathBlock;
 import org.eclipse.ajdt.internal.ui.wizards.TabFolderLayout;
 import org.eclipse.ajdt.internal.utils.AJDTUtils;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -43,9 +47,15 @@ import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.IPageChangeProvider;
+import org.eclipse.jface.dialogs.IPageChangedListener;
+import org.eclipse.jface.dialogs.IPageChangingListener;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.PageChangedEvent;
+import org.eclipse.jface.dialogs.PageChangingEvent;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.preference.IPreferencePageContainer;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -54,11 +64,14 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Widget;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyDelegatingOperation;
 import org.eclipse.ui.dialogs.PropertyPage;
 
@@ -67,18 +80,69 @@ import org.eclipse.ui.dialogs.PropertyPage;
  * These options can be set on a per-project basis and so because of that
  * are held as persistent properties against the project resource.
  * 
- * ASCFIXME: Well, if I'd thought of it earlier, I would have put all knowledge of
- * state persistent in the BuildOptionsAdapter and used set/get methods to access it.
- * The get methods already exist, I would have to add the set methods.
  */
 public class AspectJProjectPropertiesPage extends PropertyPage implements
 		IStatusChangeListener {
+    
+    /**
+     * Listens for changes that require a refresh or a commit of
+     * the properties page.
+     *
+     * 
+     */
+    private class PageChangeListener implements Listener, IResourceChangeListener {
+        public void handleEvent(Event event) {
+            if (event.type == SWT.Hide) {
+                if (hasChanges()) {
+                    commit();
+                }
+            }
+        }
+
+        public void resourceChanged(IResourceChangeEvent event) {
+            // should traverse the resource delta to make sure it
+            // is the .classpath
+            if (event.getDelta().findMember(thisProject.getFile(
+                    new Path(".classpath")).getFullPath()) != null) { //$NON-NLS-1$
+                refreshPathBlock();
+            }
+        }
+
+        /**
+         * runs resetPathBlocks() in the UI thread
+         */
+        private void refreshPathBlock() {
+            if (hasChangesInClasspathFile()) {
+                // must run from the UI thread
+                IRunnableWithProgress runnable = new IRunnableWithProgress() {
+                    public void run(IProgressMonitor monitor) {
+                        resetPathBlocks();
+                    }
+                };
+                IRunnableWithProgress op = 
+                    new WorkspaceModifyDelegatingOperation(runnable);
+                try {
+                    getControl().getDisplay().asyncExec(new Runnable() {
+                        public void run() {
+                            resetPathBlocks();
+                        }
+                    });
+                    if (false) 
+                        PlatformUI.getWorkbench().getProgressService().runInUI(
+                                new ProgressMonitorDialog(getShell()), op, null);
+                } catch (InvocationTargetException e) {
+                } catch (InterruptedException e) {
+                    // cancelled
+                }
+            }
+        }
+    }
 
 	private static final String INDEX = "pageIndex"; //$NON-NLS-1$
 
 	private int fPageIndex;
 
-	private static final String PAGE_SETTINGS = "AspectJBuildPropertyPage";
+	private static final String PAGE_SETTINGS = "AspectJBuildPropertyPage"; //$NON-NLS-1$
 
 	public static final String PROP_ID = "org.eclipse.ajdt.internal.ui.AspectJProjectPropertiesPage"; //$NON-NLS-1$
 
@@ -116,39 +180,14 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		fInPathBlock = new InPathBlock(this, 0);
-
-		IClasspathEntry[] initalInpath = null;
-
-		try {
-			initalInpath = getInitialInpathValue(thisProject);
-		} catch (CoreException ce) {
-			AJDTErrorHandler.handleAJDTError(
-					UIMessages.InPathProp_exceptionInitializingInpath_title,
-					UIMessages.InPathProp_exceptionInitializingInpath_message,
-					ce);
-		}
-
-		fInPathBlock.init(JavaCore.create(thisProject), initalInpath);
-
-		fInPathBlock.tabContent(folder);
-
 		fAspectPathBlock = new AspectPathBlock(this, 0);
 
-		IClasspathEntry[] initialAspectpath = null;
-
-		try {
-			initialAspectpath = getInitialAspectpathValue(thisProject);
-		} catch (CoreException ce) {
-			AJDTErrorHandler.handleAJDTError(
-							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
-							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message,
-							ce);
-		}
-
-		fAspectPathBlock.init(JavaCore.create(thisProject), null,
-				initialAspectpath);
-
+		
+		
+		fInPathBlock.tabContent(folder);
 		fAspectPathBlock.tabContent(folder);
+
+		resetPathBlocks();
 
 		TabItem item;
 		item = new TabItem(folder, SWT.NONE);
@@ -163,14 +202,47 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			}
 		});
 
+		initializeTimeStamps();
 		updatePageContents();
+
+		fListener = new PageChangeListener();
+        getControl().addListener(SWT.Hide, fListener);
+        thisProject.getWorkspace().addResourceChangeListener(fListener, IResourceChangeEvent.POST_CHANGE);
+        
 		return composite;
 	}
+
+    private void resetPathBlocks() {
+        // Inpath block
+		IClasspathEntry[] initalInpath = null;
+		try {
+			initalInpath = getInitialInpathValue(thisProject);
+		} catch (CoreException ce) {
+			AJDTErrorHandler.handleAJDTError(
+					UIMessages.InPathProp_exceptionInitializingInpath_title,
+					UIMessages.InPathProp_exceptionInitializingInpath_message,
+					ce);
+		}
+		fInPathBlock.init(JavaCore.create(thisProject), initalInpath);
+
+
+        // Aspect path block
+		IClasspathEntry[] initialAspectpath = null;
+		try {
+			initialAspectpath = getInitialAspectpathValue(thisProject);
+		} catch (CoreException ce) {
+			AJDTErrorHandler.handleAJDTError(
+							UIMessages.AspectPathProp_exceptionInitializingAspectpath_title,
+							UIMessages.AspectPathProp_exceptionInitializingAspectpath_message,
+							ce);
+		}
+		fAspectPathBlock.init(JavaCore.create(thisProject), initialAspectpath);
+    }
 
 	private IClasspathEntry[] getInitialAspectpathValue(IProject project)
 			throws CoreException {
 		List result = new ArrayList();
-		String[] v = AspectJCorePreferences.getProjectAspectPath(project);
+		String[] v = AspectJCorePreferences.getRawProjectAspectPath(project);
 		if (v == null) {
 			return null;
 		}
@@ -277,15 +349,16 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 		return composite;
 	}
-	
-	private boolean checkIfOnInpath(IProject project, String string) {
-		String[] oldInpath = AspectJCorePreferences.getProjectInPath(project);
+	 
+	private boolean checkIfOnInpath(IProject project, String outJarStr) {
+		String[] oldInpath = 
+		    AspectJCorePreferences.getRawProjectInpath(project);
 		String[] seperatedOldInpath = oldInpath[0].split(";"); //$NON-NLS-1$
 
-		String outJar = ('/'+thisProject.getName()+'/'+string);
+		String outJar = ('/'+thisProject.getName()+'/'+outJarStr);
 		for (int j = 0; j < seperatedOldInpath.length; j++) {
 			if ((seperatedOldInpath[j].equals(outJar))&& 
-					!(seperatedOldInpath[j].equals(""))) {
+					!(seperatedOldInpath[j].equals(""))) { //$NON-NLS-1$
 				return true;
 			}
 		}
@@ -294,13 +367,13 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	
 	private boolean checkIfOnAspectpath(IProject project, String string) {
 		String[] oldAspectpath = AspectJCorePreferences
-				.getProjectAspectPath(project);
+				.getRawProjectAspectPath(project);
 		String[] seperatedOldAspectpath = oldAspectpath[0].split(";"); //$NON-NLS-1$
 		
 		String outJar = ('/'+thisProject.getName()+'/'+string);
 		for (int j = 0; j < seperatedOldAspectpath.length; j++) {
 			if ((seperatedOldAspectpath[j].equals(outJar)) && 
-					!(seperatedOldAspectpath[j].equals(""))) {
+					!(seperatedOldAspectpath[j].equals(""))) { //$NON-NLS-1$
 				return true;
 			}
 		}
@@ -311,7 +384,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	 * overriding performApply() for PreferencePageBuilder.aj
 	 */
 	public void performApply() {
-		performOk();
+		commit();
 	}
 
 	/**
@@ -321,6 +394,10 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	 * This method is also called if the user clicks 'Apply' on the property page.
 	 */
 	public boolean performOk() {
+	    return commit();
+	}
+	    
+    private boolean commit() {
 		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);
 		IClasspathEntry oldEntry = null;
 		if (oldOutJar != null && !oldOutJar.equals("")) { //$NON-NLS-1$
@@ -346,7 +423,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
 					IPackageFragmentRoot.K_BINARY, // content kind
 					IClasspathEntry.CPE_LIBRARY, // entry kind
-					new Path(thisProject.getName() + '/' + outJar)
+					new Path(thisProject.getName() + '/' + outJar) 
 							.makeAbsolute(), // path
 					new IPath[] {}, // inclusion patterns
 					new IPath[] {}, // exclusion patterns
@@ -371,7 +448,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		            .getStringValue());
 		}
 		if (fInPathBlock != null) {
-			Shell shell = getControl().getShell();
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
 				public void run(IProgressMonitor monitor)
 						throws InvocationTargetException, InterruptedException {
@@ -382,10 +458,11 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 					}
 				}
 			};
+			
 			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
 					runnable);
 			try {
-				new ProgressMonitorDialog(shell).run(true, true, op);
+			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
 			} catch (InvocationTargetException e) {
 				return false;
 			} catch (InterruptedException e) {
@@ -403,7 +480,6 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 		if (fAspectPathBlock != null) {
 			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
 
-			Shell shell = getControl().getShell();
 			IRunnableWithProgress runnable = new IRunnableWithProgress() {
 				public void run(IProgressMonitor monitor)
 						throws InvocationTargetException, InterruptedException {
@@ -419,7 +495,8 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
 					runnable);
 			try {
-				new ProgressMonitorDialog(shell).run(true, true, op);
+			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
+//				new ProgressMonitorDialog(shell).run(true, true, op);
 			} catch (InvocationTargetException e) {
 				return false;
 			} catch (InterruptedException e) {
@@ -428,6 +505,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			}
 		}
 		AJDTUtils.refreshPackageExplorer();
+		initializeTimeStamps();
 		return true;
 	}
 
@@ -448,7 +526,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	private IClasspathEntry[] getInitialInpathValue(IProject project)
 			throws CoreException {
 		List result = new ArrayList();
-		String[] v = AspectJCorePreferences.getProjectInPath(project);
+		String[] v = AspectJCorePreferences.getRawProjectInpath(project);
 		if (v == null) {
 			return null;
 		}
@@ -526,6 +604,7 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	 */
 	public void dispose() {
 		super.dispose();
+		thisProject.getWorkspace().removeResourceChangeListener(fListener);		
 	}
 
 	private IProject getProject() {
@@ -538,6 +617,10 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 
 	// ---------------- methods for testing -----------------
 	private boolean testing = false;
+
+    private long fFileTimeStamp;
+
+    private PageChangeListener fListener;
 
 	// set the project for which this properties page is dealing with
 	public void setThisProject(IProject project) {
@@ -565,6 +648,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	}
 
 	protected void tabChanged(Widget widget) {
+	    if (hasChanges()) {
+            commit();
+        }
 		if (widget instanceof TabItem) {
 			TabItem tabItem = (TabItem) widget;
 			BuildPathBasePage newPage = (BuildPathBasePage) tabItem.getData();
@@ -578,4 +664,37 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 			fPageIndex = tabItem.getParent().getSelectionIndex();
 		}
 	}
+	
+	private boolean hasChanges() {
+	    return (fAspectPathBlock != null && fAspectPathBlock.hasChangesInDialog()) || 
+	            (fInPathBlock != null && fInPathBlock.hasChangesInDialog());
+	}
+	
+	public boolean hasChangesInClasspathFile() {
+        IFile file= thisProject.getFile(".classpath"); //$NON-NLS-1$
+        return fFileTimeStamp != file.getModificationStamp();
+    }
+    
+    public boolean isClassfileMissing() {
+        return !thisProject.getFile(".classpath").exists(); //$NON-NLS-1$
+    }
+    
+    public void initializeTimeStamps() {
+        IFile file= thisProject.getFile(".classpath"); //$NON-NLS-1$
+        fFileTimeStamp= file.getModificationStamp();
+    }
+
+	
+//	public void setVisible(boolean visible) {
+//	    if (visible) {
+//	        // must reload
+//	        resetPathBlocks();
+//	    } else {
+//	        // must commit
+//	        if (hasChanges()) {
+//	            commit();
+//	        }
+//	    }
+//	    super.setVisible(visible);
+//	}
 }
