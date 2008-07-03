@@ -310,7 +310,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void markProject(IProject project, String errorMessage) {
 		try {
 			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
+			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); 
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
@@ -722,7 +722,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if (fs != null) {
 			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
 				File file = fs[fcounter];
-				if (file.getName().endsWith(fileExtension)) { //$NON-NLS-1$
+				if (file.getName().endsWith(fileExtension)) {
 					file.delete();
 					count++;
 				}

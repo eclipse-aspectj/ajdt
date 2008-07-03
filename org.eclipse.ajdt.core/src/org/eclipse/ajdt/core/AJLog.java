@@ -23,7 +23,7 @@ public class AJLog {
 
 	public static final int COMPILER = 1;
 
-	public static final int BUILDER = 2;
+	public static final int BUILDER = 2; 
 
 	public static final int BUILDER_CLASSPATH = 3;	
 

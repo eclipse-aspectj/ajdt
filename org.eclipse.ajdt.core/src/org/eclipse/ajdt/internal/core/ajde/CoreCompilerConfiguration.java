@@ -84,7 +84,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	public Set getAspectPath() {
-		String[] v = AspectJCorePreferences.getProjectAspectPath(project);
+		String[] v = AspectJCorePreferences.getResolvedProjectAspectPath(project);
 
 		// need to expand any variables on the path
 		String aspectpath = expandVariables(v[0], v[2]);
@@ -111,7 +111,7 @@ public class CoreCompilerConfiguration implements ICompilerConfiguration {
 	}
 
 	public Set getInpath() {
-		String[] v = AspectJCorePreferences.getProjectInPath(project);
+		String[] v = AspectJCorePreferences.getResolvedProjectInpath(project);
 
 		// need to expand any variables on the path
 		String inpath = expandVariables(v[0], v[2]);
