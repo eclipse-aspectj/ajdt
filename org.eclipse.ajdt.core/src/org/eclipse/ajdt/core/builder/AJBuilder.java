@@ -36,6 +36,7 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
+import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -43,6 +44,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceStatus;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -688,8 +690,9 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			realOutputLocation = outputResource.getLocation().toOSString();
 		}
 
-		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(outputResource, "class"); //$NON-NLS-1$
+		
+		
 		if (refresh) {
 			outputResource.refreshLocal(IResource.DEPTH_INFINITE, null);
         }
@@ -700,14 +703,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			IPath workspaceRelativeOutputPath) throws CoreException {
 		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
 				workspaceRelativeOutputPath);
-		String realOutputLocation = out.getLocation().toOSString();
-		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(out, "aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
 		AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
 				+ " .aj files from " //$NON-NLS-1$
-				+ realOutputLocation
+				+ out.getFullPath()
 				+ (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
 						+ workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -716,21 +717,35 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * Recursively calling function. Given some set of files (which might be
 	 * dirs) it deletes any files with the given extension from the filesystem and then for any
 	 * directories, recursively calls itself.
+	 * 
+	 * BUG 101489---also delete files marked as derived
 	 */
-	private static int wipeFiles(File[] fs, String fileExtension) {
-		int count = 0;
-		if (fs != null) {
-			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
-				File file = fs[fcounter];
-				if (file.getName().endsWith(fileExtension)) {
-					file.delete();
-					count++;
-				}
-				if (file.isDirectory())
-					count += wipeFiles(file.listFiles(), fileExtension);
-			}
-		}
-		return count;
+	private static int wipeFiles(IResource outputResource, final String fileExtension) {
+       class WipeResources implements IResourceVisitor {
+            int numDeleted = 0;
+            public boolean visit(IResource resource) throws CoreException {
+                if (resource.isDerived()) {
+                    // non-class file 
+                    resource.delete(true, null);
+                    numDeleted++;   
+                    return false;
+                } else if (resource.getFileExtension() != null &&
+                           resource.getFileExtension().equals(fileExtension)) {
+                    // class file
+                    resource.delete(true, null);
+                    numDeleted++;   
+                }
+                // continue visit to children
+                return true;
+            }
+        };
+        WipeResources visitor = new WipeResources();
+        try {
+            outputResource.accept(visitor);
+        } catch (CoreException e) {
+        }
+        return visitor.numDeleted;
+        
 	}
 
 	
