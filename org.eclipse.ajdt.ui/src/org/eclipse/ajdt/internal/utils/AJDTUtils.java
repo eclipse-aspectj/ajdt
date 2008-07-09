@@ -14,6 +14,7 @@
  **********************************************************************/
 package org.eclipse.ajdt.internal.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import org.aspectj.asm.IProgramElement;
 import org.aspectj.bridge.IMessage;
+import org.aspectj.weaver.ShadowMunger;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -38,6 +40,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -1253,4 +1256,40 @@ public class AJDTUtils {
         return os.startsWith("Mac"); //$NON-NLS-1$
     }
 
+    /**
+     * extracts a project name from a full path of a binary aspect path.
+     * A binary aspect path is like a normal path, but contains a '!' at the 
+     * package root.  Assume that the filename looks like this:<br>
+     * <br>
+     *  <code>/full/path/to/project/<project_folder>/path/to/package/root!qualified/name.class</code>
+     * 
+     * cannot assume that the project name is the same as the project folder.  Cannot assume that
+     * project folder is on the workspace path.
+     * 
+     * @See {@link ShadowMunger.getBinarySourceLocation}
+     */
+    public static IJavaProject extractProject(String filepath) {
+        // remove class name
+        String pathOnly = filepath.substring(0, filepath.lastIndexOf('!'));
+        
+        // find associated resource
+        IResource packageRootRes = findResource(pathOnly);
+        if (packageRootRes != null) {
+            IProject proj = packageRootRes.getProject();
+            if (proj != null) {
+                return JavaCore.create(proj);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * converts an absolute path name to a binary aspect to 
+     * the fully qualified name of that aspect.
+     */
+    public static String extractQualifiedName(String filepath) {
+        String namePath = filepath.substring(filepath.lastIndexOf('!')+1);
+        String removeFileExtension = namePath.substring(0, namePath.lastIndexOf('.'));
+        return removeFileExtension.replace(File.separatorChar, '.');
+    }
 }
