@@ -26,6 +26,7 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
@@ -49,7 +50,6 @@ import org.eclipse.jdt.internal.ui.dialogs.StatusUtil;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaUILabelProvider;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
-import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathSupport;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElement;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.CPListElementAttribute;
@@ -75,7 +75,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.dialogs.ListSelectionDialog;
 
 /**
@@ -190,12 +189,9 @@ public abstract class PathBlock {
         int lastRemovePos = nEntries;
         for (int i = nEntries - 1; i >= 0; i--) {
             CPListElement cpe = (CPListElement) cpelements.get(i);
-            int kind = cpe.getEntryKind();
-            if (isEntryKind(kind)) {
-                if (!projelements.remove(cpe)) {
-                    cpelements.remove(i);
-                    lastRemovePos = i;
-                }
+            if (!projelements.remove(cpe)) {
+                cpelements.remove(i);
+                lastRemovePos = i;
             }
         }
 
@@ -381,7 +377,6 @@ public abstract class PathBlock {
                     case IClasspathEntry.CPE_SOURCE:
                     case IClasspathEntry.CPE_LIBRARY:
                     case IClasspathEntry.CPE_VARIABLE:
-                    case IClasspathEntry.CPE_PROJECT:
                         IClasspathEntry resolvedEntry = JavaCore
                                 .getResolvedClasspathEntry(rawEntry);
                         resolvedEntries.put(resolvedEntry.getPath()
@@ -389,18 +384,33 @@ public abstract class PathBlock {
                         break;
                     case IClasspathEntry.CPE_CONTAINER:
                         IClasspathContainer container = JavaCore
-                                .getClasspathContainer(rawEntry.getPath(),
-                                        currJProject);
-                        IClasspathEntry[] containerEntries = container
-                                .getClasspathEntries();
-                        for (int i = 0; i < containerEntries.length; i++) {
-                            IClasspathEntry containerEntry = JavaCore
-                                    .getResolvedClasspathEntry(containerEntries[i]);
+                        .getClasspathContainer(rawEntry.getPath(),
+                                currJProject);
+                        List containerEntries = AspectJCorePreferences.resolveClasspathContainer(
+                                container, currJProject.getProject());
+                        
+                        for (Iterator containerIter = containerEntries.iterator(); containerIter.hasNext(); ) {
+                            IClasspathEntry containerEntry = (IClasspathEntry) containerIter.next();
                             resolvedEntries.put(containerEntry.getPath()
                                     .toPortableString(), containerEntry);
                         }
                         break;
                         
+                    case IClasspathEntry.CPE_PROJECT:
+                        IProject thisProject = currJProject.getProject();
+                        IProject requiredProj = thisProject.getWorkspace().getRoot().getProject(
+                                rawEntry.getPath().makeRelative().toPortableString());
+                        if (! requiredProj.getName().equals(thisProject.getName())   
+                                && requiredProj.exists()) {
+                            List containerEntries2 = AspectJCorePreferences.resolveDependentProjectClasspath(requiredProj);
+                            for (Iterator containerIter = containerEntries2.iterator(); containerIter.hasNext(); ) {
+                                IClasspathEntry containerEntry = (IClasspathEntry) containerIter.next();
+                                resolvedEntries.put(containerEntry.getPath()
+                                        .toPortableString(), containerEntry);
+                            }
+                            
+                        }
+                        break;
                 }
             }
 
@@ -849,17 +859,6 @@ public abstract class PathBlock {
         this.fCurrJProject = project;
     }
     
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage#isEntryKind(int)
-     */
-    private boolean isEntryKind(int kind) {
-        return kind == IClasspathEntry.CPE_LIBRARY
-                || kind == IClasspathEntry.CPE_VARIABLE
-                || kind == IClasspathEntry.CPE_CONTAINER
-                || kind == IClasspathEntry.CPE_PROJECT;
-    }
 
     protected IStatus findMostSevereStatus() {
         return StatusUtil.getMostSevere(new IStatus[] { fPathStatus,
