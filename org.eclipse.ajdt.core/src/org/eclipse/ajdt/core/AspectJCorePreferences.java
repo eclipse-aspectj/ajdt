@@ -20,6 +20,7 @@ import java.util.StringTokenizer;
 import org.eclipse.core.internal.resources.Project;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Preferences;
@@ -224,6 +225,9 @@ public class AspectJCorePreferences {
 	
 	
 	
+    /**
+     * Checks to see if an entry is already on the aspect path
+     */
 	public static boolean isOnAspectpath(IProject project, String jarPath) {
 		IJavaProject jp = JavaCore.create(project);
 		try {
@@ -360,40 +364,14 @@ public class AspectJCorePreferences {
 					            IClasspathContainer container = 
 					                JavaCore.getClasspathContainer(cp[i].getPath(), javaProject);
 					            if (container != null) {
-    					            IClasspathEntry[] containerEntries = 
-    					                container.getClasspathEntries();
-    					            for (int k = 0; k < containerEntries.length; k++) {
-    					                actualEntries.add(
-    					                        JavaCore.getResolvedClasspathEntry(
-    					                                containerEntries[k]));
-    					            }
+    					            actualEntries.addAll(resolveClasspathContainer(container, project));
 					            }
 					        } else if (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT) {
-					            // add all output locations and exported classpath entities
-					            // AspectJ compiler doesn't understand the concept of a java project
 					            IProject requiredProj = project.getWorkspace().getRoot().getProject(
 					                    cp[i].getPath().makeRelative().toPortableString());
 					            if (! requiredProj.getName().equals(project.getName())   
 					                    && requiredProj.exists()) {
-					                IJavaProject requiredJProj = JavaCore.create(requiredProj);
-					                IClasspathEntry[] requiredEntries = requiredJProj.getResolvedClasspath(true);
-					                for (int k = 0; k < requiredEntries.length; k++) {
-                                        if (requiredEntries[k].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                                            // always add source entries even if not explicitly exported
-                                            if (requiredEntries[k].getOutputLocation() != null) {
-                                                IClasspathEntry outFolder = JavaCore.newLibraryEntry(requiredEntries[k].getOutputLocation(),
-                                                        requiredEntries[k].getPath(),
-                                                        requiredProj.getFullPath());
-                                                actualEntries.add(outFolder);
-                                            }
-                                        } else if (requiredEntries[k].isExported()) {
-                                            actualEntries.add(requiredEntries[k]);
-                                        }
-                                    } // for each entry
-					                IClasspathEntry outFolder = JavaCore.newLibraryEntry(requiredJProj.getOutputLocation(),
-                                            null,
-                                            requiredProj.getFullPath());					                
-                                    actualEntries.add(outFolder);
+    					            actualEntries.addAll(resolveDependentProjectClasspath(requiredProj));
 					            }
 					        } else {
 					            actualEntries.add(JavaCore.getResolvedClasspathEntry(cp[i]));
@@ -415,6 +393,66 @@ public class AspectJCorePreferences {
 		}
 		return new String[] { pathString, contentString, entryString };
 	}
+
+    public static List resolveDependentProjectClasspath(IProject requiredProj) {
+        // add all output locations and exported classpath entities
+        // AspectJ compiler doesn't understand the concept of a java project
+        List actualEntries = new ArrayList();
+        try {
+            IJavaProject requiredJProj = JavaCore.create(requiredProj);
+            IClasspathEntry[] requiredEntries = requiredJProj.getResolvedClasspath(true);
+            for (int k = 0; k < requiredEntries.length; k++) {
+                if (requiredEntries[k].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                    // always add source entries even if not explicitly exported
+                    IPath outputLocation = requiredEntries[k].getOutputLocation();
+                    if (outputLocation != null) {
+                        // don't add the source folder itself, but instead add the outfolder
+                        IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
+                                requiredEntries[k].getPath(),
+                                requiredProj.getFullPath());
+                        actualEntries.add(outFolder);
+                    }
+                } else if (requiredEntries[k].isExported()) {
+                    actualEntries.add(requiredEntries[k]);
+                }
+            } // for each entry
+            
+            // the required project's out folder is on the class path of the dependent project
+            // output location may not exist.  Do not put it on path unless it exists
+            IPath outputLocation = requiredJProj.getOutputLocation();
+            if (requiredProj.getWorkspace().getRoot().getFolder(outputLocation).exists()) {
+                IClasspathEntry outFolder = JavaCore.newLibraryEntry(outputLocation,
+                        null,
+                        requiredProj.getFullPath());					                
+                actualEntries.add(outFolder);
+            }
+        } catch (JavaModelException e) {
+        }
+        return actualEntries;
+    }
+
+    public static List resolveClasspathContainer(IClasspathContainer container, IProject thisProject) {
+        List actualEntries = new ArrayList();
+        IClasspathEntry[] containerEntries = 
+            container.getClasspathEntries();
+        for (int i = 0; i < containerEntries.length; i++) {
+            // projects must be resolved specially since the AspectJ doesn't understand the 
+            // concept of project
+            if (containerEntries[i].getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+                IProject requiredProj = thisProject.getWorkspace().getRoot().getProject(
+                        containerEntries[i].getPath().makeRelative().toPortableString());
+                if (! requiredProj.getName().equals(thisProject.getName())   
+                        && requiredProj.exists()) {
+                    actualEntries.addAll(resolveDependentProjectClasspath(requiredProj));
+                }
+            } else {
+                actualEntries.add(
+                        JavaCore.getResolvedClasspathEntry(
+                                containerEntries[i]));
+            }
+        }
+        return actualEntries;
+    }
 
 	public static void setProjectInPath(IProject project, String path,
 			String cKinds, String eKinds) {
@@ -608,6 +646,9 @@ public class AspectJCorePreferences {
 		return false;
 	}
 	
+    /**
+     * Checks to see if an entry is already on the Inpath
+     */
 	public static boolean isOnInpath(IProject project, String jarPath) {
 		IJavaProject jp = JavaCore.create(project);
 		try {
@@ -773,14 +814,9 @@ public class AspectJCorePreferences {
 	
 	private static int getIndexInBuildPathEntry(IClasspathEntry[] cp, String jarPath) {
         for (int i = 0; i < cp.length; i++) {
-            if ((cp[i].getEntryKind() == IClasspathEntry.CPE_LIBRARY)
-                    || (cp[i].getEntryKind() == IClasspathEntry.CPE_VARIABLE)
-                    || (cp[i].getEntryKind() == IClasspathEntry.CPE_CONTAINER)
-                    || (cp[i].getEntryKind() == IClasspathEntry.CPE_PROJECT)) {
-                String entry = cp[i].getPath().toPortableString();
-                if (entry.equals(jarPath)) {
-                    return i;
-                }
+            String entry = cp[i].getPath().toPortableString();
+            if (entry.equals(jarPath)) {
+                return i;
             }
         }
         return -1;
