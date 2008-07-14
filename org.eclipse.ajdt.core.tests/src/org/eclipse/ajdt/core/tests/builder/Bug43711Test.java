@@ -9,26 +9,12 @@
  ******************************************************************************/
 package org.eclipse.ajdt.core.tests.builder;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.tests.AJDTCoreTestCase;
-import org.eclipse.ajdt.core.tests.testutils.ReaderInputStream;
 import org.eclipse.ajdt.core.tests.testutils.TestLogger;
-import org.eclipse.ajdt.core.tests.testutils.Utils;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * Bug 43711 - When a Java source file is deleted, 
@@ -67,39 +53,39 @@ public class Bug43711Test extends AJDTCoreTestCase {
 	}
 	
 	public void testDeleteSourceFile() throws CoreException {
-	    IFile toDelete = p.getFile("src/todelete/SingleSourceFile.java");
+	    IFile toDelete = p.getFile("src/todelete/SingleSourceFile.java"); //$NON-NLS-1$
 	    toDelete.delete(true, false, null);
         waitForAutoBuild();
 
-        IFile shouldNotExist = p.getFile("bin/todelete/SingleSourceFile.class");
-        assertFalse("Class file associated with Java file not removed.",
+        IFile shouldNotExist = p.getFile("bin/todelete/SingleSourceFile.class"); //$NON-NLS-1$
+        assertFalse("Class file associated with Java file not removed.", //$NON-NLS-1$
                 shouldNotExist.exists());
 	}
 	
 	public void testDeleteSourceFileWithInner() throws CoreException {
-        IFile toDelete = p.getFile("src/todelete/SourceFileWithInnerClass.java");
+        IFile toDelete = p.getFile("src/todelete/SourceFileWithInnerClass.java"); //$NON-NLS-1$
         toDelete.delete(true, false, null);
         waitForAutoBuild();
 
-        IFile shouldNotExist = p.getFile("bin/todelete/SourceFileWithInnerClass.class");
-        IFile shouldNotExistInner = p.getFile("bin/todelete/SourceFileWithInnerClass$Inner.class");
-        assertFalse("Class file associated with Java file not removed.",
+        IFile shouldNotExist = p.getFile("bin/todelete/SourceFileWithInnerClass.class"); //$NON-NLS-1$
+        IFile shouldNotExistInner = p.getFile("bin/todelete/SourceFileWithInnerClass$Inner.class"); //$NON-NLS-1$
+        assertFalse("Class file associated with Java file not removed.", //$NON-NLS-1$
                 shouldNotExist.exists());
-        assertFalse("Inner class file associated with Java file not removed.",
+        assertFalse("Inner class file associated with Java file not removed.", //$NON-NLS-1$
                 shouldNotExistInner.exists());
 	}
 
 	
 	public void testDeleteSourceFileWithNested() throws CoreException {
-        IFile toDelete = p.getFile("src/todelete/SourceFileWithNestedClass.java");
+        IFile toDelete = p.getFile("src/todelete/SourceFileWithNestedClass.java"); //$NON-NLS-1$
         toDelete.delete(true, false, null);
         waitForAutoBuild();
 
-        IFile shouldNotExist = p.getFile("bin/todelete/SourceFileWithNestedClass.class");
-        IFile shouldNotExistInner = p.getFile("bin/todelete/Nested.class");
-        assertFalse("Class file associated with Java file not removed.",
+        IFile shouldNotExist = p.getFile("bin/todelete/SourceFileWithNestedClass.class"); //$NON-NLS-1$
+        IFile shouldNotExistInner = p.getFile("bin/todelete/Nested.class"); //$NON-NLS-1$
+        assertFalse("Class file associated with Java file not removed.", //$NON-NLS-1$
                 shouldNotExist.exists());
-        assertFalse("Nested class file associated with Java file not removed.",
+        assertFalse("Nested class file associated with Java file not removed.", //$NON-NLS-1$
                 shouldNotExistInner.exists());
 	}
 	

@@ -21,14 +21,14 @@ public class ProjectDeletionTest extends AJDTCoreTestCase {
     public void testProjectDeletion() throws Exception {
         
         for (int i = 0; i < 3; i++) {
-            System.out.println(">>>>>>>>>>>>>>>>> count = " + i);
-    		IProject libProject = createPredefinedProject("MyAspectLibrary");
-    		IProject weaveMeProject = createPredefinedProject("WeaveMe");
+            System.out.println(">>>>>>>>>>>>>>>>> count = " + i); //$NON-NLS-1$
+    		IProject libProject = createPredefinedProject("MyAspectLibrary"); //$NON-NLS-1$
+    		IProject weaveMeProject = createPredefinedProject("WeaveMe"); //$NON-NLS-1$
     		try {
     		    deleteProject(weaveMeProject, true);
     			deleteProject(libProject, true);
     		} catch (CoreException ce) {
-    		    fail("failed to delete project");
+    		    fail("failed to delete project"); //$NON-NLS-1$
     		}
         }
         
