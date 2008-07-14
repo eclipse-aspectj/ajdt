@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.contributions.xref.core">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.contributions.xref.core" id="providers" name="Cross Reference Providers"/>
+      </appInfo>
+      <documentation>
+         This extension point is used to contribute IXReferenceProviders to the workbench. IXReferenceProviders provide reference information for a set of types. When querying an IXReferenceAdapter for references of a type recognised by the provider, the provider will be called to contribute any references it might have for the instance in question.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="xrefProvider"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="xrefProvider">
+      <annotation>
+         <documentation>
+            An xrefProvider contributes reference information for elements in the workspace that is made available through the IXReferenceAdapter and displayed in the Cross Reference View.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+         </sequence>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A class that implements the IXReferenceProvider interface
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="label" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The label to be used for displaying this provider in the cross references preference page.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A unique identifier for this provider
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="enabled" type="boolean">
+            <annotation>
+               <documentation>
+                  Whether this provider should be enabled by default (true if this attribute is not specified). A provider with enabled=&quot;false&quot; can be enabled by the user from the cross reference preference page.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         org.eclipse.contributions.xref.core 1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         The following example shows the plugin.xml fragment used to connect the
+TypeProvider reference provider that displays &quot;extends&quot; and &quot;implements&quot;
+references for all ITypes:    
+&lt;pre&gt;
+   &lt;extension
+         point=&quot;org.eclipse.contribution.xref.core.providers&quot;&gt;
+         &lt;xrefProvider
+             id=&quot;org.eclipse.contribution.xref.core.typeProvider&quot;
+               class=&quot;org.eclipse.contribution.xref.internal.providers.TypeProvider&quot;
+               label=&quot;extends/implements&quot;
+               enabled=&quot;true&quot;/&gt;
+         &lt;/xrefProvider&gt;          
+   &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         See the IXReferenceProvider, IXReference, and IXReferenceAdapter interfaces
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         The org.eclipse.contribution.xref.core plugin provides the implementation of this extension point.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2003 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials 
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html
+      </documentation>
+   </annotation>
+
+</schema>
