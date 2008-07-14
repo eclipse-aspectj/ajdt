@@ -12,7 +12,8 @@
 
    <element name="extension">
       <complexType>
-         <sequence>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="renderer"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -50,6 +51,9 @@
                <documentation>
                   Renderer class (must implement org.eclipse.contribution.visualiser.interfaces.IVisualiserRenderer).
                </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>
             </annotation>
          </attribute>
          <attribute name="name" type="string">

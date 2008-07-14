@@ -1,9 +1,9 @@
 /*******************************************************************************
  * Copyright (c) 2003, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     Sian Whiting - initial version
@@ -11,6 +11,7 @@
 package org.eclipse.contribution.visualiser.internal.preference;
 
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
+import org.eclipse.contribution.visualiser.text.VisualiserMessages;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.preference.IPreferencePageContainer;
@@ -45,8 +46,8 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class VisualiserPreferencesDialog extends Dialog implements IPreferencePageContainer{
 
-	public static final String PREF_DLG_TITLE_IMG = "visualiser_preference_dialog_title_image";
-	public static final String PREF_DLG_IMG_TITLE_ERROR = DLG_IMG_MESSAGE_ERROR; //$NON-NLS-1$
+	public static final String PREF_DLG_TITLE_IMG = "visualiser_preference_dialog_title_image"; //$NON-NLS-1$
+	public static final String PREF_DLG_IMG_TITLE_ERROR = DLG_IMG_MESSAGE_ERROR;
 
 	static {
 		ImageRegistry reg = JFaceResources.getImageRegistry();
@@ -55,7 +56,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 	private Label titleImage;
 	private CLabel messageLabel;
 	protected Color titleAreaColor;
-	private String message = "";
+	private String message = ""; //$NON-NLS-1$
 	private Composite titleArea;
 	private Color normalMsgAreaBackground;
 	private Color errorMsgAreaBackground;
@@ -79,7 +80,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 	 */
 	protected void configureShell(Shell shell) {
 	   super.configureShell(shell);
-	   shell.setText(VisualiserPlugin.getResourceString("VisualiserPreferencePage.title"));
+	   shell.setText(VisualiserMessages.VisualiserPreferencePage_title);
 	}
 
 	
@@ -175,7 +176,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 		// Message label
 		messageLabel = new CLabel(titleArea, SWT.LEFT);
 		JFaceColors.setColors(messageLabel, foreground, background);
-		messageLabel.setText(" ");
+		messageLabel.setText(" "); //$NON-NLS-1$
 		messageLabel.setFont(JFaceResources.getBannerFont());
 		GridData gd = new GridData(GridData.FILL_BOTH);
 		messageLabel.setLayoutData(gd);
@@ -260,7 +261,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 		result.setLayout(new FillLayout());
 		visPage = new VisualiserPreferencePage();
 		visPage.setContainer(this);
-		visPage.setTitle(VisualiserPlugin.getResourceString("VisualiserPreferencePage.title"));
+		visPage.setTitle(VisualiserMessages.VisualiserPreferencePage_title);
 		if (visPage.getControl() == null) {
 			visPage.createControl(result);
 		}
@@ -371,7 +372,7 @@ public class VisualiserPreferencesDialog extends Dialog implements IPreferencePa
 	public void updateMessage() {
 		String pageMessage = visPage.getMessage();
 		int pageMessageType = IMessageProvider.NONE;
-		if (pageMessage != null && visPage instanceof IMessageProvider)
+		if (pageMessage != null)
 			pageMessageType = ((IMessageProvider) visPage).getMessageType();
 
 		String pageErrorMessage = visPage.getErrorMessage();
