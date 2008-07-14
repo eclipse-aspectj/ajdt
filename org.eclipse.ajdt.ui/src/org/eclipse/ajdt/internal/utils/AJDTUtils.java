@@ -40,7 +40,6 @@ import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.pde.internal.core.AJDTWorkspaceModelManager;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.IAJModelMarker;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -73,7 +72,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.pde.core.plugin.IPluginImport;
 import org.eclipse.pde.core.plugin.IPluginModel;
-import org.eclipse.pde.internal.core.WorkspaceModelManager;
 import org.eclipse.pde.internal.core.natures.PDE;
 import org.eclipse.pde.internal.ui.IPDEUIConstants;
 import org.eclipse.pde.internal.ui.editor.plugin.DependenciesPage;
@@ -257,7 +255,6 @@ public class AJDTUtils {
             IEditorReference er = eRefs[i];
             if (er.getId().equals(IPDEUIConstants.MANIFEST_EDITOR_ID)
                     && er.getPartName().equals(pluginId)) {
-                IEditorReference manEdRef = er;
                 return true;
             }
         }// end for

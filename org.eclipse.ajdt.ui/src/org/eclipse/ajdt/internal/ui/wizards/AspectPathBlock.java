@@ -16,8 +16,6 @@ import java.util.List;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.internal.launching.LaunchConfigurationManagementUtils;
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;

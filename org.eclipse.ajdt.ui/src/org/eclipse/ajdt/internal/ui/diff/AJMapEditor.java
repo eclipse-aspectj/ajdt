@@ -233,7 +233,7 @@ public class AJMapEditor extends EditorPart implements IPropertyChangeListener {
 			int version = ois.readInt();
 			ois.close();
 			fis.close();
-			info.append(NLS.bind(UIMessages.ajmapEditor_file_version, ""
+			info.append(NLS.bind(UIMessages.ajmapEditor_file_version, "" //$NON-NLS-1$
 					+ version));
 			info.append("\n"); //$NON-NLS-1$
 		} catch (IOException e) {

@@ -1,9 +1,9 @@
 /**********************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -11,6 +11,7 @@
 
 package org.eclipse.ajdt.internal.ui.wizards.exports;
 
+import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -18,6 +19,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.internal.corext.util.Messages;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.jarpackager.JarPackagerMessages;
@@ -41,7 +43,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.SaveAsDialog;
-import org.eclipse.ui.help.WorkbenchHelp;
 
 /**
  * Copied from org.eclipse.jdt.internal.ui.jarpackager.JarOptionsPage.
@@ -89,8 +90,8 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 	 */
 	public AJJarOptionsPage(JarPackageData jarPackage) {
 		super(PAGE_NAME);
-		setTitle(JarPackagerMessages.getString("JarOptionsPage.title")); //$NON-NLS-1$
-		setDescription(JarPackagerMessages.getString("JarOptionsPage.description")); //$NON-NLS-1$
+		setTitle(JarPackagerMessages.JarOptionsPage_title); 
+		setDescription(JarPackagerMessages.JarOptionsPage_description); 
 		fJarPackage= jarPackage;
 	}
 
@@ -110,7 +111,7 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 		update();
 
 		Dialog.applyDialogFont(composite);
-		WorkbenchHelp.setHelp(composite, IJavaHelpContextIds.JAROPTIONS_WIZARD_PAGE);								
+		AspectJUIPlugin.getDefault().getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.JAROPTIONS_WIZARD_PAGE);								
 	}
 
 	/**
@@ -127,35 +128,35 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 		layout.marginHeight= 0;
 		optionsGroup.setLayout(layout);
 
-		createLabel(optionsGroup, JarPackagerMessages.getString("JarOptionsPage.howTreatProblems.label"), false); //$NON-NLS-1$
+		createLabel(optionsGroup, JarPackagerMessages.JarOptionsPage_howTreatProblems_label, false); 
 
 		UntypedListener selectionListener= new UntypedListener();
 
 		fExportErrorsCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fExportErrorsCheckbox.setText(JarPackagerMessages.getString("JarOptionsPage.exportErrors.text")); //$NON-NLS-1$
+		fExportErrorsCheckbox.setText(JarPackagerMessages.JarOptionsPage_exportErrors_text); 
 		fExportErrorsCheckbox.addListener(SWT.Selection, selectionListener);
 
 		fExportWarningsCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fExportWarningsCheckbox.setText(JarPackagerMessages.getString("JarOptionsPage.exportWarnings.text")); //$NON-NLS-1$
+		fExportWarningsCheckbox.setText(JarPackagerMessages.JarOptionsPage_exportWarnings_text); 
 		fExportWarningsCheckbox.addListener(SWT.Selection, selectionListener);
 
 		createSpacer(optionsGroup);
 
 		fUseSourceFoldersCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fUseSourceFoldersCheckbox.setText(JarPackagerMessages.getString("JarOptionsPage.useSourceFoldersHierarchy")); //$NON-NLS-1$
+		fUseSourceFoldersCheckbox.setText(JarPackagerMessages.JarOptionsPage_useSourceFoldersHierarchy); 
 		fUseSourceFoldersCheckbox.addListener(SWT.Selection, selectionListener);
 		fUseSourceFoldersCheckbox.setEnabled(fJarPackage.areJavaFilesExported() && !fJarPackage.areGeneratedFilesExported());
 
 		createSpacer(optionsGroup);
 
 		fBuildIfNeededCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fBuildIfNeededCheckbox.setText(JarPackagerMessages.getString("JarOptionsPage.buildIfNeeded")); //$NON-NLS-1$
+		fBuildIfNeededCheckbox.setText(JarPackagerMessages.JarOptionsPage_buildIfNeeded); 
 		fBuildIfNeededCheckbox.addListener(SWT.Selection, selectionListener);
 
 		createSpacer(optionsGroup);
 		
 		fSaveDescriptionCheckbox= new Button(optionsGroup, SWT.CHECK | SWT.LEFT);
-		fSaveDescriptionCheckbox.setText(JarPackagerMessages.getString("JarOptionsPage.saveDescription.text")); //$NON-NLS-1$
+		fSaveDescriptionCheckbox.setText(JarPackagerMessages.JarOptionsPage_saveDescription_text); 
 		fSaveDescriptionCheckbox.addListener(SWT.Selection, selectionListener);
 		createDescriptionFileGroup(parent);
 	}
@@ -251,8 +252,8 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 	protected void handleDescriptionFileBrowseButtonPressed() {
 		SaveAsDialog dialog= new SaveAsDialog(getContainer().getShell());
 		dialog.create();
-		dialog.getShell().setText(JarPackagerMessages.getString("JarOptionsPage.saveAsDialog.title")); //$NON-NLS-1$
-		dialog.setMessage(JarPackagerMessages.getString("JarOptionsPage.saveAsDialog.message")); //$NON-NLS-1$
+		dialog.getShell().setText(JarPackagerMessages.JarOptionsPage_saveAsDialog_title); 
+		dialog.setMessage(JarPackagerMessages.JarOptionsPage_saveAsDialog_message); 
 		dialog.setOriginalFile(createFileHandle(fJarPackage.getDescriptionLocation()));
 		if (dialog.open() == Window.OK) {
 			IPath path= dialog.getResult();
@@ -292,23 +293,23 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 			}
 			IPath location= fJarPackage.getDescriptionLocation();
 			if (!location.toString().startsWith("/")) { //$NON-NLS-1$
-				setErrorMessage(JarPackagerMessages.getString("JarOptionsPage.error.descriptionMustBeAbsolute")); //$NON-NLS-1$
+				setErrorMessage(JarPackagerMessages.JarOptionsPage_error_descriptionMustBeAbsolute); 
 				return false;
 			}			
 			IResource resource= findResource(location);
 			if (resource != null && resource.getType() != IResource.FILE) {
-				setErrorMessage(JarPackagerMessages.getString("JarOptionsPage.error.descriptionMustNotBeExistingContainer")); //$NON-NLS-1$
+				setErrorMessage(JarPackagerMessages.JarOptionsPage_error_descriptionMustNotBeExistingContainer); 
 				return false;
 			}
 			resource= findResource(location.removeLastSegments(1));
 			if (resource == null || resource.getType() == IResource.FILE) {
-				setErrorMessage(JarPackagerMessages.getString("JarOptionsPage.error.descriptionContainerDoesNotExist")); //$NON-NLS-1$
+				setErrorMessage(JarPackagerMessages.JarOptionsPage_error_descriptionContainerDoesNotExist); 
 				return false;
 			}
 			String fileExtension= fJarPackage.getDescriptionLocation().getFileExtension();
 //			 AspectJ Change Begin
 			if (fileExtension == null || !fileExtension.equals(AJJarPackagerUtil.DESCRIPTION_EXTENSION)) {
-				setErrorMessage(JarPackagerMessages.getFormattedString("JarOptionsPage.error.invalidDescriptionExtension", AJJarPackagerUtil.DESCRIPTION_EXTENSION)); //$NON-NLS-1$
+				setErrorMessage(Messages.format(JarPackagerMessages.JarOptionsPage_error_invalidDescriptionExtension, AJJarPackagerUtil.DESCRIPTION_EXTENSION)); 
 //				 AspectJ Change End
 				return false;
 			}
@@ -333,7 +334,7 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 		fDescriptionFileGroup.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL));
 
 		fDescriptionFileLabel= new Label(fDescriptionFileGroup, SWT.NONE);
-		fDescriptionFileLabel.setText(JarPackagerMessages.getString("JarOptionsPage.descriptionFile.label")); //$NON-NLS-1$
+		fDescriptionFileLabel.setText(JarPackagerMessages.JarOptionsPage_descriptionFile_label); 
 
 		// destination name entry field
 		fDescriptionFileText= new Text(fDescriptionFileGroup, SWT.SINGLE | SWT.BORDER);
@@ -344,7 +345,7 @@ public class AJJarOptionsPage extends WizardPage implements IJarPackageWizardPag
 
 		// destination browse button
 		fDescriptionFileBrowseButton= new Button(fDescriptionFileGroup, SWT.PUSH);
-		fDescriptionFileBrowseButton.setText(JarPackagerMessages.getString("JarOptionsPage.browseButton.text")); //$NON-NLS-1$
+		fDescriptionFileBrowseButton.setText(JarPackagerMessages.JarOptionsPage_browseButton_text); 
 		fDescriptionFileBrowseButton.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
 		SWTUtil.setButtonDimensionHint(fDescriptionFileBrowseButton);
 		fDescriptionFileBrowseButton.addSelectionListener(new SelectionAdapter() {

@@ -31,7 +31,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,15 +46,9 @@ import org.eclipse.jdt.internal.ui.preferences.PreferencesMessages;
 import org.eclipse.jdt.internal.ui.wizards.IStatusChangeListener;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.BuildPathBasePage;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.IPageChangeProvider;
-import org.eclipse.jface.dialogs.IPageChangedListener;
-import org.eclipse.jface.dialogs.IPageChangingListener;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.PageChangedEvent;
-import org.eclipse.jface.dialogs.PageChangingEvent;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.IPreferencePageContainer;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -64,7 +57,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -119,17 +111,9 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
                         resetPathBlocks();
                     }
                 };
-                IRunnableWithProgress op = 
-                    new WorkspaceModifyDelegatingOperation(runnable);
                 try {
-                    getControl().getDisplay().asyncExec(new Runnable() {
-                        public void run() {
-                            resetPathBlocks();
-                        }
-                    });
-                    if (false) 
-                        PlatformUI.getWorkbench().getProgressService().runInUI(
-                                new ProgressMonitorDialog(getShell()), op, null);
+                    PlatformUI.getWorkbench().getProgressService().runInUI(
+                            new ProgressMonitorDialog(getShell()), runnable, null);
                 } catch (InvocationTargetException e) {
                 } catch (InterruptedException e) {
                     // cancelled
@@ -398,115 +382,121 @@ public class AspectJProjectPropertiesPage extends PropertyPage implements
 	}
 	    
     private boolean commit() {
-		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);
-		IClasspathEntry oldEntry = null;
-		if (oldOutJar != null && !oldOutJar.equals("")) { //$NON-NLS-1$
-			oldEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
-					IPackageFragmentRoot.K_BINARY, // content kind
-					IClasspathEntry.CPE_LIBRARY, // entry kind
-					new Path(thisProject.getName() + '/' + oldOutJar)
-							.makeAbsolute(), // path
-					new IPath[] {}, // inclusion patterns
-					new IPath[] {}, // exclusion patterns
-					null, // src attachment path
-					null, // src attachment root path
-					null, // output location
-					false, // is exported ?
-					null, //accessRules
-					false, //combine access rules?
-					new IClasspathAttribute[0] // extra attributes?
-			);
-		}
-		String outJar = outputJarEditor.getStringValue();
-		IClasspathEntry newEntry = null;
-		if (outJar != null && !outJar.equals("")) { //$NON-NLS-1$
-			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
-					IPackageFragmentRoot.K_BINARY, // content kind
-					IClasspathEntry.CPE_LIBRARY, // entry kind
-					new Path(thisProject.getName() + '/' + outJar) 
-							.makeAbsolute(), // path
-					new IPath[] {}, // inclusion patterns
-					new IPath[] {}, // exclusion patterns
-					null, // src attachment path
-					null, // src attachment root path
-					null, // output location
-					false, // is exported ?
-					null, //accessRules
-					false, //combine access rules?
-					new IClasspathAttribute[0] // extra attributes?
-			);
-		}
-		if (checkIfOnInpath(thisProject, outJar)||
-				checkIfOnAspectpath(thisProject, outJar)){
-			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, 
-			        UIMessages.buildConfig_invalidOutjar);
-			outputJarEditor.setStringValue(oldOutJar);
-		} else {
-		    LaunchConfigurationManagementUtils.updateOutJar(JavaCore
-		            .create(thisProject), oldEntry, newEntry);
-		    AspectJCorePreferences.setProjectOutJar(thisProject, outputJarEditor
-		            .getStringValue());
-		}
-		if (fInPathBlock != null) {
-			IRunnableWithProgress runnable = new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException, InterruptedException {
-					try {
-						fInPathBlock.configureJavaProject(monitor);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					}
-				}
-			};
-			
-			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
-					runnable);
-			try {
-			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
-			} catch (InvocationTargetException e) {
-				return false;
-			} catch (InterruptedException e) {
-				// cancelled
-				return false;
-			}
-			
-			// set the inpath's output folder
-			// we should only be setting the out path if it is different
-			// from the default
-			// probably should do more checking on this, but hold off for now.
-			AspectJCorePreferences.setProjectInpathOutFolder(getProject(), fInPathBlock.getOutputFolder());
-		}
-
-		if (fAspectPathBlock != null) {
-			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
-
-			IRunnableWithProgress runnable = new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException, InterruptedException {
-					try {
-						fAspectPathBlock.configureJavaProject(monitor);
-					} catch (CoreException e) {
-						AJDTErrorHandler.handleAJDTError(
-										PreferencesMessages.BuildPathsPropertyPage_error_message,
-										e);
-					}
-				}
-			};
-			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
-					runnable);
-			try {
-			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
-//				new ProgressMonitorDialog(shell).run(true, true, op);
-			} catch (InvocationTargetException e) {
-				return false;
-			} catch (InterruptedException e) {
-				// cancelled
-				return false;
-			}
-		}
-		AJDTUtils.refreshPackageExplorer();
-		initializeTimeStamps();
-		return true;
+        
+        // ignore changes to .classpath that occur during commits
+        thisProject.getWorkspace().removeResourceChangeListener(fListener);
+        try {
+    		String oldOutJar = AspectJCorePreferences.getProjectOutJar(thisProject);
+    		IClasspathEntry oldEntry = null;
+    		if (oldOutJar != null && !oldOutJar.equals("")) { //$NON-NLS-1$
+    			oldEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
+    					IPackageFragmentRoot.K_BINARY, // content kind
+    					IClasspathEntry.CPE_LIBRARY, // entry kind
+    					new Path(thisProject.getName() + '/' + oldOutJar)
+    							.makeAbsolute(), // path
+    					new IPath[] {}, // inclusion patterns
+    					new IPath[] {}, // exclusion patterns
+    					null, // src attachment path
+    					null, // src attachment root path
+    					null, // output location
+    					false, // is exported ?
+    					null, //accessRules
+    					false, //combine access rules?
+    					new IClasspathAttribute[0] // extra attributes?
+    			);
+    		}
+    		String outJar = outputJarEditor.getStringValue();
+    		IClasspathEntry newEntry = null;
+    		if (outJar != null && !outJar.equals("")) { //$NON-NLS-1$
+    			newEntry = new org.eclipse.jdt.internal.core.ClasspathEntry(
+    					IPackageFragmentRoot.K_BINARY, // content kind
+    					IClasspathEntry.CPE_LIBRARY, // entry kind
+    					new Path(thisProject.getName() + '/' + outJar) 
+    							.makeAbsolute(), // path
+    					new IPath[] {}, // inclusion patterns
+    					new IPath[] {}, // exclusion patterns
+    					null, // src attachment path
+    					null, // src attachment root path
+    					null, // output location
+    					false, // is exported ?
+    					null, //accessRules
+    					false, //combine access rules?
+    					new IClasspathAttribute[0] // extra attributes?
+    			);
+    		}
+    		if (checkIfOnInpath(thisProject, outJar)||
+    				checkIfOnAspectpath(thisProject, outJar)){
+    			MessageDialog.openInformation(getShell(), UIMessages.buildpathwarning_title, 
+    			        UIMessages.buildConfig_invalidOutjar);
+    			outputJarEditor.setStringValue(oldOutJar);
+    		} else {
+    		    LaunchConfigurationManagementUtils.updateOutJar(JavaCore
+    		            .create(thisProject), oldEntry, newEntry);
+    		    AspectJCorePreferences.setProjectOutJar(thisProject, outputJarEditor
+    		            .getStringValue());
+    		}
+    		if (fInPathBlock != null) {
+    			IRunnableWithProgress runnable = new IRunnableWithProgress() {
+    				public void run(IProgressMonitor monitor)
+    						throws InvocationTargetException, InterruptedException {
+    					try {
+    						fInPathBlock.configureJavaProject(monitor);
+    					} catch (CoreException e) {
+    						throw new InvocationTargetException(e);
+    					}
+    				}
+    			};
+    			
+    			try {
+    			    PlatformUI.getWorkbench().getProgressService().run(false, true, runnable);
+    			} catch (InvocationTargetException e) {
+    				return false;
+    			} catch (InterruptedException e) {
+    				// cancelled
+    				return false;
+    			}
+    			
+    			// set the inpath's output folder
+    			// we should only be setting the out path if it is different
+    			// from the default
+    			// probably should do more checking on this, but hold off for now.
+    			AspectJCorePreferences.setProjectInpathOutFolder(getProject(), fInPathBlock.getOutputFolder());
+    		}
+    
+    		if (fAspectPathBlock != null) {
+    			getSettings().put(INDEX, fAspectPathBlock.getPageIndex());
+    
+    			IRunnableWithProgress runnable = new IRunnableWithProgress() {
+    				public void run(IProgressMonitor monitor)
+    						throws InvocationTargetException, InterruptedException {
+    					try {
+    						fAspectPathBlock.configureJavaProject(monitor);
+    					} catch (CoreException e) {
+    						AJDTErrorHandler.handleAJDTError(
+    										PreferencesMessages.BuildPathsPropertyPage_error_message,
+    										e);
+    					}
+    				}
+    			};
+    			IRunnableWithProgress op = new WorkspaceModifyDelegatingOperation(
+    					runnable);
+    			try {
+    			    PlatformUI.getWorkbench().getProgressService().run(false, true, op);
+    //				new ProgressMonitorDialog(shell).run(true, true, op);
+    			} catch (InvocationTargetException e) {
+    				return false;
+    			} catch (InterruptedException e) {
+    				// cancelled
+    				return false;
+    			}
+    		}
+    		AJDTUtils.refreshPackageExplorer();
+    		initializeTimeStamps();
+    		return true;
+        } finally {
+            // now we care about resource changes again
+            thisProject.getWorkspace().addResourceChangeListener(fListener);
+        }
 	}
 
 	protected IDialogSettings getSettings() {

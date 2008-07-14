@@ -1,9 +1,9 @@
 /**********************************************************************
  * Copyright (c) 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -29,10 +29,10 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.dialogs.ProblemDialog;
 import org.eclipse.jdt.internal.ui.jarpackager.JarPackagerMessages;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.ui.jarpackager.IJarExportRunnable;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -61,7 +61,7 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 	 */
 	public AJJarPackageWizard() {
 		IDialogSettings workbenchSettings= JavaPlugin.getDefault().getDialogSettings();
-		IDialogSettings section= workbenchSettings.getSection(DIALOG_SETTINGS_KEY); //$NON-NLS-1$
+		IDialogSettings section= workbenchSettings.getSection(DIALOG_SETTINGS_KEY); 
 		if (section == null)
 			fHasNewDialogSettings= true;
 		else {
@@ -93,7 +93,7 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		fSelection= getValidSelection();
 		fJarPackage= new AJJarPackageData();
 		setInitializeFromJarPackage(false);
-		setWindowTitle(JarPackagerMessages.getString("JarPackageWizard.windowTitle")); //$NON-NLS-1$
+		setWindowTitle(JarPackagerMessages.JarPackageWizard_windowTitle); 
 		setDefaultPageImageDescriptor(JavaPluginImages.DESC_WIZBAN_JAR_PACKAGER);
 		setNeedsProgressMonitor(true);
 	}
@@ -139,13 +139,13 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 			return false;
 		} catch (InvocationTargetException ex) {
 			if (ex.getTargetException() != null) {
-				ExceptionHandler.handle(ex, getShell(), JarPackagerMessages.getString("JarPackageWizard.jarExportError.title"), JarPackagerMessages.getString("JarPackageWizard.jarExportError.message")); //$NON-NLS-2$ //$NON-NLS-1$
+				ExceptionHandler.handle(ex, getShell(), JarPackagerMessages.JarPackageWizard_jarExportError_title, JarPackagerMessages.JarPackageWizard_jarExportError_message); 
 				return false;
 			}
 		}
 		IStatus status= op.getStatus();
 		if (!status.isOK()) {
-			ProblemDialog.open(getShell(), JarPackagerMessages.getString("JarPackageWizard.jarExport.title"), null, status); //$NON-NLS-1$
+			ErrorDialog.openError(getShell(), JarPackagerMessages.JarPackageWizard_jarExport_title, null, status); 
 			return !(status.matches(IStatus.ERROR));
 		}
 		return true;
@@ -219,7 +219,7 @@ public class AJJarPackageWizard extends Wizard implements IExportWizard {
 		else {
 			IOpenable openable= je.getOpenable();
 			if (openable instanceof ICompilationUnit)
-				selectedElements.add(JavaModelUtil.toOriginal((ICompilationUnit) openable));
+				selectedElements.add(((ICompilationUnit) openable).getPrimary());
 			else if (openable instanceof IClassFile && !JavaModelUtil.getPackageFragmentRoot(je).isArchive())
 				selectedElements.add(openable);
 		}

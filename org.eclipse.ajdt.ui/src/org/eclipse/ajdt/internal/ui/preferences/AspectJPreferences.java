@@ -25,7 +25,6 @@ import java.util.StringTokenizer;
 
 import org.aspectj.ajde.core.IBuildMessageHandler;
 import org.aspectj.bridge.IMessage;
-import org.aspectj.bridge.IMessageHandler;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
@@ -280,7 +279,7 @@ public class AspectJPreferences {
 	}
 
 	public static void setShowWeaveMessagesOption(IProject project, boolean showWeaveMessages) {
-		String value = "";
+		String value = ""; //$NON-NLS-1$
 		IBuildMessageHandler handler = AspectJPlugin.getDefault().getCompilerFactory().getCompilerForProject(project).getMessageHandler();
 		if (showWeaveMessages) {
 			value = VALUE_TRUE;
@@ -524,7 +523,7 @@ public class AspectJPreferences {
 
 	public static String getCompilerOptions(IProject project) {
 		String compilerOptions = getStringPrefValue(project, COMPILER_OPTIONS);
-		return compilerOptions; //$NON-NLS-1$
+		return compilerOptions; 
 	}
 	
 	public static String getStringPrefValue(IProject project, String key) {

@@ -1,9 +1,9 @@
 /*******************************************************************************
  * Copyright (c) 2000, 2004 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Common Public License v1.0
+ * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
+ * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -19,15 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.Tree;
-
-
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -42,8 +33,15 @@ import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Tree;
 
 /**
  *  Copied from org.eclipse.jdt.internal.ui.jarpackager.CheckboxTreeViewer
@@ -551,8 +549,8 @@ public class CheckboxTreeAndListGroup implements ICheckStateListener, ISelection
 	/**
 	 *	Sets the sorter that is to be applied to self's list viewer
 	 */
-	public void setListSorter(ViewerSorter sorter) {
-		fListViewer.setSorter(sorter);
+	public void setListSorter(ViewerComparator comparator) {
+		fListViewer.setComparator(comparator);
 	}
 	/**
 	 * Sets the root of the widget to be new Root. Regenerate all of the tables and lists from this
@@ -609,8 +607,8 @@ public class CheckboxTreeAndListGroup implements ICheckStateListener, ISelection
 	/**
 	 *	Sets the sorter that is to be applied to self's tree viewer
 	 */
-	public void setTreeSorter(ViewerSorter sorter) {
-		fTreeViewer.setSorter(sorter);
+	public void setTreeComparator(ViewerComparator comparator) {
+		fTreeViewer.setComparator(comparator);
 	}
 	/**
 	 *	Adjusts the collection of references to white-checked tree elements appropriately.

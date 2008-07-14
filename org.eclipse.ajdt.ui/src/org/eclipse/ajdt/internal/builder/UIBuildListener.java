@@ -12,7 +12,6 @@
  *******************************************************************************/
 package org.eclipse.ajdt.internal.builder;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +23,6 @@ import org.eclipse.ajdt.core.CoreUtils;
 import org.eclipse.ajdt.core.builder.IAJBuildListener;
 import org.eclipse.ajdt.core.builder.IAJCompilerMonitor;
 import org.eclipse.ajdt.core.lazystart.IAdviceChangedListener;
-import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.internal.ui.ajde.UIMessageHandler;
 import org.eclipse.ajdt.internal.ui.diff.ChangesView;
 import org.eclipse.ajdt.internal.ui.markers.MarkerUpdating;
@@ -35,7 +33,6 @@ import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.contribution.visualiser.VisualiserPlugin;
 import org.eclipse.contribution.visualiser.core.ProviderManager;
 import org.eclipse.contribution.xref.ui.XReferenceUIPlugin;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

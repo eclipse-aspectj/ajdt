@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.EclipseVersion;
@@ -88,7 +87,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 	/* used by the PreferencePageBuilder aspect to determine if a change in a preference page widget should
 	 * cause a full build
 	 */ 
-    static String NO_BUILD_ON_CHANGE = "NO BUILD ON CHANGE";
+    static String NO_BUILD_ON_CHANGE = "NO BUILD ON CHANGE"; //$NON-NLS-1$
 
 	protected List fComboBoxes;
 
@@ -215,7 +214,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 				AspectJPreferences.OPTION_swallowedExceptionInCatchBlock,
 				AspectJPreferences.VALUE_IGNORE);
 		
-		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, "");
+		defaultValueMap.put(AspectJPreferences.COMPILER_OPTIONS, ""); //$NON-NLS-1$
 
 		defaultValueMap.put(AspectJPreferences.OPTION_cantFindType, 
 				AspectJPreferences.VALUE_ERROR);
@@ -663,7 +662,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		Composite row3Comp = createRowComposite(othersComposite,2);
 
 		//fills the editor with the stored preference if there is one.
-		String currValue = "";
+		String currValue = ""; //$NON-NLS-1$
 		if (isProjectPreferencePage()) {
 			if (hasProjectSpecificOptions(getProject())) {
 				currValue = AspectJPreferences.getStringPrefValue(getProject(), AspectJPreferences.COMPILER_OPTIONS);
@@ -676,7 +675,7 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 		
 		nonStandardOptionsEditor =
 			new StringFieldEditor(
-				currValue, //$NON-NLS-1$
+				currValue, 
 				UIMessages.compilerPropsPage_nonStandardOptions,
 				StringFieldEditor.UNLIMITED,
 				row3Comp);
@@ -942,9 +941,9 @@ public class AJCompilerPreferencePage extends PropertyAndPreferencePage
 					// choices are "Yes", "No" or "Cancel"
 					dialog.close();
 					if (buildNow) {
-						res = dialog.OK;
+						res = Window.OK;
 					} else {
-						res = dialog.CANCEL; // simulating cancel or no being pressed.
+						res = Window.CANCEL; // simulating cancel or no being pressed.
 					}
 				}
 				if ((res == 0)) {
