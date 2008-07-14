@@ -25,14 +25,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.eclipse.ajdt.core.AspectJPlugin;
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.pde.internal.build.AbstractScriptGenerator;
@@ -167,7 +166,7 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			return;
 
 		try {
-			OutputStream scriptStream = new BufferedOutputStream(new FileOutputStream(scriptLocation + '/' + scriptName)); //$NON-NLS-1$
+			OutputStream scriptStream = new BufferedOutputStream(new FileOutputStream(scriptLocation + '/' + scriptName)); 
 			try {
 				script = new AJAntScript(scriptStream);
 			} catch (IOException e) {
@@ -214,8 +213,9 @@ public class AJModelBuildScriptGenerator extends ModelBuildScriptGenerator { // 
 			checkBootAndRuntime();
 
 		initializeVariables();
-		if (BundleHelper.getDefault().isDebugging())
-			System.out.println("Generating plugin " + model.getSymbolicName()); //$NON-NLS-1$
+		if (BundleHelper.getDefault().isDebugging()) {
+            AJLog.log(AJLog.BUILDER, "Generating plugin " + model.getSymbolicName()); //$NON-NLS-1$
+		}
 
 		String custom = (String) getBuildProperties().get(PROPERTY_CUSTOM);
 		if (custom != null && custom.equalsIgnoreCase("true")) { //$NON-NLS-1$

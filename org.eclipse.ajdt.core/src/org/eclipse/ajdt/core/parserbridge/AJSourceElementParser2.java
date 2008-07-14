@@ -1,14 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2005 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials 
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * Copyright (c) 2005 IBM Corporation and others. All rights reserved. This
+ * program and the accompanying materials are made available under the terms of
+ * the Eclipse Public License v1.0 which accompanies this distribution, and is
+ * available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
  *     	IBM Corporation - initial API and implementation
  * 		Luzius Meisser - Adapted for use with AspectJ
  *      Andy Clement - updated for AspectJ 5
+ *      Sian January - updated for eager parsing
  *******************************************************************************/
 package org.eclipse.ajdt.core.parserbridge;
 
@@ -17,81 +17,82 @@ import java.util.HashMap;
 
 import org.aspectj.ajdt.internal.compiler.ast.AdviceDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.AspectDeclaration;
-import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
-import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
-import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
-import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
-import org.aspectj.org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
-import org.aspectj.org.eclipse.jdt.internal.compiler.IProblemFactory;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
-import org.aspectj.org.eclipse.jdt.internal.compiler.SourceJavadocParser;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.FieldReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ImportReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.Initializer;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocAllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocFieldReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocMessageSend;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MessageSend;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.NameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.ThisReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
-import org.aspectj.org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
-import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
-import org.aspectj.org.eclipse.jdt.internal.core.util.CommentRecorderParser;
-import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor;
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
+import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
+import org.eclipse.jdt.internal.compiler.IProblemFactory;
+import org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
+import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
+import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ArrayReference;
+import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.eclipse.jdt.internal.compiler.ast.Initializer;
+import org.eclipse.jdt.internal.compiler.ast.JavadocAllocationExpression;
+import org.eclipse.jdt.internal.compiler.ast.JavadocFieldReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocMessageSend;
+import org.eclipse.jdt.internal.compiler.ast.JavadocQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ThisReference;
+import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.eclipse.jdt.internal.compiler.env.ISourceType;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
+import org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
+import org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
+import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToInt;
+import org.eclipse.jdt.internal.core.util.CommentRecorderParser;
 
 /*
- * Luzius:
+ * Luzius: 
  * Most content of this has been copied from
  * org.eclipse.jdt.internal.compiler.SourceElementParser
+ * 
+ * Sian: 
+ * Copied and edited AJSourceElementParser to use org.eclipse... JDT types
+ * instead of org.aspectj.org.eclipse... JDT types
  */
 
 /**
@@ -115,9 +116,9 @@ import org.eclipse.ajdt.internal.core.parserbridge.IAspectSourceElementRequestor
  *
  * Any (parsing) problem encountered is also provided.
  */
-public class AJSourceElementParser extends CommentRecorderParser {
+public class AJSourceElementParser2 extends CommentRecorderParser {
 	
-	IAspectSourceElementRequestor requestor;
+	//IAspectSourceElementRequestor requestor;
 	int fieldCount;
 	ISourceType sourceType;
 	boolean reportReferenceInfo;
@@ -127,6 +128,7 @@ public class AJSourceElementParser extends CommentRecorderParser {
 	LocalDeclarationVisitor localDeclarationVisitor = null;
 	CompilerOptions options;
 	HashtableOfObjectToInt sourceEnds = new HashtableOfObjectToInt();
+	private AJCompilationUnitStructureRequestor requestor;
 	HashMap nodesToCategories = new HashMap(); // a map from ASTNode to char[][]
 	boolean useSourceJavadocParser = true;
 	
@@ -160,18 +162,17 @@ public class LocalDeclarationVisitor extends ASTVisitor {
 	}	
 }
 
-
-public AJSourceElementParser(
-		final IAspectSourceElementRequestor requestor, 
-		IProblemFactory problemFactory,
-		CompilerOptions options,
-		boolean reportLocalDeclarations,
-		boolean optimizeStringLiterals) {
-	this(requestor, problemFactory, options, reportLocalDeclarations, optimizeStringLiterals, true/* use SourceJavadocParser */);
+public AJSourceElementParser2(
+	final AJCompilationUnitStructureRequestor requestor, 
+	IProblemFactory problemFactory,
+	CompilerOptions options,
+	boolean reportLocalDeclarations,
+	boolean optimizeStringLiterals) {
+		this(requestor, problemFactory, options, reportLocalDeclarations, optimizeStringLiterals, true/* use SourceJavadocParser */);
 }
 
-public AJSourceElementParser(
-	final IAspectSourceElementRequestor requestor, 
+public AJSourceElementParser2(
+	final AJCompilationUnitStructureRequestor requestor, 
 	IProblemFactory problemFactory,
 	CompilerOptions options,
 	boolean reportLocalDeclarations,
@@ -184,7 +185,7 @@ public AJSourceElementParser(
 			options, 
 			problemFactory),
 		optimizeStringLiterals);
-	
+		
 	// we want to notify all syntax error with the acceptProblem API
 	// To do so, we define the record method of the ProblemReporter
 	this.problemReporter = new ProblemReporter(
@@ -193,7 +194,7 @@ public AJSourceElementParser(
 		problemFactory) {
 		public void record(CategorizedProblem problem, CompilationResult unitResult, ReferenceContext context) {
 			unitResult.record(problem, context); // TODO (jerome) clients are trapping problems either through factory or requestor... is result storing needed?
-			AJSourceElementParser.this.requestor.acceptProblem(problem);
+			requestor.acceptProblem(problem);
 		}
 	};
 	this.requestor = requestor;
@@ -206,9 +207,9 @@ public AJSourceElementParser(
 	}
 	// set specific javadoc parser
 	this.useSourceJavadocParser = useSourceJavadocParser;
-	if (useSourceJavadocParser) {
-		this.javadocParser = new SourceJavadocParser(this);
-	}
+//	if (useSourceJavadocParser) {
+//		this.javadocParser = new SourceJavadocParser(this);
+//	}
 }
 
 /*
@@ -1270,25 +1271,17 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 	}
 	selectorSourceEnd = this.sourceEnds.get(methodDeclaration);
 	// AspectJ Change Begin
-	if (methodDeclaration instanceof PointcutDeclaration) {
+	org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration ajmDec = new org.aspectj.org.eclipse.jdt.internal.compiler.ast.MethodDeclaration(new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(methodDeclaration.compilationResult.fileName, methodDeclaration.compilationResult.unitIndex, methodDeclaration.compilationResult.totalUnitsKnown, 500));
+	if (ajmDec instanceof PointcutDeclaration) {
 		selectorSourceEnd = methodDeclaration.sourceStart + methodDeclaration.selector.length - 1;
 	}
-	if (methodDeclaration instanceof AdviceDeclaration) {
-		String name = ((AdviceDeclaration) methodDeclaration).kind.getName();
-		if (name.startsWith("after")) { //$NON-NLS-1$
-			name = "after"; //$NON-NLS-1$
-		}
-		selectorSourceEnd = methodDeclaration.sourceStart + name.length() - 1; 
+	if (ajmDec instanceof AdviceDeclaration) {
+		selectorSourceEnd = methodDeclaration.sourceStart + ((AdviceDeclaration) ajmDec).kind.getName().length() - 1; 
 	}
 	// AspectJ Change End
 	if (isInRange) {
 		int currentModifiers = methodDeclaration.modifiers;
-		// AspectJ Change Begin
-		// Fix for 116846 - incorrect icons for itds - use declaredModifiers instead
-		if (methodDeclaration instanceof InterTypeDeclaration) {
-			currentModifiers = ((InterTypeDeclaration)methodDeclaration).declaredModifiers;
-		}
-		// AspectJ Change End
+		
 		if (isVarArgs)
 			currentModifiers |= ClassFileConstants.AccVarargs;
 		
@@ -1312,7 +1305,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 		methodInfo.typeParameters = getTypeParameterInfos(methodDeclaration.typeParameters());
 		methodInfo.annotationPositions = collectAnnotationPositions(methodDeclaration.annotations);
 		methodInfo.categories = (char[][]) this.nodesToCategories.get(methodDeclaration);
-		requestor.enterMethod(methodInfo,methodDeclaration);
+		requestor.enterMethod(methodInfo, ajmDec);
 	}		
 		
 	this.visitIfNeeded(methodDeclaration);
@@ -1434,14 +1427,11 @@ public void notifySourceElementRequestor(
 }
 public void notifySourceElementRequestor(TypeDeclaration typeDeclaration, boolean notifyTypePresence, TypeDeclaration declaringType) {
 	
-    if (CharOperation.equals(TypeConstants.PACKAGE_INFO_NAME, typeDeclaration.name)) return;
-	
-	//	AspectJ Change
+    //	added AspectJ Luzius
 	boolean isAspect = false;
-	if (typeDeclaration instanceof AspectDeclaration)
+	org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration ajtypeDeclaration = new org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeDeclaration(new org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult(typeDeclaration.compilationResult.fileName, typeDeclaration.compilationResult.unitIndex, typeDeclaration.compilationResult.totalUnitsKnown, 500));
+	if (ajtypeDeclaration instanceof AspectDeclaration)
 		isAspect = true;
-	//	AspectJ Change End
-	
 	
 	// range check
 	boolean isInRange = 
@@ -1673,7 +1663,25 @@ public void parseTypeMemberDeclarations(
 		if ((unit == null) || (unit.types == null) || (unit.types.length != 1))
 			return;
 		this.sourceType = type;
-		helper1(sourceUnit, start, end, unit);  // extracted to try and avoid JSRs in compiled code
+		try {
+			/* automaton initialization */
+			initialize();
+			goForClassBodyDeclarations();
+			/* scanner initialization */
+			scanner.setSource(sourceUnit.getContents());
+			scanner.resetTo(start, end);
+			/* unit creation */
+			referenceContext = compilationUnit = unit;
+			/* initialize the astStacl */
+			// the compilationUnitDeclaration should contain exactly one type
+			pushOnAstStack(unit.types[0]);
+			/* run automaton */
+			parse();
+			notifySourceElementRequestor(unit);
+		} finally {
+			unit = compilationUnit;
+			compilationUnit = null; // reset parser
+		}
 	} catch (AbortCompilation e) {
 		// ignore this exception
 	} finally {
@@ -1682,29 +1690,6 @@ public void parseTypeMemberDeclarations(
 		}
 		diet = old;
 		reset();
-	}
-}
-
-private void helper1(ICompilationUnit sourceUnit, int start, int end,
-		CompilationUnitDeclaration unit) {
-	try {
-		/* automaton initialization */
-		initialize();
-		goForClassBodyDeclarations();
-		/* scanner initialization */
-		scanner.setSource(sourceUnit.getContents());
-		scanner.resetTo(start, end);
-		/* unit creation */
-		referenceContext = compilationUnit = unit;
-		/* initialize the astStacl */
-		// the compilationUnitDeclaration should contain exactly one type
-		pushOnAstStack(unit.types[0]);
-		/* run automaton */
-		parse();
-		notifySourceElementRequestor(unit);
-	} finally {
-		unit = compilationUnit;
-		compilationUnit = null; // reset parser
 	}
 }
 
@@ -1774,12 +1759,13 @@ private static void quickSort(ASTNode[] sortedCollection, int left, int right) {
 }
 private void rememberCategories() {
 	if (this.useSourceJavadocParser) {
-		SourceJavadocParser sourceJavadocParser = (SourceJavadocParser) this.javadocParser;
-		char[][] categories =  sourceJavadocParser.categories;
-		if (categories.length > 0) {
-			this.nodesToCategories.put(this.astStack[this.astPtr], categories);
-			sourceJavadocParser.categories = CharOperation.NO_CHAR_CHAR;
-		}
+		//fudgedit - shouldnt have removed this really...
+//		SourceJavadocParser sourceJavadocParser = (SourceJavadocParser) this.javadocParser;
+//		char[][] categories =  sourceJavadocParser.categories;
+//		if (categories.length > 0) {
+//			this.nodesToCategories.put(this.astStack[this.astPtr], categories);
+//			sourceJavadocParser.categories = CharOperation.NO_CHAR_CHAR;
+//		}
 	}
 }
 private void reset() {

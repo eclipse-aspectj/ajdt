@@ -31,6 +31,8 @@ public class AJLog {
 
 	public static final int COMPILER_MESSAGES = 5;	
 
+	public static final int PARSER = 6;
+	
 	private static IAJLogger logger;
 	
 	// support for logging the start and end of activies

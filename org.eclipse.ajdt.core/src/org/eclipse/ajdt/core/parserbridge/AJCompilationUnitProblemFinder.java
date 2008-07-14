@@ -14,6 +14,7 @@ package org.eclipse.ajdt.core.parserbridge;
 
 import java.util.Map;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitInfo;
 import org.eclipse.ajdt.internal.core.parserbridge.AJCompilationUnitDeclarationWrapper;
@@ -182,8 +183,9 @@ public class AJCompilationUnitProblemFinder extends
 		CompilationResult unitResult = unit.compilationResult;
 		IProblem[] problems = unitResult.getAllProblems();
 		for (int i = 0, problemLength = problems == null ? 0 : problems.length; i < problemLength; i++) {
-			if (JavaModelManager.VERBOSE){
-				System.out.println("PROBLEM FOUND while reconciling : "+problems[i].getMessage());//$NON-NLS-1$
+			if (JavaModelManager.VERBOSE) {
+	            AJLog.log(AJLog.PARSER, "PROBLEM FOUND while reconciling : " + //$NON-NLS-1$
+	                    problems[i].getMessage());
 			}
 			if (monitor != null && monitor.isCanceled()) break;
 			problemRequestor.acceptProblem(problems[i]);				

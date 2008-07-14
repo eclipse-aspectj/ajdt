@@ -1,11 +1,30 @@
+/*******************************************************************************
+ * Copyright (c) 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials 
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Matt Chapman - initial version
+ *     Helen Hawkins - updated for new ajde interface (bug 148190)
+ *******************************************************************************/
 package org.eclipse.ajdt.core;
 
+import org.eclipse.ajdt.core.model.AJModel;
+import org.eclipse.ajdt.internal.core.ResourceChangeListener;
+import org.eclipse.ajdt.internal.core.ajde.CoreCompilerFactory;
+import org.eclipse.ajdt.internal.core.ajde.ICompilerFactory;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.Status;
 import org.osgi.framework.BundleContext;
-import java.util.*;
 
 /**
  * The main plugin class to be used in the desktop.
@@ -13,8 +32,6 @@ import java.util.*;
 public class AspectJPlugin extends Plugin {
 	//The shared instance.
 	private static AspectJPlugin plugin;
-	//Resource bundle.
-	private ResourceBundle resourceBundle;
 
 	// id of this plugin
 	public static final String PLUGIN_ID = "org.eclipse.ajdt.core"; //$NON-NLS-1$
@@ -22,17 +39,77 @@ public class AspectJPlugin extends Plugin {
 	// plugin containing aspectjtools.jar, or the contents thereof
     public static final String TOOLS_PLUGIN_ID = "org.aspectj.ajde"; //$NON-NLS-1$
 
+	// plugin containing aspectjweaver.jar, or the contents thereof
+    public static final String WEAVER_PLUGIN_ID = "org.aspectj.weaver"; //$NON-NLS-1$
+
+	// the plugin containing aspectjrt.jar
+	public static final String RUNTIME_PLUGIN_ID = "org.aspectj.runtime"; //$NON-NLS-1$
+
+	public static final String ID_BUILDER = PLUGIN_ID + ".ajbuilder"; //$NON-NLS-1$
+
+	/**
+	 * The name of the default build config file for an AspectJ project
+	 */
+	public static final String DEFAULT_CONFIG_FILE = ".generated.lst"; //$NON-NLS-1$
+
+	public static final String UI_PLUGIN_ID = "org.eclipse.ajdt.ui"; //$NON-NLS-1$	
+	public static final String ID_NATURE = UI_PLUGIN_ID + ".ajnature"; //$NON-NLS-1$
+
+	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
+	
+	public static final String AJ_FILE_EXT = "aj"; //$NON-NLS-1$
+	
+	public static final String ASPECTJRT_CONTAINER = PLUGIN_ID + ".ASPECTJRT_CONTAINER"; //$NON-NLS-1$
+	
+	// AspectJ keywords
+    public static final String[] ajKeywords = { "aspect", "pointcut", "privileged", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// Pointcut designators: methods and constructora
+		"call", "execution", "initialization", "preinitialization" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		// Pointcut designators: exception handlers
+		"handler", //$NON-NLS-1$
+		// Pointcut designators: fields
+		"get", "set", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: static initialization
+		"staticinitialization", //$NON-NLS-1$
+		// Pointcut designators: object
+		// (this already a Java keyword)
+		"target", "args", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: lexical extents
+		"within", "withincode", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut designators: control flow
+		"cflow", "cflowbelow", //$NON-NLS-1$ //$NON-NLS-2$
+		// Pointcut Designators for annotations
+		"annotation", //$NON-NLS-1$
+		// Advice
+		"before", "after", "around", "proceed", "throwing" , "returning" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		"adviceexecution" , //$NON-NLS-1$
+		// Declarations
+		"declare", "parents" , "warning" , "error", "soft" , "precedence" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+		// variables
+		"thisJoinPoint" , "thisJoinPointStaticPart" , "thisEnclosingJoinPointStaticPart" , //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		// Associations
+		"issingleton", "perthis", "pertarget", "percflow", "percflowbelow", "pertypewithin" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+
+	/**
+	 * Folder separator used by Eclipse in paths irrespective if on Windows or
+	 * *nix.
+	 */
+	public static final String NON_OS_SPECIFIC_SEPARATOR = "/"; //$NON-NLS-1$
+
+	public static boolean usingCUprovider = false;
+	
+
+	/**
+	 * The compiler factory
+	 */
+	private ICompilerFactory compilerFactory;
+
 	/**
 	 * The constructor.
 	 */
 	public AspectJPlugin() {
 		super();
 		plugin = this;
-		try {
-			resourceBundle = ResourceBundle.getBundle("org.eclipse.ajdt.core.AspectJPluginResources");
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
 	}
 
 	/**
@@ -40,6 +117,27 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+		checkForCUprovider();
+		getWorkspace().addResourceChangeListener(
+				new ResourceChangeListener(),
+				IResourceChangeEvent.POST_CHANGE);
+		setCompilerFactory(new CoreCompilerFactory());
+	}
+
+	/**
+	 * Sets the usingCUprovider flag if the experimental JDT extension is available
+	 *
+	 */
+	private void checkForCUprovider() {
+		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider"; //$NON-NLS-1$
+		IExtensionPoint exP = Platform.getExtensionRegistry()
+			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
+		if (exP!=null) {
+			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
+			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) { //$NON-NLS-1$
+				usingCUprovider = true;
+			}
+		}
 	}
 
 	/**
@@ -47,6 +145,8 @@ public class AspectJPlugin extends Plugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		super.stop(context);
+		
+		AJModel.getInstance().saveAllModels();
 	}
 
 	/**
@@ -57,41 +157,41 @@ public class AspectJPlugin extends Plugin {
 	}
 
 	/**
-	 * Returns the string from the plugin's resource bundle,
-	 * or 'key' if not found.
+	 * Returns the workspace instance.
 	 */
-	public static String getResourceString(String key) {
-		ResourceBundle bundle = AspectJPlugin.getDefault().getResourceBundle();
-		try {
-			return (bundle != null) ? bundle.getString(key) : key;
-		} catch (MissingResourceException e) {
-			return key;
-		}
+	public static IWorkspace getWorkspace() {
+		return ResourcesPlugin.getWorkspace();
 	}
 
 	/**
-	 * Returns the plugin's resource bundle,
+	 * Returns true if the given project has the AspectJ nature. Returns
+	 * false otherwise, or if the nature could not be determined (e.g. the
+	 * project is closed).
+	 * @param project
+	 * @return
 	 */
-	public ResourceBundle getResourceBundle() {
-		return resourceBundle;
+	public static boolean isAJProject(IProject project) {
+		// Fix for 106707 - check that project is open
+		if(project.isOpen()) {			
+			try {
+				if ((project!=null) && project.hasNature(ID_NATURE)) {
+					return true;
+				}
+			} catch (CoreException e) {
+			}
+		}
+		return false;
+	}
+			
+	public void setAJLogger(IAJLogger logger) {
+		AJLog.setLogger(logger);
 	}
 	
-	/**
-	 * Write the given exception or error to the log file (without displaying a dialog)
-	 * @param e
-	 */
-	public static void logException(Throwable e) {
-		IStatus status = null;
-		if (e instanceof CoreException) {
-			status = ((CoreException) e).getStatus();
-		} else {
-			String message = e.getMessage();
-			if (message == null) {
-				message = e.toString();
-			}
-			status = new Status(IStatus.ERROR, AspectJPlugin.PLUGIN_ID, IStatus.OK, message, e);
-		}
-		getDefault().getLog().log(status);
+	public ICompilerFactory getCompilerFactory() {
+		return compilerFactory;
 	}
 
+	public void setCompilerFactory(ICompilerFactory compilerFactory) {
+		this.compilerFactory = compilerFactory;
+	}
 }

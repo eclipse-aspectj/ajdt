@@ -25,6 +25,7 @@ import java.util.Set;
 import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
@@ -36,7 +37,6 @@ import org.eclipse.ajdt.core.model.AJModel;
 import org.eclipse.ajdt.core.text.CoreMessages;
 import org.eclipse.ajdt.internal.core.AspectJRTInitializer;
 import org.eclipse.ajdt.internal.core.ajde.CoreCompilerConfiguration;
-import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -65,7 +65,6 @@ import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.jdt.internal.core.util.Util;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.service.prefs.BackingStoreException;
-import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 
 /**
  * 
@@ -206,7 +205,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
-		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath());
+		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath()); //$NON-NLS-1$
 		
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
 		if (kind == FULL_BUILD) {
@@ -663,7 +662,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			
 			// clean inpath out folder
 			String inpathOut = AspectJCorePreferences.getProjectInpathOutFolder(project.getProject());
-			if (inpathOut != null && !inpathOut.equals("")) {
+			if (inpathOut != null && !inpathOut.equals("")) { //$NON-NLS-1$
 			    IPath inpathOutfolder = new Path(inpathOut);
 			    numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
 			}
@@ -674,20 +673,16 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	}
 	
 	private int cleanFolder(IJavaProject project, IPath outputFolder, boolean refresh) throws CoreException {
-		String realOutputLocation = null;
 		IResource outputResource;
 		if (outputFolder.segmentCount() == 1) {
 			// project root
 			outputResource = project.getProject();
-			realOutputLocation = project.getResource().getLocation()
-					.toOSString();
 		} else {
 			outputResource = ResourcesPlugin.getWorkspace().getRoot()
 					.getFolder(outputFolder);
 			if (!outputResource.exists()) {
 			    return 0;
 			}
-			realOutputLocation = outputResource.getLocation().toOSString();
 		}
 
 		int numberDeleted = wipeFiles(outputResource, "class"); //$NON-NLS-1$

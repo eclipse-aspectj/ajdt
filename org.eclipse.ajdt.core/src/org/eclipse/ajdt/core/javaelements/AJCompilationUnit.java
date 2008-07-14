@@ -59,7 +59,6 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -131,7 +130,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 		String elementName = name;
 		//remove the .aj
-		elementName = elementName.substring(0, elementName.length() - ".aj".length());
+		elementName = elementName.substring(0, elementName.length() - ".aj".length()); //$NON-NLS-1$
 		return elementName.toCharArray();
 	}
 	
@@ -382,8 +381,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			return buf;
 		
 		if (javaCompBuffer == null){
-			BufferManager bm = BufferManager.getDefaultBufferManager();
-			IBuffer myBuffer = bm.createBuffer(this);
+			IBuffer myBuffer = BufferManager.createBuffer(this);
 			javaCompBuffer = new JavaCompatibleBuffer(buf, myBuffer);
 		} else {
 			if (buf != javaCompBuffer)
