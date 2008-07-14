@@ -10,26 +10,6 @@
  **********************************************************************/
 package org.eclipse.ajdt.ui.visual.tests;
 
-import org.eclipse.ajdt.internal.launching.AJMainMethodSearchEngine;
-import org.eclipse.ajdt.ui.buildpath.BuildConfigurationUtils;
-import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.search.IJavaSearchScope;
-import org.eclipse.jdt.core.search.SearchEngine;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.internal.Workbench;
-import org.eclipse.ui.internal.console.ConsoleView;
-import org.eclipse.ui.part.MessagePage;
 
 /**
  * 
