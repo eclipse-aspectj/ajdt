@@ -9,9 +9,6 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.builder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.launching.AspectJApplicationLaunchShortcut;
 import org.eclipse.ajdt.ui.tests.UITestCase;
@@ -20,7 +17,6 @@ import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.core.IClasspathContainer;
@@ -28,10 +24,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.UserLibraryClasspathContainerInitializer;
-import org.eclipse.pde.internal.runtime.logview.LogEntry;
-import org.eclipse.pde.internal.runtime.logview.LogView;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.internal.Workbench;
 
 /**
  * 
@@ -74,11 +66,11 @@ public class BuildPathTests extends UITestCase {
     public void testInpath() throws Exception {
         
         // create container
-        IPath containerPath = new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib");
+        IPath containerPath = new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib"); //$NON-NLS-1$
         IJavaProject inpathJProj = JavaCore.create(hasInpath);
         IClasspathContainer containerHint = new IClasspathContainer() {
             public IPath getPath() {
-                return new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib");
+                return new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib"); //$NON-NLS-1$
             }
         
             public int getKind() {
@@ -86,10 +78,10 @@ public class BuildPathTests extends UITestCase {
             }
         
             public String getDescription() {
-                return "";
+                return ""; //$NON-NLS-1$
             }
             public IClasspathEntry[] getClasspathEntries() {
-                return new IClasspathEntry[] { JavaCore.newLibraryEntry(containerProj.getLocation().append("container.jar"), null, null) };
+                return new IClasspathEntry[] { JavaCore.newLibraryEntry(containerProj.getLocation().append("container.jar"), null, null) }; //$NON-NLS-1$
             }
         
         };
@@ -120,11 +112,11 @@ public class BuildPathTests extends UITestCase {
     
     public void testAspectPath() throws Exception {
         // create container
-        IPath containerPath = new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib");
+        IPath containerPath = new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib"); //$NON-NLS-1$
         IJavaProject aspectpathJProj = JavaCore.create(hasAspectpath);
         IClasspathContainer containerHint = new IClasspathContainer() {
             public IPath getPath() {
-                return new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib");
+                return new Path("org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib"); //$NON-NLS-1$
             }
         
             public int getKind() {
@@ -132,7 +124,7 @@ public class BuildPathTests extends UITestCase {
             }
         
             public String getDescription() {
-                return "";
+                return ""; //$NON-NLS-1$
             }
             public IClasspathEntry[] getClasspathEntries() {
                 return new IClasspathEntry[] { JavaCore.newLibraryEntry(containerProj.getLocation().append("container.jar"), null, null) }; //$NON-NLS-1$

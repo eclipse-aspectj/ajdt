@@ -8,33 +8,17 @@
  ******************************************************************************/
 package org.eclipse.ajdt.ui.tests.preferences;
 
-import org.aspectj.org.eclipse.jdt.internal.compiler.batch.Main.Logger;
 import org.eclipse.ajdt.core.AJLog;
-import org.eclipse.ajdt.core.AspectJCore;
 import org.eclipse.ajdt.core.AspectJCorePreferences;
-import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.internal.ui.editor.AspectJEditor;
 import org.eclipse.ajdt.internal.ui.preferences.AJCompilerPreferencePage;
-import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.ajdt.ui.tests.testutils.TestLogger;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ProjectScope;
-import org.eclipse.core.runtime.Preferences;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
  * This class tests the AJCompilerPreferencePage. 
@@ -53,7 +37,7 @@ public class SuppressAutoBuildTest extends UITestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		project = createPredefinedProject("Simple AJ Project"); //$NON-NLS-1$
-		editor = (AspectJEditor) openFileInAspectJEditor(project.getFile("src/p2/Aspect.aj"), true);
+		editor = (AspectJEditor) openFileInAspectJEditor(project.getFile("src/p2/Aspect.aj"), true); //$NON-NLS-1$
 		doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		logger = new TestLogger();
 		AJLog.setLogger(logger);

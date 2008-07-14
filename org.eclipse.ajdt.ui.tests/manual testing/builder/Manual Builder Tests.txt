@@ -1,114 +1,82 @@
-Tests included in this file:
-
-(1) Test to ensure not constantly rebuilding (bug 74174)
-(2) Test for bug 48518 - if contents of jar file changes, then want to force a 
-    build for dependent projects
+Test to ensure don't rebuild if src file changes which isn't in active build config file
+----------------------------------------------------------------------------------------
+ade 11-07-2008  Using new build config now.  There is no more "Build Path > Exclide" option.
 
 
+(1) Import the AspectJ Bean Example into your workspace
+(2) Create a DummyClass in the bean package (File > New > Class)
+(3) Exclude DummyClass from the active build configuration (right click and choose
+    "Build Path > Exclude"
+(4) Add the following method to DummyClass:
 
-
-Test to ensure not constantly rebuilding (bug 74174)
-----------------------------------------------------
-
-(1) Check out: 
-    	
-    	- org.eclipse.contribution.visualiser
-   
-    from dev.eclipse.org
-    
-(2) If it's not already, convert org.eclipse.contribution.visualiser to be an AJ project by
-    right clicking and selecting "Convert to AspectJ Project"
-    
-(3) createa new text file in org.eclipse.contribution.visualiser
-
-		- highlight org.eclipse.contribution.visualiser
-		- right click
-		- select "New > File"
-		- enter "test.txt" in the name
-		- click Finish
+		public dummyMethod() {
+		}
 		
-(4) The org.eclipse.contribution.visualiser project should NOT rebuild.
+(5) Save DummyClass and no build should occur - so there should be no error
+    warnings about the syntax in the Problems view. (BUILD_1)
+		    
+(6) Create a DummyAspect in the bean package (File > New > Aspect)
+(7) Exclude DummyAspect from the active build configuration (right click and choose
+    "Build Path > Exclude"
+(8) Add the following badly formed pointcut to DummyAspect:
 
-		- check the progress monitor in the bottom right hand corner of
-		  your workbench - nothing should be there
-		- check the progress view (Window > Show View > Basic > Progress)- nothing
-		  should be there - no builds
-		  
-If any builds are being triggered then this test fails.		    
+		pointcut.....
+		
+(9) Save DummyAspect and no build should occur - so there should be no error warnings
+    about the syntax in the Problems view. (BUILD_2)
 
 
 		  		   
-Test for bug 48518 - if contents of jar file changes, then force a build for dependent projects
-------------------
+Test for bug 74401 - External jars on inpath not found
+------------------------------------------------------
 
-(1) Check out jarCreatingProject and jarDependentProject from:
+(1) Check out bug74401 test project
 
-		dev.eclipse.org/org.eclipse.ajdt/.../org.eclipse.ajdt.test/test projects
+(2) Right click > Project projects > AspectJ Inpath
+
+(3) Set hello.jar as a (workspace) JAR
+
+(4) Rebuild project and check it builds okay (BUILD_3)
+
+(5) Right click > Project projects > AspectJ Inpath
+
+(6) Remove jar file and add it again this time as an external JAR file
+
+(7) Rebuild project and check it builds okay (BUILD_4)
+
+(8) Right click > Project projects > AspectJ Inpath
+
+(9) Remove jar file, Add Variable... > Configure Variable... > New...
+    Enter MY_JAR as name and press Folder... and select the project
+    folder. Press OK > OK then select MY_JAR from list and press
+    Extend... and select hello.jar
+
+(10) Rebuild project and check it builds okay (BUILD_5)
+
+Test for bug 101481 - classes not appearing in output folder
+------------------------------------------------------------
+
+(1) Check out "Simple AJ Project"
+(2) Open the navigator view
+(3) delete all the .class files from the output dir	
+(4) Build the project by pressing the build button
+(5) Under bin in the navigator view you should see the classes appear
+    without having to refresh.                (BUILD_6)
+
+				
+Test bug 90094
+--------------
+
+(1) Install the Bean example
+(2) open the .classpath file
+(3) add the following to the .classpath file:
+
+		<classpathentry kind="var" path="myjar.jar"/>   
 		
-(2) Check that jarDependentProject has a project dependency on jarCreatingProject:
+(4) save the .classpath file
+(5) build the bean example by pressing the build button
+(6) There should be an error in the problems view saying:
 
-		- right click on jarDependentProject
-		- navigate to "properties"
-		- highlight "Java Build path" 
-		- navigate to the projects tab
-		- ensure the box next to "jarCreatingProject" is checked
-		- click ok
+		Unbound classpath variable: 'myjar.jar' in project Bean Example
 		
-(3) Check that jarCreatingProject is sending its output to a jar file called myJar.jar
-
-		- right click on jarCreatingProject
-		- navigate to "properties"
-		- highlight "AspectJ" 
-		- ensure the box next to "Outjar" contains "myJar.jar"
-		- click ok
-		
-(4)	Manually build both projects - both should build with no errors - and check that
-    "build automatically" is selected (Project > Build Automatically)
-
-(up until now has been setup.....)
-
-(5) bring up abstract aspect A.aj in the editor (this is in jarCreatingProject)
-
-(6) add the following abstract pointcut to the aspect:
-
-    	public abstract pointcut another();	
-    	
-(7) save A.aj - this forces a build
-
-(8) RESULT: jarDependingProject should now be marked with errors due to 
-    problems in Concrete.aj. In the problems view, there is the following
-    message:
-    
-    "Inherited abstract pointcut p1.A.another() is not made concrete in Concrete"
-    
-    Looking in the AJDT Event Trace (Window > Show View > AspectJ > AJDT Event Trace), it
-    should contain messages like the following:
-    
-    13:29:59	 build: Kind=AUTOBUILD Project=jarDependentProject Mode=Full AspectJ compilation
-	13:29:59	 build: Examined delta - no source file changes for project jarDependentProject
-	13:29:59	 build: Examined delta - source file changes in required project jarDependentProject
-    
-(9) Comment out the abstract pointcut you've just inserted:
-
-		// public abstract pointcut another();	
-		
-(10) save A.aj - this forces a build
-
-(11) RESULT: there should be no build errors on jarCreatingProject and jarDependingProject		
-    
-(12) Create a text file in jarCreatingProject:
-
-		- right click on jarCreatingProject
-		- Select New > File
-		- Enter name test.txt
-		- click "OK"
-		
-(13) The AJDT event trace should contain something like the following:
-
-	13:36:22	 build: Kind=AUTOBUILD Project=jarCreatingProject Mode=Full AspectJ compilation
-	13:36:22	 build: Examined delta - no source file changes for project jarCreatingProject
-	13:36:22	 build: Kind=AUTOBUILD Project=jarDependentProject Mode=Full AspectJ compilation
-	13:36:22	 build: Examined delta - no source file changes for project jarDependentProject
-	
-	and consequently a rebuild of jarDependingProject should not occur.
-					
+	and no AspectJ Error dialog should appear (BUILD_7)			

@@ -105,7 +105,7 @@ public class TestLogger implements IAJLogger {
     	System.out.println(""); //$NON-NLS-1$
     	System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
     	if (log == null) {
-    	    System.out.println("Empty log");
+    	    System.out.println("Empty log"); //$NON-NLS-1$
     	}
     	for (Iterator iter = log.iterator(); iter.hasNext();) {
 			String element = (String) iter.next();

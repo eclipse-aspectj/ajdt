@@ -1,0 +1,41 @@
+Manual testing of build configurations
+------------------------------------------
+
+ade- 11-07-2008 These tests are for the old build configurator style. 
+build.ajpropoerties are no longer used.  Rather, include/excudes of files are stored 
+in the .classpath/
+
+
+Tests for activation and including/excluding	
+
+Start with tracing example, check that initially none of the files under the
+lib, version1, version2, and version3 packages are included. (BC_1)
+
+Right-click tracev2.ajproperties > AspectJ Tools > Apppy Build Configuration
+The packages "tracing"  and "tracing.version2" are activated (filled icon),
+and the files in the other packages are excluded (hollow icons). (BC_2)
+
+Exclude "tracing/version2/Trace.aj" from the build path.
+There should be problem markers in the problems view and the package explorer. Now
+include this file and the problem markers should be cleared. (BC_3)
+
+Now apply the tracev1.ajproperties configuration. The packages "tracing" 
+and "tracing.version1" should now be included. (BC_4)
+	
+(bug 77261) Create a new top level folder (NOT a source folder)_called “nonsrc”, and copy a 
+source file into it.	The copied file should be shown to be excluded from the build configuration
+Right-click the new file to display the context menu	It should NOT be possible to include 
+this file – the include option must be disabled, or absent.
+Now make “nonsrc” into a source file (right click > Build Path > Use as Source Folder)	
+It should now be possible to include and then exclude this file  (BC_5)
+	
+(bug 77179) Remove AspectJ nature from the project	
+Refactor > Rename the tracing.version1 package to tracing.version10	The rename operation should 
+complete successfully without error  (BC_6)
+
+Select the project then "AspectJ Tools > Save Build Configuration As
+Press OK and check that a build.ajproperties file is created in the project.
+Check that it contains correct src.include and src.exclude lines  (BC_7)
+
+Apply the tracev3.ajproperties file, then apply the build.ajproperties file,
+and check that the appropriate include/exclude status is restored (BC_8)
