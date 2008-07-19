@@ -19,7 +19,7 @@ import org.eclipse.core.resources.IProject;
 /**
  * ICompilerFactory implementation which returns AjCompilers with
  * core implementations of the required interfaces.
- */
+ */ 
 public class CoreCompilerFactory implements ICompilerFactory {
 
 	private Map /* IProject --> AjCompiler */compilerMap = new HashMap();

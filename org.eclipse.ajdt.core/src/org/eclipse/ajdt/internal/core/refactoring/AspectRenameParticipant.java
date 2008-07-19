@@ -73,7 +73,7 @@ public class AspectRenameParticipant extends RenameParticipant {
 		final String newName = getArguments().getNewName();
 		IProject project = fType.getResource().getProject();
 		AJLog.log("Rename type references in aspects from "+oldName+" to "+newName); //$NON-NLS-1$ //$NON-NLS-2$
-		AJLog.log("qualified name: "+fType.getFullyQualifiedName());
+		AJLog.log("qualified name: "+fType.getFullyQualifiedName()); //$NON-NLS-1$
 		List ajs = AJCompilationUnitManager.INSTANCE.getCachedCUs(project);
 		pm.beginTask(CoreMessages.renameTypeReferences, ajs.size());
 		for (Iterator iter = ajs.iterator(); iter.hasNext();) {

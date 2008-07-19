@@ -21,7 +21,6 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.aspectj.org.eclipse.jdt.core.compiler.CharOperation;
-import org.aspectj.org.eclipse.jdt.core.compiler.IProblem;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.aspectj.org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
@@ -73,17 +72,14 @@ import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.aspectj.org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IGenericType;
 import org.aspectj.org.eclipse.jdt.internal.compiler.env.ISourceType;
-import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions; 
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.aspectj.org.eclipse.jdt.internal.compiler.impl.ReferenceContext;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.MethodScope;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TagBits;
-import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.aspectj.org.eclipse.jdt.internal.compiler.lookup.TypeConstants;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.SourceTypeConverter;
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
@@ -1334,7 +1330,7 @@ public void notifySourceElementRequestor(AbstractMethodDeclaration methodDeclara
 	}
 }
 
-/*
+/* 
 * Update the bodyStart of the corresponding parse node
 */
 public void notifySourceElementRequestor(FieldDeclaration fieldDeclaration, TypeDeclaration declaringType) {
@@ -1423,11 +1419,8 @@ public void notifySourceElementRequestor(
 	ImportReference importReference, 
 	boolean isPackage) {
 	if (isPackage) {
+		// AJDT 1.6 changed to new method
 		requestor.acceptPackage(importReference);
-//		requestor.acceptPackage(
-//			importReference.declarationSourceStart, 
-//			importReference.declarationSourceEnd, 
-//			CharOperation.concatWith(importReference.getImportName(), '.')); 
 	} else {
 		requestor.acceptImport(
 			importReference.declarationSourceStart, 
@@ -1653,6 +1646,8 @@ public CompilationUnitDeclaration parseCompilationUnit(
 	}
 	return null;
 }
+
+
 public void parseTypeMemberDeclarations(
 	ISourceType type, 
 	ICompilationUnit sourceUnit, 
@@ -1678,6 +1673,8 @@ public void parseTypeMemberDeclarations(
 		if ((unit == null) || (unit.types == null) || (unit.types.length != 1))
 			return;
 		this.sourceType = type;
+		
+		// AJDT 1.6 removed helper method
 		try {
 			/* automaton initialization */
 			initialize();

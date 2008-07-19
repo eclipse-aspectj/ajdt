@@ -53,7 +53,7 @@ public class AJRelationshipManager {
 			"annotated_by", CoreMessages.annotated_by_displayName, CoreMessages.annotated_by_menuName); //$NON-NLS-1$
 
 	public static final AJRelationshipType SOFTENS = new AJRelationshipType(
-			"softens", CoreMessages.softens_displayName, CoreMessages.softens_menuName); //$NON-NLS-1$ //$NON-NLS-2$
+			"softens", CoreMessages.softens_displayName, CoreMessages.softens_menuName); //$NON-NLS-1$ 
 
 	public static final AJRelationshipType SOFTENED_BY = new AJRelationshipType(
 			"softened_by", CoreMessages.softened_by_displayName, CoreMessages.softened_by_menuName); //$NON-NLS-1$

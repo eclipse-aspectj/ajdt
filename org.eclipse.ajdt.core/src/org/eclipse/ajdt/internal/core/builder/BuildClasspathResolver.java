@@ -139,7 +139,7 @@ public class BuildClasspathResolver {
 					nextPrereqEntry: for (int j = 0, m = prereqClasspathEntries.length; j < m; j++) {
 						IClasspathEntry prereqEntry = prereqClasspathEntries[j];
 						if (prereqEntry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-							Object prereqTarget = JavaModel.getTarget( prereqEntry.getPath(), true);
+							Object prereqTarget = JavaModel.getTarget(prereqEntry.getPath(), true);
 							if (!(prereqTarget instanceof IContainer)) continue nextPrereqEntry;
 							IPath prereqOutputPath = prereqEntry.getOutputLocation() != null 
 								? prereqEntry.getOutputLocation() 

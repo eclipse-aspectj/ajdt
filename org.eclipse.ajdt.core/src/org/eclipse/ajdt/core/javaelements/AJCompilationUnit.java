@@ -51,6 +51,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IProblemRequestor;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
@@ -59,7 +60,6 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.eclipse.jdt.internal.core.ASTHolderCUInfo;
 import org.eclipse.jdt.internal.core.BecomeWorkingCopyOperation;
 import org.eclipse.jdt.internal.core.BufferManager;
 import org.eclipse.jdt.internal.core.CompilationUnit;
@@ -131,7 +131,7 @@ public class AJCompilationUnit extends CompilationUnit{
 		}
 		String elementName = name;
 		//remove the .aj
-		elementName = elementName.substring(0, elementName.length() - ".aj".length());
+		elementName = elementName.substring(0, elementName.length() - ".aj".length()); //$NON-NLS-1$
 		return elementName.toCharArray();
 	}
 	
@@ -307,7 +307,7 @@ public class AJCompilationUnit extends CompilationUnit{
 				if (info instanceof ASTHolderAJCUInfo && compilationUnitDeclaration != null) {
 					ASTHolderAJCUInfo astHolder = (ASTHolderAJCUInfo) info;
 					int astLevel = astHolder.astLevel;
-					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), astHolder.reconcileFlags, pm);
+					org.eclipse.jdt.core.dom.CompilationUnit cu = AST.convertCompilationUnit(astLevel, compilationUnitDeclaration, contents, options, computeProblems, (CompilationUnit)perWorkingCopyInfo.getWorkingCopy(), astHolder.reconcileFlags, pm);
 					((ASTHolderAJCUInfo) info).ast = cu;
 				} 
 			} finally {
@@ -315,9 +315,6 @@ public class AJCompilationUnit extends CompilationUnit{
 			        compilationUnitDeclaration.cleanUp();
 			    }
 			}
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-			throw e;
 		} finally {
 		    this.discardOriginalContentMode();
 		}
@@ -385,8 +382,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			return buf;
 		
 		if (javaCompBuffer == null){
-			BufferManager bm = BufferManager.getDefaultBufferManager();
-			IBuffer myBuffer = bm.createBuffer(this);
+			IBuffer myBuffer = BufferManager.createBuffer(this);
 			javaCompBuffer = new JavaCompatibleBuffer(buf, myBuffer);
 		} else {
 			if (buf != javaCompBuffer)
@@ -457,8 +453,20 @@ public class AJCompilationUnit extends CompilationUnit{
 	 *  (non-Javadoc)
 	 * @see org.eclipse.jdt.internal.core.Openable#codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit, org.eclipse.jdt.internal.compiler.env.ICompilationUnit, int, org.eclipse.jdt.core.CompletionRequestor, org.eclipse.jdt.core.WorkingCopyOwner)
 	 */
-	protected void codeComplete(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip, int position, CompletionRequestor requestor, WorkingCopyOwner owner, org.eclipse.jdt.core.ITypeRoot root) throws JavaModelException {
-		ConversionOptions myConversionOptions; int pos;
+	protected void codeComplete(
+			org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu,
+			org.eclipse.jdt.internal.compiler.env.ICompilationUnit unitToSkip,
+			int position, CompletionRequestor requestor,
+			WorkingCopyOwner owner,
+			ITypeRoot typeRoot) throws JavaModelException {
+	    // Bug 76146
+	    // if we are not editing in an AspectJ editor 
+	    // (i.e., we are editing in a Java editor), 
+	    // then we do not have access to a proper parser
+	    // and we cannot perform code completion requests.
+	    if (!isEditingInAspectJEditor()) return;
+    
+	    ConversionOptions myConversionOptions; int pos;
 		
 		if(javaCompBuffer == null) {
 			convertBuffer(super.getBuffer());
@@ -475,7 +483,7 @@ public class AJCompilationUnit extends CompilationUnit{
 			pos = javaCompBuffer.translatePositionToFake(position);
 			// we call codeComplete twice in this case to combine the context specific completions with the
 			// completions for things like local variables.
-			super.codeComplete(cu, unitToSkip, pos, requestor, owner, root);				
+			super.codeComplete(cu, unitToSkip, pos, requestor, owner, this);				
 			//set up proposal filter to filter away all the proposals that would be wrong because of context switch
 			requestor = new ProposalRequestorFilter(requestor, javaCompBuffer);
 			((ProposalRequestorFilter)requestor).setAcceptMemberMode(false);
@@ -486,10 +494,23 @@ public class AJCompilationUnit extends CompilationUnit{
 		
 		javaCompBuffer.setConversionOptions(myConversionOptions);
 		pos = javaCompBuffer.translatePositionToFake(position);
-		super.codeComplete(cu, unitToSkip, pos, requestor, owner, root);
+		
+		super.codeComplete(cu, unitToSkip, pos, requestor, owner, this);
 		javaCompBuffer.setConversionOptions(optionsBefore);
 		
 	}
+	
+	
+    /**
+     * As per Bug 76146
+     * check to see if editing in Java Editor or AspectJ editor
+     */
+    private boolean isEditingInAspectJEditor() {
+        // This is a bit kludgy.
+        // when perWorkingCopyInfo is null 
+        // then we are editing in Java editor
+        return getPerWorkingCopyInfo() != null;
+    }
 
 	//return null if outside intertype method declaration or the name of the target type otherwise
 	private char[] isInIntertypeMethodDeclaration(int pos, JavaElement elem) throws JavaModelException{

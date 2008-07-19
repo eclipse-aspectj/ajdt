@@ -67,7 +67,7 @@ public class AJReconcileWorkingCopyOperation extends
 	protected void executeOperation() throws JavaModelException {
 		if (this.progressMonitor != null){
 			if (this.progressMonitor.isCanceled()) return;
-			this.progressMonitor.beginTask(Messages.element_reconciling, 2); //$NON-NLS-1$
+			this.progressMonitor.beginTask(Messages.element_reconciling, 2); 
 		}
 	
 		CompilationUnit workingCopy = getWorkingCopy();
@@ -106,7 +106,7 @@ public class AJReconcileWorkingCopyOperation extends
 							if (progressMonitor != null) progressMonitor.worked(1);
 							if (this.createAST && unit != null) {
 								Map options = workingCopy.getJavaProject().getOptions(true);
-								this.ast = AST.convertCompilationUnit(this.astLevel, unit,  options, true/*isResolved*/, workingCopy, 0, this.progressMonitor);
+								this.ast = AST.convertCompilationUnit(this.astLevel, unit, contents, options, true/*isResolved*/, workingCopy, 0, this.progressMonitor);
 								if (progressMonitor != null) progressMonitor.worked(1);
 							}
 					    } finally {

@@ -35,11 +35,14 @@ public class AJCodeElement extends LocalVariable implements IAJCodeElement {
 	 * @param parameterTypes
 	 */
 	public AJCodeElement(JavaElement parent, int line, String name) {
+		// note pass in line number to parent so that it can be stored in the memento
+		// this is a bit of a hack since the parent expects the declarationSourceStart value
 		super(parent,name,line,0,0,0,"I", null); //$NON-NLS-1$
 		this.name=name;
 		this.line=line;
 	}
 
+	
 	public ISourceRange getNameRange() {
 		if (nameStart==0) {
 			setStartAndEnd(line);

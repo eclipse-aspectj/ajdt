@@ -25,7 +25,9 @@ import java.util.Set;
 import org.aspectj.ajde.core.AjCompiler;
 import org.aspectj.ajdt.internal.core.builder.AjState;
 import org.aspectj.ajdt.internal.core.builder.IStateListener;
+import org.aspectj.ajdt.internal.core.builder.IncrementalStateManager;
 import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.BuildConfig;
 import org.eclipse.ajdt.core.CoreUtils;
@@ -42,6 +44,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceStatus;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -69,7 +72,7 @@ import org.osgi.service.prefs.BackingStoreException;
 public class AJBuilder extends IncrementalProjectBuilder {
 
 	private static IStateListener isl = null;
-	
+	 
 	private static List buildListeners = new ArrayList();
 
 	/**
@@ -103,6 +106,13 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		AJLog.log(AJLog.BUILDER,"Build kind = " + kindS); //$NON-NLS-1$
 				
 		IProject[] requiredProjects = getRequiredProjects(project,true);
+
+		if (kind == INCREMENTAL_BUILD || kind == AUTO_BUILD) {
+		    if (AspectJCorePreferences.isAutobuildSuppressed()) {
+		        AJLog.log(AJLog.BUILDER,"Autobuild suppressed by user for project " + project.getName()); //$NON-NLS-1$
+		        return requiredProjects;
+		    }
+		}
 
 		// must call this after checking whether a full build has been requested,
 		// otherwise the listeners are called with a different build kind than
@@ -152,6 +162,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		if(dta != null) {
 			copyResources(javaProject,dta);
 		}
+
 		if (kind != FULL_BUILD) {
 		    // need to add check here for whether the classpath has changed
 		    if (!sourceFilesChanged(dta, project)){
@@ -180,7 +191,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		migrateToRTContainerIfNecessary(javaProject);
 
 		IAJCompilerMonitor compilerMonitor = (IAJCompilerMonitor) compiler.getBuildProgressMonitor();
-		if (kind == FULL_BUILD) {
+		
+		// Bug 43711 must do a clean and rebuild if we can't 
+		// find a buildConfig file from a previous compilation
+		if (kind == FULL_BUILD ||
+		    !hasValidPreviousBuildConfig(compiler.getId())) {
+		    
 			IJavaProject ijp = JavaCore.create(project);
 			if (ijp != null)
 				cleanOutputFolders(ijp,false);
@@ -189,7 +205,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		}
 		compilerMonitor.prepare(new SubProgressMonitor(progressMonitor,100));
 
-		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath());
+		AJLog.log(AJLog.BUILDER_CLASSPATH,"Classpath="+compilerConfig.getClasspath()); //$NON-NLS-1$
 		
 		AJLog.logStart(TimerLogEvent.TIME_IN_AJDE);
 		if (kind == FULL_BUILD) {
@@ -246,6 +262,11 @@ public class AJBuilder extends IncrementalProjectBuilder {
 		return requiredProjects;
 	}
 
+    private boolean hasValidPreviousBuildConfig(String configId) {
+        AjState state = IncrementalStateManager.retrieveStateFor(configId);
+        return  state != null && state.getBuildConfig() != null;
+    }
+
 	/**
 	 * Check the inpath and aspect path entries exist. Creates problem markers
 	 * for missing entries
@@ -290,7 +311,7 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	private void markProject(IProject project, String errorMessage) {
 		try {
 			IMarker errorMarker = project.createMarker(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER);
-			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); //$NON-NLS-1$
+			errorMarker.setAttribute(IMarker.MESSAGE, errorMessage); 
 			errorMarker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 		} catch (CoreException e) {
 			AJLog.log(AJLog.BUILDER,"build: Problem occured creating the error marker for project " //$NON-NLS-1$
@@ -638,27 +659,35 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			for (int i = 0; i < paths.length; i++) {
 				numberDeleted += cleanFolder(project, paths[i], refresh);
 			}
+			
+			// clean inpath out folder
+			String inpathOut = AspectJCorePreferences.getProjectInpathOutFolder(project.getProject());
+			if (inpathOut != null && !inpathOut.equals("")) { //$NON-NLS-1$
+			    IPath inpathOutfolder = new Path(inpathOut);
+			    numberDeleted += cleanFolder(project, inpathOutfolder, refresh);
+			}
+			
 			AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder(s), deleted " //$NON-NLS-1$
 							+ numberDeleted + " .class files"); //$NON-NLS-1$
 		}
 	}
 	
 	private int cleanFolder(IJavaProject project, IPath outputFolder, boolean refresh) throws CoreException {
-		String realOutputLocation = null;
 		IResource outputResource;
 		if (outputFolder.segmentCount() == 1) {
 			// project root
 			outputResource = project.getProject();
-			realOutputLocation = project.getResource().getLocation()
-					.toOSString();
 		} else {
 			outputResource = ResourcesPlugin.getWorkspace().getRoot()
 					.getFolder(outputFolder);
-			realOutputLocation = outputResource.getLocation().toOSString();
+			if (!outputResource.exists()) {
+			    return 0;
+			}
 		}
 
-		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".class"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(outputResource, "class"); //$NON-NLS-1$
+		
+		
 		if (refresh) {
 			outputResource.refreshLocal(IResource.DEPTH_INFINITE, null);
         }
@@ -669,14 +698,12 @@ public class AJBuilder extends IncrementalProjectBuilder {
 			IPath workspaceRelativeOutputPath) throws CoreException {
 		IFolder out = ResourcesPlugin.getWorkspace().getRoot().getFolder(
 				workspaceRelativeOutputPath);
-		String realOutputLocation = out.getLocation().toOSString();
-		File outputDir = new File(realOutputLocation);
-		int numberDeleted = wipeFiles(outputDir.listFiles(), ".aj"); //$NON-NLS-1$
+		int numberDeleted = wipeFiles(out, "aj"); //$NON-NLS-1$
 		out.refreshLocal(IResource.DEPTH_INFINITE, null);
 		AJLog.log(AJLog.BUILDER,"Builder: Tidied output folder, deleted " //$NON-NLS-1$
 				+ numberDeleted
 				+ " .aj files from " //$NON-NLS-1$
-				+ realOutputLocation
+				+ out.getFullPath()
 				+ (out.isLinked() ? " (Linked output folder from " //$NON-NLS-1$
 						+ workspaceRelativeOutputPath.toOSString() + ")" : "")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -685,21 +712,35 @@ public class AJBuilder extends IncrementalProjectBuilder {
 	 * Recursively calling function. Given some set of files (which might be
 	 * dirs) it deletes any files with the given extension from the filesystem and then for any
 	 * directories, recursively calls itself.
+	 * 
+	 * BUG 101489---also delete files marked as derived
 	 */
-	private static int wipeFiles(File[] fs, String fileExtension) {
-		int count = 0;
-		if (fs != null) {
-			for (int fcounter = 0; fcounter < fs.length; fcounter++) {
-				File file = fs[fcounter];
-				if (file.getName().endsWith(fileExtension)) { //$NON-NLS-1$
-					file.delete();
-					count++;
-				}
-				if (file.isDirectory())
-					count += wipeFiles(file.listFiles(), fileExtension);
-			}
-		}
-		return count;
+	private static int wipeFiles(IResource outputResource, final String fileExtension) {
+       class WipeResources implements IResourceVisitor {
+            int numDeleted = 0;
+            public boolean visit(IResource resource) throws CoreException {
+                if (resource.isDerived()) {
+                    // non-class file 
+                    resource.delete(true, null);
+                    numDeleted++;   
+                    return false;
+                } else if (resource.getFileExtension() != null &&
+                           resource.getFileExtension().equals(fileExtension)) {
+                    // class file
+                    resource.delete(true, null);
+                    numDeleted++;   
+                }
+                // continue visit to children
+                return true;
+            }
+        };
+        WipeResources visitor = new WipeResources();
+        try {
+            outputResource.accept(visitor);
+        } catch (CoreException e) {
+        }
+        return visitor.numDeleted;
+        
 	}
 
 	

@@ -30,7 +30,7 @@ public class AJInjarElement extends AJCodeElement implements IAJCodeElement {
 	 * @param parameterTypes
 	 */
 	public AJInjarElement(String name, IProgramElement.ExtraInformation extraInfo) {
-		super(null,0,name); //$NON-NLS-1$
+		super(null,0,name); 
 		this.extraInfo = extraInfo;
 	}
 	

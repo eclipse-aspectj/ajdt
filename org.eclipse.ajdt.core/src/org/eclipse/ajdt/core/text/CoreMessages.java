@@ -67,4 +67,6 @@ public class CoreMessages extends NLS {
 	}
 
 	public static String builder_taskname;
+	
+	public static String noAJDEFound;
 }

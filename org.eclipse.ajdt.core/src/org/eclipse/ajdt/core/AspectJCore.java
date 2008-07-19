@@ -300,7 +300,7 @@ public class AspectJCore {
 					int offset = new Integer(extraInfo[0]).intValue();
 					switch (delimiterChar) {
 						case AspectElement.JEM_ADVICE:
-							String[] split = cname.split(Character.toString(AspectElement.JEM_ADVICE)); //$NON-NLS-1$
+							String[] split = cname.split(Character.toString(AspectElement.JEM_ADVICE)); 
 							String[] parameterTypes = new String[split.length - 1];
 							for (int i = 0; i < parameterTypes.length; i++) {
 								parameterTypes[i] = split[i + 1];
@@ -320,7 +320,7 @@ public class AspectJCore {
 							return new MockIntertypeElement(aspectEl, offset, split[0], parameterTypes, kind, accessibility);
 						case AspectElement.JEM_METHOD:
 							accessibility = extraInfo.length > 1 ? extraInfo[1] : null;
-							split = cname.split(Character.toString(AspectElement.JEM_METHOD)); //$NON-NLS-1$
+							split = cname.split(Character.toString(AspectElement.JEM_METHOD)); 
 							parameterTypes = new String[split.length - 1];
 							for (int i = 0; i < parameterTypes.length; i++) {
 								parameterTypes[i] = split[i + 1];

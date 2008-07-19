@@ -35,15 +35,17 @@ public class AJCTask extends JavacTask {
 		if(script instanceof AJAntScript) {
 			AJAntScript ajScript = (AJAntScript)script;
 			
-			ajScript.println("<path id=\"ajde.classpath\">");
+			ajScript.println("<path id=\"ajde.classpath\">"); //$NON-NLS-1$
 			ajScript.indent++;
-			for (int i = 0; i < ajdeClasspath.length; i++) {		
-				ajScript.printTab();
-				ajScript.print("<pathelement"); //$NON-NLS-1$
-				ajScript.printAttribute("path", ajdeClasspath[i], true); //$NON-NLS-1$ //$NON-NLS-2$
-				ajScript.print("/>"); //$NON-NLS-1$
-				ajScript.println();
-			}
+			if (ajdeClasspath != null) { 
+    			for (int i = 0; i < ajdeClasspath.length; i++) {		
+    				ajScript.printTab();
+    				ajScript.print("<pathelement"); //$NON-NLS-1$
+    				ajScript.printAttribute("path", ajdeClasspath[i], true); //$NON-NLS-1$ 
+    				ajScript.print("/>"); //$NON-NLS-1$
+    				ajScript.println();
+    			}
+		    }
 			ajScript.indent--;
 			ajScript.printTab();
 			ajScript.print("</path>"); //$NON-NLS-1$
@@ -56,14 +58,14 @@ public class AJCTask extends JavacTask {
 			
 			ajScript.println("<taskdef resource=\"org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties\">"); //$NON-NLS-1$
 			ajScript.indent++;
-			ajScript.println("<classpath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("<classpath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ 
 			ajScript.indent--;
 			ajScript.printEndTag("taskdef"); //$NON-NLS-1$
 			
 			if (useBuildConfig) {
 				ajScript.printTab();
 				ajScript.print("<property"); //$NON-NLS-1$
-				ajScript.printAttribute("file", buildConfig, false); //$NON-NLS-1$ //$NON-NLS-2$
+				ajScript.printAttribute("file", buildConfig, false); //$NON-NLS-1$ 
 				ajScript.print("/>"); //$NON-NLS-1$
 				ajScript.println();
 			}
@@ -93,7 +95,7 @@ public class AJCTask extends JavacTask {
 			ajScript.indent++;
 	
 			ajScript.println("<forkclasspath refid=\"" + classpathId + "\" />"); //$NON-NLS-1$ //$NON-NLS-2$
-			ajScript.println("<forkclasspath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ //$NON-NLS-2$
+			ajScript.println("<forkclasspath refid=\"ajde.classpath\" />"); //$NON-NLS-1$ 
 	
 			// Add aspectpath and inpath
 			if(aspectpath != null) {
@@ -103,7 +105,7 @@ public class AJCTask extends JavacTask {
 					String path = (String) iter.next();
 					ajScript.printTab();
 					ajScript.print("<pathelement"); //$NON-NLS-1$
-					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ //$NON-NLS-2$
+					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ 
 					ajScript.print("/>"); //$NON-NLS-1$
 					ajScript.println();
 				}
@@ -117,7 +119,7 @@ public class AJCTask extends JavacTask {
 					String path = (String) iter.next();
 					ajScript.printTab();
 					ajScript.print("<pathelement"); //$NON-NLS-1$
-					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ //$NON-NLS-2$
+					ajScript.printAttribute("path", path, false); //$NON-NLS-1$ 
 					ajScript.print("/>"); //$NON-NLS-1$
 					ajScript.println();
 				}

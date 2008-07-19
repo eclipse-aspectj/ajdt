@@ -13,17 +13,17 @@ package org.eclipse.ajdt.core;
 
 import java.util.HashMap;
 import java.util.Map;
- 
+
 /**
  * Minimal logging - if a logger hasn't been set, dump to sdout
- */  
+ */ 
 public class AJLog {
 
-	public static final int DEFAULT = 0;
+	public static final int DEFAULT = 0; 
 
 	public static final int COMPILER = 1;
 
-	public static final int BUILDER = 2;
+	public static final int BUILDER = 2; 
 
 	public static final int BUILDER_CLASSPATH = 3;	
 
@@ -31,6 +31,8 @@ public class AJLog {
 
 	public static final int COMPILER_MESSAGES = 5;	
 
+	public static final int PARSER = 6;
+	
 	private static IAJLogger logger;
 	
 	// support for logging the start and end of activies

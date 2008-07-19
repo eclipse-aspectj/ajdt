@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
@@ -161,7 +162,7 @@ public class ClasspathJar extends ClasspathLocation {
 		try {
 			if (this.zipFile == null) {
 				if (org.eclipse.jdt.internal.core.JavaModelManager.ZIP_ACCESS_VERBOSE) {
-					System.out.println("(" + Thread.currentThread() + ") [ClasspathJar.isPackage(String)] Creating ZipFile on " + zipFilename); //$NON-NLS-1$	//$NON-NLS-2$
+				    AJLog.log(AJLog.BUILDER_CLASSPATH, "(" + Thread.currentThread() + ") [ClasspathJar.isPackage(String)] Creating ZipFile on " + zipFilename); //$NON-NLS-1$   //$NON-NLS-2$
 				}
 				this.zipFile = new ZipFile(zipFilename);
 				this.closeZipFileAtEnd = true;

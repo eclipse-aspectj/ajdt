@@ -307,6 +307,8 @@ public String[] getRawParameterNames() throws JavaModelException {
 }
 
 public IMemberValuePair getDefaultValue() throws JavaModelException {
+	// this method is only need for IMethods that are annotation methods
+	// So, for aspect members, this always returns null
 	SourceMethodInfo sourceMethodInfo = (SourceMethodInfo) getElementInfo();
 	if (sourceMethodInfo.isAnnotationMethod()) {
 		return ((SourceAnnotationMethodInfo) sourceMethodInfo).defaultValue;

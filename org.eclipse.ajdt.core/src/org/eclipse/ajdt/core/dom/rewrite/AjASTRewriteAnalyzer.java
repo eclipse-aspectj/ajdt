@@ -11,7 +11,6 @@
 package org.eclipse.ajdt.core.dom.rewrite;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +25,7 @@ import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer;
 import org.aspectj.org.eclipse.jdt.core.dom.rewrite.TargetSourceRangeComputer.SourceRange;
 import org.aspectj.org.eclipse.jdt.core.formatter.IndentManipulation;
 import org.aspectj.org.eclipse.jdt.internal.compiler.parser.ScannerHelper;
+import org.aspectj.org.eclipse.jdt.internal.core.JavaModelStatus;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFlattener;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.LineCommentEndOffsets;
@@ -38,15 +38,13 @@ import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.TokenScanner;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore.CopyPlaceholderData;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.NodeInfoStore.StringPlaceholderData;
 import org.aspectj.org.eclipse.jdt.internal.core.dom.rewrite.RewriteEventStore.CopySourceInfo;
+import org.eclipse.ajdt.core.AspectJPlugin;
 import org.eclipse.ajdt.core.dom.rewrite.AjASTRewriteFormatter.BlockContext;
 import org.eclipse.ajdt.core.dom.rewrite.AjASTRewriteFormatter.NodeMarker;
 import org.eclipse.ajdt.core.dom.rewrite.AjASTRewriteFormatter.Prefix;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.Assert;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.TextUtilities;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.text.edits.CopySourceEdit;
 import org.eclipse.text.edits.CopyTargetEdit;
 import org.eclipse.text.edits.DeleteEdit;
@@ -92,8 +90,9 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		} catch (IllegalAccessException ex) {
 			throw new ExceptionInInitializerError(ex.getMessage());
 		} catch (ClassNotFoundException ex) {
-			System.err.println("Warning: AspectJ type declaration factory class not found on classpath"); //$NON-NLS-1$
-			//throw new ExceptionInInitializerError(ex.getMessage());
+		    AspectJPlugin.getDefault().getLog().log(new JavaModelStatus(IStatus.WARNING, 
+		            "Warning: AspectJ type declaration factory class not found on classpath")); //$NON-NLS-1$
+            AspectJPlugin.getDefault().getLog().log(new JavaModelStatus(IStatus.WARNING, ex));
 		}
 	}
 
@@ -1424,7 +1423,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 		
 		// AspectJ Change begin
 		//int startPos= rewriteNode(node, CompilationUnit.PACKAGE_PROPERTY, 0, ASTRewriteFormatter.NONE); //$NON-NLS-1$
-		int startPos= rewriteNode(node, CompilationUnit.PACKAGE_PROPERTY, 0, AjASTRewriteFormatter.NONE); //$NON-NLS-1$
+		int startPos= rewriteNode(node, CompilationUnit.PACKAGE_PROPERTY, 0, AjASTRewriteFormatter.NONE); 
 		// AspectJ Change end	
 		
 		if (getChangeKind(node, CompilationUnit.PACKAGE_PROPERTY) == RewriteEvent.INSERTED) {
@@ -1565,7 +1564,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			return;
 		}
 		// difficult cases: return type insert or remove
-		ASTNode newReturnType= (ASTNode) getNewValue(node, property);
 	}
 	
 	private void rewriteReturnType(MethodDeclaration node, boolean isConstructor, boolean isConstructorChange) {
@@ -1919,7 +1917,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			int offset= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNamebreak, node.getStartPosition());
 			// AspectJ Change Begin
 			//rewriteNode(node, BreakStatement.LABEL_PROPERTY, offset, ASTRewriteFormatter.SPACE); // space between break and label //$NON-NLS-1$
-			rewriteNode(node, BreakStatement.LABEL_PROPERTY, offset, AjASTRewriteFormatter.SPACE); // space between break and label //$NON-NLS-1$
+			rewriteNode(node, BreakStatement.LABEL_PROPERTY, offset, AjASTRewriteFormatter.SPACE); // space between break and label 
 			// AspectJ Change End
 		} catch (CoreException e) {
 			handleException(e);
@@ -2066,7 +2064,7 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			int offset= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNamecontinue, node.getStartPosition());
 			// AspectJ Change Begin
 			//rewriteNode(node, ContinueStatement.LABEL_PROPERTY, offset, ASTRewriteFormatter.SPACE); // space between continue and label //$NON-NLS-1$
-			rewriteNode(node, ContinueStatement.LABEL_PROPERTY, offset, AjASTRewriteFormatter.SPACE); // space between continue and label //$NON-NLS-1$
+			rewriteNode(node, ContinueStatement.LABEL_PROPERTY, offset, AjASTRewriteFormatter.SPACE); // space between continue and label 
 			// AspectJ Change End
 		} catch (CoreException e) {
 			handleException(e);
@@ -3683,8 +3681,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				pos= doVisit(node, AdviceDeclaration.PARAMETERS_PROPERTY, pos);
 			}
 			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			boolean hasExceptionChanges= isChanged(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AdviceDeclaration.BODY_PROPERTY);
 			pos= rewriteNodeList(node, AdviceDeclaration.THROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
 			rewriteAdviceBody(node, pos);
 		} catch (CoreException e) {
@@ -3721,8 +3717,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				pos= rewriteRequiredNode(node, AfterReturningAdviceDeclaration.returningRETURNING_PROPERTY);
 			}
 			
-			boolean hasExceptionChanges= isChanged(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AfterReturningAdviceDeclaration.returningBODY_PROPERTY);
 			pos= rewriteNodeList(node, AfterReturningAdviceDeclaration.returningTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
 			rewriteAdviceBody(node, pos);
 		} catch (CoreException e) {
@@ -3751,8 +3745,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 				pos= rewriteRequiredNode(node, AfterThrowingAdviceDeclaration.throwingTHROWING_PROPERTY);
 			}
 			
-			boolean hasExceptionChanges= isChanged(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY);
-			int bodyChangeKind= getChangeKind(node, AfterThrowingAdviceDeclaration.throwingBODY_PROPERTY);
 			pos= rewriteNodeList(node, AfterThrowingAdviceDeclaration.throwingTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
 			rewriteAdviceBody(node, pos);
 		} catch (CoreException e) {
@@ -3782,10 +3774,6 @@ public final class AjASTRewriteAnalyzer extends AjASTVisitor {
 			}
 			
 			pos= getScanner().getTokenEndOffset(ITerminalSymbols.TokenNameRPAREN, pos);
-			
-			boolean hasExceptionChanges= isChanged(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY);
-			
-			int bodyChangeKind= getChangeKind(node, AroundAdviceDeclaration.aroundBODY_PROPERTY);
 			
 			pos= rewriteNodeList(node, AroundAdviceDeclaration.aroundTHROWN_EXCEPTIONS_PROPERTY, pos, " throws ", ", "); //$NON-NLS-1$ //$NON-NLS-2$
 			rewriteAdviceBody(node, pos);

@@ -98,11 +98,7 @@ public class AspectJPlugin extends Plugin {
 
 	public static boolean usingCUprovider = false;
 	
-	/**
-	 * The currently selected project
-	 */
-	private IProject currentProject;
-	
+
 	/**
 	 * The compiler factory
 	 */
@@ -133,12 +129,12 @@ public class AspectJPlugin extends Plugin {
 	 *
 	 */
 	private void checkForCUprovider() {
-		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider";
+		String EJDT_CU_PROVIDER_EXTENSION = "org.eclipse.jdt.core.compilationUnitProvider"; //$NON-NLS-1$
 		IExtensionPoint exP = Platform.getExtensionRegistry()
 			.getExtensionPoint(EJDT_CU_PROVIDER_EXTENSION);
 		if (exP!=null) {
 			// extension exists, check that org.eclipse.ajdt.cuprovider is there to use it
-			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) {
+			if (Platform.getBundle("org.eclipse.ajdt.cuprovider")!=null) { //$NON-NLS-1$
 				usingCUprovider = true;
 			}
 		}

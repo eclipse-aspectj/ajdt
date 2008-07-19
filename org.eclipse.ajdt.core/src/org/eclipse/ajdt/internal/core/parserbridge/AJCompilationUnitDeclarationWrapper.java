@@ -9,11 +9,9 @@
 package org.eclipse.ajdt.internal.core.parserbridge;
 
 import org.aspectj.org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
-import org.aspectj.org.eclipse.jdt.internal.compiler.util.Util;
 import org.eclipse.ajdt.core.AJLog;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;

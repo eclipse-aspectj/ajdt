@@ -17,7 +17,6 @@ import org.aspectj.ajdt.internal.compiler.ast.InterTypeDeclaration;
 import org.aspectj.ajdt.internal.compiler.ast.PointcutDeclaration;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ISourceElementRequestor;
 import org.aspectj.org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 
 /*
  * Part of the source element parser responsible for building the output.

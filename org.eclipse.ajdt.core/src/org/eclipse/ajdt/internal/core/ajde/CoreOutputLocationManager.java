@@ -20,12 +20,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.aspectj.ajde.core.IOutputLocationManager;
+import org.eclipse.ajdt.core.AJLog;
+import org.eclipse.ajdt.core.AspectJCorePreferences;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -40,7 +44,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	private String projectName;
 	private IProject project;
 	private IJavaProject jProject;
-
+	
 	// if there is more than one output directory then the default output
 	// location to use is recorded in the 'defaultOutput' field
 	private File defaultOutput;
@@ -65,6 +69,7 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			// need to record all possible output directories
 			init();
 		}
+		
 	}
 	
 	/**
@@ -73,28 +78,58 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	private void init() {
 		outputIsRoot = false;
 		projectName = jProject.getProject().getName();
+		String inpathOutFolder = getInpathOutputFolder();
+		boolean isUsingNonDefaultInpathOutfolder = inpathOutFolder != null;
+
 		try {
 			defaultOutput = workspacePathToFile(jProject.getOutputLocation());
 			allOutputFolders.add(defaultOutput);
 			// store separate output folders in map
 			IClasspathEntry[] cpe = jProject.getRawClasspath();
-			for (int i = 0; i < cpe.length; i++) {
+			outer: for (int i = 0; i < cpe.length; i++) {
+                // check to see if on inpath
+                if (isUsingNonDefaultInpathOutfolder) {
+                    IClasspathAttribute[] attributes = cpe[i].getExtraAttributes();
+                    for (int j = 0; j < attributes.length; j++) {
+                        if (attributes[j].getName().equals(AspectJCorePreferences.INPATH_ATTRIBUTE.getName())) {
+                            IPath path = cpe[i].getPath();
+                            File f = workspacePathToFile(path);
+                            if (f != null && f.exists()) {
+                                // use full path
+                                String srcFolder = new Path(f.getPath()).toPortableString();
+                                File out = workspacePathToFile(new Path(inpathOutFolder));
+                                srcFolderToOutput.put(srcFolder,out);
+                            } else {
+                                // outfolder does not exist
+                                // probably because Project has been renamed
+                                // and inpath output location has not been updated.
+                                // this is handled with a message to the user
+                            }
+                            continue outer;
+                        }
+                    }
+                }
+                
 				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
 					IPath output = cpe[i].getOutputLocation();
 					if (output != null) {
 						IPath path = cpe[i].getPath();
+
 						String srcFolder = path.removeFirstSegments(1).toPortableString();
 						if (path.segmentCount() == 1) { // output folder is project
 							srcFolder = path.toPortableString();
 						}
 						File out = workspacePathToFile(output);
 						srcFolderToOutput.put(srcFolder,out);
-						if(!allOutputFolders.contains(out)) allOutputFolders.add(out);
+						if(!allOutputFolders.contains(out)) {
+						    allOutputFolders.add(out);
+						}
 						if (outputIsRoot) {
 							// bug 153682: if the project is the source folder
 							//  then this output folder will always apply
 							defaultOutput = out;
 						}
+						
 					}
 				}
 			}
@@ -114,6 +149,12 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 			return defaultOutput;
 		}
 		String fileName = resource.toString().replace('\\', '/');
+		if (projectName==null) {
+			projectName= jProject.getProject().getName();
+			if (projectName==null) {
+				AJLog.log(AJLog.DEFAULT,"CoreOutputLocationManager: cannot determine project name of this project: "+jProject); //$NON-NLS-1$
+			}
+		}
 		int ind = fileName.indexOf(projectName);
 		if (ind != -1) {
 			String rest = fileName.substring(ind + projectName.length() + 1);
@@ -125,6 +166,16 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 					return out;
 				}
 			}
+		} else {
+		    // we might have a folder from a different project
+		    for (Iterator iter = srcFolderToOutput.keySet().iterator(); iter
+                    .hasNext();) {
+                String src = (String) iter.next();
+                if (fileName.startsWith(src)) {
+                    File out = (File) srcFolderToOutput.get(src);
+                    return out;
+                }
+            }
 		}
 		return defaultOutput;
 	}
@@ -134,7 +185,10 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	 * by this project and false otherwise
 	 */
 	private boolean isUsingSeparateOutputFolders(IJavaProject jp) {
-		try {
+		if (getInpathOutputFolder() != null) {
+		    return true;
+		}
+	    try {
 			IClasspathEntry[] cpe = jp.getRawClasspath();
 			for (int i = 0; i < cpe.length; i++) {
 				if (cpe[i].getEntryKind() == IClasspathEntry.CPE_SOURCE) {
@@ -173,14 +227,21 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	
 	private File workspacePathToFile(IPath path) {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		if (path.segmentCount()==1) {
+		if (path.segmentCount() == 1) {
 			// bug 153682: getFolder fails when the path is a project
 			IResource res = root.findMember(path);
 			outputIsRoot = true;
 			return res.getLocation().toFile();
 		}
 		IFolder out = root.getFolder(path);
-		return out.getLocation().toFile();
+		
+		IPath outPath = out.getLocation();
+		if (outPath != null) {
+		    return outPath.toFile();
+		} else {
+		    return null;
+		}
+		
 	}
 
 	/**
@@ -189,6 +250,14 @@ public class CoreOutputLocationManager implements IOutputLocationManager {
 	public List getAllOutputLocations() {
 		return allOutputFolders;
 	}
+	
+	public String getInpathOutputFolder() {
+        String inpathOutFolder = AspectJCorePreferences.getProjectInpathOutFolder(project);
+        // assume that the folder is valid...
+        // null means that the default out folder is used
+        return inpathOutFolder;
+    }
+
 
 	/**
 	 * If there's only one output directory return this one, otherwise
