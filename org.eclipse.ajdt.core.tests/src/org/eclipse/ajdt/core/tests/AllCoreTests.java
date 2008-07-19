@@ -18,6 +18,7 @@ import org.eclipse.ajdt.core.tests.builder.AJBuilderTest;
 import org.eclipse.ajdt.core.tests.builder.AJBuilderTest2;
 import org.eclipse.ajdt.core.tests.builder.Bug159197Test;
 import org.eclipse.ajdt.core.tests.builder.Bug99133Test;
+import org.eclipse.ajdt.core.tests.builder.Bug43711Test;
 import org.eclipse.ajdt.core.tests.builder.CoreOutputLocationManagerTest;
 import org.eclipse.ajdt.core.tests.codeconversion.AspectsConvertingParserTest;
 import org.eclipse.ajdt.core.tests.codeconversion.CodeCheckerTest;
@@ -54,6 +55,7 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJPropertiesTest.class));
 		suite.addTest(new TestSuite(BuildConfigTest.class));
 		suite.addTest(new TestSuite(CoreUtilsTest.class));
+		suite.addTest(new TestSuite(ProjectDeletionTest.class));
 		
 		// code conversion tests
 		suite.addTest(new TestSuite(AspectsConvertingParserTest.class));
@@ -82,7 +84,8 @@ public class AllCoreTests {
 		suite.addTest(new TestSuite(AJBuilderTest.class));
 		suite.addTest(new TestSuite(AJBuilderTest2.class));
 		suite.addTest(new TestSuite(Bug99133Test.class));
-		suite.addTest(new TestSuite(Bug159197Test.class));
+        suite.addTest(new TestSuite(Bug159197Test.class));
+        suite.addTest(new TestSuite(Bug43711Test.class));
 
 		// AST tests
 		suite.addTest(new TestSuite(ASTRewritingPointcutDeclTest.class));

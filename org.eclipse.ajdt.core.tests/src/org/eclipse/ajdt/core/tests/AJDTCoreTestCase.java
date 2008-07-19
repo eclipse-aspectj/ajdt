@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 
@@ -83,16 +84,16 @@ public class AJDTCoreTestCase extends TestCase {
 	
 	protected IProject createPredefinedProject14(final String projectName) throws CoreException,IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
-		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");
-		jp.setOption("org.eclipse.jdt.core.compiler.source", "1.4");
-		jp.setOption("org.eclipse.jdt.core.compiler.target", "1.4");
+		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
+		jp.setOption("org.eclipse.jdt.core.compiler.source", "1.4");  //$NON-NLS-1$//$NON-NLS-2$
+		jp.setOption("org.eclipse.jdt.core.compiler.target", "1.4"); //$NON-NLS-1$ //$NON-NLS-2$
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
 	}
 	
 	protected IProject createPredefinedProject(final String projectName) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
-		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");
+		jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore"); //$NON-NLS-1$ //$NON-NLS-2$
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();
 	}
@@ -103,9 +104,9 @@ public class AJDTCoreTestCase extends TestCase {
 	protected IProject createPredefinedProject(final String projectName,boolean turnOffIrritatingOptions) throws CoreException, IOException {
 		IJavaProject jp = setUpJavaProject(projectName);
 		if (turnOffIrritatingOptions) {
-			jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");//$NON-NLS-1$ // $NON-NLS-2$
-			jp.setOption("org.eclipse.jdt.core.compiler.problem.rawTypeReference","ignore");//$NON-NLS-1$ // $NON-NLS-2$
-			jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ // $NON-NLS-2$
+			jp.setOption("org.eclipse.jdt.core.compiler.problem.missingSerialVersion", "ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
+			jp.setOption("org.eclipse.jdt.core.compiler.problem.rawTypeReference","ignore");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
+			jp.setOption("org.eclipse.jdt.core.compiler.taskTags","");//$NON-NLS-1$ //$NON-NLS-2$ // $NON-NLS-2$
 		}
 		jp.getProject().build(IncrementalProjectBuilder.FULL_BUILD,null);
 		return jp.getProject();		
@@ -143,7 +144,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Platform.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -157,7 +158,7 @@ public class AJDTCoreTestCase extends TestCase {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Platform.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();

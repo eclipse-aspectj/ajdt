@@ -23,49 +23,49 @@ public class CoreCompilerFactoryTests extends AJDTCoreTestCase {
 
 	public void testCompilerInstanceRemovedOnProjectDeletion() throws Exception {
 		ICompilerFactory factory = AspectJPlugin.getDefault().getCompilerFactory();
-		IProject p = createPredefinedProject("TJP Example");
-		assertTrue("expected there to be a 'Compiler' associated with the" +
-				" 'TJP Example' project but couldn't find one",factory.hasCompilerForProject(p));
+		IProject p = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		assertTrue("expected there to be a 'Compiler' associated with the" + //$NON-NLS-1$
+				" 'TJP Example' project but couldn't find one",factory.hasCompilerForProject(p)); //$NON-NLS-1$
 		deleteProject(p,true);
-		assertFalse("didn't expect there to be a 'Compiler' associated with the" +
-				" deleted 'TJP Example' project but found one",factory.hasCompilerForProject(p));
+		assertFalse("didn't expect there to be a 'Compiler' associated with the" + //$NON-NLS-1$
+				" deleted 'TJP Example' project but found one",factory.hasCompilerForProject(p)); //$NON-NLS-1$
 	}
 
 	public void testCompilerInstanceRemovedOnProjectClosure() throws Exception {
 		ICompilerFactory factory = AspectJPlugin.getDefault().getCompilerFactory();
-		IProject p = createPredefinedProject("TJP Example");
-		assertTrue("expected there to be a 'Compiler' associated with the" +
-				" 'TJP Example' project but couldn't find one",factory.hasCompilerForProject(p));
+		IProject p = createPredefinedProject("TJP Example"); //$NON-NLS-1$
+		assertTrue("expected there to be a 'Compiler' associated with the" + //$NON-NLS-1$
+				" 'TJP Example' project but couldn't find one",factory.hasCompilerForProject(p)); //$NON-NLS-1$
 		p.close(null);
-		assertFalse("didn't expect there to be a 'Compiler' associated with the" +
-				" deleted 'TJP Example' project but found one",factory.hasCompilerForProject(p));
+		assertFalse("didn't expect there to be a 'Compiler' associated with the" + //$NON-NLS-1$
+				" deleted 'TJP Example' project but found one",factory.hasCompilerForProject(p)); //$NON-NLS-1$
 	}
 	
 	public void testCompilerInstanceSavedInMap() throws Exception {
 		ICompilerFactory factory = AspectJPlugin.getDefault().getCompilerFactory();
-		IProject p = createPredefinedProject("TJP Example");
+		IProject p = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		AjCompiler c = factory.getCompilerForProject(p);
 		AjCompiler c2 = factory.getCompilerForProject(p);
-		assertEquals("expected the same Compiler instance but found different" +
-				" ones ", c,c2);
+		assertEquals("expected the same Compiler instance but found different" + //$NON-NLS-1$
+				" ones ", c,c2); //$NON-NLS-1$
 	}
 	
 	public void testRemoveCompiler() throws Exception {
 		ICompilerFactory factory = AspectJPlugin.getDefault().getCompilerFactory();
-		IProject p = createPredefinedProject("TJP Example");
+		IProject p = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		factory.removeCompilerForProject(p);
-		assertFalse("didn't expect there to be a 'Compiler' associated with the" +
-				" 'TJP Example' project but found one",factory.hasCompilerForProject(p));
+		assertFalse("didn't expect there to be a 'Compiler' associated with the" + //$NON-NLS-1$
+				" 'TJP Example' project but found one",factory.hasCompilerForProject(p)); //$NON-NLS-1$
 	}
 	
 	public void testGetCompiler() throws Exception {
 		ICompilerFactory factory = AspectJPlugin.getDefault().getCompilerFactory();
-		IProject p = createPredefinedProject("TJP Example");
+		IProject p = createPredefinedProject("TJP Example"); //$NON-NLS-1$
 		AjCompiler c = factory.getCompilerForProject(p);
-		IProject p2 = createPredefinedProject("Bean Example");
+		IProject p2 = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		AjCompiler c2 = factory.getCompilerForProject(p2);
-		assertNotSame("expected different Compiler instances for different projects" +
-				" but found the same one ", c,c2);
+		assertNotSame("expected different Compiler instances for different projects" + //$NON-NLS-1$
+				" but found the same one ", c,c2); //$NON-NLS-1$
 	}
 	
 }

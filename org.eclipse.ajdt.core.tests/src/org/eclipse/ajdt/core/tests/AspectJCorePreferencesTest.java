@@ -46,7 +46,7 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     }
 
     public void testGetProjectAspectPath() {
-    	String[] aspectPath = AspectJCorePreferences.getProjectAspectPath(project);
+    	String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length); //$NON-NLS-1$
     	assertTrue("hello.jar should be on the aspectpath",aspectPath[0].startsWith("/CorePreferencesTestProject/hello.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",aspectPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -55,13 +55,13 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
 
     public void testSetProjectAspectPath() {
     	AspectJCorePreferences.setProjectAspectPath(project,"","",""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	String[] aspectPath = AspectJCorePreferences.getProjectAspectPath(project);
+    	String[] aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length); //$NON-NLS-1$
     	for (int i = 0; i < aspectPath.length; i++) {
 			assertEquals("should be empty string on aspectpath","",aspectPath[i]); //$NON-NLS-1$ //$NON-NLS-2$
 		}
     	AspectJCorePreferences.setProjectAspectPath(project,"/CorePreferencesTestProject/hello.jar","2","1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	aspectPath = AspectJCorePreferences.getProjectAspectPath(project);   	   	
+    	aspectPath = AspectJCorePreferences.getResolvedProjectAspectPath(project);   	   	
     	assertEquals("there should be 3 entries on the aspect path",3,aspectPath.length); //$NON-NLS-1$
     	assertTrue("hello.jar should be on the aspectpath",aspectPath[0].startsWith("/CorePreferencesTestProject/hello.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",aspectPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -69,7 +69,7 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
     }
 
     public void testGetProjectInPath() {
-    	String[] inPath = AspectJCorePreferences.getProjectInPath(project);
+    	String[] inPath = AspectJCorePreferences.getResolvedProjectInpath(project);
     	assertEquals("there should be 3 entries on the aspect path",3,inPath.length);   //$NON-NLS-1$
     	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -79,13 +79,13 @@ public class AspectJCorePreferencesTest extends AJDTCoreTestCase {
 
     public void testSetProjectInPath() {
     	AspectJCorePreferences.setProjectInPath(project,"","",""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	String[] inPath = AspectJCorePreferences.getProjectInPath(project);
+    	String[] inPath = AspectJCorePreferences.getResolvedProjectInpath(project);
     	assertEquals("there should be 3 entries on the inpath",3,inPath.length); //$NON-NLS-1$
     	for (int i = 0; i < inPath.length; i++) {
 			assertEquals("should be empty string on inpath","",inPath[i]); //$NON-NLS-1$ //$NON-NLS-2$
 		}
     	AspectJCorePreferences.setProjectInPath(project,"/CorePreferencesTestProject/test.jar","2","1"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	inPath = AspectJCorePreferences.getProjectInPath(project);   	   	
+    	inPath = AspectJCorePreferences.getResolvedProjectInpath(project);   	   	
     	assertEquals("there should be 3 entries on the inpath",3,inPath.length); //$NON-NLS-1$
     	assertTrue("test.jar should be on the inpath",inPath[0].startsWith("/CorePreferencesTestProject/test.jar")); //$NON-NLS-1$ //$NON-NLS-2$
     	assertTrue("Content kind should be BINARY",inPath[1].startsWith("2")); //$NON-NLS-1$ //$NON-NLS-2$

@@ -623,7 +623,7 @@ public class AJBuilderTest extends AJDTCoreTestCase {
 				.exists());
 		notExcluded.create(true, true, null);
 		assertTrue(
-				"folder should now exist: " + notExcluded, notExcluded.exists()); //$NON-NLS-1$ //$NON-NLS-1$
+				"folder should now exist: " + notExcluded, notExcluded.exists()); //$NON-NLS-1$
 
 		IFolder test = src.getFolder("test"); //$NON-NLS-1$
 		assertTrue("couldn't find src/test folder", test.exists()); //$NON-NLS-1$		
