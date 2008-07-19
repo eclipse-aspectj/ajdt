@@ -610,8 +610,8 @@ public class XReferenceInplaceDialog {
 		String keySequence= sequences[0].format();
 		
 		if (isShowingParentCrosscutting)
-			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_hideParentCrosscutting, keySequence); //$NON-NLS-1$
-			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_showParentCrosscutting, keySequence); //$NON-NLS-1$
+			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_hideParentCrosscutting, keySequence); 
+			return NLS.bind(XRefMessages.XReferenceInplaceDialog_statusFieldText_showParentCrosscutting, keySequence); 
 	}
 	
 	private TriggerSequence[] getInvokingCommandKeySequences() {
@@ -911,8 +911,8 @@ public class XReferenceInplaceDialog {
 			public void modifyText(ModifyEvent e) {
 				String text = ((Text) e.widget).getText();
 				int length = text.length();
-				if (length > 0 && text.charAt(length - 1) != '*') {//$NON-NLS-1$
-					text = text + '*';//$NON-NLS-1$
+				if (length > 0 && text.charAt(length - 1) != '*') {
+					text = text + '*';
 				}
 				setMatcherString(text);
 			}
