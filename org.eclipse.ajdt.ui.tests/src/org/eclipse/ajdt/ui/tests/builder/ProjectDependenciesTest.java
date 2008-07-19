@@ -17,7 +17,7 @@ import org.eclipse.ajdt.ui.tests.testutils.BlockingProgressMonitor;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest.MyJobChangeListener;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 
 /**
  * @author hawkinsh
@@ -133,7 +133,7 @@ public class ProjectDependenciesTest extends UITestCase {
 	public void testProjectDependenciesWithPluginProjects() throws Exception {
 		setUpPluginEnvironment();
 		MyJobChangeListener listener = new MyJobChangeListener();
-		Platform.getJobManager().addJobChangeListener(listener);
+		Job.getJobManager().addJobChangeListener(listener);
 
 		// create two plugin projects (java)
 		IProject projectY = createPredefinedProject("java.plugin.project.Y"); //$NON-NLS-1$

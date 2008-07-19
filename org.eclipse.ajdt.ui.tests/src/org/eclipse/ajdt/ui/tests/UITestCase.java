@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
 
@@ -25,6 +26,7 @@ import org.eclipse.ajdt.internal.ui.preferences.AspectJPreferences;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -35,18 +37,21 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.TextViewer;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.browser.IBrowserViewerContainer;
-import org.eclipse.ui.internal.views.log.LogView;
+import org.eclipse.ui.internal.console.ConsoleView;
+import org.eclipse.ui.internal.console.IOConsolePage;
+import org.eclipse.ui.internal.views.markers.ExtendedMarkersView;
+import org.eclipse.ui.internal.views.markers.ProblemsView;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -323,12 +328,33 @@ public abstract class UITestCase extends TestCase {
 		br.close();
 		return contents.toString();
 	}
-
-	public static LogView openLogView() throws PartInitException {
-			IViewPart viewpart =
-			Workbench.getInstance().getActiveWorkbenchWindow()
-			.getActivePage().getActivePart().getSite().getPage().showView(
-				"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
-			if (viewpart instanceof LogView) return (LogView)viewpart; else return null;
+	
+   protected static String getConsoleViewContents() {
+        ConsoleView cview = null;
+        IViewReference[] views = AspectJUIPlugin.getDefault().getWorkbench()
+                .getActiveWorkbenchWindow().getActivePage().getViewReferences();
+        for (int i = 0; i < views.length; i++) {
+            if (views[i].getView(false) instanceof ConsoleView) {
+                cview = (ConsoleView) views[i].getView(false);
+            }
+        }
+        assertNotNull("Console view should be open", cview); //$NON-NLS-1$
+        IOConsolePage page = (IOConsolePage) cview.getCurrentPage();
+        TextViewer viewer = page.getViewer();
+        return viewer.getDocument().get();
+    }
+ 
+	protected IMarker[] getAllProblemViewMarkers() {
+		try {
+			ProblemsView problemsView = (ProblemsView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");        //$NON-NLS-1$
+			Method getAllMarkersMethod = ExtendedMarkersView.class.getDeclaredMethod("getAllMarkers", new Class[]{}); //$NON-NLS-1$
+			getAllMarkersMethod.setAccessible(true);
+			return (IMarker[]) getAllMarkersMethod.invoke(problemsView, new Object[]{});
+		} catch(Exception e) {
+			fail("Could not get problem view markers: " + e.getMessage()); //$NON-NLS-1$
+			return null;
+		}
+		
 	}
+
 }

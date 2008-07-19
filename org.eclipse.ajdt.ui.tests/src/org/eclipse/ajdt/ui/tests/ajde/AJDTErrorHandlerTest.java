@@ -14,7 +14,6 @@ package org.eclipse.ajdt.ui.tests.ajde;
 import org.eclipse.ajdt.internal.ui.ajde.AJDTErrorHandler;
 import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -25,7 +24,6 @@ import org.eclipse.core.runtime.Status;
 public class AJDTErrorHandlerTest extends UITestCase {
 
 	public void testHandleAJDTErrorWithMessage() throws Exception {
-		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {
@@ -40,7 +38,6 @@ public class AJDTErrorHandlerTest extends UITestCase {
 	}
 	
 	public void testHandleAJDTErrorWithMessageAndTitle() throws Exception {
-		IProject project = createPredefinedProject("Bean Example"); //$NON-NLS-1$
 		AJDTErrorHandler.setShowErrorDialogs(false);
 		String message = ""; //$NON-NLS-1$
 		try {

@@ -11,16 +11,16 @@
  *******************************************************************************/
 package org.eclipse.ajdt.ui.tests;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.views.log.AbstractEntry;
 import org.eclipse.ui.internal.views.log.LogEntry;
 import org.eclipse.ui.internal.views.log.LogView;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.internal.Workbench;
 
 /**
  * Test that we don't get any spurious errors or warnings in the log on startup
@@ -28,20 +28,36 @@ import org.eclipse.ui.internal.Workbench;
  */
 public class ErrorLogTest extends UITestCase {
 
-	private static final String KNOWN_MSG = "org.eclipse.contribution.xref.core.tests.unknownprovider"; //$NON-NLS-1$
+	private static final String KNOWN_MSG1 = "org.eclipse.contribution.xref.core.tests.unknownprovider"; //$NON-NLS-1$
+	private static final String KNOWN_MSG2 = "The following is a complete list"; //$NON-NLS-1$
+	
+	
+    public boolean matchesMsg1(String msg) {
+        return msg.toLowerCase().indexOf(KNOWN_MSG1) != -1;
+    }
+
+    public boolean matchesMsg2(String msg) {
+        return msg.startsWith(KNOWN_MSG2);
+    }
+
 
 	public void testNoWarningsOnStartup() throws Exception {
-		IViewPart view = openLogView();
+		IViewPart view = Workbench.getInstance().getActiveWorkbenchWindow()
+				.getActivePage().getActivePart().getSite().getPage().showView(
+						"org.eclipse.pde.runtime.LogView"); //$NON-NLS-1$
 		if (view instanceof LogView) {
 			LogView logView = (LogView) view;
 			AbstractEntry[] logs = logView.getElements();
 			// Ignore information entries in the log
 			List errorsAndWarnings = new ArrayList();
 			for (int i = 0; i < logs.length; i++) {
-				LogEntry le = (LogEntry)logs[i];
-				if (le.getSeverity() == IStatus.ERROR
-						|| le.getSeverity() == IStatus.WARNING) {
-					if (le.getMessage().toLowerCase().indexOf(KNOWN_MSG) == -1) {
+				LogEntry entry = (LogEntry) logs[i];
+				if (entry.getSeverity() == IStatus.ERROR
+						|| entry.getSeverity() == IStatus.WARNING) {
+				    String msg = entry.getMessage();
+					if (!matchesMsg1(msg) &&
+					        !matchesMsg2(msg)) {
+					    // ignore messages about missing bundles that are not from AJDT
 						errorsAndWarnings.add(logs[i]);
 					}
 				}

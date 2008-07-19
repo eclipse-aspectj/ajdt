@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
+	<classpathentry kind="var" path="Aspect_Path_Var">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Aspect_Path_Lib">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/PathTesting-ProjectOnAspectPath">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/PathTesting-JarOnAspectPath/j.jar">
+		<attributes>
+			<attribute name="org.eclipse.ajdt.inpath" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

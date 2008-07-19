@@ -83,11 +83,21 @@ public class ExportPluginTest extends UITestCase {
 		}
 		assertTrue("Created zip file has a length of 0",zip.length()>0); //$NON-NLS-1$
 		ZipFile zf = new ZipFile(zip);
+
 		String jarEntry = "plugins/HelloWorld_1.0.0/HelloWorld.jar"; //$NON-NLS-1$
-		ZipEntry entry = zf.getEntry(jarEntry);
+        ZipEntry entry = zf.getEntry(jarEntry);
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + jarEntry); //$NON-NLS-1$
+        }
+        
 		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
 		String xmlEntry = "plugins/HelloWorld_1.0.0/plugin.xml"; //$NON-NLS-1$
 		entry = zf.getEntry(xmlEntry);
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + xmlEntry); //$NON-NLS-1$
+        }
 		assertNotNull("Couldn't find entry in created zip file for: "+xmlEntry,entry); //$NON-NLS-1$
 		zf.close();
 	}
@@ -127,7 +137,11 @@ public class ExportPluginTest extends UITestCase {
 		ZipFile zf = new ZipFile(zip);
 		String jarEntry = "plugins/MyPlugin_1.0.0/helloWorld/HelloAspect.class"; //$NON-NLS-1$
 		ZipEntry entry = zf.getEntry(jarEntry);
-		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + jarEntry); //$NON-NLS-1$
+        }
+        assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
 		zf.close();
 	}
 
@@ -166,9 +180,17 @@ public class ExportPluginTest extends UITestCase {
 		ZipFile zf = new ZipFile(zip);
 		String jarEntry = "plugins/MyPlugin3_1.0.0/myplugin3/Activator.class"; //$NON-NLS-1$
 		ZipEntry entry = zf.getEntry(jarEntry);
-		assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + jarEntry); //$NON-NLS-1$
+        }
+        assertNotNull("Couldn't find entry in created zip file for: "+jarEntry,entry); //$NON-NLS-1$
 		String xmlEntry = "plugins/MyPlugin3_1.0.0/META-INF/MANIFEST.MF"; //$NON-NLS-1$
 		entry = zf.getEntry(xmlEntry);
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + xmlEntry); //$NON-NLS-1$
+        }
 		assertNotNull("Couldn't find entry in created zip file for: "+xmlEntry,entry); //$NON-NLS-1$
 		zf.close();
 	}
@@ -222,7 +244,11 @@ public class ExportPluginTest extends UITestCase {
 		ZipFile zf = new ZipFile(jar);
 		String jarEntry = "helloWorld/HelloWorldPlugin.class"; //$NON-NLS-1$
 		ZipEntry entry = zf.getEntry(jarEntry);
-		assertNotNull("Couldn't find entry in created jar file for: "+jarEntry,entry); //$NON-NLS-1$
+        // Macs seem to be generating zip files slightly differently
+        if (entry == null) {
+            entry = zf.getEntry("./" + jarEntry); //$NON-NLS-1$
+        }
+        assertNotNull("Couldn't find entry in created jar file for: "+jarEntry,entry); //$NON-NLS-1$
 		jarEntry = "helloWorld/HelloAspect.class"; //$NON-NLS-1$
 		entry = zf.getEntry(jarEntry);
 		assertNotNull("Couldn't find entry in created jar file for: "+jarEntry,entry); //$NON-NLS-1$

@@ -1,6 +1,11 @@
 Manual testing of build configurations
 ------------------------------------------
 
+ade- 11-07-2008 These tests are for the old build configurator style. 
+build.ajpropoerties are no longer used.  Rather, include/excudes of files are stored 
+in the .classpath/
+
+
 Tests for activation and including/excluding	
 
 Start with tracing example, check that initially none of the files under the

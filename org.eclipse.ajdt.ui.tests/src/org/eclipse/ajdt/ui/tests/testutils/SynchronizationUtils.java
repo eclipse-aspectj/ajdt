@@ -13,7 +13,6 @@ package org.eclipse.ajdt.ui.tests.testutils;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWTException;
@@ -30,7 +29,7 @@ public class SynchronizationUtils {
 		boolean interrupted= true;
 		while (interrupted) {
 			try {
-				Platform.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
 				interrupted= false;
 			} catch (InterruptedException e) {
 				interrupted= true;
@@ -39,7 +38,7 @@ public class SynchronizationUtils {
 		boolean wasInterrupted = false;
 		do {
 			try {
-				Platform.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				e.printStackTrace();
@@ -75,7 +74,7 @@ public class SynchronizationUtils {
 	}
 	
 	private static boolean allJobsQuiet() {
-		IJobManager jobManager= Platform.getJobManager();
+		IJobManager jobManager= Job.getJobManager();
 		Job[] jobs= jobManager.find(null);
 		for (int i= 0; i < jobs.length; i++) {
 			Job job= jobs[i];

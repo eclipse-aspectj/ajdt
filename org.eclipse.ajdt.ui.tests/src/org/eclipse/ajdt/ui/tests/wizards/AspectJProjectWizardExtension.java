@@ -17,8 +17,6 @@ import java.lang.reflect.Method;
 
 import org.eclipse.ajdt.internal.ui.text.UIMessages;
 import org.eclipse.ajdt.internal.ui.wizards.AspectJProjectWizard;
-import org.eclipse.jdt.internal.ui.wizards.JavaProjectWizard;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.StringButtonDialogField;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.swt.widgets.Composite;
@@ -42,17 +40,17 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
 	/**
 	 * Overridden to use JaveProjectWizardFirstPageExtension instead of JavaProjectWizardFirstPage 
 	 */
-//	
-//	public void addPages() {
-//        fFirstPage= new JavaProjectWizardFirstPageExtension();
-//		fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
-//		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
-//        addPage(fFirstPage);
-//        fSecondPage= new NewJavaProjectWizardPageTwo(fFirstPage);
-//        fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
-//        fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
-//        addPage(fSecondPage);
-//    }
+	
+	public void addPages() {
+        fFirstPage= new NewJavaProjectWizardPageOne();
+		fFirstPage.setTitle(UIMessages.NewAspectJProject_CreateAnAspectJProject);
+		fFirstPage.setDescription(UIMessages.NewAspectJProject_CreateAnAspectJProjectDescription);
+        addPage(fFirstPage);
+        fSecondPage= new NewJavaProjectWizardPageTwo(fFirstPage);
+        fSecondPage.setTitle(UIMessages.NewAspectJProject_BuildSettings);
+        fSecondPage.setDescription(UIMessages.NewAspectJProject_BuildSettingsDescription);
+        addPage(fSecondPage);
+    }
 	
 	/**
 	 * Overridden to add simulated user input
@@ -64,43 +62,35 @@ public class AspectJProjectWizardExtension extends AspectJProjectWizard {
 
 			// Following reflection code does this:
 			// fFirstPage.fLocationGroup.fWorkspaceRadio.setSelection(true);
-			Field f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLocationGroup");
+			Field f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLocationGroup"); //$NON-NLS-1$
 			f.setAccessible(true);
 			Object o = f.get(fFirstPage);
-			f =o.getClass().getDeclaredField("fWorkspaceRadio");
+			f =o.getClass().getDeclaredField("fWorkspaceRadio"); //$NON-NLS-1$
 			f.setAccessible(true);
 			o = f.get(o);
-			Method m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE});
+			Method m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE}); //$NON-NLS-1$
 			m.setAccessible(true);
 			m.invoke(o,new Object[]{Boolean.TRUE});
 			
 			// Following reflection code does this:
 			// fFirstPage.fLayoutGroup.fStdRadio.setSelection(true);
-			f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLayoutGroup");
+			f = NewJavaProjectWizardPageOne.class.getDeclaredField("fLayoutGroup"); //$NON-NLS-1$
 			f.setAccessible(true);
 			o = f.get(fFirstPage);
-			f = o.getClass().getDeclaredField("fStdRadio");
+			f = o.getClass().getDeclaredField("fStdRadio"); //$NON-NLS-1$
 			f.setAccessible(true);
 			o = f.get(o);
-			m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE});
+			m = o.getClass().getDeclaredMethod("setSelection",new Class[]{Boolean.TYPE}); //$NON-NLS-1$
 			m.setAccessible(true);
 			m.invoke(o,new Object[]{Boolean.TRUE});
 			
 			
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
 		} catch (SecurityException e) {
-			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
 		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
+		}	
 	}
-
-	
 }

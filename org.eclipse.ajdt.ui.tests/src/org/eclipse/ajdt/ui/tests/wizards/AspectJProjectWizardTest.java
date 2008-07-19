@@ -73,7 +73,7 @@ public class AspectJProjectWizardTest extends UITestCase {
 		IWizardPage secondPage = projectWizard.getPage("JavaCapabilityConfigurationPage"); //$NON-NLS-1$
 
 		if (firstPage == null)
-			fail("addPages() has failed to add a SimpleProjectFirstPage at the correct location."); //$NON-NLS-1$
+			fail("addPages() has failed to add a NewJavaProjectWizardPageOne at the correct location."); //$NON-NLS-1$
 		if (secondPage == null)
 			fail("addPages() has failed to add a JavaCapabilityConfigurationPage at the correct location."); //$NON-NLS-1$
 

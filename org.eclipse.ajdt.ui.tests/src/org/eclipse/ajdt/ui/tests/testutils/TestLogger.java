@@ -61,6 +61,9 @@ public class TestLogger implements IAJLogger {
      * @return
      */
     public String getMostRecentMatchingMessage(String msg) {
+        if (log == null) {
+            return null;
+        }
     	for (int i = log.size()-1; i >= 0; i--) {
            String logEntry = (String)log.get(i);
             if (logEntry.indexOf(msg) != -1) {
@@ -71,6 +74,9 @@ public class TestLogger implements IAJLogger {
     }
     
     public int numberOfEntriesForMessage(String msg) {
+        if (log == null) {
+            return 0;
+        }
         int occurances = 0;
         for (Iterator iter = log.iterator(); iter.hasNext();) {
             String logEntry = (String) iter.next();
@@ -98,6 +104,9 @@ public class TestLogger implements IAJLogger {
     public void printLog() {
     	System.out.println(""); //$NON-NLS-1$
     	System.out.println("Printing log begin ------------------------------------"); //$NON-NLS-1$
+    	if (log == null) {
+    	    System.out.println("Empty log"); //$NON-NLS-1$
+    	}
     	for (Iterator iter = log.iterator(); iter.hasNext();) {
 			String element = (String) iter.next();
 			System.out.println("LOG: " + element); //$NON-NLS-1$

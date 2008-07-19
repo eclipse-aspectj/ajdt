@@ -25,10 +25,14 @@ import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest2;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest3;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest4;
 import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest5;
+import org.eclipse.ajdt.ui.tests.builder.AdviceMarkersTest6;
 import org.eclipse.ajdt.ui.tests.builder.Bug128803Test;
 import org.eclipse.ajdt.ui.tests.builder.Bug151818Test;
+import org.eclipse.ajdt.ui.tests.builder.BuildPathTests;
 import org.eclipse.ajdt.ui.tests.builder.BuilderTest;
 import org.eclipse.ajdt.ui.tests.builder.CustomMarkersTest;
+import org.eclipse.ajdt.ui.tests.builder.ITDinSeparateProjects;
+import org.eclipse.ajdt.ui.tests.builder.InpathOutFolderTest;
 import org.eclipse.ajdt.ui.tests.builder.ProblemMarkerTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesTest;
 import org.eclipse.ajdt.ui.tests.builder.ProjectDependenciesWithJarFilesTest;
@@ -58,6 +62,7 @@ import org.eclipse.ajdt.ui.tests.preferences.AspectJFilterPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJPreferencesTest;
 import org.eclipse.ajdt.ui.tests.preferences.AspectJProjectPropertiesPageTest;
 import org.eclipse.ajdt.ui.tests.preferences.Bug162211Test;
+import org.eclipse.ajdt.ui.tests.ras.PluginFFDCTest;
 import org.eclipse.ajdt.ui.tests.testutils.SynchronizationUtils;
 import org.eclipse.ajdt.ui.tests.testutils.TestForPredefinedProjectsTool;
 import org.eclipse.ajdt.ui.tests.utils.AJDTUtilsTest;
@@ -163,10 +168,14 @@ public class AllUITests {
 		suite.addTest(new TestSuite(AdviceMarkersTest3.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest4.class));
 		suite.addTest(new TestSuite(AdviceMarkersTest5.class));
+        suite.addTest(new TestSuite(AdviceMarkersTest6.class));
 		suite.addTest(new TestSuite(Bug128803Test.class));
 		suite.addTest(new TestSuite(Bug151818Test.class));
 		suite.addTest(new TestSuite(BuilderTest.class));
+        suite.addTest(new TestSuite(BuildPathTests.class));
 		suite.addTest(new TestSuite(CustomMarkersTest.class));
+        suite.addTest(new TestSuite(InpathOutFolderTest.class));
+		suite.addTest(new TestSuite(ITDinSeparateProjects.class));
 		suite.addTest(new TestSuite(ProblemMarkerTest.class));
 		
 		// javamodel tests
@@ -180,7 +189,7 @@ public class AllUITests {
 		}
 		
 		// ras tests
-	//	suite.addTest(new TestSuite(PluginFFDCTest.class));		
+		suite.addTest(new TestSuite(PluginFFDCTest.class));		
 
 		// xref tests
 		suite.addTest(org.eclipse.contribution.xref.core.tests.AllTests.suite());

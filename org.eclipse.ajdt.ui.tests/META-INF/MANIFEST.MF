@@ -2,65 +2,32 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AJDT UI Tests Plug-in
 Bundle-SymbolicName: org.eclipse.ajdt.ui.tests;singleton:=true
-Bundle-Version: 1.6.0.qualifier
+Bundle-Version: 1.5.0.qualifier
 Bundle-ClassPath: ajdtuitests.jar
 Bundle-Activator: org.eclipse.ajdt.ui.tests.AspectJTestPlugin
 Bundle-Vendor: Eclipse.org
-Bundle-Localization: plugin
-Export-Package: org.eclipse.ajdt.ui.tests;
-  uses:="org.eclipse.ui.plugin,
-   junit.framework,
-   org.eclipse.core.resources,
-   org.eclipse.ui",
- org.eclipse.ajdt.ui.tests.actions;uses:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.ajde;
-  uses:="org.eclipse.jface.preference,
-   org.eclipse.jdt.core,
-   org.eclipse.core.runtime.preferences,
-   org.eclipse.ui.texteditor,
-   org.eclipse.core.resources,
-   org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.builder;
-  uses:="org.eclipse.jdt.core,
-   org.eclipse.ajdt.ui.tests.testutils,
-   org.eclipse.core.resources,
-   org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.editor;
-  uses:="org.eclipse.jface.text,
-   org.eclipse.ui.texteditor,
-   org.eclipse.core.resources,
-   org.eclipse.ajdt.ui.tests,
-   org.eclipse.jface.text.source",
- org.eclipse.ajdt.ui.tests.editor.codeformat;uses:="org.eclipse.core.resources,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.editor.contentassist;uses:="org.eclipse.core.resources,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.editor.quickfix;uses:="org.eclipse.ui.texteditor,org.eclipse.core.resources,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.javamodel;
-  uses:="org.eclipse.jdt.core,
-   org.eclipse.ajdt.core.codeconversion,
-   org.eclipse.ajdt.core.javaelements,
-   org.eclipse.core.resources,
-   org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.javamodel.elements;uses:="org.eclipse.ajdt.ui.tests.javamodel,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.launching;uses:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.lazystart;uses:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.model;uses:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.newbuildconfig;uses:="org.eclipse.core.resources,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.preferences;
-  uses:="org.eclipse.jface.preference,
-   org.eclipse.jdt.core,
-   org.eclipse.ajdt.ui.tests.testutils,
-   org.eclipse.ajdt.internal.ui.preferences,
-   org.eclipse.core.runtime.preferences,
-   org.eclipse.core.resources,
-   org.eclipse.ajdt.ui.tests,
-   org.eclipse.ajdt.internal.ui",
+Export-Package: org.eclipse.ajdt.ui.tests,
+ org.eclipse.ajdt.ui.tests.actions,
+ org.eclipse.ajdt.ui.tests.ajde,
+ org.eclipse.ajdt.ui.tests.builder,
+ org.eclipse.ajdt.ui.tests.editor,
+ org.eclipse.ajdt.ui.tests.editor.codeformat,
+ org.eclipse.ajdt.ui.tests.editor.contentassist,
+ org.eclipse.ajdt.ui.tests.editor.quickfix,
+ org.eclipse.ajdt.ui.tests.javamodel,
+ org.eclipse.ajdt.ui.tests.javamodel.elements,
+ org.eclipse.ajdt.ui.tests.launching,
+ org.eclipse.ajdt.ui.tests.lazystart,
+ org.eclipse.ajdt.ui.tests.model,
+ org.eclipse.ajdt.ui.tests.newbuildconfig,
+ org.eclipse.ajdt.ui.tests.preferences,
  org.eclipse.ajdt.ui.tests.ras,
- org.eclipse.ajdt.ui.tests.testutils;uses:="org.eclipse.ajdt.core,org.eclipse.core.runtime,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.utils;uses:="org.eclipse.core.runtime.jobs,org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.visualiser;uses:="org.eclipse.ajdt.ui.tests",
+ org.eclipse.ajdt.ui.tests.testutils,
+ org.eclipse.ajdt.ui.tests.utils,
+ org.eclipse.ajdt.ui.tests.visualiser,
  org.eclipse.ajdt.ui.tests.wizards,
- org.eclipse.ajdt.ui.tests.wizards.export;uses:="org.eclipse.ajdt.ui.tests",
- org.eclipse.ajdt.ui.tests.xref;uses:="org.eclipse.ajdt.ui.tests"
+ org.eclipse.ajdt.ui.tests.wizards.export,
+ org.eclipse.ajdt.ui.tests.xref
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.ajdt.ui,
@@ -98,4 +65,4 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.browser,
  org.eclipse.contribution.visualiser,
  org.eclipse.ui.views.log;bundle-version="1.0.0"
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy

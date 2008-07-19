@@ -13,13 +13,12 @@ package org.eclipse.ajdt.ui.tests.builder;
 import java.io.StringReader;
 
 import org.eclipse.ajdt.internal.ui.refactoring.ReaderInputStream;
-import org.eclipse.ajdt.ui.AspectJUIPlugin;
 import org.eclipse.ajdt.ui.tests.UITestCase;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.ui.views.markers.internal.ProblemView;
-
+ 
 public class Bug128803Test extends UITestCase {
 
 	public void testBug128803() throws Exception {
@@ -32,13 +31,13 @@ public class Bug128803Test extends UITestCase {
 		IResource fileA = project.findMember(filename);
 		if (fileA == null)
 			fail("Required file not found: " + filename); //$NON-NLS-1$
-		ProblemView problemView = (ProblemView) AspectJUIPlugin.getDefault().getActiveWorkbenchWindow().getActivePage().showView("org.eclipse.ui.views.ProblemView");		 //$NON-NLS-1$
-		assertEquals("There should be one problem in the project", 1, problemView.getCurrentMarkers().getSize()); //$NON-NLS-1$
+		IMarker[] markers = getAllProblemViewMarkers();
+		assertEquals("There should be one problem in the project", 1, markers.length); //$NON-NLS-1$
 		String newContents = "package pkg; \npublic class C {\n\n\n}"; //$NON-NLS-1$
 		((IFile)fileC).setContents(new ReaderInputStream(new StringReader(newContents)), true, true, null);
 		fileA.refreshLocal(1, null);
 		waitForJobsToComplete();
-		assertEquals("There should still be one problem in the project", 1, problemView.getCurrentMarkers().getSize()); //$NON-NLS-1$			
+		assertEquals("There should still be one problem in the project", 1, markers.length); //$NON-NLS-1$			
 	}
 	
 }

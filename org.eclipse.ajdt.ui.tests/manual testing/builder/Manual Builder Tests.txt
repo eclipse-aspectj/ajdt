@@ -1,5 +1,7 @@
 Test to ensure don't rebuild if src file changes which isn't in active build config file
 ----------------------------------------------------------------------------------------
+ade 11-07-2008  Using new build config now.  There is no more "Build Path > Exclide" option.
+
 
 (1) Import the AspectJ Bean Example into your workspace
 (2) Create a DummyClass in the bean package (File > New > Class)

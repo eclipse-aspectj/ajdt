@@ -91,7 +91,7 @@ public class CodeFormatTest extends UITestCase {
 				int lineDeLen = lineDe==null ? 0 : lineDe.length();
 				// remove line delimiter
 				line = line.substring(0, line.length()-lineDeLen);
-				assertTrue(line+" correct:"+lines[l],line.equals(lines[l])); //$NON-NLS-1$
+				assertEquals(line+"\n correct:\n"+lines[l],lines[l], line); //$NON-NLS-1$
 			} catch (BadLocationException e) {
 				failOnException("Exception occurs.", e); //$NON-NLS-1$
 			}

@@ -113,15 +113,14 @@ public class AspectJPreferencesTest extends UITestCase {
 		assertFalse("should have reset OPTION_XHasMember to default",b1); //$NON-NLS-1$
 		
 		AspectJPreferences.setUsingProjectSettings(project,false);
-		boolean threwExpectedException = false;
 		try {
 			projectNode.keys();
+			projectNode.getBoolean(AspectJPreferences.OPTION_XHasMember, false);
+			fail("Should have thrown an exception.  There should be no project settings"); //$NON-NLS-1$
 		} catch (IllegalStateException e) {
 			// we expect this exception because setting "use project settings" to false
 			// should clear all keys and consequently throw this exception.
-			threwExpectedException = true;
 		}
-		assertEquals("there should be no project settings",true,threwExpectedException); //$NON-NLS-1$
 	}
 	
 	public void testGetShowWeaveMessagesOptionViaWorkbenchPreferences() throws Exception {
